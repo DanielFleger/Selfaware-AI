@@ -2,7 +2,7 @@
 """Gegner-Probe (Daniel 11.10. 14:41 "mach weiter mit dem Nomade"): ein Liga-Gefecht mit Gegner-KI-Art ki starten und
 nach ein paar hundert Ticks Lords und Einheitentypen je Spieler zaehlen. Kein Lenker, keine leere KI.
 ki = aiType + 1 (logik.lua eigenesGefecht): 1 = Ratte (Rotkaeppchen), 7 = Sultan (Instanz 4: (no)made).
-Aufruf: SHC_INSTANZ=4 python gegner_pruefen.py ki=7 [ticks=400] [erwartet=Nomade]
+Aufruf: SHC_INSTANZ=4 python gegner_pruefen.py ki=7 [ticks=400] [erwartet=Nomade] [platz=N]
 
 erwartet=<KI-Ordner> (Daniel 11.10. 15:00: "es sind eindeutig sultans starttruppen" - ich hatte aus geaenderten
 Typnummern auf den Nomade geschlossen, ohne sie Namen zuzuordnen): Starttruppen 'normal' aus character.json des
@@ -81,6 +81,8 @@ def main():
     if "karte" in arg:
         gefecht["karte"] = arg["karte"]
         gefecht.pop("startliste", None)
+    if "platz" in arg:      # Daniel 16:45 "Nomade auf die andere Seite der Map": Startplatz des Gegners (Mensch bleibt 0)
+        gefecht["startliste"] = [0, int(arg["platz"])] + [246] * 6
     zeilen = kanal.sende(gefecht, 4, bis="LaunchSkirmishGame zurueck")
     print("Start:", " | ".join(z for z in zeilen if "GEFECHT" in z or "Launch" in z)[:400], flush=True)
     E.befehl({"pause": False}, 0.5)
