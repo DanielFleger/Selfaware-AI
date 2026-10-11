@@ -229,6 +229,12 @@ class Einzeln:
     Gegenprobe je Runde: laeuft ein Assassine nicht zu seinem Gebaeude (Laufziel im Lagebild weiter als ZIEL_NAH),
     bekommt er den Befehl neu - der Plan im Kopf zaehlt nicht, nur das Laufziel im Spiel."""
     JE_GEBAEUDE = 1          # 12.10. Daniel 00:41/00:44: EIN Assassine je Gebaeude reisst ein, bei teuren (Wert >= TEUER) zwei;
+    BEUTE_R = 15             # 12.10.: Fernkaempfer am Boden in diesem Umkreis werden gejagt (Stellgroesse)
+    # Laufzeit-Typen mit begehbarem Dach (abgelesen VillageStudio/lib/aiv_typen.lua AIV_ZU_LAUFZEIT): Tuerme 74-78,
+    # Torhaus gross 45 / klein 46, Steinbergfried 41. Andere Bergfried-Arten sind dort nicht aufgefuehrt (offen)
+    ERHOEHT = {41, 45, 46, 74, 75, 76, 77, 78}
+    HOCH_R = 4               # Umkreis um die Gebaeudemitte, der als "oben" gilt (groesster Turm/Torhaus ~6 Felder breit)
+    LORD_ABSTAND = 6         # Beute neben ihrem Lord wird nicht gejagt (der Lord schlaegt Assassinen)
     TEUER = 100              # mehr nur, wenn unsere Assassinen dort angegriffen werden (+1 je angegriffenem) - vorher fest 6
     WECHSEL = 1.5            # 12.10. (Daniel 00:41 "sofort reagieren, auch mit Ziel, auf ein neu gebautes besseres Ziel")
     ZIEL_NAH = 8           # gemessen 05.10.: Gebaeudeangriff -> Laufziel 1-2 Felder neben dem Gebaeude
@@ -652,6 +658,24 @@ class Einzeln:
         if abweichler:
             self.bilanz["neu_befohlen"] += abweichler
             ereignis.append("%d Assassinen liefen nicht zu ihrem Ziel - neu befohlen" % abweichler)
+        # 3b. Beute (Daniel 12.10. 00:44 "erkennen, wenn Fernkaempfer sich auf dem Boden bewegen - im Nahkampf einfach zu
+        # snacken"): ein Fernkaempfer am Boden (kein Turm/Torhaus im Umkreis 2), bei dem hoechstens ein Nahkaempfer steht,
+        # wird von freien Assassinen im Umkreis BEUTE_R gejagt - auch statt eines Gebaeudes. GRENZE: Schuetzen auf Mauern
+        # erkennt das nicht (Mauern stehen nicht in der Gebaeudeliste) - sie gelten als "am Boden"
+        hoch = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] not in (0, self.sp) and g["typ"] in self.ERHOEHT]
+        beute = [(nr, p) for nr, p, typ in fern if all(schach(p, h) > self.HOCH_R for h in hoch)
+                 and all(schach(p, b) > self.LORD_ABSTAND for b in self._feindburg) and self._anzahl(p, nah, 5) <= 1]
+        for n in sorted(self.mitglieder):
+            if n in self.jagd or n in self.lordtrupp["mitglieder"] or n in self.stapel["mitglieder"] or n in self.flucht or n not in L:
+                continue
+            ort = (L[n]["x"], L[n]["y"])
+            nah_b = [b_ for b_ in beute if schach(ort, b_[1]) <= self.BEUTE_R]
+            if nah_b:
+                ziel_b = min(nah_b, key=lambda b_: schach(ort, b_[1]))
+                self.ziel.pop(n, None); self.warte.pop(n, None)
+                self.jagd[n] = ziel_b[0]
+                jagen.append((n, ziel_b[0]))
+                ereignis.append("BEUTE %d jagt Fernkaempfer %d am Boden (%d Felder)" % (n, ziel_b[0], schach(ort, ziel_b[1])))
         # 4. Verletzt im Schussfeld: Rueckzug oder zuschlagen
         for n in verletzt:
             ort = (L[n]["x"], L[n]["y"])
