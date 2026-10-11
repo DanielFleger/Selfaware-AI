@@ -228,7 +228,8 @@ class Einzeln:
     (ZIELWAHL-Zeilen), jede Verletzung und jeder Tod ihr Umfeld (MESSUNG-Zeilen), damit die naechste Partie sie eicht.
     Gegenprobe je Runde: laeuft ein Assassine nicht zu seinem Gebaeude (Laufziel im Lagebild weiter als ZIEL_NAH),
     bekommt er den Befehl neu - der Plan im Kopf zaehlt nicht, nur das Laufziel im Spiel."""
-    JE_GEBAEUDE = 6
+    JE_GEBAEUDE = 2          # 12.10. (Daniel 00:41 "warum gehen die Assassinen nicht gesplittet auf Gebaeude?"): vorher 6
+    WECHSEL = 1.5            # 12.10. (Daniel 00:41 "sofort reagieren, auch mit Ziel, auf ein neu gebautes besseres Ziel")
     ZIEL_NAH = 8           # gemessen 05.10.: Gebaeudeangriff -> Laufziel 1-2 Felder neben dem Gebaeude
     NEU_NACH = 4           # Runden (je ~30 Ticks bei Tempo 1000), bis ein Befehl im Spiel sichtbar sein muss
     VOLL = 12500           # gemessen 05.10.: Leben eines frisch angeworbenen Assassinen
@@ -868,6 +869,22 @@ class Einzeln:
             kand.append((gn, p, g["typ"], g.get("erreichbar", 1), self._anzahl(p, fern, 10),
                          self._anzahl(p, fern, self.ZIEL_FERN), self._anzahl(p, fern, 30), self._anzahl(p, fern, self.SCHWACH_FERN),
                          self._anzahl(p, nah, self.UEBERMACHT_R)))
+        # Zielwechsel: wer ein Gebaeude angreift, wechselt sofort, wenn ein freies, erreichbares Gebaeude mindestens WECHSEL-mal
+        # mehr Wert je Weg bringt (z.B. ein neu gebautes in der Naehe)
+        wert = lambda ort, k: WERT.get(k[2], 10) / ((schach(ort, k[1]) + 20.0) * (1 + k[5]))
+        for n, gn in list(self.ziel.items()):
+            if n not in L or gn not in G:
+                continue
+            ort = (L[n]["x"], L[n]["y"])
+            jetzt = next((k for k in kand if k[0] == gn), None)
+            besser = [k for k in kand if k[3] and k[0] != gn and zahl.get(k[0], 0) < self.JE_GEBAEUDE and k[5] <= self.ZIEL_FERN_MAX]
+            if jetzt and besser:
+                b_k = max(besser, key=lambda k: wert(ort, k))
+                if wert(ort, b_k) >= self.WECHSEL * wert(ort, jetzt):
+                    del self.ziel[n]
+                    zahl[gn] = max(0, zahl.get(gn, 1) - 1)
+                    ereignis.append("ZIELWECHSEL %d: %d -> besseres Gebaeude %d (Wert je Weg x%.1f)" % (
+                        n, gn, b_k[0], wert(ort, b_k) / max(wert(ort, jetzt), 1e-9)))
         gruende = {"keins erreichbar": 0, "alle voll": 0, "alle gefaehrlich": 0}
         ohne = 0
         for n in sorted(self.mitglieder):
