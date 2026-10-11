@@ -19,6 +19,7 @@ from laden import befehl
 from waechter import sicherster_ort
 from bedrohung import fingerabdruck, bedarf as lage_bedarf, lagen_laden
 import schussfeld
+import lordschutz
 
 ASSASSINE = 73
 TRUPPE = {22, 23, 24, 25, 26, 27, 28, 37, 55, 70, 71, 72, 73, 74, 75, 76}
@@ -230,6 +231,7 @@ class Einzeln:
     Gegenprobe je Runde: laeuft ein Assassine nicht zu seinem Gebaeude (Laufziel im Lagebild weiter als ZIEL_NAH),
     bekommt er den Befehl neu - der Plan im Kopf zaehlt nicht, nur das Laufziel im Spiel."""
     JE_GEBAEUDE = 1          # 12.10. Daniel 00:41/00:44: EIN Assassine je Gebaeude reisst ein, bei teuren (Wert >= TEUER) zwei;
+    LORD_TAKT_R = 3          # 12.10.: wer hoechstens so viel kuerzer hat als der Restweg der Losgelaufenen, laeuft los
     SCHUETZEN_MAX, SCHUETZEN_MAX_TEUER = 1, 2   # 12.10.: gute Tauschgeschaefte (Stellgroessen)
     WEGPUNKT_NAH = 3         # 12.10.: so nah am Wegpunkt gilt er als erreicht
     BEUTE_R = 15             # 12.10.: Fernkaempfer am Boden in diesem Umkreis werden gejagt (Stellgroesse)
@@ -899,7 +901,46 @@ class Einzeln:
                 for n in list(lt["mitglieder"]):
                     self._vergessen(n)
                 lt.update(mitglieder=set(), phase=None, sammelpunkt=None)
-            if lt["phase"] is None and len(self.mitglieder) >= min(n_bedarf, self.LORD_SAMMELN_AB):
+            pos = lambda k: (L[k]["x"], L[k]["y"])
+            if not self.angriff_aus and lt["phase"] is None and len(self.mitglieder) >= n_bedarf and self.jetzt >= lordschutz.BIS:
+                # 12.10. 01:48 OHNE SAMMELPUNKT (Daniel 00:49 "man muss nicht an einem Punkt sammeln, Hauptsache sie kommen ca.
+                # gleich schnell an"; 00:52 "beim Sammeln wird alles im Stich gelassen"; 01:42 "warum sammeln sich wieder
+                # Assassinen in einem Klump?"): die gesuendesten n_bedarf bilden die Gruppe; wer am weitesten weg ist, laeuft
+                # zuerst los, die anderen raiden weiter, bis ihr Weg so lang ist wie der Restweg der Losgelaufenen (Takt)
+                gruppe = sorted(self.mitglieder, key=lambda k: (-L[k]["leben"], -schach(pos(k), lp), k))[:n_bedarf]
+                lt.update(mitglieder=set(), warte=set(gruppe), lord=ln, phase="anlauf", seit=self.runde, sammelpunkt=None)
+                ereignis.append("LORD-ANLAUF: %d Assassinen ohne Sammelpunkt, Wege %d-%d Felder (Bedarf %d %s: %s)" % (
+                    len(gruppe), min(schach(pos(k), lp) for k in gruppe), max(schach(pos(k), lp) for k in gruppe),
+                    n_bedarf, bedarf_art, self.bedarf_grund))
+            if lt["phase"] == "anlauf":
+                lt["warte"] = {k for k in lt.get("warte", set()) if k in self.mitglieder}
+                frei_k = sorted((k for k in self.mitglieder if k not in lt["warte"] and k not in lt["mitglieder"]),
+                                key=lambda k: (-L[k]["leben"], k))
+                while frei_k and len(lt["warte"]) + len(lt["mitglieder"]) < n_bedarf:
+                    lt["warte"].add(frei_k.pop(0))            # Tote ersetzen, bevor die Gruppe loslaeuft
+                rest = [schach(pos(k), lp) for k in lt["mitglieder"]]
+                takt = max(rest) if rest else max((schach(pos(k), lp) for k in lt["warte"]), default=0)
+                los = sorted(k for k in lt["warte"] if schach(pos(k), lp) >= takt - self.LORD_TAKT_R)
+                if los:
+                    for k in los:
+                        self._vergessen(k)
+                        lt["warte"].discard(k)
+                        lt["mitglieder"].add(k)
+                    lord_befehl = {"angriff": {"einheiten": los, "ziel": ln}}
+                    if not self.angriffe or self.angriffe[-1].get("runde") != lt["seit"]:
+                        self.bilanz["lordtrupps"] = self.bilanz.get("lordtrupps", 0) + 1
+                        self.angriffe.append({"runde": lt["seit"], "groesse": n_bedarf, "lord_vorher": le["leben"], "lord_nachher": le["leben"],
+                                              "fern": self._anzahl(lp, fern, self.LORD_UMKREIS), "nah": self._anzahl(lp, nah, self.LORD_UMKREIS),
+                                              "weg_min": min(schach(pos(k), lp) for k in los), "weg_max": takt, "am_lord_max": 0,
+                                              "erreicht_runde": None, "anderes": {}, "truppe": set(), "verluste": 0,
+                                              "bedarf": n_bedarf, "bedarf_art": bedarf_art, "bedarf_grund": self.bedarf_grund,
+                                              "fingerabdruck": self.bedarf_fa})
+                    self.angriffe[-1]["truppe"] |= set(los)
+                    ereignis.append("LORD-ANLAUF: %d laufen los (Takt %d Felder), %d raiden noch, %d unterwegs" % (
+                        len(los), takt, len(lt["warte"]), len(lt["mitglieder"])))
+                if not lt["warte"]:
+                    lt["phase"] = "angriff"
+            elif self.angriff_aus and lt["phase"] is None and len(self.mitglieder) >= min(n_bedarf, self.LORD_SAMMELN_AB):
                 punkt = self._lord_sammelpunkt(lp, sichere_orte, fern)
                 if punkt is not None:
                     alle = sorted(self.mitglieder)

@@ -1541,7 +1541,18 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         # 12.10. 01:44: auf jeder anderen Karte nie das Startlager abreissen; Anker = das Lager am Plan-Platz (Eroeffnung)
         wirt.alt = set()
         wirt.lager_ort, wirt.lager_ist_anker = tuple(plan["lager"]), True
-        schreib("Lager: Startlager bleibt, Anker %s (Eroeffnung baut es sofort)" % (wirt.lager_ort,))
+        # 01:47 (1012j: Plan-Platz (78,256) "kein Platz im Umkreis 10", Holzfaeller standen mit 18 Holz; Daniel: "hier gibt es
+        # keinen Grund, das Vorratslager nicht umzuplatzieren"): steht am Anker kein Lagerteil, sucht das Spiel selbst den
+        # naechsten freien Lagerplatz (Platzsuche) im Umkreis 25 - der wird gebaut und ist ab dann der Anker
+        if not [1 for _, x, y in gebaeude_von(SP, 10) if max(abs(x - wirt.lager_ort[0]), abs(y - wirt.lager_ort[1])) <= 10]:
+            ort_l = freier_platz(10, wirt.lager_ort, 25)
+            if ort_l:
+                gebaut_l = baue_schnell(10, ort_l[0], ort_l[1], 3, zweck="Lager am Wald (Ausweichplatz)")
+                if gebaut_l:
+                    wirt.lager_ort = tuple(gebaut_l)
+                    plan["lager"] = list(gebaut_l)
+            schreib("Lager am Plan-Platz fehlte - Ausweichplatz %s, gebaut %s" % (ort_l, wirt.lager_ort))
+        schreib("Lager: Startlager bleibt, Anker %s" % (wirt.lager_ort,))
     if streitkolben and weg == "produktion":
         wirt.lager_max_teile = 8       # zwei Vorratslager; Ueberschuss wird verkauft statt ein drittes anzubauen
     karte_laden()        # Begehbarkeit fuer kurze Rueckzuege - jetzt, solange das Spiel noch steht
