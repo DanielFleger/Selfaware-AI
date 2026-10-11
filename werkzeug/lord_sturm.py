@@ -81,15 +81,29 @@ def main():
     E.GEGNER_ERWARTET, E.LEERE_KI = arg.get("erwartet", "Nomade"), False
     stempel = time.strftime("%Y%m%d_%H%M%S")
     protokoll = Lageprotokoll(os.path.join(E.D, "lage_%s_i%d_sturm.jsonl.gz" % (stempel, kanal.INSTANZ)))
-    for versuch in range(1, 6):
-        try:
-            E.gefecht_starten(tempo)
-            break
-        except SystemExit as e:
-            if versuch == 5 or not any(s in str(e) for s in ("beide Lords", "STARTPLATZ FALSCH")):
-                raise
-            E.schreib("NEUSTART Gefecht (Versuch %d): %s" % (versuch, e))
-    E.schreib("STURM: mit_lord=%s (Rolle %s), Tempo %d, Rueckzug %s, Befehl alle %d Runden" % (mit_lord, lord_rolle, tempo, rueckzug, neu))
+    verstaerkung = arg.get("verstaerkung", "keine")
+    if verstaerkung == "assassinen":
+        # Daniel 16:26 "ja bau die Assassinen-Verstaerkung": die erprobte Eroeffnung des Lenkers (phase1 mit Posten) startet
+        # das Gefecht samt Gegnerpruefung, baut Markt und Soeldnerposten, verkauft Start-Nahrung bis zum Puffer und wirbt
+        # Assassinen an, solange Gold (70) und Bauern am Feuer reichen. Danach greifen alle gemeinsam an.
+        import json
+        import waechter
+        plan = json.load(open(os.path.join(E.D, arg.get("plan", "eroeffnung_plan_M19.json")), encoding="utf-8"))
+        plan["_datei"] = arg.get("plan", "eroeffnung_plan_M19.json")
+        E.BERGFRIED = tuple(plan.get("bergfried_eingang", E.BERGFRIED))
+        waechter.BERGFRIED_EINGANG = E.BERGFRIED
+        E.phase1(plan, tempo, mit_posten=True)
+    else:
+        for versuch in range(1, 6):
+            try:
+                E.gefecht_starten(tempo)
+                break
+            except SystemExit as e:
+                if versuch == 5 or not any(s in str(e) for s in ("beide Lords", "STARTPLATZ FALSCH")):
+                    raise
+                E.schreib("NEUSTART Gefecht (Versuch %d): %s" % (versuch, e))
+    E.schreib("STURM: mit_lord=%s (Rolle %s), Verstaerkung %s, Tempo %d, Rueckzug %s, Befehl alle %d Runden" % (
+        mit_lord, lord_rolle, verstaerkung, tempo, rueckzug, neu))
     runde, lord_max, zurueck, naechste_zeile, start_t, verlauf = 0, None, False, 0, None, []
     while True:
         kanal.belege()          # Sperre je Runde auffrischen (gilt 15 s; zuruecksetzen() gibt sie zwischendurch frei)
@@ -110,6 +124,10 @@ def main():
             E.schreib("STURM NIEDERLAGE bei Tick %d: unser Lord tot" % t)
             return 1
         lord_max = lord_max or L[mein_lord]["leben"]
+        beliebt = st.get("beliebt")
+        if beliebt is not None and beliebt < 5000:       # Daniel: nie unter 50 Beliebtheit
+            E.schreib("STURM REGELBRUCH bei Tick %d: Beliebtheit %.2f unter 50" % (t, beliebt / 100.0))
+            return 5
         alle_truppen = [n for n, e in L.items() if e["besitzer"] == E.SP and e["typ"] in kampf]
         truppe = list(alle_truppen)          # wer gerade auf seinen Lord geht (Bogen erst nach dem Abstieg)
         hatte_truppe = hatte_truppe or bool(alle_truppen)     # Starttruppen erscheinen erst nach Tick ~110 (Lauf 1011d brach bei 109 ab)
@@ -179,8 +197,10 @@ def main():
             nah = sorted(max(abs(L[n]["x"] - lx), abs(L[n]["y"] - ly)) for n in angreifer) if angreifer else [-1]
             wache = sum(1 for e in L.values() if e["besitzer"] not in (0, E.SP) and e["typ"] in kampf
                         and max(abs(e["x"] - lx), abs(e["y"] - ly)) <= 15)
-            E.schreib("STURM Tick %5d | Gegner-Lord %6d Leben, Wache<=15: %2d | wir: %2d Truppen, Lord %6d%s | naechster %d Felder vom Lord" % (
-                t, L[feind]["leben"], wache, len(truppe), L[mein_lord]["leben"], " (zurueck)" if zurueck else "", nah[0]))
+            ass = sum(1 for n in alle_truppen if L[n]["typ"] == 73)
+            E.schreib("STURM Tick %5d | Gegner-Lord %6d Leben, Wache<=15: %2d | wir: %2d Truppen (%d Assassinen), Lord %6d%s | naechster %d Felder vom Lord | Beliebtheit %s" % (
+                t, L[feind]["leben"], wache, len(truppe), ass, L[mein_lord]["leben"], " (zurueck)" if zurueck else "", nah[0],
+                "%.1f" % (beliebt / 100.0) if beliebt is not None else "?"))
             naechste_zeile = t + 100
         # 1011f: die Bogenschuetzen waren fuer den Abstieg aus "truppe" genommen - Abbruch nur, wenn wirklich keiner mehr lebt
         if hatte_truppe and not alle_truppen and (zurueck or not mit_lord or lord_rolle == "schild"):

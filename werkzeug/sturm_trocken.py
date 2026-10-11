@@ -17,14 +17,17 @@ def einheit(besitzer, typ, x, y, leben=100, nahziel=-1):
     return {"besitzer": besitzer, "typ": typ, "x": x, "y": y, "leben": leben, "nahziel": nahziel}
 
 
-def lage(t, gegner_leben, bogen=0, speer=0, lord_xy=(141, 269), lord_leben=150000, lord_schlaegt=False, gegner_nah=-1):
+def lage(t, gegner_leben, bogen=0, speer=0, lord_xy=(141, 269), lord_leben=150000, lord_schlaegt=False, gegner_nah=-1,
+         assassinen=0, beliebt=8000):
     L = {UNSER: einheit(1, 55, lord_xy[0], lord_xy[1], lord_leben, SEIN if lord_schlaegt else -1),
          SEIN: einheit(2, 55, 218, 261, gegner_leben, gegner_nah)}
     for i in range(bogen):
         L[200 + i] = einheit(1, 22, 141, 269)
     for i in range(speer):
         L[300 + i] = einheit(1, 24, 200, 262)
-    return {"t": t}, L, {}
+    for i in range(assassinen):
+        L[400 + i] = einheit(1, 73, 150, 270)
+    return {"t": t, "beliebt": beliebt}, L, {}
 
 
 class Protokoll:
@@ -35,16 +38,17 @@ class Protokoll:
         pass
 
 
-def fall(name, folge, soll_rc, pruefe=None):
+def fall(name, folge, soll_rc, pruefe=None, extra=()):
     befehle, texte, it = [], [], iter(folge)
     E.gefecht_starten = lambda tempo: None
+    E.phase1 = lambda plan, tempo, mit_posten=True: befehle.append({"phase1": mit_posten})
     E.runde_lesen = lambda: next(it)
     E.befehl = lambda b, *a, **k: befehle.append(b) or ["OK"]
     E.schreib = lambda s: texte.append(s)
     E.BERGFRIED, E.SP = (141, 269), 1
     kanal.belege = kanal.freigeben = lambda: None
     lageprotokoll.Lageprotokoll = Protokoll
-    sys.argv = ["lord_sturm.py", "mit_lord=ja", "lord_rolle=schild", "rueckzug=rechnung", "neu=1"]
+    sys.argv = ["lord_sturm.py", "mit_lord=ja", "lord_rolle=schild", "rueckzug=rechnung", "neu=1"] + list(extra)
     try:
         rc = lord_sturm.main()
     except StopIteration:
@@ -63,6 +67,13 @@ erg = [
     fall("Bogen nach dem Abstieg weit weg: Laufbefehl auf 12 Felder vor seinen Lord",
          [lage(110, 30000), lage(202, 30000, bogen=5, speer=7)] + [lage(300 + 50 * i, 30000, bogen=5, speer=7) for i in range(4)],
          "Folge zu Ende", lambda b, t: laeufe(b, 206, 262)),
+    fall("Verstaerkung: Eroeffnung mit Posten, Assassinen greifen den Lord an",
+         [lage(800, 30000, speer=7, assassinen=2), lage(900, 30000, speer=7, assassinen=2)], "Folge zu Ende",
+         lambda b, t: {"phase1": True} in b and any(400 in x.get("angriff", {}).get("einheiten", []) and
+                                                    x["angriff"].get("ziel") == SEIN for x in b),
+         extra=("verstaerkung=assassinen",)),
+    fall("Beliebtheit 49: REGELBRUCH, Abbruch",
+         [lage(300, 30000, speer=7), lage(400, 28000, speer=7, beliebt=4900)], 5),
     fall("alle Truppen tot: GESCHEITERT erst dann",
          [lage(110, 30000), lage(300, 30000, bogen=5, speer=7), lage(500, 25000, speer=3), lage(600, 25000)], 2),
     fall("Lords 3 Felder auseinander: unser Lord laeuft nach Hause",
