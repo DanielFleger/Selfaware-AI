@@ -63,8 +63,17 @@ def main():
         except RuntimeError:
             hart = True
         pruefungen.append(("Unvollstaendige Welle MIT Bauern am Feuer bleibt harter Abbruch", hart))
+
+        # SAI 11.10. Nomade-Lauf 1011j: im Kampf koennen Rekruten fallen - Freigabe mit Meldung statt Abbruch
+        E.GEGNER_ERWARTET = "Nomade"
+        marken, aus = {"_werben_offen": {"t": 0, "t26": 13, "menge": 5, "ziel": 18}}, []
+        frei = E.werbung_freigegeben({"t": 1200, "T26": 17, "feuer": 3}, marken, aus)
+        pruefungen.append(("Im Kampf (Nomade) wird 4/5 mit Bauern am Feuer freigegeben, mit Meldung",
+                           frei and "_werben_offen" not in marken and any("Kampf gegen Nomade" in a for a in aus)))
+        E.GEGNER_ERWARTET = ""
     finally:
         E.befehl = alt
+        E.GEGNER_ERWARTET = ""
 
     for text, ok in pruefungen:
         print(("OK  " if ok else "ROT ") + text)

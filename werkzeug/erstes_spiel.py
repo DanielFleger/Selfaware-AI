@@ -524,13 +524,17 @@ def werbung_freigegeben(st, marken, aus):
         return True
     if st["t"] - offen["t"] >= 1200:
         angekommen = max(0, st.get("T26", 0) - offen["t26"])
-        if st.get("feuer") == 0:          # nur wenn das Spiel ausdruecklich 0 meldet - unbekannt bleibt Abbruch
+        # SAI 11.10. Nomade-Lauf 1011j (Tick 32.722): 4/5 angekommen, 10 feindliche Bogenschuetzen am Bergfried, alle
+        # 17 Kaempfer verwundet - gegen einen echten Gegner koennen Rekruten unterwegs fallen (Daniel 15:46: Lord-Angriff
+        # testen). Im Kampf (gegner_erwartet) wird die Welle mit Meldung freigegeben; gegen die leere KI bleibt Abbruch.
+        if st.get("feuer") == 0 or GEGNER_ERWARTET:   # Feuer nur, wenn das Spiel ausdruecklich 0 meldet
             # 11.10. Lauf 50,100 (Tick 27.267): Welle 2 bei 2 Bauern am Feuer, einer wurde vorher anderweitig vergeben -
             # das Spiel zog nur EINMAL 20 Gold ab (639 -> 619), Kaempfer 65 -> 66. Ohne Bauern am Feuer kostet ein
             # Anwerbebefehl nichts; die Welle wird mit Meldung freigegeben statt den Lauf abzubrechen.
             marken.pop("_werben_offen", None)
-            aus.append("ANWERBEN Welle %d/%d unvollstaendig freigegeben: kein Bauer mehr am Feuer (Befehl ohne Bauer kostet nichts)" % (
-                angekommen, offen["menge"]))
+            grund = ("kein Bauer mehr am Feuer (Befehl ohne Bauer kostet nichts)" if st.get("feuer") == 0
+                     else "Kampf gegen %s, Rekruten koennen unterwegs fallen" % GEGNER_ERWARTET)
+            aus.append("ANWERBEN Welle %d/%d unvollstaendig freigegeben: %s" % (angekommen, offen["menge"], grund))
             return True
         raise RuntimeError("Anwerbewelle nach 1200 Ticks unvollstaendig: %d/%d angekommen; kein unsicherer Zweitversuch" % (
             angekommen, offen["menge"]))
@@ -609,6 +613,7 @@ RATIONEN = "doppelt"     # Lernkreis: doppelte Rationen (+250 je Woche), sobald 
 REGEL50 = False          # Aufgabe s25: faellt die Beliebtheit unter 50, bricht der Lauf ab (Regelbruch)
 STUFEN = []              # streitkolben=50,100: gestufte Ziele in EINEM Lauf (Daniel 11.10. 14:28)
 ZWISCHENZIEL = False     # solange ein spaeteres Ziel folgt: im Endspiel nie abreissen
+ZUSCHAU_TEMPO = 0        # ab dem ersten Lord-Angriff dieses Spieltempo (0 = bleibt; Daniel 11.10. 15:46 "ich will zuschauen")
 GEGNER_ERWARTET = ""     # KI-Ordnername (z.B. Nomade): Gegner beim Start gegen dessen character.json pruefen
 ANGRIFF_AB = 0           # ab so vielen Streitkolbenkaempfern alle auf den feindlichen Lord (0 = nie; Nomade 11.10.)
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
@@ -2186,6 +2191,14 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         fruehpruefung["angriff_start"] = st["t"]
                         ereignis.append("ANGRIFF auf den feindlichen Lord Nr %d mit %d Streitkolbenkaempfern ab Tick %d (Lord-Leben %d)" % (
                             feind, len(kolben), st["t"], L[feind]["leben"]))
+                        if ZUSCHAU_TEMPO:
+                            befehl({"tempo": ZUSCHAU_TEMPO}, 1.0, bis="TEMPO")
+                            ereignis.append("TEMPO %d ab dem ersten Angriff (zum Zuschauen)" % ZUSCHAU_TEMPO)
+                    # Beleg, dass der Befehl wirkt: Abstand der Kaempfer zum Lord und dessen Leben je Angriffsrunde
+                    lx, ly = L[feind]["x"], L[feind]["y"]
+                    abst = sorted(max(abs(L[n]["x"] - lx), abs(L[n]["y"] - ly)) for n in kolben)
+                    ereignis.append("ANGRIFF Stand Tick %d: %d Kaempfer, Abstand zum Lord naechster %d / Mitte %d, Lord-Leben %d" % (
+                        st["t"], len(kolben), abst[0], abst[len(abst) // 2], L[feind]["leben"]))
             if st.get("T26", 0) >= streitkolben and not kasse.get("endziel"):
                 schreib("ZIEL %d Streitkolbenkaempfer erreicht bei Tick %d" % (streitkolben, st["t"]))
                 # Daniel 11.10. 14:28 "erst die 50, dann 100 Streitis in einem Run": gestufte Ziele - nach jeder Stufe
@@ -2288,6 +2301,8 @@ def main():
     global HAUSHALT_RAND, WACHSTUM_BODEN, GUTE_DINGE, RATIONEN, REGEL50, NAHRUNG_AUSBAU
     global STUFEN, ZWISCHENZIEL, STUFE2_BELIEBT, ANGRIFF_AB, LIGA_GEFECHT, GEGNER_ERWARTET
     GEGNER_ERWARTET = arg.get("gegner_erwartet", "")
+    global ZUSCHAU_TEMPO
+    ZUSCHAU_TEMPO = int(arg.get("zuschau_tempo", 0))
     STUFE2_BELIEBT = arg.get("stufe2_beliebt", "halten")
     ANGRIFF_AB = int(arg.get("angriff_ab", 0))
     LIGA_GEFECHT = dict(LIGA_GEFECHT, ki=int(arg.get("gegner_ki", LIGA_GEFECHT["ki"])))   # 7 = Sultan-Platz (Nomade, Instanz 4)
