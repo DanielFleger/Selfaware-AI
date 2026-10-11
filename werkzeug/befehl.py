@@ -87,6 +87,13 @@ def sende(befehl, warte=3.0, bis=None):
     bis = Text, auf den gewartet wird (alle 20 ms nachsehen, hoechstens <warte> s) - statt fest zu warten
     (04.10.2026: feste Wartezeit machte eine Lenker-Runde 1,1 s lang)."""
     _kanal_frei()
+    # Lord-Sperre fuer jeden Befehlsweg (lordschutz.py; Daniels Regeln 11.10. 16:11 und 16:41)
+    import lordschutz
+    befehl, meld = lordschutz.filtern(befehl)
+    for m in meld:
+        print(m, flush=True)
+    if befehl is None:
+        return meld
     befehl = dict(befehl)
     befehl["id"] = neue_id()
     vorher = os.path.getsize(LOG)

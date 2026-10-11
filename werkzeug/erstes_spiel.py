@@ -420,7 +420,10 @@ def runde_lesen():
                                     {"player": 1, "id": neue_id(), "lagebild": True}]}, 1.5, bis="LAGEBILD Tick"))
     m = re.search(r"STATUS (.*?)(?:\[villagestudio\]|$)", z)
     st = {k: int(v) for k, v in re.findall(r"(\w+)=(-?\d+)", m.group(1))} if m else {}
-    return st, lies_lagebild(neu_holen=False), lies_gebaeude()
+    L = lies_lagebild(neu_holen=False)
+    import lordschutz                    # Stand fuer die Lord-Sperre in befehl.sende (Tick, Lord-Nummern)
+    lordschutz.aktualisieren(st.get("t"), L, SP)
+    return st, L, lies_gebaeude()
 
 def eigene_gebaeude():
     orte = []
