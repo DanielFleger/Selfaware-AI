@@ -37,6 +37,9 @@ def bergfriede():
             aus[g["besitzer"]] = {"anker": (g["x"], g["y"]), "eingang": (w[0] >> 16 & 0xFFFF, w[1] & 0xFFFF)}
     return aus
 
+GEFECHT_EXTRA = {}      # gegner/startliste aus dem Lenker (12.10.: mehrere Gegner, feste Plaetze)
+
+
 def gefecht_frisch(karte, ki=7):
     """SAI 11.10. (Daniel 16:46 "teste eine andere Map, diagonale bzw. opposite Aufstellung"): statt eines gespeicherten
     Startstands ein frisches Gefecht auf <karte> - wir Platz 0, Gegner (ki, 7 = Sultan-Platz = Nomade) Platz 1 - und
@@ -48,12 +51,13 @@ def gefecht_frisch(karte, ki=7):
     print("Zuruecksetzen:", zuruecksetzen(), flush=True)
     gefecht = {"eigenesGefecht": True, "karte": karte, "ki": ki, "gegner": 1, "ausgleich": 3,
                "startliste": [0, 1] + [246] * 6}
+    gefecht.update(GEFECHT_EXTRA)
     z = kanal.sende(gefecht, 4, bis="LaunchSkirmishGame zurueck")
     print("Start:", [x for x in z if "GEFECHT" in x][-2:], flush=True)
     befehl({"pause": False}, 0.5)
     t0 = time.time()
     while time.time() - t0 < 60:
-        if len(bergfriede()) >= 2 and peek(TICK)[0] >= 150:
+        if len(bergfriede()) >= 1 + gefecht["gegner"] and peek(TICK)[0] >= 150:
             break
         time.sleep(0.5)
     befehl({"pause": True}, 0.5)

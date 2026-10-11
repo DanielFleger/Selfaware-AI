@@ -69,6 +69,7 @@ def lords():
 
 SAAT_DATEI = os.path.join(D, "saat_liga.json")
 SAAT_FELDER = ("karte", "partie", "wert1", "wert2", "zaehler1", "zaehler2")
+GEGNER_ZAHL = 1
 LIGA_GEFECHT = {"eigenesGefecht": True, "karte": "Liga_Grumpy Neighbors", "ki": 1, "gegner": 1, "ausgleich": 3,
                 "startliste": [0, 1, 246, 246, 246, 246, 246, 246]}   # aus dem M19-Stand gelesen: Mensch Platz 0, Rotkaeppchen 1
 
@@ -108,7 +109,7 @@ def gefecht_starten(tempo):
     else:
         schreib("SAAT nicht gelesen: %s" % zeilen[-3:])
     befehl({"tempo": tempo}, 1.0, bis="TEMPO")
-    t_lords = warte_bis(lambda: len(lords()) >= 2, "beide Lords")
+    t_lords = warte_bis(lambda: len(lords()) >= 1 + GEGNER_ZAHL, "alle %d Lords" % (1 + GEGNER_ZAHL))
     zustand = partie_pruefen()
     # Erst im laufenden Gefecht setzen: Im Hauptmenue hat eine frisch gestartete Instanz noch keinen AIV-Slot und der
     # Menue-Haken deutet leereKI sonst als Bauplanwechsel (Instanz 3, 08.10.: "Spieler 1 hat keinen AIV-Slot").
@@ -1724,9 +1725,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         if st.get("over") != 0 or st.get("ansicht") not in (14, 16):
             # Spielende deutlich melden (Daniel 05.10. 00:44): wer hat wessen Lord getoetet? (PlayerData +8720)
             if st.get("over") == 1:
-                getoetet = {sp: s32(peek(0x0115BDF8 + sp * 0x39F4 + 8720)[0]) for sp in (1, 2)}
-                if getoetet[2] == SP:
-                    schreib("SIEG bei Tick %d: Lord von Spieler 2 getoetet durch Spieler %d" % (st["t"], getoetet[2])); break
+                getoetet = {sp: s32(peek(0x0115BDF8 + sp * 0x39F4 + 8720)[0]) for sp in range(1, 2 + GEGNER_ZAHL)}
+                feinde = [sp for sp in getoetet if sp != SP]
+                if getoetet[SP] <= 0 and all(getoetet[sp] > 0 for sp in feinde):
+                    schreib("SIEG bei Tick %d: %s" % (st["t"], ", ".join("Lord von Spieler %d getoetet durch Spieler %d" % (
+                        sp, getoetet[sp]) for sp in feinde))); break
                 if getoetet[1] > 0:
                     schreib("NIEDERLAGE bei Tick %d: unser Lord getoetet durch Spieler %d" % (st["t"], getoetet[1])); break
             schreib("ABBRUCH - Testbedingung weg: %s" % {k: st.get(k) for k in ("ansicht", "over", "pause", "t")}); break
@@ -2364,7 +2367,16 @@ def main():
     # laeuft danach ohne Pausen. Ohne karte= bleibt alles wie bisher (Grumpy Neighbors, Plan M19).
     import karten_holen as KH
     karte = arg.get("karte", "Liga_Grumpy Neighbors")
-    kurz = KH.kurz_von(karte)
+    # Mehrere Gegner und feste Startplaetze (Daniel 12.10. 00:52 "spiel gegen zwei Nomaden auf der rechten Seite",
+    # 00:53 "du musst theoretisch gegen 7 Nomaden gewinnen koennen"): gegner=N, startliste=0,1,7 (Platz je Spieler,
+    # Platz = Burgnummer der Karte - 1). Die Vermessung laeuft mit derselben Aufstellung; ihr Kurzname traegt die Plaetze.
+    global GEGNER_ZAHL
+    GEGNER_ZAHL = int(arg.get("gegner", 1))
+    startliste = [int(z) for z in arg["startliste"].split(",")] if "startliste" in arg else None
+    kurz = KH.kurz_von(karte) + ("_p" + "-".join(map(str, startliste)) if startliste else "")
+    KH.GEFECHT_EXTRA = dict(gegner=GEGNER_ZAHL, **({"startliste": (startliste + [246] * 8)[:8]} if startliste else {}))
+    if GEGNER_ZAHL > 1 and arg.get("verbuendet", "ja") == "ja":
+        KH.GEFECHT_EXTRA["teams"] = [1] * GEGNER_ZAHL     # alle Gegner in einer Mannschaft gegen uns (Mannschaft 0)
     if not os.path.exists(os.path.join(D, "start_%s.json" % kurz)):
         schreib("KARTE %s unbekannt - einmalige Vermessung in eigenem Gefecht (vor der Partie)" % karte)
         KH.vermessen("gefecht:" + karte, kurz)
@@ -2413,7 +2425,7 @@ def main():
     NOTWERBUNG = arg.get("notwerbung", "nein") == "ja"
     STUFE2_BELIEBT = arg.get("stufe2_beliebt", "halten")
     ANGRIFF_AB = int(arg.get("angriff_ab", 0))
-    LIGA_GEFECHT = dict(LIGA_GEFECHT, ki=int(arg.get("gegner_ki", LIGA_GEFECHT["ki"])), karte=karte)   # 7 = Sultan-Platz (Nomade, Instanz 4)
+    LIGA_GEFECHT = dict(LIGA_GEFECHT, ki=int(arg.get("gegner_ki", LIGA_GEFECHT["ki"])), karte=karte, **KH.GEFECHT_EXTRA)   # 7 = Sultan-Platz (Nomade, Instanz 4)
     STUFEN =sorted(int(z) for z in str(arg.get("streitkolben", "0")).split(",") if z.strip() and int(z) > 0)
     ZWISCHENZIEL = len(STUFEN) > 1
     NAHRUNG_AUSBAU = arg.get("nahrung_ausbau", "nein")    # "ja" = immer, "kasse" = erst ab Kasse-Start, "nein"
