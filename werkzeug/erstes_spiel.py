@@ -2372,8 +2372,16 @@ def main():
     # Platz = Burgnummer der Karte - 1). Die Vermessung laeuft mit derselben Aufstellung; ihr Kurzname traegt die Plaetze.
     global GEGNER_ZAHL
     GEGNER_ZAHL = int(arg.get("gegner", 1))
+    # 00:59 (Daniel: "Nomade 2 wird nicht wirklich geladen"): die Startliste des Spiels ist PLATZ -> Spieler (Index 0 = wir),
+    # nicht Spieler -> Platz - startliste=0,1,7 setzte Platz 2 auf einen Spieler 7, den es nicht gibt. plaetze=0,1,7 nimmt
+    # je Spieler seinen Platz (Burgnummer der Karte - 1) und baut daraus die Liste des Spiels.
+    plaetze = [int(z) for z in arg["plaetze"].split(",")] if "plaetze" in arg else None
     startliste = [int(z) for z in arg["startliste"].split(",")] if "startliste" in arg else None
-    kurz = KH.kurz_von(karte) + ("_p" + "-".join(map(str, startliste)) if startliste else "")
+    if plaetze:
+        startliste = [246] * 8
+        for spieler, platz in enumerate(plaetze):
+            startliste[platz] = spieler
+    kurz = KH.kurz_von(karte) + ("_pl" + "-".join(map(str, plaetze)) if plaetze else "_p" + "-".join(map(str, startliste)) if startliste else "")
     KH.GEFECHT_EXTRA = dict(gegner=GEGNER_ZAHL, **({"startliste": (startliste + [246] * 8)[:8]} if startliste else {}))
     if GEGNER_ZAHL > 1 and arg.get("verbuendet", "ja") == "ja":
         KH.GEFECHT_EXTRA["teams"] = [1] * GEGNER_ZAHL     # alle Gegner in einer Mannschaft gegen uns (Mannschaft 0)

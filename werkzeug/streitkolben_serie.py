@@ -68,7 +68,7 @@ def einstellungen(arg):
     strategie["schub"] = "nein"
     # Versuchsknoepfe, die nur fuer gestufte Ziele gelten, direkt durchreichen (11.10.: stufe2_beliebt=hoch/halten)
     for k in ("stufe2_beliebt", "leere_ki", "gegner_ki", "angriff_ab", "gegner_erwartet", "zuschau_tempo", "notwerbung", "waechter", "assassinen",
-              "karte", "gegner", "startliste", "verbuendet", "v14", "umzug"):
+              "karte", "gegner", "startliste", "plaetze", "verbuendet", "v14", "umzug"):
         if k in arg:
             strategie[k] = arg[k]
     if arg.get("weg") == "produktion":
