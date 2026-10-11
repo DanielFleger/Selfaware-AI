@@ -150,16 +150,17 @@ def main():
     t.aufnehmen([100])
     erg, bef = t.schritt(L, G, sichere_orte=ORTE)
     pruefe(11, "Ziel mit 2 Wachen, wir allein: kein Angriff darauf (Ziel %s)" % t.ziel.get(100), t.ziel.get(100) != 900)
-    # 12./13. schlagende Arbeiter (Daniel 22:37): 1 Speertraeger + 2 Holzfaeller direkt neben ihm = 1.8 > 1 -> ausweichen;
-    #         dieselben Holzfaeller 6 Felder weg schlagen nicht -> 1 gegen 1, kein Ausweichen
+    # 12./13. schlagende Arbeiter (Daniel 22:37): 1 feindliche Assassine + 2 Holzfaeller direkt neben ihm = 1,16 > 1 ->
+    #         ausweichen; dieselben Holzfaeller 6 Felder weg schlagen nicht -> 1 gegen 1, kein Ausweichen.
+    #         (12.10. 01:39: vorher 1 Speertraeger - unter Ascension ist er 0,2 Assassinen stark, Massstab NAH_GEFAHR)
     for nr, abst, soll in ((12, 1, True), (13, 6, False)):
         t = neu()
-        L = {100: einheit(73, 1, 190, 270), 501: einheit(24, 2, 192, 270),
+        L = {100: einheit(73, 1, 190, 270), 501: einheit(73, 2, 192, 270),
              601: einheit(3, 2, 190 + abst, 271), 602: einheit(3, 2, 190 + abst, 269)}
         t.aufnehmen([100])
         erg, bef = t.schritt(L, G, sichere_orte=ORTE)
         aus = any(z.startswith("AUSWEICHEN 100") for z in erg)
-        pruefe(nr, "1 Speertraeger + 2 Holzfaeller %d Felder weg: ausweichen %s (soll %s)" % (abst, aus, soll), aus == soll)
+        pruefe(nr, "1 Assassine + 2 Holzfaeller %d Felder weg: ausweichen %s (soll %s)" % (abst, aus, soll), aus == soll)
     # 14./15. Heim nur, wenn stark genug: 3 Verfolger-Assassinen; zu Hause 2 Speertraeger (zu schwach) bzw. 3 Schwertkaempfer
     def fluchtziel(verteidiger_typ, anzahl):
         t = neu()

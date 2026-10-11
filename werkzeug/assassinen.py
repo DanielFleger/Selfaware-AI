@@ -253,7 +253,9 @@ class Einzeln:
     # 4a (Daniel 22:37 "ja, beides"): Arbeiter, die Assassinen schlagen, zaehlen bei der Uebermacht mit. Gewicht = ihr Schaden
     # gegen Assassinen / Schaden eines Speertraegers (25), Liga-Balance meleeDamageVs "Arabian assassin": Holzfaeller 10,
     # Steinmetz 10, Schmied 10, Jaeger 5, Tunnelgraeber 20. Nur im Umkreis ARBEITER_R (sie schlagen nur, wer neben ihnen steht).
-    ARBEITER_GEFAHR = {3: 0.4, 7: 0.4, 19: 0.4, 6: 0.2, 5: 0.8}
+    # 12.10. 01:39: auf den Massstab von NAH_GEFAHR (Assassine = 1) umgerechnet - vorher Speertraeger = 1, Speertraeger ist
+    # unter Ascension 0,2 Assassinen (powerLevel 4/20) -> alle Gewichte x 0,2
+    ARBEITER_GEFAHR = {3: 0.08, 7: 0.08, 19: 0.08, 6: 0.04, 5: 0.16}
     ARBEITER_R = 3
     # Staerke gegen Assassinen in Assassinen-Einheiten = (Schaden gegen Assassine x Leben) / (Assassinen-Schaden gegen sie x 12.500),
     # alles Liga-Balance: Speer 25x12.500/(120x12.500)=0.21, Pike 30x80.000/(120x12.500)=1.6, Streitkolben 70x25.000/(120x12.500)
@@ -267,6 +269,12 @@ class Einzeln:
     # nicht. Darum Speer/Bogen/Armbrust/arab. Bogen/Schleuder/Pferdebogen 0, bis ein Lauf zeigt, dass sie einen toeten.
     # Pike/Streitkolben/Schwert/Ritter: gerechnet, nicht gemessen (wir haben keine).
     STAERKE = {24: 0.0, 25: 1.6, 26: 1.17, 27: 4.0, 28: 4.0, 75: 2.67, 73: 1.0, 22: 0.0, 23: 0.0, 70: 0.0, 72: 0.0, 74: 0.0, 55: 0.0}
+    # 12.10. 01:37 (Daniel: "es macht keinen Sinn, vor den Sklaven wegzurennen"): Nahkampf-Gefahr je Feind in Assassinen-
+    # Einheiten = powerLevel (abgelesen ascension_ai.json "units") / powerLevel der Assassine (20). Vorher zaehlte jeder
+    # Nahkaempfer 1 - drei Sklaven (powerLevel 1, die Assassine trifft sie mit 450 statt 120) galten als Uebermacht.
+    # Ihr Lord: 5 (gemessen 1012d: toetet alle ~90 Ticks eine Assassine). Unbekannte Typen: 1.
+    NAH_GEFAHR = {24: 0.2, 25: 1.0, 26: 0.75, 27: 2.0, 28: 2.5, 71: 0.05, 73: 1.0, 75: 0.8, 55: 5.0}
+    VERFOLGER_AB = 0.2       # schwaechere Feinde (Sklaven) gelten nicht als Verfolger
     HEIM_R, HEIM_ABSTAND = 15, 25   # eigene Truppen bis HEIM_R um Lager/Bergfried; zu schwach -> Fluchtpunkt mind. HEIM_ABSTAND weg
     # T2 Im Kreis fuehren (Daniel 22:49): Ring mit Radius KREIS_R um eine Mitte KREIS_MITTE Felder in der ersten Fluchtrichtung,
     # mindestens KREIS_RAND vom Kartenrand (raidzuerst_9: geradeaus bis an den Rand, dort eingeholt). STARTWERTE.
@@ -343,7 +351,7 @@ class Einzeln:
     def _bedrohung(self, ort, nah):
         """4a: Gewicht der Feinde um ihn - jeder Nahkaempfer im Umkreis UEBERMACHT_R zaehlt 1, jeder schlagende Arbeiter im
         Umkreis ARBEITER_R sein ARBEITER_GEFAHR-Gewicht."""
-        return self._anzahl(ort, nah, self.UEBERMACHT_R) + sum(
+        return sum(self.NAH_GEFAHR.get(t, 1.0) for _, p, t in nah if schach(ort, p) <= self.UEBERMACHT_R) + sum(
             self.ARBEITER_GEFAHR[t] for _, p, t in getattr(self, "_arbeiter", []) if schach(ort, p) <= self.ARBEITER_R)
 
     def _staerke(self, einheiten):
@@ -775,7 +783,7 @@ class Einzeln:
             feinde = self._bedrohung(ort, nah)
             eigene = sum(1 for q in eigene_orte if schach(ort, q) <= self.UEBERMACHT_R)
             if n in self.flucht:
-                verfolger = self._naechster(ort, nah)[0]
+                verfolger = self._naechster(ort, [x for x in nah if self.NAH_GEFAHR.get(x[2], 1.0) >= self.VERFOLGER_AB])[0]
                 if verfolger > self.FLUCHT_FREI:
                     frei = self.flucht[n].setdefault("frei_seit", self.jetzt)
                     if self.jetzt - frei >= self.RUHE_TICKS:
