@@ -44,6 +44,10 @@ ARTEN = {"holz": (3, "holzfaeller", "holz", 2, {3: "Holzfaeller"}),
          "hopfen": (31, "apfel", "hopfen", 3, {12: "Hopfenbauer"}),
          "pech": (6, "pech", "pech", 7, {10: "Pechgraeber"})}
 VERKAUF_AB = 30      # ueber so viel Bestand einer gemessenen Ware ein Los verkaufen (Lagerteile frei halten)
+GEB_BASIS, GEB_GROESSE = 0xF98520 + 0x14, 0x32C      # Gebaeude-Datensatz (Wissensstand 13t), 203 Worte
+GEB_TYPEN = (3, 4, 5, 20, 21, 31, 6)   # Holzfaeller, Ochsenkarren, Eisenmine, Steinbruch, Steinhaufen, Hopfenfarm, Pechgraeber
+GEB_ALLE = 50        # 01:26 (Daniel: "in der Mine selbst sind die ganzen Infos - lieber dort messen"): so oft je Betrieb den
+                     # GANZEN Datensatz lesen; die Auswertung sucht, welche Worte sich aendern (Vorrat +0x184, Zeitgeber ...)
 BAUM_ALLE = 2000     # 01:20 (Daniel: "wie viel ueberhaupt noch abgebaut werden kann"): so oft die Baumkarte lesen
 BAUM_R = 25          # Baeume in diesem Umkreis um jeden Holzfaeller zaehlen (Holz-Rest +120 / voll +122 je Baum)
 
@@ -154,6 +158,8 @@ def main():
         t0 = peek(TICK)[0]
         still = {}
         erg["baeume"] = []
+        erg["gebaeude_daten"] = {}          # Nr -> {"typ", "ort", "reihe": [(t, [203 Worte])]}
+        geb_letzt = [-GEB_ALLE]
         holzfaeller = {k: v[0] for k, v in erg["gebaeude"].items() if k.startswith("holz") and v and v[0]}
 
         def baum_stich(t):
@@ -209,6 +215,12 @@ def main():
                     erg["stillstand"].append(s)
                     still[n] = (ort, vo[1], True)
                     print("STILLSTAND:", s, flush=True)
+            if t - geb_letzt[0] >= GEB_ALLE:
+                geb_letzt[0] = t
+                for g_nr, gx in G.items():
+                    if gx["besitzer"] == SP and gx["typ"] in GEB_TYPEN:
+                        e = erg["gebaeude_daten"].setdefault(str(g_nr), {"typ": gx["typ"], "ort": (gx["x"], gx["y"]), "reihe": []})
+                        e["reihe"].append((t, peek(GEB_BASIS + int(g_nr) * GEB_GROESSE, GEB_GROESSE // 4)))
             if holzfaeller and t // BAUM_ALLE != erg["baeume"][-1]["t"] // BAUM_ALLE:
                 baum_stich(t)
             if t // 500 != (erg["lagerteile"][-1][0] // 500 if erg["lagerteile"] else -1):
