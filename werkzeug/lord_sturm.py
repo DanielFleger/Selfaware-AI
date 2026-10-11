@@ -14,12 +14,47 @@ Jede Runde ins Lageprotokoll; alle ~100 Ticks eine Messzeile.
 Vorher festgelegt (Totschlagtest): WIDERLEGT, wenn das Leben seines Lords bis zum Ende unserer Truppen nicht unter
 75 % (22.500) faellt. BESTAETIGT, wenn sein Lord stirbt. Dazwischen: Schadensrate je 100 Ticks ist der Messwert.
 
-Aufruf: SHC_INSTANZ=4 python lord_sturm.py [mit_lord=ja] [tempo=40] [bis=9000] [rueckzug=0.5] [neu=5]"""
+Aufruf: SHC_INSTANZ=4 python lord_sturm.py [mit_lord=ja] [tempo=40] [bis=9000] [rueckzug=rechnung|0.5] [neu=5]"""
 import os
 import sys
 import time
 
 import befehl as kanal
+
+# Rueckzug nach Rechnung (Daniel 11.10. 16:11 "ja bau den Rueckzug nach Rechnung"). Gemessen in den Laeufen 1011a/b:
+# der Rueckweg kostete unseren Lord 4.950 bzw. 4.223 Leben -> BODEN = gut das Vierfache.
+BODEN = 20000          # unter diese Lebenspunkte darf unser Lord im Kampf nicht fallen
+FENSTER = 200          # Ticks, ueber die die Schadensraten gemessen werden
+SICHERHEIT = 1.5       # die Zeit bis zum Tod seines Lords zaehlt 1,5-fach (Raten schwanken in Stoessen)
+HORIZONT = 200         # erst wenn unser Lord in so vielen Ticks am Boden waere, wird ueber den Rueckzug entschieden.
+                       # Gegenprobe 16:15: ohne diese Schwelle haette die Rechnung bei Kampfbeginn (Tick 1.524, 147.000 Leben,
+                       # kaum gemessener Schaden am Gegner) sofort den Rueckzug befohlen und beide gewonnenen Laeufe verloren.
+
+
+def rueckzug_rechnung(verlauf, lord_max, boden=BODEN, fenster=FENSTER, sicherheit=SICHERHEIT, horizont=HORIZONT):
+    """verlauf: [(tick, leben_gegnerlord, leben_unser_lord), ...] der letzten Runden, aelteste zuerst.
+    Gibt (zurueck, grund). Weiterkaempfen nur, wenn sein Lord bei der gemessenen Rate (mit Sicherheitsfaktor) stirbt,
+    bevor unserer auf den Boden faellt. Ohne Messwert (zu kurze Reihe oder kein Schaden am Gegner) gilt die alte
+    50-%-Regel - sie ist in zwei Laeufen gutgegangen."""
+    t, hp_g, hp_w = verlauf[-1]
+    if hp_w <= boden:
+        return True, "unser Lord %d <= Boden %d" % (hp_w, boden)
+    alt = [v for v in verlauf if v[0] >= t - fenster]
+    dt = alt[-1][0] - alt[0][0]
+    if dt < fenster // 2:
+        return hp_w < 0.5 * lord_max, "zu kurze Messreihe (%d Ticks) - 50-%%-Regel" % dt
+    r_g = (alt[0][1] - hp_g) / float(dt)
+    r_w = (alt[0][2] - hp_w) / float(dt)
+    if r_w <= 0:
+        return False, "unser Lord verliert nichts"
+    t_sicher = (hp_w - boden) / r_w
+    if t_sicher > horizont:
+        return False, "unser Lord erst in ~%d Ticks am Boden - weiter" % t_sicher
+    if r_g <= 0:
+        return hp_w < 0.5 * lord_max, "sein Lord verliert nichts - 50-%%-Regel (bis Boden %d Ticks)" % t_sicher
+    t_tot = hp_g / r_g
+    return t_tot * sicherheit > t_sicher, "sein Lord tot in ~%d Ticks (x%.1f), unserer am Boden in ~%d Ticks" % (
+        t_tot, sicherheit, t_sicher)
 
 
 def main():
@@ -28,7 +63,8 @@ def main():
     from lageprotokoll import Lageprotokoll
     from waechter import TRUPPE, LORD
     mit_lord, tempo = arg.get("mit_lord", "ja") == "ja", int(arg.get("tempo", 40))
-    bis, rueckzug, neu = int(arg.get("bis", 9000)), float(arg.get("rueckzug", 0.5)), int(arg.get("neu", 5))
+    bis, neu = int(arg.get("bis", 9000)), int(arg.get("neu", 5))
+    rueckzug = arg.get("rueckzug", "rechnung")       # "rechnung" oder fester Anteil wie 0.5
     kampf = TRUPPE - {LORD}
     E.LIGA_GEFECHT = dict(E.LIGA_GEFECHT, ki=int(arg.get("ki", 7)))
     E.GEGNER_ERWARTET, E.LEERE_KI = arg.get("erwartet", "Nomade"), False
@@ -42,8 +78,8 @@ def main():
             if versuch == 5 or not any(s in str(e) for s in ("beide Lords", "STARTPLATZ FALSCH")):
                 raise
             E.schreib("NEUSTART Gefecht (Versuch %d): %s" % (versuch, e))
-    E.schreib("STURM: mit_lord=%s, Tempo %d, Rueckzug unter %d %%, Befehl alle %d Runden" % (mit_lord, tempo, rueckzug * 100, neu))
-    runde, lord_max, zurueck, naechste_zeile, start_t = 0, None, False, 0, None
+    E.schreib("STURM: mit_lord=%s, Tempo %d, Rueckzug %s, Befehl alle %d Runden" % (mit_lord, tempo, rueckzug, neu))
+    runde, lord_max, zurueck, naechste_zeile, start_t, verlauf = 0, None, False, 0, None, []
     while True:
         kanal.belege()          # Sperre je Runde auffrischen (gilt 15 s; zuruecksetzen() gibt sie zwischendurch frei)
         st, L, G = E.runde_lesen()
@@ -60,10 +96,18 @@ def main():
             return 1
         lord_max = lord_max or L[mein_lord]["leben"]
         truppe = [n for n, e in L.items() if e["besitzer"] == E.SP and e["typ"] in kampf]
-        if mit_lord and not zurueck and L[mein_lord]["leben"] < rueckzug * lord_max:
+        verlauf.append((t, L[feind]["leben"], L[mein_lord]["leben"]))
+        if rueckzug == "rechnung":
+            noetig, grund = rueckzug_rechnung(verlauf, lord_max)
+        else:
+            noetig, grund = L[mein_lord]["leben"] < float(rueckzug) * lord_max, "unter %s des Anfangslebens" % rueckzug
+        if mit_lord and not zurueck and noetig:
             zurueck = True
             E.befehl({"halten": {"nr": [mein_lord], "x": E.BERGFRIED[0], "y": E.BERGFRIED[1]}}, 1.0, bis="HALTEN")
-            E.schreib("STURM Tick %d: unser Lord unter %d %% (%d) - Rueckzug zum Bergfried" % (t, rueckzug * 100, L[mein_lord]["leben"]))
+            E.schreib("STURM Tick %d: Rueckzug unseres Lords (%d Leben, Gegner-Lord %d): %s" % (
+                t, L[mein_lord]["leben"], L[feind]["leben"], grund))
+        elif mit_lord and not zurueck and rueckzug == "rechnung" and L[mein_lord]["leben"] < 0.5 * lord_max and t >= naechste_zeile:
+            E.schreib("STURM Tick %d: unser Lord unter 50 %% (%d), kaempft weiter: %s" % (t, L[mein_lord]["leben"], grund))
         angreifer = truppe + ([mein_lord] if mit_lord and not zurueck else [])
         if angreifer and runde % neu == 0:
             E.befehl({"angriff": {"einheiten": angreifer, "ziel": feind}}, 1.0, bis="ANGRIFF")
