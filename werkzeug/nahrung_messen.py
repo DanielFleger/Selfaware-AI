@@ -41,6 +41,35 @@ def plaetze_frei(kandidaten, belegt, abstand):
     return None
 
 
+def bau_erreichbar(typ, kandidaten, belegt, abstand, r=4, versuche=8):
+    """Bauen und pruefen, ob das Spiel das Gebaeude als erreichbar meldet (Gebaeudetabelle 'erreichbar'). SAI 11.10.:
+    erste Messpartie setzte Apfelhof (178,240) und Muehle (176,225) auf fruchtbare, aber unerreichbare Plaetze - der
+    Bauer lief 9.000 Ticks auf sein Feld zu. Unerreichbar -> abreissen, naechster Platz. Gibt (Ort, Versuche)."""
+    from waechter import lies_gebaeude
+    probiert = 0
+    for p in kandidaten:
+        if probiert >= versuche:
+            break
+        if not all(schach(p, q) >= abstand for q in belegt):
+            continue
+        probiert += 1
+        ort = es.baue_schnell(typ, p[0], p[1], r)
+        if not ort:
+            continue
+        laufe(30)
+        befehl({"lagebild": True}, 1.5, bis="LAGEBILD")
+        G = lies_gebaeude()
+        nr = min((n for n, g in G.items() if g["besitzer"] == 1 and g["typ"] == typ),
+                 key=lambda n: schach((G[n]["x"], G[n]["y"]), ort), default=None)
+        if nr is not None and G[nr].get("erreichbar", 1) == 1:
+            return ort, probiert
+        if nr is not None:
+            befehl({"abreissen": {"nr": nr}}, 0.8, bis="ABREISSEN")
+            laufe(5)
+            print("unerreichbar, abgerissen: %s bei %s" % (es.NACH_TYP[typ]["name"], ort), flush=True)
+    return None, probiert
+
+
 def main():
     arg = dict(a.split("=", 1) for a in sys.argv[1:])
     ticks, stich = int(arg.get("ticks", 9000)), int(arg.get("stich", 250))
@@ -70,14 +99,17 @@ def main():
     bau["kornspeicher"] = es.baue_schnell(19, fruchtbar[0][0], fruchtbar[0][1], 12) if fruchtbar else es.baue_schnell(19, K[0], K[1], 15)
     laufe(100)
     belegt = [bau["kornspeicher"]] if bau["kornspeicher"] else []
+    ks = bau["kornspeicher"] or K
+    fruchtbar.sort(key=lambda p: schach(p, ks))
     for n in ("apfel", "milch", "getreide"):
-        p = plaetze_frei(fruchtbar, belegt, 12)
-        bau[n] = es.baue_schnell(BAUTEN[n], p[0], p[1], 4) if p else None
+        bau[n], v = bau_erreichbar(BAUTEN[n], fruchtbar, belegt, 12)
+        print("%s: %s nach %d Versuch(en)" % (n, bau[n], v), flush=True)
         if bau[n]:
             belegt.append(bau[n])
-    nahe = bau.get("getreide") or bau.get("kornspeicher") or K
-    bau["muehle"] = es.baue_schnell(34, nahe[0], nahe[1], 15)
-    bau["baeckerei"] = es.baue_schnell(17, (bau["kornspeicher"] or K)[0], (bau["kornspeicher"] or K)[1], 15)
+    huette = karte("huette")
+    nahe = bau.get("getreide") or ks
+    bau["muehle"], _ = bau_erreichbar(34, sorted(huette, key=lambda p: schach(p, nahe)), belegt, 5, r=2)
+    bau["baeckerei"], _ = bau_erreichbar(17, sorted(huette, key=lambda p: schach(p, ks)), belegt + [bau["muehle"]] if bau["muehle"] else belegt, 5, r=2)
     L = lies_lagebild(neu_holen=True)
     rehe = [(e["x"], e["y"]) for e in L.values() if e["typ"] == 44 and eigen((e["x"], e["y"])) and schach((e["x"], e["y"]), K) <= 70]
     herde = max(rehe, key=lambda p: sum(1 for q in rehe if schach(p, q) <= 15)) if rehe else None
