@@ -125,6 +125,15 @@ def gefecht_starten(tempo):
     eigener = [(x, y) for sp, x, y in lords() if sp == SP]
     if not eigener or max(abs(eigener[0][0] - BERGFRIED[0]), abs(eigener[0][1] - BERGFRIED[1])) > 8:
         raise SystemExit("STARTPLATZ FALSCH: unser Lord bei %s, Plan erwartet den Bergfried-Eingang %s" % (eigener, BERGFRIED))
+    if GEGNER_ERWARTET:
+        # Daniel 11.10. 15:00: "es sind eindeutig sultans starttruppen" - ich hatte den Gegner nicht geprueft.
+        # Pruefung jetzt an den Start gekettet: falscher Gegner = harter Abbruch, kein Neuwuerfeln.
+        import gegner_pruefen
+        _, Lg, _ = runde_lesen()
+        fehler = gegner_pruefen.fruehpruefung(GEGNER_ERWARTET, Lg)
+        if fehler:
+            raise SystemExit("GEGNER FALSCH, nicht %s: %s" % (GEGNER_ERWARTET, "; ".join(fehler)))
+        schreib("GEGNER geprueft: Lord-Staerke und Truppenarten passen zu %s" % GEGNER_ERWARTET)
     schreib("Partie laeuft seit Tick %d: Lords da, unser Lord bei %s, %s" % (t_lords, eigener[0], zustand))
     return t_lords
 
@@ -583,6 +592,7 @@ RATIONEN = "doppelt"     # Lernkreis: doppelte Rationen (+250 je Woche), sobald 
 REGEL50 = False          # Aufgabe s25: faellt die Beliebtheit unter 50, bricht der Lauf ab (Regelbruch)
 STUFEN = []              # streitkolben=50,100: gestufte Ziele in EINEM Lauf (Daniel 11.10. 14:28)
 ZWISCHENZIEL = False     # solange ein spaeteres Ziel folgt: im Endspiel nie abreissen
+GEGNER_ERWARTET = ""     # KI-Ordnername (z.B. Nomade): Gegner beim Start gegen dessen character.json pruefen
 ANGRIFF_AB = 0           # ab so vielen Streitkolbenkaempfern alle auf den feindlichen Lord (0 = nie; Nomade 11.10.)
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
@@ -2238,7 +2248,8 @@ def main():
     KASSE_STUFE = int(arg.get("kasse_stufe", 11))
     SCHUB = False if arg.get("schub", "nein") == "nein" else arg["schub"]    # "ja" = ein Schub, "immer" = einer nach dem anderen
     global HAUSHALT_RAND, WACHSTUM_BODEN, GUTE_DINGE, RATIONEN, REGEL50, NAHRUNG_AUSBAU
-    global STUFEN, ZWISCHENZIEL, STUFE2_BELIEBT, ANGRIFF_AB, LIGA_GEFECHT
+    global STUFEN, ZWISCHENZIEL, STUFE2_BELIEBT, ANGRIFF_AB, LIGA_GEFECHT, GEGNER_ERWARTET
+    GEGNER_ERWARTET = arg.get("gegner_erwartet", "")
     STUFE2_BELIEBT = arg.get("stufe2_beliebt", "halten")
     ANGRIFF_AB = int(arg.get("angriff_ab", 0))
     LIGA_GEFECHT = dict(LIGA_GEFECHT, ki=int(arg.get("gegner_ki", LIGA_GEFECHT["ki"])))   # 7 = Sultan-Platz (Nomade, Instanz 4)
