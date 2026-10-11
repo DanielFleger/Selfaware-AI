@@ -228,7 +228,8 @@ class Einzeln:
     (ZIELWAHL-Zeilen), jede Verletzung und jeder Tod ihr Umfeld (MESSUNG-Zeilen), damit die naechste Partie sie eicht.
     Gegenprobe je Runde: laeuft ein Assassine nicht zu seinem Gebaeude (Laufziel im Lagebild weiter als ZIEL_NAH),
     bekommt er den Befehl neu - der Plan im Kopf zaehlt nicht, nur das Laufziel im Spiel."""
-    JE_GEBAEUDE = 2          # 12.10. (Daniel 00:41 "warum gehen die Assassinen nicht gesplittet auf Gebaeude?"): vorher 6
+    JE_GEBAEUDE = 1          # 12.10. Daniel 00:41/00:44: EIN Assassine je Gebaeude reisst ein, bei teuren (Wert >= TEUER) zwei;
+    TEUER = 100              # mehr nur, wenn unsere Assassinen dort angegriffen werden (+1 je angegriffenem) - vorher fest 6
     WECHSEL = 1.5            # 12.10. (Daniel 00:41 "sofort reagieren, auch mit Ziel, auf ein neu gebautes besseres Ziel")
     ZIEL_NAH = 8           # gemessen 05.10.: Gebaeudeangriff -> Laufziel 1-2 Felder neben dem Gebaeude
     NEU_NACH = 4           # Runden (je ~30 Ticks bei Tempo 1000), bis ein Befehl im Spiel sichtbar sein muss
@@ -869,6 +870,12 @@ class Einzeln:
             kand.append((gn, p, g["typ"], g.get("erreichbar", 1), self._anzahl(p, fern, 10),
                          self._anzahl(p, fern, self.ZIEL_FERN), self._anzahl(p, fern, 30), self._anzahl(p, fern, self.SCHWACH_FERN),
                          self._anzahl(p, nah, self.UEBERMACHT_R)))
+        # Platz je Gebaeude nach Lage (Daniel 00:44): 1, teuer 2, +1 je dort angegriffenem eigenen Assassinen
+        angegriffen = {}
+        for n_a, g_a in self.ziel.items():
+            if n_a in L and L[n_a].get("nahangreifer"):
+                angegriffen[g_a] = angegriffen.get(g_a, 0) + 1
+        platz = lambda k: (2 if WERT.get(k[2], 10) >= self.TEUER else self.JE_GEBAEUDE) + angegriffen.get(k[0], 0)
         # Zielwechsel: wer ein Gebaeude angreift, wechselt sofort, wenn ein freies, erreichbares Gebaeude mindestens WECHSEL-mal
         # mehr Wert je Weg bringt (z.B. ein neu gebautes in der Naehe)
         wert = lambda ort, k: WERT.get(k[2], 10) / ((schach(ort, k[1]) + 20.0) * (1 + k[5]))
@@ -877,7 +884,7 @@ class Einzeln:
                 continue
             ort = (L[n]["x"], L[n]["y"])
             jetzt = next((k for k in kand if k[0] == gn), None)
-            besser = [k for k in kand if k[3] and k[0] != gn and zahl.get(k[0], 0) < self.JE_GEBAEUDE and k[5] <= self.ZIEL_FERN_MAX]
+            besser = [k for k in kand if k[3] and k[0] != gn and zahl.get(k[0], 0) < platz(k) and k[5] <= self.ZIEL_FERN_MAX]
             if jetzt and besser:
                 b_k = max(besser, key=lambda k: wert(ort, k))
                 if wert(ort, b_k) >= self.WECHSEL * wert(ort, jetzt):
@@ -900,7 +907,7 @@ class Einzeln:
             ort = (L[n]["x"], L[n]["y"])
             schwach = L[n]["leben"] < self.SCHWACH * self.VOLL
             erreichbar = [k for k in kand if k[3]]
-            frei = [k for k in erreichbar if zahl.get(k[0], 0) < self.JE_GEBAEUDE]
+            frei = [k for k in erreichbar if zahl.get(k[0], 0) < platz(k)]
             sicher = [k for k in frei if (k[7] == 0 if schwach else k[5] <= self.ZIEL_FERN_MAX)
                       and k[8] <= zahl.get(k[0], 0) + 1]   # 4a: nicht dorthin, wo mehr Nahkampf-Wachen stehen als wir Angreifer haetten
             if sicher:
