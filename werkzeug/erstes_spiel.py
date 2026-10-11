@@ -116,7 +116,11 @@ def gefecht_starten(tempo):
     leer = [2] if LEERE_KI else False
     z = kanal.sende({"befehle": [{"player": SP, "id": kanal.neue_id(), "leereKI": leer}]}, 3.0, bis="LEERE KI")
     if not any("LEERE KI" in x for x in z):
-        raise SystemExit("LEERE KI nicht bestaetigt: %s" % z[-3:])
+        if LEERE_KI:
+            raise SystemExit("LEERE KI nicht bestaetigt: %s" % z[-3:])
+        # 11.10. (Nomade, Instanz 4): leereKI=False beantwortet das Modul mit der AIV-Slot-Meldung statt "LEERE KI" -
+        # ohne gewuenschte leere KI ist das kein Grund zum Abbruch, nur eine Warnung
+        schreib("WARNUNG LEERE KI aus nicht bestaetigt (kein Abbruch): %s" % z[-2:])
     schreib("LEERE KI: Spieler 2 ohne Waren und Gold (jede Runde)" if LEERE_KI else "LEERE KI: aus")
     eigener = [(x, y) for sp, x, y in lords() if sp == SP]
     if not eigener or max(abs(eigener[0][0] - BERGFRIED[0]), abs(eigener[0][1] - BERGFRIED[1])) > 8:
