@@ -136,6 +136,16 @@ def main():
                 t, len(bogen), E.BERGFRIED[0] + 8, E.BERGFRIED[1]))
         if bogen_runter and t - bogen_runter < 150:
             truppe = [n for n in truppe if n not in bogen]      # erst unten ankommen lassen
+        elif bogen_runter:
+            # 1011g: unten angekommen blieben sie bei 148/270 stehen - der Angriffsbefehl bringt Fernkaempfer nicht in
+            # Schussweite. Wer weiter als 15 Felder weg ist, laeuft auf 12 Felder vor seinen Lord (Linie zu unserem Bergfried).
+            fern = [n for n in bogen if max(abs(L[n]["x"] - lx), abs(L[n]["y"] - ly)) > 15]
+            if fern:
+                bdx, bdy = E.BERGFRIED[0] - lx, E.BERGFRIED[1] - ly
+                bd = max(abs(bdx), abs(bdy)) or 1
+                if runde % neu == 0:
+                    laufe(E, fern, lx + round(12 * bdx / bd), ly + round(12 * bdy / bd))
+                truppe = [n for n in truppe if n not in fern]
         lord_kaempft = mit_lord and not zurueck
         angreifer = truppe + ([mein_lord] if lord_kaempft and lord_rolle == "lord" else [])
         if angreifer and runde % neu == 0:

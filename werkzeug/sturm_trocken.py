@@ -60,6 +60,9 @@ erg = [
          [lage(110, 30000), lage(202, 30000, bogen=5), lage(300, 30000, bogen=5, speer=7)]
          + [lage(400 + 100 * i, 30000 - 4000 * i, bogen=5, speer=7) for i in range(8)] + [lage(1300, 0, bogen=5, speer=7)], 0,
          lambda b, t: laeufe(b, 149, 269)),
+    fall("Bogen nach dem Abstieg weit weg: Laufbefehl auf 12 Felder vor seinen Lord",
+         [lage(110, 30000), lage(202, 30000, bogen=5, speer=7)] + [lage(300 + 50 * i, 30000, bogen=5, speer=7) for i in range(4)],
+         "Folge zu Ende", lambda b, t: laeufe(b, 206, 262)),
     fall("alle Truppen tot: GESCHEITERT erst dann",
          [lage(110, 30000), lage(300, 30000, bogen=5, speer=7), lage(500, 25000, speer=3), lage(600, 25000)], 2),
     fall("Lords 3 Felder auseinander: unser Lord laeuft nach Hause",
