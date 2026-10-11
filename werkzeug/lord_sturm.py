@@ -110,8 +110,9 @@ def main():
             E.schreib("STURM NIEDERLAGE bei Tick %d: unser Lord tot" % t)
             return 1
         lord_max = lord_max or L[mein_lord]["leben"]
-        truppe = [n for n, e in L.items() if e["besitzer"] == E.SP and e["typ"] in kampf]
-        hatte_truppe = hatte_truppe or bool(truppe)     # Starttruppen erscheinen erst nach Tick ~110 (Lauf 1011d brach bei 109 ab)
+        alle_truppen = [n for n, e in L.items() if e["besitzer"] == E.SP and e["typ"] in kampf]
+        truppe = list(alle_truppen)          # wer gerade auf seinen Lord geht (Bogen erst nach dem Abstieg)
+        hatte_truppe = hatte_truppe or bool(alle_truppen)     # Starttruppen erscheinen erst nach Tick ~110 (Lauf 1011d brach bei 109 ab)
         verlauf.append((t, L[feind]["leben"], L[mein_lord]["leben"]))
         if rueckzug == "rechnung":
             noetig, grund = rueckzug_rechnung(verlauf, lord_max)
@@ -171,7 +172,8 @@ def main():
             E.schreib("STURM Tick %5d | Gegner-Lord %6d Leben, Wache<=15: %2d | wir: %2d Truppen, Lord %6d%s | naechster %d Felder vom Lord" % (
                 t, L[feind]["leben"], wache, len(truppe), L[mein_lord]["leben"], " (zurueck)" if zurueck else "", nah[0]))
             naechste_zeile = t + 100
-        if hatte_truppe and not truppe and (zurueck or not mit_lord or lord_rolle == "schild"):
+        # 1011f: die Bogenschuetzen waren fuer den Abstieg aus "truppe" genommen - Abbruch nur, wenn wirklich keiner mehr lebt
+        if hatte_truppe and not alle_truppen and (zurueck or not mit_lord or lord_rolle == "schild"):
             if mit_lord and not zurueck:
                 laufe(E, [mein_lord], E.BERGFRIED[0], E.BERGFRIED[1])
             E.schreib("STURM GESCHEITERT bei Tick %d: keine Truppen mehr, Gegner-Lord %d Leben" % (t, L[feind]["leben"]))
