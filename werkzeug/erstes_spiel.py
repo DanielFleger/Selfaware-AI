@@ -189,7 +189,10 @@ def phase1(plan, tempo, mit_posten=True):
                       ([] if JOCH_NACH_STEIN else [(4, j) for j in V14["joche"]]) + \
                       [(3, tuple(p)) for p in (v16_holzfaeller(plan) if HF_VORAB is None else v16_holzfaeller(plan)[:HF_VORAB])]
     else:
-        holz_bauten = [(19, tuple(plan["kornspeicher"])), (26, MARKT)] + [(3, tuple(p)) for p in plan["holzfaeller"]]
+        # 12.10. 01:44 (Daniel: "das Timing vom Vorratslager stimmt ueberhaupt nicht und hunderte an Gold werden verschenkt";
+        # 1012i: Lager erst bei Tick 3.801-4.605 verlegt, altes abgerissen, Holz billig verkauft, Holzfaeller standen mit 18
+        # Holz): das geplante Lager am Wald ZUERST, gleich in der Eroeffnung; das Startlager bleibt stehen (kein Abriss)
+        holz_bauten = [(10, tuple(plan["lager"]))] + [(19, tuple(plan["kornspeicher"])), (26, MARKT)] +                       [(3, tuple(p)) for p in plan["holzfaeller"]]
     if plan.get("stein") and not V14:
         holz_bauten += [(20, tuple(plan["stein"]["steinbruch"])), (4, tuple(plan["stein"]["ochsen"]))]
     holz_bauten += [(1, tuple(p)) for p in plan["huetten"]]
@@ -1534,6 +1537,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     if trupp is not None:   # S1 (Plan_Lord.md): was tut der Angriff auf den Lord, Runde fuer Runde
         trupp.wellen_protokoll = os.path.join(D, "angriff_live_%s_i%d.jsonl" % (time.strftime("%Y%m%d_%H%M%S"), INSTANZ))
     wirt = Wirtschaft(plan, SP, baue_schnell, [nr for nr, _, _ in gebaeude_von(SP, 10)])
+    if not V14:
+        # 12.10. 01:44: auf jeder anderen Karte nie das Startlager abreissen; Anker = das Lager am Plan-Platz (Eroeffnung)
+        wirt.alt = set()
+        wirt.lager_ort, wirt.lager_ist_anker = tuple(plan["lager"]), True
+        schreib("Lager: Startlager bleibt, Anker %s (Eroeffnung baut es sofort)" % (wirt.lager_ort,))
     if streitkolben and weg == "produktion":
         wirt.lager_max_teile = 8       # zwei Vorratslager; Ueberschuss wird verkauft statt ein drittes anzubauen
     karte_laden()        # Begehbarkeit fuer kurze Rueckzuege - jetzt, solange das Spiel noch steht

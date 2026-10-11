@@ -230,6 +230,7 @@ class Einzeln:
     Gegenprobe je Runde: laeuft ein Assassine nicht zu seinem Gebaeude (Laufziel im Lagebild weiter als ZIEL_NAH),
     bekommt er den Befehl neu - der Plan im Kopf zaehlt nicht, nur das Laufziel im Spiel."""
     JE_GEBAEUDE = 1          # 12.10. Daniel 00:41/00:44: EIN Assassine je Gebaeude reisst ein, bei teuren (Wert >= TEUER) zwei;
+    SCHUETZEN_MAX, SCHUETZEN_MAX_TEUER = 1, 2   # 12.10.: gute Tauschgeschaefte (Stellgroessen)
     WEGPUNKT_NAH = 3         # 12.10.: so nah am Wegpunkt gilt er als erreicht
     BEUTE_R = 15             # 12.10.: Fernkaempfer am Boden in diesem Umkreis werden gejagt (Stellgroesse)
     # Laufzeit-Typen mit begehbarem Dach (abgelesen VillageStudio/lib/aiv_typen.lua AIV_ZU_LAUFZEIT): Tuerme 74-78,
@@ -963,6 +964,14 @@ class Einzeln:
             kand.append((gn, p, g["typ"], g.get("erreichbar", 1), self._anzahl(p, fern, 10),
                          self._anzahl(p, fern, self.ZIEL_FERN), self._anzahl(p, fern, 30), self._anzahl(p, fern, self.SCHWACH_FERN),
                          self._anzahl(p, nah, self.UEBERMACHT_R)))
+        # 12.10. 01:47 Gute Tauschgeschaefte (Daniel: "warum hast du ueberhaupt einen Assassinen verloren - nur gute Trades
+        # eingehen oder schlauer angreifen"; 1012i: 8 Tote an Holzfaellerhuetten mit 4 Schuetzen im Umkreis 30): ein Gebaeude
+        # ist nur Ziel, wenn hoechstens SCHUETZEN_MAX feindliche Schuetzen es mit ihrer Reichweite (schussfeld.REICHWEITE)
+        # erreichen - teure (WERT >= TEUER) bis SCHUETZEN_MAX_TEUER. Stellgroessen, keine Messung.
+        sch_liste = schussfeld.schuetzen(L, self.sp)
+        gedeckt = {k[0]: schussfeld.gefahr_am(k[1], sch_liste) for k in kand}
+        guter_tausch = lambda k: gedeckt.get(k[0], 0) <= (self.SCHUETZEN_MAX_TEUER if WERT.get(k[2], 10) >= self.TEUER
+                                                            else self.SCHUETZEN_MAX)
         # Platz je Gebaeude nach Lage (Daniel 00:44): 1, teuer 2, +1 je dort angegriffenem eigenen Assassinen
         angegriffen = {}
         for n_a, g_a in self.ziel.items():
@@ -977,7 +986,8 @@ class Einzeln:
                 continue
             ort = (L[n]["x"], L[n]["y"])
             jetzt = next((k for k in kand if k[0] == gn), None)
-            besser = [k for k in kand if k[3] and k[0] != gn and zahl.get(k[0], 0) < platz(k) and k[5] <= self.ZIEL_FERN_MAX]
+            besser = [k for k in kand if k[3] and k[0] != gn and zahl.get(k[0], 0) < platz(k) and k[5] <= self.ZIEL_FERN_MAX
+                      and guter_tausch(k)]
             if jetzt and besser:
                 b_k = max(besser, key=lambda k: wert(ort, k))
                 if wert(ort, b_k) >= self.WECHSEL * wert(ort, jetzt):
@@ -1002,7 +1012,7 @@ class Einzeln:
             erreichbar = [k for k in kand if k[3]]
             frei = [k for k in erreichbar if zahl.get(k[0], 0) < platz(k)]
             sicher = [k for k in frei if (k[7] == 0 if schwach else k[5] <= self.ZIEL_FERN_MAX)
-                      and k[8] <= zahl.get(k[0], 0) + 1]   # 4a: nicht dorthin, wo mehr Nahkampf-Wachen stehen als wir Angreifer haetten
+                      and k[8] <= zahl.get(k[0], 0) + 1 and guter_tausch(k)]   # 4a: nicht dorthin, wo mehr Nahkampf-Wachen stehen als wir Angreifer haetten
             if sicher:
                 # Wert je Weg, abgeschwaecht durch Fernkaempfer am Ziel (Daniel 19:05: wertvoll UND nicht allzu schwer bewacht)
                 gn, p, typ, _, f10, f20, f30, _, _ = max(sicher, key=lambda k: WERT.get(k[2], 10) / ((schach(ort, k[1]) + 20.0) * (1 + k[5])))

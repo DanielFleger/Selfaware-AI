@@ -46,6 +46,13 @@ def main():
     h11 = [x[1] for x in K.entscheide(11000, 27000, st, kand(30), (100, 100), {3: lager, 31: lager, 5: lager, 20: lager}, 6) if x[1] != 1]
     h11f = [x[1] for x in K.entscheide(11000, 16753, st, kand(30), (100, 100), {3: lager, 31: lager, 5: lager, 20: lager}, 6) if x[1] != 1]
     pruefe(4, "Tick 11.000, Fenster bis 27.000: %s (festes Ende 16.753 zum Vergleich: %s)" % (h11, h11f), 31 in h11 and 5 in h11)
+    # 5. (01:41) Holz knapp: 15 Holz, Eisenmine (40 Holz) blockiert, Hopfen (15) und Holzfaeller (5) bezahlbar -> der
+    #    Holzfaeller kommt ZUERST (Knappheitswert), obwohl Hopfen zum Marktpreis mehr Gold je Arbeiter bringt
+    k5 = [(3, (130, 100), {"holz": 5}, 1), (31, (100, 130), {"holz": 15}, 1), (5, (70, 100), {"holz": 40}, 2)]
+    h5 = K.entscheide(1000, 17000, dict(st, holz=15), k5, (100, 100), {3: lager, 31: lager, 5: lager}, 6)
+    r5 = [x[1] for x in h5 if x[1] != 1]
+    pruefe(5, "15 Holz, Eisen blockiert: Reihenfolge %s (Holzfaeller zuerst) | %s" % (r5, [x[3][-45:] for x in h5 if x[1] == 3][:1]),
+           r5 and r5[0] == 3)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

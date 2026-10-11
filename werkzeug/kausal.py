@@ -85,21 +85,22 @@ def arbeiter(typ, d=0):
     return m.get("arbeiter", 1) + (ochsen_fuer(d) if typ == 20 else 0)
 
 
-def ertrag_bis(typ, t_start, ziel, weg_abgabe):
-    """Gold-Wert, den ein Betrieb der Art typ, dessen Arbeiter bei t_start an seinem Platz steht, bis ziel abliefert."""
+def ertrag_bis(typ, t_start, ziel, weg_abgabe, wert=None):
+    """Gold-Wert, den ein Betrieb der Art typ, dessen Arbeiter bei t_start an seinem Platz steht, bis ziel abliefert.
+    wert: Gold je Stueck statt MODELL[typ]["wert"] (Knappheitswert, s. entscheide)."""
     m = MODELL[typ]
     t1 = t_start + m["anlauf"] + weg_abgabe * m.get("gehen", MODELL["gehen_ticks"])   # erste Lieferung
     if t1 > ziel:
         return 0.0, t1
-    return rate_je_1000(typ, weg_abgabe) * (ziel - t1) / 1000.0 * m["wert"], t1
+    return rate_je_1000(typ, weg_abgabe) * (ziel - t1) / 1000.0 * (m["wert"] if wert is None else wert), t1
 
 
-def wert_betrieb(typ, ort, jetzt, ziel, feuer_ort, abgabe_ort, kosten, bauer_ab):
+def wert_betrieb(typ, ort, jetzt, ziel, feuer_ort, abgabe_ort, kosten, bauer_ab, wert=None):
     """Netto-Wert bis ziel: Ertrag + halbe Kosten zurueck (Abriss im Endspiel) - Kosten. bauer_ab: Tick, ab dem ein Bauer
     fuer diesen Betrieb frei ist (jetzt, wenn einer am Feuer steht; sonst nach Spawn)."""
     g = MODELL[typ].get("gehen", MODELL["gehen_ticks"]) if typ in MODELL else MODELL["gehen_ticks"]
     an_ort = bauer_ab + schach(feuer_ort, ort) * g
-    ertrag, t1 = ertrag_bis(typ, an_ort, ziel, schach(ort, abgabe_ort))
+    ertrag, t1 = ertrag_bis(typ, an_ort, ziel, schach(ort, abgabe_ort), wert)
     k = sum(kosten.get(w, 0) * (1 if w != "stein" else 5) for w in ("holz", "stein", "gold"))
     return ertrag + k / 2.0 - k, t1
 
@@ -140,6 +141,20 @@ def entscheide(jetzt, ziel, st, kandidaten, feuer_ort, abgabe_orte, huette_koste
             continue
         w0, _ = wert_betrieb(typ, ort, jetzt, ziel, feuer_ort, abgabe_orte.get(typ, ort), kosten, ab0)
         vorab.append((w0, typ, ort, kosten, max(1, int(arbeiter or 1))))
+    # 12.10. 01:41 Knappheitswert fuer Holz (Daniel 01:39: "wenn du Holz brauchst, mach mehr Holzfaeller, wo Holz ist";
+    # 1012i: Startholz bei Tick 130 verbaut, danach Holz ~6 - Eisenmine 40 / Steinbruch 25 Holz nie bezahlbar): Holz ist so viel
+    # wert, wie der beste NUR am Holz scheiternde Bau je Holz einbringt (Wert + Holzkosten) / Holzkosten. Holzfaeller werden
+    # mit diesem Wert gerechnet, solange er ueber dem Marktpreis liegt - dann entstehen Holzfaeller, bis Holz kein Engpass mehr ist.
+    blockiert = [(w0 + k.get("holz", 0)) / float(k["holz"]) for w0, typ, _, k, _ in vorab
+                 if typ != 3 and w0 > 0 and k.get("holz", 0) > holz and gold >= k.get("gold", 0) and stein >= k.get("stein", 0)]
+    knapp_holz = max(blockiert) if blockiert else None
+    if knapp_holz and knapp_holz > MODELL[3]["wert"]:
+        neu_vorab = []
+        for w0, typ, ort, k, arb in vorab:
+            if typ == 3:
+                w0, _ = wert_betrieb(typ, ort, jetzt, ziel, feuer_ort, abgabe_orte.get(typ, ort), k, ab0, wert=knapp_holz)
+            neu_vorab.append((w0, typ, ort, k, arb))
+        vorab = neu_vorab
     # 12.10. (Daniel 01:09/01:26, "Gold je Arbeiter"): Bauern sind knapp - Reihenfolge nach Wert JE ARBEITER, nicht je Gebaeude
     # (sonst gewinnt ein Steinbruch-Paket mit 5 Arbeitern gegen einen Hopfenhof mit einem)
     vorab.sort(key=lambda x: -x[0] / float(x[4]))
@@ -148,7 +163,8 @@ def entscheide(jetzt, ziel, st, kandidaten, feuer_ort, abgabe_orte, huette_koste
         if ab is None:
             wartet.append((typ, ort, kosten))
             continue
-        w, t1 = wert_betrieb(typ, ort, jetzt, ziel, feuer_ort, abgabe_orte.get(typ, ort), kosten, ab)
+        w, t1 = wert_betrieb(typ, ort, jetzt, ziel, feuer_ort, abgabe_orte.get(typ, ort), kosten, ab,
+                             wert=knapp_holz if (typ == 3 and knapp_holz and knapp_holz > MODELL[3]["wert"]) else None)
         if w <= 0:
             continue
         if holz < kosten.get("holz", 0) or gold < kosten.get("gold", 0) or stein < kosten.get("stein", 0):
@@ -156,8 +172,9 @@ def entscheide(jetzt, ziel, st, kandidaten, feuer_ort, abgabe_orte, huette_koste
         holz -= kosten.get("holz", 0)
         gold -= kosten.get("gold", 0)
         stein -= kosten.get("stein", 0)
-        handlungen.append((w, typ, ort, "Wert %.0f bis Tick %d, erste Lieferung %d (Bauer Nr. %d nach %d offenen Stellen)" % (
-            w, ziel, t1, rang + arbeiter, int(offene_stellen))))
+        handlungen.append((w, typ, ort, "Wert %.0f bis Tick %d, erste Lieferung %d (Bauer Nr. %d nach %d offenen Stellen)%s" % (
+            w, ziel, t1, rang + arbeiter, int(offene_stellen),
+            ", Holz-Knappheitswert %.1f Gold je Holz" % knapp_holz if (typ == 3 and knapp_holz and knapp_holz > MODELL[3]["wert"]) else "")))
         rang += arbeiter
     # Huette: lohnt nur, wenn ein Arbeitsplatz mit positivem Wert auf einen Bauern wartet, den es ohne Wohnraum nicht gibt
     if wartet and feuer == 0 and holz >= huette_kosten:

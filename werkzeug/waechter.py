@@ -21,6 +21,7 @@ NAHKAMPF = {24, 25, 26, 27, 28, 37, 55, 71, 73, 75}
 FERNKAMPF = {22, 23, 70, 72, 74, 76}
 TRUPPE = NAHKAMPF | FERNKAMPF
 LORD = 55
+LORD_SELBST = 15         # 12.10.: der Lord kaempft nur, wenn Feinde so nah an IHM sind
 LORD_FLUCHT = 0.35       # 12.10.: Lord weicht erst unter diesem Lebensanteil (Stellgroesse; vorher 0,5 oder sobald ein Heer kam)
 BERGFRIED_EINGANG = (165, 111)
 
@@ -160,7 +161,10 @@ class Waechter:
             # ohne Gegner stehen die Nahkaempfer auf dem Feld der Fernkaempfer
             if fern:
                 mx = int(sum(e["x"] for e in fern) / len(fern)); my = int(sum(e["y"] for e in fern) / len(fern))
-                weg = [n for n, e in eigene.items() if e["typ"] in NAHKAMPF and e["typ"] != LORD and schach((e["x"], e["y"]), (mx, my)) > 2]
+                # 12.10. 01:46 (Daniel: "warum sammeln sich jetzt wieder Assassinen in einem Klump?"): Assassinen steuert nur
+                # assassinen.py - der Waechter stapelt sie nicht mit
+                weg = [n for n, e in eigene.items() if e["typ"] in NAHKAMPF and e["typ"] not in (LORD, 73)
+                       and schach((e["x"], e["y"]), (mx, my)) > 2]
                 self.stapel_pause = getattr(self, "stapel_pause", 0) - 1
                 if weg and self.stapel_pause <= 0:
                     self.stapel_pause = 5               # hoechstens alle 5 Waechter-Runden ein Stapel-Befehl
@@ -169,8 +173,12 @@ class Waechter:
                         self.auftrag.pop(n, None)
                     ereignis.append("Stapeln: %d Nahkaempfer auf das Feld der Fernkaempfer (%d,%d)" % (len(weg), mx, my))
             return ereignis
+        # 12.10. 01:46 (Daniel: "warum hast du den Lord vorgeschickt?"): der Lord faengt nicht im Feld ab - nur wenn Feinde
+        # hoechstens LORD_SELBST Felder neben IHM stehen (er schuetzt sich und die Schuetzen bei ihm). Sein Tod verliert die Partie.
+        lord_feind_nah = lambda e: any(schach((e["x"], e["y"]), (f[1]["x"], f[1]["y"])) <= LORD_SELBST for f in feinde.values())
         verfuegbar = [n for n, e in eigene.items()
-                      if not (e["typ"] == LORD and (self.lord_zurueck or (self.lord_max and e["leben"] < LORD_FLUCHT * self.lord_max)))]
+                      if not (e["typ"] == LORD and (self.lord_zurueck or (self.lord_max and e["leben"] < LORD_FLUCHT * self.lord_max)
+                                                    or not lord_feind_nah(e)))]
         if not verfuegbar:
             return ereignis
         gruppe = (sum(eigene[n]["x"] for n in verfuegbar) / len(verfuegbar), sum(eigene[n]["y"] for n in verfuegbar) / len(verfuegbar))
