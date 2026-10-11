@@ -82,40 +82,53 @@ def bauer_ab(jetzt, feuer, frei_wohn, rang):
     return None
 
 
-def entscheide(jetzt, ziel, st, kandidaten, feuer_ort, abgabe_orte, huette_kosten):
+def entscheide(jetzt, ziel, st, kandidaten, feuer_ort, abgabe_orte, huette_kosten, offene_stellen=0):
     """kandidaten: [(typ, ort, kosten, arbeiter)] - die besten Plaetze je Art (vom Planer). Gibt eine Liste von Handlungen
-    [(wert, art, ort, text)] in Wertfolge, nur mit positivem Wert und im Rahmen von Holz/Gold."""
+    [(wert, art, ort, text)] in Wertfolge, nur mit positivem Wert und im Rahmen von Holz/Gold.
+
+    Bauern werden der Reihe nach vergeben (12.10. neu geschrieben, Daniel 01:04 Bild: 128 Holzfaeller, 48 davon leer):
+      - offene_stellen = Arbeitsplaetze in stehenden oder bestellten Betrieben ohne Arbeiter. Die naechsten Bauern gehen
+        DORTHIN; ein neuer Betrieb bekommt erst den (offene_stellen + 1)-ten.
+      - Jeder angenommene Betrieb verbraucht seine Arbeiter, BEVOR der naechste bewertet wird. Vorher wurden alle
+        Kandidaten mit demselben ersten Bauern gerechnet (rang wurde in der Bewertung nie hochgezaehlt): bei 4 Bauern am
+        Feuer galten 6 neue Holzfaeller als sofort besetzt.
+    Reihenfolge: nach dem Wert mit dem naechsten freien Bauern; jeder Kandidat wird dann mit SEINEM Bauern neu gerechnet."""
     feuer, frei_wohn = st.get("feuer", 0), max(0, st.get("platz", 0) - st.get("leute", 0))
     holz, gold, stein = st.get("holz", 0), st.get("gold", 0), st.get("stein", 0)
-    handlungen = []
-    rang = 0
-    bewertet = []
+    rang = max(0, int(offene_stellen))
+    handlungen, wartet = [], []
+    vorab = []
+    ab0 = bauer_ab(jetzt, feuer, frei_wohn, rang)
     for typ, ort, kosten, arbeiter in kandidaten:
         if typ not in MODELL:
             continue
-        ab = bauer_ab(jetzt, feuer, frei_wohn, rang)
+        if ab0 is None:
+            wartet.append((typ, ort, kosten))
+            continue
+        w0, _ = wert_betrieb(typ, ort, jetzt, ziel, feuer_ort, abgabe_orte.get(typ, ort), kosten, ab0)
+        vorab.append((w0, typ, ort, kosten, max(1, int(arbeiter or 1))))
+    vorab.sort(key=lambda x: -x[0])
+    for _, typ, ort, kosten, arbeiter in vorab:
+        ab = bauer_ab(jetzt, feuer, frei_wohn, rang + arbeiter - 1)     # der letzte Arbeiter dieses Betriebs
         if ab is None:
-            bewertet.append((typ, ort, kosten, None, None))
+            wartet.append((typ, ort, kosten))
             continue
         w, t1 = wert_betrieb(typ, ort, jetzt, ziel, feuer_ort, abgabe_orte.get(typ, ort), kosten, ab)
-        bewertet.append((typ, ort, kosten, w, t1))
-    bewertet.sort(key=lambda x: -(x[3] if x[3] is not None else -1e9))
-    for typ, ort, kosten, w, t1 in bewertet:
-        if w is None or w <= 0:
+        if w <= 0:
             continue
         if holz < kosten.get("holz", 0) or gold < kosten.get("gold", 0) or stein < kosten.get("stein", 0):
             continue
         holz -= kosten.get("holz", 0)
         gold -= kosten.get("gold", 0)
         stein -= kosten.get("stein", 0)
-        handlungen.append((w, typ, ort, "Wert %.0f bis Tick %d, erste Lieferung %d" % (w, ziel, t1)))
-        rang += 1
+        handlungen.append((w, typ, ort, "Wert %.0f bis Tick %d, erste Lieferung %d (Bauer Nr. %d nach %d offenen Stellen)" % (
+            w, ziel, t1, rang + arbeiter, int(offene_stellen))))
+        rang += arbeiter
     # Huette: lohnt nur, wenn ein Arbeitsplatz mit positivem Wert auf einen Bauern wartet, den es ohne Wohnraum nicht gibt
-    wartet = [x for x in bewertet if x[3] is None]
     if wartet and feuer == 0 and holz >= huette_kosten:
         # Wert: der beste wartende Betrieb, gerechnet mit Spawn nach dem Bau (Huette ~ sofort, Spawn danach)
         best = None
-        for typ, ort, kosten, _, _ in wartet:
+        for typ, ort, kosten in wartet:
             w, t1 = wert_betrieb(typ, ort, jetzt, ziel, feuer_ort, abgabe_orte.get(typ, ort), kosten, jetzt + MODELL["spawn_ticks"])
             if best is None or w > best[0]:
                 best = (w, typ, t1)

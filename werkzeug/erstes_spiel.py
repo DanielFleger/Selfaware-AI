@@ -1819,8 +1819,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     kand_k += [(typ_a, p, ausbau.kosten_von(typ_a), 1) for p in ausbau.erreichbare(orte_a, L, 4)]
                 R_k = wirt.ruecklage(G)
                 st_k = dict(st, holz=st["holz"] - R_k["holz"], gold=st["gold"] - R_k["gold"])
+                # offene Stellen: unbesetzte Plaetze in stehenden Betrieben + Arbeiter der bestellten, noch nicht stehenden
+                offen_k = wohnraum_fehlt(st, G)[1] + sum(ARBEITER_JE.get(a["typ"], 0) for a in BUCH.offen)
                 for w_k, typ_k, ort_k, text_k in KM.entscheide(st["t"], ZIEL_TICK, st_k, kand_k, feuer_g,
-                                                                {3: lager_m, 32: speicher_m, 7: speicher_m}, kosten_spiel(1)["holz"]):
+                                                                {3: lager_m, 32: speicher_m, 7: speicher_m}, kosten_spiel(1)["holz"],
+                                                                offene_stellen=offen_k):
                     if typ_k == 1:
                         o_k = baue_haus()
                     else:
@@ -1830,7 +1833,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     ereignis.append("KAUSAL %s bei %s: %s -> %s" % (NACH_TYP[typ_k]["name"], ort_k, text_k, o_k))
                 # Holz aus dem Modell (Daniel 23:48 "mach das direkt aus dem Modell, sofort"): hat keine Handlung mit Holz mehr
                 # positiven Wert, ist Holz nur noch Verkaufsware -> alles ueber 20 verkaufen, Lager waechst nicht mehr
-                bedarf_holz = KM.entscheide(st["t"], ZIEL_TICK, dict(st_k, holz=999, gold=999), kand_k, feuer_g, abgabe_k, kosten_spiel(1)["holz"])
+                bedarf_holz = KM.entscheide(st["t"], ZIEL_TICK, dict(st_k, holz=999, gold=999), kand_k, feuer_g, abgabe_k, kosten_spiel(1)["holz"],
+                                            offene_stellen=offen_k)
                 fruehpruefung["holz_ueberfluessig"] = not bedarf_holz
                 ausbau.endphase = not bedarf_holz
             if V14 and not endspiel["fertig"] and fruehpruefung.get("holz_ueberfluessig"):
