@@ -41,33 +41,32 @@ def plaetze_frei(kandidaten, belegt, abstand):
     return None
 
 
-def bau_erreichbar(typ, kandidaten, belegt, abstand, r=4, versuche=8):
-    """Bauen und pruefen, ob das Spiel das Gebaeude als erreichbar meldet (Gebaeudetabelle 'erreichbar'). SAI 11.10.:
-    erste Messpartie setzte Apfelhof (178,240) und Muehle (176,225) auf fruchtbare, aber unerreichbare Plaetze - der
-    Bauer lief 9.000 Ticks auf sein Feld zu. Unerreichbar -> abreissen, naechster Platz. Gibt (Ort, Versuche)."""
-    from waechter import lies_gebaeude
-    probiert = 0
-    for p in kandidaten:
-        if probiert >= versuche:
-            break
-        if not all(schach(p, q) >= abstand for q in belegt):
-            continue
-        probiert += 1
+def wegtest(kandidaten, block=8):
+    """Erreichbare Plaetze VOR dem Bau ueber den Wegfinder des Spiels (Modulbefehl wegtest mit einem eigenen Bauern).
+    SAI 11.10.: Messpartie 3 riss 28 Milchviehhoefe ab, weil das Gebaeude-Feld 'erreichbar' bei frisch gesetzten,
+    unfertigen Bauten 0 zeigte (Daniel: "reisst dutzende Kaesefarmen ab ohne Grund"). Kein Abriss mehr zum Testen."""
+    L = lies_lagebild(neu_holen=True)
+    bauer = next((n for n, e in L.items() if e["besitzer"] == 1 and e["typ"] == 1), None)
+    if bauer is None:
+        return list(kandidaten)
+    gut = []
+    for i in range(0, len(kandidaten), block):
+        teil = kandidaten[i:i + block]
+        z = " ".join(befehl({"wegtest": {"nr": bauer, "punkte": [list(p) for p in teil]}}, 1.5, bis="WEGTEST"))
+        m = re.search(r"WEGTEST %d: ([01]+)" % bauer, z)
+        if m:
+            gut += [p for p, ok in zip(teil, m.group(1)) if ok == "1"]
+    return gut
+
+
+def bau_erreichbar(typ, kandidaten, belegt, abstand, r=4, versuche=40):
+    """Ersten erreichbaren, freien Platz bauen (Wegtest vorher, kein Abriss). Gibt (Ort, geprueft)."""
+    frei = [p for p in kandidaten if all(schach(p, q) >= abstand for q in belegt)][:versuche]
+    for p in wegtest(frei):
         ort = es.baue_schnell(typ, p[0], p[1], r)
-        if not ort:
-            continue
-        laufe(30)
-        befehl({"lagebild": True}, 1.5, bis="LAGEBILD")
-        G = lies_gebaeude()
-        nr = min((n for n, g in G.items() if g["besitzer"] == 1 and g["typ"] == typ),
-                 key=lambda n: schach((G[n]["x"], G[n]["y"]), ort), default=None)
-        if nr is not None and G[nr].get("erreichbar", 1) == 1:
-            return ort, probiert
-        if nr is not None:
-            befehl({"abreissen": {"nr": nr}}, 0.8, bis="ABREISSEN")
-            laufe(5)
-            print("unerreichbar, abgerissen: %s bei %s" % (es.NACH_TYP[typ]["name"], ort), flush=True)
-    return None, probiert
+        if ort:
+            return ort, len(frei)
+    return None, len(frei)
 
 
 def main():
@@ -75,7 +74,11 @@ def main():
     ticks, stich = int(arg.get("ticks", 9000)), int(arg.get("stich", 250))
     kurz, balance = arg.get("kurz", "M19"), arg.get("balance", "ascension")
     import karten_holen
-    karten_holen.gefecht_frisch(arg.get("karte", "Liga_Grumpy Neighbors"))
+    # Daniel 17:08: separat testen "ohne funktionalen KI-Gegner" - einfache Ratte (ki=1) und leere KI (Waren/Gold 0)
+    karten_holen.gefecht_frisch(arg.get("karte", "Liga_Grumpy Neighbors"), ki=int(arg.get("ki", 1)))
+    z = es.sende({"befehle": [{"player": 1, "id": es.neue_id(), "leereKI": [2]}]}, 3.0, bis="LEERE KI")
+    if not any("LEERE KI" in x for x in z):
+        raise SystemExit("LEERE KI nicht bestaetigt: %s" % z[-2:])
     info = json.load(open(os.path.join(D, "start_%s.json" % kurz), encoding="utf-8"))
     K = tuple(info["bergfried_eingang"])
     F = tuple(info["feind_bergfried"]["2"]["eingang"])
@@ -94,7 +97,7 @@ def main():
         laufe(10)
     bau = {"markt": es.baue_schnell(26, K[0], K[1], 25)}
     laufe(40)
-    kaufe(2, 16)                                                          # 80 Holz fuer die Messbauten
+    kaufe(2, 30)                                                          # 150 Holz: Messbauten plus Ersatz fuer abgerissene Fehlplaetze
     fruchtbar = karte("apfel")
     bau["kornspeicher"] = es.baue_schnell(19, fruchtbar[0][0], fruchtbar[0][1], 12) if fruchtbar else es.baue_schnell(19, K[0], K[1], 15)
     laufe(100)
