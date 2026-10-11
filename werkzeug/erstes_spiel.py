@@ -1807,16 +1807,24 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 speicher_m = tuple(plan["kornspeicher"])
                 # 23:48 (Daniel: "warum wird hier keine Plantage gebaut"): je Art die 4 naechsten Plaetze zur Abgabe bewerten -
                 # vorher nur EINEN (den "besten" des Planers, (101,200) ganz oben); die Flaeche neben den Obstgaerten sah es nie
-                abgabe_k = {3: lager_m, 32: speicher_m, 7: speicher_m}
+                # 12.10. (Daniel 01:09 "Cash von Steinen/Eisen/Brot"): Hopfen 31, Eisenmine 5, Steinbruch 20 dazu - gemessene
+                # Ketten (kausal.py, Wissensregister L71/L72); Ablage am Lager
+                abgabe_k = {3: lager_m, 32: speicher_m, 7: speicher_m, 31: lager_m, 5: lager_m, 20: lager_m}
                 kand_k = []
-                for typ_a in (3, 32, 7):
+                for typ_a in (3, 32, 7, 31, 5, 20):
                     if typ_a in getattr(ausbau, "ohne", ()):
                         continue
                     b_a = ausbau.groesse.get(typ_a, 3) // 2
                     orte_a = sorted(ausbau._orte(typ_a, L, G), key=lambda p: max(abs(p[0] + b_a - abgabe_k[typ_a][0]), abs(p[1] + b_a - abgabe_k[typ_a][1])))
                     # 08.10. 00:08 (Daniel, Bild: Holzfaeller jenseits des Flusses): nur Plaetze mit Weg laut Wegtest des Spiels -
                     # vorher die 4 naechsten ungeprueft (Lauf s25/5: 21 Huetten bei x 8-54, nie besetzt)
-                    kand_k += [(typ_a, p, ausbau.kosten_von(typ_a), 1) for p in ausbau.erreichbare(orte_a, L, 4)]
+                    for p in ausbau.erreichbare(orte_a, L, 4):
+                        kost = dict(ausbau.kosten_von(typ_a))
+                        d_a = max(abs(p[0] + b_a - abgabe_k[typ_a][0]), abs(p[1] + b_a - abgabe_k[typ_a][1]))
+                        if typ_a == 20:            # Steinbruch als Paket: Bruch + so viele Ochsen, wie der Weg verlangt (L71)
+                            for w_o, m_o in ausbau.kosten_von(4).items():
+                                kost[w_o] = kost.get(w_o, 0) + KM.ochsen_fuer(d_a) * m_o
+                        kand_k.append((typ_a, p, kost, KM.arbeiter(typ_a, d_a)))
                 R_k = wirt.ruecklage(G)
                 st_k = dict(st, holz=st["holz"] - R_k["holz"], gold=st["gold"] - R_k["gold"])
                 # offene Stellen: unbesetzte Plaetze in stehenden Betrieben + Arbeiter der bestellten, noch nicht stehenden
@@ -1830,11 +1838,27 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         o_k = baue_schnell(typ_k, ort_k[0], ort_k[1], 3, zweck="kausal")
                         if not o_k:
                             ausbau.fehlschlag[(typ_k, ort_k)] = ausbau.fehlschlag.get((typ_k, ort_k), 0) + 1
+                        elif typ_k == 20:          # die Ochsen des Pakets gleich mitbauen
+                            d_k = max(abs(ort_k[0] - lager_m[0]), abs(ort_k[1] - lager_m[1]))
+                            ochsen_k = [baue_schnell(4, ort_k[0], ort_k[1], 10, zweck="kausal Ochse") for _ in range(KM.ochsen_fuer(d_k))]
+                            text_k += " + %d Ochsen %s" % (len(ochsen_k), ochsen_k)
                     ereignis.append("KAUSAL %s bei %s: %s -> %s" % (NACH_TYP[typ_k]["name"], ort_k, text_k, o_k))
                 # Holz aus dem Modell (Daniel 23:48 "mach das direkt aus dem Modell, sofort"): hat keine Handlung mit Holz mehr
                 # positiven Wert, ist Holz nur noch Verkaufsware -> alles ueber 20 verkaufen, Lager waechst nicht mehr
                 bedarf_holz = KM.entscheide(st["t"], ZIEL_TICK, dict(st_k, holz=999, gold=999), kand_k, feuer_g, abgabe_k, kosten_spiel(1)["holz"],
                                             offene_stellen=offen_k)
+                # 12.10. Ochsen nachruesten (L71: der Ochse ist der Engpass, Steinhaufen lief auf 48): Haufen ueber 30 und weniger
+                # als ochsen_max Ochsen im Umkreis 12 -> ein Ochse dazu (je Runde hoechstens einer, nicht doppelt bestellt)
+                for n_h, g_h in G.items():
+                    if g_h["besitzer"] != SP or g_h["typ"] != 21 or (g_h.get("vorrat") or 0) <= 30:
+                        continue
+                    o_h = (g_h["x"], g_h["y"])
+                    ochsen_h = sum(1 for g2 in G.values() if g2["besitzer"] == SP and g2["typ"] == 4
+                                   and max(abs(g2["x"] - o_h[0]), abs(g2["y"] - o_h[1])) <= 12)
+                    if ochsen_h < KM.MODELL[20]["ochsen_max"] and not BUCH.offen_bei(4, o_h, 12) and st["holz"] >= ausbau.kosten_von(4).get("holz", 0):
+                        ereignis.append("OCHSE NACHGERUESTET am Steinhaufen %s (Vorrat %s, %d Ochsen): %s" % (
+                            o_h, g_h.get("vorrat"), ochsen_h, baue_schnell(4, o_h[0], o_h[1], 10, zweck="Ochse nachruesten")))
+                        break
                 fruehpruefung["holz_ueberfluessig"] = not bedarf_holz
                 ausbau.endphase = not bedarf_holz
             if V14 and not endspiel["fertig"] and fruehpruefung.get("holz_ueberfluessig"):
@@ -2137,7 +2161,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                           ausbau.messer, holz_verkaufen=bremst, eisen_reserve=10 if prod else 0,
                           # Haushalt: Nahrung fuer doppelte Rationen behalten (2 x 0,1 je Kopf und 1.000 Ticks, gemessen 05.10.)
                           nahrung_puffer_h=(3 + st.get("leute", 0) // 3) if haus else None,
-                          obergrenzen={"holz": 150, "stein": 50, "eisen": 10} if prod else None)
+                          obergrenzen={"holz": 150, "stein": 50, "eisen": 10} if prod else
+                          # 12.10. (L66: Holz wurde im Kausal-Zweig nie verkauft): Holz ueber Baureserve + 40 ist Ware
+                          ({"holz": max(60, wirt.ruecklage(G)["holz"] + 40)} if ENTSCHEIDER == "kausal" else None))
             if v:
                 ereignis.append(v)
             # Daniel 07.10. (Lauf 14: 9 statt 10 Kaempfer, "hier fehlt ein Arbeiter, schlecht kalkuliert"): nach dem Endspiel-

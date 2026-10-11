@@ -84,6 +84,7 @@ START = {
 NAME = {5: "Eisenmine", 20: "Steinbruch+Ochsenjoch", 32: "Apfelplantage", 7: "Jaegerhuette", 3: "Holzfaeller"}
 JE_TEIL = 48
 BAUM_FREI = 7           # ein Baum gilt als vergeben, wenn ein eigener Holzfaeller naeher steht
+WALD_R, WALD_JE_HUETTE = 15, 12   # 12.10. Waldgrenze (abgeleitet, 2 Waelder) - Stellgroessen
 SIGNAL_GUT = (0.7, 1.3)  # abgegebene Ladung / gebuchter Zugang, in dem die Abgaben einer Art als sichtbar gelten
 SIGNAL_AB = 20           # ab so viel gebuchtem Zugang wird die Gegenprobe ausgewertet
 
@@ -312,19 +313,21 @@ class Ertragsplaner:
         info = json.load(open(os.path.join(d, "start_%s.json" % kurz), encoding="utf-8"))
         self.feinde = [tuple(v["eingang"]) for v in info["feind_bergfried"].values()]
         self.startwerte = startwerte_laden(os.path.join(d, "ertrag_startwerte_%s.json" % kurz))
-        self.kosten = kosten if kosten is not None else lies_baukosten((1, 3, 4, 5, 7, 10, 19, 20, 32))
+        self.kosten = kosten if kosten is not None else lies_baukosten((1, 3, 4, 5, 7, 10, 19, 20, 31, 32))
         if groesse is None:
             from bauen import NACH_TYP
-            groesse = {t: NACH_TYP[t]["b"] for t in (1, 3, 4, 5, 7, 10, 19, 20, 32)}
+            groesse = {t: NACH_TYP[t]["b"] for t in (1, 3, 4, 5, 7, 10, 19, 20, 31, 32)}
         self.groesse = groesse
         self.messer = Ertragsmesser(sp, self.kosten, groesse, protokoll)
         from farmen_mischen import lies_karte
         self.platz = {}
-        for typ, name in ((5, "eisenmine"), (20, "steinbruch"), (32, "apfel"), (3, "holzfaeller")):
+        # 12.10.: Hopfenfarm (31, 9x9) auf den Plaetzen der Apfelplantage (10x10) - was 10x10 fasst, fasst 9x9
+        for typ, name in ((5, "eisenmine"), (20, "steinbruch"), (32, "apfel"), (3, "holzfaeller"), (31, "apfel")):
             pfad = os.path.join(d, "start_%s_platz_%s.txt" % (kurz, name))
             self.platz[typ] = [p for p in lies_karte(pfad) if self.eigene_seite(p)] if os.path.exists(pfad) else []
         # Holzfaeller: je Baum der naechste gueltige Platz (einmal vorberechnet)
         baeume = []
+        self.baeume_faellbar = baeume      # 12.10.: fuer die Waldgrenze (WALD_JE_HUETTE)
         for w in open(os.path.join(d, "baeume_%s.txt" % kurz)).read().splitlines()[1:]:
             w = w.split()
             if len(w) >= 7 and w[2] == "2" and int(w[5]) < 4 and int(w[6]) > 0 and self.eigene_seite((int(w[3]), int(w[4]))):
@@ -402,7 +405,7 @@ class Ertragsplaner:
         # v18 (Daniel 23:10 "Holzfaeller sollten alle zugaenglich sein"): Holzfaeller-Huetten mit 1 Feld Gang zueinander
         abstand = b + 1 if (typ == 3 and self.huetten_je_baum) else b
         frei = lambda p: all(schach(p, q) >= abstand for q in gleich) and not gesperrt(p)
-        if typ in (5, 20, 32):
+        if typ in (5, 20, 32, 31):
             orte = [p for p in self.platz[typ] if frei(p)]
             if typ == 32 and self.wirt.B_offen:
                 # Seasoning (v2b, B23): der Planer setzte vor der A-Reife eigene Plantagen auf/neben die B-Plaetze -
@@ -413,16 +416,21 @@ class Ertragsplaner:
             return orte
         if typ == 3:
             hf = [(x + 1, y + 1) for (x, y) in gleich]
+            # 12.10. Waldgrenze (L69/L71, abgeleitet aus 2 Waeldern: 19-24 Baeume hielten 1 Huette 18.000 Ticks, 8 Baeume
+            # waren unter 2 Huetten nach 12.000 Ticks fast leer): ein Platz nur, wenn im Umkreis WALD_R mindestens
+            # WALD_JE_HUETTE faellbare Baeume je Huette (bestehende + diese) stehen
+            wald = lambda p: sum(1 for b_ in self.baeume_faellbar if schach(b_, (p[0] + 1, p[1] + 1)) <= WALD_R)
+            haelt = lambda p: wald(p) >= WALD_JE_HUETTE * (1 + sum(1 for h in hf if schach(h, (p[0] + 1, p[1] + 1)) <= WALD_R))
             if self.huetten_je_baum:
                 # v17: ein Baum nimmt bis zu K Huetten (Daniel 22:57) statt "vergeben, sobald ein Holzfaeller 7 Felder nah steht"
                 # (die alte Regel sperrte so auch alle Nachbarbaeume - am neuen Lager blieben 5 Holzfaeller fuer ~400 Holz)
                 aus = set()
                 for baum, plaetze in self.baum_plaetze.items():
                     if sum(1 for h in hf if schach(baum, h) <= 4) < self.huetten_je_baum:
-                        aus.update(p for p in plaetze if frei(p))
+                        aus.update(p for p in plaetze if frei(p) and haelt(p))
                 return list(aus)
             return list({p for baum, p in self.baum_platz.items()
-                         if all(schach(baum, h) > BAUM_FREI for h in hf) and frei(p)})
+                         if all(schach(baum, h) > BAUM_FREI for h in hf) and frei(p) and haelt(p)})
         rehe = [(e["x"], e["y"]) for e in L.values() if e["typ"] == 44 and e["besitzer"] == 0 and self.eigene_seite((e["x"], e["y"]))]
         # Saettigung (v2b, B22: 59 Jaegerhuetten, meist an derselben Herde): je Huette 5 Rehe im Umkreis 15,
         # bestehende Jaegerhuetten im Umkreis mitgezaehlt
