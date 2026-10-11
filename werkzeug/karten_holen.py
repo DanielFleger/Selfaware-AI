@@ -14,6 +14,7 @@
 6. daten/start_<kurz>.json mit Spielstand, Bergfried-Anker und -Eingang, feindlichem Bergfried.
 
 Aufruf:  python karten_holen.py "M19 Liga Start Grumpy T600" M19
+         python karten_holen.py "gefecht:Two Montains" TM      (frisches Gefecht statt Spielstand, SAI 11.10.)
 """
 import json, os, shutil, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -36,7 +37,32 @@ def bergfriede():
             aus[g["besitzer"]] = {"anker": (g["x"], g["y"]), "eingang": (w[0] >> 16 & 0xFFFF, w[1] & 0xFFFF)}
     return aus
 
+def gefecht_frisch(karte, ki=7):
+    """SAI 11.10. (Daniel 16:46 "teste eine andere Map, diagonale bzw. opposite Aufstellung"): statt eines gespeicherten
+    Startstands ein frisches Gefecht auf <karte> - wir Platz 0, Gegner (ki, 7 = Sultan-Platz = Nomade) Platz 1 - und
+    anhalten, sobald beide Lords stehen. Platz 2-5 gaben auf allen gemessenen Karten keinen Gegner-Lord."""
+    import time
+    import befehl as kanal
+    from serie import zuruecksetzen
+    from laden import TICK
+    print("Zuruecksetzen:", zuruecksetzen(), flush=True)
+    gefecht = {"eigenesGefecht": True, "karte": karte, "ki": ki, "gegner": 1, "ausgleich": 3,
+               "startliste": [0, 1] + [246] * 6}
+    z = kanal.sende(gefecht, 4, bis="LaunchSkirmishGame zurueck")
+    print("Start:", [x for x in z if "GEFECHT" in x][-2:], flush=True)
+    befehl({"pause": False}, 0.5)
+    t0 = time.time()
+    while time.time() - t0 < 60:
+        if len(bergfriede()) >= 2 and peek(TICK)[0] >= 150:
+            break
+        time.sleep(0.5)
+    befehl({"pause": True}, 0.5)
+    befehl({"eigenerPlatz": 1}, 0.8)
+    print("Gefecht steht bei Tick %d" % peek(TICK)[0], flush=True)
+
 def laden(spielstand):
+    if spielstand.startswith("gefecht:"):
+        return gefecht_frisch(spielstand.split(":", 1)[1])
     lade_stand(spielstand, mit_bild=False)
     befehl({"eigenerPlatz": 1}, 0.8)
 
