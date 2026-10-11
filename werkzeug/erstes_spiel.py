@@ -331,7 +331,8 @@ def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
     rueckgabe = lambda ort, grund: (ort, grund) if mit_grund else ort
     if BUCH is not None:
         k, v = kosten_spiel(typ), vorrat(SP)
-        fehlt = ["%s %d" % (w, k[w] - v.get(w, 0)) for w in ("holz", "stein", "gold") if k.get(w, 0) > v.get(w, 0)]
+        # SAI 11.10.: unter Ascension kostet die Schmiede auch 2 Eisen - Eisen und Pech mitpruefen
+        fehlt = ["%s %d" % (w, k[w] - v.get(w, 0)) for w in ("holz", "stein", "eisen", "pech", "gold") if k.get(w, 0) > v.get(w, 0)]
         if fehlt:
             BUCH.ablehnen(typ, (x, y), "fehlt " + ", ".join(fehlt))
             return rueckgabe(None, "rohstoff")
