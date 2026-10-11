@@ -14,6 +14,11 @@ Gegenprobe: werkzeug/schussfeld_pruefen.py."""
 import heapq
 
 REICHWEITE = {22: 40, 23: 40, 70: 40, 74: 40, 72: 18, 76: 11}   # Bogen, Armbrust, arab. Bogen, Pferdebogen, Schleuder, Feuerwerfer
+# GEMESSEN 12.10. 01:51 (beschuss_messen.py, 6 Kampfprotokolle 1012f-k, ~6.900 Runden): Schaden je Schuetze in Reichweite und
+# Tick an einer Assassine haengt am Abstand zum NAECHSTEN Feind (Entdeckung, Assassinen sind getarnt) und an Deckung durch
+# Gebaeude (Daniel 01:50 "man kann sich hinter Soeldnerposten/Kasernen, Haeusern verstecken"): (Feind bis, (Gebaeude<=5, offen))
+SCHADEN_SATZ = ((3, (0.76, 2.10)), (8, (0.37, 1.37)), (15, (0.06, 0.56)), (999, (0.0, 0.06)))
+DECKUNG_R = 5
 ZELLE = 4
 GEWICHT = 50.0
 MAX_ABSTAND = 24
@@ -38,7 +43,7 @@ def gefahr_am(ort, schuetzen_liste):
 class Gitter:
     """Grobes Gitter: begehbar je Zelle (Mehrheit der Felder) und Gefahr je Zelle (Mitte der Zelle)."""
 
-    def __init__(self, gelaende, schuetzen_liste, zelle=ZELLE, frei=None):
+    def __init__(self, gelaende, schuetzen_liste, zelle=ZELLE, frei=None, feinde=None, gebaeude=None):
         self.z = zelle
         self.n = GROESSE // zelle
         self.frei = frei if frei is not None else [[True] * self.n for _ in range(self.n)]
@@ -53,6 +58,7 @@ class Gitter:
                             gut += x < len(zeile) and zeile[x] in BEGEHBAR
                     self.frei[cy][cx] = gut * 2 > alle
         self.gefahr = [[0] * self.n for _ in range(self.n)]
+        self.satz = None                  # 01:51: erwarteter Schaden je Tick je Zelle (nur mit feinde/gebaeude)
         for (px, py), r in schuetzen_liste:
             c0x, c1x = max(0, (px - r) // zelle), min(self.n - 1, (px + r) // zelle)
             c0y, c1y = max(0, (py - r) // zelle), min(self.n - 1, (py + r) // zelle)
@@ -60,6 +66,47 @@ class Gitter:
                 for cx in range(c0x, c1x + 1):
                     if schach(self.mitte((cx, cy)), (px, py)) <= r:
                         self.gefahr[cy][cx] += 1
+
+        if feinde is not None:
+            self.satz = [[0.0] * self.n for _ in range(self.n)]
+            for cy in range(self.n):
+                for cx in range(self.n):
+                    k = self.gefahr[cy][cx]
+                    if not k:
+                        continue
+                    m = self.mitte((cx, cy))
+                    dn = min((schach(m, f) for f in feinde), default=999)
+                    gedeckt = any(schach(m, q) <= DECKUNG_R for q in (gebaeude or ()))
+                    satz = next(s for grenze, s in SCHADEN_SATZ if dn <= grenze)
+                    self.satz[cy][cx] = k * (satz[0] if gedeckt else satz[1])
+
+    def schaden_je_tick(self, c):
+        return self.satz[c[1]][c[0]] if self.satz is not None else float(self.gefahr[c[1]][c[0]])
+
+    def risiko_von(self, start, ticks_je_feld=15):
+        """Einquellen-Dijkstra: je Zelle der kleinste erwartete Schaden auf dem Weg dorthin (Schaden je Tick x Ticks in der Zelle,
+        plus ein Hauch Weglaenge) und die Weglaenge in Feldern. {Zelle: (Schaden, Felder)}"""
+        s = self.zelle_von(start)
+        dist, q, out = {s: 0.0}, [(0.0, 0, s)], {}
+        tz = ticks_je_feld * self.z
+        while q:
+            d, lang, c = heapq.heappop(q)
+            if c in out:
+                continue
+            out[c] = (d, lang * self.z)
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    nx, ny = c[0] + dx, c[1] + dy
+                    if (not dx and not dy) or not (0 <= nx < self.n and 0 <= ny < self.n) or (nx, ny) in out:
+                        continue
+                    if not self.frei[ny][nx]:
+                        out.setdefault((nx, ny), (d + self.schaden_je_tick((nx, ny)) * tz, (lang + 1) * self.z))
+                        continue
+                    nd = d + self.schaden_je_tick((nx, ny)) * tz + 0.001
+                    if nd < dist.get((nx, ny), 1e18):
+                        dist[(nx, ny)] = nd
+                        heapq.heappush(q, (nd, lang + 1, (nx, ny)))
+        return out
 
     def zelle_von(self, ort):
         return (min(self.n - 1, max(0, ort[0] // self.z)), min(self.n - 1, max(0, ort[1] // self.z)))
@@ -92,7 +139,7 @@ class Gitter:
                     # Schraeg kostet im Spiel so viel wie gerade (L59) - dann gibt es viele gleich lange Wege, und Dijkstra
                     # nimmt einen beliebigen (schussfeld_pruefen 01:23: Gegenprobe mit Gewicht 0 blieb zufaellig gruen).
                     # Ein Hauch mehr fuer schraeg bevorzugt bei Gleichstand den geraden Weg.
-                    kosten = (1.001 if dx and dy else 1.0) * (1 + gewicht * self.gefahr[ny][nx])
+                    kosten = (1.001 if dx and dy else 1.0) * (1 + gewicht * self.schaden_je_tick((nx, ny)))
                     nd = d + kosten
                     if nd < dist.get((nx, ny), 1e18):
                         dist[(nx, ny)], vor[(nx, ny)] = nd, c
@@ -107,7 +154,7 @@ class Gitter:
 
     def belastung(self, zellen):
         """Summe der Gefahr entlang eines Zellenwegs (wie viele Zellen x Schuetzen)."""
-        return sum(self.gefahr[c[1]][c[0]] for c in zellen)
+        return sum(self.schaden_je_tick(c) for c in zellen)
 
     def gerade(self, start, ziel):
         """Zellen auf der geraden Linie (so laeuft ein direkter Angriffsbefehl ungefaehr)."""

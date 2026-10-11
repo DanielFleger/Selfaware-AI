@@ -42,6 +42,20 @@ WERT = {
 SCHUSSWEITE = 40
 GROESSE, FERN, NAH, MAX_WEG = 1, SCHUSSWEITE, 8, 30   # 1: jeder Assassine einzeln, eigene Gruppe (Daniel 23:32; Modul reserviert Gruppen je Takt)
 
+def lord_machbar(n, lord_leben, beschuss_je_tick, schaden=98.6, tod_alle=90, leben=12500, schritt=10, bis=6000):
+    """12.10. 01:55: reicht ein Angriff von n Assassinen? Gemessen 1012d (lordkampf_messen.py): 98,6 Schaden je Assassine und
+    Tick am Lord, der Lord toetet alle ~90 Ticks eine. Dazu Beschuss am Lord je Tick und Assassine (schussfeld, gemessene
+    Saetze) - vorsichtig: jede Assassine bekommt ihn ganz (nicht auf die Gruppe verteilt). Gibt (machbar, Ticks, Ueberlebende)."""
+    hp, lh, t = [leben] * max(0, n), float(lord_leben), 0
+    while lh > 0 and hp and t < bis:
+        t += schritt
+        lh -= len(hp) * schaden * schritt
+        hp = [h - beschuss_je_tick * schritt for h in hp if h - beschuss_je_tick * schritt > 0]
+        if hp and t % tod_alle < schritt:
+            hp.pop()
+    return lh <= 0, t, len(hp)
+
+
 def schach(a, b):
     return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
 
@@ -232,7 +246,9 @@ class Einzeln:
     bekommt er den Befehl neu - der Plan im Kopf zaehlt nicht, nur das Laufziel im Spiel."""
     JE_GEBAEUDE = 1          # 12.10. Daniel 00:41/00:44: EIN Assassine je Gebaeude reisst ein, bei teuren (Wert >= TEUER) zwei;
     LORD_TAKT_R = 3          # 12.10.: wer hoechstens so viel kuerzer hat als der Restweg der Losgelaufenen, laeuft los
-    SCHUETZEN_MAX, SCHUETZEN_MAX_TEUER = 1, 2   # 12.10.: gute Tauschgeschaefte (Stellgroessen)
+    SCHUETZEN_MAX, SCHUETZEN_MAX_TEUER, SCHUETZEN_NOT = 1, 2, 3   # (01:54 nicht mehr in der Zielwahl)
+    KOSTEN = 70              # Preis einer Assassine (L63, gemessen)
+    VERWEILEN = 300          # Ticks am Ziel bis zur Zerstoerung - UNGEMESSEN, Stellgroesse (naechste Messung)   # 12.10.: gute Tauschgeschaefte (Stellgroessen)
     WEGPUNKT_NAH = 3         # 12.10.: so nah am Wegpunkt gilt er als erreicht
     BEUTE_R = 15             # 12.10.: Fernkaempfer am Boden in diesem Umkreis werden gejagt (Stellgroesse)
     # Laufzeit-Typen mit begehbarem Dach (abgelesen VillageStudio/lib/aiv_typen.lua AIV_ZU_LAUFZEIT): Tuerme 74-78,
@@ -595,12 +611,18 @@ class Einzeln:
         self.ziel.pop(n, None); self.jagd.pop(n, None); self.warte.pop(n, None); self.warte_seit.pop(n, None)
         self.route.pop(n, None)
 
-    def _gitter(self, L):
-        """Gefahren-Gitter dieser Runde (schussfeld.py); das Gelaende-Gitter wird nur einmal gerechnet."""
+    def _gitter(self, L, G=None):
+        """Gefahren-Gitter dieser Runde (schussfeld.py) mit den gemessenen Schadenssaetzen (Entdeckung + Deckung); einmal je
+        Runde gerechnet, das Gelaende-Gitter nur einmal je Partie."""
         if not self.mit_wegen or not self.gelaende:
             return None
-        g = schussfeld.Gitter(self.gelaende, schussfeld.schuetzen(L, self.sp), frei=self._frei)
+        if getattr(self, "_gitter_runde", (None,))[0] == self.runde:
+            return self._gitter_runde[1]
+        feinde = [(e["x"], e["y"]) for e in L.values() if e["besitzer"] not in (0, self.sp) and e["typ"] not in (44, 45)]
+        geb = [(g["x"], g["y"]) for g in (G or {}).values() if g["besitzer"] not in (0, self.sp)]
+        g = schussfeld.Gitter(self.gelaende, schussfeld.schuetzen(L, self.sp), frei=self._frei, feinde=feinde, gebaeude=geb)
         self._frei = g.frei
+        self._gitter_runde = (self.runde, g)
         return g
 
     def _wege(self, L, G, angriffe, ereignis):
@@ -608,7 +630,7 @@ class Einzeln:
         lauf, direkt = {}, []
         if not angriffe:
             return direkt, lauf
-        g = self._gitter(L)
+        g = self._gitter(L, G)
         if g is None:
             return list(angriffe), lauf
         for n, gn in angriffe:
@@ -902,7 +924,22 @@ class Einzeln:
                     self._vergessen(n)
                 lt.update(mitglieder=set(), phase=None, sammelpunkt=None)
             pos = lambda k: (L[k]["x"], L[k]["y"])
-            if not self.angriff_aus and lt["phase"] is None and len(self.mitglieder) >= n_bedarf and self.jetzt >= lordschutz.BIS:
+            # 12.10. 01:55 (Daniel: "das wird beim besten Willen nicht reichen - besser die Assassinen fuers Raiden nutzen, wenn du
+            # weisst, es reicht nicht wegen Lord-Leben UND vor allem der Fernkaempfer in Sichtweite"): Kampf vorher durchrechnen
+            g_l = self._gitter(L, G)
+            satz_lord = g_l.schaden_je_tick(g_l.zelle_von(lp)) if g_l is not None else 0.0
+            machbar, t_l, rest_l = lord_machbar(len(self.mitglieder) if lt["phase"] is None else len(lt["mitglieder"]) + len(lt.get("warte", ())),
+                                                le["leben"], satz_lord)
+            if lt["phase"] == "anlauf" and not machbar:
+                ereignis.append("LORD-ANLAUF ABGEBROCHEN: reicht nicht mehr (Lord %d Leben, Beschuss am Lord %.1f je Tick) - alle raiden" % (
+                    le["leben"], satz_lord))
+                for k in list(lt["mitglieder"]) + list(lt.get("warte", ())):
+                    self._vergessen(k)
+                lt.update(mitglieder=set(), warte=set(), phase=None)
+            if not self.angriff_aus and lt["phase"] is None and len(self.mitglieder) >= n_bedarf and self.jetzt >= lordschutz.BIS                     and not machbar and self.runde % 20 == 0:
+                ereignis.append("LORD-ANGRIFF NICHT MACHBAR mit %d: Lord %d Leben, Beschuss am Lord %.1f je Tick und Assassine -> raiden" % (
+                    len(self.mitglieder), le["leben"], satz_lord))
+            if not self.angriff_aus and lt["phase"] is None and len(self.mitglieder) >= n_bedarf and self.jetzt >= lordschutz.BIS                     and machbar:
                 # 12.10. 01:48 OHNE SAMMELPUNKT (Daniel 00:49 "man muss nicht an einem Punkt sammeln, Hauptsache sie kommen ca.
                 # gleich schnell an"; 00:52 "beim Sammeln wird alles im Stich gelassen"; 01:42 "warum sammeln sich wieder
                 # Assassinen in einem Klump?"): die gesuendesten n_bedarf bilden die Gruppe; wer am weitesten weg ist, laeuft
@@ -1011,8 +1048,7 @@ class Einzeln:
         # erreichen - teure (WERT >= TEUER) bis SCHUETZEN_MAX_TEUER. Stellgroessen, keine Messung.
         sch_liste = schussfeld.schuetzen(L, self.sp)
         gedeckt = {k[0]: schussfeld.gefahr_am(k[1], sch_liste) for k in kand}
-        guter_tausch = lambda k: gedeckt.get(k[0], 0) <= (self.SCHUETZEN_MAX_TEUER if WERT.get(k[2], 10) >= self.TEUER
-                                                            else self.SCHUETZEN_MAX)
+        guter_tausch = lambda k: True     # 01:54: ersetzt durch Risiko gegen Ertrag in der Zielwahl
         # Platz je Gebaeude nach Lage (Daniel 00:44): 1, teuer 2, +1 je dort angegriffenem eigenen Assassinen
         angegriffen = {}
         for n_a, g_a in self.ziel.items():
@@ -1052,19 +1088,38 @@ class Einzeln:
             schwach = L[n]["leben"] < self.SCHWACH * self.VOLL
             erreichbar = [k for k in kand if k[3]]
             frei = [k for k in erreichbar if zahl.get(k[0], 0) < platz(k)]
-            sicher = [k for k in frei if (k[7] == 0 if schwach else k[5] <= self.ZIEL_FERN_MAX)
-                      and k[8] <= zahl.get(k[0], 0) + 1 and guter_tausch(k)]   # 4a: nicht dorthin, wo mehr Nahkampf-Wachen stehen als wir Angreifer haetten
-            if sicher:
-                # Wert je Weg, abgeschwaecht durch Fernkaempfer am Ziel (Daniel 19:05: wertvoll UND nicht allzu schwer bewacht)
-                gn, p, typ, _, f10, f20, f30, _, _ = max(sicher, key=lambda k: WERT.get(k[2], 10) / ((schach(ort, k[1]) + 20.0) * (1 + k[5])))
+            # 12.10. 01:54 RISIKO GEGEN ERTRAG statt fester Schwellen (Daniel 01:49 "warum wieder ein fixer Umkreis? frei entscheiden
+            # und Risk/Reward abwaegen", 01:52 "ALLE Einheiten muessen wirklich aktiv raiden"): je Ziel kleinster erwarteter Schaden
+            # auf dem Weg (Dijkstra ueber die GEMESSENE Gefahrenkarte schussfeld.SCHADEN_SATZ: Entdeckung + Deckung) plus Schaden
+            # beim Angriff -> Todeswahrscheinlichkeit; Saldo = Wert x Ueberleben - Tod x Preis; das beste Saldo je Zeit.
+            g_r = self._gitter(L, G)
+            rk = g_r.risiko_von(ort) if g_r is not None else {}
+            beste = None
+            for k in frei:
+                if k[8] > zahl.get(k[0], 0) + 1:
+                    continue                   # 4a: nicht dorthin, wo mehr Nahkampf-Wachen stehen als wir Angreifer haetten
+                if g_r is not None:
+                    c = g_r.zelle_von(k[1])
+                    r_weg, felder = rk.get(c, (1e9, 999))
+                    risiko = r_weg + g_r.schaden_je_tick(c) * self.VERWEILEN
+                else:
+                    risiko, felder = k[5] * 2000.0, schach(ort, k[1])
+                p_tod = min(1.0, risiko / max(1.0, float(L[n]["leben"])))
+                saldo = WERT.get(k[2], 10) * (1 - p_tod) - p_tod * self.KOSTEN
+                je_zeit = saldo / (felder * 15.0 + self.VERWEILEN)
+                if saldo > 0 and (beste is None or je_zeit > beste[0]):
+                    beste = (je_zeit, k, p_tod, saldo)
+            if beste:
+                _, k_b, p_tod, saldo = beste
+                gn, p, typ, _, f10, f20, f30, _, _ = k_b
                 self.ziel[n] = gn
                 self.ziel_typ[gn] = typ
                 zahl[gn] = zahl.get(gn, 0) + 1
                 self.befohlen[n] = self.runde
                 self.warte.pop(n, None); self.warte_seit.pop(n, None)
                 angriffe.append((n, gn))
-                ereignis.append("ZIELWAHL %d -> %d Typ %d in %d: Fern<=10 %d, <=20 %d, <=30 %d, Leben %d" % (
-                    n, gn, typ, schach(ort, p), f10, f20, f30, L[n]["leben"]))
+                ereignis.append("ZIELWAHL %d -> %d Typ %d in %d: Saldo %.0f, Todesrisiko %.0f %%, Fern<=30 %d, Leben %d" % (
+                    n, gn, typ, schach(ort, p), saldo, 100 * p_tod, f30, L[n]["leben"]))
                 continue
             ohne += 1
             gruende["keins erreichbar" if not erreichbar else "alle voll" if not frei else "alle gefaehrlich"] += 1

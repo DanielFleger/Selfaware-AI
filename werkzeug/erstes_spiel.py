@@ -192,7 +192,11 @@ def phase1(plan, tempo, mit_posten=True):
         # 12.10. 01:44 (Daniel: "das Timing vom Vorratslager stimmt ueberhaupt nicht und hunderte an Gold werden verschenkt";
         # 1012i: Lager erst bei Tick 3.801-4.605 verlegt, altes abgerissen, Holz billig verkauft, Holzfaeller standen mit 18
         # Holz): das geplante Lager am Wald ZUERST, gleich in der Eroeffnung; das Startlager bleibt stehen (kein Abriss)
-        holz_bauten = [(10, tuple(plan["lager"]))] + [(19, tuple(plan["kornspeicher"])), (26, MARKT)] +                       [(3, tuple(p)) for p in plan["holzfaeller"]]
+        # 01:49: ein neues Lager geht nur angrenzend an ein bestehendes (abgeleitet: Platzkarte "lager_keins" wurde nach dem
+        # Abriss vermessen; (78,256) "kein Platz im Umkreis 10", solange das Startlager steht) - darum den Lagerplatz (5x5 + 1)
+        # fuer den fruehen Umzug FREI halten, kein Holzfaeller darauf
+        lp_ = tuple(plan["lager"])
+        holz_bauten = [(19, tuple(plan["kornspeicher"])), (26, MARKT)] +                       [(3, tuple(p)) for p in plan["holzfaeller"] if not (lp_[0] - 3 <= p[0] <= lp_[0] + 6 and lp_[1] - 3 <= p[1] <= lp_[1] + 6)]
     if plan.get("stein") and not V14:
         holz_bauten += [(20, tuple(plan["stein"]["steinbruch"])), (4, tuple(plan["stein"]["ochsen"]))]
     holz_bauten += [(1, tuple(p)) for p in plan["huetten"]]
@@ -1538,9 +1542,12 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         trupp.wellen_protokoll = os.path.join(D, "angriff_live_%s_i%d.jsonl" % (time.strftime("%Y%m%d_%H%M%S"), INSTANZ))
     wirt = Wirtschaft(plan, SP, baue_schnell, [nr for nr, _, _ in gebaeude_von(SP, 10)])
     if not V14:
-        # 12.10. 01:44: auf jeder anderen Karte nie das Startlager abreissen; Anker = das Lager am Plan-Platz (Eroeffnung)
-        wirt.alt = set()
-        wirt.lager_ort, wirt.lager_ist_anker = tuple(plan["lager"]), True
+        # 12.10. 01:49 (Daniel 01:46 "hier gibt es keinen Grund, das Vorratslager nicht umzuplatzieren"; 1012i: Umzug erst bei
+        # 3.801-4.605, Holz verkauft, Holzfaeller standen): FRUEHER Umzug in einem Schritt - raeumen ab sofort (das Startholz
+        # ist in Phase 1 verbaut), neues Lager genau am Plan-Platz, sobald das alte weg ist (lager_genau)
+        wirt.umzug_ab, wirt.lager_genau, wirt.lager_ort = 0, True, tuple(plan["lager"])
+        schreib("Lager: frueher Umzug an %s (Startlager raeumen und abreissen, neues in derselben Runde)" % (wirt.lager_ort,))
+    if False:
         # 01:47 (1012j: Plan-Platz (78,256) "kein Platz im Umkreis 10", Holzfaeller standen mit 18 Holz; Daniel: "hier gibt es
         # keinen Grund, das Vorratslager nicht umzuplatzieren"): steht am Anker kein Lagerteil, sucht das Spiel selbst den
         # naechsten freien Lagerplatz (Platzsuche) im Umkreis 25 - der wird gebaut und ist ab dann der Anker
