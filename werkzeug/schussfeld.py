@@ -38,11 +38,11 @@ def gefahr_am(ort, schuetzen_liste):
 class Gitter:
     """Grobes Gitter: begehbar je Zelle (Mehrheit der Felder) und Gefahr je Zelle (Mitte der Zelle)."""
 
-    def __init__(self, gelaende, schuetzen_liste, zelle=ZELLE):
+    def __init__(self, gelaende, schuetzen_liste, zelle=ZELLE, frei=None):
         self.z = zelle
         self.n = GROESSE // zelle
-        self.frei = [[True] * self.n for _ in range(self.n)]
-        if gelaende:
+        self.frei = frei if frei is not None else [[True] * self.n for _ in range(self.n)]
+        if gelaende and frei is None:
             for cy in range(self.n):
                 for cx in range(self.n):
                     gut = alle = 0

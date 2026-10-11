@@ -96,7 +96,15 @@ def main():
                 erg["gebaeude"][art] = "keine Platzkarte %s" % os.path.basename(pfad)
                 print("UEBERSPRUNGEN %s: %s fehlt" % (art, pfad), flush=True)
                 continue
-            plaetze = [p for p in lies_karte(pfad) if eigen(p)]
+            # Lauf 3 (01:24): Stein/Eisen auch jenseits der Mitte (Gegner hat leere KI) - auf der eigenen Seite lagen alle
+            # Plaetze 52-69 Felder weg, die Formel brauchte Spreizung. Holz nur, wo faellbare Baeume stehen (L69).
+            plaetze = [p for p in lies_karte(pfad) if eigen(p) or art in ("stein", "eisen")]
+            if art == "holz":
+                b0 = baeume_lesen()
+                dicht = lambda p: sum(1 for x in b0 if schach((x["x"], x["y"]), p) <= 15 and x["zustand"] == 2 and x["stufe"] < 4
+                                      and x["rest"] > 0)
+                plaetze = [p for p in plaetze if dicht(p) >= int(arg.get("baeume_min", 8))]
+                erg["holz_plaetze_mit_baeumen"] = len(plaetze)
             for i, ab in enumerate(abstaende):
                 kand = sorted([p for p in plaetze if all(schach(p, q) >= 8 for q in belegt)],
                               key=lambda p: abs(schach(p, lager) - ab))[:24]
@@ -116,7 +124,11 @@ def main():
             erg["gebaeude"]["huette%d" % i] = o
             if o:
                 belegt.append(o)
-        befehl({"spielbefehl": {"nr": 35, "werte": [0]}}, 1.0, bis="SPIELBEFEHL")     # Rationen keine
+        # Lauf 2 fiel bei Tick 18.501 unter Beliebtheit 50 (Rationen keine) - jetzt normale Rationen, Kornspeicher am
+        # Bergfried, Aepfel werden nachgekauft (Gold gesetzt), damit niemand abwandert
+        erg["gebaeude"]["kornspeicher"] = E.baue_schnell(19, K[0], K[1], 15)
+        warte_ticks(40)
+        befehl({"spielbefehl": {"nr": 35, "werte": [2]}}, 1.0, bis="SPIELBEFEHL")     # Rationen normal
         befehl({"spielbefehl": {"nr": 34, "werte": [0]}}, 1.0, bis="SPIELBEFEHL")     # Steuer: Bestechung
         print("gebaut:", erg["gebaeude"], flush=True)
         arbeiter_typen = {}
@@ -161,6 +173,10 @@ def main():
             t = peek(TICK)[0] - t0
             erg["bestand"].append(dict({w: v.get(w, 0) for w in waren}, t=t, gold=v.get("gold"), beliebt=st.get("beliebt"),
                                        leute=st.get("leute")))
+            if v.get("apfel", 0) < 20:          # Nahrung nachkaufen (Beliebtheit halten)
+                kanal.sende({"befehle": [{"player": SP, "id": kanal.neue_id(), "spielbefehl": {"nr": 38, "werte": [0, 13]}}]},
+                            1.0, bis="SPIELBEFEHL")
+                erg.setdefault("nahrung_gekauft", []).append(t)
             for a in arten:                    # Lager frei halten; jeder Verkauf mit Bestand davor/danach
                 ware, nr = ARTEN[a][2], ARTEN[a][3]
                 if v.get(ware, 0) > VERKAUF_AB:

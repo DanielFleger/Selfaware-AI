@@ -18,6 +18,7 @@ import math
 from laden import befehl
 from waechter import sicherster_ort
 from bedrohung import fingerabdruck, bedarf as lage_bedarf, lagen_laden
+import schussfeld
 
 ASSASSINE = 73
 TRUPPE = {22, 23, 24, 25, 26, 27, 28, 37, 55, 70, 71, 72, 73, 74, 75, 76}
@@ -229,6 +230,7 @@ class Einzeln:
     Gegenprobe je Runde: laeuft ein Assassine nicht zu seinem Gebaeude (Laufziel im Lagebild weiter als ZIEL_NAH),
     bekommt er den Befehl neu - der Plan im Kopf zaehlt nicht, nur das Laufziel im Spiel."""
     JE_GEBAEUDE = 1          # 12.10. Daniel 00:41/00:44: EIN Assassine je Gebaeude reisst ein, bei teuren (Wert >= TEUER) zwei;
+    WEGPUNKT_NAH = 3         # 12.10.: so nah am Wegpunkt gilt er als erreicht
     BEUTE_R = 15             # 12.10.: Fernkaempfer am Boden in diesem Umkreis werden gejagt (Stellgroesse)
     # Laufzeit-Typen mit begehbarem Dach (abgelesen VillageStudio/lib/aiv_typen.lua AIV_ZU_LAUFZEIT): Tuerme 74-78,
     # Torhaus gross 45 / klein 46, Steinbergfried 41. Andere Bergfried-Arten sind dort nicht aufgefuehrt (offen)
@@ -310,6 +312,9 @@ class Einzeln:
         self.angriffe = []                   # je Alle-auf-den-Lord: Groesse, Weg, wer kam an, was hielt auf, Lord-Leben
         self.wellen_protokoll = None         # Datei fuer die S1-Messung je Runde (setzt erstes_spiel.py)
         self.gelaende = None                 # unveraenderte Kartenzeilen; einmal je Angriffsprotokoll geschrieben
+        # Sichere Wege (12.10., Daniel 01:03/01:08: kuerzester Weg durch den toten Winkel statt geradeaus durch die Schuetzen):
+        # n -> {"punkte": [Wegpunkte ohne Ziel], "gebaeude": Nr, "befohlen": Runde}; Gelaende-Gitter einmal je Partie
+        self.route, self._frei, self.mit_wegen = {}, None, True
         self._gelaende_geschrieben = False
         self.runde, self.gemessen, self.ohne_ziel_zuletzt = 0, 0, None
         self.bilanz = {"gebaeude": {}, "verluste": set(), "neu_befohlen": 0, "rueckzug": 0, "zuschlagen": 0}
@@ -577,6 +582,60 @@ class Einzeln:
 
     def _vergessen(self, n):
         self.ziel.pop(n, None); self.jagd.pop(n, None); self.warte.pop(n, None); self.warte_seit.pop(n, None)
+        self.route.pop(n, None)
+
+    def _gitter(self, L):
+        """Gefahren-Gitter dieser Runde (schussfeld.py); das Gelaende-Gitter wird nur einmal gerechnet."""
+        if not self.mit_wegen or not self.gelaende:
+            return None
+        g = schussfeld.Gitter(self.gelaende, schussfeld.schuetzen(L, self.sp), frei=self._frei)
+        self._frei = g.frei
+        return g
+
+    def _wege(self, L, G, angriffe, ereignis):
+        """12.10.: neue Gebaeude-Angriffe ueber den sicheren Weg schicken. Gibt (direkte Angriffe, Laufbefehle {Ort: [n]})."""
+        lauf, direkt = {}, []
+        if not angriffe:
+            return direkt, lauf
+        g = self._gitter(L)
+        if g is None:
+            return list(angriffe), lauf
+        for n, gn in angriffe:
+            if n not in L or gn not in G:
+                direkt.append((n, gn))
+                continue
+            start, ziel = (L[n]["x"], L[n]["y"]), (G[gn]["x"], G[gn]["y"])
+            wp, bw, bg, _ = schussfeld.sicherer_weg(self.gelaende, L, self.sp, start, ziel, gitter=g)
+            if len(wp) > 1:
+                self.route[n] = {"punkte": wp[:-1], "gebaeude": gn, "befohlen": self.runde}
+                lauf.setdefault(wp[0], []).append(n)
+                ereignis.append("WEG %d -> Gebaeude %d ueber %d Wegpunkte (Beschuss Weg %s statt gerade %s)" % (
+                    n, gn, len(wp) - 1, bw, bg))
+            else:
+                direkt.append((n, gn))
+        return direkt, lauf
+
+    def _route_pflegen(self, L, G, angriffe, ereignis):
+        """12.10.: Wegpunkt erreicht -> naechster; letzter erreicht -> Angriff aufs Gebaeude. Gibt Laufbefehle {Ort: [n]}."""
+        lauf = {}
+        for n, r in list(self.route.items()):
+            if n not in L or n not in self.mitglieder or self.ziel.get(n) != r["gebaeude"] or r["gebaeude"] not in G                     or n in self.flucht or n in self.jagd:
+                self.route.pop(n, None)
+                continue
+            ort = (L[n]["x"], L[n]["y"])
+            while r["punkte"] and schach(ort, r["punkte"][0]) <= self.WEGPUNKT_NAH:
+                r["punkte"].pop(0)
+            if not r["punkte"]:
+                self.route.pop(n, None)
+                angriffe.append((n, r["gebaeude"]))
+                self.befohlen[n] = self.runde
+                ereignis.append("WEG %d am Ziel angekommen -> Angriff auf Gebaeude %d" % (n, r["gebaeude"]))
+                continue
+            p = r["punkte"][0]
+            if schach((L[n].get("laufx", -99), L[n].get("laufy", -99)), p) > self.WEGPUNKT_NAH and self.runde - r["befohlen"] >= 1:
+                lauf.setdefault(p, []).append(n)
+                r["befohlen"] = self.runde
+        return lauf
 
     def _fliehen(self, n, ort, flieh):
         """4a: Flucht als echter Laufbefehl (Spielbefehl 17 wie ein Mensch-Klick, Modul angriff mit lauf). NICHT halten:
@@ -649,6 +708,8 @@ class Einzeln:
         # 3. Gegenprobe: laeuft er wirklich zu seinem Gebaeude?
         wirklich, abweichler = set(), 0
         for n, z in list(self.ziel.items()):
+            if n in self.route:
+                continue                   # 12.10. (Frage-Agent): laeuft zu einem Wegpunkt, nicht zum Gebaeude - kein Abweichler
             if schach((L[n]["laufx"], L[n]["laufy"]), (G[z]["x"], G[z]["y"])) <= self.ZIEL_NAH:
                 wirklich.add(z)
             elif self.runde - self.befohlen.get(n, 0) >= self.NEU_NACH:
@@ -991,7 +1052,14 @@ class Einzeln:
         if ohne != self.ohne_ziel_zuletzt:
             self.ohne_ziel_zuletzt = ohne
             ereignis.append("%d Assassinen ohne Ziel (%s)" % (ohne, ", ".join("%s %d" % kv for kv in gruende.items() if kv[1])))
-        befehle = [{"angriff": {"einheiten": [n], "gebaeude": gn}} for n, gn in angriffe]
+        # 6. Sichere Wege (12.10.): laufende Routen weiterfuehren, neue Gebaeude-Angriffe ueber den toten Winkel schicken
+        am_ziel = []
+        lauf_weg = self._route_pflegen(L, G, am_ziel, ereignis)
+        direkt, lauf_neu = self._wege(L, G, angriffe, ereignis)
+        for o, ns in lauf_neu.items():
+            lauf_weg.setdefault(o, []).extend(ns)
+        befehle = [{"angriff": {"einheiten": [n], "gebaeude": gn}} for n, gn in direkt + am_ziel]
+        befehle += [{"angriff": {"einheiten": ns, "lauf": [o[0], o[1]]}} for o, ns in lauf_weg.items()]
         befehle += [{"angriff": {"einheiten": [n], "ziel": f}} for n, f in jagen]
         befehle += [{"halten": {"nr": ns, "x": o[0], "y": o[1]}} for o, ns in halten.items()]
         befehle += [{"angriff": {"einheiten": ns, "lauf": [o[0], o[1]]}} for o, ns in flieh.items()]   # 4a: echter Laufbefehl
