@@ -32,7 +32,9 @@ MODELL = {
     "gehen_ticks": 16,            # L68: alle Rohstoff-/Nahrungsarbeiter 16 Ticks je Feld (Holzfaeller 24), mit/ohne Last gleich
     "huette_platz": 8,            # +8 Wohnplaetze je Huette (Platz 26 -> 34 -> 42 ...)
     # rate: je Betrieb und 1.000 Ticks (gemessen, wegunabhaengig) ODER menge/zyklus/gehen: rate(d) = 1000*menge/(zyklus+2*d*gehen)
-    3: {"rate": 4.0, "anlauf": 3700, "wert": 2.0, "gehen": 24, "arbeiter": 1},       # L71: 4 je Huette an einem Wald; Holz ~2 (L65, unsicher)
+    # Holz weg-abhaengig (12.10. 01:46, 1012j: Holzfaeller 120 Felder vom Lager gewaehlt): 18 je Gang (L10, Liga), Arbeit 2.580
+    # abgeleitet aus 4 je 1.000 bei ~40 Feldern (L71) mit 24 Ticks je Feld (L68) -> 5,9 bei 10, 2,2 bei 120 Feldern
+    3: {"menge": 18, "zyklus": 2580, "anlauf": 3700, "wert": 2.0, "gehen": 24, "arbeiter": 1},
     31: {"menge": 3, "zyklus": 2800, "anlauf": 8000, "wert": 18.0, "gehen": 16, "arbeiter": 1},  # L71: growCounter 400->0 ~2.800, 3 je Ernte
     5: {"rate": 0.7, "anlauf": 6600, "wert": 27.0, "gehen": 16, "arbeiter": 2},      # L71: 0,66-0,73 je Mine (3 Laeufe), Traeger haelt mit
     20: {"bruch": 3.3, "ochse_menge": 7, "ochse_laden": 2650, "anlauf": 5200, "wert": 7.0, "gehen": 16, "arbeiter": 3,
