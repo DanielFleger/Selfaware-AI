@@ -37,6 +37,28 @@ bb2 = B.BrotBau({"getreide": [(177, 260)], "baeckereien": 2, "ab_tick": 1000}, 1
 pruefe("I Ruecklage vor ab_tick leer", bb2.bedarf(500, welt([])) == {})
 pruefe("J Ruecklage = Muehle, wenn die Farm steht", bb2.bedarf(1500, welt([30])) == {"holz": 18, "gold": 0})
 pruefe("K Ruecklage leer, wenn alles steht", bb2.bedarf(1500, welt([30, 34, 17, 17])) == {})
+PREIS[19] = {"holz": 5}
+PREIS[7] = {"holz": 8}
+b3 = []
+bb3 = B.BrotBau({"getreide": [(177, 260)], "baeckereien": 1, "ab_tick": 0, "kornspeicher2": True}, 1, (186, 280), (200, 242),
+                lambda typ, x, y, r: b3.append((typ, x, y)) or (x, y), lambda typ: PREIS[typ])
+w3 = {0: {"besitzer": 1, "typ": 30, "x": 177, "y": 260}, 1: {"besitzer": 1, "typ": 34, "x": 188, "y": 282},
+      2: {"besitzer": 1, "typ": 19, "x": 200, "y": 242}}          # Apfel-Kornspeicher weit vom Lager zaehlt nicht
+pruefe("L Kornspeicher am Lager vor der Baeckerei", bool(bb3.schritt(100, {"holz": 50}, w3)) and b3 == [(19, 186, 280)])
+w3[3] = {"besitzer": 1, "typ": 19, "x": 188, "y": 276}
+pruefe("M danach Baeckerei am Lager", bool(bb3.schritt(500, {"holz": 50}, w3)) and b3[-1] == (17, 186, 280))
+jb = []
+J = B.JagdBau([{"herde": (113, 204), "rehe": 12, "anzahl": 2}], 1, lambda typ, x, y, r: jb.append((typ, x, y)) or (x, y),
+              lambda typ: PREIS[typ])
+rehe = {100 + i: {"typ": 44, "besitzer": 0, "x": 120 + i % 3, "y": 210 + i // 3} for i in range(9)}
+pruefe("N Jagd: Jaegerhuette an der LEBENDEN Herde (kein Kornspeicher dort)", bool(J.schritt(100, {"holz": 50}, rehe, {}))
+       and jb[0][0] == 7 and abs(jb[0][1] - 121) <= 2 and abs(jb[0][2] - 211) <= 3)
+G4 = {1: {"besitzer": 1, "typ": 7, "x": 121, "y": 211}}
+pruefe("O keine Doppelbestellung binnen SPERRE", J.schritt(200, {"holz": 50}, rehe, G4) == [])
+pruefe("O2 zweite Jaegerhuette nach SPERRE", bool(J.schritt(500, {"holz": 50}, rehe, G4)) and jb[-1][0] == 7 and len(jb) == 2)
+G4[2] = {"besitzer": 1, "typ": 7, "x": 118, "y": 214}
+pruefe("P zwei Jaeger stehen: fertig", "steht" in " ".join(J.schritt(900, {"holz": 50}, rehe, G4)) and J.bedarf(950, G4, rehe) == {})
+pruefe("Q ohne Jagdplan nichts", B.JagdBau(None, 1, None, None).schritt(1, {}, {}, {}) == [])
 pruefe("H ohne Brotplan nichts", B.BrotBau(None, 1, (0, 0), (0, 0), None, None).schritt(5000, {}, {}) == [])
 print("ERGEBNIS: %d Fehler" % fehler)
 raise SystemExit(1 if fehler else 0)

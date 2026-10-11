@@ -35,6 +35,13 @@ APFEL_EINZELN_JE_1000 = 2.2          # Lauf 22:44: eine Plantage allein am selbe
 BROT_JE_MEHL = 8                     # Lauf 22:57: 20 Weizen = 13 Backgaenge + 4 Mehl im Lager
 BROT_ERSTE = 9500                    # Lauf 22:57: erstes Brot bei Tick 9.453 (alles beim Start gebaut)
 BAECKEREI_JE_1000 = 10.0 / 3         # Lauf 22:57: 3 nahe Baeckereien zusammen ~10 Brot je 1.000 (weizenbegrenzt - Untergrenze)
+# Baecker-Umlauf nach Abstand Lager/Baeckerei <-> Kornspeicher (zwei Punkte: Lauf 17:32 4.330 Ticks bei ~38 Feldern; Lauf 22:57
+# <= 2.400 bei ~8 Feldern, Untergrenze) -> 1.888 + 64 * Abstand (Mehl holen UND Brot bringen); 8 Brot je Backgang
+BAECKEREI_FEST, BAECKEREI_JE_FELD = 1888, 64
+
+
+def baeckerei_je_1000(abstand_speicher):
+    return 1000.0 * BROT_JE_MEHL / (BAECKEREI_FEST + BAECKEREI_JE_FELD * abstand_speicher)
 MUEHLE_ARBEITER, BAECKEREI_ARBEITER = 3, 1
 
 
@@ -44,12 +51,12 @@ def je_1000(quelle, abstand):
     return 1000.0 * q["ladung"] / (q["fest"] + q["je_feld"] * abstand)
 
 
-def brotkette(abstand_farm_lager, farmen=1):
+def brotkette(abstand_farm_lager, farmen=1, abstand_speicher=8):
     """Brot je 1.000 Ticks einer Kette aus `farmen` Getreidefarmen; Baeckereien so viele, wie der Weizen traegt.
     Gibt (brot_je_1000, baeckereien, arbeiter)."""
     weizen = farmen * je_1000("weizen", abstand_farm_lager)
     brot = weizen * BROT_JE_MEHL
-    baeckereien = max(1, int(round(brot / BAECKEREI_JE_1000 + 0.49)))
+    baeckereien = max(1, int(round(brot / baeckerei_je_1000(abstand_speicher) + 0.49)))
     arbeiter = farmen + MUEHLE_ARBEITER + baeckereien
     return brot, baeckereien, arbeiter
 

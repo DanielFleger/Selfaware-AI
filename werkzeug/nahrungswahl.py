@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
-"""Nahrungswahl: die KI rechnet ihre Nahrungsmischung je Karte selbst aus (SAI 11.10. 23:15).
+"""Nahrungswahl: die KI rechnet ihre Nahrungsmischung je Karte selbst aus (SAI 11.10.; neu geschrieben 23:28).
 
 Daniel 22:53: "Brot haengt davon ab, ob du mid- oder lategame eine bessere Essensversorgung willst; Brot ist effektiver bei
 weniger Farmplatz und je naeher die Farm am Vorratslager". 23:05 (Frage 1, "ja"): keine Gewichte von Hand - die KI spielt
 ihre Versorgung im Voraus durch und waehlt die Mischung, die den Verbrauch mit den wenigsten Arbeitern und dem wenigsten
-Holz deckt.
+Holz deckt. 23:20: "warum nicht hybrid, z.B. Rehe" und "Kornspeicher naeher an die Baeckereien".
 
 Rechnung (alle Zahlen gemessen, siehe nahrungsmodell.py und Wissensregister L58-L61):
   Bedarf(t) = Leute(t) * Verbrauch je Kopf (Ration). Leute(t) = gemessener Verlauf (Lenker auf Two Montains, Lauf 23:09),
              hoechstens Bevoelkerungsziel.
-  Frueh (bis Brot liefern kann): Aepfel. Plantagen auf den fruchtbaren Plaetzen der eigenen Seite, die am dichtesten
-             beieinander liegen (gemeinsamer Kornspeicher); ab 3 gilt das Gruppenmodell, darunter der Einzelwert.
-  Spaet: fehlenden Bedarf entweder mit weiteren Apfelplantagen (falls Plaetze da sind) oder mit einer Brotkette decken -
-             gewaehlt wird, was weniger Arbeiter braucht, bei Gleichstand weniger Holz. Fehlen Plaetze, kommt Brot.
-             Brot wird so frueh gebaut, dass es bei Bedarf liefert (erstes Brot ~9.500 Ticks nach dem Bau).
-  Jaeger plant die Wahl nicht vorab - Herden sieht man erst im Spiel; das macht der Jaegerweg der Wirtschaft.
-Ausgabe: dict mit aepfel, kornspeicher, brot (oder None) und begruendung (jede Zahl der Entscheidung)."""
+  Quellen: Jaeger an den Herden der Startzaehlung (karten_holen.rehe_zaehlen; je Herde bis 2 Jaeger mit eigenem
+             Kornspeicher - Lauf 23:26: Herde wird nicht leer gejagt), Aepfel in Gruppen (fruchtbare Plaetze nahe am
+             Bergfried zuerst - Lage vor Laufweg), Brotketten (Getreidefarm am Platz naechst dem Lager).
+  Frueh (bis Brot liefern kann, ~9.500 Ticks nach dem Bau): Jaeger + Aepfel. Spaet: dazu Brot.
+  Alle Mischungen (Jaeger x Brotketten x Aepfel) werden durchgerechnet; genommen wird die, die frueh UND spaet deckt, mit
+  den wenigsten Arbeitern, dann dem wenigsten Holz. Reicht frueh nichts fuer doppelte Rationen: frueh normal.
+  Brot bekommt einen eigenen Kornspeicher am Lager, wenn der Apfel-Kornspeicher mehr als 10 Felder weg liegt.
+Ausgabe: dict mit aepfel, kornspeicher, jaeger, brot (oder None) und begruendung (jede Zahl der Entscheidung)."""
 import json
-import math
 import os
 
 import nahrungsmodell as M
@@ -26,8 +26,11 @@ D = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "daten")
 # Leute ueber die Zeit, Lenker auf Two Montains (daten/tm_probe_konsole2.txt, Spalte Leute), bevoelkerung_ziel=90
 LEUTE = [(0, 10), (921, 10), (2338, 37), (3694, 48), (6195, 52), (8106, 67), (9624, 79), (11289, 86), (11884, 93)]
 VERBRAUCH = {"keine": 0.0, "normal": 0.19, "doppelt": 0.39}        # je Kopf und 1.000 Ticks (L61)
-HOLZ = {"apfel": 8, "getreide": 18, "muehle": 18, "baeckerei": 12}   # Ascension-Preise; im Spiel liest der Lenker sie live
+HOLZ = {"apfel": 8, "getreide": 18, "muehle": 18, "baeckerei": 12, "jaeger": 8}   # Ascension; Lenker liest live
 GROESSE_APFEL = 10
+JAGD_WEG, JAGD_UMKREIS, JAGD_MIN = 70, 15, 5         # wie der Jaegerweg der Wirtschaft (wirtschaft.py, Lauf 9q)
+JAEGER_JE_HERDE = 2          # gemessen mit 2 (Lauf 23:26): Herde blieb; mehr ist ungemessen
+# L62 (23:31): weitere Kornspeicher nur angrenzend - Jaeger liefern zum EINEN Kornspeicher-Ort, kein eigener an der Herde
 
 
 def leute(t, ziel):
@@ -43,10 +46,10 @@ def schach(a, b):
 
 
 def apfel_plaetze(kurz, K, feinde):
+    """Nicht ueberlappende 10x10-Plaetze der eigenen Seite (Platzkarte des Spiels), die naechsten zum Bergfried zuerst."""
     from farmen_mischen import lies_karte
     roh = lies_karte(os.path.join(D, "start_%s_platz_apfel.txt" % kurz))
     eigen = [p for p in roh if all(schach(p, K) < schach(p, f) for f in feinde)]
-    # nicht ueberlappende 10x10-Plaetze, die naechsten zum Bergfried zuerst
     aus = []
     for p in sorted(eigen, key=lambda q: schach(q, K)):
         if all(abs(p[0] - q[0]) >= GROESSE_APFEL or abs(p[1] - q[1]) >= GROESSE_APFEL for q in aus):
@@ -55,9 +58,8 @@ def apfel_plaetze(kurz, K, feinde):
 
 
 def gruppe(plaetze, k, kerne=12):
-    """k Plaetze, die am dichtesten beieinander liegen - gebildet nur um die `kerne` Plaetze, die dem Bergfried am naechsten
-    sind (Lage vor Laufweg: 23:16 legte die reine Dichtesuche 10 Plantagen samt Kornspeicher 100 Felder vom Bergfried).
-    plaetze sind nach Abstand zum Bergfried sortiert. Gibt (Plaetze, Kornspeicher-Mitte, mittlerer Abstand) oder None."""
+    """k Plaetze, die am dichtesten beieinander liegen - gebildet nur um die `kerne` Plaetze naechst dem Bergfried (23:16:
+    die reine Dichtesuche legte 10 Plantagen samt Kornspeicher 100 Felder vom Bergfried). Gibt (Plaetze, Mitte, Abstand)."""
     beste = None
     for kern in plaetze[:kerne]:
         nah = sorted(plaetze, key=lambda q: schach(q, kern))[:k]
@@ -75,84 +77,162 @@ def apfel_rate(k, abstand):
     return M.je_1000("apfel_gruppe", abstand) if k >= 3 else M.APFEL_EINZELN_JE_1000
 
 
-def aepfel_fuer(plaetze, bedarf):
-    """Kleinste Apfelgruppe, die `bedarf` deckt, sonst die groesste. Gibt (k, gruppe, rate, gedeckt)."""
+def aepfel_fuer(plaetze, bedarf, speicher=None):
+    """Kleinste Apfelgruppe, die `bedarf` deckt, sonst die ertragreichste. Gibt (k, gruppe, rate, gedeckt).
+    speicher=None: Kornspeicher in der Gruppenmitte; sonst fester Ort - dann die k Plaetze naechst dem Speicher (L62: es gibt
+    nur EINEN Kornspeicher-Ort, weitere wachsen angrenzend an)."""
+    if bedarf <= 0 or not plaetze:
+        return 0, None, 0.0, bedarf <= 0
     wahl = None
     for k in range(1, len(plaetze) + 1):
-        g = gruppe(plaetze, k)
+        if speicher is None:
+            g = gruppe(plaetze, k)
+        else:
+            nah = sorted(plaetze, key=lambda q: schach((q[0] + 5, q[1] + 5), speicher))[:k]
+            g = (nah, tuple(speicher), sum(schach((q[0] + 5, q[1] + 5), speicher) for q in nah) / float(k)) if len(nah) == k else None
         if not g:
             break
         rate = k * apfel_rate(k, g[2])
-        if wahl is None or rate > wahl[2]:
-            wahl = (k, g, rate, rate >= bedarf)
         if rate >= bedarf:
-            return (k, g, rate, True)
+            return k, g, rate, True
+        if wahl is None or rate > wahl[2]:
+            wahl = (k, g, rate, False)
     return wahl
 
 
+def herden(info, K, feinde):
+    """Herden der eigenen Seite aus der Startzaehlung: je Herde Mitte und Zahl der Rehe (>= JAGD_MIN im Umkreis)."""
+    rest = [tuple(p) for p in info.get("rehe", []) if schach(p, K) <= JAGD_WEG and all(schach(p, K) < schach(p, f) for f in feinde)]
+    aus = []
+    while rest:
+        m = max(rest, key=lambda p: sum(1 for q in rest if schach(p, q) <= JAGD_UMKREIS))
+        n = sum(1 for q in rest if schach(m, q) <= JAGD_UMKREIS)
+        if n < JAGD_MIN:
+            break
+        aus.append((m, n))
+        rest = [q for q in rest if schach(m, q) > JAGD_UMKREIS]
+    return aus
+
+
+def brotketten(frei, b, lager, speicher):
+    brot, baeck, arb, holz = 0.0, 0, 0, 0
+    for f in frei[:b]:
+        m, bk, ar = M.brotkette(schach((f[0] + 4, f[1] + 4), lager), abstand_speicher=max(4, schach(lager, speicher)))
+        brot, baeck, arb = brot + m, baeck + bk, arb + ar
+        holz += HOLZ["getreide"] + HOLZ["muehle"] + bk * HOLZ["baeckerei"]
+    return brot, baeck, arb, holz
+
+
+def speicherplatz(kurz, punkt, belegt):
+    """Gueltiger Kornspeicher-Platz (Platzkarte des Spiels) naechst `punkt`, ohne Plantagen-/Farmflaeche."""
+    from farmen_mischen import lies_karte
+    speicher = lies_karte(os.path.join(D, "start_%s_platz_speicher.txt" % kurz))
+    frei = [s for s in speicher if all(s[0] + 4 <= q[0] or q[0] + GROESSE_APFEL <= s[0] or s[1] + 4 <= q[1]
+                                       or q[1] + GROESSE_APFEL <= s[1] for q in belegt)]
+    return tuple(min(frei, key=lambda s: schach((s[0] + 2, s[1] + 2), punkt))) if frei else tuple(punkt)
+
+
 def waehle(kurz, plan, bev_ziel=90, ration="doppelt", horizont=16000):
+    """23:34 (L62: weitere Kornspeicher nur angrenzend): es gibt EINEN Kornspeicher-Ort - an den Aepfeln oder am Lager.
+    Fuer beide Orte werden Jaeger x Brotketten x Aepfel mit den echten Abstaenden durchgerechnet (Aepfel zum Speicher,
+    Jaeger von der Herde zum Speicher, Baecker Lager <-> Speicher); genommen wird die Mischung, die frueh UND spaet deckt,
+    mit den wenigsten Arbeitern, dann dem wenigsten Holz."""
     info = json.load(open(os.path.join(D, "start_%s.json" % kurz), encoding="utf-8"))
     K = tuple(info["bergfried_eingang"])
     feinde = [tuple(v["eingang"]) for v in info["feind_bergfried"].values()]
     lager = tuple(plan.get("lager_mitte") or plan.get("lager") or K)
     plaetze = apfel_plaetze(kurz, K, feinde)
-    grund = {"plaetze_eigene_seite": len(plaetze), "ration": ration, "bev_ziel": bev_ziel}
-    if not plaetze:
-        return {"aepfel": [], "kornspeicher": None, "brot": None, "ration_frueh": ration,
-                "begruendung": dict(grund, fehler="kein fruchtbarer Platz auf der eigenen Seite - nur Jaeger/Kauf")}
-    bedarf = lambda r, a, b: max(leute(t, bev_ziel) * VERBRAUCH[r] for t in range(a, b + 1, 500))
+    hd = herden(info, K, feinde)
+    jaeger_max = sum(min(JAEGER_JE_HERDE, n // JAGD_MIN) for _, n in hd)
     t_brot = M.BROT_ERSTE
-    # 1. frueh: nur Aepfel liefern vor dem ersten Brot. Reicht der Boden fuer die gewuenschte Ration nicht, normale Ration.
+    bedarf = lambda r, a, b: max(leute(t, bev_ziel) * VERBRAUCH[r] for t in range(a, b + 1, 500))
+    grund = {"plaetze_eigene_seite": len(plaetze), "herden": [(list(m), n) for m, n in hd], "jaeger_moeglich": jaeger_max,
+             "ration": ration, "bev_ziel": bev_ziel, "rehe_gezaehlt": "rehe" in info}
+
+    def jaeger_rate(h, speicher):                # die groessten Herden zuerst, je Herde bis JAEGER_JE_HERDE
+        r, rest = 0.0, h
+        for m, n in hd:
+            if rest <= 0:
+                break
+            a = min(rest, JAEGER_JE_HERDE, n // JAGD_MIN)
+            r += a * M.je_1000("jaeger", schach(m, speicher))
+            rest -= a
+        return r
+
+    def rechne(r_frueh, ort):
+        frueh, spaet = bedarf(r_frueh, 0, t_brot), bedarf(ration, t_brot, horizont)
+        am_lager = sorted(plaetze, key=lambda p: schach((p[0] + 4, p[1] + 4), lager))
+        opts = []
+        for b in range(0, min(len(plaetze), 4) + 1):
+            rest = [p for p in plaetze if p not in am_lager[:b]]
+            fest = None if ort == "aepfel" else lager
+            for h in range(0, jaeger_max + 1):
+                # Speicherort: am Lager fest; an den Aepfeln = Mitte der fruehen Gruppe (ohne Aepfel: am Lager)
+                k, g, rate, ok = aepfel_fuer(rest, frueh, fest)
+                speicher = tuple(g[1]) if g else lager
+                fleisch = jaeger_rate(h, speicher)
+                if fleisch > 0 and frueh - fleisch < frueh:
+                    k, g, rate, ok = aepfel_fuer(rest, frueh - fleisch, fest)
+                    speicher = tuple(g[1]) if (g and fest is None) else speicher
+                    fleisch = jaeger_rate(h, speicher)
+                brot, baeck, arb_b, holz_b = brotketten(am_lager, b, lager, speicher)
+                k2, g2, rate2, ok2 = aepfel_fuer(rest, spaet - fleisch - brot, speicher)
+                if k2 < k:
+                    k2, g2, rate2 = k, g, rate
+                opts.append(dict(speicher_ort=ort, jaeger=h, brotketten=b, aepfel=k2, fleisch_1000=round(fleisch, 1),
+                                 brot_1000=round(brot, 1), apfel_1000=round(rate2, 1), baeckereien=baeck,
+                                 frueh_gedeckt=fleisch + rate >= frueh, spaet_gedeckt=fleisch + brot + rate2 >= spaet,
+                                 arbeiter=h + arb_b + k2, holz=h * HOLZ["jaeger"] + holz_b + k2 * HOLZ["apfel"],
+                                 speicher_lager=schach(speicher, lager), _farmen=am_lager[:b], _g=g, _g2=g2, _k=k, _rate=rate,
+                                 _speicher=speicher))
+        return frueh, spaet, opts
+
+    def alle(r_frueh):
+        f = s = None
+        o = []
+        for ort in ("aepfel", "lager"):
+            f, s, oo = rechne(r_frueh, ort)
+            o += oo
+        return f, s, o
+
     ration_frueh = ration
-    k, g, rate, ok = aepfel_fuer(plaetze, bedarf(ration, 0, t_brot))
-    if not ok and ration == "doppelt":
+    frueh, spaet, opts = alle(ration)
+    if ration == "doppelt" and not any(o["frueh_gedeckt"] and o["spaet_gedeckt"] for o in opts):
+        # 23:36 (Two Montains): doppelt deckt frueh nur OHNE Brot, dann fehlt es spaet - frueh normal essen, damit Platz fuer Brot bleibt
         ration_frueh = "normal"
-        k, g, rate, ok = aepfel_fuer(plaetze, bedarf("normal", 0, t_brot))
-    grund.update(bedarf_frueh_1000=round(bedarf(ration_frueh, 0, t_brot), 1), ration_frueh=ration_frueh, aepfel_frueh=k,
-                 apfel_abstand=round(g[2], 1), apfel_rate_1000=round(rate, 1), frueh_gedeckt=ok,
-                 kornspeicher_zum_bergfried=schach(g[1], K))
-    # 2. spaet: die restlichen Plaetze gemeinsam verteilen - b Brotketten (je 1 Platz, der dem Lager naechste zuerst),
-    #    der Rest weitere Aepfel; genommen wird die Mischung mit den wenigsten Arbeitern (dann Holz), die den Bedarf deckt
-    spaet = bedarf(ration, t_brot, horizont)
-    grund["bedarf_spaet_1000"] = round(spaet, 1)
-    frei = sorted([p for p in plaetze if p not in g[0]], key=lambda p: schach((p[0] + 4, p[1] + 4), lager))
-    optionen = []
-    for b in range(0, min(len(frei), 4) + 1):
-        farmen = frei[:b]
-        brot, baeck, arb_b, holz_b = 0.0, 0, 0, 0
-        for f in farmen:
-            m, bk, ar = M.brotkette(schach((f[0] + 4, f[1] + 4), lager))
-            brot, baeck, arb_b = brot + m, baeck + bk, arb_b + ar
-            holz_b += HOLZ["getreide"] + HOLZ["muehle"] + bk * HOLZ["baeckerei"]
-        rest = [p for p in plaetze if p not in farmen]
-        k2, g2, rate2, ok2 = aepfel_fuer(rest, max(0.0, spaet - brot))
-        if ok2 and k2 < k:                      # die fruehen Plantagen stehen ohnehin - mit ihrer Rate rechnen
-            k2, g2, rate2 = k, g, rate
-        gesamt = brot + rate2
-        optionen.append(dict(brotketten=b, brot_1000=round(brot, 1), baeckereien=baeck, aepfel=k2, apfel_1000=round(rate2, 1),
-                             gedeckt=gesamt >= spaet, arbeiter=arb_b + k2, holz=holz_b + k2 * HOLZ["apfel"],
-                             _farmen=farmen, _gruppe=g2))
-    gedeckt = [o for o in optionen if o["gedeckt"]]
-    beste = min(gedeckt, key=lambda o: (o["arbeiter"], o["holz"])) if gedeckt else max(optionen, key=lambda o: o["brot_1000"] + o["apfel_1000"])
-    grund["optionen"] = [{k_: v for k_, v in o.items() if not k_.startswith("_")} for o in optionen]
-    grund["entscheidung"] = ("%d Brotkette(n) + %d Apfelplantagen" % (beste["brotketten"], beste["aepfel"])) +         ("" if beste["gedeckt"] else " - Bedarf NICHT gedeckt (Jaeger/Kauf/Ration noetig)")
+        frueh, spaet, opts = alle("normal")
+    beide = [o for o in opts if o["frueh_gedeckt"] and o["spaet_gedeckt"]]
+    beste = min(beide, key=lambda o: (o["arbeiter"], o["holz"])) if beide else \
+        max(opts, key=lambda o: (o["frueh_gedeckt"], o["fleisch_1000"] + o["brot_1000"] + o["apfel_1000"]))
+    grund.update(ration_frueh=ration_frueh, bedarf_frueh_1000=round(frueh, 1), bedarf_spaet_1000=round(spaet, 1),
+                 optionen=[{k_: v for k_, v in o.items() if not k_.startswith("_")}
+                           for o in sorted(beide or opts, key=lambda o: (o["arbeiter"], o["holz"]))[:6]],
+                 entscheidung="%d Jaeger + %d Brotkette(n) + %d Apfelplantagen, Kornspeicher %s" % (
+                     beste["jaeger"], beste["brotketten"], beste["aepfel"],
+                     "an den Aepfeln" if beste["speicher_ort"] == "aepfel" else "am Lager")
+                 + ("" if beste in beide else " - Bedarf NICHT gedeckt"))
+    jaeger, rest_h = [], beste["jaeger"]
+    for m, n in hd:
+        if rest_h <= 0:
+            break
+        a = min(rest_h, JAEGER_JE_HERDE, n // JAGD_MIN)
+        jaeger.append(dict(herde=list(m), rehe=n, anzahl=a))
+        rest_h -= a
+    g, g2 = beste["_g"], beste["_g2"] or beste["_g"]
+    aepfel = ([list(p) for p in g[0]] if g else []) + [list(p) for p in (g2[0] if g2 else []) if not g or p not in g[0]]
+    aepfel = aepfel[:beste["aepfel"]]
     brot = None
     if beste["brotketten"]:
-        bedarf_ab = next((tt for tt in range(0, horizont + 1, 250) if leute(tt, bev_ziel) * VERBRAUCH[ration] > rate), horizont)
+        vorher = beste["fleisch_1000"] + beste["_rate"]
+        bedarf_ab = next((tt for tt in range(0, horizont + 1, 250) if leute(tt, bev_ziel) * VERBRAUCH[ration] > vorher), horizont)
         brot = dict(getreide=[list(f) for f in beste["_farmen"]], baeckereien=beste["baeckereien"],
                     ab_tick=max(0, bedarf_ab - t_brot), bedarf_ab_tick=bedarf_ab)
-    g_end = beste["_gruppe"] or g
-    # die fruehen Plantagen zuerst (Reihenfolge = Bauordnung: A-Gruppe), die spaeteren danach
-    aepfel = [list(p) for p in g[0]] + [list(p) for p in g_end[0] if p not in g[0]][:max(0, beste["aepfel"] - k)]
-    # Kornspeicher: gueltiger Platz laut Platzkarte des Spiels, am naechsten zur Gruppenmitte, ohne Plantagenflaeche
-    from farmen_mischen import lies_karte
-    speicher = lies_karte(os.path.join(D, "start_%s_platz_speicher.txt" % kurz))
     belegt = [tuple(p) for p in aepfel] + [tuple(f) for f in (brot or {}).get("getreide", [])]
-    frei_s = [s for s in speicher if all(s[0] + 4 <= q[0] or q[0] + GROESSE_APFEL <= s[0] or s[1] + 4 <= q[1] or
-                                         q[1] + GROESSE_APFEL <= s[1] for q in belegt)]
-    ks = min(frei_s, key=lambda s: schach((s[0] + 2, s[1] + 2), g[1])) if frei_s else g[1]
-    grund["kornspeicher_von_mitte"] = schach((ks[0] + 2, ks[1] + 2), g[1])
-    return {"aepfel": aepfel, "kornspeicher": list(ks), "brot": brot, "ration_frueh": ration_frueh, "begruendung": grund}
+    ks = list(speicherplatz(kurz, beste["_speicher"], belegt))
+    grund["kornspeicher_zum_bergfried"] = schach(tuple(ks), K)
+    grund["kornspeicher_zum_lager"] = schach(tuple(ks), lager)
+    return {"aepfel": aepfel, "kornspeicher": ks, "brot": brot, "jaeger": jaeger, "ration_frueh": ration_frueh,
+            "begruendung": grund}
 
 
 if __name__ == "__main__":
@@ -162,9 +242,9 @@ if __name__ == "__main__":
         for ration in ("normal", "doppelt"):
             w = waehle(kurz, plan, ration=ration)
             b = w["begruendung"]
-            print("%s %s: %s | frueh %d Aepfel (Ration %s, Bedarf %s, Rate %s, gedeckt %s), Kornspeicher %s (%s Felder vom Bergfried), Brot %s" % (
-                kurz, ration, b.get("entscheidung", b.get("fehler")), b.get("aepfel_frueh", 0), w["ration_frueh"], b.get("bedarf_frueh_1000"),
-                b.get("apfel_rate_1000"), b.get("frueh_gedeckt"), w["kornspeicher"], b.get("kornspeicher_zum_bergfried"),
+            print("%s %s: %s | Herden %s | frueh %s, Bedarf %s/%s | Kornspeicher %s | Jaeger %s | Brot %s" % (
+                kurz, ration, b["entscheidung"], b["herden"], w["ration_frueh"], b["bedarf_frueh_1000"], b["bedarf_spaet_1000"],
+                w["kornspeicher"], [(j["herde"], j["anzahl"]) for j in w["jaeger"]],
                 {k: w["brot"][k] for k in ("getreide", "baeckereien", "ab_tick")} if w["brot"] else "nein"))
-            for o in b.get("optionen", []):
+            for o in b["optionen"][:3]:
                 print("      ", o)

@@ -1676,6 +1676,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     import brotbau as BB
     brot_bau = BB.BrotBau(plan.get("brot"), SP, wirt.lager_ort, plan["kornspeicher"],
                           lambda typ, x, y, r: baue_schnell(typ, x, y, r, zweck="Brot"), kosten_spiel) if plan.get("brot") else None
+    jagd_bau = BB.JagdBau(plan.get("jaeger"), SP, lambda typ, x, y, r: baue_schnell(typ, x, y, r, zweck="Jagd"),
+                          kosten_spiel) if plan.get("jaeger") else None
+    if jagd_bau is not None:
+        # nur EIN Weg zum Jaeger: plant die Nahrungswahl Jaeger, baut der Ertragsplaner/Kausal keine eigenen (Daniel 23:20)
+        ausbau.ohne = set(getattr(ausbau, "ohne", set())) | {7}
     import stillstand as STW
     still_w = STW.Stillstand(SP, lambda n: peek(0xF98520 + 0x14 + int(n) * 0x32C + 0x184)[0],
                              lambda: baue_schnell(10, wirt.lager_ort[0], wirt.lager_ort[1], 10, zweck="Stillstand"),
@@ -1738,9 +1743,16 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         ereignis = w.schritt(L, gebs, ausgenommen=trupp.mitglieder if trupp else ()) if w is not None else []
         tz = uhr("waechter", tz)
         ereignis += still_w.schritt(st["t"], L, G, lager_stopp=getattr(wirt, "lager_stopp", False))
+        rueck = {}
+        if jagd_bau is not None:
+            ereignis += jagd_bau.schritt(st["t"], st, L, G)
+            rueck = jagd_bau.bedarf(st["t"], G, L)
         if brot_bau is not None:
             ereignis += brot_bau.schritt(st["t"], st, G)
-            wirt.brot = brot_bau.bedarf(st["t"], G)      # Ruecklage: Planer/Huetten/Holzfaeller halten das Holz frei
+            b_r = brot_bau.bedarf(st["t"], G)
+            rueck = {w: rueck.get(w, 0) + b_r.get(w, 0) for w in ("holz", "gold")}
+        if jagd_bau is not None or brot_bau is not None:
+            wirt.brot = rueck                             # Ruecklage: Planer/Huetten/Holzfaeller halten das Holz frei
         if BUCH is not None:
             ereignis += BUCH.abgleich(G, L, st)            # jeder Bau bestaetigt oder gescheitert, jede Belegung
             while BUCH.unerreichbar:                        # v18: laut Spiel unerreichbar -> abreissen, Platz sperren
@@ -2404,6 +2416,7 @@ def main():
         if w_n["aepfel"]:
             plan["aepfel"], plan["kornspeicher"] = w_n["aepfel"], w_n["kornspeicher"]
         plan["brot"] = w_n["brot"]
+        plan["jaeger"] = w_n["jaeger"]          # Daniel 23:20 "hybrid, z.B. Rehe": Jaeger an den gezaehlten Herden
         b_n = w_n["begruendung"]
         schreib("NAHRUNGSWAHL %s: %s | %s" % (kurz, b_n.get("entscheidung", b_n.get("fehler")),
                 json.dumps({k: v for k, v in b_n.items() if k != "optionen"}, ensure_ascii=False)))
