@@ -42,6 +42,10 @@ def main():
     st4 = dict(st, feuer=4)
     h4 = [x[1] for x in K.entscheide(1000, 20000, st4, kand(30), (100, 100), {3: lager, 31: lager, 5: lager, 20: lager}, 6) if x[1] != 1]
     pruefe(3, "nur 4 Bauern: %s - Steinbruch nicht dabei, Hopfen und Eisen schon" % h4, 20 not in h4 and 31 in h4 and 5 in h4)
+    # 4. (01:36, 1012h) Bei Tick 11.000 mit mitlaufendem Fenster (jetzt + 16.000) werden Hopfen und Eisen gewaehlt
+    h11 = [x[1] for x in K.entscheide(11000, 27000, st, kand(30), (100, 100), {3: lager, 31: lager, 5: lager, 20: lager}, 6) if x[1] != 1]
+    h11f = [x[1] for x in K.entscheide(11000, 16753, st, kand(30), (100, 100), {3: lager, 31: lager, 5: lager, 20: lager}, 6) if x[1] != 1]
+    pruefe(4, "Tick 11.000, Fenster bis 27.000: %s (festes Ende 16.753 zum Vergleich: %s)" % (h11, h11f), 31 in h11 and 5 in h11)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

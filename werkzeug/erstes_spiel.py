@@ -641,6 +641,7 @@ NOTWERBUNG = False       # 12.10.: Soeldnerposten + Nachwerben bei Gegnern im ei
 SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # gemessen 12.10. 00:04 (L63, Ascension)
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
+KAUSAL_HORIZONT = 16000  # 12.10.: Kausalmodell rechnet Ertraege bis jetzt + so viele Ticks (Schalter kausal_horizont)
 ZIEL_TICK = 9400         # Zieltick, bis zu dem das Kausalmodell Ertraege rechnet (unter 1 Jahr = 9.600, Endspiel davor)
                          # 07.10.: Lernkreis setzt ihn auf das gemessene Ende der besten Strategie; gilt auch fuer den Planer
                          # (vorher Planer bis bis_tick=13.000, Kausal bis 9.400 - zwei Zeitraeume fuer dieselbe Frage)
@@ -1829,7 +1830,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 st_k = dict(st, holz=st["holz"] - R_k["holz"], gold=st["gold"] - R_k["gold"])
                 # offene Stellen: unbesetzte Plaetze in stehenden Betrieben + Arbeiter der bestellten, noch nicht stehenden
                 offen_k = wohnraum_fehlt(st, G)[1] + sum(ARBEITER_JE.get(a["typ"], 0) for a in BUCH.offen)
-                for w_k, typ_k, ort_k, text_k in KM.entscheide(st["t"], ZIEL_TICK, st_k, kand_k, feuer_g,
+                # 12.10. 01:36 (1012h: bis Tick 11.000 nur 23 Apfelplantagen, kein Hopfen/Eisen - der feste ZIEL_TICK 16.753 liess
+                # Ketten mit langem Anlauf (Hopfen ~8.000, Eisen ~6.600) nie lohnen): mitlaufendes Fenster - eine Investition muss
+                # sich in den naechsten KAUSAL_HORIZONT Ticks lohnen, egal wann sie faellt
+                ziel_k = max(ZIEL_TICK, st["t"] + KAUSAL_HORIZONT)
+                for w_k, typ_k, ort_k, text_k in KM.entscheide(st["t"], ziel_k, st_k, kand_k, feuer_g,
                                                                 {3: lager_m, 32: speicher_m, 7: speicher_m}, kosten_spiel(1)["holz"],
                                                                 offene_stellen=offen_k):
                     if typ_k == 1:
@@ -1845,7 +1850,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     ereignis.append("KAUSAL %s bei %s: %s -> %s" % (NACH_TYP[typ_k]["name"], ort_k, text_k, o_k))
                 # Holz aus dem Modell (Daniel 23:48 "mach das direkt aus dem Modell, sofort"): hat keine Handlung mit Holz mehr
                 # positiven Wert, ist Holz nur noch Verkaufsware -> alles ueber 20 verkaufen, Lager waechst nicht mehr
-                bedarf_holz = KM.entscheide(st["t"], ZIEL_TICK, dict(st_k, holz=999, gold=999), kand_k, feuer_g, abgabe_k, kosten_spiel(1)["holz"],
+                bedarf_holz = KM.entscheide(st["t"], ziel_k, dict(st_k, holz=999, gold=999), kand_k, feuer_g, abgabe_k, kosten_spiel(1)["holz"],
                                             offene_stellen=offen_k)
                 # 12.10. Ochsen nachruesten (L71: der Ochse ist der Engpass, Steinhaufen lief auf 48): Haufen ueber 30 und weniger
                 # als ochsen_max Ochsen im Umkreis 12 -> ein Ochse dazu (je Runde hoechstens einer, nicht doppelt bestellt)
@@ -2480,6 +2485,8 @@ def main():
     B_VERSATZ = None if arg.get("b_versatz", "reif") == "reif" else int(arg["b_versatz"])
     ENTSCHEIDER = arg.get("entscheider", "regeln")
     ZIEL_TICK = int(arg.get("ziel_tick", 9400))
+    global KAUSAL_HORIZONT
+    KAUSAL_HORIZONT = int(arg.get("kausal_horizont", KAUSAL_HORIZONT))
     HOLZ_SPAM = int(arg.get("holz_spam", 0))
     STEIN_MAX = arg.get("stein_max", "nein") == "ja"
     JOCH_NACH_STEIN = arg.get("joch_nach_stein", "nein") == "ja"
