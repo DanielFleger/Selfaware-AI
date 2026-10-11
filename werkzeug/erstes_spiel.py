@@ -1653,6 +1653,14 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         ausbau.ohne.update((3, 5, 7, 32))
     endspiel = {"fertig": False, "tabelle": None}
     fruehpruefung = {}
+    # Stillstand-Waechter (Daniel 17:22 "das Vorratslager ist voll - sollte direkt auffallen"; 22:37 "ja mach weiter"):
+    # wartet ein Lagertraeger (Holzfaeller Zustand 7, Getreidebauer Zustand 9, andere mit Ware ab 1.500 Ticks) und ist kein
+    # Lagerteil leer, wird ein Lagerteil angebaut - die Wirtschaft zaehlte nur Holz als unterwegs. Proben:
+    # werkzeug/stillstand_trocken.py (11 Faelle) und stillstand_live.py (22:51 bestanden: Anbau nach 325 Ticks Stillstand)
+    import stillstand as STW
+    still_w = STW.Stillstand(SP, lambda n: peek(0xF98520 + 0x14 + int(n) * 0x32C + 0x184)[0],
+                             lambda: baue_schnell(10, wirt.lager_ort[0], wirt.lager_ort[1], 10, zweck="Stillstand"),
+                             lambda: BUCH is not None and any(a["typ"] == 10 for a in BUCH.offen))
     while time.time() < ende and not os.path.exists(os.path.join(HIER, "STOP")):
         tz = time.time()
         befehlskanal.belege()
@@ -1710,6 +1718,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         tz = time.time()
         ereignis = w.schritt(L, gebs, ausgenommen=trupp.mitglieder if trupp else ()) if w is not None else []
         tz = uhr("waechter", tz)
+        ereignis += still_w.schritt(st["t"], L, G, lager_stopp=getattr(wirt, "lager_stopp", False))
         if BUCH is not None:
             ereignis += BUCH.abgleich(G, L, st)            # jeder Bau bestaetigt oder gescheitert, jede Belegung
             while BUCH.unerreichbar:                        # v18: laut Spiel unerreichbar -> abreissen, Platz sperren

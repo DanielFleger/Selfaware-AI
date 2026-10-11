@@ -42,6 +42,11 @@ WAREN = ("apfel", "kaese", "fleisch", "brot", "weizen", "mehl")
 def main():
     arg = dict(a.split("=", 1) for a in sys.argv[1:])
     dauer, tempo = int(arg.get("ticks", 20000)), int(arg.get("tempo", 300))
+    # art=apfel (Daniel 22:37 "ja mach weiter"): nur Kornspeicher + Apfelplantagen in gestaffelter Entfernung - die Formel
+    # verfehlte Aepfel um 28 %, weil der Bauer ~22 Felder zu seinen Baeumen lief. Vorher festgelegt: stehen die Baeume bei
+    # allen Plantagen im eigenen 10x10-Feld, war der lange Baumweg ein Sonderfall.
+    art = arg.get("art", "alle")
+    abstaende = [int(x) for x in arg.get("abstaende", "10,30,50").split(",")]
     E.LEERE_KI = True
     E.GEGNER_ERWARTET = ""
     E.LIGA_GEFECHT = dict(E.LIGA_GEFECHT, ki=1)
@@ -64,21 +69,29 @@ def main():
         warte_ticks(60)
         belegt = [ks] if ks else []
         # Daniel 17:22 "warum faellt dir nicht auf, dass das Vorratslager voll ist?": Lauf 17:20 - alle 4 Lagerteile Holz
-        # (je Teil EINE Ware, je 48), der Getreidebauer stand ab Tick 7.341 mit Weizen in der Hand still (Zustand 9,
-        # Ladung 2), Muehle und Baeckerei hatten nichts. Gegenprobe 17:27: ein Lagerteil angebaut -> nach ~100 Ticks
+        # (je Teil EINE Ware, je 48), der Getreidebauer stand ab Tick 7.341 still (Zustand 9, Ladung 0 -
+        # der fertige Weizen bleibt am Feld), Muehle und Baeckerei hatten nichts. Gegenprobe 17:27: ein Lagerteil angebaut -> nach ~100 Ticks
         # liefert er, Mehl entsteht. Darum zuerst anbauen und das Lager sperren (Muehle/Baeckerei mauerten es ein).
         erg["gebaeude"]["lager_anbau"] = E.baue_schnell(10, lager[0], lager[1], 12)
         warte_ticks(30)
         belegt += [(t["x"], t["y"]) for t in teile] + [p for p in [erg["gebaeude"]["lager_anbau"]] if p]
         fr = sorted(fr, key=lambda p: schach(p, ks or lager))
-        for name, typ in (("apfel", 32), ("milch", 33), ("getreide", 30)):
+        if art == "apfel":
+            for i, ab in enumerate(abstaende):
+                kand = sorted([p for p in fr if all(schach(p, q) >= 14 for q in belegt)],
+                              key=lambda p: abs(schach(p, ks or lager) - ab))[:24]
+                ort = next((o for o in (E.baue_schnell(32, p[0], p[1], 2) for p in wegtest(kand)) if o), None)
+                erg["gebaeude"]["apfel%d" % i] = ort
+                if ort:
+                    belegt.append(ort)
+        for name, typ in (() if art == "apfel" else (("apfel", 32), ("milch", 33), ("getreide", 30))):
             frei = [p for p in fr if all(schach(p, q) >= 12 for q in belegt)][:40]
             ort = next((o for o in (E.baue_schnell(typ, p[0], p[1], 4) for p in wegtest(frei)) if o), None)
             erg["gebaeude"][name] = ort
             if ort:
                 belegt.append(ort)
         hu = sorted(karte("huette"), key=lambda p: schach(p, lager))
-        for name, typ in (("muehle", 34), ("baeckerei", 17)):
+        for name, typ in (() if art == "apfel" else (("muehle", 34), ("baeckerei", 17))):
             frei = [p for p in hu if all(schach(p, q) >= 6 for q in belegt)][:40]
             ort = next((o for o in (E.baue_schnell(typ, p[0], p[1], 2) for p in wegtest(frei)) if o), None)
             erg["gebaeude"][name] = ort
@@ -87,7 +100,7 @@ def main():
         L = E.runde_lesen()[1]
         rehe = [(e["x"], e["y"]) for e in L.values() if e["typ"] == 44 and eigen((e["x"], e["y"])) and schach((e["x"], e["y"]), K) <= 70]
         herde = max(rehe, key=lambda p: sum(1 for q in rehe if schach(p, q) <= 15)) if rehe else None
-        erg["gebaeude"]["jaeger"] = E.baue_schnell(7, herde[0], herde[1], 12) if herde else None
+        erg["gebaeude"]["jaeger"] = E.baue_schnell(7, herde[0], herde[1], 12) if herde and art != "apfel" else None
         for i in range(4):
             erg["gebaeude"]["huette%d" % i] = E.baue_schnell(1, K[0] - 7, K[1] - 2, 25)
         befehl({"spielbefehl": {"nr": 35, "werte": [0]}}, 1.0, bis="SPIELBEFEHL")     # Rationen keine
@@ -99,12 +112,12 @@ def main():
         for _ in range(80):
             L = E.runde_lesen()[1]
             nummern = {n: e["typ"] for n, e in L.items() if e["besitzer"] == SP and e["typ"] in ARBEITER}
-            if len(set(nummern.values())) >= 6:
+            if (art == "apfel" and len(nummern) >= sum(1 for n in erg["gebaeude"] if n.startswith("apfel") and erg["gebaeude"][n]))                     or (art != "apfel" and len(set(nummern.values())) >= 6):
                 break
             warte_ticks(25)
         erg["arbeiter"] = {str(n): ARBEITER[t] for n, t in nummern.items()}
         print("Arbeiter:", erg["arbeiter"], flush=True)
-        erg["ew"], erg["stillstand"], erg["lagerteile"] = [], [], []
+        erg["ew"], erg["stillstand"], erg["lagerteile"], erg["angriffe"], erg["tiere_nah"] = [], [], [], [], []
 
         def ew_ernten():
             # log_ab liest nur ab der LETZTEN Scharf-Marke - vor jedem Neu-Scharfschalten einsammeln
@@ -132,6 +145,19 @@ def main():
                                         for n, ty in neu.items()})
                 befehl({"einheitwacht": {"nr": sorted(nummern), "alle": 2}}, 1.0, bis="EINHEITWACHT")
                 print("Tick %d: neue Arbeiter beobachtet %s" % (t, neu), flush=True)
+            # Raubtiere und Angriffe (Daniel 17:15 "getoetet werden"; Apfel-/Milchbauer verschwinden in jedem Lauf bei Tick
+            # 3.132/3.506): jedes Tier (Typ 44/45) bis 8 Felder an einem beobachteten Arbeiter und jeder Angreifer wird notiert
+            for n in nummern:
+                e = L.get(n)
+                if not e:
+                    continue
+                if e.get("nahangreifer"):
+                    erg["angriffe"].append({"t": t, "nr": n, "ort": (e["x"], e["y"]), "angreifer": e.get("nahangreifer"),
+                                            "leben": e.get("leben")})
+                for m, x in L.items():
+                    if x["typ"] in (44, 45) and schach((x["x"], x["y"]), (e["x"], e["y"])) <= 8:
+                        erg["tiere_nah"].append({"t": t, "nr": n, "tier": m, "typ": x["typ"],
+                                                 "abstand": schach((x["x"], x["y"]), (e["x"], e["y"]))})
             # Stillstand-Waechter (Daniel 17:22 "sollte direkt auffallen"): wer 1.500 Ticks am selben Fleck steht, wird
             # sofort gemeldet - mit Zustand, Ladung und freien Lagerteilen, damit die Ursache gleich daneben steht
             for n in nummern:
