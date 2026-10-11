@@ -560,6 +560,8 @@ WACHSTUM_BODEN = 9500    # Lernkreis: vor der Kasse nie unter 95 (Liga-Zuzug +40
 GUTE_DINGE = 0           # Lernkreis: so viele Gaerten (30 Gold, Liga-Furcht bis +175 je Woche, Arbeitsleistung sinkt) ab Kasse-Start
 RATIONEN = "doppelt"     # Lernkreis: doppelte Rationen (+250 je Woche), sobald genug Nahrung da ist
 REGEL50 = False          # Aufgabe s25: faellt die Beliebtheit unter 50, bricht der Lauf ab (Regelbruch)
+STUFEN = []              # streitkolben=50,100: gestufte Ziele in EINEM Lauf (Daniel 11.10. 14:28)
+ZWISCHENZIEL = False     # solange ein spaeteres Ziel folgt: im Endspiel nie abreissen
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
 ZIEL_TICK = 9400         # Zieltick, bis zu dem das Kausalmodell Ertraege rechnet (unter 1 Jahr = 9.600, Endspiel davor)
                          # 07.10.: Lernkreis setzt ihn auf das gemessene Ende der besten Strategie; gilt auch fuer den Planer
@@ -951,12 +953,12 @@ def bilanz_schritt(st, L, G, ausbau, ziel, endspiel, runde, marken):
         # Daniel 01:51 "warum wird abgerissen und nicht direkt rekrutiert? macht keinen Sinn": Lauf 64 verlor beim Abriss ~190
         # Holz unterwegs/in Huetten gegen ~200 Rueckgabe; Rekruten liefern die Start-Soldaten (aufloesen=ende). Ohne ABRISS
         # zaehlt nur das echte Gold
-        abriss_teil = int(t["abriss_wert"] * 0.7) if ABRISS else 0
+        abriss_teil = int(t["abriss_wert"] * 0.7) if ABRISS and not ZWISCHENZIEL else 0   # vor dem letzten Ziel nie abreissen
         if gold_echt + abriss_teil < noch + 50:
             aus.append("ENDSPIEL VERSCHOBEN: Gold nach Verkauf %d + Abriss %d < %d - Wirtschaft laeuft weiter" % (
                 gold_echt, t["abriss_wert"], noch))
             return aus
-        if ABRISS and t["abriss_liste"]:
+        if ABRISS and not ZWISCHENZIEL and t["abriss_liste"]:
             sende({"befehle": [{"player": 1, "id": neue_id(), "abreissen": {"nr": nr}} for nr in t["abriss_liste"]]}, 2.0,
                   bis="ABREISSEN")
         tick0 = tick()
@@ -1119,6 +1121,40 @@ class Produktion:
         if not teile:
             return None
         return (sum(g["x"] for g in teile) // len(teile) + 1, sum(g["y"] for g in teile) // len(teile) + 1)
+
+    WAFFENLAGER_PLATZ = 50       # gemessen 11.10. (Lauf produktion100_1011a): ein Waffenlager fasst 50 Stueck
+    NEUES_LAGER_AB = 15          # so viele freie Plaetze uebrig -> ein weiteres Waffenlager (5 Holz, kein Gold)
+    UEBERLAUF_AB = 5             # weniger frei -> Paare aus eigener Ware anwerben (20 Gold je Paar)
+
+    def waffenlager_nie_voll(self, st, L, eig, waffenlager, gold, holz, stein, feuer):
+        """Daniel 11.10. 14:29 (Bild: Schmiede und Gerber stehen): "die Leute stehen, weil die Waffenkammer voll ist -
+        vielleicht einfach zwei Waffenkammern oder nachrekrutieren, sodass es niemals voll ist". Gemessen im 100er-Lauf
+        1011a: das eine Lager war von Tick 26.636 bis 38.126 voll (50/50), angeworben wurde erst, wenn ALLE geplanten
+        Betriebe standen. Darum vor dieser Sperre: erst billig ein weiteres Lager, und ist es trotzdem fast voll,
+        Paare anwerben - die Kette darf nie stehen."""
+        aus = []
+        if not waffenlager:
+            return aus
+        v = vorrat(SP)
+        drin = v.get("keule", 0) + v.get("leder", 0)
+        platz = self.WAFFENLAGER_PLATZ * len(waffenlager)
+        frei = platz - drin
+        im_bau = any(a["typ"] == 11 for a in BUCH.offen)
+        if frei <= self.NEUES_LAGER_AB and not im_bau and holz >= 5:
+            a = waffenlager[-1]
+            o = baue_schnell(11, a["x"], a["y"], 10, zweck="Waffenlager nie voll")
+            aus.append("PRODUKTION Waffenlager %d dazu (%d von %d belegt): %s" % (len(waffenlager) + 1, drin, platz, o))
+        if frei < self.UEBERLAUF_AB:
+            kas = [n for n, g in eig.items() if g["typ"] == 9]
+            paare = min(v.get("keule", 0), v.get("leder", 0), max(0, self.ziel - st.get("T26", 0)))
+            if not kas and paare >= 1 and stein >= 12 and not any(a["typ"] == 9 for a in BUCH.offen):
+                aus.append("PRODUKTION Kaserne fuer Ueberlauf %s" % (kaserne_am_feuer(G={n: g for n, g in eig.items()}),))
+            elif kas:
+                werben = anwerbe_menge(self.ziel, st.get("T26", 0), v.get("keule", 0), v.get("leder", 0), feuer, gold)
+                if werben:
+                    aus.append("PRODUKTION Ueberlauf: Waffenlager %d/%d - %d Paare anwerben" % (drin, platz, min(5, werben)))
+                    anwerbewelle(st, L, self.marken, aus, kas[0], werben)
+        return aus
 
     def schritt(self, st, L, G, wirt, ausbau):
         import aufbau_planer as P
@@ -1331,6 +1367,7 @@ class Produktion:
             if g["typ"] == 13 and n not in self.umgestellt:
                 befehl({"spielbefehl": {"nr": 33, "werte": [n, 21, g.get("uid", 0)]}}, 1.0, bis="SPIELBEFEHL")
                 self.umgestellt.add(n)
+        aus += self.waffenlager_nie_voll(st, L, eig, waffenlager, gold, holz, stein, feuer)
         if self.stufe < 4:
             return aus
         # Erst das echte Ergebnis des Bauauftrags macht die Wirtschaft fertig. Ein still gescheiterter Bau darf nicht
@@ -1470,7 +1507,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         return ort, text
     wirt.holz_verbauen = holz_verwerten
     wirt.b_versatz = B_VERSATZ
-    global BUCH
+    global BUCH, ZWISCHENZIEL
     leder, hf_spaeter = None, []
     # Auftragsbuch und die allgemeinen Knoepfe in JEDER Bauweise (Lernkreis 23:20: sonst kann er nach einem Sieg der
     # v5-Bauweise nichts mehr verbessern; Daniel 22:08: jeder Bau wird geprueft - nicht nur in v14)
@@ -2065,7 +2102,19 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 ereignis += prod.schritt(st, L, G, wirt, ausbau) if prod else ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
             if st.get("T26", 0) >= streitkolben:
                 schreib("ZIEL %d Streitkolbenkaempfer erreicht bei Tick %d" % (streitkolben, st["t"]))
-                break
+                # Daniel 11.10. 14:28 "erst die 50, dann 100 Streitis in einem Run": gestufte Ziele - nach jeder Stufe
+                # beginnt die naechste mit frischem Endspiel, die Wirtschaft laeuft weiter (vor dem letzten Ziel kein Abriss)
+                weiter = [z for z in (STUFEN or []) if z > streitkolben]
+                if not weiter:
+                    break
+                streitkolben = weiter[0]
+                endspiel = {"fertig": False, "tabelle": None}
+                ausbau.nach_abriss = False
+                if prod is not None:
+                    prod.ziel = streitkolben
+                ZWISCHENZIEL = streitkolben != STUFEN[-1]
+                schreib("NAECHSTES ZIEL %d Streitkolbenkaempfer ab Tick %d (Endspiel neu, Wirtschaft laeuft weiter)" % (
+                    streitkolben, st["t"]))
             tz = uhr("ruestung", tz)
         # Feindlicher Lord: jede Runde mit Lebensverlust mitschreiben - wer steht bei ihm? (9i/9j: Sieg ohne Befehl auf ihn)
         for n, e in L.items():
@@ -2145,6 +2194,9 @@ def main():
     KASSE_STUFE = int(arg.get("kasse_stufe", 11))
     SCHUB = False if arg.get("schub", "nein") == "nein" else arg["schub"]    # "ja" = ein Schub, "immer" = einer nach dem anderen
     global HAUSHALT_RAND, WACHSTUM_BODEN, GUTE_DINGE, RATIONEN, REGEL50, NAHRUNG_AUSBAU
+    global STUFEN, ZWISCHENZIEL
+    STUFEN = sorted(int(z) for z in str(arg.get("streitkolben", "0")).split(",") if z.strip() and int(z) > 0)
+    ZWISCHENZIEL = len(STUFEN) > 1
     NAHRUNG_AUSBAU = arg.get("nahrung_ausbau", "nein")    # "ja" = immer, "kasse" = erst ab Kasse-Start, "nein"
     HAUSHALT_RAND = int(arg.get("haushalt_rand", HAUSHALT_RAND))
     WACHSTUM_BODEN = int(arg.get("wachstum_boden", WACHSTUM_BODEN))
@@ -2184,7 +2236,7 @@ def main():
         phase2(plan, int(arg.get("minuten", 10)), int(arg.get("tempo", 40)), arg.get("waechter", "nein") == "ja",
                int(arg["bis_tick"]) if arg.get("bis_tick") else None, int(arg.get("assassinen", 0)), arg.get("trainingsstand"),
                int(arg.get("trainingsstand_ab", 40)), int(arg["gold_ziel"]) if arg.get("gold_ziel") else None,
-               int(arg.get("streitkolben", 0)), arg.get("weg", "kauf"))
+               STUFEN[0] if STUFEN else 0, arg.get("weg", "kauf"))
     except BaseException as e:
         # JEDER Abbruch haelt das Spiel an (06.10. 23:04, Daniel "Abbrechen funktioniert nicht": E3 stuerzte bei Tick 353 mit
         # einem AttributeError ab - gefangen wurde nur RuntimeError, das Spiel lief ohne Lenker bis 5.420 weiter)

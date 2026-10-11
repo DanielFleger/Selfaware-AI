@@ -27,11 +27,16 @@ def argumente(werte):
     return dict(x.split("=", 1) for x in werte if "=" in x)
 
 
-def ziel_aus(arg):
-    ziel = int(arg.get("ziel", 25))
-    if ziel <= 0:
+def stufen_aus(arg):
+    """ziel=50 oder gestuft ziel=50,100 (Daniel 11.10. 14:28: "erst die 50, dann 100 Streitis in einem Run")."""
+    stufen = sorted(int(z) for z in str(arg.get("ziel", 25)).split(",") if z.strip())
+    if not stufen or stufen[0] <= 0:
         raise ValueError("ziel muss groesser als 0 sein")
-    return ziel
+    return stufen
+
+
+def ziel_aus(arg):
+    return stufen_aus(arg)[-1]
 
 
 def strategie_laden(wahl):
@@ -79,14 +84,14 @@ def einstellungen(arg):
         "tempo=%s" % arg.get("tempo", "100"),
         "bis_tick=%s" % arg.get("bis_tick", "19200"),
         "ziel_tick=%d" % ziel_tick,
-        "streitkolben=%d" % ziel,
+        "streitkolben=%s" % ",".join(str(z) for z in stufen_aus(arg)),
         "weg=%s" % arg.get("weg", "bilanz"),
     ]
     fest += ["%s=%s" % kv for kv in sorted(strategie.items())]
     return fest, quelle
 
 
-def auswerten_text(text, instanz, nummer, datei, ziel):
+def auswerten_text(text, instanz, nummer, datei, ziel, stufen=None):
     treffer = re.search(r"(?:KAEMPFER %d|ZIEL %d Streitkolbenkaempfer erreicht) bei Tick (\d+)" % (ziel, ziel), text)
     ende = re.search(r"Ende Phase 2 bei Tick (\d+) nach (\d+) Runden", text)
     abbruch = re.search(r"FRUEHABBRUCH bei Tick (\d+): ([^\n]+)", text)
@@ -112,7 +117,13 @@ def auswerten_text(text, instanz, nummer, datei, ziel):
         "abbruch_tick": int(abbruch.group(1)) if abbruch else None,
         "abbruch": abbruch.group(2).strip() if abbruch else None,
         "fehler": bool(re.search(r"Traceback|ABBRUCH - Spiel angehalten|TESTBEDINGUNG FEHLT", text)),
+        "stufen": {str(s): stufen_tick(text, s) for s in (stufen or [ziel])},
     }
+
+
+def stufen_tick(text, s):
+    m = re.search(r"(?:KAEMPFER %d|ZIEL %d Streitkolbenkaempfer erreicht) bei Tick (\d+)" % (s, s), text)
+    return int(m.group(1)) if m else None
 
 
 def sperre_holen(serie, instanz, name, lauf, anzahl, warte_minuten, ziel):
@@ -166,7 +177,7 @@ def arbeiter(arg):
             finally:
                 pausieren_sicher()
             text = open(konsole, encoding="utf-8", errors="replace").read()
-            erg = auswerten_text(text, instanz, nr, konsole, ziel)
+            erg = auswerten_text(text, instanz, nr, konsole, ziel, stufen_aus(arg))
             erg["rueckgabewert"] = rc
             erg["strategie_quelle"] = quelle.get("nr") if quelle else "grund"
             if erg["kennung"] != soll:
@@ -237,7 +248,13 @@ def probe():
     text = "CODE-KENNUNG abc123\nZIEL 100 Streitkolbenkaempfer erreicht bei Tick 30123\nEnde Phase 2 bei Tick 30123 nach 2000 Runden"
     r = auswerten_text(text, 1, 1, "probe.txt", 100)
     assert r["ziel"] == 100 and r["ziel_tick"] == 30123 and r["wertung"] == "erreicht"
-    print("OK   Auswertung und Zielweitergabe fuer 25, 50 und 100")
+    setup, _ = einstellungen({"strategie": "beste", "ziel": "50,100"})
+    assert "streitkolben=50,100" in setup, setup
+    text = "\n".join(["CODE-KENNUNG abc", "ZIEL 50 Streitkolbenkaempfer erreicht bei Tick 26000", "NAECHSTES ZIEL 100",
+                      "ZIEL 100 Streitkolbenkaempfer erreicht bei Tick 39000", "Ende Phase 2 bei Tick 39000 nach 900 Runden"])
+    r = auswerten_text(text, 1, 1, "probe.txt", 100, [50, 100])
+    assert r["stufen"] == {"50": 26000, "100": 39000} and r["ziel_tick"] == 39000, r
+    print("OK   Auswertung und Zielweitergabe fuer 25, 50, 100 und gestuft 50,100")
 
 
 if __name__ == "__main__":
