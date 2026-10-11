@@ -1159,6 +1159,32 @@ class Produktion:
     NEUES_LAGER_AB = 15          # so viele freie Plaetze uebrig -> ein weiteres Waffenlager (5 Holz, kein Gold)
     UEBERLAUF_AB = 5             # weniger frei -> Paare aus eigener Ware anwerben (20 Gold je Paar)
 
+    def hoefe_bauen(self, G, hoefe, gold, holz, feuer, aus):
+        """Milchviehhoefe auf den vorberechneten Plaetzen bestellen; gibt die Zahl offener Hofauftraege zurueck.
+        Nur eine echte Platzablehnung verwirft einen Platz. SAI 11.10. (Nomade-Lauf 1011f, Tick ~10.700): gold/holz hier
+        sind Stand vom Rundenbeginn, Minen und Holzfaeller derselben Runde hatten das Holz schon verbraucht (danach 12 im
+        Lager). baue_schnell lehnte 46 Plaetze wegen Holzmangel ab, ohne zu suchen, und alle wurden verworfen - Abbruch
+        "Hofplatzvorrat erschoepft". Fehlendes Material sperrt keinen Platz: Schleife endet, naechste Runde weiter."""
+        hof_offen = sum(1 for a in BUCH.offen if a["typ"] == 33)
+        for p in self.hof_orte:
+            if len(hoefe) + hof_offen >= self.hoefe:
+                break
+            if gold < 15 or holz < 7 or feuer < 1:
+                break
+            if p in self.hof_verworfen or steht_bei(G, 33, p, 3) or BUCH.offen_bei(33, p, 3):
+                continue
+            o, grund = baue_schnell(33, p[0], p[1], 2, zweck="Produktion", mit_grund=True)
+            aus.append("PRODUKTION Milchviehhof bei %s: %s" % (p, o))
+            if o:
+                gold -= 15; holz -= 7; feuer -= 1; hof_offen += 1
+            elif grund == "rohstoff":
+                aus.append("PRODUKTION Milchviehhof wartet auf Material; Platz %s bleibt im Vorrat" % (p,))
+                break
+            else:
+                self.hof_verworfen.add(p)
+                aus.append("PRODUKTION Hofplatz %s verworfen; naechster Ersatzplatz wird versucht" % (p,))
+        return hof_offen
+
     def waffenlager_nie_voll(self, st, L, eig, waffenlager, gold, holz, stein, feuer):
         """Daniel 11.10. 14:29 (Bild: Schmiede und Gerber stehen): "die Leute stehen, weil die Waffenkammer voll ist -
         vielleicht einfach zwei Waffenkammern oder nachrekrutieren, sodass es niemals voll ist". Gemessen im 100er-Lauf
@@ -1253,21 +1279,7 @@ class Produktion:
         if (self.stufe < 4 and mitte and not wirt.B_offen and len(minen) >= minenkern
                 and gold >= 15 * max(0, self.hoefe - len(hoefe))
                 and holz >= 7 * max(0, self.hoefe - len(hoefe))):
-            hof_offen = sum(1 for a in BUCH.offen if a["typ"] == 33)
-            for p in self.hof_orte:
-                if len(hoefe) + hof_offen >= self.hoefe:
-                    break
-                if gold < 15 or holz < 7 or feuer < 1:
-                    break
-                if p in self.hof_verworfen or steht_bei(G, 33, p, 3) or BUCH.offen_bei(33, p, 3):
-                    continue
-                o = baue_schnell(33, p[0], p[1], 2, zweck="Produktion")
-                aus.append("PRODUKTION Milchviehhof bei %s: %s" % (p, o))
-                if o:
-                    gold -= 15; holz -= 7; feuer -= 1; hof_offen += 1
-                else:
-                    self.hof_verworfen.add(p)
-                    aus.append("PRODUKTION Hofplatz %s verworfen; naechster Ersatzplatz wird versucht" % (p,))
+            hof_offen = self.hoefe_bauen(G, hoefe, gold, holz, feuer, aus)
             if hofvorrat_erschoepft(self.hoefe, len(hoefe), hof_offen, self.hof_orte, self.hof_verworfen):
                 raise RuntimeError("TECHNISCH UNGUELTIG: produktiver Hofplatzvorrat erschoepft (%d gebaut, %d benoetigt, %d verworfen)" % (
                     len(hoefe), self.hoefe, len(self.hof_verworfen)))
