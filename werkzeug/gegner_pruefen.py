@@ -82,7 +82,11 @@ def main():
         gefecht["karte"] = arg["karte"]
         gefecht.pop("startliste", None)
     if "platz" in arg:      # Daniel 16:45 "Nomade auf die andere Seite der Map": Startplatz des Gegners (Mensch bleibt 0)
-        gefecht["startliste"] = [0, int(arg["platz"])] + [246] * 6
+        # 12.10. 01:01: die Liste ist PLATZ -> Spieler. Bis heute stand hier [0, platz] - das setzte Platz 1 auf einen
+        # Spieler <platz>, den es nicht gab; darum "Platz 2-5 ohne Lord" auf allen Karten (Messfehler, nicht die Karte)
+        liste = [246] * 8
+        liste[0], liste[int(arg["platz"])] = 0, 1
+        gefecht["startliste"] = liste
     zeilen = kanal.sende(gefecht, 4, bis="LaunchSkirmishGame zurueck")
     print("Start:", " | ".join(z for z in zeilen if "GEFECHT" in z or "Launch" in z)[:400], flush=True)
     E.befehl({"pause": False}, 0.5)

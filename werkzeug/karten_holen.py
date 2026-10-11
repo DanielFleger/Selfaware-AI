@@ -43,7 +43,7 @@ GEFECHT_EXTRA = {}      # gegner/startliste aus dem Lenker (12.10.: mehrere Gegn
 def gefecht_frisch(karte, ki=7):
     """SAI 11.10. (Daniel 16:46 "teste eine andere Map, diagonale bzw. opposite Aufstellung"): statt eines gespeicherten
     Startstands ein frisches Gefecht auf <karte> - wir Platz 0, Gegner (ki, 7 = Sultan-Platz = Nomade) Platz 1 - und
-    anhalten, sobald beide Lords stehen. Platz 2-5 gaben auf allen gemessenen Karten keinen Gegner-Lord."""
+    anhalten, sobald beide Lords stehen. (12.10.: "Platz 2-5 ohne Gegner-Lord" war ein Lesefehler - die Liste ist Platz -> Spieler; Lenker-Schalter plaetze=.)"""
     import time
     import befehl as kanal
     from serie import zuruecksetzen
