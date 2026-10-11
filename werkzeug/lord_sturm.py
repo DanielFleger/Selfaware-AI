@@ -68,7 +68,7 @@ def main():
     # Regel Daniel 11.10. 16:11: unser Lord darf den gegnerischen Lord nicht toeten ("mit lord angreifen ist sehr cheezy"),
     # sonst darf er alles. "schild" (Standard): Lord greift nur Wachen an, nie den Lord. "lord" nur fuer Altvergleiche.
     lord_rolle = arg.get("lord_rolle", "schild")
-    verstoesse, letzter_lordschlag = 0, -10 ** 9
+    verstoesse, letzter_lordschlag, hatte_truppe = 0, -10 ** 9, False
     kampf = TRUPPE - {LORD}
     E.LIGA_GEFECHT = dict(E.LIGA_GEFECHT, ki=int(arg.get("ki", 7)))
     E.GEGNER_ERWARTET, E.LEERE_KI = arg.get("erwartet", "Nomade"), False
@@ -104,6 +104,7 @@ def main():
             return 1
         lord_max = lord_max or L[mein_lord]["leben"]
         truppe = [n for n, e in L.items() if e["besitzer"] == E.SP and e["typ"] in kampf]
+        hatte_truppe = hatte_truppe or bool(truppe)     # Starttruppen erscheinen erst nach Tick ~110 (Lauf 1011d brach bei 109 ab)
         verlauf.append((t, L[feind]["leben"], L[mein_lord]["leben"]))
         if rueckzug == "rechnung":
             noetig, grund = rueckzug_rechnung(verlauf, lord_max)
@@ -146,7 +147,7 @@ def main():
             E.schreib("STURM Tick %5d | Gegner-Lord %6d Leben, Wache<=15: %2d | wir: %2d Truppen, Lord %6d%s | naechster %d Felder vom Lord" % (
                 t, L[feind]["leben"], wache, len(truppe), L[mein_lord]["leben"], " (zurueck)" if zurueck else "", nah[0]))
             naechste_zeile = t + 100
-        if not truppe and (zurueck or not mit_lord or lord_rolle == "schild"):
+        if hatte_truppe and not truppe and (zurueck or not mit_lord or lord_rolle == "schild"):
             if mit_lord and not zurueck:
                 E.befehl({"halten": {"nr": [mein_lord], "x": E.BERGFRIED[0], "y": E.BERGFRIED[1]}}, 1.0, bis="HALTEN")
             E.schreib("STURM GESCHEITERT bei Tick %d: keine Truppen mehr, Gegner-Lord %d Leben" % (t, L[feind]["leben"]))
