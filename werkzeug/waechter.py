@@ -21,6 +21,7 @@ NAHKAMPF = {24, 25, 26, 27, 28, 37, 55, 71, 73, 75}
 FERNKAMPF = {22, 23, 70, 72, 74, 76}
 TRUPPE = NAHKAMPF | FERNKAMPF
 LORD = 55
+LORD_FLUCHT = 0.35       # 12.10.: Lord weicht erst unter diesem Lebensanteil (Stellgroesse; vorher 0,5 oder sobald ein Heer kam)
 BERGFRIED_EINGANG = (165, 111)
 
 GEBAEUDEDATEI = LAGEBILD.replace("lagebild.txt", "gebaeude.txt")
@@ -135,12 +136,14 @@ class Waechter:
             self.lord_max = max(self.lord_max or 0, le["leben"])
             anteil = le["leben"] / float(self.lord_max or 1)
             heer, anzahl = hauptheer(L, gebaeude + [BERGFRIED_EINGANG], self.sp)
-            if (anteil < 0.5 or heer) and not self.lord_zurueck:
+            # 12.10. (Daniel 11.10. 23:40 "schuetze deine Bogenschuetzen mit dem Lord"): der Lord ist Schild - er weicht
+            # NICHT mehr vor einem Heer, nur noch bei wenig Leben (sein Tod verliert die Partie); LORD_FLUCHT ist Stellgroesse
+            if anteil < LORD_FLUCHT and not self.lord_zurueck:
                 ort = sicherster_ort(L, gebaeude + [BERGFRIED_EINGANG], self.sp)
                 befehl({"halten": {"nr": [ln], "x": ort[0], "y": ort[1]}}, 1.0, bis="HALTEN")
                 self.lord_zurueck = True; self.auftrag.pop(ln, None)
                 ereignis.append("Lord in Sicherheit nach %s (Leben %.0f %%, Feinde nahe %d)" % (tuple(ort), 100 * anteil, anzahl))
-            elif self.lord_zurueck and anteil > 0.6 and not heer:
+            elif self.lord_zurueck and anteil > LORD_FLUCHT + 0.15:
                 befehl({"halten": {"los": [ln]}}, 1.0, bis="HALTEN")
                 self.lord_zurueck = False
         # Buendeln (Daniel 22:52: perfektes Stacken ist fuer Abwehr und Angriff unglaublich wichtig):
@@ -149,7 +152,7 @@ class Waechter:
             self.ziel = None
             return ereignis
         verfuegbar = [n for n, e in eigene.items()
-                      if not (e["typ"] == LORD and (self.lord_zurueck or (self.lord_max and e["leben"] < 0.6 * self.lord_max)))]
+                      if not (e["typ"] == LORD and (self.lord_zurueck or (self.lord_max and e["leben"] < LORD_FLUCHT * self.lord_max)))]
         if not verfuegbar:
             return ereignis
         gruppe = (sum(eigene[n]["x"] for n in verfuegbar) / len(verfuegbar), sum(eigene[n]["y"] for n in verfuegbar) / len(verfuegbar))
@@ -168,6 +171,22 @@ class Waechter:
                 ereignis.append("Abfangen: %d Verteidiger zum Laufziel (%d,%d) von Feind %d (noch %d Felder von uns)" % (
                     len(verfuegbar), fe["laufx"], fe["laufy"], self.ziel, nah_ort))
             return ereignis
+        # Fernkaempfer hinter dem Lord (Daniel 23:40): steht ein Fernkaempfer naeher am Ziel als der Lord, laeuft er hinter
+        # den Lord zurueck (Punkt 4 Felder hinter dem Lord, vom Ziel weg); er schiesst dann ueber den Lord hinweg
+        lord_v = [n for n in verfuegbar if eigene[n]["typ"] == LORD]
+        if lord_v:
+            lx, ly = eigene[lord_v[0]]["x"], eigene[lord_v[0]]["y"]
+            d_lord = schach((lx, ly), ort)
+            vorne = [n for n in verfuegbar if eigene[n]["typ"] in FERNKAMPF and schach((eigene[n]["x"], eigene[n]["y"]), ort) < d_lord]
+            if vorne and d_lord > 2:
+                dx, dy = lx - ort[0], ly - ort[1]
+                s = float(max(abs(dx), abs(dy)) or 1)
+                hinter = (int(lx + 4 * dx / s), int(ly + 4 * dy / s))
+                befehl({"angriff": {"einheiten": vorne, "lauf": [hinter[0], hinter[1]]}}, 1.0, bis="ANGRIFF")
+                for n in vorne:
+                    self.auftrag.pop(n, None)
+                ereignis.append("Schild: %d Fernkaempfer hinter den Lord nach %s (Lord %d Felder vom Ziel)" % (len(vorne), hinter, d_lord))
+                verfuegbar = [n for n in verfuegbar if n not in vorne]
         neu = [n for n in verfuegbar if self.auftrag.get(n) != self.ziel]
         if neu:
             befehl({"halten": {"los": verfuegbar}}, 1.0, bis="HALTEN")

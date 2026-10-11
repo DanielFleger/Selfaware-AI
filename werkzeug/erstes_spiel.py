@@ -636,6 +636,8 @@ ZUSCHAU_TEMPO = 0        # ab dem ersten Lord-Angriff dieses Spieltempo (0 = ble
 GEGNER_ERWARTET = ""     # KI-Ordnername (z.B. Nomade): Gegner beim Start gegen dessen character.json pruefen
 ANGRIFF_AB = 0           # ab so vielen Streitkolbenkaempfern alle auf den feindlichen Lord (0 = nie; Nomade 11.10.)
 LORD_SCHUTZ_BIS = 9600   # Daniel 11.10. 16:41: der gegnerische Lord nimmt im ersten Spieljahr keinen Schaden
+NOTWERBUNG = False       # 12.10.: Soeldnerposten + Nachwerben bei Gegnern im eigenen Gebiet (Schalter notwerbung=ja)
+SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # gemessen 12.10. 00:04 (L63, Ascension)
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
 ZIEL_TICK = 9400         # Zieltick, bis zu dem das Kausalmodell Ertraege rechnet (unter 1 Jahr = 9.600, Endspiel davor)
@@ -1746,6 +1748,34 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         tz = time.time()
         ereignis = w.schritt(L, gebs, ausgenommen=trupp.mitglieder if trupp else ()) if w is not None else []
         tz = uhr("waechter", tz)
+        if NOTWERBUNG and st.get("t", 0) > 0:
+            # 12.10. (Daniel 11.10. 23:40 "du siehst doch, dass du angegriffen wirst und nicht ausbildest"; 23:45 "arabische
+            # Einheiten"): Soeldnerposten frueh bauen; stehen Gegnertruppen in unserem Gebiet, sofort nachwerben - je Gegner
+            # eine Einheit, abwechselnd Schwertkaempfer (75) und Bogenschuetzen (70), bis Gold oder Bauern am Feuer fehlen.
+            # Welche Art gegen Assassinen/Sklaven wirklich toetet, misst die Kampfpartie (Frage-Agent 00:08)
+            import bauen as BA
+            from waechter import TRUPPE as W_TRUPPE
+            posten_n = next((n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 8), None)
+            if posten_n is None and st.get("gold", 0) >= kosten_spiel(8).get("gold", 0)                     and st["t"] - fruehpruefung.get("posten_bestellt", -10 ** 6) > 600:
+                fruehpruefung["posten_bestellt"] = st["t"]
+                ereignis.append("NOTWERBUNG Soeldnerposten bestellt: %s" % (baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25),))
+            orte_n = gebs + [BERGFRIED]
+            feinde_n = [e for e in L.values() if e["besitzer"] not in (0, SP) and e["typ"] in W_TRUPPE
+                        and min(max(abs(e["x"] - o[0]), abs(e["y"] - o[1])) for o in orte_n) <= 40]
+            if feinde_n and posten_n is not None:
+                gold_n, feuer_n, n_n = st.get("gold", 0), st.get("feuer", 0), 0
+                for i in range(len(feinde_n)):
+                    typ_n = 75 if (fruehpruefung.get("werb_zaehler", 0) + i) % 2 == 0 else 70
+                    if gold_n < SOELDNER_GOLD[typ_n] or feuer_n <= 0:
+                        break
+                    BA.werbe(typ_n, posten_n)
+                    gold_n -= SOELDNER_GOLD[typ_n]
+                    feuer_n -= 1
+                    n_n += 1
+                fruehpruefung["werb_zaehler"] = fruehpruefung.get("werb_zaehler", 0) + n_n
+                if n_n:
+                    ereignis.append("NOTWERBUNG %d Einheiten gegen %d Gegner in unserem Gebiet (%s), Gold danach %d" % (
+                        n_n, len(feinde_n), ",".join(sorted({str(e["typ"]) for e in feinde_n})), gold_n))
         ereignis += still_w.schritt(st["t"], L, G, lager_stopp=getattr(wirt, "lager_stopp", False))
         rueck = {}
         if jagd_bau is not None:
@@ -2379,6 +2409,8 @@ def main():
     GEGNER_ERWARTET = arg.get("gegner_erwartet", "")
     global ZUSCHAU_TEMPO
     ZUSCHAU_TEMPO = int(arg.get("zuschau_tempo", 0))
+    global NOTWERBUNG
+    NOTWERBUNG = arg.get("notwerbung", "nein") == "ja"
     STUFE2_BELIEBT = arg.get("stufe2_beliebt", "halten")
     ANGRIFF_AB = int(arg.get("angriff_ab", 0))
     LIGA_GEFECHT = dict(LIGA_GEFECHT, ki=int(arg.get("gegner_ki", LIGA_GEFECHT["ki"])), karte=karte)   # 7 = Sultan-Platz (Nomade, Instanz 4)
