@@ -137,6 +137,17 @@ def gefecht_starten(tempo):
     schreib("Partie laeuft seit Tick %d: Lords da, unser Lord bei %s, %s" % (t_lords, eigener[0], zustand))
     return t_lords
 
+def freier_platz(typ, mitte, r, frei_von=()):
+    """Erster freier Bauplatz laut Platzsuche des Spiels, der keines der Rechtecke in frei_von [(Ort, Groesse)]
+    ueberdeckt (SAI 11.10.: Markt/Posten waren fest (145,269)/(145,274) - auf jeder anderen Karte ein beliebiger Ort)."""
+    g = NACH_TYP[typ]
+    z = " ".join(befehl({"platzsuche": {"spieler": SP, "mapper": g["mapper"], "groesse": g["b"], "x": mitte[0], "y": mitte[1],
+                                        "r": r, "max": 12}}, 1.0, bis="PLATZSUCHE"))
+    for x, y in [tuple(map(int, q)) for q in re.findall(r"\((\d+),(\d+)\)", z.split("geprueft:")[-1])]:
+        if all(x + g["b"] <= o[0] or o[0] + b2 <= x or y + g["b"] <= o[1] or o[1] + b2 <= y for o, b2 in frei_von):
+            return (x, y)
+    return None
+
 def phase1(plan, tempo, mit_posten=True):
     """Neue Partie ab Tick 0 (Daniel 05.10. 22:52: "warum laesst du der KI so einen Vorlauf? starte das Spiel bei Tick 0",
     "Neustart komplett"; 22:54: "ohne komische Pausen, ein Spiel, das live mit gleicher Geschwindigkeit laeuft").
@@ -160,6 +171,11 @@ def phase1(plan, tempo, mit_posten=True):
     # Jetzt: ALLES, was nur Holz kostet, in EINEM Befehl gleich beim Start (Kornspeicher, Markt, Holzfaeller, Steinbruch,
     # Ochsenjoch, Huetten) an festen Plaetzen; sobald das Essen da ist verkaufen, Posten, Assassine; dann die Apfelplantagen
     # (die kosten Gold). Kontrolle einmal, waehrend wir sowieso aufs Essen warten.
+    if plan.get("karte", "Liga_Grumpy Neighbors") != "Liga_Grumpy Neighbors":
+        global MARKT, POSTEN
+        MARKT = freier_platz(26, BERGFRIED, 25)
+        POSTEN = freier_platz(8, BERGFRIED, 25, frei_von=[(MARKT, NACH_TYP[26]["b"])] if MARKT else ())
+        schreib("Markt und Posten fuer %s live gesucht: Markt %s, Posten %s" % (plan["karte"], MARKT, POSTEN))
     A, B = apfel_gruppen(plan["aepfel"])
     if V14 and HOLZ_SPAM:
         # E3 (Daniel 22:57: "als Spieler erstmal alle Baeume vollspammen im Umkreis vom Vorratslager"): das Startholz zuerst in
@@ -2286,8 +2302,32 @@ def main():
     import kennung                    # Daniel 20:46: sofort sehen, welcher Code-Stand diese Partie spielt
     schreib(kennung.zeile())
     # Plan je Startstand (Daniel 05.10. 18:55: erst schauen, wo der Bergfried steht) - karten_holen.py + eroeffnung.py start=...
-    datei = os.path.join(D, arg.get("plan", "eroeffnung_plan_M19.json"))
+    # Karte frei waehlbar (Daniel 11.10. 23:05 "ja beides"): eine unbekannte Karte wird einmal in einem EIGENEN Gefecht
+    # vermessen (karten_holen.vermessen), der Eroeffnungsplan je Karte gerechnet (eroeffnung.plane) - die Partie selbst
+    # laeuft danach ohne Pausen. Ohne karte= bleibt alles wie bisher (Grumpy Neighbors, Plan M19).
+    import karten_holen as KH
+    karte = arg.get("karte", "Liga_Grumpy Neighbors")
+    kurz = KH.kurz_von(karte)
+    if not os.path.exists(os.path.join(D, "start_%s.json" % kurz)):
+        schreib("KARTE %s unbekannt - einmalige Vermessung in eigenem Gefecht (vor der Partie)" % karte)
+        KH.vermessen("gefecht:" + karte, kurz)
+    datei = os.path.join(D, arg.get("plan", "eroeffnung_plan_%s.json" % kurz))
+    if not os.path.exists(datei):
+        import eroeffnung
+        p_neu = eroeffnung.plane(K=14, A=6, start=kurz)      # K/A wie der M19-Plan (14 Holzfaeller, 6 Plantagen)
+        if "fehler" in p_neu:
+            raise SystemExit("EROEFFNUNGSPLAN %s: %s" % (kurz, p_neu["fehler"]))
+        p_neu["karte"] = karte
+        json.dump(p_neu, open(datei, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        schreib("Eroeffnungsplan fuer %s gerechnet: %s" % (karte, os.path.basename(datei)))
     plan = json.load(open(datei, encoding="utf-8")); plan["_datei"] = datei
+    plan["karte"] = karte
+    if kurz != "M19":
+        # V14 und der Produktionsweg haben feste Grumpy-Plaetze (Steinbrueche, Lagerumzug, Joche, Hoefe, Gerberei) -
+        # bis sie aus der Karte gerechnet werden (Stufe 3), auf anderen Karten klar abbrechen statt still falsch spielen
+        if arg.get("v14", "nein") == "ja" or arg.get("weg") == "produktion":
+            raise SystemExit("KARTE %s: v14=ja / weg=produktion haben feste Plaetze fuer Grumpy Neighbors - noch nicht aus "
+                             "der Karte gerechnet (Stufe 3). Mit v14=nein und weg=bilanz/kauf starten." % karte)
     global BASIS, BERGFRIED
     BASIS = plan.get("spielstand", BASIS)
     BERGFRIED = tuple(plan.get("bergfried_eingang", BERGFRIED))
@@ -2314,7 +2354,7 @@ def main():
     ZUSCHAU_TEMPO = int(arg.get("zuschau_tempo", 0))
     STUFE2_BELIEBT = arg.get("stufe2_beliebt", "halten")
     ANGRIFF_AB = int(arg.get("angriff_ab", 0))
-    LIGA_GEFECHT = dict(LIGA_GEFECHT, ki=int(arg.get("gegner_ki", LIGA_GEFECHT["ki"])))   # 7 = Sultan-Platz (Nomade, Instanz 4)
+    LIGA_GEFECHT = dict(LIGA_GEFECHT, ki=int(arg.get("gegner_ki", LIGA_GEFECHT["ki"])), karte=karte)   # 7 = Sultan-Platz (Nomade, Instanz 4)
     STUFEN =sorted(int(z) for z in str(arg.get("streitkolben", "0")).split(",") if z.strip() and int(z) > 0)
     ZWISCHENZIEL = len(STUFEN) > 1
     NAHRUNG_AUSBAU = arg.get("nahrung_ausbau", "nein")    # "ja" = immer, "kasse" = erst ab Kasse-Start, "nein"

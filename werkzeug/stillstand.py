@@ -21,7 +21,9 @@ HANDELN_AB = 300        # im WARTEZUSTAND mit Ware in der Hand; Fehlalarm kostet
 # Getreidebauer 9 (gemessen 11.10.: Zustand 9 mit Ladung 0 - der Weizen bleibt am Feld -, erst nach dem Anbau Zustand 10
 # mit Ladung 2; Live-Probe 22:49: Zustand 9, Ladung 0, alle 4 Teile Holz). Im Wartezustand zaehlt darum NICHT die Ladung. Andere Lagertraeger (Steinochse 9,
 # Pechmann 10, Muehle 15, Bergmann 31) erst ab MELDEN_AB: Mueller stehen beim Mahlen ~680 Ticks MIT Ware still (Lauf 17:32).
-WARTEZUSTAND = {3: 7, 11: 9}
+# (Zustand, Ladung noetig): Holzfaeller nur MIT Holz - Two Montains 23:10: Holzfaeller standen 1.500+ Ticks in Zustand 7 mit
+# Ladung 0 neben 8 leeren Lagerteilen (Weg frei laut Wegtest; vermutlich Warten auf Baeume bei 62 Holzfaellern)
+WARTEZUSTAND = {3: (7, True), 11: (9, False)}
 LAGERTRAEGER = (3, 9, 10, 11, 15, 31)
 LAGER = 10
 
@@ -50,7 +52,8 @@ class Stillstand:
                 continue
             _, seit, gemeldet, gehandelt = alt
             dauer = t - seit
-            wartet = WARTEZUSTAND.get(e["typ"]) == e.get("zustand")
+            wz = WARTEZUSTAND.get(e["typ"])
+            wartet = bool(wz) and wz[0] == e.get("zustand") and (not wz[1] or e.get("ladung", 0) > 0)
             mit_ware = e["typ"] in LAGERTRAEGER and (e.get("ladung", 0) > 0 or wartet)
             ab = HANDELN_AB if wartet else MELDEN_AB
             # Melden nur MIT Ware: die Lenker-Probe 22:46 meldete 58 Zeilen, fast alle normales Warten ohne Ware (Leute am
@@ -71,7 +74,7 @@ class Stillstand:
                             tat = " -> Lager voll, Lagerbau schon offen"
                         else:
                             o = self.baue_lager()
-                            tat = " -> Lager voll: Lagerteil angebaut bei %s" % (o,)
+                            tat = " -> %s: Lagerteil angebaut bei %s" % ("kein Lager" if not frei[1] else "Lager voll", o)
                             frei = (frei[0], frei[1])      # Anbau zaehlt erst, wenn er steht
                             fall["anbau"] = o
                 if dauer >= MELDEN_AB:

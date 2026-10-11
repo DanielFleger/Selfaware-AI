@@ -62,12 +62,21 @@ def gefecht_frisch(karte, ki=7):
 
 def laden(spielstand):
     if spielstand.startswith("gefecht:"):
-        return gefecht_frisch(spielstand.split(":", 1)[1])
+        return gefecht_frisch(spielstand.split(":", 1)[1], ki=1)
     lade_stand(spielstand, mit_bild=False)
     befehl({"eigenerPlatz": 1}, 0.8)
 
-def main():
-    spielstand, kurz = sys.argv[1], sys.argv[2]
+# Kurznamen der Karten, die schon Dateien unter diesem Namen haben; jede andere Karte bekommt ihren Namen ohne Sonderzeichen
+KURZ = {"Liga_Grumpy Neighbors": "M19", "Two Montains": "TM"}
+
+
+def kurz_von(karte):
+    return KURZ.get(karte) or "".join(ch for ch in karte if ch.isalnum())[:24]
+
+
+def vermessen(spielstand, kurz):
+    """Eine Karte einmal vermessen (SAI 11.10. 23:10, Daniel 23:05 "ja beides": Lenker auf jeder Karte). Laeuft in einem
+    EIGENEN Gefecht vor der eigentlichen Partie - die Partie selbst laeuft danach ohne Pausen (Daniel 05.10. 22:54)."""
     laden(spielstand)
     bf = bergfriede()
     eigen = bf[1]
@@ -81,7 +90,9 @@ def main():
         gut, alle, sek = platzkarte(typ, x0, y0, x1, y1, os.path.join(D, "start_%s_platz_%s.txt" % (kurz, name)))
         print("Platzkarte %-11s: %6d von %6d Feldern gehen (%.0f s)" % (name, gut, alle, sek), flush=True)
     # Lager ohne Lager: Startlager abreissen, Karte nehmen, Stand neu laden
-    lager = [n for n, g in lies_gebaeude().items() if g["besitzer"] == 1 and g["typ"] == 10]
+    G0 = lies_gebaeude()
+    lager = [n for n, g in G0.items() if g["besitzer"] == 1 and g["typ"] == 10]
+    lager_start = sorted((G0[n]["x"], G0[n]["y"]) for n in lager)     # Startlager-Teile (bisher fest BASIS_LAGER im Lenker)
     for n in lager:
         befehl({"abreissen": {"nr": n}}, 0.8, bis="ABREISSEN")
     laufe(2)
@@ -92,9 +103,14 @@ def main():
     info = {"spielstand": spielstand, "kurz": kurz, "bergfried_anker": eigen["anker"], "bergfried_eingang": eigen["eingang"],
             "feind_bergfried": {str(sp): v for sp, v in bf.items() if sp != 1},
             "lord": [(e["x"], e["y"]) for e in L.values() if e["besitzer"] == 1 and e["typ"] == 55],
-            "fenster": (x0, y0, x1, y1)}
+            "lager_start": lager_start, "fenster": (x0, y0, x1, y1)}
     json.dump(info, open(os.path.join(D, "start_%s.json" % kurz), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(json.dumps(info, ensure_ascii=False))
+    return info
+
+
+def main():
+    vermessen(sys.argv[1], sys.argv[2])
 
 if __name__ == "__main__":
     main()

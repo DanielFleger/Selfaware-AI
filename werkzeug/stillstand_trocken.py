@@ -34,13 +34,17 @@ FAELLE = [
     ("H Bauer laeuft -> nichts", dict(BAUER, laeuft=True), [48, 48, 10, 6], 300, {}, 0),
     ("I Soldat ohne Arbeitsplatz -> nichts", dict(BAUER, arbeitsplatz=0), [48, 48, 10, 6], 1500, {}, 0),
     ("J Bauer bei der Feldarbeit (Zustand 3), 1.500 still -> nichts", dict(BAUER, zustand=3), [48, 48, 10, 6], 1500, {}, 0),
+    ("L Holzfaeller Zustand 7 ohne Holz, alle Teile belegt -> nichts", {"typ": 3, "x": 176, "y": 263, "zustand": 7, "ladung": 0,
+                                                                        "arbeitsplatz": 23}, [48, 48, 10, 6], 1500, {}, 0),
+    ("M Holzfaeller Zustand 7 mit 18 Holz, alle Teile belegt -> anbauen", {"typ": 3, "x": 176, "y": 263, "zustand": 7, "ladung": 18,
+                                                                         "arbeitsplatz": 23}, [48, 48, 10, 6], 300, {}, 1),
     ("K Ochse mit Stein 1.500 still, Lager hat Platz -> melden, nicht anbauen", {"typ": 9, "x": 87, "y": 266, "zustand": 1,
                                                                                  "ladung": 8, "arbeitsplatz": 36}, [48, 0, 10, 6], 1500, {}, 0),
 ]
 fehler = 0
 for name, e, teile, dauer, opt, soll in FAELLE:
     ist, ev = lauf(e, teile, dauer, **opt)
-    ok = ist == soll and (not ev if name.startswith(("C", "D", "H", "I", "J")) else True) and (bool(ev) if name.startswith(("A", "E", "F", "G", "K")) else True)
+    ok = ist == soll and (not ev if name.startswith(("C", "D", "H", "I", "J", "L")) else True) and (bool(ev) if name.startswith(("A", "E", "F", "G", "K", "M")) else True)
     fehler += not ok
     print("%s  %s | gebaut %d (soll %d) | %s" % ("OK  " if ok else "ROT ", name, ist, soll, ev[0][:110] if ev else "-"))
 print("ERGEBNIS: %d von %d wie erwartet" % (len(FAELLE) - fehler, len(FAELLE)))
