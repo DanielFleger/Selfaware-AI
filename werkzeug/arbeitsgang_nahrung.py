@@ -47,7 +47,9 @@ def main():
     E.LIGA_GEFECHT = dict(E.LIGA_GEFECHT, ki=1)
     E.gefecht_starten(tempo)
     setze(GOLD, 20000)
-    alt = kosten_nullen()
+    kosten_vorher = kosten_nullen()
+    # 11.10. 17:28: ein Absturz im finally liess die Baukosten auf 0 - die Sicherung liegt jetzt auch als Datei
+    json.dump({str(a): v for a, v in kosten_vorher.items()}, open(os.path.join(D, "kosten_sicherung_i%s.json" % os.environ.get("SHC_INSTANZ", "1")), "w"))
     erg = {"gebaeude": {}, "bestand": [], "arbeiter": {}}
     try:
         info = json.load(open(os.path.join(D, "start_M19.json"), encoding="utf-8"))
@@ -137,17 +139,17 @@ def main():
                 if not e:
                     continue
                 ort = (e["x"], e["y"])
-                alt = still.get(n)
-                if not alt or alt[0] != ort:
+                vorher_ort = still.get(n)
+                if not vorher_ort or vorher_ort[0] != ort:
                     still[n] = (ort, t, False)
-                elif t - alt[1] >= 1500 and not alt[2]:
+                elif t - vorher_ort[1] >= 1500 and not vorher_ort[2]:
                     teile_jetzt = [peek(0xF98520 + 0x14 + int(g) * 0x32C + 0x184, 1)[0] for g, x in G.items()
                                    if x["besitzer"] == SP and x["typ"] == 10]
-                    s = {"nr": n, "wer": ARBEITER.get(e["typ"]), "seit": alt[1], "t": t, "ort": ort, "zustand": e.get("zustand"),
+                    s = {"nr": n, "wer": ARBEITER.get(e["typ"]), "seit": vorher_ort[1], "t": t, "ort": ort, "zustand": e.get("zustand"),
                          "ladung": e.get("ladung"), "lagerteile_frei": sum(1 for c in teile_jetzt if c == 0),
                          "lagerteile": len(teile_jetzt)}
                     erg["stillstand"].append(s)
-                    still[n] = (ort, alt[1], True)
+                    still[n] = (ort, vorher_ort[1], True)
                     print("STILLSTAND:", s, flush=True)
             if t // 500 != (erg["lagerteile"][-1][0] // 500 if erg["lagerteile"] else -1):
                 erg["lagerteile"].append((t, [(int(g), peek(0xF98520 + 0x14 + int(g) * 0x32C + 0x184, 2))
@@ -162,10 +164,13 @@ def main():
         ew_ernten()
         print("EW-Zeilen:", len(erg["ew"]), "| Stillstaende:", len(erg["stillstand"]), flush=True)
     finally:
-        kosten_zurueck(alt)
-        befehl({"pause": True}, 0.5)
+        # Reihenfolge (Absturz 17:28 verlor 20.000 Ticks Daten): erst sichern, dann zuruecksetzen - jeder Schritt fuer sich
         pfad = os.path.join(D, "arbeitsgang_nahrung_%s.json" % time.strftime("%Y%m%d_%H%M%S"))
         json.dump(erg, open(pfad, "w", encoding="utf-8"), indent=1, ensure_ascii=False, default=str)
+        try:
+            kosten_zurueck(kosten_vorher)
+        finally:
+            befehl({"pause": True}, 0.5)
         import shutil
         try:
             shutil.copy(os.path.join(kanal.ABZUG, "wegkarte.txt"), pfad.replace(".json", "_wegkarte.txt"))
