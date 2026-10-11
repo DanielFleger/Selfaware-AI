@@ -67,7 +67,7 @@ def einstellungen(arg):
     # enthalten noch schub=immer; die Versuchsregel hat Vorrang vor diesem historischen Wert.
     strategie["schub"] = "nein"
     # Versuchsknoepfe, die nur fuer gestufte Ziele gelten, direkt durchreichen (11.10.: stufe2_beliebt=hoch/halten)
-    for k in ("stufe2_beliebt",):
+    for k in ("stufe2_beliebt", "leere_ki", "gegner_ki", "angriff_ab"):
         if k in arg:
             strategie[k] = arg[k]
     if arg.get("weg") == "produktion":

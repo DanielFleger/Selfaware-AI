@@ -570,6 +570,7 @@ RATIONEN = "doppelt"     # Lernkreis: doppelte Rationen (+250 je Woche), sobald 
 REGEL50 = False          # Aufgabe s25: faellt die Beliebtheit unter 50, bricht der Lauf ab (Regelbruch)
 STUFEN = []              # streitkolben=50,100: gestufte Ziele in EINEM Lauf (Daniel 11.10. 14:28)
 ZWISCHENZIEL = False     # solange ein spaeteres Ziel folgt: im Endspiel nie abreissen
+ANGRIFF_AB = 0           # ab so vielen Streitkolbenkaempfern alle auf den feindlichen Lord (0 = nie; Nomade 11.10.)
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
 ZIEL_TICK = 9400         # Zieltick, bis zu dem das Kausalmodell Ertraege rechnet (unter 1 Jahr = 9.600, Endspiel davor)
@@ -2113,12 +2114,26 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             ereignis += bilanz_schritt(st, L, G, ausbau, streitkolben, endspiel, runde, kaempfer_marken)
             if not endspiel["fertig"] and weg != "bilanz":     # weg=bilanz: nur Wirtschaft + Bilanz-Endspiel (v5)
                 ereignis += prod.schritt(st, L, G, wirt, ausbau) if prod else ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
-            if st.get("T26", 0) >= streitkolben:
+            # Daniel 11.10. "Nomade installieren, gegen sie gewinnen": ab ANGRIFF_AB Streitkolbenkaempfern alle auf den
+            # feindlichen Lord (Befehl wie der Lord-Angriff der Assassinen); Ende erst bei SIEG/NIEDERLAGE
+            if ANGRIFF_AB and st.get("T26", 0) >= ANGRIFF_AB and runde % 10 == 0:
+                feind = next((n for n, e in L.items() if e["typ"] == 55 and e["besitzer"] not in (0, SP)), None)
+                kolben = [n for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 26]
+                if feind and kolben:
+                    befehl({"angriff": {"einheiten": kolben, "ziel": feind}}, 1.0, bis="ANGRIFF")
+                    if "angriff_start" not in fruehpruefung:
+                        fruehpruefung["angriff_start"] = st["t"]
+                        ereignis.append("ANGRIFF auf den feindlichen Lord Nr %d mit %d Streitkolbenkaempfern ab Tick %d (Lord-Leben %d)" % (
+                            feind, len(kolben), st["t"], L[feind]["leben"]))
+            if st.get("T26", 0) >= streitkolben and not kasse.get("endziel"):
                 schreib("ZIEL %d Streitkolbenkaempfer erreicht bei Tick %d" % (streitkolben, st["t"]))
                 # Daniel 11.10. 14:28 "erst die 50, dann 100 Streitis in einem Run": gestufte Ziele - nach jeder Stufe
                 # beginnt die naechste mit frischem Endspiel, die Wirtschaft laeuft weiter (vor dem letzten Ziel kein Abriss)
                 weiter = [z for z in (STUFEN or []) if z > streitkolben]
                 if not weiter:
+                    if ANGRIFF_AB:
+                        kasse["endziel"] = True       # weiterspielen bis SIEG/NIEDERLAGE
+                        continue
                     break
                 streitkolben = weiter[0]
                 endspiel = {"fertig": False, "tabelle": None}
@@ -2210,8 +2225,10 @@ def main():
     KASSE_STUFE = int(arg.get("kasse_stufe", 11))
     SCHUB = False if arg.get("schub", "nein") == "nein" else arg["schub"]    # "ja" = ein Schub, "immer" = einer nach dem anderen
     global HAUSHALT_RAND, WACHSTUM_BODEN, GUTE_DINGE, RATIONEN, REGEL50, NAHRUNG_AUSBAU
-    global STUFEN, ZWISCHENZIEL, STUFE2_BELIEBT
+    global STUFEN, ZWISCHENZIEL, STUFE2_BELIEBT, ANGRIFF_AB, LIGA_GEFECHT
     STUFE2_BELIEBT = arg.get("stufe2_beliebt", "halten")
+    ANGRIFF_AB = int(arg.get("angriff_ab", 0))
+    LIGA_GEFECHT = dict(LIGA_GEFECHT, ki=int(arg.get("gegner_ki", LIGA_GEFECHT["ki"])))   # 7 = Sultan-Platz (Nomade, Instanz 4)
     STUFEN =sorted(int(z) for z in str(arg.get("streitkolben", "0")).split(",") if z.strip() and int(z) > 0)
     ZWISCHENZIEL = len(STUFEN) > 1
     NAHRUNG_AUSBAU = arg.get("nahrung_ausbau", "nein")    # "ja" = immer, "kasse" = erst ab Kasse-Start, "nein"
