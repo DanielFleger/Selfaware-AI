@@ -103,13 +103,31 @@ def vermessen(spielstand, kurz):
     info = {"spielstand": spielstand, "kurz": kurz, "bergfried_anker": eigen["anker"], "bergfried_eingang": eigen["eingang"],
             "feind_bergfried": {str(sp): v for sp, v in bf.items() if sp != 1},
             "lord": [(e["x"], e["y"]) for e in L.values() if e["besitzer"] == 1 and e["typ"] == 55],
-            "lager_start": lager_start, "fenster": (x0, y0, x1, y1)}
+            "lager_start": lager_start, "fenster": (x0, y0, x1, y1),
+            "rehe": sorted((e["x"], e["y"]) for e in L.values() if e["typ"] == 44 and e["besitzer"] == 0)}
     json.dump(info, open(os.path.join(D, "start_%s.json" % kurz), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(json.dumps(info, ensure_ascii=False))
     return info
 
 
+def rehe_zaehlen(spielstand, kurz):
+    """Wild zu Spielbeginn (SAI 11.10. 23:25, Daniel 23:20 "warum nicht hybrid, z.B. Rehe, besonders auf der Map mit so viel
+    Reh"): Positionen aller Rehe (Typ 44, ohne Besitzer) im frischen Gefecht -> start_<kurz>.json "rehe". Die Startlage
+    ist bei fester Saat in jeder Partie gleich; das Wild wandert, die Herden bleiben in ihrer Gegend."""
+    laden(spielstand)
+    L = lies_lagebild(neu_holen=True)
+    rehe = sorted((e["x"], e["y"]) for e in L.values() if e["typ"] == 44 and e["besitzer"] == 0)
+    pfad = os.path.join(D, "start_%s.json" % kurz)
+    info = json.load(open(pfad, encoding="utf-8"))
+    info["rehe"] = rehe
+    json.dump(info, open(pfad, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print("Rehe %s: %d" % (kurz, len(rehe)), flush=True)
+    return rehe
+
+
 def main():
+    if len(sys.argv) > 3 and sys.argv[3] == "rehe":
+        return rehe_zaehlen(sys.argv[1], sys.argv[2])
     vermessen(sys.argv[1], sys.argv[2])
 
 if __name__ == "__main__":

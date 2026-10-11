@@ -23,8 +23,11 @@ QUELLEN = {
                          quelle="Lauf 22:40 (3 Plantagen)"),
     "milch": dict(ware="kaese", ladung=6.0, fest=1454, je_feld=2 * LAUF_JE_FELD, erste=5000, arbeiter=1, boden=100,
                   quelle="Lauf 17:32 (1 Hof)"),
-    "jaeger": dict(ware="fleisch", ladung=9.0, fest=2657, je_feld=2 * LAUF_JE_FELD, erste=5000, arbeiter=1, boden=0,
-                   quelle="Lauf 17:32 (1 Jaeger, Herde 93 Felder vom Kornspeicher)"),
+    # Jaeger: zwei Messpunkte - Umlauf 5.633 bei 93 Feldern (Lauf 17:32) und ~3.540 bei ~6 Feldern (Lauf 23:26, 2 Jaeger,
+    # Kornspeicher an der Herde) -> 3.396 + 24 * Abstand. Herde wird NICHT leer gejagt (12-14 Rehe im Umkreis 15 bleiben,
+    # das Wild der eigenen Seite waechst 41 -> 89 in 20.000 Ticks)
+    "jaeger": dict(ware="fleisch", ladung=9.0, fest=3396, je_feld=24, erste=3500, arbeiter=1, boden=0,
+                   quelle="Lauf 17:32 (93 Felder) + Lauf 23:26 (6 Felder, 2 Jaeger, Herde blieb)"),
     "weizen": dict(ware="weizen", ladung=2.0, fest=516, je_feld=2 * LAUF_JE_FELD, erste=5900, arbeiter=1, boden=81,
                    quelle="Lauf 17:32 und 22:57 (je 1 Farm, ~30 Felder vom Lager)"),
 }
@@ -53,7 +56,7 @@ def brotkette(abstand_farm_lager, farmen=1):
 
 if __name__ == "__main__":
     # Gegenprobe gegen die Messungen selbst (Abweichung muss klein sein, sonst ist das Modell falsch abgeschrieben)
-    for name, ab, ist in (("apfel_gruppe", 13, 4.0), ("apfel_gruppe", 51, 2.0), ("milch", 21, 2.82), ("jaeger", 93, 1.60),
+    for name, ab, ist in (("apfel_gruppe", 13, 4.0), ("apfel_gruppe", 51, 2.0), ("milch", 21, 2.82), ("jaeger", 93, 1.60), ("jaeger", 6, 2.54),
                           ("weizen", 31, 1.33)):
         print("%-13s Abstand %3d: Modell %.2f, gemessen %.2f" % (name, ab, je_1000(name, ab), ist))
     print("Brotkette 30 Felder: %.1f Brot/1.000 mit %d Baeckereien, %d Arbeiter (gemessen ~10 mit 3)" % brotkette(30))

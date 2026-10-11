@@ -66,7 +66,16 @@ def main():
         fr = sorted(karte("apfel"), key=lambda p: schach(p, lager))
         # art=brot (Daniel 22:53: "Brot ist effektiver bei weniger Farmplatz und je naeher die Farm am Vorratslager"):
         # Kornspeicher am Bergfried, damit die Getreidefarm den fruchtbaren Platz am naechsten zum Lager bekommt
-        ks = E.baue_schnell(19, fr[0][0], fr[0][1], 12) if fr and art != "brot" else E.baue_schnell(19, K[0], K[1], 15)
+        herde0 = None
+        if art == "jaeger":
+            # Daniel 23:20 "warum nicht hybrid, z.B. Rehe": Jaeger nah an der Herde messen - und ob sie leer gejagt wird
+            L0 = E.runde_lesen()[1]
+            r0 = [(e["x"], e["y"]) for e in L0.values() if e["typ"] == 44 and e["besitzer"] == 0 and eigen((e["x"], e["y"]))
+                  and schach((e["x"], e["y"]), K) <= 70]
+            herde0 = max(r0, key=lambda p: sum(1 for q in r0 if schach(p, q) <= 15)) if r0 else None
+            erg["herde_start"] = dict(mitte=herde0, rehe_15=sum(1 for q in r0 if herde0 and schach(herde0, q) <= 15), rehe_70=len(r0))
+        ks = E.baue_schnell(19, herde0[0], herde0[1], 12) if herde0 else \
+            E.baue_schnell(19, fr[0][0], fr[0][1], 12) if fr and art != "brot" else E.baue_schnell(19, K[0], K[1], 15)
         erg["gebaeude"]["kornspeicher"] = ks
         warte_ticks(60)
         belegt = [ks] if ks else []
@@ -91,14 +100,14 @@ def main():
                 erg["gebaeude"]["apfel%d" % i] = ort
                 if ort:
                     belegt.append(ort)
-        for name, typ in (() if art in ("apfel", "brot") else (("apfel", 32), ("milch", 33), ("getreide", 30))):
+        for name, typ in (() if art in ("apfel", "brot", "jaeger") else (("apfel", 32), ("milch", 33), ("getreide", 30))):
             frei = [p for p in fr if all(schach(p, q) >= 12 for q in belegt)][:40]
             ort = next((o for o in (E.baue_schnell(typ, p[0], p[1], 4) for p in wegtest(frei)) if o), None)
             erg["gebaeude"][name] = ort
             if ort:
                 belegt.append(ort)
         hu = sorted(karte("huette"), key=lambda p: schach(p, lager))
-        for name, typ in (() if art == "apfel" else (("muehle", 34), ("baeckerei", 17), ("baeckerei2", 17), ("baeckerei3", 17))
+        for name, typ in (() if art in ("apfel", "jaeger") else (("muehle", 34), ("baeckerei", 17), ("baeckerei2", 17), ("baeckerei3", 17))
                           if art == "brot" else (("muehle", 34), ("baeckerei", 17))):
             frei = [p for p in hu if all(schach(p, q) >= 6 for q in belegt)][:40]
             ort = next((o for o in (E.baue_schnell(typ, p[0], p[1], 2) for p in wegtest(frei)) if o), None)
@@ -109,6 +118,8 @@ def main():
         rehe = [(e["x"], e["y"]) for e in L.values() if e["typ"] == 44 and eigen((e["x"], e["y"])) and schach((e["x"], e["y"]), K) <= 70]
         herde = max(rehe, key=lambda p: sum(1 for q in rehe if schach(p, q) <= 15)) if rehe else None
         erg["gebaeude"]["jaeger"] = E.baue_schnell(7, herde[0], herde[1], 12) if herde and art not in ("apfel", "brot") else None
+        if art == "jaeger" and herde:
+            erg["gebaeude"]["jaeger2"] = E.baue_schnell(7, herde[0], herde[1], 14)
         for i in range(4):
             erg["gebaeude"]["huette%d" % i] = E.baue_schnell(1, K[0] - 7, K[1] - 2, 25)
         befehl({"spielbefehl": {"nr": 35, "werte": [0]}}, 1.0, bis="SPIELBEFEHL")     # Rationen keine
@@ -120,8 +131,9 @@ def main():
         for _ in range(80):
             L = E.runde_lesen()[1]
             nummern = {n: e["typ"] for n, e in L.items() if e["besitzer"] == SP and e["typ"] in ARBEITER}
-            if (art == "brot" and {11, 15, 16} <= set(nummern.values())) \
-                    or (art == "apfel" and len(nummern) >= sum(1 for n in erg["gebaeude"] if n.startswith("apfel") and erg["gebaeude"][n]))                     or (art not in ("apfel", "brot") and len(set(nummern.values())) >= 6):
+            if (art == "jaeger" and sum(1 for v in nummern.values() if v == 6) >= 2) or \
+                    (art == "brot" and {11, 15, 16} <= set(nummern.values())) \
+                    or (art == "apfel" and len(nummern) >= sum(1 for n in erg["gebaeude"] if n.startswith("apfel") and erg["gebaeude"][n]))                     or (art not in ("apfel", "brot", "jaeger") and len(set(nummern.values())) >= 6):
                 break
             warte_ticks(25)
         erg["arbeiter"] = {str(n): ARBEITER[t] for n, t in nummern.items()}
@@ -155,6 +167,11 @@ def main():
                                         for n, ty in neu.items()})
                 befehl({"einheitwacht": {"nr": sorted(nummern), "alle": 2}}, 1.0, bis="EINHEITWACHT")
                 print("Tick %d: neue Arbeiter beobachtet %s" % (t, neu), flush=True)
+            if art == "jaeger" and herde0:
+                erg.setdefault("herde", []).append((t, sum(1 for e in L.values() if e["typ"] == 44 and e["besitzer"] == 0
+                                                          and schach((e["x"], e["y"]), herde0) <= 15),
+                                                    sum(1 for e in L.values() if e["typ"] == 44 and e["besitzer"] == 0
+                                                        and schach((e["x"], e["y"]), K) <= 70 and eigen((e["x"], e["y"])))))
             # Ladung/Zustand je Arbeiter bei jeder Aenderung (Mehl je Backgang, Weizen je Mahlgang - 22:53)
             for n in nummern:
                 e = L.get(n)
