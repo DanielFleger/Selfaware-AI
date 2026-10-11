@@ -632,6 +632,7 @@ ZWISCHENZIEL = False     # solange ein spaeteres Ziel folgt: im Endspiel nie abr
 ZUSCHAU_TEMPO = 0        # ab dem ersten Lord-Angriff dieses Spieltempo (0 = bleibt; Daniel 11.10. 15:46 "ich will zuschauen")
 GEGNER_ERWARTET = ""     # KI-Ordnername (z.B. Nomade): Gegner beim Start gegen dessen character.json pruefen
 ANGRIFF_AB = 0           # ab so vielen Streitkolbenkaempfern alle auf den feindlichen Lord (0 = nie; Nomade 11.10.)
+LORD_SCHUTZ_BIS = 9600   # Daniel 11.10. 16:41: der gegnerische Lord nimmt im ersten Spieljahr keinen Schaden
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
 ZIEL_TICK = 9400         # Zieltick, bis zu dem das Kausalmodell Ertraege rechnet (unter 1 Jahr = 9.600, Endspiel davor)
@@ -2225,7 +2226,12 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 ereignis += prod.schritt(st, L, G, wirt, ausbau) if prod else ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
             # Daniel 11.10. "Nomade installieren, gegen sie gewinnen": ab ANGRIFF_AB Streitkolbenkaempfern alle auf den
             # feindlichen Lord (Befehl wie der Lord-Angriff der Assassinen); Ende erst bei SIEG/NIEDERLAGE
-            if ANGRIFF_AB and st.get("T26", 0) >= ANGRIFF_AB and runde % 10 == 0:
+            # Daniel 11.10. 16:41/16:44: der gegnerische Lord darf im ersten Spieljahr (bis Tick 9.600) keinen Schaden nehmen
+            if ANGRIFF_AB and st.get("T26", 0) >= ANGRIFF_AB and runde % 10 == 0 and st["t"] < LORD_SCHUTZ_BIS                     and "lordschutz_gemeldet" not in fruehpruefung:
+                fruehpruefung["lordschutz_gemeldet"] = st["t"]
+                ereignis.append("ANGRIFF wartet: %d Streitkolbenkaempfer bereit bei Tick %d, Lord-Schutz bis Tick %d" % (
+                    st.get("T26", 0), st["t"], LORD_SCHUTZ_BIS))
+            if ANGRIFF_AB and st.get("T26", 0) >= ANGRIFF_AB and runde % 10 == 0 and st["t"] >= LORD_SCHUTZ_BIS:
                 feind = next((n for n, e in L.items() if e["typ"] == 55 and e["besitzer"] not in (0, SP)), None)
                 kolben = [n for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 26]
                 if feind and kolben:
