@@ -61,6 +61,13 @@ def main():
         erg["gebaeude"]["kornspeicher"] = ks
         warte_ticks(60)
         belegt = [ks] if ks else []
+        # Daniel 17:22 "warum faellt dir nicht auf, dass das Vorratslager voll ist?": Lauf 17:20 - alle 4 Lagerteile Holz
+        # (je Teil EINE Ware, je 48), der Getreidebauer stand ab Tick 7.341 mit Weizen in der Hand still (Zustand 9,
+        # Ladung 2), Muehle und Baeckerei hatten nichts. Gegenprobe 17:27: ein Lagerteil angebaut -> nach ~100 Ticks
+        # liefert er, Mehl entsteht. Darum zuerst anbauen und das Lager sperren (Muehle/Baeckerei mauerten es ein).
+        erg["gebaeude"]["lager_anbau"] = E.baue_schnell(10, lager[0], lager[1], 12)
+        warte_ticks(30)
+        belegt += [(t["x"], t["y"]) for t in teile] + [p for p in [erg["gebaeude"]["lager_anbau"]] if p]
         fr = sorted(fr, key=lambda p: schach(p, ks or lager))
         for name, typ in (("apfel", 32), ("milch", 33), ("getreide", 30)):
             frei = [p for p in fr if all(schach(p, q) >= 12 for q in belegt)][:40]
@@ -95,17 +102,56 @@ def main():
             warte_ticks(25)
         erg["arbeiter"] = {str(n): ARBEITER[t] for n, t in nummern.items()}
         print("Arbeiter:", erg["arbeiter"], flush=True)
+        erg["ew"], erg["stillstand"], erg["lagerteile"] = [], [], []
+
+        def ew_ernten():
+            # log_ab liest nur ab der LETZTEN Scharf-Marke - vor jedem Neu-Scharfschalten einsammeln
+            erg["ew"] += [z.split("INFO|", 1)[-1] for z in log_ab("EINHEITWACHT: scharf")
+                          if " EW " in z or "EW Orte" in z or "EW Tick" in z]
         befehl({"einheitwacht": {"nr": sorted(nummern), "alle": 2}}, 1.0, bis="EINHEITWACHT")
         cx, cy = (ks or lager)
         k = W.holen(max(cx - 80, 0), max(cy - 80, 0), min(cx + 80, 399), min(cy + 80, 399))
         erg["wegkarte_fenster"] = [k["x0"], k["y0"], k["x1"], k["y1"]]
         t0 = peek(TICK)[0]
+        still = {}                      # Nummer -> (Ort, seit Tick, gemeldet)
         while peek(TICK)[0] - t0 < dauer:
             kanal.belege()
             v = vorrat(SP)
-            st = E.runde_lesen()[0]
-            erg["bestand"].append(dict({w: v.get(w, 0) for w in WAREN}, t=peek(TICK)[0] - t0, beliebt=st.get("beliebt"),
-                                       leute=st.get("leute")))
+            st, L, G = E.runde_lesen()
+            t = peek(TICK)[0] - t0
+            erg["bestand"].append(dict({w: v.get(w, 0) for w in WAREN}, t=t, beliebt=st.get("beliebt"), leute=st.get("leute")))
+            # 11.10. 17:20: Apfel-/Milchbauer werden bei Tick 3.132/3.506 durch NEUE Einheiten ersetzt -> dem
+            # Arbeitsplatz folgen: neue Nahrungsarbeiter sofort mitbeobachten
+            neu = {n: e["typ"] for n, e in L.items() if e["besitzer"] == SP and e["typ"] in ARBEITER and n not in nummern}
+            if neu:
+                ew_ernten()
+                nummern.update(neu)
+                erg["arbeiter"].update({str(n): "%s (ab Tick %d, Arbeitsplatz %s)" % (ARBEITER[ty], t, L[n].get("arbeitsplatz"))
+                                        for n, ty in neu.items()})
+                befehl({"einheitwacht": {"nr": sorted(nummern), "alle": 2}}, 1.0, bis="EINHEITWACHT")
+                print("Tick %d: neue Arbeiter beobachtet %s" % (t, neu), flush=True)
+            # Stillstand-Waechter (Daniel 17:22 "sollte direkt auffallen"): wer 1.500 Ticks am selben Fleck steht, wird
+            # sofort gemeldet - mit Zustand, Ladung und freien Lagerteilen, damit die Ursache gleich daneben steht
+            for n in nummern:
+                e = L.get(n)
+                if not e:
+                    continue
+                ort = (e["x"], e["y"])
+                alt = still.get(n)
+                if not alt or alt[0] != ort:
+                    still[n] = (ort, t, False)
+                elif t - alt[1] >= 1500 and not alt[2]:
+                    teile_jetzt = [peek(0xF98520 + 0x14 + int(g) * 0x32C + 0x184, 1)[0] for g, x in G.items()
+                                   if x["besitzer"] == SP and x["typ"] == 10]
+                    s = {"nr": n, "wer": ARBEITER.get(e["typ"]), "seit": alt[1], "t": t, "ort": ort, "zustand": e.get("zustand"),
+                         "ladung": e.get("ladung"), "lagerteile_frei": sum(1 for c in teile_jetzt if c == 0),
+                         "lagerteile": len(teile_jetzt)}
+                    erg["stillstand"].append(s)
+                    still[n] = (ort, alt[1], True)
+                    print("STILLSTAND:", s, flush=True)
+            if t // 500 != (erg["lagerteile"][-1][0] // 500 if erg["lagerteile"] else -1):
+                erg["lagerteile"].append((t, [(int(g), peek(0xF98520 + 0x14 + int(g) * 0x32C + 0x184, 2))
+                                              for g, x in G.items() if x["besitzer"] == SP and x["typ"] == 10]))
             if st.get("beliebt", 10000) < 5000:
                 erg["ungueltig"] = "Beliebtheit %s unter 50 bei Tick %d - Abwanderung verfaelscht die Messung" % (
                     st.get("beliebt"), peek(TICK)[0] - t0)
@@ -113,8 +159,8 @@ def main():
                 break
             warte_ticks(100)
         befehl({"einheitwacht": False}, 1.0, bis="EINHEITWACHT")
-        erg["ew"] = [z.split("INFO|", 1)[-1] for z in log_ab("EINHEITWACHT: scharf") if " EW " in z or "EW Orte" in z or "EW Tick" in z]
-        print("EW-Zeilen:", len(erg["ew"]), flush=True)
+        ew_ernten()
+        print("EW-Zeilen:", len(erg["ew"]), "| Stillstaende:", len(erg["stillstand"]), flush=True)
     finally:
         kosten_zurueck(alt)
         befehl({"pause": True}, 0.5)
