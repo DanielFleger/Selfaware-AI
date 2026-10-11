@@ -3,6 +3,9 @@
 Soll je Fall vorher festgelegt; Aufruf: python waffenlager_pruefen.py"""
 import erstes_spiel as E
 
+# Liga-Preise (liga_ai.json; Waffenlager steht in keiner Balance-Datei: 5 Holz) - sonst fragt preis() das Spiel
+E._KOSTEN_SPIEL.update({11: {"holz": 5, "stein": 0, "gold": 0}, 9: {"holz": 0, "stein": 12, "gold": 0}})
+
 
 class Buch:
     def __init__(self, offen=()):

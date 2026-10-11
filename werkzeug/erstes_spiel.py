@@ -264,6 +264,12 @@ def kosten_spiel(typ):
         _KOSTEN_SPIEL[typ] = kosten(typ)
     return _KOSTEN_SPIEL[typ]
 
+def preis(typ, ware):
+    """Echter Baupreis aus dem Spiel. SAI 11.10.: Instanz 4 laeuft mit Ascension-Balance (Pflicht fuer den Nomade) - dort
+    kostet die Eisenmine 40 Holz statt 20 Holz + 6 Stein, der Milchviehhof 12 Holz statt 7 Holz + 15 Gold. Feste
+    Liga-Preise im Lenker liessen Bauten an Holzmangel scheitern (Lauf nomade_1011g)."""
+    return kosten_spiel(typ).get(ware, 0)
+
 GROESSE_IST = {10: 6, 20: 6, 21: 3, 4: 2}     # tatsaechliche Flaeche: Lagerplatz = 4 Teile 3x3 (L6), Steinhaufen ~3x3
 
 def platz_sauber(typ, frei, eigen=None):
@@ -417,6 +423,15 @@ def nahrung_puffer(leute):
     da ist - alles andere ist Startgold. Gemessen 05.10.: 10 Leute assen bei normalen Rationen 1 Stueck in 1.000 Ticks.
     STARTWERT: 3 + 1 je 10 Leute (deckt mit Abstand die ~1.000 Ticks bis zu den ersten eigenen Aepfeln)."""
     return 3 + leute // 10
+
+NOTKAUF_GOLD = 150     # so viel Gold muss nach dem Kauf noch frei sein (Ruecklage zaehlt extra)
+
+def nahrung_notkauf(nahrung, puffer, gold_frei):
+    """Notausgang Nahrung (Daniel: "erst maximale Wirtschaft, Kaufen als Notausgang"). SAI 11.10., Nomade-Lauf 1011g:
+    ab Tick 25.442 elf Wochen Nahrung 0 bei 3.500+ Gold - Rationen fielen auf keine (-250 je Woche), die Beliebtheit
+    sank von 71,5 bis unter 50 (Regelbruch). Liegt die Nahrung unter dem Puffer und ist Gold frei: ein 5er-Los Aepfel
+    kaufen, hoechstens eins je Entscheidung. Gibt True, wenn gekauft werden soll."""
+    return nahrung < puffer and gold_frei >= NOTKAUF_GOLD
 
 def nahrung_auf_kante(bestand, puffer, hoechstens=12):
     """Verkauft Nahrung in Losen zu 5, die teuerste Sorte zuerst, ohne unter <puffer> zu fallen; die billigste bleibt.
@@ -1159,24 +1174,29 @@ class Produktion:
     NEUES_LAGER_AB = 15          # so viele freie Plaetze uebrig -> ein weiteres Waffenlager (5 Holz, kein Gold)
     UEBERLAUF_AB = 5             # weniger frei -> Paare aus eigener Ware anwerben (20 Gold je Paar)
 
+    # SAI 11.10. (Lauf 1011g): eine Runde mit vielen Hof-Platzsuchen dauerte 840 Ticks (26.866 -> 27.706), der Haushalt
+    # war so lange blind und die Beliebtheit fiel von 56 auf 47. Je Runde nur so viele Bauversuche, Rest naechste Runde.
+    HOF_VERSUCHE_JE_RUNDE = 4
+
     def hoefe_bauen(self, G, hoefe, gold, holz, feuer, aus):
         """Milchviehhoefe auf den vorberechneten Plaetzen bestellen; gibt die Zahl offener Hofauftraege zurueck.
         Nur eine echte Platzablehnung verwirft einen Platz. SAI 11.10. (Nomade-Lauf 1011f, Tick ~10.700): gold/holz hier
         sind Stand vom Rundenbeginn, Minen und Holzfaeller derselben Runde hatten das Holz schon verbraucht (danach 12 im
         Lager). baue_schnell lehnte 46 Plaetze wegen Holzmangel ab, ohne zu suchen, und alle wurden verworfen - Abbruch
         "Hofplatzvorrat erschoepft". Fehlendes Material sperrt keinen Platz: Schleife endet, naechste Runde weiter."""
-        hof_offen = sum(1 for a in BUCH.offen if a["typ"] == 33)
+        hof_offen, versuche = sum(1 for a in BUCH.offen if a["typ"] == 33), 0
         for p in self.hof_orte:
-            if len(hoefe) + hof_offen >= self.hoefe:
+            if len(hoefe) + hof_offen >= self.hoefe or versuche >= self.HOF_VERSUCHE_JE_RUNDE:
                 break
-            if gold < 15 or holz < 7 or feuer < 1:
+            if gold < preis(33, "gold") or holz < preis(33, "holz") or feuer < 1:
                 break
             if p in self.hof_verworfen or steht_bei(G, 33, p, 3) or BUCH.offen_bei(33, p, 3):
                 continue
             o, grund = baue_schnell(33, p[0], p[1], 2, zweck="Produktion", mit_grund=True)
+            versuche += 1
             aus.append("PRODUKTION Milchviehhof bei %s: %s" % (p, o))
             if o:
-                gold -= 15; holz -= 7; feuer -= 1; hof_offen += 1
+                gold -= preis(33, "gold"); holz -= preis(33, "holz"); feuer -= 1; hof_offen += 1
             elif grund == "rohstoff":
                 aus.append("PRODUKTION Milchviehhof wartet auf Material; Platz %s bleibt im Vorrat" % (p,))
                 break
@@ -1199,14 +1219,14 @@ class Produktion:
         platz = self.WAFFENLAGER_PLATZ * len(waffenlager)
         frei = platz - drin
         im_bau = any(a["typ"] == 11 for a in BUCH.offen)
-        if frei <= self.NEUES_LAGER_AB and not im_bau and holz >= 5:
+        if frei <= self.NEUES_LAGER_AB and not im_bau and holz >= preis(11, "holz"):
             a = waffenlager[-1]
             o = baue_schnell(11, a["x"], a["y"], 10, zweck="Waffenlager nie voll")
             aus.append("PRODUKTION Waffenlager %d dazu (%d von %d belegt): %s" % (len(waffenlager) + 1, drin, platz, o))
         if frei < self.UEBERLAUF_AB:
             kas = [n for n, g in eig.items() if g["typ"] == 9]
             paare = min(v.get("keule", 0), v.get("leder", 0), max(0, self.ziel - st.get("T26", 0)))
-            if not kas and paare >= 1 and stein >= 12 and not any(a["typ"] == 9 for a in BUCH.offen):
+            if not kas and paare >= 1 and stein >= preis(9, "stein") and not any(a["typ"] == 9 for a in BUCH.offen):
                 aus.append("PRODUKTION Kaserne fuer Ueberlauf %s" % (kaserne_am_feuer(G={n: g for n, g in eig.items()}),))
             elif kas:
                 werben = anwerbe_menge(self.ziel, st.get("T26", 0), v.get("keule", 0), v.get("leder", 0), feuer, gold)
@@ -1229,8 +1249,9 @@ class Produktion:
         schmieden = [g for g in eig.values() if g["typ"] == 13]
         gerber = [g for g in eig.values() if g["typ"] == 16]
         waffenlager = [g for g in eig.values() if g["typ"] == 11]
-        werk_holz = (20 * max(0, self.schmieden - len(schmieden))
-                     + 15 * max(0, self.gerber - len(gerber)) + (5 if not waffenlager else 0))
+        werk_holz = (preis(13, "holz") * max(0, self.schmieden - len(schmieden))
+                     + preis(16, "holz") * max(0, self.gerber - len(gerber)) + (preis(11, "holz") if not waffenlager else 0))
+        mine_holz, mine_stein, hof_holz, hof_gold = preis(5, "holz"), preis(5, "stein"), preis(33, "holz"), preis(33, "gold")
         # Der Ochsenplaner unterscheidet damit zwischen dringend benoetigtem Bau-Stein und Stein, der nur irgendwann
         # verkauft wuerde. Bereits beladener Stein wird dort vom offenen Bedarf abgezogen.
         ausbau.stein_reserve = self.stein_bedarf(G)
@@ -1238,9 +1259,9 @@ class Produktion:
         # Stein wird nur oberhalb ALLER noch benoetigten Steinbauten in Holz getauscht.
         # Verkauf 5 Stein = 25 Gold, Kauf 5 Holz = 15 Gold: die Kette gewinnt Holz
         # und behaelt 10 Gold, ohne eine Mine oder Werkstatt auszuhungern.
-        holz_ziel = (20 if len(minen) < self.minen and stein >= 6 else
-                     5 if len(holzfaeller) < self.holzfaeller else
-                     werk_holz + 7 * max(0, self.hoefe - len(hoefe)))
+        holz_ziel = (mine_holz if len(minen) < self.minen and stein >= mine_stein else
+                     preis(3, "holz") if len(holzfaeller) < self.holzfaeller else
+                     werk_holz + hof_holz * max(0, self.hoefe - len(hoefe)))
         if (holz_ziel and holz < holz_ziel and stein >= self.stein_bedarf(G) + 5
                 and st["t"] - self.letzter_stein_tausch >= 100):
             befehl({"spielbefehl": {"nr": 38, "werte": [1, WAREN_NR["stein"]]}}, 1.0, bis="SPIELBEFEHL")
@@ -1250,7 +1271,7 @@ class Produktion:
                 self.stein_bedarf(G), holz_ziel))
         # Eisen ist eine Zielkette, kein Nebenprodukt des allgemeinen Gewinnplaners: bis zu fuenf Minen werden dicht
         # gepackt und einzeln bestaetigt. So entstehen keine Doppelauftraege auf demselben Erzfeld.
-        if len(minen) < self.minen and not any(a["typ"] == 5 for a in BUCH.offen) and holz >= 20 and stein >= 6 and feuer >= 2:
+        if len(minen) < self.minen and not any(a["typ"] == 5 for a in BUCH.offen) and holz >= mine_holz and stein >= mine_stein and feuer >= 2:
             ort, weg = ausbau._bester_ort(5, L, G)
             if ort:
                 gebaut, grund = baue_schnell(5, ort[0], ort[1], 1, zweck="Produktion", mit_grund=True)
@@ -1265,9 +1286,9 @@ class Produktion:
                     aus.append("PRODUKTION Eisenminenplatz %s nach zwei echten Ablehnungen dauerhaft verworfen" % (ort,))
         # Holz wird selbst vermehrt, aber nur bis zum aus der ganzen Kette berechneten Soll. Wenn der naechste Mine
         # bereits nur auf Holz wartet, bleiben ihre 20 Holz unberuehrt.
-        mine_bald = len(minen) < self.minen and stein >= 6
+        mine_bald = len(minen) < self.minen and stein >= mine_stein
         if (len(holzfaeller) < self.holzfaeller and not any(a["typ"] == 3 for a in BUCH.offen)
-                and holz >= 5 + (20 if mine_bald else 0) and feuer >= 1):
+                and holz >= preis(3, "holz") + (mine_holz if mine_bald else 0) and feuer >= 1):
             ort, weg = ausbau._bester_ort(3, L, G)
             if ort:
                 aus.append("PRODUKTION Holzfaeller %d/%d bei %s (Weg %d): %s" % (
@@ -1277,8 +1298,8 @@ class Produktion:
         # Gerber und Leder im 100er-Lauf um mehrere tausend Ticks. Der Hof bleibt reiner Lederzulieferer.
         minenkern = min(self.minen, 3)
         if (self.stufe < 4 and mitte and not wirt.B_offen and len(minen) >= minenkern
-                and gold >= 15 * max(0, self.hoefe - len(hoefe))
-                and holz >= 7 * max(0, self.hoefe - len(hoefe))):
+                and gold >= hof_gold * max(0, self.hoefe - len(hoefe))
+                and holz >= hof_holz * max(0, self.hoefe - len(hoefe))):
             hof_offen = self.hoefe_bauen(G, hoefe, gold, holz, feuer, aus)
             if hofvorrat_erschoepft(self.hoefe, len(hoefe), hof_offen, self.hof_orte, self.hof_verworfen):
                 raise RuntimeError("TECHNISCH UNGUELTIG: produktiver Hofplatzvorrat erschoepft (%d gebaut, %d benoetigt, %d verworfen)" % (
@@ -1449,7 +1470,7 @@ class Produktion:
         paare = min(v.get("keule", 0), v.get("leder", 0), rest)
         # Vor Abschluss der gesamten Produktionswirtschaft wird kein Gold in Truppen gebunden. Danach muss die Kaserne
         # schon beim ersten voll bezahlbaren Paar kommen: 50/100 passen nicht gleichzeitig in das eine Waffenlager.
-        if not kas and paare >= 1 and gold >= KAEMPFER_GOLD and stein >= 12:
+        if not kas and paare >= 1 and gold >= KAEMPFER_GOLD and stein >= preis(9, "stein"):
             aus.append("PRODUKTION Kaserne %s" % (baue_schnell(9, BERGFRIED[0] - 16, BERGFRIED[1] + 18, 30),))
         if kas:
             werben = anwerbe_menge(self.ziel, st.get("T26", 0), v.get("keule", 0), v.get("leder", 0), feuer, gold)
@@ -1885,6 +1906,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 if haus.jetzt_entscheiden(st, regel_h):
                     haus.entschieden = st["t"]
                     nahrung_h = sum(st.get(w, 0) for w in ("apfel", "brot", "kaese", "fleisch"))
+                    if nahrung_notkauf(nahrung_h, 3 + st.get("leute", 0) // 10, st.get("gold", 0) - wirt.ruecklage(G)["gold"]):
+                        befehl({"spielbefehl": {"nr": 38, "werte": [0, WAREN_NR["apfel"]]}}, 1.0, bis="SPIELBEFEHL")
+                        ereignis.append("NOTKAUF 5 Aepfel (Nahrung %d, Gold vorher %d)" % (nahrung_h, st.get("gold", 0)))
                     ration_h = haus.waehle_ration(st, 3 + st.get("leute", 0) // 10)
                     if ration_h != haus.ration:
                         befehl({"spielbefehl": {"nr": 35, "werte": [ration_h]}}, 1.0, bis="SPIELBEFEHL")
