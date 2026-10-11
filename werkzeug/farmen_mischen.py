@@ -25,7 +25,6 @@ Auftrag (Beispiel):
 Als Baustein:  from farmen_mischen import mische
 """
 import json, math, os, sys, time
-from ortools.sat.python import cp_model
 
 GROESSE = {"weizen": 9, "hopfen": 9, "apfel": 10, "kuehe": 10}
 TYP = {"weizen": 30, "hopfen": 31, "apfel": 32, "kuehe": 33}          # Gebaeudetyp im Spiel
@@ -39,6 +38,9 @@ def lies_karte(pfad):
 
 def mische(karten, mitte, umkreis, sorten, sekunden=30.0, kerne=8):
     """karten: {sorte: set((x,y))}; sorten: {sorte: {wert, min, max, ziel}}. Gibt ein Ergebnis-dict."""
+    # Karten lesen wird auch vom Echtzeit-Planer gebraucht und benoetigt keinen Optimierer. OR-Tools deshalb erst
+    # laden, wenn wirklich eine Farmmischung gerechnet wird; sonst duerfte ein unabhaengiger Spielpfad nicht starten.
+    from ortools.sat.python import cp_model
     t0 = time.time()
     m = cp_model.CpModel()
     var, abst, feld = {}, {}, {}

@@ -41,7 +41,7 @@ Spiel gegenpruefen.
 1. Milchviehhof: Kuehe je 1.000 Ticks, wann die erste Kuh, wie viele gleichzeitig.
 2. Gerberei: Lederharnische je Kuh, Ticks je Harnisch.
 3. Schmiede: Keulen je Eisen, Ticks je Keule.
-4. Eisenmine: Eisen je 1.000 Ticks (Planer-Messung: 0,61 je Mine bei 61 Feldern Weg - Weg zaehlt).
+4. Eisenmine: 0,588 Eisen je 1.000 Ticks; 8-91 Felder Weg waren gleich schnell, weil der Bergmann begrenzt (L40).
 5. Laufwege: Werkstatt <-> Lager <-> Waffenlager <-> Kaserne in Feldern; Zeit vom fertigen Gegenstand bis im Waffenlager.
 
 ## Schritte
@@ -273,9 +273,10 @@ Marken: gemessen (Register) / abgelesen (liga_ai.json) / gerechnet / offen.
 
 ### Ziel und ehrlicher Ausgangspunkt
 
-- 1 Monat = 800 Ticks, 20 Monate = 16.000 Ticks, 24 Monate = 19.200 Ticks (`Wissensstand.md`, Kalender gemessen).
-- Daniels Grenze: Der 25. Streitkolbenkaempfer muss spaetestens bei Tick 19.200 stehen. Wunschziel ist Tick 16.000;
-  darunter ist Rekordglueck.
+- 1 Monat = 800 Ticks, 16 Monate = 12.800 Ticks, 18 Monate = 14.400 Ticks und 24 Monate = 19.200 Ticks
+  (`Wissensstand.md`, Kalender gemessen).
+- Daniels Wertung vom 08.10.: Der 25. Streitkolbenkaempfer muss spaetestens bei Tick 19.200 stehen. Tick 14.400
+  oder frueher ist **sehr gut**; alles unter Tick 12.800 ist **sehr sehr gut**. Schnellste gueltige Zeit gewinnt.
 - Der beste bisherige Lauf erreichte 25 bei Tick 16.753 = 20,94 Monaten. Er liegt sicher unter 24 Monaten, aber nur
   einmal. Die anderen Haushalt-Laeufe lagen bei 21.348, 19.205, 17.716 und 16.966 Ticks; dabei wurden mehrere
   Stellgroessen geaendert. Der Rekord ist deshalb ein Startwert, noch kein belastbarer Normalwert.
@@ -287,7 +288,7 @@ Marken: gemessen (Register) / abgelesen (liga_ai.json) / gerechnet / offen.
 
 Die KI minimiert nicht Gold, Holz oder die Zeit einer einzelnen Werkstatt. Sie minimiert jede Runde diese Zielzeit:
 
-`Zielzeit = max(25. Keule, 25. Lederharnisch, 500 Gold, 25 verfuegbare Bauern, Kaserne/Waffenlager bereit)`
+`Zielzeit = max(25. Keule, 25. Lederharnisch, Gold fuer die noch fehlenden Anwerbungen, noch fehlende Bauern, Kaserne/Waffenlager bereit)`
 
 Gebaut wird nur das Glied, das diese Zielzeit im Moment am weitesten nach hinten schiebt. Fuer die Vorhersage zaehlen
 nicht nur fertige Waren, sondern die ganze laufende Kette: Eisen im Minenvorrat und beim Traeger, Eisen/Keulen beim
@@ -296,40 +297,54 @@ verbleibende Rest wird am Markt gekauft. So kauft die KI nicht kurz vor einer ei
 
 ### Harte Reihenfolge
 
-1. **Belegbare Grundlinie:** Die jetzige 16.753-Strategie drei gueltige Male unveraendert laufen lassen. Ziel fuer die
+1. **Ressourcen vor Grundlinie (08.10. gemessen):** Ein Steinbruch erzeugt 4,1-5,2 Stein je 1.000 Ticks. Der Ochse traegt
+   12; ein kurzer Hin-/Rueckumlauf braucht rund 500, ein 54-58-Felder-Weg rund 1.900-2.000 Ticks. Zusaetzliche
+   Abholpausen machen die reine Gehzeit zu optimistisch: zwei Joche lieferten im selben Zeitfenster fast doppelt so viel
+   wie eines. Daher zwei je fruehem Bruch, ein drittes nur bei weiter wachsendem Haufen. Eisen: eine gueltige Mine liefert
+   bei 8-91 Feldern Weg stabil 0,588 Eisen je 1.000, eine satte Schmiede braucht 0,664 und macht 1,49 Keulen je Eisen;
+   5 Minen tragen rund 4,4 Schmieden. Eine Messanordnung gilt nur, wenn die nach dem Bau neu gelesene Wegkarte jeden Eingang
+   ueber einen freien Korridor mit dem richtigen Lagerteil und dem Waffenlager verbindet; Luftlinie oder dichtes
+   Aneinanderbauen ohne Weg macht den Lauf ungueltig. Markt, Kornspeicher und Huetten stehen ausserhalb dieses Kerns.
+   Die Gegenproben 5:8 (deutlich zu viele Schmieden) und 5:5 (leicht zu viele) sind abgeschlossen. Der Produktionslauf
+   beginnt mit 5:4; eine fuenfte Schmiede ist nur mit gekauftem Eisen oder gemessenem Eisenstau erlaubt.
+2. **Belegbare Grundlinie:** Die jetzige 16.753-Strategie drei gueltige Male mit den neuen Ressourcenwerten laufen lassen. Ziel fuer die
    Grundlinie: jeder Lauf unter 19.200; Bestzeit und Median notieren.
-2. **Stein frueh freimachen:** Die beiden Steinbrueche stehen schon frueh, aber im Rekordlauf kam der erste Stein erst
+3. **Stein frueh freimachen:** Die beiden Steinbrueche stehen schon frueh, aber im Rekordlauf kam der erste Stein erst
    bei Tick 7.640, weil die Ochsenjoche erst nach dem ersten Holzschub kamen. Direkt nach dem neuen Lager werden deshalb
-   10 Holz fuer zwei Joche reserviert oder gekauft. Erstes Zwischenziel: erster gelieferter Stein vor Tick 3.500. Ohne
+   zwei Joche je aktivem fruehem Bruch vorgesehen. Erstes Zwischenziel: erster gelieferter Stein vor Tick 3.500. Ohne
    diesen Beleg startet keine grosse Waffenbau-Variante.
-3. **Leder zuerst:** Vier Milchviehhoefe und zwei Gerbereien sind der erste Produktionsversuch. Das bindet sechs
-   Arbeiterplaetze, braucht 58 Holz, 6 Stein und 210 Gold und kann nach L39 ungefaehr 25 Leder bis vor Tick 16.000
+4. **Leder zuerst:** Vier Milchviehhoefe und zwei Gerbereien sind der erste Produktionsversuch. Das bindet sechs
+   Arbeiterplaetze, braucht 58 Holz, 6 Stein und 210 Gold und kann nach L39 ungefaehr 25 Leder bis vor Tick 14.400
    liefern, wenn die Hoefe bis etwa Tick 1.500 und die Gerbereien mit den ersten Kuehen stehen. Fehlendes Leder wird
    erst am Endpunkt in Fuenferlosen gekauft.
-4. **Keulen nur hinter dem Stein-Tor:** Danach beginnt die Eisenkette mit vier Minen und sechs Schmieden; eine fuenfte
-   Mine wird nur gebaut, wenn die laufende Eisenmenge bis Tick 14.500 weniger als 25 Keulen verspricht. Die Startwerte
-   folgen L37/L38: Mine 0,59 Eisen je 1.000 Ticks, erste Lieferung 3.600-4.000 Ticks nach Bau; Schmiede eine Keule je
-   2.000-2.300 Ticks, erste Keule etwa 3.300 Ticks nach Bau. Gekauftes Eisen ist kein Standardweg: ein Fuenferlos spart
+5. **Keulen nur hinter dem Stein-Tor:** Danach beginnt die Eisenkette mit fuenf Minen und vier Schmieden. Die Startwerte
+   folgen L40: Mine 0,588 Eisen je 1.000 Ticks, Schmiede bei voller Versorgung 0,664 Eisen und rund 1 Keule je 1.000;
+   gemessen sind 1,49 Keulen je Eisen. Eine fuenfte Schmiede kommt nur bei Eisenstau oder geplantem Markteisen hinzu;
+   acht Schmieden auf fuenf Minen sind als Hunger-Gegenprobe widerlegt. Gekauftes Eisen ist kein Standardweg: ein Fuenferlos spart
    gegen fertige Keulen nur 30 Gold und kostet zusaetzlich Schmiedezeit.
-5. **Arbeiter umschichten statt Bevoelkerung aufblasen:** Ziel 90 bleibt der Startwert; 110 war mit 16.966 langsamer.
+6. **Arbeiter umschichten statt Bevoelkerung aufblasen:** Ziel 90 bleibt der Startwert; 110 war mit 16.966 langsamer.
    Spaete Holzfaeller mit nur 0,3-0,4 Holz je 1.000 Ticks werden nicht weiter gebaut, sobald Mine, Schmiede oder Gerber
    die Zielzeit staerker senken. Die 90 Leute werden zuerst in Nahrung, dann in die aktuelle Engpasskette gesetzt.
-6. **Markt als Ziellinien-Werkzeug:** Ab Tick 14.500 werden keine Betriebe mehr gebaut, deren erste echte Lieferung vor
-   Tick 16.000 nicht sicher ist. Die Bilanz reserviert 500 Gold fuer das Anwerben und kauft nur den aufgerundeten Rest
+7. **Erst Wirtschaft, dann Armee:** Solange eine Mine, Schmiede, Gerberei oder ein Transporter die Zielzeit noch senkt,
+   wird kein Streitkolbenkaempfer angeworben. Keulen und Leder werden gesammelt, das Gold arbeitet weiter. Erst wenn die
+   Wirtschaftsrechnung keine rechtzeitig amortisierte Erweiterung mehr findet, beginnt das Anwerben am Stueck.
+8. **Markt als Ziellinien-Werkzeug:** Ab Tick 12.000 werden keine Betriebe mehr gebaut, deren erste echte Lieferung vor
+   Tick 14.400 nicht sicher ist. Die Bilanz reserviert 20 Gold je noch fehlendem Kaempfer und kauft nur den aufgerundeten Rest
    an Keulen und Leder. Ab Tick 17.500 gilt die 24-Monats-Sicherung: alles Verkaufbare in Gold umwandeln und jeden noch
    fehlenden Fuenferblock kaufen; keine neue Langfrist-Investition.
 
 ### Messmarken und Abbruchregeln
 
-| Marke | Soll fuer den 20-Monats-Versuch | Wenn sie verfehlt wird |
+| Marke | Soll fuer den 18-Monats-Versuch | Wenn sie verfehlt wird |
 |---|---:|---|
 | B-Plantagen nach A | hoechstens 200 Ticks | Lauf als technisch verfaelscht markieren |
 | erster Stein im Lager | vor Tick 3.500 | Joch-/Holz-Reihenfolge verbessern, keine Vollkette werten |
-| 4 Hoefe + 2 Gerbereien | bis Tick 3.500 | Leder-Variante abbrechen oder Restkauf vorrechnen |
-| 4 Minen + 6 Schmieden | nur wenn Rohstoffe und Arbeiter reichen, spaetestens Tick 6.000 | kleiner starten; keine Gebaeude auf Kredit planen |
-| 10 Keulen + 10 Leder | bis Tick 10.500 | Restbedarf neu rechnen und Marktpfad vorbereiten |
-| Kaufentscheidung | Tick 14.500 | unfertige Arbeit mitzählen, nur echten Rest kaufen |
-| Wunschziel | Tick 16.000 | Bestzeit verfehlt, Lauf bis zur harten Grenze fortsetzen |
+| 4 Hoefe + 2 Gerbereien | bis Tick 3.000 | Leder-Variante abbrechen oder Restkauf vorrechnen |
+| 5 Minen + 4 Schmieden | nur wenn Rohstoffe und Arbeiter reichen, spaetestens Tick 5.500 | kleiner starten; keine Gebaeude auf Kredit planen |
+| 10 Keulen + 10 Leder | bis Tick 9.000 | Restbedarf neu rechnen und Marktpfad vorbereiten |
+| Kaufentscheidung | Tick 12.000 | unfertige Arbeit mitzaehlen, nur echten Rest kaufen |
+| Sehr-sehr-gut-Marke | vor Tick 12.800 | verpasst nur diese Wertung; Lauf fuer 18-Monats-Ziel fortsetzen |
+| Sehr-gut-Marke | Tick 14.400 | Lauf ist sehr gut; danach nur noch Bestzeit oder 24-Monats-Sicherung |
 | Sicherungsumschaltung | Tick 17.500 | investieren stoppen, Endkauf und Anwerben |
 | Harte Grenze | Tick 19.200 | Lauf gescheitert |
 
@@ -338,10 +353,36 @@ verbleibende Rest wird am Markt gekauft. So kauft die KI nicht kurz vor einer ei
 1. Drei Wiederholungen der Grundlinie 16.753, nachdem die B-Plantage nicht mehr haengen kann.
 2. Nur fruehe Ochsenjoche aendern; drei Laeufe. Damit wird belegt, ob frueher Stein wirklich die Endzeit senkt.
 3. Auf dem besseren Stand Lederkette zuschalten; drei Laeufe.
-4. Erst danach Eisen/Schmieden zuschalten; drei Laeufe. Die kleinste Variante beginnt 4/6, weitere Gebaeude nur nach
+4. Erst danach Eisen/Schmieden zuschalten; drei Laeufe. Die kleinste voll versorgte Variante beginnt 5/4, weitere Gebaeude nur nach
    der laufenden Zielzeitrechnung.
 5. Sieger ist die kleinste Regel, deren drei gueltige Laeufe alle unter 19.200 bleiben; der schnellste Einzellauf ist
-   der Rekord. Das 20-Monats-Ziel ist erreicht, sobald ein gueltiger Lauf unter 16.000 endet.
+   der Rekord. Die Wertung **sehr gut** ist bei hoechstens 14.400 erreicht; **sehr sehr gut** nur unter 12.800.
+
+### Mehrere Instanzen und kluger Fruehabbruch
+
+- Die vorhandene `werkzeug/serie.py` verteilt Laeufe ueber `SHC_INSTANZ`. Mehrere Instanzen sind bereits belegt, aber
+  nicht gleich schnell im Entscheiden: Instanz 3 hatte parallel weniger Lenker-Runden als Instanz 1. Deshalb bekommt
+  jede Variante gleich viele Laeufe auf jeder verwendeten Instanz; verglichen wird zuerst innerhalb derselben Instanz
+  und erst danach gemeinsam. Instanznummer, Code-Kennung, Tempo und Lenker-Runden gehoeren zu jedem Ergebnis.
+- Jeder Lauf verfolgt nacheinander drei Ziellinien: unter 12.800, hoechstens 14.400, hoechstens 19.200. Wird die
+  optimistische Obergrenze fuer eine Ziellinie unterschritten, faellt der Lauf nur auf die naechste Ziellinie zurueck;
+  er wird nicht vorschnell ganz verworfen.
+- Fuer jede Ziellinie rechnet der Abbruchwaechter absichtlich zu Daniels Gunsten:
+
+  `Gold maximal = Gold jetzt + verkaufbarer Ueberschuss im Lager + rechtzeitig fertiger Ueberschuss + bestmoegliche Steuern und Produktion bis zur Ziellinie + sichere Abrissrueckgabe`
+
+  `Gold noetig = 20 x noch fehlende Kaempfer + Marktpreis der bis dahin fehlenden Keulen und Leder + noch zwingende Baukosten`
+
+  Nur wenn selbst `Gold maximal < Gold noetig` ist, ist die Ziellinie wirklich unmoeglich. Fuer Keulen, Leder und
+  Pflichtbauten reservierte Waren sind kein verkaufbarer Ueberschuss. Laufende Ware in Mine, Transport, Schmiede, Kuh
+  und Gerberei zaehlt dabei genau einmal; unsichere kuenftige Ertraege werden mit der besten
+  bisher gemessenen Rate angesetzt, damit der Waechter keinen noch rettbaren Lauf abbricht.
+- Ein Lauf endet vollstaendig, wenn auch Tick 19.200 rechnerisch nicht mehr erreichbar ist oder eine technische
+  Bedingung verletzt wurde. Reine Suchlaeufe duerfen ausserdem enden, sobald sie die aktuelle Bestzeit selbst unter
+  optimaler Rechnung nicht mehr schlagen koennen; die drei Bestaetigungslaeufe einer Siegerstrategie laufen trotzdem
+  bis zum 25. Kaempfer oder zur harten Unmoeglichkeit.
+- Gegenprobe fuer den Waechter: Ein kuenstlich goldarmer Stand muss abbrechen; derselbe Stand mit genau einem noch
+  rechtzeitig eintreffenden verkaufbaren Los darf nicht abbrechen. Erst dann darf der Waechter Serienzeit sparen.
 
 ### Gegenprobe vor dem Bauen
 
@@ -352,3 +393,37 @@ verbleibende Rest wird am Markt gekauft. So kauft die KI nicht kurz vor einer ei
   wenn keine eigene Lieferung vor der Zielmarke mehr moeglich ist.
 - **Glueck:** Ein einzelner 16.753-Lauf beweist nur den Rekord. Fuer eine belastbare 24-Monats-Strategie muessen drei
   gueltige Wiederholungen unter 19.200 liegen.
+
+## Skalierung auf 50 und 100 (09.10.)
+
+- Der letzte gueltige 50er-Lauf erreichte das Ziel bei Tick 24.625. Die gruppierte, rueckgemeldete Ochsenregel brauchte
+  dabei 12 Joche statt der fehlerhaften 22. Ein 100er-Lauf wird erst nach Daniels Startsignal wieder ausgefuehrt.
+- Die Waffenbetriebe werden nun als gemeinsame Folge geplant: Waffenlager, Gerber, Schmiede, Gerber, Schmiede. Fehlt
+  die erste Kuh noch, darf genau eine Schmiede vorziehen; der Gerber verschwindet nicht aus dem Plan. Bereits gebaute
+  Werkstatteingaenge bleiben bei jeder Neuplanung geschuetzt.
+- Der Produktionslauf hat harte Lagerobergrenzen von 150 Holz, 50 Stein und 10 Eisen sowie hoechstens acht Lagerteile.
+  Strengere unmittelbare Baureserven gelten weiter. Ueberschuss wird gebuendelt verkauft, damit die Produktion den
+  Verkauf nicht ueberholt.
+- Das Endspiel leert und zerlegt die Wirtschaft erst, wenn verkaufbare Waren und nur 70 Prozent des berechneten
+  Abrisswertes den gesamten Restbedarf plus 50 Gold decken und nach dem Abriss genug Bauern vorhanden sind. Nahrung,
+  die im Haushaltslauf nicht verkauft wird, zaehlt auch in der Vorpruefung nicht als Gold.
+- Rekrutierung erfolgt in sicheren Wellen bis fuenf: `euroRecruit` setzt den gewaehlten Bauern noch im selben Aufruf um,
+  daher nimmt der naechste Befehl eine andere Einheiten-Nummer. Die echte Feuerzahl begrenzt die Menge; das Feld
+  `arbeitsplatz` darf sie nicht nochmals filtern, denn Wartende tragen dort die wechselnde Bergfriednummer. Zustand 109
+  gehoert zu einer bereits laufenden Umwandlung und wird ignoriert; bei irgendeinem sichtbaren Abwanderer 110 wartet die
+  ganze neue Welle. Die naechste beginnt erst nach vollstaendig erreichter Sollzahl, nie nach blosser Teilankunft erneut.
+  Reparaturlauf `1010c`: komplette Produktion 8/7/6, Endspiel 24.002, erste Fuenferwelle 5/5 bestaetigt; danach deckte
+  der falsche Arbeitsplatzfilter die 48 Wartenden nicht mehr auf und der Lauf blieb bei 14/50 bis Tick 40.033 stehen.
+- Der erste freigegebene 50er-Lauf dieses Standes endete technisch bei Tick 14.257: Alle sechs gebauten Milchviehhoefe
+  lagen ausserhalb des festen 71x71-Kartenausschnitts um das Vorratslager. Der Planer bekam dadurch eine Hofliste,
+  aber kein einziges sichtbares Hoftor und lehnte jeden Waffenlagerplatz ab. Neue Regel: Der Kartenrahmen umfasst den
+  Vorrats-/Waffenlageranker und die vollstaendigen Grundrisse aller tatsaechlich gebauten Hoefe plus 35 Felder Rand;
+  die 400x400-Spielkarte ist die feste Obergrenze. Die Gegenprobe bildet den alten Fernhof-Fehler, den reparierten
+  Fernhof und einen unveraenderten Nahhof ab. Ein neuer echter Lauf beginnt erst nach Daniels neuem Startsignal.
+- Der naechste freigegebene 50er-Lauf war technisch gueltig, aber mit Tick 30.331 klar zu langsam. Das Endspiel begann
+  bei 25.615; der Werkstattbau dagegen erst bei 14.927. Ein vom Spiel abgelehnter Schmiedeplatz wurde trotz neuer
+  Wegkarte immer wieder gewaehlt, ebenso derselbe Platz der fuenften Eisenmine. Darum standen am Endspiel nur eine von
+  sieben Schmieden, sechs Gerber und vier von acht Minen; der Markt ersetzte die fehlende Produktion. Neue Regel:
+  Hof plus Minenkern startet den Werkstattplan schon vor dem ersten abgelieferten Eisen. Nach zwei echten
+  Platzablehnungen wird die gesamte ueberlappende 4x4-Werkstattflaeche beziehungsweise der Minenort fuer diese Partie
+  gesperrt; Rohstoffmangel darf keine Sperre erzeugen. Gegenprobe des Werkstattplaners: 4/4 gruen.

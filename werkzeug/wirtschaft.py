@@ -241,6 +241,13 @@ class Wirtschaft:
                     ev.append("Altes Lager leeren: %s verkauft (Inhalt %s)" % (ware, inhalt))
         # 3. Neues Lager erst, wenn ein Holzfaeller abliefern will (Zustand 7)
         teile = [n for n, g in eigen.items() if g["typ"] == LAGER and n not in self.alt and n not in alt_da]
+        if teile and not alt_da and not getattr(self, "lager_ist_anker", False):
+            # Der Planplatz kann im Bautakt kurz belegt sein. Ab jetzt zaehlt der wirklich gebaute, vom Spiel als
+            # erreichbar gemeldete Lagerteil als Mittelpunkt; Erweiterungen duerfen nicht zum alten Sollpunkt driften.
+            g0 = eigen[teile[0]]
+            if g0.get("erreichbar", 0) == 1:
+                self.lager_ort = (g0["x"], g0["y"])
+                self.lager_ist_anker = True
         wollen = [n for n, e in einheiten.items() if e["typ"] == HOLZFAELLER and e["zustand"] == 7]
         # v14: sofort, sobald das alte weg ist (v12: abgerissen bei 1.314, neues erst bei 3.723 - ohne Lager lieferten die
         # Holzfaeller nicht, Zustand 7 kam nie; Holz 0 von 1.453 bis 4.294)
@@ -265,7 +272,8 @@ class Wirtschaft:
                 math.ceil((bestand["holz"] + unterwegs + bald) / JE_TEIL)
             menge = sum(bestand.values())
             # Rueckfall solange keine Ladung gemessen ist: alte Reserve (60) wie bisher
-            if noetig > len(teile) or (not self.ladung_max and menge >= JE_TEIL * len(teile) - 60):
+            darf_erweitern = getattr(self, "lager_max_teile", None) is None or len(teile) < self.lager_max_teile
+            if darf_erweitern and (noetig > len(teile) or (not self.ladung_max and menge >= JE_TEIL * len(teile) - 60)):
                 ort = self.baue_schnell(LAGER, self.lager_ort[0], self.lager_ort[1], 10)
                 ev.append("Lager erweitert %s: Bestand %d, Holz unterwegs %d + bald %d, Teile %d -> noetig %d" % (
                     ort, menge, unterwegs, bald, len(teile), noetig))

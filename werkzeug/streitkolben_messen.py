@@ -192,6 +192,37 @@ def baue_und_warte(typ, x, y, r, protokoll, name):
     return eintrag
 
 
+def baue_plan_und_warte(typ, x, y, richtung, protokoll, name):
+    """Einen vom Wegplaner bestimmten 4x4-Bau exakt mit seiner Eingangsrichtung setzen."""
+    mapper = {WAFFENLAGER: 81, SCHMIEDE: 83, GERBER: 85}[typ]
+    vorher = set(eigene(typ))
+    befehl({"baue": {"mapper": mapper, "x": x, "y": y, "groesse": 4, "richtung": richtung}}, 0.8, bis="BAUE")
+    neu = []
+    for _ in range(50):
+        warte_ticks(3)
+        neu = [n for n in eigene(typ) if n not in vorher]
+        if neu:
+            break
+    g = eigene(typ).get(neu[0]) if neu else None
+    eintrag = {"name": name, "typ": typ, "gesucht": [x, y, 0], "richtung": richtung,
+               "ort": [x, y] if g else None, "nr": neu[0] if neu else None,
+               "x": g["x"] if g else None, "y": g["y"] if g else None,
+               "uid": g.get("uid") if g else None, "t": peek(TICK)[0]}
+    protokoll.append(eintrag)
+    print("GEBAUT %s NACH WEGPLAN: %s" % (name, eintrag), flush=True)
+    if not g:
+        raise SystemExit("ABBRUCH: Wegplan-Bau %s wurde nicht gesetzt" % name)
+    return eintrag
+
+
+def gebaeude_mit_eingang(typ):
+    """Liest den vom Spiel gespeicherten Eingang statt ihn aus dem Grundriss zu raten."""
+    z = " ".join(befehl({"gebaeude": {"spieler": SP, "typ": typ}}, 1.0, bis="GEBAEUDE:"))
+    return {int(n): {"ort": (int(x), int(y)), "eingang": (int(ex), int(ey))}
+            for n, x, y, ex, ey in re.findall(
+                r"GEBAEUDE (\d+): Typ \d+, Spieler \d+, Ort \((-?\d+),(-?\d+)\), Eingang \((-?\d+),(-?\d+)\)", z)}
+
+
 def kette():
     """Messpartie Eisen/Schmiede/Leder (Daniel 08.10. 00:18: "ja bitte und auch wirklich messen"). Vorher festgelegt:
     - Spielregel (Stronghold-Wiki "Resources"): ein Eisenarbeiter traegt je Gang ein Stueck zur Lagerstelle, Ochsen helfen
@@ -205,8 +236,8 @@ def kette():
     WIDERLEGT ist die Hoffnung "Eisen am Lager lohnt", wenn die Mine am Lager unter 1 Eisen je 1.000 Ticks bleibt.
     Gesetzt wird nur Gold; alles andere echt gebaut, gekauft, gezaehlt. Jede Runde komplett ins Lageprotokoll."""
     import messumgebung as M
-    from farmen_mischen import lies_karte
     from lageprotokoll import Lageprotokoll
+    import wegkarte as W
     arg = dict(a.split("=", 1) for a in sys.argv[1:])
     dauer, tempo = int(arg.get("ticks", 12000)), int(arg.get("tempo", 100))
     ziel = tuple(int(v) for v in arg.get("lager", "142,311").split(","))
@@ -227,7 +258,13 @@ def kette():
         return
     lx, ly = l1["x"], l1["y"]
     baue_und_warte(LAGER, lx, ly, 8, erg["bauten"], "Lager Block 2")
-    baue_und_warte(MARKT, lx, ly, 25, erg["bauten"], "Markt")
+    # Drei Bloecke: Holz, Stein und Eisen brauchen gleichzeitig eigene Lagerteile. Ohne Reserve kann ein erfolgreicher
+    # Marktkauf nirgends abgelegt werden; genau das verfaelschte den abgebrochenen Lauf vom 08.10.
+    baue_und_warte(LAGER, lx, ly, 10, erg["bauten"], "Lager Block 3 (Kapazitaetsreserve)")
+    # Markt, Kornspeicher und Huetten arbeiten nicht mit Eisen/Waffen. Sie duerfen den knappen Korridor um Lager,
+    # Waffenlager und Werkstaetten nicht verbauen (Daniel 08.10., Bild-Gegenprobe).
+    service = (E.BERGFRIED[0] - 25, E.BERGFRIED[1] - 20)
+    markt_bau = baue_und_warte(MARKT, service[0], service[1], 25, erg["bauten"], "Markt ausserhalb Produktionskern")
     for art, lose in ((HOLZ, 25), (STEIN, 12)):
         for _ in range(lose):
             befehl({"spielbefehl": {"nr": 38, "werte": [0, art]}}, 1.0, bis="SPIELBEFEHL")
@@ -235,12 +272,54 @@ def kette():
     erg["schritte"].append({"gekauft": bestand()})
     # 2. Minen ZUERST (Messpartie 08.10. 00:23: die Huetten der Messumgebung standen schon auf dem Eisenfeld - die Mine am
     #    Lager fand keinen Platz). Je Weglaenge die naechsten Kandidaten der Reihe nach, bis einer steht.
-    plaetze = lies_karte(os.path.join(D, "start_M19_platz_eisenmine.txt"))
+    def lies_platzkarte(pfad):
+        zeilen = open(pfad, encoding="utf-8").read().split("\n")
+        kopf = dict(t.split("=") for t in zeilen[0].split())
+        x0, y0 = int(kopf["x0"]), int(kopf["y0"])
+        return {(x0 + i, y0 + j) for j, reihe in enumerate(zeilen[1:]) for i, c in enumerate(reihe) if c == "+"}
+
+    plaetze = lies_platzkarte(os.path.join(D, "start_M19_platz_eisenmine.txt"))
     weg = lambda q: max(abs(q[0] + 2 - (lx + 2)), abs(q[1] + 2 - (ly + 2)))
-    soll_liste = [int(s) for s in arg.get("minen", "0,25,45").split(",")]
+    # Eine Richtung reicht nicht: Die Weg-Ebene kann Einbahn-Verbindungen enthalten. Vor dem Bau muss der Eingang
+    # sowohl vom Lager erreichbar sein als auch wieder zum Lager zurueckfuehren.
+    k_vor = W.holen(max(min([lx] + [q[0] for q in plaetze]) - 10, 0), max(min([ly] + [q[1] for q in plaetze]) - 10, 0),
+                    min(max([lx] + [q[0] for q in plaetze]) + 20, 399), min(max([ly] + [q[1] for q in plaetze]) + 20, 399))
+    lagerfelder = [p for p, v in k_vor["f"].items() if v[5] == LAGER]
+    lagerzugang = {n for p in lagerfelder for dx, dy in W.RICHTUNG.values()
+                   for n in [(p[0] + dx, p[1] + dy)] if W.begehbar(k_vor, n)}
+
+    from collections import deque
+    def flut(starts, rueckwaerts=False):
+        q, gesehen = deque(starts), set(starts)
+        if rueckwaerts:
+            nachbarn = {p: [] for p in k_vor["f"]}
+            for p, v in k_vor["f"].items():
+                for bit, (dx, dy) in W.RICHTUNG.items():
+                    n = (p[0] + dx, p[1] + dy)
+                    if v[0] & bit and n in nachbarn:
+                        nachbarn[n].append(p)
+        while q:
+            p = q.popleft()
+            ns = nachbarn[p] if rueckwaerts else ((p[0] + dx, p[1] + dy) for bit, (dx, dy) in W.RICHTUNG.items()
+                                                   if k_vor["f"][p][0] & bit)
+            for n in ns:
+                if n in k_vor["f"] and n not in gesehen:
+                    gesehen.add(n); q.append(n)
+        return gesehen
+
+    vom_lager, zum_lager = flut(lagerzugang), flut(lagerzugang, rueckwaerts=True)
+
+    def mine_hin_und_zurueck(q):
+        e = (q[0] + 2, q[1] + 4)       # Richtung 0; fuer Eisenminen live bestaetigt
+        return e in vom_lager and e in zum_lager
+
+    # Fuenf Entfernungsstufen: Unterhalb der Kippstelle kann der Traeger schneller sein als der Bergmann; die langen
+    # Wege sollen die Stelle sichtbar machen, ab der Transport und nicht Abbau begrenzt.
+    soll_liste = [int(s) for s in arg.get("minen", "0,20,40,70,100").split(",")]
     for soll in soll_liste:
         name = "Mine am Lager" if soll == 0 else "Mine ~%d Felder" % soll
-        kand = sorted((q for q in plaetze if weg(q) >= 5 and all(max(abs(q[0] - b["x"]), abs(q[1] - b["y"])) >= 5
+        kand = sorted((q for q in plaetze if weg(q) >= 5 and mine_hin_und_zurueck(q)
+                       and all(max(abs(q[0] - b["x"]), abs(q[1] - b["y"])) >= 5
                                                                   for b in erg["bauten"] if b["x"] is not None)),
                       key=lambda q: abs(weg(q) - soll))
         for q in kand[:12]:
@@ -249,20 +328,107 @@ def kette():
                 e["weg_soll"], e["weg_luftlinie"] = soll, weg(q)
                 break
             erg["bauten"].pop()
-    erg["schritte"].append({"messumgebung": M.vorbereiten(lx, ly, huetten=6)})
-    # 3. Schmieden + Waffenlager am Lager, auf Keulen stellen; Eisen fuer die Schmiede-Zeit kaufen
-    for name in ("Schmiede 1", "Schmiede 2"):
-        baue_und_warte(SCHMIEDE, lx, ly, 10, erg["bauten"], name)
-    baue_und_warte(WAFFENLAGER, lx, ly, 12, erg["bauten"], "Waffenlager")
-    for b in erg["bauten"]:
-        if b["typ"] == SCHMIEDE and b["nr"]:
-            befehl({"spielbefehl": {"nr": 33, "werte": [b["nr"], KEULE, b["uid"] or 0]}}, 1.0, bis="SPIELBEFEHL")
+    # Eisen kaufen, solange die Lagerreserve garantiert frei ist. Holz und Stein werden erst danach aufgefuellt.
     for _ in range(4):
         befehl({"spielbefehl": {"nr": 38, "werte": [0, EISEN]}}, 1.0, bis="SPIELBEFEHL")
-    # 4. Leder
-    baue_und_warte(MILCH, lx, ly, 30, erg["bauten"], "Milchviehhof 1")
-    baue_und_warte(MILCH, lx, ly, 30, erg["bauten"], "Milchviehhof 2")
-    baue_und_warte(GERBER, lx, ly, 12, erg["bauten"], "Gerberei")
+    warte_ticks(10)
+    G_eisen = E.runde_lesen()[2]
+    eisen_teil = next((n for n, g in G_eisen.items() if g["besitzer"] == SP and g["typ"] == LAGER and g.get("ware") == EISEN), None)
+    if eisen_teil is None:
+        raise SystemExit("ABBRUCH: kein freies erreichbares Lagerteil fuer gekauftes Eisen")
+    sx, sy = (markt_bau["x"], markt_bau["y"]) if markt_bau["nr"] else service
+    korn_vor = set(eigene(KORNSPEICHER))
+    erg["schritte"].append({"messumgebung": M.vorbereiten(sx, sy, huetten=8)})
+    korn_neu = set(eigene(KORNSPEICHER)) - korn_vor
+    korn_nr = min(korn_neu) if korn_neu else None
+    # 3. Hoefe zuerst, dann Werkstaetten ueber die ECHTE Wegkarte planen. Der fruehere Test setzte alle Bauten nur
+    # moeglichst nah an dieselbe Mitte. Daniels Bilder vom 08.10. zeigen den Fehler: Gebaeude beruehrten sich und die
+    # Arbeiter mussten aussen herum. Ab jetzt gilt: Luftlinie ist wertlos; jeder Eingang braucht einen echten Korridor.
+    h1 = baue_und_warte(MILCH, lx, ly, 35, erg["bauten"], "Milchviehhof 1")
+    h2 = baue_und_warte(MILCH, lx, ly, 35, erg["bauten"], "Milchviehhof 2")
+    # Nach dem Minen-/Versorgungsbau die Produktionsmittel frisch auffuellen. Zwei Lagerbloecke reichen fuer Holz,
+    # Stein und Eisen; die Bauten verbrauchen die Lose sofort wieder.
+    for art, lose in ((HOLZ, 40), (STEIN, 14)):
+        for _ in range(lose):
+            befehl({"spielbefehl": {"nr": 38, "werte": [0, art]}}, 1.0, bis="SPIELBEFEHL")
+    warte_ticks(10)
+    import aufbau_planer as AP
+    G_plan = E.runde_lesen()[2]
+    k = W.holen(max(lx - 45, 0), max(ly - 45, 0), min(lx + 55, 399), min(ly + 55, 399))
+    hof_orte = [(h["x"], h["y"]) for h in (h1, h2) if h["nr"]]
+    # Alte Messung 0,59 Eisen/Mine/1.000 und ~0,45 Keulen/Schmiede/1.000: fuenf Minen brauchen rechnerisch rund
+    # sieben Schmieden. Acht geben eine Gegenprobe mit etwas Verarbeitungsspielraum statt des alten Eisenstaus 5:2.
+    n_schmieden = int(arg.get("schmieden", 8))
+    plan_w, bericht_w = AP.plane(k, n_schmieden, 1, eisen_teil=eisen_teil, hoefe=hof_orte, r_max=32)
+    erg["verhaeltnis"] = {"minen": len([b for b in erg["bauten"] if b["typ"] == EISENMINE and b["nr"]]),
+                          "schmieden": n_schmieden}
+    erg["wegplan"] = bericht_w
+    namen = {WAFFENLAGER: "Waffenlager", SCHMIEDE: "Schmiede", GERBER: "Gerberei"}
+    zaehler = {WAFFENLAGER: 0, SCHMIEDE: 0, GERBER: 0}
+    geplant = []
+    for art, x, y, richtung, eingang in plan_w.bauten:
+        zaehler[art] += 1
+        name = namen[art] + (" %d" % zaehler[art] if art == SCHMIEDE else "")
+        b = baue_plan_und_warte(art, x, y, richtung, erg["bauten"], name)
+        b["eingang_plan"] = list(eingang)
+        geplant.append(b)
+    # Gegenprobe an der NACH dem Bau neu gelesenen Wegkarte: Jeder Eingang muss zum Lager und jede Werkstatt zum
+    # Waffenlager gelangen. Ein Erfolg des Baubefehls allein beweist keinen brauchbaren Weg.
+    korn = gebaeude_mit_eingang(KORNSPEICHER).get(korn_nr) if korn_nr else None
+    echte_eingaenge = {typ: gebaeude_mit_eingang(typ) for typ in (WAFFENLAGER, SCHMIEDE, GERBER, EISENMINE)}
+    punkte = [(lx, ly), tuple(korn["eingang"]) if korn else (lx, ly)] + \
+             [tuple(g["eingang"]) for g in echte_eingaenge[EISENMINE].values()]
+    k_nach = W.holen(max(min(p[0] for p in punkte) - 20, 0), max(min(p[1] for p in punkte) - 20, 0),
+                     min(max(p[0] for p in punkte) + 60, 399), min(max(p[1] for p in punkte) + 60, 399))
+    p_nach = AP.Plan(k_nach)
+    d_lager = p_nach.lager_abstand()
+    lagerfelder_nach = [p for p, v in k_nach["f"].items() if v[5] == LAGER]
+    lagerzugang_nach = {n for p in lagerfelder_nach for dx, dy in W.RICHTUNG.values()
+                        for n in [(p[0] + dx, p[1] + dy)] if p_nach.boden(n)}
+
+    def lager_hin_und_zurueck(e):
+        hin = p_nach.abstand(e)
+        rueck = d_lager.get(e)
+        hin_lager = min((hin[z] + 1 for z in lagerzugang_nach if z in hin), default=None)
+        return hin_lager, rueck, hin_lager is not None and rueck is not None
+
+    wl = next(b for b in geplant if b["typ"] == WAFFENLAGER)
+    wl_eingang = echte_eingaenge[WAFFENLAGER].get(wl["nr"], {}).get("eingang", tuple(wl["eingang_plan"]))
+    d_waffen = p_nach.abstand(wl_eingang)
+    wegprobe = []
+    for b in geplant:
+        e = echte_eingaenge[b["typ"]].get(b["nr"], {}).get("eingang", tuple(b["eingang_plan"]))
+        hin_lager, rueck_lager, ok_lager = lager_hin_und_zurueck(e)
+        ok_waffen = b["typ"] == WAFFENLAGER or (e in d_waffen and wl_eingang in p_nach.abstand(e))
+        wegprobe.append({"name": b["name"], "eingang": list(e), "lager_felder": hin_lager,
+                         "lager_rueck_felder": rueck_lager,
+                         "waffenlager_felder": 0 if b["typ"] == WAFFENLAGER else d_waffen.get(e),
+                         "erreichbar": ok_lager and ok_waffen})
+    for b in (x for x in erg["bauten"] if x["typ"] == EISENMINE and x["nr"]):
+        e = echte_eingaenge[EISENMINE].get(b["nr"], {}).get("eingang")
+        hin_lager, rueck_lager, ok_lager = lager_hin_und_zurueck(e) if e else (None, None, False)
+        b["eingang"] = list(e) if e else None
+        b["weg_felder"] = hin_lager
+        wegprobe.append({"name": b["name"], "eingang": list(e) if e else None,
+                         "lager_felder": hin_lager, "lager_rueck_felder": rueck_lager,
+                         "waffenlager_felder": None, "erreichbar": ok_lager})
+    # Kornspeicher liegt absichtlich weit weg. Trotzdem muss sein echter Eingang zum gemeinsamen Wegenetz gehoeren;
+    # gekauftes Essen im Zaehler allein beweist keine moegliche Anlieferung durch Bauern.
+    if korn:
+        ke = tuple(korn["eingang"])
+        hin_lager, rueck_lager, ok_lager = lager_hin_und_zurueck(ke)
+        wegprobe.append({"name": "Kornspeicher", "eingang": list(ke), "lager_felder": hin_lager,
+                         "lager_rueck_felder": rueck_lager, "waffenlager_felder": None, "erreichbar": ok_lager})
+    else:
+        wegprobe.append({"name": "Kornspeicher", "eingang": None, "erreichbar": False})
+    erg["wegprobe"] = wegprobe
+    print("WEGPROBE:", wegprobe, flush=True)
+    if not all(x["erreichbar"] for x in wegprobe):
+        raise SystemExit("ABBRUCH: mindestens ein Produktionsweg ist nach dem Bau blockiert")
+    for b in geplant:
+        if b["typ"] == SCHMIEDE:
+            befehl({"spielbefehl": {"nr": 33, "werte": [b["nr"], KEULE, b["uid"] or 0]}}, 1.0, bis="SPIELBEFEHL")
+    # 4. Erst nach bestandener Wegprobe messen.
     erg["schritte"].append({"nach_aufbau": bestand()})
     # 5. Laufen lassen, jede Runde komplett mitschreiben
     lage = Lageprotokoll(os.path.join(D, "lage_kette_%s_i%d.jsonl.gz" % (stempel, E.INSTANZ)))
@@ -270,6 +436,7 @@ def kette():
     print("Lageprotokoll:", lage.pfad, flush=True)
     t0, runde = peek(TICK)[0], 0
     erg["t_messbeginn"] = t0
+    erg["waffen_abfluss"] = {"keule": 0, "leder": 0, "vorgaenge": []}
     while peek(TICK)[0] - t0 < dauer:
         st = E.runde_lesen()[0]
         if st:
@@ -279,6 +446,23 @@ def kette():
             M.pflegen(st)
         if runde % 10 == 0:
             p = bestand()
+            # Ein volles Waffenlager blockiert die Ablieferung. Bei 40 von vermutlich 50 Plaetzen wird kontrolliert
+            # ein Fuenferlos verkauft und separat gezaehlt; so bleiben mindestens zehn Plaetze frei und der Ertrag geht
+            # in der Auswertung nicht verloren.
+            while (p.get("keule", 0) or 0) + (p.get("leder", 0) or 0) >= 40:
+                name, art = max((("keule", KEULE), ("leder", LEDER)), key=lambda x: p.get(x[0], 0) or 0)
+                if (p.get(name, 0) or 0) < 5:
+                    raise SystemExit("ABBRUCH: Waffenlager voll, aber kein verkaufbares Fuenferlos")
+                vorher = p
+                befehl({"spielbefehl": {"nr": 38, "werte": [1, art]}}, 1.0, bis="SPIELBEFEHL")
+                warte_ticks(3)
+                p = bestand()
+                verkauft = max(0, (vorher.get(name, 0) or 0) - (p.get(name, 0) or 0))
+                if not verkauft:
+                    raise SystemExit("ABBRUCH: Waffenlager konnte trotz Fuellstand nicht entlastet werden")
+                erg["waffen_abfluss"][name] += verkauft
+                erg["waffen_abfluss"]["vorgaenge"].append({"t": p["t"], "ware": name, "menge": verkauft,
+                                                              "gold_delta": p["gold"] - vorher["gold"]})
             erg["proben"].append(p)
             print("PROBE t=%s Keule %s Leder %s Eisen %s Gold %s Beliebt %.1f Leute %s" % (
                 p["t"], p["keule"], p["leder"], p["eisen"], p["gold"], st.get("beliebt", 0) / 100.0, st.get("leute")), flush=True)

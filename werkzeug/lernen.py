@@ -63,7 +63,7 @@ S25 = {
     "fest": ["leere_ki=ja", "minuten=60", "streitkolben=25", "weg=bilanz", "experiment=ja", "regel50=ja"],
     "knoepfe": {
         "kasse": ["haushalt"],
-        "schub": ["immer"],
+        "schub": ["nein"],
         "bevoelkerung_ziel": [70, 90, 110, 50],
         "gute_dinge": [0, 4, 8, 16],
         "haushalt_rand": [650, 400, 900],
@@ -74,7 +74,7 @@ S25 = {
     "grund": {"abriss": "nein", "aufloesen": "ende", "b_versatz": 600, "bevoelkerung_ziel": 70, "einzelkauf": "nein",
               "entscheider": "kausal", "holz_kaufen": "ja", "holz_spam": 20, "holzfaeller_je_baum": 4, "holzfaeller_max": 30,
               "holzfaeller_vorab": 4, "huetten_voraus": "nein", "je_arbeiter": "ja", "joch_nach_stein": "ja",
-              "kasse": "haushalt", "kasse_grenze": 0, "kasse_stufe": 11, "penner": 20, "schub": "immer", "stein_max": "nein",
+              "kasse": "haushalt", "kasse_grenze": 0, "kasse_stufe": 11, "penner": 20, "schub": "nein", "stein_max": "nein",
               "stein_parallel": "ja", "steinbruch_zuerst": "nein", "steuer_ende": "ja", "steuer_runter": 90, "umzug": "frueh",
               "v14": "ja", "vollbeschaeftigung": "ja",
               "gute_dinge": 0, "haushalt_rand": 650, "wachstum_boden": 9500, "rationen": "doppelt", "nahrung_ausbau": "nein"},

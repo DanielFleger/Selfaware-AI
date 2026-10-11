@@ -48,6 +48,24 @@ from laden import befehl, peek
 def schach(a, b):
     return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
 
+def steinbruch_gruppen(brueche, radius=24):
+    """Nahe Steinbrueche zu einem gemeinsamen Abholbereich verbinden.
+    Ochsen duerfen benachbarte Haufen bedienen; eine Pro-Bruch-Zaehlung baut sonst fuer denselben Haufen immer wieder
+    einen vermeintlich fehlenden zweiten Ochsen. Die transitive Gruppe bildet genau diesen gemeinsam genutzten Bereich."""
+    offen, gruppen = set(brueche), []
+    while offen:
+        gruppe, rand = {offen.pop()}, []
+        rand.extend(gruppe)
+        while rand:
+            n = rand.pop()
+            nah = {m for m in offen if schach((brueche[n]["x"], brueche[n]["y"]),
+                                              (brueche[m]["x"], brueche[m]["y"])) <= radius}
+            offen -= nah
+            gruppe |= nah
+            rand.extend(nah)
+        gruppen.append(tuple(sorted(gruppe)))
+    return sorted(gruppen)
+
 KOSTEN_ADR = 0x01124CF4
 KOSTEN_WAREN = ("holz", "stein", "eisen", "pech", "gold")
 VERKAUF = {"holz": 1, "stein": 5, "eisen": 27, "pech": 0, "apfel": 3, "fleisch": 1, "gold": 1}   # gemessen 05.10. (Liga)
@@ -57,8 +75,8 @@ NAHRUNG = ("apfel", "fleisch")
 # Lange Messpartie 05.10. 19:28 (20.000 Ticks, je ein Betrieb); Stein dort ab ~12.000 vom vollen Lagerteil gedeckelt,
 # darum Stein aus der ersten Messpartie (8.000 Ticks, erste Lieferung 3.750).
 START = {
-    5:  ("eisen", 0.7, 31, 14000, 6000, 2, "lager"),    # erste Lieferung 6.000; 9u: Median 6.505 an 6 Minen
-    20: ("stein", 5.6, 8, 4250, 3750, 4, "lager"),      # mit Ochsenjoch (3 + 1 Arbeiter)
+    5:  ("eisen", 0.588, 31, 60000, 3800, 2, "lager"),  # 08.10.: 0,584-0,591 bei 8-91 Feldern, Weg nicht begrenzend
+    20: ("stein", 4.7, 8, 70000, 4000, 5, "lager"),     # 08.10.: Steinbruch + 2 Joche (3 + 2 Arbeiter)
     32: ("apfel", 2.2, 5, 18500, 1500, 1, "kornspeicher"),
     7:  ("fleisch", 5.5, 53, 15000, 5000, 1, "kornspeicher"),
     3:  ("holz", 5.4, 6, 16000, 4000, 1, "lager"),
@@ -144,6 +162,8 @@ class Ertragsmesser:
         self.verk[ware] = self.verk.get(ware, 0) + lose * LOS.get(ware, 5)
 
     def wegfaktor(self, typ, d):
+        if typ == 5:                         # Eisen: Bergmann begrenzt; 8-91 Felder lieferten gleich viel (L40)
+            return 1.0
         return (START[typ][2] + 20.0) / (d + 20.0)
 
     def signal(self, typ):
@@ -323,6 +343,8 @@ class Ertragsplaner:
         self.fehlschlag, self.abgelehnt, self.verstoss = {}, {}, []
         self.stein_reserve = 0
         self.haufen, self.joch_bestellt, self.joch_beladen = {}, {}, set()
+        self.joch_bestell_tick, self.joch_ladung_vor = {}, {}
+        self.joch_bruch, self.joch_lieferung, self.joch_stau = {}, {}, {}
 
     def eigene_seite(self, p):
         d = schach(p, self.K)
@@ -330,9 +352,9 @@ class Ertragsplaner:
 
     def kosten_von(self, typ):
         k = dict(self.kosten[typ])
-        if typ == 20:                         # Steinbruch nur mit Ochsenjoch (Daniels Regel)
+        if typ == 20:                         # gemessen 08.10.: fuer die Zielzeit zwei Joche je Bruch rechnen
             for w in KOSTEN_WAREN:
-                k[w] += self.kosten[4][w]
+                k[w] += 2 * self.kosten[4][w]
         return k
 
     # ---- Ziele und Plaetze ----------------------------------------------------------------------------------------
@@ -416,7 +438,12 @@ class Ertragsplaner:
             return None, None
         b = self.groesse.get(typ, 2) // 2
         weg = lambda p: min(schach((p[0] + b, p[1] + b), z) for z in zl[typ])
-        ort = self._erreichbarer(sorted(orte, key=weg), L)
+        # Schachbrett-Abstand allein erzeugt bei Eisenminen viele Gleichstaende. Dann soll
+        # nicht die zufaellige Reihenfolge der Platzkarte entscheiden, sondern die wirklich
+        # kuerzere Luftlinie zum Lager.
+        luft = lambda p: min((p[0] + b - z[0]) ** 2 + (p[1] + b - z[1]) ** 2 for z in zl[typ])
+        schluessel = (lambda p: (weg(p), luft(p))) if typ == 5 else weg
+        ort = self._erreichbarer(sorted(orte, key=schluessel), L)
         return (ort, weg(ort)) if ort is not None else (None, None)
 
     def holzfaeller_statt_verkauf(self, st, L, G):
@@ -538,11 +565,26 @@ class Ertragsplaner:
 
     # ---- jede Runde -----------------------------------------------------------------------------------------------
     def beobachte(self, st, L, G):
-        # Ochsen: welches Joch hatte schon einen beladenen Ochsen unterwegs? (jede Runde, sonst verpasst man es)
+        # Ochsen intern verfolgen: Aufnahme ordnet das Joch anhand der echten Ochsenposition dem naechsten Steinhaufen
+        # zu; ein Ladungsabfall ist eine echte Ablieferung. Nur "Joch steht" reichte nicht, weil dann trotz liegendem
+        # Stein tote oder falsch zugeordnete Transporte als Leistung galten.
+        brueche = {n: g for n, g in G.items() if g["besitzer"] == self.sp and g["typ"] == 20}
+        haufen = {}
+        for n, g in brueche.items():
+            h = G.get(g.get("verbund") or -1)
+            haufen[n] = ((h["x"], h["y"]) if h else (g["x"] + 7, g["y"] + 2))
         for e in L.values():
             ap = e.get("arbeitsplatz")
-            if e["besitzer"] == self.sp and ap and e.get("ladung", 0) > 0 and G.get(ap, {}).get("typ") == 4:
+            if e["besitzer"] != self.sp or not ap or G.get(ap, {}).get("typ") != 4:
+                continue
+            jetzt, vorher = e.get("ladung", 0), self.joch_ladung_vor.get(ap, 0)
+            if jetzt > vorher and brueche:
+                n = min(haufen, key=lambda q: schach((e["x"], e["y"]), haufen[q]))
+                self.joch_bruch[ap] = n
                 self.joch_beladen.add(ap)
+            if vorher > jetzt:
+                self.joch_lieferung[ap] = (st.get("t", 0), vorher - jetzt)
+            self.joch_ladung_vor[ap] = jetzt
         return self.messer.beobachte(st, L, G, self.ziele(G))
 
     def schritt(self, st, L, G, runde):
@@ -604,7 +646,7 @@ class Ertragsplaner:
             if voll and belegt >= teile and teile < MAX_LAGERTEILE and not getattr(self, "lager_stopp", False):
                 l = self.ziele(G)[5][0]
                 ev.append("PLANER Lager anbauen (%s fast voll, %d Teile) -> %s" % (voll, teile, self.baue(10, l[0], l[1], 10)))
-        ev += self.ochsen_nach_stau(st, G, holz)
+        ev += self.ochsen_nach_stau(st, L, G, holz)
         alle = self.kandidaten(st, L, G)
         for k in alle:
             if k["grund"]:
@@ -669,46 +711,85 @@ class Ertragsplaner:
             "-" if wahl["gewinn"] is None else "%.0f" % wahl["gewinn"], "" if wahl is beste else " statt %s" % NAME[beste["typ"]], ort))
         return ev
 
-    def ochsen_nach_stau(self, st, G, holz):
+    def ochsen_nach_stau(self, st, L, G, holz):
         """Ochsenjoche nach Daniels Regel (05.10. 21:05): "nicht erst, wenn es gebraucht wird - nachdem der erste Ochse auf
-        dem Weg ist, Stein abliefern zu wollen, direkt den zweiten; und wenn dann immer noch mehr als 8 neue Steine da sind,
-        einen dritten; keine Obergrenze pro Steinbruch."
+        dem Weg ist, Stein abliefern zu wollen, direkt den zweiten. Weitere Joche folgen nur auf einen echten
+        Lieferstau: Stein am Haufen, bereits beladener Stein und der noch offene Steinbedarf werden gemeinsam gerechnet.
         Ochse unterwegs = sein Treiber (Arbeitsplatz = das Joch) traegt Ladung (Lagebild, jede Runde in beobachte gemerkt).
           - genau 1 Joch und dessen Ochse war beladen unterwegs -> sofort das zweite
-          - ab 2 Jochen: das juengste war schon beladen unterwegs und am Haufen liegen mehr als 8 -> noch eins
-        Ein bestelltes Joch wird abgewartet, bis es steht. (Stand davor, 20:30: erst ab 12 am Haufen, hoechstens 3, mit
-        Beobachtungsfenster - zu spaet und zu wenig.) Ein Joch gehoert zum naechsten Steinbruch."""
+          - ab 2 Jochen: das juengste war schon beladen unterwegs; je mehr Stein bereits unterwegs ist, desto hoeher
+            liegt die Schwelle. Dringender Bau-Stein senkt sie wieder, reines spaeteres Verkaufsgold nicht.
+        Ein bestelltes Joch wird abgewartet, bis es steht. Nahe Brueche bilden einen gemeinsamen Abholbereich, weil
+        Ochsen auch Stein von Nachbarhaufen nehmen; gezaehlt und skaliert wird deshalb je Bereich statt je Bruch."""
         t = st.get("t", 0)
         brueche = {n: g for n, g in G.items() if g["besitzer"] == self.sp and g["typ"] == 20}
-        joche = {n: [] for n in brueche}
+        gruppen = steinbruch_gruppen(brueche)
+        joche = {gruppe: [] for gruppe in gruppen}
         for j, o in G.items():
             if o["besitzer"] == self.sp and o["typ"] == 4 and brueche:
-                n = min(brueche, key=lambda q: schach((o["x"], o["y"]), (brueche[q]["x"], brueche[q]["y"])))
-                if schach((o["x"], o["y"]), (brueche[n]["x"], brueche[n]["y"])) <= 15:
-                    joche[n].append(j)
+                gruppe = min(gruppen, key=lambda gr: min(
+                    schach((o["x"], o["y"]), (brueche[n]["x"], brueche[n]["y"])) for n in gr))
+                if min(schach((o["x"], o["y"]), (brueche[n]["x"], brueche[n]["y"])) for n in gruppe) <= 18:
+                    joche[gruppe].append(j)
+        ladung = {j: sum(e.get("ladung", 0) for e in L.values()
+                         if e["besitzer"] == self.sp and e.get("arbeitsplatz") == j)
+                  for js in joche.values() for j in js}
+        alle_unterwegs = sum(ladung.values())
+        dringend = max(0, self.stein_reserve - st.get("stein", 0) - alle_unterwegs)
         ev = []
-        for n, g in sorted(brueche.items()):
-            h = G.get(g.get("verbund") or -1)
-            v = h.get("vorrat") if h else None
-            if v is not None:
-                self.haufen[n] = v
-            js = joche[n]
-            if self.joch_bestellt.get(n, 0) > len(js) or not js or holz < self.kosten[4]["holz"]:
-                continue                                              # bestelltes Joch steht noch nicht
+        for gruppe in gruppen:
+            haufen = {}
+            for n in gruppe:
+                g = brueche[n]
+                h = G.get(g.get("verbund") or -1)
+                haufen[n] = h.get("vorrat") if h else None
+                if haufen[n] is not None:
+                    self.haufen[n] = haufen[n]
+            v = sum(x or 0 for x in haufen.values())
+            js = joche[gruppe]
+            bestellt = self.joch_bestellt.get(gruppe, 0)
+            if bestellt > len(js):
+                # Ein echter Bau erscheint binnen weniger Runden; nach 500 Ticks ohne Gebaeude ist der Auftrag sicher
+                # verloren. Vorher kein Doppelauftrag, danach darf derselbe Bedarf erneut geplant werden.
+                if t - self.joch_bestell_tick.get(gruppe, t) < 500:
+                    continue
+                self.joch_bestellt[gruppe] = len(js)
+            if not js or holz < self.kosten[4]["holz"]:
+                continue
             juengstes = max(js, key=lambda j: (self.messer.gesehen.get(j, 0), j))
             if not (juengstes in self.joch_beladen):
                 continue                                              # dessen Ochse war noch nicht beladen unterwegs
-            if len(js) == 1:
-                grund = "erster Ochse beladen unterwegs -> sofort der zweite"
-            elif v is not None and v > 8:
-                grund = "juengster Ochse unterwegs und noch %d am Haufen (> 8)" % v
+            grundbedarf = 2 * len(gruppe)
+            if len(js) < grundbedarf:
+                grund = "Abholbereich %s: arbeitender Ochse belegt, Grundbedarf %d fuer %d Brueche" % (
+                    gruppe, grundbedarf, len(gruppe))
             else:
-                continue
+                unterwegs = sum(ladung.get(j, 0) for j in js)
+                # Ohne akuten Baubedarf erst bei 9 plus bereits bewegtem Stein erweitern. Bei mindestens vier
+                # fehlenden Bau-Steinen sinkt die Grundschwelle auf 5; beladene Traeger zaehlen weiterhin dagegen.
+                schwelle = 9 + unterwegs - min(4, dringend)
+                if v is None or v < schwelle:
+                    self.joch_stau.pop(gruppe, None)
+                    continue
+                stau = self.joch_stau.setdefault(gruppe, {"seit": t, "zuletzt": v + unterwegs})
+                stau["zuletzt"] = v + unterwegs
+                if t - stau["seit"] < 200:
+                    continue                                          # kurze Spitze, noch kein dauerhafter Lieferstau
+                grund = ("juengster Ochse unterwegs; Haufen %d >= Schwelle %d "
+                         "seit %d Ticks (unterwegs %d, Bau-Stein offen %d)") % (
+                             v, schwelle, t - stau["seit"], unterwegs, dringend)
+            # Innerhalb des gemeinsamen Bereichs an den Bruch mit den wenigsten physisch nahen Jochen anbauen.
+            n = min(gruppe, key=lambda q: sum(1 for j in js if schach(
+                (G[j]["x"], G[j]["y"]), (brueche[q]["x"], brueche[q]["y"])) <= 15))
+            g = brueche[n]
             ort = self.baue(4, g["x"] + 3, g["y"] - 4, 8)
             if ort:
-                self.joch_bestellt[n] = len(js) + 1
+                self.joch_bestellt[gruppe] = len(js) + 1
+                self.joch_bestell_tick[gruppe] = t
+                self.joch_stau.pop(gruppe, None)
                 self.gesetzt["Ochsenjoch (Regel)"] = self.gesetzt.get("Ochsenjoch (Regel)", 0) + 1
-            ev.append("PLANER Ochsenjoch an Steinbruch %d: %s (Joche %d, Haufen %s) -> %s" % (n, grund, len(js), v, ort))
+            ev.append("PLANER Ochsenjoch fuer Bereich %s: %s (Joche %d, Haufen %s) -> %s" % (
+                gruppe, grund, len(js), haufen, ort))
             break                                                     # eins je Planungsrunde
         return ev
 

@@ -26,8 +26,9 @@ LAGER, WAFFENLAGER, SCHMIEDE, GERBEREI = 10, 11, 13, 16
 
 
 class Plan:
-    def __init__(self, k):
+    def __init__(self, k, ausgeschlossene_flaechen=()):
         self.k = k
+        self.ausgeschlossene_flaechen = tuple(tuple(r) for r in ausgeschlossene_flaechen)
         self.belegt = {}             # Feld -> geplante Art
         self.eingaenge = []          # (art, feld)
         self.bauten = []             # (art, x, y, richtung, eingang)
@@ -103,7 +104,16 @@ class Plan:
     def kandidaten(self, mitte, r_max):
         for x in range(mitte[0] - r_max, mitte[0] + r_max):
             for y in range(mitte[1] - r_max, mitte[1] + r_max):
-                for r in (0, 2, 4, 6):
+                # Ein vom echten Spiel wiederholt abgelehnter 4x4-Platz bleibt auch nach dem Neulesen der Wegkarte
+                # scheinbar frei. Jede spaetere 4x4-Flaeche, die ihn ueberlappt, wird deshalb fuer diese Partie
+                # ausgeschlossen; nur den identischen Anker zu sperren verschiebt dieselbe Schleife um ein Feld.
+                if any(x <= r[2] and x + 3 >= r[0] and y <= r[3] and y + 3 >= r[1]
+                       for r in self.ausgeschlossene_flaechen):
+                    continue
+                # Gedrehte Wirtschaftsgebaeude sahen in echten Partien teils nur als Geruest/Fragment aus. Solange
+                # nicht jede Drehung visuell und mit echtem Lieferweg bestaetigt ist, gilt Richtung 0 als einzige
+                # sichere gemeinsame Regel. Der kuerzeste Plan darf keine kaputte Darstellung erkaufen.
+                for r in (0,):
                     if self.frei(x, y):
                         e = (x + EINGANG[r][0], y + EINGANG[r][1])
                         if self.boden(e) and all(not (x <= e2[0] < x + 4 and y <= e2[1] < y + 4) for _, e2 in self.eingaenge):
@@ -116,38 +126,94 @@ def hoftore(x, y):
     return [(x + 4, y), (x + 5, y), (x, y + 4), (x, y + 5), (x + 9, y + 4), (x + 9, y + 5), (x + 4, y + 9), (x + 5, y + 9)]
 
 
-def plane(k, n_schmiede, n_gerber, eisen_teil=None, hoefe=(), r_max=16):
+def kartenrahmen(anker, hoefe=(), rand=35):
+    """Kartenausschnitt fuer die gemeinsame Waffenproduktion.
+
+    Jeder an den Planer uebergebene Hof muss samt Zaun und Rand wirklich in der Wegkarte liegen. Ein fester Ausschnitt
+    nur um das Vorratslager machte eine nichtleere Hofliste mit null sichtbaren Hoftoren und verwarf dadurch jeden
+    Waffenlagerplatz. Die Spielkarte selbst begrenzt den schlimmsten Fall fest auf 400x400 Felder.
+    """
+    punkte = [tuple(anker)] + [(x, y) for x, y in hoefe] + [(x + 9, y + 9) for x, y in hoefe]
+    return (max(min(x for x, _y in punkte) - rand, 0),
+            max(min(y for _x, y in punkte) - rand, 0),
+            min(max(x for x, _y in punkte) + rand, 399),
+            min(max(y for _x, y in punkte) + rand, 399))
+
+
+def platzablehnung_merken(speicher, ort, grund, grenze=2):
+    """Nur echte, wiederholte Platzablehnungen zaehlen; Rohstoffmangel und Laufspuren sperren keinen Bauplatz."""
+    if grund != "platz":
+        return False
+    ort = tuple(ort)
+    speicher[ort] = speicher.get(ort, 0) + 1
+    return speicher[ort] >= grenze
+
+
+def plane(k, n_schmiede, n_gerber, eisen_teil=None, hoefe=(), r_max=16, waffenlager_eingang=None,
+          vorhandene_eingaenge=(), ausgeschlossene_flaechen=()):
     """Runde 2 (06.10. 20:47, nach A11/A12): Rundgang Schmied = Eingang -> Waffenlager -> EISENTEIL -> Eingang;
     Gerber je 3 Leder = 2 x Weg zum naechsten Hoftor + 2 x Weg zum Waffenlager. eisen_teil = Lagerteil-Nummer mit Eisen
     (Lagebild, Spalte ware), hoefe = [(x, y)] der Milchviehhoefe. Gibt (plan, bericht)."""
-    p = Plan(k)
+    p = Plan(k, ausgeschlossene_flaechen)
     alle_teile = [q for q, v in k["f"].items() if v[5] == LAGER]
     eisen = [q for q, v in k["f"].items() if v[5] == LAGER and (eisen_teil is None or v[1] == eisen_teil)] or alle_teile
     mitte = (sum(q[0] for q in eisen) // len(eisen), sum(q[1] for q in eisen) // len(eisen))
     tore = [t for h in hoefe for t in hoftore(*h)]
+    sichtbare_tore = [t for t in tore if p.boden(t)]
+    if tore and not sichtbare_tore:
+        raise RuntimeError("kein Hoftor im Kartenausschnitt; kartenrahmen() mit allen gebauten Hoefen verwenden")
     bericht = {"mitte": mitte, "eisen_teil": eisen_teil, "tore": tore, "schmiede": [], "gerber": []}
 
     def zum_eisen():                        # Abstand jedes Bodenfelds zum Eisenteil (ein Schritt auf das Teil dazu)
         start = {n for t in eisen for n in ((t[0] + dx, t[1] + dy) for dx, dy in W.RICHTUNG.values()) if p.boden(n)}
         return {q: v + 1 for q, v in p.abstand(sorted(start)).items()}
 
-    # 1. Waffenlager: Eingang so nah wie moeglich am Eisenteil (Schmiede laufen Waffenlager -> Eisen am Stueck)
+    # 1. Ein einziges Waffenlager fuer beide Ketten. Drei echte Gegenlaeufe (09.10.) fanden nach dem ersten Lager
+    # selbst im 65x65-Hofbereich keinen einzigen Bauplatz fuer ein zweites: das Spiel laesst nur eines zu. Das eine
+    # Lager gehoert deshalb an den Vorrats-/Eisenanker: Schmiede brauchen pro Keule sowohl Eisen als auch Waffenlager,
+    # waehrend ein Gerber drei Leder je Kuhgang traegt. Ein gemeinsamer Mittelpunkt machte beide Schmiedwege um rund
+    # 40 Felder laenger und ist fuer das Zeitrennen schlechter; der Gerber traegt bewusst den laengeren Nebenweg.
     de = zum_eisen()
-    best = None
-    for x, y, r, e in p.kandidaten(mitte, 10):
-        if e in de and (best is None or de[e] < best[0]):
-            best = (de[e], x, y, r)
-    if best is None:
-        raise RuntimeError("kein Platz fuer das Waffenlager")
-    we = p.setze(WAFFENLAGER, best[1], best[2], best[3])
-    bericht["waffenlager"] = {"ort": best[1:3], "richtung": best[3], "eingang": we, "zum_eisen": best[0]}
+    dt0 = p.abstand(sichtbare_tore) if tore else {}
+    if waffenlager_eingang is not None:
+        # Zweite Planungsstufe: Das echte, bereits gebaute Lager ist der gemeinsame Anker. Es wird nur als Ziel/Eingang
+        # eingetragen, nicht noch einmal gebaut. Die Wegkarte selbst enthaelt seinen blockierten Grundriss bereits.
+        we = tuple(waffenlager_eingang)
+        if not p.boden(we) or we not in de or (tore and we not in dt0):
+            raise RuntimeError("vorhandenes Waffenlager ist fuer die neue Werkstattstufe nicht erreichbar")
+        p.eingaenge.append((WAFFENLAGER, we))
+        bericht["waffenlager"] = {"bestehend": True, "eingang": we, "zum_eisen": de[we],
+                                    "zum_hof": dt0.get(we)}
+    else:
+        mitte_w, r_w = mitte, 16
+        best = None
+        for x, y, r, e in p.kandidaten(mitte_w, r_w):
+            if e not in de or (tore and e not in dt0):
+                continue
+            hofweg = dt0.get(e, 0)
+            # Vorratsweg ist die erste Ordnung; der Hofweg entscheidet nur zwischen gleich guten Lagerplaetzen.
+            kandidat = (de[e], hofweg, x, y, r)
+            if best is None or kandidat < best:
+                best = kandidat
+        if best is None:
+            raise RuntimeError("kein Platz fuer das Waffenlager")
+        we = p.setze(WAFFENLAGER, best[2], best[3], best[4])
+        bericht["waffenlager"] = {"ort": best[2:4], "richtung": best[4], "eingang": we,
+                                    "zum_eisen": de[we], "zum_hof": dt0.get(we)}
+
+    # Neuplanung darf Wege bereits gebauter Werkstaetten nicht opfern. Ihre echten Richtung-0-Eingaenge werden wie
+    # geplante Eingange in jede Erreichbarkeitspruefung aufgenommen, ohne die Gebaeude erneut zu bauen.
+    for art, e in vorhandene_eingaenge:
+        e = tuple(e)
+        if not p.boden(e):
+            raise RuntimeError("vorhandener Werkstatt-Eingang %s ist blockiert" % (e,))
+        p.eingaenge.append((art, e))
 
     def pruefe(ziel_eisen):
         dw2, de2 = p.abstand(we), zum_eisen()
         return all(e2 in dw2 for _, e2 in p.eingaenge) and all(e2 in de2 for a2, e2 in p.eingaenge if a2 == SCHMIEDE)
 
-    # 2. Schmieden
-    for _ in range(n_schmiede):
+    def setze_schmiede():
         de, dw = zum_eisen(), p.abstand(we)
         w_zu_eisen = de.get(we, 999)
         best = None
@@ -163,17 +229,17 @@ def plane(k, n_schmiede, n_gerber, eisen_teil=None, hoefe=(), r_max=16):
                     best = (gang, x, y, r)
         if best is None:
             bericht["schmiede"].append({"fehlt": "kein Platz"})
-            continue
+            return
         e = p.setze(SCHMIEDE, best[1], best[2], best[3])
         bericht["schmiede"].append({"ort": best[1:3], "richtung": best[3], "eingang": e, "gang_felder": best[0],
                                     "zyklus_ticks": ARBEIT_SCHMIED + best[0] * TICKS_JE_FELD})
-    # 3. Gerbereien zwischen Hoftoren und Waffenlager
-    for _ in range(n_gerber):
+
+    def setze_gerber():
         dw = p.abstand(we)
-        dt = p.abstand([t for t in tore if p.boden(t)]) if tore else {}
+        dt = p.abstand(sichtbare_tore) if tore else {}
         best = None
-        mitte_g = mitte if not tore else ((mitte[0] + sum(t[0] for t in tore) // len(tore)) // 2,
-                                          (mitte[1] + sum(t[1] for t in tore) // len(tore)) // 2)
+        mitte_g = mitte if not tore else ((we[0] + sum(t[0] for t in tore) // len(tore)) // 2,
+                                          (we[1] + sum(t[1] for t in tore) // len(tore)) // 2)
         for x, y, r, e in p.kandidaten(mitte_g, r_max + 14):
             if e not in dw or (tore and e not in dt):
                 continue
@@ -186,10 +252,18 @@ def plane(k, n_schmiede, n_gerber, eisen_teil=None, hoefe=(), r_max=16):
                     best = (gang, x, y, r)
         if best is None:
             bericht["gerber"].append({"fehlt": "kein Platz"})
-            continue
+            return
         e = p.setze(GERBEREI, best[1], best[2], best[3])
         bericht["gerber"].append({"ort": best[1:3], "richtung": best[3], "eingang": e, "gang_felder": best[0],
                                   "zyklus_ticks": 1555 + best[0] * TICKS_JE_FELD})
+
+    # Platz UND Baufolge gleichrangig vergeben: Leder beginnt wegen Kuhweg und laengerer Arbeitszeit zuerst, danach
+    # wechseln beide Ketten. Uebrige Betriebe der groesseren Seite folgen erst am Ende.
+    for i in range(max(n_schmiede, n_gerber)):
+        if i < n_gerber:
+            setze_gerber()
+        if i < n_schmiede:
+            setze_schmiede()
     return p, bericht
 
 

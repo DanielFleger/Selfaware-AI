@@ -9,9 +9,15 @@ werden (und viele weitere Fragen): **1.** bauen koennen - **2.** es wirksam mach
 bauen muss - **4.** wissen, warum und WANN man es bauen sollte - **5.** selbstaendig situativ auf kreative Loesungen kommen.
 
 ## Jetzt dran
-- [ ] **25 Streitkolben in hoechstens 24 Monaten** (Daniel 08.10.): harte Grenze Tick 19.200, Wunschziel 16.000. Erst die 16.753-Grundlinie dreimal gueltig wiederholen; dann je drei Laeufe fruehe Joche, Lederkette, Eisen-/Schmiedekette. Rekord und belastbaren Drei-Lauf-Wert getrennt fuehren.
+- [ ] **Nur noch 50/100 Streitkolben optimieren** (Daniel 09.10.): 25 ist vorerst nicht Aufgabe. Naechster echter Lauf erst nach Daniels ausdruecklichem Startsignal; bis dahin bleibt `werkzeug/STOP` gesetzt.
+- [ ] **Produktionslauf 50/100 bestaetigen:** Der zweite freigegebene 50er-Lauf erreichte das Ziel gueltig bei Tick 30.331 (Endspiel 25.615), war aber deutlich langsamer als 24.625. Der Reparaturlauf `1010c` baute erstmals die komplette Zielkette (8/8 Minen, 7/7 Schmieden, 6/6 Gerber), Endspiel bei 24.002, blieb danach aber bei 14/50 stehen: 48 Bauern am Feuer trugen als Arbeitsplatz die Bergfriednummer 5 und wurden deshalb faelschlich aussortiert. Repariert und offline 7/7 geprueft: Die echte Feuerzahl begrenzt die Welle; Arbeitsplatz wird nicht doppelt gefiltert, Zustand 109 wird ignoriert, bei irgendeinem Abwanderer 110 wartet die ganze neue Welle. Naechster echter Lauf nur nach Daniels erneutem Startsignal.
+- [ ] **25 Streitkolben in hoechstens 24 Monaten** (zurueckgestellt): harte Grenze Tick 19.200; hoechstens 14.400 (18 Monate) ist sehr gut, unter 12.800 (16 Monate) sehr sehr gut.
+- [x] **Vorher Ressourcentests:** Eisen mit Wegen 8-91, Verhaeltnissen 5:8 und 5:5 sowie voller Schmiedekette gemessen; Ergebnis 0,588 Eisen/Mine/1.000, 0,664 Verbrauch/Schmied/1.000, 1,49 Keulen/Eisen -> sicherer Start 5:4. Stein getrennt als Erzeugung und Ochsenleistung gemessen: 4,1-5,2 Stein/Bruch/1.000, zwei Joche bringen in der Zielzeit deutlich mehr ins Lager als eines. Korridor-, Lager-, Waffenlager- und Kornspeicher-Gegenproben bestanden; Markt/Haeuser ausserhalb des Kerns.
+- [x] **Rekrutierung erst nach Wirtschaftsaufbau:** `schub=nein` ist fuer s25 fest und ueberschreibt auch alte Beststrategien; Keulen/Leder sammeln, Gold bis zur letzten rentablen Erweiterung in die Wirtschaft stecken.
+- [x] **25er-Serie ueber mehrere Instanzen:** `streitkolben_serie.py` startet dieselbe Strategie gleich oft je Instanz, schreibt Instanz/Code-Kennung/Tempo/Lenker-Runden mit und vergleicht wegen des belegten Instanzunterschieds zuerst innerhalb derselben Instanz.
+- [x] **25er-Abbruchwaechter:** `zielwaechter.py` prueft je Ziellinie eine absichtlich grosszuegige Goldobergrenze gegen 20 Gold je noch fehlendem Kaempfer + Restkaeufe + Pflichtbauten. Er stuft erst die Wertung herunter und bricht nur bei unmoeglicher 24-Monats-Grenze ab; Negativfall und rettbarer Grenzfall sind als Gegenproben gebaut.
 - [ ] **Restbedarf mit laufender Produktion rechnen:** Eisen in Mine/Transport/Schmiede und Kuehe/Gerberarbeit mitzählen, bevor Keulen oder Leder gekauft werden; sonst Doppelkauf kurz vor Lieferung.
-- [ ] **Frueher Stein fuer den 25er:** zwei Ochsenjoche direkt nach dem neuen Lager aus 10 reserviertem/gekauftem Holz; erster Stein vor Tick 3.500 statt im Rekordlauf Tick 7.640.
+- [ ] **Frueher Stein fuer den 25er:** pro fruehem Steinbruch zwei Joche einplanen; zweites nicht erst nach langem Stau. Ziel bleibt erster Stein vor Tick 3.500 statt im Rekordlauf Tick 7.640. Drittes Joch nur bei weiter wachsendem Haufen trotz zweier aktiver Ochsen.
 - [ ] **B-Plantage als Gueltigkeitsbedingung:** Kontrolllauf nur werten, wenn alle B-Plantagen hoechstens 200 Ticks nach A stehen; Lauf 6 war mit bis zu 1.459 Ticks verfaelscht.
 - [x] **Ertrags-Planer** (Daniel 19:11/19:14; Stand 4 seit 05.10. 20:10, M21): erst Messpartie (Ertrag je Gebaeude je 1.000 Ticks, Verkaufspreis Stein/Eisen, Weglaenge), dann jede Runde die Aktion mit der schnellsten Amortisation bauen, ohne feste Stueckzahlen; Umgebung bestimmt alles. Stein und Eisen vermutlich vorne.
 - [x] **Planer lernt im Spiel** (Befund 9t; erledigt 05.10. 20:10, M21): Ertrag je Gebaeudeart aus dem laufenden Spiel messen (Bestand + Verkauf + Verbrauch je Ware, geteilt durch Zahl der Betriebe) und die Startwerte ersetzen - dann hoert er von selbst auf, Jaegerhuetten zu bauen, die nichts bringen.
@@ -38,7 +44,7 @@ bauen muss - **4.** wissen, warum und WANN man es bauen sollte - **5.** selbstae
 - [x] B-Plantage erst bestaetigt, wenn das Gebaeude steht (Codex 06.10.)
 - [ ] Zusaetzliche Holzfaeller nur, wenn sie den Ausbau beschleunigen; sonst Holz verkaufen (Daniel 06.10.)
 - [x] Apfel-Seasoning (05.10., `wirtschaft.py`; untaetig 40 % -> 11-35 %)
-- [ ] Ochsenjoche am Steinbruch, wenn das Abtragen zu langsam ist - vorausschauend (05.10. 00:26)
+- [x] Ochsenjoche vorausschauend nach gemessener Kettenrate: zwei je fruehem Steinbruch, weiteres nur bei wachsendem Haufen trotz zweier aktiver Ochsen (08.10.)
 - [ ] Wirtschaft erweitern: Stein, Eisen, Pech bis zum Maximum (05.10. 00:26, 19:05, 19:11)
 - [ ] Wirtschaft nachbauen: Holzfaeller, Apfelplantagen, Haeuser (05.10. 19:06)
 - [ ] Waffenproduktion, Bier (05.10. 19:06), Brot, Religion, Essensvielfalt (04.10. 23:25, 05.10. 00:26)
