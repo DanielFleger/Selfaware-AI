@@ -146,24 +146,47 @@ class Waechter:
             elif self.lord_zurueck and anteil > LORD_FLUCHT + 0.15:
                 befehl({"halten": {"los": [ln]}}, 1.0, bis="HALTEN")
                 self.lord_zurueck = False
-        # Buendeln (Daniel 22:52: perfektes Stacken ist fuer Abwehr und Angriff unglaublich wichtig):
-        # ALLE Verteidiger auf EIN Ziel; erst wenn es tot ist, gemeinsam aufs naechste.
+        # 12.10. (Daniel 00:38 "die arabischen Schwertkaempfer reagieren nicht sofort auf die Assassinen, sonst haetten
+        # sie die eigenen Bogenschuetzen verteidigt"): wer gerade eine unserer Einheiten angreift (nahangreifer), ist
+        # sofort Ziel - auch ausserhalb des Gefahrenkreises, jede Runde neu geprueft
+        angreifer = {e.get("nahangreifer") for e in eigene.values() if e.get("nahangreifer")}
+        angreifer = {n for n in angreifer if n in L and L[n]["besitzer"] not in (0, self.sp)}
+        for n in angreifer:
+            feinde.setdefault(n, (0, L[n]))
+        fern = [e for e in eigene.values() if e["typ"] in FERNKAMPF]
         if not feinde:
             self.ziel = None
+            # Stapeln (Daniel 00:38 "Bogenschuetzen und Schwertkaempfer auf ein Feld, damit diese sie schuetzen"):
+            # ohne Gegner stehen die Nahkaempfer auf dem Feld der Fernkaempfer
+            if fern:
+                mx = int(sum(e["x"] for e in fern) / len(fern)); my = int(sum(e["y"] for e in fern) / len(fern))
+                weg = [n for n, e in eigene.items() if e["typ"] in NAHKAMPF and e["typ"] != LORD and schach((e["x"], e["y"]), (mx, my)) > 2]
+                self.stapel_pause = getattr(self, "stapel_pause", 0) - 1
+                if weg and self.stapel_pause <= 0:
+                    self.stapel_pause = 5               # hoechstens alle 5 Waechter-Runden ein Stapel-Befehl
+                    befehl({"angriff": {"einheiten": weg, "lauf": [mx, my]}}, 1.0, bis="ANGRIFF")
+                    for n in weg:
+                        self.auftrag.pop(n, None)
+                    ereignis.append("Stapeln: %d Nahkaempfer auf das Feld der Fernkaempfer (%d,%d)" % (len(weg), mx, my))
             return ereignis
         verfuegbar = [n for n, e in eigene.items()
                       if not (e["typ"] == LORD and (self.lord_zurueck or (self.lord_max and e["leben"] < LORD_FLUCHT * self.lord_max)))]
         if not verfuegbar:
             return ereignis
         gruppe = (sum(eigene[n]["x"] for n in verfuegbar) / len(verfuegbar), sum(eigene[n]["y"] for n in verfuegbar) / len(verfuegbar))
-        if self.ziel not in feinde:
+        if angreifer and self.ziel not in angreifer:
+            # Angreifer unserer Einheiten zuerst - der, der unseren Fernkaempfern am naechsten ist
+            bezug = fern or list(eigene.values())
+            self.ziel = min(angreifer, key=lambda n: min(schach((L[n]["x"], L[n]["y"]), (e["x"], e["y"])) for e in bezug))
+            self.lauert = False
+        elif self.ziel not in feinde:
             # naechstes Ziel: wer unseren Gebaeuden am naechsten ist (Laufziel oder Standort)
             self.ziel = min(feinde, key=lambda n: feinde[n][0])
             self.lauert = False
         fe = feinde[self.ziel][1]
         ort = (fe["x"], fe["y"])
         nah_ort = min((schach(ort, g) for g in gebaeude), default=999)
-        if nah_ort > 25 and schach(ort, gruppe) > 12:
+        if self.ziel not in angreifer and nah_ort > 25 and schach(ort, gruppe) > 12:
             # Angreifer noch weit weg: gebuendelt an seinem Laufziel abfangen (Daniel 22:43: frueh wissen, wo er angreift)
             if not self.lauert and fe["laufx"] > 0:
                 befehl({"halten": {"nr": verfuegbar, "x": fe["laufx"], "y": fe["laufy"]}}, 1.0, bis="HALTEN")
