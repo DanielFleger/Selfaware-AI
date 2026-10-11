@@ -134,7 +134,16 @@ def phase1(plan, tempo, mit_posten=True):
     Vorher: jede Partie lud den Startstand "M19 Liga Start Grumpy T600" - Rotkaeppchen hatte 600 Ticks Vorsprung, dazu
     Tick-Pausen in der Eroeffnung und ein Speichern. Jetzt: gefecht_starten(), dann die Eroeffnung bei laufendem Spiel."""
     schreib("== Phase 1: neue Partie ab Tick 0, Tempo %d durchgehend, ohne Pausen (Plan %s)" % (tempo, os.path.basename(plan["_datei"])))
-    gefecht_starten(tempo)
+    # 11.10. (Nomade, Instanz 4): manche Starts ohne Gegner-Lord (Burgvariante) oder auf dem anderen Startplatz - dann
+    # neu wuerfeln statt den Lauf zu verlieren; andere Fehler bleiben harte Abbrueche
+    for versuch in range(1, 6):
+        try:
+            gefecht_starten(tempo)
+            break
+        except SystemExit as e:
+            if versuch == 5 or not any(s in str(e) for s in ("beide Lords", "STARTPLATZ FALSCH")):
+                raise
+            schreib("NEUSTART Gefecht (Versuch %d): %s" % (versuch, e))
     from bauen import baue_viele
     # Daniel 22:59: "immer noch zu langsam, und dann ploeppt er ploetzlich seine Wirtschaft hin". Gemessen live_2: Markt
     # erst 200 Ticks nach dem Kornspeicher (Platzsuche), Posten + Assassine erst bei 976, die Wirtschaft (21 Bauten) auf
