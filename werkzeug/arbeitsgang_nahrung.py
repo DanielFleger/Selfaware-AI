@@ -82,6 +82,9 @@ def main():
         for i in range(4):
             erg["gebaeude"]["huette%d" % i] = E.baue_schnell(1, K[0] - 7, K[1] - 2, 25)
         befehl({"spielbefehl": {"nr": 35, "werte": [0]}}, 1.0, bis="SPIELBEFEHL")     # Rationen keine
+        # Lauf 17:17: ohne Bestechung fiel die Beliebtheit auf 23, Apfel-/Milchbauer, Baecker und 3 Mueller wanderten ab
+        # (EW "WEG" bei 3.132 / 3.506 / 9.893-10.043, alle 50 Ticks einer). Steuerstufe 0 = Bestechung haelt sie.
+        befehl({"spielbefehl": {"nr": 34, "werte": [0]}}, 1.0, bis="SPIELBEFEHL")
         print("gebaut:", erg["gebaeude"], flush=True)
         nummern = {}
         for _ in range(80):
@@ -100,7 +103,14 @@ def main():
         while peek(TICK)[0] - t0 < dauer:
             kanal.belege()
             v = vorrat(SP)
-            erg["bestand"].append(dict({w: v.get(w, 0) for w in WAREN}, t=peek(TICK)[0] - t0))
+            st = E.runde_lesen()[0]
+            erg["bestand"].append(dict({w: v.get(w, 0) for w in WAREN}, t=peek(TICK)[0] - t0, beliebt=st.get("beliebt"),
+                                       leute=st.get("leute")))
+            if st.get("beliebt", 10000) < 5000:
+                erg["ungueltig"] = "Beliebtheit %s unter 50 bei Tick %d - Abwanderung verfaelscht die Messung" % (
+                    st.get("beliebt"), peek(TICK)[0] - t0)
+                print("ABBRUCH:", erg["ungueltig"], flush=True)
+                break
             warte_ticks(100)
         befehl({"einheitwacht": False}, 1.0, bis="EINHEITWACHT")
         erg["ew"] = [z.split("INFO|", 1)[-1] for z in log_ab("EINHEITWACHT: scharf") if " EW " in z or "EW Orte" in z or "EW Tick" in z]
