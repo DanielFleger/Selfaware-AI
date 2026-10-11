@@ -881,8 +881,14 @@ class Einzeln:
             if jetzt and besser:
                 b_k = max(besser, key=lambda k: wert(ort, k))
                 if wert(ort, b_k) >= self.WECHSEL * wert(ort, jetzt):
-                    del self.ziel[n]
+                    # direkt auf das bessere Gebaeude setzen (00:44: nur Loeschen liess die normale Zielwahl ein anderes
+                    # Gebaeude nehmen - Assassine 183 pendelte 89 -> 30, 110 -> 30)
+                    self.ziel[n] = b_k[0]
+                    self.ziel_typ[b_k[0]] = b_k[2]
                     zahl[gn] = max(0, zahl.get(gn, 1) - 1)
+                    zahl[b_k[0]] = zahl.get(b_k[0], 0) + 1
+                    self.befohlen[n] = self.runde
+                    angriffe.append((n, b_k[0]))
                     ereignis.append("ZIELWECHSEL %d: %d -> besseres Gebaeude %d (Wert je Weg x%.1f)" % (
                         n, gn, b_k[0], wert(ort, b_k) / max(wert(ort, jetzt), 1e-9)))
         gruende = {"keins erreichbar": 0, "alle voll": 0, "alle gefaehrlich": 0}
