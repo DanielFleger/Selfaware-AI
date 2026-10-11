@@ -57,6 +57,12 @@ def rueckzug_rechnung(verlauf, lord_max, boden=BODEN, fenster=FENSTER, sicherhei
         t_tot, sicherheit, t_sicher)
 
 
+def laufe(E, einheiten, x, y):
+    """Echter Laufbefehl wie ein Mausklick (Modul: angriff mit lauf = Spielbefehl 17 ClickMoveUnit). SAI 11.10.: "halten"
+    setzt nur das Laufziel - im Nahkampf blieb unser Lord in Lauf 1011a 35 Ticks lang stehen und schlug weiter."""
+    E.befehl({"angriff": {"einheiten": list(einheiten), "lauf": [int(x), int(y)]}}, 1.0, bis="ANGRIFF")
+
+
 def main():
     arg = dict(a.split("=", 1) for a in sys.argv[1:])
     import erstes_spiel as E
@@ -69,6 +75,7 @@ def main():
     # sonst darf er alles. "schild" (Standard): Lord greift nur Wachen an, nie den Lord. "lord" nur fuer Altvergleiche.
     lord_rolle = arg.get("lord_rolle", "schild")
     verstoesse, letzter_lordschlag, hatte_truppe = 0, -10 ** 9, False
+    flucht_bis, bogen_runter = -1, False
     kampf = TRUPPE - {LORD}
     E.LIGA_GEFECHT = dict(E.LIGA_GEFECHT, ki=int(arg.get("ki", 7)))
     E.GEGNER_ERWARTET, E.LEERE_KI = arg.get("erwartet", "Nomade"), False
@@ -112,12 +119,22 @@ def main():
             noetig, grund = L[mein_lord]["leben"] < float(rueckzug) * lord_max, "unter %s des Anfangslebens" % rueckzug
         if mit_lord and not zurueck and noetig:
             zurueck = True
-            E.befehl({"halten": {"nr": [mein_lord], "x": E.BERGFRIED[0], "y": E.BERGFRIED[1]}}, 1.0, bis="HALTEN")
+            laufe(E, [mein_lord], E.BERGFRIED[0], E.BERGFRIED[1])
             E.schreib("STURM Tick %d: Rueckzug unseres Lords (%d Leben, Gegner-Lord %d): %s" % (
                 t, L[mein_lord]["leben"], L[feind]["leben"], grund))
         elif mit_lord and not zurueck and rueckzug == "rechnung" and L[mein_lord]["leben"] < 0.5 * lord_max and t >= naechste_zeile:
             E.schreib("STURM Tick %d: unser Lord unter 50 %% (%d), kaempft weiter: %s" % (t, L[mein_lord]["leben"], grund))
         lx, ly = L[feind]["x"], L[feind]["y"]
+        # Bogenschuetzen standen in allen Laeufen am Bergfried (141/269) und liefen trotz Angriffsbefehl nicht los
+        # (1011e: Zielart 4, Zieleinheit = sein Lord, Laufziel 141/266). Erst mit Laufbefehl herunter, dann angreifen.
+        bogen = [n for n in truppe if L[n]["typ"] in (22, 23, 70)]
+        if bogen and not bogen_runter:
+            laufe(E, bogen, E.BERGFRIED[0] + 8, E.BERGFRIED[1])
+            bogen_runter = t
+            E.schreib("STURM Tick %d: %d Bogenschuetzen per Laufbefehl vom Bergfried nach (%d,%d)" % (
+                t, len(bogen), E.BERGFRIED[0] + 8, E.BERGFRIED[1]))
+        if bogen_runter and t - bogen_runter < 150:
+            truppe = [n for n in truppe if n not in bogen]      # erst unten ankommen lassen
         lord_kaempft = mit_lord and not zurueck
         angreifer = truppe + ([mein_lord] if lord_kaempft and lord_rolle == "lord" else [])
         if angreifer and runde % neu == 0:
@@ -127,19 +144,26 @@ def main():
             # Wache zu schlagen ist (direkt daneben wuerde er den Lord von selbst angreifen)
             dx, dy = E.BERGFRIED[0] - lx, E.BERGFRIED[1] - ly
             d = max(abs(dx), abs(dy)) or 1
-            px, py = lx + round(8 * dx / d), ly + round(8 * dy / d)
-            if L[mein_lord].get("nahziel") == feind:
+            px, py = lx + round(12 * dx / d), ly + round(12 * dy / d)
+            wl = L[mein_lord]
+            abstand_lords = max(abs(wl["x"] - lx), abs(wl["y"] - ly))
+            if wl.get("nahziel") == feind:
                 verstoesse, letzter_lordschlag = verstoesse + 1, t
-                E.befehl({"halten": {"nr": [mein_lord], "x": px, "y": py}}, 1.0, bis="HALTEN")
-                E.schreib("STURM VERSTOSS Tick %d: unser Lord schlug den gegnerischen Lord - weggeschickt nach (%d,%d)" % (t, px, py))
-            elif runde % neu == 0:
-                wachen = sorted((max(abs(e["x"] - L[mein_lord]["x"]), abs(e["y"] - L[mein_lord]["y"])), n)
+                E.schreib("STURM VERSTOSS Tick %d: unser Lord schlug den gegnerischen Lord" % t)
+            # 1011e: an einer Wache direkt neben seinem Lord griff der gegnerische Lord an, danach hing unser Lord im
+            # Nahkampf fest. Darum: kommen sich die Lords auf 5 Felder nahe (oder schlagen sich), sofort nach Hause laufen.
+            if (abstand_lords <= 5 or wl.get("nahziel") == feind or L[feind].get("nahziel") == mein_lord) and t >= flucht_bis:
+                laufe(E, [mein_lord], E.BERGFRIED[0], E.BERGFRIED[1])
+                flucht_bis = t + 300
+                E.schreib("STURM Tick %d: Lords %d Felder auseinander - unser Lord laeuft fuer 300 Ticks nach Hause" % (t, abstand_lords))
+            elif t >= flucht_bis and runde % neu == 0:
+                wachen = sorted((max(abs(e["x"] - wl["x"]), abs(e["y"] - wl["y"])), n)
                                 for n, e in L.items() if e["besitzer"] not in (0, E.SP) and e["typ"] in kampf
-                                and max(abs(e["x"] - lx), abs(e["y"] - ly)) <= 25)
+                                and 6 <= max(abs(e["x"] - lx), abs(e["y"] - ly)) <= 25)
                 if wachen:
                     E.befehl({"angriff": {"einheiten": [mein_lord], "ziel": wachen[0][1]}}, 1.0, bis="ANGRIFF")
                 else:
-                    E.befehl({"halten": {"nr": [mein_lord], "x": px, "y": py}}, 1.0, bis="HALTEN")
+                    laufe(E, [mein_lord], px, py)
         if t >= naechste_zeile:
             nah = sorted(max(abs(L[n]["x"] - lx), abs(L[n]["y"] - ly)) for n in angreifer) if angreifer else [-1]
             wache = sum(1 for e in L.values() if e["besitzer"] not in (0, E.SP) and e["typ"] in kampf
@@ -149,7 +173,7 @@ def main():
             naechste_zeile = t + 100
         if hatte_truppe and not truppe and (zurueck or not mit_lord or lord_rolle == "schild"):
             if mit_lord and not zurueck:
-                E.befehl({"halten": {"nr": [mein_lord], "x": E.BERGFRIED[0], "y": E.BERGFRIED[1]}}, 1.0, bis="HALTEN")
+                laufe(E, [mein_lord], E.BERGFRIED[0], E.BERGFRIED[1])
             E.schreib("STURM GESCHEITERT bei Tick %d: keine Truppen mehr, Gegner-Lord %d Leben" % (t, L[feind]["leben"]))
             return 2
         if t - start_t > bis:
