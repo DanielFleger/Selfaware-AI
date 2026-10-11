@@ -485,6 +485,14 @@ def werbung_freigegeben(st, marken, aus):
         return True
     if st["t"] - offen["t"] >= 1200:
         angekommen = max(0, st.get("T26", 0) - offen["t26"])
+        if st.get("feuer") == 0:          # nur wenn das Spiel ausdruecklich 0 meldet - unbekannt bleibt Abbruch
+            # 11.10. Lauf 50,100 (Tick 27.267): Welle 2 bei 2 Bauern am Feuer, einer wurde vorher anderweitig vergeben -
+            # das Spiel zog nur EINMAL 20 Gold ab (639 -> 619), Kaempfer 65 -> 66. Ohne Bauern am Feuer kostet ein
+            # Anwerbebefehl nichts; die Welle wird mit Meldung freigegeben statt den Lauf abzubrechen.
+            marken.pop("_werben_offen", None)
+            aus.append("ANWERBEN Welle %d/%d unvollstaendig freigegeben: kein Bauer mehr am Feuer (Befehl ohne Bauer kostet nichts)" % (
+                angekommen, offen["menge"]))
+            return True
         raise RuntimeError("Anwerbewelle nach 1200 Ticks unvollstaendig: %d/%d angekommen; kein unsicherer Zweitversuch" % (
             angekommen, offen["menge"]))
     return False
@@ -562,6 +570,7 @@ RATIONEN = "doppelt"     # Lernkreis: doppelte Rationen (+250 je Woche), sobald 
 REGEL50 = False          # Aufgabe s25: faellt die Beliebtheit unter 50, bricht der Lauf ab (Regelbruch)
 STUFEN = []              # streitkolben=50,100: gestufte Ziele in EINEM Lauf (Daniel 11.10. 14:28)
 ZWISCHENZIEL = False     # solange ein spaeteres Ziel folgt: im Endspiel nie abreissen
+STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
 ZIEL_TICK = 9400         # Zieltick, bis zu dem das Kausalmodell Ertraege rechnet (unter 1 Jahr = 9.600, Endspiel davor)
                          # 07.10.: Lernkreis setzt ihn auf das gemessene Ende der besten Strategie; gilt auch fuer den Planer
@@ -1846,7 +1855,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         ereignis.append("HAUSHALT Rationen %s -> %d (Nahrung %d)" % (haus.ration, ration_h, nahrung_h))
                         haus.ration = ration_h
                     boden_h = max(regel_h, 0 if kasse["an"] else WACHSTUM_BODEN)
-                    stufe_h = haus.waehle_stufe(st, boden_h, ration_h)
+                    if kasse.get("stufe2_hoch"):
+                        boden_h = 9000
+                        stufe_h = haus.waehle_stufe(st, boden_h, ration_h, not_boden=boden_h)
+                    else:
+                        stufe_h = haus.waehle_stufe(st, boden_h, ration_h)
                     if stufe_h != haus.stufe:
                         befehl({"spielbefehl": {"nr": 34, "werte": [stufe_h]}}, 1.0, bis="SPIELBEFEHL")
                         ereignis.append("HAUSHALT Steuer %s -> %d (Beliebtheit %.2f, Boden %.2f, Rest %+d)" % (
@@ -2113,6 +2126,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 if prod is not None:
                     prod.ziel = streitkolben
                 ZWISCHENZIEL = streitkolben != STUFEN[-1]
+                # 11.10. (Lauf 50,100: nach Ziel 50 nur noch 0-1 Bauern am Feuer, Beliebtheit 57 = Liga-Zuzug 8 statt 36 bei 90):
+                # Knopf stufe2_beliebt=hoch - der Haushalt holt die Beliebtheit auf 90 zurueck, notfalls mit Bestechung
+                kasse["stufe2_hoch"] = STUFE2_BELIEBT == "hoch"
                 schreib("NAECHSTES ZIEL %d Streitkolbenkaempfer ab Tick %d (Endspiel neu, Wirtschaft laeuft weiter)" % (
                     streitkolben, st["t"]))
             tz = uhr("ruestung", tz)
@@ -2194,8 +2210,9 @@ def main():
     KASSE_STUFE = int(arg.get("kasse_stufe", 11))
     SCHUB = False if arg.get("schub", "nein") == "nein" else arg["schub"]    # "ja" = ein Schub, "immer" = einer nach dem anderen
     global HAUSHALT_RAND, WACHSTUM_BODEN, GUTE_DINGE, RATIONEN, REGEL50, NAHRUNG_AUSBAU
-    global STUFEN, ZWISCHENZIEL
-    STUFEN = sorted(int(z) for z in str(arg.get("streitkolben", "0")).split(",") if z.strip() and int(z) > 0)
+    global STUFEN, ZWISCHENZIEL, STUFE2_BELIEBT
+    STUFE2_BELIEBT = arg.get("stufe2_beliebt", "halten")
+    STUFEN =sorted(int(z) for z in str(arg.get("streitkolben", "0")).split(",") if z.strip() and int(z) > 0)
     ZWISCHENZIEL = len(STUFEN) > 1
     NAHRUNG_AUSBAU = arg.get("nahrung_ausbau", "nein")    # "ja" = immer, "kasse" = erst ab Kasse-Start, "nein"
     HAUSHALT_RAND = int(arg.get("haushalt_rand", HAUSHALT_RAND))

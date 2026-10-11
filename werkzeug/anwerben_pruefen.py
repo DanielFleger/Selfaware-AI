@@ -50,6 +50,19 @@ def main():
         except RuntimeError:
             hart = True
         pruefungen.append(("Unvollstaendige Welle wird nie blind erneut gesendet", hart and "_werben_offen" in marken))
+
+        # SAI 11.10. (Lauf 50,100 Tick 27.267: zweiter Befehl ohne Bauern kostete nichts - Gold nur einmal -20)
+        marken, aus = {"_werben_offen": {"t": 0, "t26": 65, "menge": 2, "ziel": 67}}, []
+        frei = E.werbung_freigegeben({"t": 1200, "T26": 66, "feuer": 0}, marken, aus)
+        pruefungen.append(("Unvollstaendige Welle ohne Bauern am Feuer wird mit Meldung freigegeben",
+                           frei and "_werben_offen" not in marken and any("unvollstaendig freigegeben" in a for a in aus)))
+        marken = {"_werben_offen": {"t": 0, "t26": 65, "menge": 2, "ziel": 67}}
+        try:
+            E.werbung_freigegeben({"t": 1200, "T26": 66, "feuer": 3}, marken, [])
+            hart = False
+        except RuntimeError:
+            hart = True
+        pruefungen.append(("Unvollstaendige Welle MIT Bauern am Feuer bleibt harter Abbruch", hart))
     finally:
         E.befehl = alt
 

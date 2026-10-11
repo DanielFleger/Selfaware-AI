@@ -66,6 +66,10 @@ def einstellungen(arg):
     # Daniel 08.10.: kein Gold in Soldaten binden, solange es die Wirtschaft beschleunigen kann. Alte Bestlaeufe
     # enthalten noch schub=immer; die Versuchsregel hat Vorrang vor diesem historischen Wert.
     strategie["schub"] = "nein"
+    # Versuchsknoepfe, die nur fuer gestufte Ziele gelten, direkt durchreichen (11.10.: stufe2_beliebt=hoch/halten)
+    for k in ("stufe2_beliebt",):
+        if k in arg:
+            strategie[k] = arg[k]
     if arg.get("weg") == "produktion":
         # Die historische Beststrategie gewann mit Marktkaeufen und durfte deshalb frueh 20 Holzfaeller plus weitere
         # Kausal-Bauten setzen. Fuer die eigene Waffenkette verbraucht das Bauholz und Arbeiter, bevor Minen und
