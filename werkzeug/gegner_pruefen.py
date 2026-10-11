@@ -19,7 +19,11 @@ def main():
     print("Zuruecksetzen:", zuruecksetzen(), flush=True)
     E.befehl({"tempo": 100}, 1.0, bis="TEMPO")
     saat = E.saat_laden()
-    zeilen = kanal.sende(dict(E.LIGA_GEFECHT, ki=ki, **({"saat": saat} if saat else {})), 4, bis="LaunchSkirmishGame zurueck")
+    gefecht = dict(E.LIGA_GEFECHT, ki=ki, **({"saat": saat} if saat and "karte" not in arg else {}))
+    if "karte" in arg:
+        gefecht["karte"] = arg["karte"]
+        gefecht.pop("startliste", None)
+    zeilen = kanal.sende(gefecht, 4, bis="LaunchSkirmishGame zurueck")
     print("Start:", " | ".join(z for z in zeilen if "GEFECHT" in z or "Launch" in z)[:400], flush=True)
     E.befehl({"pause": False}, 0.5)
     t0, ende = time.time(), None
