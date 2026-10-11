@@ -1673,6 +1673,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     # wartet ein Lagertraeger (Holzfaeller Zustand 7, Getreidebauer Zustand 9, andere mit Ware ab 1.500 Ticks) und ist kein
     # Lagerteil leer, wird ein Lagerteil angebaut - die Wirtschaft zaehlte nur Holz als unterwegs. Proben:
     # werkzeug/stillstand_trocken.py (11 Faelle) und stillstand_live.py (22:51 bestanden: Anbau nach 325 Ticks Stillstand)
+    import brotbau as BB
+    brot_bau = BB.BrotBau(plan.get("brot"), SP, wirt.lager_ort, plan["kornspeicher"],
+                          lambda typ, x, y, r: baue_schnell(typ, x, y, r, zweck="Brot"), kosten_spiel) if plan.get("brot") else None
     import stillstand as STW
     still_w = STW.Stillstand(SP, lambda n: peek(0xF98520 + 0x14 + int(n) * 0x32C + 0x184)[0],
                              lambda: baue_schnell(10, wirt.lager_ort[0], wirt.lager_ort[1], 10, zweck="Stillstand"),
@@ -1735,6 +1738,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         ereignis = w.schritt(L, gebs, ausgenommen=trupp.mitglieder if trupp else ()) if w is not None else []
         tz = uhr("waechter", tz)
         ereignis += still_w.schritt(st["t"], L, G, lager_stopp=getattr(wirt, "lager_stopp", False))
+        if brot_bau is not None:
+            ereignis += brot_bau.schritt(st["t"], st, G)
+            wirt.brot = brot_bau.bedarf(st["t"], G)      # Ruecklage: Planer/Huetten/Holzfaeller halten das Holz frei
         if BUCH is not None:
             ereignis += BUCH.abgleich(G, L, st)            # jeder Bau bestaetigt oder gescheitert, jede Belegung
             while BUCH.unerreichbar:                        # v18: laut Spiel unerreichbar -> abreissen, Platz sperren
@@ -2387,6 +2393,20 @@ def main():
     if arg.get("v14", "nein") == "ja":
         V14 = V14_PLAN
         plan["lager"], plan["lager_mitte"] = list(V14_PLAN["lager"]), [V14_PLAN["lager"][0] + 2, V14_PLAN["lager"][1] + 2]
+    # Nahrungswahl (Daniel 23:05 "ja beides": die KI rechnet selbst, was auf der Karte knapp ist; 22:53 Brot je Boden/Lager-
+    # Naehe): Plantagen, Kornspeicher und Brotkette aus nahrungswahl.py. Mit v14=ja bleibt der feste Plan (eroeffnung=fest)
+    EROEFFNUNG = arg.get("eroeffnung", "fest" if arg.get("v14", "nein") == "ja" else "selbst")
+    if EROEFFNUNG == "selbst":
+        import nahrungswahl
+        w_n = nahrungswahl.waehle(kurz, plan, bev_ziel=BEV_ZIEL or 90,
+                                  ration=RATIONEN if RATIONEN in nahrungswahl.VERBRAUCH else "doppelt",
+                                  horizont=int(arg.get("bis_tick", 16000)))
+        if w_n["aepfel"]:
+            plan["aepfel"], plan["kornspeicher"] = w_n["aepfel"], w_n["kornspeicher"]
+        plan["brot"] = w_n["brot"]
+        b_n = w_n["begruendung"]
+        schreib("NAHRUNGSWAHL %s: %s | %s" % (kurz, b_n.get("entscheidung", b_n.get("fehler")),
+                json.dumps({k: v for k, v in b_n.items() if k != "optionen"}, ensure_ascii=False)))
     if arg.get("start"):
         print("Tick", lade_stand(arg["start"], mit_bild=False))
         befehl({"eigenerPlatz": SP}, 0.8)

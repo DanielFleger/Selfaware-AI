@@ -118,7 +118,10 @@ class Wirtschaft:
         bis 3.978 - Planer (Steinbruch + Joch, "Huette zuerst") und Huettenbau verbauten das Holz."""
         n = 0 if self.a_offen(G) else len(self.B_offen)
         # extra: was eine Pflicht (v14: Steinbrueche + Joche) noch braucht - setzt der Lenker jede Runde
-        return {"holz": APFEL_HOLZ * n + self.extra.get("holz", 0), "gold": APFEL_GOLD * n + self.extra.get("gold", 0)}
+        # brot: naechster fehlender Bau der Brotkette (brotbau.py), vom Lenker jede Runde gesetzt (SAI 11.10. 23:20)
+        brot = getattr(self, "brot", {}) or {}
+        return {"holz": APFEL_HOLZ * n + self.extra.get("holz", 0) + brot.get("holz", 0),
+                "gold": APFEL_GOLD * n + self.extra.get("gold", 0) + brot.get("gold", 0)}
 
     def a_offen(self, G):
         """A-Plaetze, an denen (noch) keine eigene Apfelplantage steht."""
