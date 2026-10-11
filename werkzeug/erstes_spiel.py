@@ -427,12 +427,13 @@ def nahrung_puffer(leute):
 
 NOTKAUF_GOLD = 150     # so viel Gold muss nach dem Kauf noch frei sein (Ruecklage zaehlt extra)
 
-def nahrung_notkauf(nahrung, puffer, gold_frei):
+def nahrung_notkauf(nahrung, gold_frei):
     """Notausgang Nahrung (Daniel: "erst maximale Wirtschaft, Kaufen als Notausgang"). SAI 11.10., Nomade-Lauf 1011g:
     ab Tick 25.442 elf Wochen Nahrung 0 bei 3.500+ Gold - Rationen fielen auf keine (-250 je Woche), die Beliebtheit
-    sank von 71,5 bis unter 50 (Regelbruch). Liegt die Nahrung unter dem Puffer und ist Gold frei: ein 5er-Los Aepfel
-    kaufen, hoechstens eins je Entscheidung. Gibt True, wenn gekauft werden soll."""
-    return nahrung < puffer and gold_frei >= NOTKAUF_GOLD
+    sank von 71,5 bis unter 50 (Regelbruch). Erst bei Nahrung 0 und freiem Gold ein 5er-Los Aepfel kaufen, hoechstens
+    eins je Entscheidung. Nicht schon unter dem Puffer: Lauf 1011i kaufte so bis Tick 9.258 fuenfmal bei Beliebtheit 95 -
+    gegen "Nahrung auf Kante" (Daniel 05.10.), die den Ueberschuss bis zum Puffer verkauft. Gibt True = kaufen."""
+    return nahrung <= 0 and gold_frei >= NOTKAUF_GOLD
 
 def nahrung_auf_kante(bestand, puffer, hoechstens=12):
     """Verkauft Nahrung in Losen zu 5, die teuerste Sorte zuerst, ohne unter <puffer> zu fallen; die billigste bleibt.
@@ -1907,7 +1908,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 if haus.jetzt_entscheiden(st, regel_h):
                     haus.entschieden = st["t"]
                     nahrung_h = sum(st.get(w, 0) for w in ("apfel", "brot", "kaese", "fleisch"))
-                    if nahrung_notkauf(nahrung_h, 3 + st.get("leute", 0) // 10, st.get("gold", 0) - wirt.ruecklage(G)["gold"]):
+                    if nahrung_notkauf(nahrung_h, st.get("gold", 0) - wirt.ruecklage(G)["gold"]):
                         befehl({"spielbefehl": {"nr": 38, "werte": [0, WAREN_NR["apfel"]]}}, 1.0, bis="SPIELBEFEHL")
                         ereignis.append("NOTKAUF 5 Aepfel (Nahrung %d, Gold vorher %d)" % (nahrung_h, st.get("gold", 0)))
                     ration_h = haus.waehle_ration(st, 3 + st.get("leute", 0) // 10)

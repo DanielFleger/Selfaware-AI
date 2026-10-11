@@ -4,15 +4,15 @@ Soll je Fall vorher festgelegt. Aufruf: python notkauf_pruefen.py"""
 import erstes_spiel as E
 
 FAELLE = [
-    ("Lauf 1011g: Nahrung 0, Puffer 11, Gold frei 3.500 -> kaufen", 0, 11, 3500, True),
-    ("Nahrung 10 knapp unter Puffer 11, Gold da -> kaufen", 10, 11, 400, True),
-    ("Nahrung gleich Puffer -> nicht kaufen", 11, 11, 3500, False),
-    ("Nahrung 0, aber nur 100 Gold frei -> nicht kaufen", 0, 11, 100, False),
-    ("Nahrung 0, Gold genau an der Grenze -> kaufen", 0, 11, E.NOTKAUF_GOLD, True),
+    ("Lauf 1011g: Nahrung 0, Gold frei 3.500 -> kaufen", 0, 3500, True),
+    ("Lauf 1011i Tick ~3.000: Nahrung 5 unter Puffer 6, Gold 197 -> NICHT", 5, 197, False),
+    ("Lauf 1011i: Nahrung 3, Gold 413 -> NICHT (Nahrung auf Kante)", 3, 413, False),
+    ("Nahrung 0, aber nur 100 Gold frei -> nicht kaufen", 0, 100, False),
+    ("Nahrung 0, Gold genau an der Grenze -> kaufen", 0, E.NOTKAUF_GOLD, True),
 ]
 erg = []
-for name, nahrung, puffer, gold, soll in FAELLE:
-    ist = E.nahrung_notkauf(nahrung, puffer, gold)
+for name, nahrung, gold, soll in FAELLE:
+    ist = E.nahrung_notkauf(nahrung, gold)
     erg.append(ist == soll)
     print("%s %-58s %s" % ("OK  " if ist == soll else "ROT ", name, ist))
 print("%d von %d gruen" % (sum(erg), len(erg)))
