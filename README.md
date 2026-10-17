@@ -14,3 +14,26 @@ Stronghold Crusader / Crusader Extreme under UCP3.
 
 ## Status
 Early research. Assumptions are labelled and must not be relied on.
+
+## Pflicht nach jeder Partie: alles ins Repo (Daniel 17.10.2026)
+
+Jeder Rechner (Laptop, Desktop-PC, jede Sitzung) committet und pusht nach jeder
+echten Partie, spaetestens vor dem Eintrag im `Wissensregister.md`:
+
+1. **Die Mitschrift** `daten/<name>_konsole.txt`. Ihre ersten Zeilen sind
+   `CODE-KENNUNG ...` und `START-BEFEHL Instanz N: python erstes_spiel.py ...`
+   (schreibt `erstes_spiel.py` selbst). Wer nicht ueber `erstes_spiel.py`
+   startet, schreibt den vollstaendigen Aufruf von Hand als erste Zeile.
+2. **Alles, was die Partie neu angelegt hat und zum Nachspielen noetig ist:**
+   `daten/start_<karte>*.json`/`.txt`, `daten/eroeffnung_plan_<karte>.json`,
+   `daten/baeume_*`, `daten/rohstoffe_*`, Saat-Dateien.
+3. **Das Lageprotokoll** `daten/lage_<stempel>_i<n>.jsonl.gz`, wenn es kleiner
+   als 50 MB ist; sonst im Register vermerken, auf welchem Rechner es liegt.
+4. **Die Umgebung, wenn sie anders ist als zuletzt notiert:** Karte, Gegner-KI
+   und deren Plugin-Fassung, Instanz, geaenderte `ucp-config.yml`-Stellen und
+   die Pruefsumme der `ucp/villagestudio/logik.lua`. Aendert sich die
+   `logik.lua`, kommt die neue Fassung als Kopie nach `werkzeug/`.
+
+Die Registerzeile einer Partie nennt den Dateinamen ihrer Mitschrift.
+Ohne diese Dateien kann kein anderer Rechner einen Lauf nachspielen oder
+auswerten (17.10.: der Laptop musste Karte und Schalter von 1017a-g raten).

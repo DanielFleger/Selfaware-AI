@@ -2437,6 +2437,9 @@ def main():
     arg = dict(a.split("=") for a in sys.argv[1:])
     import kennung                    # Daniel 20:46: sofort sehen, welcher Code-Stand diese Partie spielt
     schreib(kennung.zeile())
+    # Daniel 17.10.: der Laptop musste den Startbefehl von 1017a-g raten (Karte, Gegner, Schalter) - jede Partie nennt ihn
+    import subprocess
+    schreib("START-BEFEHL Instanz %d: %s" % (INSTANZ, subprocess.list2cmdline(["python", "erstes_spiel.py"] + sys.argv[1:])))
     # Plan je Startstand (Daniel 05.10. 18:55: erst schauen, wo der Bergfried steht) - karten_holen.py + eroeffnung.py start=...
     # Karte frei waehlbar (Daniel 11.10. 23:05 "ja beides"): eine unbekannte Karte wird einmal in einem EIGENEN Gefecht
     # vermessen (karten_holen.vermessen), der Eroeffnungsplan je Karte gerechnet (eroeffnung.plane) - die Partie selbst
