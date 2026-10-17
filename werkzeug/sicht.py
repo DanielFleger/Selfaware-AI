@@ -112,8 +112,11 @@ def linie(a, b):
 class Lage:
     """Eine Runde: L (Einheiten), G (Gebaeude), sp (wir), haltung {Gruppe: 0/1/2} oder None (unbekannt -> Verteidigung)."""
 
-    def __init__(self, L, G, sp=1, haltung=None):
+    def __init__(self, L, G, sp=1, haltung=None, noch_sichtbar=()):
+        """noch_sichtbar: eigene Assassinen, die in den letzten 128 Takten sichtbar waren - das Spiel setzt ihr Sicht-Feld
+        nur in ihrer eigenen Pruefrunde neu (L75), so lange bleiben sie fuer die Schuetzen Ziel (17.10., 1017c)."""
         self.sp = sp
+        self.noch_sichtbar = set(noch_sichtbar)
         feinde = [e for e in L.values() if e["besitzer"] not in (0, sp) and e["typ"] not in TIERE]
         self.waehl = [(e["x"], e["y"]) for e in feinde if e["typ"] in WAEHLBAR]
         self.gebaeude = {}                   # Feld -> (Nr, Typ) aller Gebaeude mit bekannter Grundflaeche
@@ -149,7 +152,7 @@ class Lage:
         self.bestwert[i]: (bester Wert, bester Wert unter den Unbeschossenen) des Schuetzen i - fuer die Frage, was waere,
         wenn eine weitere Assassine an einem Ort auftaucht (beschuss)."""
         self.feuer, self.bestwert, zahl = {}, [], {}
-        sichtbar = {nr: self.sichtbar(p) for nr, p, t in self.eigene if t == 73}
+        sichtbar = {nr: nr in self.noch_sichtbar or self.sichtbar(p) for nr, p, t in self.eigene if t == 73}
         for ort, r, erh, steht, art in self.schuetzen:
             kand = []
             for nr, p, typ in self.eigene:

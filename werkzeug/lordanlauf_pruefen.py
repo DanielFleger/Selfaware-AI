@@ -3,9 +3,11 @@
 sie kommen ca. gleich schnell an", 01:42 "warum sammeln sich wieder Assassinen in einem Klump?"). Bedarf hier fest 20.
 Vorher festgelegt:
   1. Tick 9.000 (erstes Jahr), 25 Assassinen: KEIN Anlauf, kein Lord-Befehl
-  2. Tick 10.000: 5 Assassinen 60 Felder vom Lord, 20 Assassinen 20 Felder: Lord-Befehl nur an die WEITEN (die 5 + so viele
-     nahe, wie es braucht, um 20 zu fuellen, aber nur wer >= Takt-3 weg ist) - kein Halte-/Sammelbefehl an einen Punkt
-  3. Die Losgelaufenen sind jetzt 21 Felder weg: die Nahen (20 Felder) laufen los -> danach alle 20 unterwegs, Phase angriff
+  2. Tick 10.000: 5 Assassinen 60 Felder vom Lord, 20 Assassinen 20 Felder: die Gruppe sind die 20 NAECHSTEN (17.10., 1017d:
+     vorher nahm sie bei gleichem Leben die weitesten) -> Gruppe (unterwegs + wartend) = genau 200-219, Lord-Befehl nur an
+     sie (zuerst die weitesten unter ihnen, 20-40 Felder), die 5 weiten 100-104 raiden weiter, kein Halten
+  3. Nur 15 nahe + 5 weite (genau 20): Lord-Befehl nur an die WEITEN (die Nahen warten, bis der Takt passt); sind die
+     Losgelaufenen 21 Felder weg, laufen die Nahen los -> alle 20 unterwegs, Phase angriff
   4. (17.10., Partie 1017c) EINER 60 Felder weg, 19 nah: er laeuft allein los; in der naechsten Runde KEIN "vorbei" (die 19
      Wartenden gehoeren zur Gruppe), Phase bleibt anlauf
 Gegenprobe: LORD_TAKT_R = 999 -> Fall 2 rot (alle sofort).
@@ -59,15 +61,23 @@ def main():
     erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=10000)
     an = lord_an(bef)
     halten = [b for b in bef if "halten" in b]
-    pruefe(2, "Tick 10.000: Lord-Befehl an %s (soll nur die 5 weiten 100-104), Halten/Sammeln %d" % (an, len(halten)),
-           an == [100, 101, 102, 103, 104] and not halten)
+    gruppe = set(t.lordtrupp["mitglieder"]) | set(t.lordtrupp.get("warte", ()))
+    pruefe(2, "Tick 10.000: Gruppe %s, Lord-Befehl an %s, Halten/Sammeln %d" % (sorted(gruppe), an, len(halten)),
+           gruppe == set(range(200, 220)) and an and all(200 <= n < 220 for n in an) and not halten)
+    t = neu(); L, G = szene()
+    for n in range(215, 220):
+        L.pop(n)
+    t.aufnehmen([n for n in L if n != 500])
+    erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=10000)
+    an = lord_an(bef)
     for n in an:
         L[n].update(x=LORD[0] - 21, laufx=LORD[0], laufy=LORD[1], zielart=4, zieleinheit=500)
     erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=10030)
     an2 = lord_an(bef)
-    pruefe(3, "Losgelaufene 21 weg: jetzt Lord-Befehl an %d weitere, Phase %s, unterwegs %d" % (
-        len([n for n in an2 if n >= 200]), t.lordtrupp["phase"], len(t.lordtrupp["mitglieder"])),
-        len([n for n in an2 if n >= 200]) == 15 and len(t.lordtrupp["mitglieder"]) == 20 and t.lordtrupp["phase"] == "angriff")
+    pruefe(3, "15 nah + 5 weit: zuerst an %s; Losgelaufene 21 weg: jetzt an %d weitere, Phase %s, unterwegs %d" % (
+        an, len([n for n in an2 if n >= 200]), t.lordtrupp["phase"], len(t.lordtrupp["mitglieder"])),
+        an == [100, 101, 102, 103, 104] and len([n for n in an2 if n >= 200]) == 15
+        and len(t.lordtrupp["mitglieder"]) == 20 and t.lordtrupp["phase"] == "angriff")
     t = neu(); L, G = szene()
     for n in (101, 102, 103, 104, 219):
         L.pop(n)

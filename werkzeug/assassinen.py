@@ -663,7 +663,15 @@ class Einzeln:
                         self._haltung_runde = self.runde
                 except Exception:
                     pass
-        self._sicht = sicht.Lage(L, G, self.sp, self._haltung if self.lies_haltung else None)
+        # 17.10.: wer in den letzten 128 Takten sichtbar war, bleibt Ziel bis zu seiner naechsten Pruefrunde (L75)
+        sb = getattr(self, "_sicht_bis", {})
+        jetzt = getattr(self, "jetzt", self.runde * self.RUNDE_TICKS)
+        self._sicht = sicht.Lage(L, G, self.sp, self._haltung if self.lies_haltung else None,
+                                 noch_sichtbar={k for k, b in sb.items() if b > jetzt and k in L})
+        for k in self.mitglieder:
+            if k in L and self._sicht.sichtbar((L[k]["x"], L[k]["y"])):
+                sb[k] = jetzt + 128
+        self._sicht_bis = sb
         self._sicht_runde = self.runde
         return self._sicht
 
@@ -1004,7 +1012,12 @@ class Einzeln:
         if not lords:
             lt.update(mitglieder=set(), phase=None, sammelpunkt=None)
         else:
-            ln, le = lords[0]
+            # 17.10. (Partie 1017d: Anlauf auf einen Lord 227 Felder weit): der Lord, der dem Mittel unserer Assassinen am
+            # naechsten steht; laeuft schon ein Anlauf, bleibt es sein Lord
+            mx = sum(L[k]["x"] for k in self.mitglieder if k in L) / max(1, len(self.mitglieder))
+            my = sum(L[k]["y"] for k in self.mitglieder if k in L) / max(1, len(self.mitglieder))
+            fest = [x for x in lords if x[0] == lt.get("lord")] if lt["phase"] else []
+            ln, le = fest[0] if fest else min(lords, key=lambda x: (schach((x[1]["x"], x[1]["y"]), (mx, my)), x[0]))
             lp = (le["x"], le["y"])
             n_bedarf, bedarf_art, gruppe_leben = self._lord_bedarf(L, G, ereignis)
             # 17.10. (Partie 1017c: 18x "vorbei: noch 1 leben" - beim gestaffelten Anlauf laeuft zuerst nur der Weiteste los,
@@ -1038,7 +1051,9 @@ class Einzeln:
                 # gleich schnell an"; 00:52 "beim Sammeln wird alles im Stich gelassen"; 01:42 "warum sammeln sich wieder
                 # Assassinen in einem Klump?"): die gesuendesten n_bedarf bilden die Gruppe; wer am weitesten weg ist, laeuft
                 # zuerst los, die anderen raiden weiter, bis ihr Weg so lang ist wie der Restweg der Losgelaufenen (Takt)
-                gruppe = sorted(self.mitglieder, key=lambda k: (-L[k]["leben"], -schach(pos(k), lp), k))[:n_bedarf]
+                # 17.10. (1017d): die NAECHSTEN zuerst (bei gleichem Leben nahm die alte Reihenfolge die weitesten - 227 Felder,
+                # einer nach dem anderen lief los, die Wartenden starben beim Raiden, Anlauf abgebrochen)
+                gruppe = sorted(self.mitglieder, key=lambda k: (schach(pos(k), lp), -L[k]["leben"], k))[:n_bedarf]
                 lt.update(mitglieder=set(), warte=set(gruppe), lord=ln, phase="anlauf", seit=self.runde, sammelpunkt=None)
                 ereignis.append("LORD-ANLAUF: %d Assassinen ohne Sammelpunkt, Wege %d-%d Felder (Bedarf %d %s: %s)" % (
                     len(gruppe), min(schach(pos(k), lp) for k in gruppe), max(schach(pos(k), lp) for k in gruppe),

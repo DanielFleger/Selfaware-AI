@@ -11,6 +11,8 @@
   6. Bogenschuetze 45 Felder weg (ausser Reichweite 40) -> 0
   7. Speertraeger 20 Felder weg in einem Trupp mit Haltung Angriff -> verfolgt; Haltung Stehen -> nicht; ohne Trupp -> nicht
   8. sicher: sichtbar, aber kein Schuetze -> sicher; sichtbar mit Schuetze -> nicht sicher
+  10. Assassine 30 Felder vom Bogen, kein waehlbarer Feind <= 20 -> kein Schuetze zugeteilt; als "noch sichtbar" (in den
+      letzten 128 Takten gesehen) -> der Bogen ist ihr zugeteilt
 Gegenprobe: mit "arbeiter" zaehlen Arbeiter als waehlbar -> Fall 1 rot.
 Aufruf: python werkzeug/sicht_pruefen.py [arbeiter]"""
 import os
@@ -76,6 +78,10 @@ def main():
     l9b = S.Lage(L9b, {}, 1, {})
     pruefe(9, "Bogen zielt auf nahe Assassine: %s; mit eigenem Bogen 30 Felder weg auf: %s" % (
         sorted(l9.feuer), sorted(l9b.feuer)), sorted(l9.feuer) == [2] and sorted(l9b.feuer) == [6])
+    L10 = {1: dict(e(73, 200, 200, besitzer=1), nr=1), 2: dict(e(22, 230, 200), nr=2)}
+    a10, b10 = S.Lage(L10, {}, 1, {}), S.Lage(L10, {}, 1, {}, noch_sichtbar={1})
+    pruefe(10, "30 Felder, unsichtbar: zugeteilt %s; noch sichtbar: zugeteilt %s" % (sorted(a10.feuer), sorted(b10.feuer)),
+           not a10.feuer and sorted(b10.feuer) == [1])
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
