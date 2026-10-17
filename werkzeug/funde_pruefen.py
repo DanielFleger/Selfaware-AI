@@ -13,6 +13,10 @@ Vorher festgelegt:
      400 Takte lang -> kein "STILLSTAND geloest" (vorher nach 200 Takten)
   8. Raid-Plaetze: eine Assassine bekommt kein Ziel -> _raid_plaetze == Zahl der vergebenen Ziele
   9. Routen-Laeufer, das Stueck bis zum naechsten Wegpunkt liegt im Beschuss -> Ziel aufgegeben ("ROUTE GEFAEHRLICH")
+ 10. (1017l, Pendeln) nach "ROUTE GEFAEHRLICH" auf Gebaeude 900 nimmt der Zielwechsel 900 nicht sofort wieder, obwohl es
+     mehr Wert je Weg bringt als das neue Ziel
+ 11. (1017l, alle 5 im Anlauf tot) 5 Assassinen 28 Felder vor dem Lord, auf der Strecke 13 Schleuderer und 6 Boegen, der Lord
+     selbst ohne freie Linie: KEINE Bereitstellung / kein Angriff; ohne die Schuetzen auf der Strecke: Bereitstellung oder Angriff
 Gegenprobe: python funde_pruefen.py <alte assassinen.py> [<alte sicht.py>] - die Faelle muessen dort rot sein.
 Aufruf: python werkzeug/funde_pruefen.py"""
 import importlib.util
@@ -188,6 +192,36 @@ def main():
     pruefe(9, "Route durch Beschuss: Meldung %s, Route noch da %s" % (
         [z[:50] for z in erg if "ROUTE" in z][:1], 100 in t.route and t.route[100]["punkte"][:1] == [(115, 100)]),
         any("ROUTE GEFAEHRLICH" in z for z in erg))
+    # 10
+    if True:
+        if hasattr(t, "_route_sperre"):      # so steht es nach ROUTE GEFAEHRLICH (Fall 9) - die alte Fassung kennt keine Sperre
+            assert (100, 900) in t._route_sperre, "Fall 9 hat keine Sperre gesetzt"
+        G2 = dict(G)
+        G2[901] = {"besitzer": 2, "typ": 26, "x": 60, "y": 60, "leben": 100, "uid": 2, "erreichbar": 1}
+        L2 = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000)}
+        t.route.pop(100, None)
+        t.ziel[100] = 901; t.ziel_typ[901] = 26; t.befohlen[100] = t.runde
+        L2[100].update(laufx=60, laufy=60, zustand=101)
+        erg, bef = t.schritt(L2, G2, sichere_orte=[(50, 50)], tick=10030)
+        pruefe(10, "gesperrtes Ziel 900: Zielwechsel-Meldungen %s, Ziel jetzt %s" % (
+            [z[:40] for z in erg if "ZIELWECHSEL" in z][:1], t.ziel.get(100)), t.ziel.get(100) != 900)
+    # 11
+    def lord_lage(mit_schuetzen):
+        t = neu(); t._raid_plaetze = 0
+        t._lord_bedarf = lambda L, G, ereignis: (5, "belegt", None)
+        L = {500: einheit(55, 2, 300, 200, leben=30000)}
+        for i in range(5):
+            L[200 + i] = einheit(73, 1, 272, 198 + i)
+        if mit_schuetzen:
+            for i in range(13):
+                L[600 + i] = einheit(72, 2, 285 + i % 4, 190 + i // 4 * 2, leben=10000)
+            for i in range(6):
+                L[620 + i] = einheit(22, 2, 288 + i % 3, 210 + i // 3 * 2, leben=10000)
+        t.aufnehmen([n for n in L if 200 <= n < 300])
+        erg, bef = t.schritt(L, {}, sichere_orte=[(100, 200)], tick=10000)
+        return t.lordtrupp["phase"]
+    ph_mit, ph_ohne = lord_lage(True), lord_lage(False)
+    pruefe(11, "Anlauf durch 19 Schuetzen: Phase %s; ohne Schuetzen: Phase %s" % (ph_mit, ph_ohne), ph_mit is None and ph_ohne in ("bereit", "angriff"))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

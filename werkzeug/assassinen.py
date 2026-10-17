@@ -391,6 +391,8 @@ class Einzeln:
     # um das 2-4fache (6+ Schuetzen: Modell 8,4 / echt 2,8 je Takt; nahe Feuerwerfern 57-132 / 13-47) - es rechnet volles Feuer ab
     # dem ersten Takt, im Spiel vergehen 64-170 Takte bis zum ersten Treffer. Kein Aufschlag mehr; vorsichtig bleibt es so ohnehin
     KALIB = 1.0
+    ANKUNFT_MIN = 0.3                    # 18.10.: so viel Leben je Assassine muss nach dem Anlauf am Lord uebrig sein (STARTWERT)
+    SPERRE_ROUTE = 1500                  # 18.10.: so lange nimmt der Zielwechsel ein Ziel mit gefaehrlicher Route nicht wieder
     ZIEL_RISIKO = 0.05
 
     def __init__(self, sp=1, pruefe_begehbar=None, wegtest=None):
@@ -428,6 +430,7 @@ class Einzeln:
         self.bedarf_grund, self.bedarf_fa = "", None
         self._raid_plaetze = None            # 17.10.: lohnende Raid-Plaetze der letzten Runde (Raiden geht vor)
         self._steht = {}                     # 17.10.: n -> (Feld, seit Tick) - Stillstand ohne Spielziel
+        self._route_sperre = {}              # 18.10.: (n, Gebaeude) -> bis Tick (Route war gefaehrlich)
 
     def aufnehmen(self, nummern):
         self.mitglieder |= set(n for n in nummern if n not in self.bilanz["verluste"])
@@ -822,22 +825,73 @@ class Einzeln:
     def _beschuss_angriff(self, gn, G, von=None):
         """17.10.: Beschuss je Takt dort, wo die Assassine beim Angriff steht - nicht das Ankerfeld (dort versperrt das Gebaeude
         selbst die Linien). von = Ort der Assassine: hoechster Wert der 3 Randfelder auf ihrer Anlaufseite. Ohne von: kleinster
-        Wert aller Randfelder (gibt es eine unbeobachtete Seite?). Je Runde einmal je Gebaeude gerechnet."""
+        Wert aller Randfelder (gibt es eine unbeobachtete Seite?).
+        18.10. (1017l: 1,1 s Rechenzeit je Runde, 16,9 von 23,6 s hier - jede Runde jedes Randfeld jedes Gebaeudes gegen jeden
+        Schuetzen): erst pruefen, ob am Gebaeude ueberhaupt ein waehlbarer Feind sieht (sonst ueberall 0); Felder nur bei Bedarf
+        rechnen und je Runde merken; ohne von beim ersten Feld mit 0 aufhoeren. Ergebnis gleich, nur schneller."""
         if getattr(self, "_ba_runde", None) != self.runde:
-            self._ba_runde, self._ba = self.runde, {}
+            self._ba_runde, self._ba, self._ba_feld = self.runde, {}, {}
+        g = G[gn]
+        b = sicht.GROESSE.get(g["typ"], 1) or 1
         if gn not in self._ba:
-            g = G[gn]
-            b = sicht.GROESSE.get(g["typ"], 1) or 1
+            mitte = (g["x"] + b // 2, g["y"] + b // 2)
+            gesehen = self._sicht.sichtbar(mitte, rand=(b + 4) * 8 + 32)     # grosszuegig: lieber rechnen als falsch 0
             rand = [(x, y) for x in range(g["x"] - 1, g["x"] + b + 1) for y in range(g["y"] - 1, g["y"] + b + 1)
                     if not (g["x"] <= x < g["x"] + b and g["y"] <= y < g["y"] + b)]
-            self._ba[gn] = [(q, self._sicht.beschuss(q, 16)) for q in rand]
-        werte = self._ba[gn]
-        if not werte:
+            self._ba[gn] = (gesehen, rand)
+        gesehen, rand = self._ba[gn]
+        if not rand:
             return 0.0
+        if not gesehen:
+            # Ausnahme: eine eigene Einheit auf einem Randfeld, der noch Schuetzen zugeteilt sind (bleibt 128 Takte Ziel, L75)
+            if not hasattr(self._sicht, '_besetzt'):
+                self._sicht._besetzt = {p for nr_, p, t_ in self._sicht.eigene if self._sicht.feuer.get(nr_)}
+            if not self._sicht._besetzt.intersection(rand):
+                return 0.0
+
+        def wert(q):
+            if q not in self._ba_feld:
+                self._ba_feld[q] = self._sicht.beschuss(q, 16)
+            return self._ba_feld[q]
         if von is None:
-            return min(w for _, w in werte)
-        nah = sorted(werte, key=lambda qw: (schach(qw[0], von), qw[0]))[:3]
-        return max(w for _, w in nah)
+            m = None
+            for q in rand:
+                w = wert(q)
+                if w <= 0:
+                    return 0.0
+                m = w if m is None else min(m, w)
+            return m
+        nah = sorted(rand, key=lambda q: (schach(q, von), q))[:3]
+        return max(wert(q) for q in nah)
+
+    def _anlauf_leben(self, von, lp, n):
+        """18.10. (1017l: 5 Assassinen starben im Anlauf 10 Felder vor dem Lord - 13 Schleuderer, 6 Boegen, 1 Feuerwerfer im
+        Umkreis 12; lord_machbar zaehlte nur Schuetzen mit Linie aufs Lordfeld, und der Bergfried sperrt viele): Leben, mit dem
+        jede der n Assassinen am Lord ankommt = voll - (mittleres Gesamtfeuer entlang der Strecke von -> Lord x Laufzeit) / n."""
+        d = schach(von, lp)
+        if d <= 1 or n <= 0:
+            return self.VOLL
+        k = max(1, d // 3)
+        punkte = [(von[0] + (lp[0] - von[0]) * i // k, von[1] + (lp[1] - von[1]) * i // k) for i in range(k + 1)]
+        f = sum(self._sicht.feuer_gesamt(q) for q in punkte) / len(punkte)
+        rest = int(self.VOLL - f * d * TEMPO * self.KALIB / n)
+        # mindestens ANKUNFT_MIN Leben je Assassine am Lord, sonst gilt der Angriff als nicht machbar (Rechnung ist ein Modell)
+        return rest if rest >= self.ANKUNFT_MIN * self.VOLL else 1
+
+    def _anlauf_von(self, L, lp):
+        """Ausgangspunkt fuer den Anlauf: Mitte der Bereiten, sonst ein Punkt BEREIT_R[1] Felder vom Lord Richtung unserer
+        Assassinen."""
+        lt = self.lordtrupp
+        b = [k for k in lt.get("bereit", ()) if k in L]
+        if b:
+            return (sum(L[k]["x"] for k in b) // len(b), sum(L[k]["y"] for k in b) // len(b))
+        m = [k for k in self.mitglieder if k in L]
+        if not m:
+            return lp
+        mx, my = sum(L[k]["x"] for k in m) / len(m), sum(L[k]["y"] for k in m) / len(m)
+        d = max(1.0, max(abs(mx - lp[0]), abs(my - lp[1])))
+        r = self.BEREIT_R[1]
+        return (int(round(lp[0] + (mx - lp[0]) * r / d)), int(round(lp[1] + (my - lp[1]) * r / d)))
 
     def _im_lordangriff(self, n):
         """18.10. (Gegenpruefung): "Der Lord-Trupp bleibt dran" gilt nur im gemeinsamen Angriff, nicht in der Bereitstellung."""
@@ -867,9 +921,15 @@ class Einzeln:
                         q = (int(round(b[0] + r * math.cos(w))), int(round(b[1] + r * math.sin(w))))
                         if 2 <= q[0] <= 397 and 2 <= q[1] <= 397:
                             ring.append(q)
-                if self.pruefe_begehbar and ring:
-                    gut = self.pruefe_begehbar(ring)
-                    ring = [q for q in ring if q in gut]
+                # 18.10.: begehbare Ringpunkte je Lordposition merken - die Pruefung ist eine Abfrage im Spiel, das Gelaende
+                # aendert sich nicht; nur die Sicherheit wird jede Runde neu gerechnet
+                cache = self.__dict__.setdefault("_front_ring", {})
+                if b not in cache:
+                    if self.pruefe_begehbar and ring:
+                        gut = self.pruefe_begehbar(ring)
+                        ring = [q for q in ring if q in gut]
+                    cache[b] = ring
+                ring = cache[b]
                 self._front += [q for q in ring if self._sicht is None or self._sicht.sicher(q)]
         return min(self._front, key=lambda q: schach(ort, q)) if self._front else None
 
@@ -1195,6 +1255,9 @@ class Einzeln:
                     probe += [(a_[0] + (b_[0] - a_[0]) * i // k_, a_[1] + (b_[1] - a_[1]) * i // k_) for i in range(k_ + 1)]
                 if any(self._sicht.beschuss(q, 16) > 0 for q in (probe or [ort])):
                     ereignis.append("ROUTE GEFAEHRLICH %d bei %s: Ziel %s aufgegeben, neuer Weg" % (n, ort, self.ziel.get(n)))
+                    # 18.10. (1017l: 86 pendelte 29 -> Route gefaehrlich -> anderes Ziel -> Zielwechsel zurueck auf 29, dreimal):
+                    # der Zielwechsel prueft keinen Weg - dieses Ziel ist fuer ihn SPERRE_ROUTE Takte gesperrt
+                    self._route_sperre[(n, self.ziel.get(n))] = self.jetzt + self.SPERRE_ROUTE
                     self._vergessen(n)
                 continue
             b_ort = self._sicht.beschuss(ort)
@@ -1255,7 +1318,9 @@ class Einzeln:
             # dem Anmarsch rechnet sie nicht - jeder Angriff schreibt Groesse und Ausgang mit (Alle-auf-den-Lord im Bericht).
             if bedarf_art != "belegt":
                 f_ges = self._sicht.feuer_gesamt(lp)
-                n_r = next((k for k in range(5, len(self.mitglieder) + 1) if lord_machbar(k, le["leben"], f_ges / k)[0]), None)
+                von_a = self._anlauf_von(L, lp)
+                n_r = next((k for k in range(5, len(self.mitglieder) + 1)
+                            if lord_machbar(k, le["leben"], f_ges / k, leben=self._anlauf_leben(von_a, lp, k))[0]), None)
                 if n_r is not None:
                     if (n_r, "gerechnet") != getattr(self, "_bedarf_rech", None):
                         self._bedarf_rech = (n_r, "gerechnet")
@@ -1280,7 +1345,8 @@ class Einzeln:
             else:
                 n_l = len(lt["mitglieder"])
             satz_lord = self._sicht.feuer_gesamt(lp) / max(1, n_l)
-            machbar, t_l, rest_l = lord_machbar(n_l, le["leben"], satz_lord)
+            machbar, t_l, rest_l = lord_machbar(n_l, le["leben"], satz_lord,
+                                                leben=self._anlauf_leben(self._anlauf_von(L, lp), lp, n_l))
             if lt["phase"] == "bereit" and not machbar:
                 ereignis.append("LORD-BEREITSTELLUNG ABGEBROCHEN: reicht nicht mehr (Lord %d Leben, Beschuss am Lord %.1f je Tick) - alle raiden" % (
                     le["leben"], satz_lord))
@@ -1377,7 +1443,8 @@ class Einzeln:
                         lt["ort_bef"][k] = pos(k)
                         lord_lauf.setdefault(weg[0], []).append(k)
                 lt["bereit"] = bereit
-                if len(bereit) >= n_bedarf and lord_machbar(len(bereit), le["leben"], self._sicht.feuer_gesamt(lp) / len(bereit))[0]:
+                if len(bereit) >= n_bedarf and lord_machbar(len(bereit), le["leben"], self._sicht.feuer_gesamt(lp) / len(bereit),
+                                                            leben=self._anlauf_leben(self._anlauf_von(L, lp), lp, len(bereit)))[0]:
                     alle = sorted(bereit)
                     for k in lt["mitglieder"] - bereit:
                         self._vergessen(k)            # wer noch unterwegs ist, raidet weiter
@@ -1514,7 +1581,8 @@ class Einzeln:
             # gewechselt wird nur auf ein Ziel, das an der Anlaufseite nicht staerker beobachtet ist als das jetzige
             b_jetzt = self._beschuss_angriff(gn, G, ort)
             besser = [k for k in kand if k[3] and k[0] != gn and zahl.get(k[0], 0) < platz(k) and k[5] <= self.ZIEL_FERN_MAX
-                      and guter_tausch(k) and self._beschuss_angriff(k[0], G, ort) <= b_jetzt]
+                      and guter_tausch(k) and self._beschuss_angriff(k[0], G, ort) <= b_jetzt
+                      and self._route_sperre.get((n, k[0]), -1) < self.jetzt]
             if jetzt and besser:
                 b_k = max(besser, key=lambda k: wert(ort, k))
                 if wert(ort, b_k) >= self.WECHSEL * wert(ort, jetzt):

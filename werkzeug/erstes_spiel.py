@@ -432,7 +432,20 @@ def wegtest(nr, punkte):
 def lies_haltung(gruppen):
     """17.10. (L77, Daniel 09:58 "das Angreifen wird auch durch ihre Stance geaendert"): Haltung je feindlichem Trupp -
     Tribe = 0x01667F78 + 40 + Gruppe * 0x334 (wie logik.lua angriff), unitStance +0x2B8 (0 Stehen, 1 Verteidigung, 2 Angriff)."""
-    return {g: peek(0x01667F78 + 40 + g * 0x334 + 0x2B8)[0] & 0xFFFF for g in gruppen}
+    # 18.10. (1017l: 246 Runden statt ~900-1.100; seit "gruppe" im Lagebild steht, lief hier EINE Abfrage je feindlichem Trupp
+    # mit eigener Wartezeit): alle Trupps in EINER Befehlsliste, Antwort aus den PEEK-Zeilen
+    gruppen = list(gruppen)
+    if not gruppen:
+        return {}
+    adr = {g: 0x01667F78 + 40 + g * 0x334 + 0x2B8 for g in gruppen}
+    z = " ".join(sende({"befehle": [{"player": 1, "id": neue_id(), "peek": a_, "worte": 1} for a_ in adr.values()]}, 2.0,
+                       bis="PEEK 0x%08X" % adr[gruppen[-1]]))
+    aus = {}
+    for g, a_ in adr.items():
+        m = re.search(r"PEEK 0x%08X: ([0-9A-Fa-f]+)" % a_, z)
+        if m:
+            aus[g] = int(m.group(1), 16) & 0xFFFF
+    return aus
 
 def runde_lesen():
     """EIN Aufruf fuer die ganze Runde (04.10.: einzelne Abfragen kosteten ~20 s = 800 Ticks je Runde):
