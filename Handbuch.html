@@ -433,6 +433,50 @@ td.z { text-align: right; white-space: nowrap; }
     <li><b>Flucht-Protokoll je Runde:</b> Ort, Zustand, Laufziel, Abstand zum Verfolger - so sieht man "er bleibt stehen" im Log und nicht nur am Bildschirm.</li>
     <li><b>Gemessen schlaegt gerechnet:</b> die aus der Balance gerechnete Staerke unserer Speertraeger gegen Assassinen (0,21) war falsch; gemessen ist sie 0.</li>
   </ul>
+
+  <h3 id="testen-editor">Testen im Karteneditor (17.10.2026)</h3>
+  <p><b>Warum:</b> Raten aus alten Partien zu schaetzen mischt Abstaende, Schuetzenarten und Gebaeude zufaellig (Daniel 17.10.: "im Kreativmodus checken - jeden Abstand selbst und live nachmessen, beliebig viele Gebaeude dazwischen"). Im Editor laeuft die Spielzeit (gemessen: Tick 2.095 -> 2.397 in 3 s, Pause-Flag 0), Einheiten handeln und kaempfen, es gibt keine Arbeiter und keine KI - jeder Aufbau ist kontrolliert und beliebig oft wiederholbar.</p>
+  <p><b>Editor oeffnen ohne Klick</b> <span class="status gemessen">gemessen</span> - das Modul ruft die Knopf-Handler des Spiels (neuer Modulbefehl <code>knopf</code>, Adressen aus <code>VillageStudio/lib/funktionen.csv</code>); jeder Schritt an der Menueansicht (<code>0x01FE7D1C</code>) und einem Bild geprueft:</p>
+  <ol>
+    <li><code>{"menue": 41}</code> - Hauptmenue (Ansicht 41)</li>
+    <li><code>{"hauptmenue": 9}</code> - Eigene Szenarien (Ansicht 44; Knoepfe: 2 Neue Karte, 4 Karte spielen/laden-Liste, 5 zurueck)</li>
+    <li><code>{"knopf": "CustomScenarios_Main", "nr": 2}</code> - Kartentyp (Ansicht 18; 1 Burgenbau, 2 eigenes Szenario, 3 Kreuzzug-/Mehrspielerkarte, 7 zurueck)</li>
+    <li><code>{"knopf": "NewMapMaptype_Buttons", "nr": 3}</code> - Kartengroesse (Ansicht 31; 1 = 160x160 gemessen, 4 = 400x400 nach Reihenfolge)</li>
+    <li><code>{"knopf": "NewMapMapsize_Buttons", "nr": 4}</code> - Karteneigenschaften (Ansicht 17, "Mehrspieler - Unbenannt")</li>
+    <li><code>{"menue": 12}</code> - Landschaftseditor mit leerer Karte. <b>Falle:</b> "Zur Karte" laeuft NICHT ueber <code>MapEditorProperties_MainButtons</code> (Nummern 0-60 durchprobiert, keine Wirkung); eine dieser Nummern oeffnet aber still einen Laden-Dialog - <code>{"laden": 17}</code> schliesst ihn. Das Menuebild zeigt danach noch den alten Dialog (veralteter Puffer); das Kartenbild (<code>"bild": "karte"</code>) zeigt die Wahrheit.</li>
+  </ol>
+  <p>Werkzeug: <code>python werkzeug/editor_test.py schritte '[...]' [bildname]</code> setzt die Befehle einzeln ab und meldet nach jedem die Ansicht; <code>editor_test.py bild &lt;name&gt; [menue|karte]</code> legt ein PNG nach <code>daten/editor_bilder/</code>. <b>Falle Bilder:</b> das Spiel laeuft mit hoher Rechtestufe und schreibt nicht ins Benutzer-Temp - Bilder gehen in <code>ucp/villagestudio/test_*.bmp</code> und werden von dort kopiert; erst lesen, wenn die Dateigroesse steht.</p>
+  <p><b>Aufbau per Befehl</b> (neu in <code>logik.lua</code>, Sicherung <code>logik.lua.vor-knopf-20261017</code>):</p>
+  <ul>
+    <li><code>{"setzeEinheit": {"spieler": 2, "typ": 22, "x": 239, "y": 199, "anzahl": 1}}</code> - <code>spawnUnit</code> (0x0053E440, thiscall UnitsState 0x01387F38; Mikro = Feld*8+4, Gelaendehoehe aus 0x01D46648) <span class="status gemessen">gemessen</span>: Nummer kommt zurueck, Einheit steht <b>1 Feld weiter</b> als angegeben (x/y +1). Gesetzte Fernkaempfer bilden einen eigenen Trupp (gruppe 1).</li>
+    <li><code>{"toeteAlle": 2}</code> - <code>killUnits</code> (0x00530390) raeumt alle Einheiten eines Spielers ab <span class="status gemessen">gemessen</span>.</li>
+    <li><code>{"setzeGebaeude": {...}}</code> - <code>placeBuilding</code> (0x005162D0) <span class="status offen">ungeprueft</span>.</li>
+  </ul>
+  <p><b>Messreihe Abstand</b> (<code>python werkzeug/editor_messen.py abstand [typen=..] [abstaende=..] [ticks=900]</code>): Schuetze von Spieler 2 bei (240,200), eigene Assassine steht STILL im Abstand D. Stillstehen statt anlaufen, weil die Assassine nur alle 128 Takte prueft, ob sie sichtbar ist (L75) - beim Gehen waere die Grenze nur auf ~8 Felder genau. Gemessen werden erster Treffer (Takt, Abstand), jeder einzelne Treffer, Schaden je Treffer, Takt zwischen Treffern. Ergebnis je Versuch als Zeile in <code>daten/editor_messung_&lt;stempel&gt;.jsonl</code>; <code>editor_messen.py auswerten &lt;datei&gt;</code> fasst zusammen.</p>
+  <h3 id="testen-editor-ergebnisse">Ergebnisse Editor 17.10.2026 <span class="status gemessen">gemessen</span></h3>
+  <p>Je ein Schuetze (Spieler 2, frisch gesetzt, eigene Haltung unveraendert) gegen eine still stehende Assassine; Abstand Schach-Felder in einer Reihe. Rohdaten: <code>daten/editor_messung_20261017_233353.jsonl</code> (Abstand, 66 Versuche), <code>daten/editor_kette_20261017_234403.jsonl</code> (Tick-Protokoll, 12 Versuche).</p>
+  <table>
+    <tr><th>Schuetze</th><th>entdeckt bis</th><th>Schaden je Treffer</th><th>Takt je Schuss</th><th>Schaden je Takt</th><th>Animation bis Abschuss</th><th>Animationsbeginn bis Treffer</th></tr>
+    <tr><td>Bogen 22</td><td>20 Felder (22 nicht)</td><td>1.200</td><td>129</td><td>~9,3</td><td>56</td><td>~110-118</td></tr>
+    <tr><td>Armbrust 23</td><td>20</td><td>6.000</td><td>228</td><td>~26</td><td>137</td><td>~167-173</td></tr>
+    <tr><td>arab. Bogen 70</td><td>20</td><td>1.200</td><td>90</td><td>~13,3</td><td>28</td><td>~67-75</td></tr>
+    <tr><td>Schleuder 72</td><td>15 (18 nicht)</td><td>400</td><td>56</td><td>~7,1</td><td>20</td><td>~61-69</td></tr>
+    <tr><td>Pferdebogen 74</td><td>20</td><td>1.200</td><td>78</td><td>~15,4</td><td>(kein Zustand 5)</td><td>~60-68</td></tr>
+    <tr><td>Feuerwerfer 76</td><td>10 (12 nicht)</td><td>Brand ~37 je Takt</td><td>-</td><td>~37 (toetet in ~350 Takten)</td><td>13</td><td>~71</td></tr>
+  </table>
+  <ul>
+    <li><b>Entdeckung 20 Felder</b> bestaetigt L75; Schleuder und Feuerwerfer sind durch ihre Reichweite begrenzt (15 bzw. 10).</li>
+    <li><b>Schaden haengt nicht vom Abstand ab</b> (4-20 Felder gleich) - <code>schussrate.json</code> (Baender, Feuerwerfer 0) ist damit widerlegt.</li>
+    <li><b>Zustaende des Schuetzen:</b> 8/2/1 Ruhe -> 0 Ziel gefunden (= Erkennen) -> 4 Animation (1 Takt spaeter) -> 5 Abschuss -> 6 Nachlauf -> 0/4 naechster Schuss. Das Schussziel steht NICHT in <code>attackedUnitID</code>/<code>movementType_OR_targetUnitID</code> (blieben leer).</li>
+    <li><b>Flugzeit</b> waechst kaum mit dem Abstand (~1,6 Takte je Feld). Zwischen Erkennen und erstem Treffer liegen 64-170 Takte = 4-11 Felder Laufweg (14,6 Takte je Feld); Pfeile fliegen auf einen festen Punkt (L79) - wer nach dem Abschuss weiterlaeuft, wird nicht getroffen (noch zu messen).</li>
+    <li><b>Erster Treffer nach dem Aufstellen:</b> 108-411 Takte - die Pruefrunden (Assassine alle 128, Bogen/Armbrust alle 64 Takte, L78).</li>
+  </ul>
+  <ul>
+    <li><b>Spaeher</b> (<code>editor_messen.py spaeher</code>): ein Speertraeger 8 Felder neben der Assassine macht sie fuer einen Bogen aus 25 und 35 Feldern beschiessbar; ohne ihn kein Schuss; bei 45/52 Feldern keiner. Sichtbar = irgendein waehlbarer Feind &lt;= 20 Felder, dann schiessen alle Schuetzen in Reichweite (L82).</li>
+    <li><b>Gebaeude angreifen</b> (<code>editor_messen.py gebaeude</code>): Angriffsfeld 13/17/20 Felder vom Bogen -> beschossen, 22-29 -> nie. <b>Regel: Angriffsfeld mehr als 20 Felder von jedem waehlbaren Feind, danach sofort weiter</b> (L83).</li>
+    <li><b>Deckung</b> (<code>editor_messen.py deckung</code>): Huette, Kornspeicher, Kaserne, Wachturm, Bergfried auf der Linie sperren; Lagerplatz sperrt nicht (L84).</li>
+  </ul>
+  <p>Werkzeuge: <code>editor_messen.py abstand</code> (stillstehend, Treffer je Abstand) und <code>editor_messen.py kette</code> (Modulbefehl <code>tickProtokoll</code>: je Takt state +704, animationCycleNumber +688, animationFrame +72, attackedUnitID +830, targetUnitID +838, targetingType +924, lookForEnemy +940, health +968 aus <code>daten/struktur_Unit.txt</code>).</p>
 </section>
 
 <section id="architektur">

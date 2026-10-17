@@ -9,6 +9,10 @@ damit im Nahkampf einfach zu snacken sind"). Vorher festgelegt, was gelten muss:
   5. Schuetze 30 Felder weg (> BEUTE_R) -> KEINE Jagd
   6. (17.10., Partie 1017a: Assassine 195) Schuetze am Boden, aber 12 weitere Armbrustschuetzen 8-12 Felder dahinter mit
      freier Linie -> KEINE Jagd (Beschuss x Toetungszeit uebersteigt den Wert); Gegenprobe: Raten 0 -> Jagd
+  7. (17.10., 1017j, Daniel: "Raiden geht vor") wie 1, aber lohnende Raid-Plaetze da (mehr als Raider) -> KEINE Jagd
+  8. (17.10., 1017j: Feuerwerfer neben arab. Bogen, Todesrisiko 47 %) Schuetze mit 3 Armbrustschuetzen 8-10 Felder dahinter,
+     keine Raid-Plaetze -> KEINE Jagd (Risiko ueber BEUTE_RISIKO)
+  Fall 1-6 laufen ohne lohnende Raid-Plaetze (Lage vor 17.10.).
 Aufruf: python werkzeug/beute_pruefen.py [andere_assassinen.py]   (Rueckgabe 0 = gruen)
 """
 import importlib.util, os, sys
@@ -26,11 +30,13 @@ def neu():
     return A.Einzeln(1, pruefe_begehbar=lambda pkt: set(pkt), wegtest=lambda n, p: [True] * len(p))
 
 
-def lauf(L, G):
+def lauf(L, G, raid=0):
     t = neu()
+    t._raid_plaetze = raid
     t.aufnehmen([100])
     bef = []
     for _ in range(2):                                  # zwei Runden; der Angriffsbefehl kommt in der Runde, in der er sie sieht
+        t._raid_plaetze = raid                          # wie vor der Runde gemessen (die Runde rechnet ihn neu)
         bef += t.schritt(L, G, sichere_orte=ORTE)[1]
     jagd = t.jagd.get(100)
     befohlen = any(b.get("angriff", {}).get("ziel") == 600 and 100 in b["angriff"].get("einheiten", []) for b in bef)
@@ -61,6 +67,11 @@ def main():
     viele = {610 + i: einheit(23, 2, 214 + (i % 4), 266 + i // 4 * 3, leben=17500) for i in range(12)}
     jagd, bef, _ = lauf(*szene(extra=viele))
     pruefe(6, "Schuetze vor 12 Armbrustschuetzen: keine Jagd (%s)" % jagd, jagd != 600)
+    jagd, bef, _ = lauf(*szene(), raid=5)
+    pruefe(7, "lohnende Raid-Plaetze da: keine Jagd (%s)" % jagd, jagd != 600)
+    drei = {630 + i: einheit(23, 2, 214 + i, 268 + i, leben=17500) for i in range(3)}
+    jagd, bef, t8 = lauf(*szene(extra=drei))
+    pruefe(8, "Schuetze vor 3 Armbrustschuetzen: keine Jagd (%s)" % jagd, jagd != 600)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

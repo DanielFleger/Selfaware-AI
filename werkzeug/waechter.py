@@ -49,7 +49,10 @@ def lies_lagebild(neu_holen=True):
     for z in open(LAGEBILD).read().split("\n")[2:]:
         w = z.split()
         if len(w) >= 16:
-            L[int(w[0])] = {"besitzer": int(w[1]), "typ": int(w[2]), "x": int(w[3]), "y": int(w[4]), "leben": int(w[5]),
+            # 18.10. (Gegenpruefung, belegt in 1017h-j: ~770 Assassinen-Runden Modell 0 bei ~360.000 Leben Verlust): sicht.py
+            # braucht "nr" und "gruppe" - ohne sie hatten alle eigenen Einheiten Nummer 0 und es gab nie Verfolger
+            L[int(w[0])] = {"nr": int(w[0]), "gruppe": int(w[18]) if len(w) >= 19 else 0,
+                            "besitzer": int(w[1]), "typ": int(w[2]), "x": int(w[3]), "y": int(w[4]), "leben": int(w[5]),
                             "zustand": int(w[6]), "zielart": int(w[7]), "zieleinheit": int(w[8]), "laufx": int(w[14]), "laufy": int(w[15]),
                             "ladung": int(w[20]) if len(w) >= 22 else 0, "arbeitsplatz": int(w[21]) if len(w) >= 22 else 0,
                             "erreichbar": int(w[22]) if len(w) >= 23 else -1,

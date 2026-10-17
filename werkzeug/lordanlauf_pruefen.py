@@ -7,7 +7,7 @@ Lord 30.000 Leben (Nomade). Vorher festgelegt:
   2. Tick 10.000, keine Raid-Plaetze: Bereitstellung mit den 20 NAECHSTEN (200-219); Laufbefehle nur an sie, jeder Platz
      24-32 Felder vom Lord; KEIN Angriffsbefehl auf den Lord, solange nicht alle bereit sind; 100-104 nicht dabei
   3. Raiden geht vor: 30 lohnende Raid-Plaetze bei 25 Assassinen -> keine Bereitstellung, Meldung "LORD WARTET"
-  4. Spaetestens: wie 3, aber Tick 9.600 + LORD_SPAETESTENS -> Bereitstellung trotz Raid-Plaetzen
+  4. (17.10. Daniel: erst die Wirtschaft entmannen) wie 3, aber 20.000 Ticks spaeter -> weiter KEINE Bereitstellung
   5. 19 von 20 am Platz: noch kein Angriff (Phase bereit)
   6. alle 20 am Platz: Phase angriff, alle 20 bekommen in DERSELBEN Runde einen Befehl auf den Lord (Laufbefehl, weil
      weiter als ANLAUF_NAH), sonst niemand
@@ -95,9 +95,9 @@ def main():
            lt(t)["phase"] is None and any("LORD WARTET" in z for z in erg))
     # 4
     t = neu(raid=30); L, G = szene(); t.aufnehmen([n for n in L if n != 500])
-    erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=9600 + t.LORD_SPAETESTENS)
-    pruefe(4, "spaetestens: Phase %s, Gruppe %d" % (lt(t)["phase"], len(lt(t)["mitglieder"])),
-           lt(t)["phase"] == "bereit" and len(lt(t)["mitglieder"]) == 20)
+    erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=30000)
+    pruefe(4, "Tick 30.000, Raid-Plaetze da: Phase %s, Gruppe %d" % (lt(t)["phase"], len(lt(t)["mitglieder"])),
+           lt(t)["phase"] is None and not lt(t)["mitglieder"])
     # 5 und 6
     t = neu(); L, G = szene(); t.aufnehmen([n for n in L if n != 500])
     t.schritt(L, G, sichere_orte=ORTE, tick=10000)

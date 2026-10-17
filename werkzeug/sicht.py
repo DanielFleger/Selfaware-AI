@@ -23,7 +23,8 @@ HIER = os.path.dirname(os.path.abspath(__file__))
 
 WAEHLBAR = {5, 22, 23, 24, 25, 26, 27, 28, 29, 30, 37, 39, 40, 41, 55, 58, 59, 60, 61,
             70, 71, 72, 73, 74, 75, 76, 77}
-REICHWEITE = {22: 40, 23: 40, 70: 40, 74: 40, 72: 18, 76: 11}
+# 17.10. Editor (L81): Schleuder traf bis 15 (18 nicht), Feuerwerfer bis 10 (12 nicht) - die vorsichtige Seite der Grenze
+REICHWEITE = {22: 40, 23: 40, 70: 40, 74: 40, 72: 17, 76: 11}
 NAHKAMPF = {24, 25, 26, 27, 28, 37, 55, 71, 73, 75}
 TIERE = {44, 45, 46, 47, 48, 49, 51, 52, 62, 67, 68, 69}
 SICHT = 160                      # Feinmass (acquireShootTarget 0x0054B0D0)
@@ -34,9 +35,11 @@ ERHOEHT = {41, 45, 46, 74, 75, 76, 77, 78}
 # Zielwahl der Schuetzen (acquireShootTarget 0x0054B0D0, L78): jeder Schuetze schiesst auf EIN Ziel, das mit dem kleinsten
 # Wert; ein noch von niemandem beschossenes Ziel nimmt er, wenn sein Wert unter dem 1,5-fachen des besten liegt (Feuer
 # verteilt sich). Wert = Schach-Abstand in Feinmass + 50 je Schuetze, der schon darauf zielt, dann je Zielart (prio).
-SCHUETZE_ART = {22: "bogen", 70: "bogen", 74: "bogen", 23: "armbrust", 72: "schleuder", 76: "feuer"}
-BAENDER = {"bogen": (10, 20, 30, 41), "armbrust": (10, 20, 30, 41), "schleuder": (10, 19), "feuer": (12,)}
-_SR = os.path.join(HIER, "..", "daten", "schussrate.json")
+# 17.10. Editor (L81): arab. Bogen und Pferdebogen schiessen schneller als der Bogen - eigene Arten; Schaden haengt NICHT vom
+# Abstand ab (ein Band bis zur Reichweite). Alte Tabelle mit Baendern: daten/schussrate.json (aus Mitschriften, widerlegt).
+SCHUETZE_ART = {22: "bogen", 70: "arabbogen", 74: "pferdebogen", 23: "armbrust", 72: "schleuder", 76: "feuer"}
+BAENDER = {"bogen": (41,), "arabbogen": (41,), "pferdebogen": (41,), "armbrust": (41,), "schleuder": (18,), "feuer": (12,)}
+_SR = os.path.join(HIER, "..", "daten", "schussrate_editor.json")
 try:                                     # Schaden je ZUGETEILTEM Schuetzen und Takt (schussrate_messen.py), sonst Mittelwert
     _d = json.load(open(_SR, encoding="utf-8"))
     RATE = {(k.split(":")[0], int(k.split(":")[1])): v for k, v in zip(_d["spalten"], _d["rate"])}
@@ -117,6 +120,8 @@ class Lage:
         nur in ihrer eigenen Pruefrunde neu (L75), so lange bleiben sie fuer die Schuetzen Ziel (17.10., 1017c)."""
         self.sp = sp
         self.noch_sichtbar = set(noch_sichtbar)
+        # 18.10.: Nummer aus dem Schluessel von L, nicht aus e["nr"] (im Spiel fehlte das Feld - alle eigenen hatten 0)
+        L = {nr: dict(e, nr=nr) for nr, e in L.items()}
         feinde = [e for e in L.values() if e["besitzer"] not in (0, sp) and e["typ"] not in TIERE]
         self.waehl = [(e["x"], e["y"]) for e in feinde if e["typ"] in WAEHLBAR]
         self.gebaeude = {}                   # Feld -> (Nr, Typ) aller Gebaeude mit bekannter Grundflaeche

@@ -13,7 +13,7 @@ ist"; 01:08: "genau wissen, wo alle gegnerischen Einheiten hinschiessen koennen,
 Gegenprobe: werkzeug/schussfeld_pruefen.py."""
 import heapq
 
-REICHWEITE = {22: 40, 23: 40, 70: 40, 74: 40, 72: 18, 76: 11}   # Bogen, Armbrust, arab. Bogen, Pferdebogen, Schleuder, Feuerwerfer
+REICHWEITE = {22: 40, 23: 40, 70: 40, 74: 40, 72: 17, 76: 11}   # 17.10. Editor (L81): Schleuder 17, Feuerwerfer 11   # Bogen, Armbrust, arab. Bogen, Pferdebogen, Schleuder, Feuerwerfer
 # 17.10.: der Schadenssatz nach Abstand zum naechsten Feind (SCHADEN_SATZ, L73) ist ersetzt durch sicht.py - sichtbar nur bei
 # waehlbarem Feind <= 160 Feinmass, Beschuss je Schuetze mit freier/versperrter Linie (L75-L79, Plan_Entdeckung.md).
 ZELLE = 4

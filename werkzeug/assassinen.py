@@ -53,7 +53,9 @@ WERT = {
     # nicht allzu schwer bewacht, fast noch bessere Ziele. Kornspeicher-Bonus (04.10. 22:54). STARTWERTE, Rangfolge von Daniel.
     9: 100, 8: 100,                     # Kaserne, Soeldnerlager (Ausbildungslager)
     19: 100,                            # Kornspeicher
-    20: 80, 21: 60, 5: 70, 6: 60,       # Steinbruch, Steinlager am Bruch, Eisenmine, Pechgrube
+    # 17.10. (Daniel: "nie den unzerstoerbaren Abstellhaufen des Steinbruchs angreifen"): Steinhaufen Typ 21 (L8) raus -
+    # in den 1017-Partien 89x Ziel, 6x "zerstoert" (vermutlich nur mit seinem Steinbruch)
+    20: 80, 5: 70, 6: 60,               # Steinbruch, Eisenmine, Pechgrube
     11: 70, 12: 70, 13: 70, 14: 70, 15: 70,  # Waffenkammer und Waffenbauer
     24: 60, 25: 50, 35: 40,             # Ingenieurs-, Tunnelgraebergilde, Stall
     1: 60,                              # Huetten (Wohnraum = Arbeiter)
@@ -277,6 +279,10 @@ class Einzeln:
     VERWEILEN = 300          # 17.10. ERSETZT durch ARBEIT (gemessen) / Zahl - bleibt nur fuer alte Pruefungen stehen   # 12.10.: gute Tauschgeschaefte (Stellgroessen)
     WEGPUNKT_NAH = 3         # 12.10.: so nah am Wegpunkt gilt er als erreicht
     BEUTE_R = 15             # 12.10.: Fernkaempfer am Boden in diesem Umkreis werden gejagt (Stellgroesse)
+    # 17.10. (1017j, Daniel mit Bild: der erste Assassine jagte bei Tick 3.313 einen Feuerwerfer neben einem arab. Bogen,
+    # Todesrisiko 47 %, "aussenrum gehen und unbeschaut die Gebaeude zerstoeren haette mehr gebracht"): gejagt wird nur,
+    # wer kein Gebaeude-Ziel hat, solange es mehr lohnende Raid-Plaetze als Raider gibt gar nicht, und hoechstens BEUTE_RISIKO
+    BEUTE_RISIKO = 0.10
     # Laufzeit-Typen mit begehbarem Dach (abgelesen VillageStudio/lib/aiv_typen.lua AIV_ZU_LAUFZEIT): Tuerme 74-78,
     # Torhaus gross 45 / klein 46, Steinbergfried 41. Andere Bergfried-Arten sind dort nicht aufgefuehrt (offen)
     ERHOEHT = {41, 45, 46, 74, 75, 76, 77, 78}
@@ -361,13 +367,31 @@ class Einzeln:
     BEREIT_NAH = 3                   # so nah am Platz gilt er als bereit
     BEREIT_MAX = 3000                # Ticks fuer die Bereitstellung, dann Abbruch -> alle raiden
     BEREIT_NEU = 3                   # hoechstens so viele Laufbefehle zum Platz, dann raus aus der Gruppe
-    ANLAUF_NAH = 6                   # naeher am Lord: Angriffsbefehl statt Laufbefehl
+    # 17.10. (1017i, Lageprotokoll Tick 30.567-31.005): der Lord stand OBEN auf seinem Bergfried (Typ 41 daneben, Zustand 13);
+    # mit 6 schaltete die Gruppe 4-5 Felder vor ihm auf den Angriffsbefehl um, der nicht klettert - Lord 30.000 unveraendert,
+    # alle 5 tot. Beim 2. Angriff kam er herunter: -12.900 Leben. Darum Laufbefehl (Kletterweg) bis direkt neben ihn.
+    ANLAUF_NAH = 1                   # naeher am Lord: Angriffsbefehl statt Laufbefehl
     STEH_TICKS = 200                 # ohne Spielziel auf demselben Feld -> Lenker-Zustand loesen
     BEREIT_PAUSE = 1000              # nach Abbruch/Ende eines Lord-Versuchs so viele Ticks nur raiden (STARTWERT)
     # Raiden geht vor (Daniel 17.10. "prio ist am Anfang raiden und auch waehrend des laufs spaeter"): eine Lord-Gruppe
     # bekommt nur, wer UEBER die lohnenden Raid-Plaetze hinaus da ist (Plaetze = freie Gebaeude ohne Beschuss am Ziel x
     # Assassinen je Gebaeude). Spaetestens LORD_SPAETESTENS Ticks nach dem Lord-Schutz darf der Lord trotzdem dran (STARTWERT).
-    LORD_SPAETESTENS = 9600
+    # 17.10. (Daniel: "wenn die gegnerische Wirtschaft brachliegt, kann man sich Zeit nehmen und erst die Wirtschaft
+    # entmannen"): kein Zwang mehr - None = der Lord kommt nur mit dem Ueberschuss ueber die Raid-Plaetze dran
+    LORD_SPAETESTENS = None
+    FRONT_AB = 30                    # ohne Ziel weiter als so viele Felder vom naechsten Feindgebaeude -> nach vorn warten
+    FRONT_R = (35, 45)               # Warteplaetze: Ring um den naechsten feindlichen Lord (STARTWERT)
+    # 17.10. (1017k, Daniel: "wie kann man nicht sehen, dass da auch Fernkaempfer sind - er wurde gespottet und von ihnen
+    # getoetet"): am Ankerfeld von Gebaeude 144 rechnete das Modell 0,0 Beschuss (das Gebaeude selbst versperrt die Linien),
+    # auf seinen Randfeldern - wo die Assassine beim Angriff steht - im Mittel 19,9, hoechstens 37,6; 7 Schuetzen <= 16 Felder.
+    # Und gemessen in 1017h-k (feuer_messen.py): echter Lebensverlust je Tick ~2-2,5x das Modell (6+ Schuetzen: 2,8 / 1,1).
+    # Darum: Beschuss am Ziel = hoechster Wert der Randfelder; unbeobachtete Ziele (0) zuerst; beobachtete nur bis ZIEL_RISIKO;
+    # Risiko x KALIB (STARTWERT aus dem Verhaeltnis echt/Modell, bis die Raten neu geeicht sind).
+    # 18.10.: mit den Editor-Raten (L81) und der behobenen Nummer (L85) UEBERschaetzt das Modell den echten Verlust in 1017h-j
+    # um das 2-4fache (6+ Schuetzen: Modell 8,4 / echt 2,8 je Takt; nahe Feuerwerfern 57-132 / 13-47) - es rechnet volles Feuer ab
+    # dem ersten Takt, im Spiel vergehen 64-170 Takte bis zum ersten Treffer. Kein Aufschlag mehr; vorsichtig bleibt es so ohnehin
+    KALIB = 1.0
+    ZIEL_RISIKO = 0.05
 
     def __init__(self, sp=1, pruefe_begehbar=None, wegtest=None):
         self.sp = sp
@@ -393,7 +417,11 @@ class Einzeln:
         self.lies_haltung, self._haltung, self._haltung_runde = None, {}, -99
         self._sicht = None
         self.runde, self.gemessen, self.ohne_ziel_zuletzt = 0, 0, None
-        self.bilanz = {"gebaeude": {}, "verluste": set(), "neu_befohlen": 0, "rueckzug": 0, "zuschlagen": 0}
+        self.bilanz = {"gebaeude": {}, "verluste": set(), "neu_befohlen": 0, "rueckzug": 0, "zuschlagen": 0, "tote": 0}
+        # 17.10. (1017i nachgespielt: 299.038 Assassinen-Ticks ungesteuert = die ganze Stehzeit an unserer Burg): das Spiel
+        # vergibt die Nummer einer toten Einheit neu; "verluste" sperrte die Nummer fuer immer, der neue Assassine stand bis
+        # Partieende. Eine Nummer, die nach dem Tod einmal aus dem Lagebild verschwunden war, darf wieder aufgenommen werden.
+        self._frei_nr = set()
         self.lagen = lagen_laden()           # gemessene Lagen (daten/lagen_belegt.json) fuer den Lord-Bedarf
         self.angriff_aus = False             # Trainingsstand: nur sammeln, nie angreifen (setzt erstes_spiel.py)
         self.bedarf_zuletzt = None
@@ -791,6 +819,60 @@ class Einzeln:
             return sicher
         return sorted(ring, key=lambda q: (s.beschuss(q), -s.sicht_abstand(q)))[:6]
 
+    def _beschuss_angriff(self, gn, G, von=None):
+        """17.10.: Beschuss je Takt dort, wo die Assassine beim Angriff steht - nicht das Ankerfeld (dort versperrt das Gebaeude
+        selbst die Linien). von = Ort der Assassine: hoechster Wert der 3 Randfelder auf ihrer Anlaufseite. Ohne von: kleinster
+        Wert aller Randfelder (gibt es eine unbeobachtete Seite?). Je Runde einmal je Gebaeude gerechnet."""
+        if getattr(self, "_ba_runde", None) != self.runde:
+            self._ba_runde, self._ba = self.runde, {}
+        if gn not in self._ba:
+            g = G[gn]
+            b = sicht.GROESSE.get(g["typ"], 1) or 1
+            rand = [(x, y) for x in range(g["x"] - 1, g["x"] + b + 1) for y in range(g["y"] - 1, g["y"] + b + 1)
+                    if not (g["x"] <= x < g["x"] + b and g["y"] <= y < g["y"] + b)]
+            self._ba[gn] = [(q, self._sicht.beschuss(q, 16)) for q in rand]
+        werte = self._ba[gn]
+        if not werte:
+            return 0.0
+        if von is None:
+            return min(w for _, w in werte)
+        nah = sorted(werte, key=lambda qw: (schach(qw[0], von), qw[0]))[:3]
+        return max(w for _, w in nah)
+
+    def _im_lordangriff(self, n):
+        """18.10. (Gegenpruefung): "Der Lord-Trupp bleibt dran" gilt nur im gemeinsamen Angriff, nicht in der Bereitstellung."""
+        return n in self.lordtrupp["mitglieder"] and self.lordtrupp["phase"] in ("angriff", "sammeln")
+
+    def _aus_bereit(self, n, grund, ereignis):
+        """18.10.: wer in der Bereitstellung zurueckweicht, flieht oder ausweicht, verlaesst die Gruppe (sonst schickt ihn die
+        Bereitstellung in der naechsten Runde wieder zum Platz) und wird fuer diese Bereitstellung gesperrt."""
+        lt = self.lordtrupp
+        if lt["phase"] == "bereit" and n in lt["mitglieder"]:
+            lt["mitglieder"].discard(n)
+            for k in ("platz", "weg", "neu", "befohlen"):
+                lt.get(k, {}).pop(n, None)
+            lt.setdefault("raus", set()).add(n)
+            ereignis.append("LORD-BEREITSTELLUNG: %d raus (%s)" % (n, grund))
+
+    def _front_platz(self, ort):
+        """17.10.: verdeckter Warteplatz nah am Gegner - Ring FRONT_R um den naechsten feindlichen Lord, kein Beschuss, kein
+        Verfolger (sicht.sicher), begehbar; der naechste zu ort. Einmal je Runde gerechnet."""
+        if getattr(self, "_front_runde", None) != self.runde:
+            self._front_runde, self._front = self.runde, []
+            for b in getattr(self, "_feindburg", []):
+                ring = []
+                for r in self.FRONT_R:
+                    for k in range(24):
+                        w = k * math.pi / 12
+                        q = (int(round(b[0] + r * math.cos(w))), int(round(b[1] + r * math.sin(w))))
+                        if 2 <= q[0] <= 397 and 2 <= q[1] <= 397:
+                            ring.append(q)
+                if self.pruefe_begehbar and ring:
+                    gut = self.pruefe_begehbar(ring)
+                    ring = [q for q in ring if q in gut]
+                self._front += [q for q in ring if self._sicht is None or self._sicht.sicher(q)]
+        return min(self._front, key=lambda q: schach(ort, q)) if self._front else None
+
     def _bereit_zuweisen(self, n, L, G, plaetze, ereignis):
         """17.10.: Platz fuer n = kleinstes Wegrisiko (Gefahren-Gitter, wie die Zielwahl), dann kuerzester Weg; Weg ueber
         den toten Winkel (schussfeld.sicherer_weg), sonst gerade."""
@@ -842,19 +924,45 @@ class Einzeln:
                     self._kand[n] = c
         punkte = sorted({p for c in self._kand.values() for p in c})
         self._begehbar = (self.pruefe_begehbar(punkte) if self.pruefe_begehbar else set(punkte)) if punkte else set()
+        # 0. Neu unter alter Nummer (17.10.): verschwunden gewesen und jetzt wieder eigener Assassine -> neuer Assassine
+        for n in self.bilanz["verluste"]:
+            if n not in L:
+                self._frei_nr.add(n)
+        neu_alt = sorted(n for n in self._frei_nr if n in L and L[n]["besitzer"] == self.sp and L[n]["typ"] == ASSASSINE)
+        for n in neu_alt:
+            self._frei_nr.discard(n); self.bilanz["verluste"].discard(n)
+            self._vergessen(n); self.flucht.pop(n, None); self.leben.pop(n, None); self._steht.pop(n, None)
+            self.mitglieder.add(n)
+        if neu_alt:
+            self.bilanz["alte_nummer"] = self.bilanz.get("alte_nummer", 0) + len(neu_alt)
+            ereignis.append("NEU UNTER ALTER NUMMER: %s aufgenommen" % neu_alt)
         # 1. Verluste und Verletzungen messen
         for n in list(self.mitglieder):
             if n not in L or L[n]["besitzer"] != self.sp:
                 self.bilanz["verluste"].add(n); self.mitglieder.discard(n); self._vergessen(n); self.flucht.pop(n, None)
+                self.bilanz["tote"] += 1
+                self.lordtrupp["mitglieder"].discard(n)
+                if n not in L:
+                    self._frei_nr.add(n)
                 ereignis.append("MESSUNG tot %d: zuletzt %s" % (n, self.umfeld.pop(n, "unbekannt")))
                 self.leben.pop(n, None)
         # 17.10. (1017h: 304.000 Assassinen-Ticks Stillstand ohne Spielziel): seit wann steht er ohne Spielziel auf diesem Feld?
         for n in list(self._steht):
             if n not in self.mitglieder:
                 del self._steht[n]
+        # 18.10. (Gegenpruefung, 1017j: 18 von 36 "STILLSTAND geloest" trafen laufende Abrisse - beim Abreissen meldet das Spiel
+        # zielart 0 und Laufziel = eigenes Feld): verliert sein Zielgebaeude Leben und steht er daneben, ist das Arbeit
+        gb_leben = getattr(self, "_gb_leben", {})
+        fort = {gn for gn, g in G.items() if gn in gb_leben and g["leben"] < gb_leben[gn]}
+        self._gb_fort = {gn: self.jetzt for gn in fort} | {gn: tk for gn, tk in getattr(self, "_gb_fort", {}).items()
+                                                           if gn in G and gn not in fort}
+        self._gb_leben = {gn: g["leben"] for gn, g in G.items()}
         for n in self.mitglieder:
             f = (L[n]["x"], L[n]["y"])
-            if L[n]["zielart"] != 0 or self._steht.get(n, (None,))[0] != f:
+            z = self.ziel.get(n)
+            reisst = z in G and schach(f, (G[z]["x"], G[z]["y"])) <= self.ZIEL_NAH and \
+                self.jetzt - self._gb_fort.get(z, -10 ** 9) < self.STEH_TICKS
+            if L[n]["zielart"] != 0 or self._steht.get(n, (None,))[0] != f or reisst:
                 self._steht[n] = (f, self.jetzt)
         verletzt = set()
         for n in self.mitglieder:
@@ -918,6 +1026,8 @@ class Einzeln:
         for n in sorted(self.mitglieder):
             if n in self.jagd or n in self.lordtrupp["mitglieder"] or n in self.stapel["mitglieder"] or n in self.flucht or n not in L:
                 continue
+            if n in self.ziel or n in self.route or (self._raid_plaetze or 0) > len(self.ziel):
+                continue                   # 17.10.: Raiden geht vor (Daniel)
             ort = (L[n]["x"], L[n]["y"])
             nah_b = [b_ for b_ in beute if schach(ort, b_[1]) <= self.BEUTE_R]
             # 17.10. (Partie 1017a: Assassine 195 jagte eine Armbrust neben 21 Schuetzen und starb in ~80 Takten): Risiko gegen
@@ -936,7 +1046,7 @@ class Einzeln:
                 risiko = (r_weg[0] + self._sicht.beschuss(b_[1], 16) * t_toeten) if r_weg else                     self._sicht.beschuss(b_[1], 16) * (t_toeten + t_weg)
                 p_tod = min(1.0, risiko / max(1.0, float(L[n]["leben"])))
                 saldo = EINHEIT_WERT.get(ziel_e.get("typ"), 30) * (1 - p_tod) - p_tod * self.KOSTEN
-                if saldo > 0 and (beste_b is None or saldo / (t_toeten + t_weg) > beste_b[0]):
+                if saldo > 0 and p_tod <= self.BEUTE_RISIKO and (beste_b is None or saldo / (t_toeten + t_weg) > beste_b[0]):
                     beste_b = (saldo / (t_toeten + t_weg), b_, p_tod, saldo, t_toeten)
             if beste_b:
                 _, ziel_b, p_tod, saldo, t_toeten = beste_b
@@ -960,8 +1070,9 @@ class Einzeln:
             if gz in G and n not in self.route and \
                     b_ort * self._arbeit(G[gz]["typ"], sum(1 for z in self.ziel.values() if z == gz)) < L[n]["leben"]:
                 continue
-            if n in self.lordtrupp["mitglieder"]:
+            if self._im_lordangriff(n):
                 continue                   # der Lord-Trupp bleibt dran (gebuendelt; Daniel: nur die letzten Lebenspunkte zaehlen)
+            self._aus_bereit(n, "verletzt im Beschuss, Rueckzug", ereignis)
             if n in self.stapel["mitglieder"]:
                 if L[n]["leben"] >= self.STAPEL_RUECKZUG * self.VOLL:
                     continue
@@ -986,7 +1097,7 @@ class Einzeln:
         # Feind; kein neues Ziel, bis FLUCHT_RUHE Runden lang kein feindlicher Nahkaempfer im Umkreis SICHER_NAH stand.
         eigene_orte = [(L[m]["x"], L[m]["y"]) for m in self.mitglieder]
         for n in sorted(self.mitglieder):
-            if n in self.lordtrupp["mitglieder"]:
+            if self._im_lordangriff(n):
                 continue                   # der Lord-Angriff bleibt dran (Daniel 21:47)
             ort = (L[n]["x"], L[n]["y"])
             feinde = self._bedrohung(ort, nah)
@@ -1041,6 +1152,7 @@ class Einzeln:
                 continue                       # kein Weg weg: weiterkaempfen
             self._vergessen(n)
             self.stapel["mitglieder"].discard(n)
+            self._aus_bereit(n, "Flucht vor Nahkampf-Uebermacht", ereignis)
             self._fliehen(n, sicher, flieh)
             # Kreismitte (T2): KREIS_MITTE Felder in der ersten Fluchtrichtung, nicht naeher als KREIS_RAND am Kartenrand
             lang = max(schach(ort, sicher), 1)
@@ -1065,13 +1177,25 @@ class Einzeln:
                                                                        L[n]["leben"], sicher, "; ".join(getattr(self, "_heimgrund", []))))
         # 4b. Ausweichen, bevor es weh tut: rueckt eine Gruppe Fernkaempfer heran, Ziel aufgeben
         for n in self.mitglieder:
-            if n in verletzt or n in self.jagd or n in self.warte or n in self.stapel["mitglieder"] or n in self.lordtrupp["mitglieder"]:
+            if n in verletzt or n in self.jagd or n in self.warte or n in self.stapel["mitglieder"] or self._im_lordangriff(n):
                 continue
             ort = (L[n]["x"], L[n]["y"])
             # 17.10. (statt VORAUS_FERN/VORAUS_ANZAHL: 3 Schuetzen im Umkreis 10): ausweichen, wenn er hier beschossen werden
             # kann und der Beschuss bis zum Ende seines Auftrags sein Leben ueberstiege; auf einer sicheren Route nicht (die
             # Route ist schon um die Gefahr gerechnet)
             if n in self.route:
+                # 18.10. (Gegenpruefung, 1017k: die Route von 86 fuehrte ~2.400 Takte durch Zellen mit 18-19 Beschuss je Takt,
+                # nie neu bewertet): liegt der Ort oder das Stueck bis zum naechsten Wegpunkt im Beschuss, Ziel aufgeben - die
+                # Zielwahl rechnet in dieser Runde einen neuen Weg (oder nimmt ein anderes Ziel)
+                punkte = self.route[n]["punkte"]
+                stueck = [ort] + ([tuple(punkte[0])] if punkte else [])
+                probe = []
+                for a_, b_ in zip(stueck, stueck[1:]):
+                    k_ = max(1, schach(a_, b_) // 2)
+                    probe += [(a_[0] + (b_[0] - a_[0]) * i // k_, a_[1] + (b_[1] - a_[1]) * i // k_) for i in range(k_ + 1)]
+                if any(self._sicht.beschuss(q, 16) > 0 for q in (probe or [ort])):
+                    ereignis.append("ROUTE GEFAEHRLICH %d bei %s: Ziel %s aufgegeben, neuer Weg" % (n, ort, self.ziel.get(n)))
+                    self._vergessen(n)
                 continue
             b_ort = self._sicht.beschuss(ort)
             gz = self.ziel.get(n)
@@ -1080,6 +1204,7 @@ class Einzeln:
                 sicher = self._sicherer_ort(ort, orte, fern, nah, n)
                 if sicher:
                     self._vergessen(n)
+                    self._aus_bereit(n, "Beschuss am Ort, ausgewichen", ereignis)
                     self._warten(n, sicher, halten)
                     self.bilanz["ausgewichen"] = self.bilanz.get("ausgewichen", 0) + 1
         # 4c. Gegenprobe Warten: laeuft er nach NEU_NACH Runden nicht zu seinem sicheren Ort, neu schicken (mit Messzeile)
@@ -1111,6 +1236,15 @@ class Einzeln:
             # naechsten steht; laeuft schon ein Anlauf, bleibt es sein Lord
             mx = sum(L[k]["x"] for k in self.mitglieder if k in L) / max(1, len(self.mitglieder))
             my = sum(L[k]["y"] for k in self.mitglieder if k in L) / max(1, len(self.mitglieder))
+            # 18.10. (Gegenpruefung): ist der Lord der laufenden Bereitstellung bzw. des Angriffs weg (tot), Gruppe aufloesen -
+            # sonst stuermte die Restgruppe ohne Bereitstellung den zweiten Lord, der Angriffsbefehl zielte auf die tote Nummer
+            if lt["phase"] in ("bereit", "angriff") and lt.get("lord") not in {k for k, _ in lords}:
+                if lt["phase"] == "angriff" and self.angriffe:
+                    self.angriffe[-1]["lord_nachher"] = 0
+                ereignis.append("LORD %s weg (tot?) - Lord-Trupp aufgeloest, %d raiden wieder" % (lt.get("lord"), len(lt["mitglieder"])))
+                for k in list(lt["mitglieder"]):
+                    self._vergessen(k)
+                lt.update(mitglieder=set(), phase=None, lord=None, sammelpunkt=None, pause_bis=self.jetzt + self.BEREIT_PAUSE)
             fest = [x for x in lords if x[0] == lt.get("lord")] if lt["phase"] else []
             ln, le = fest[0] if fest else min(lords, key=lambda x: (schach((x[1]["x"], x[1]["y"]), (mx, my)), x[0]))
             lp = (le["x"], le["y"])
@@ -1129,7 +1263,7 @@ class Einzeln:
                             n_r, n_bedarf, bedarf_art, le["leben"], f_ges))
                     n_bedarf, bedarf_art, gruppe_leben = n_r, "gerechnet", None
             # 17.10. Laptop (1017h): Bereitstellung statt gestaffeltem Anlauf - die Gruppe zaehlt ganz (unterwegs + bereit)
-            if lt["mitglieder"] and lt["phase"] == "angriff" and len(lt["mitglieder"]) < self.LORD_REST:
+            if lt["phase"] == "angriff" and len(lt["mitglieder"]) < self.LORD_REST:
                 ereignis.append("GEMEINSAMER LORD-ANGRIFF vorbei: noch %d leben, Lord-Leben %d - wieder raiden bis %d" % (
                     len(lt["mitglieder"]), le["leben"], n_bedarf))
                 for n in list(lt["mitglieder"]):
@@ -1166,7 +1300,7 @@ class Einzeln:
             # Raiden geht vor (Daniel 17.10.): nur der Ueberschuss ueber die lohnenden Raid-Plaetze geht auf den Lord
             plaetze_r = self._raid_plaetze if self._raid_plaetze is not None else len(self.mitglieder)
             ueber = len(self.mitglieder) - plaetze_r
-            spaet = self.jetzt >= lordschutz.BIS + self.LORD_SPAETESTENS
+            spaet = self.LORD_SPAETESTENS is not None and self.jetzt >= lordschutz.BIS + self.LORD_SPAETESTENS
             if not self.angriff_aus and lt["phase"] is None and len(self.mitglieder) >= n_bedarf and self.jetzt >= lordschutz.BIS \
                     and machbar and ueber < n_bedarf and not spaet and self.runde % 20 == 0:
                 ereignis.append("LORD WARTET: Raiden geht vor - %d Assassinen, %d lohnende Raid-Plaetze (Lord-Gruppe %d erst ab Ueberschuss)" % (
@@ -1176,9 +1310,10 @@ class Einzeln:
                 plaetze = self._bereit_plaetze(lp)
                 if plaetze:
                     # zuerst, wer kein Raid-Ziel hat, dann die naechsten am Lord (1017d: nie die weitesten)
-                    gruppe = sorted(self.mitglieder, key=lambda k: (k in self.ziel or k in self.jagd, schach(pos(k), lp), -L[k]["leben"], k))[:n_bedarf]
+                    gruppe = sorted((k for k in self.mitglieder if k not in self.flucht),
+                                    key=lambda k: (k in self.ziel or k in self.jagd, schach(pos(k), lp), -L[k]["leben"], k))[:n_bedarf]
                     lt.update(mitglieder=set(gruppe), warte=set(), lord=ln, phase="bereit", seit=self.runde, seit_tick=self.jetzt,
-                              sammelpunkt=None, platz={}, weg={}, neu={}, befohlen={}, bereit=set(), plaetze=plaetze)
+                              sammelpunkt=None, platz={}, weg={}, neu={}, befohlen={}, bereit=set(), plaetze=plaetze, raus=set())
                     for k in gruppe:
                         self._vergessen(k)
                         self.stapel["mitglieder"].discard(k)
@@ -1190,7 +1325,8 @@ class Einzeln:
                         n_bedarf, bedarf_art, "spaetestens" if spaet and ueber < n_bedarf else "Ueberschuss %d" % ueber, plaetze_r))
             if lt["phase"] == "bereit":
                 # Tote ersetzen (1017f: sonst Abbruch beim ersten Toten) - zuerst Freie ohne Raid-Ziel, dann die naechsten
-                frei_k = sorted((k for k in self.mitglieder if k not in lt["mitglieder"]),
+                frei_k = sorted((k for k in self.mitglieder if k not in lt["mitglieder"] and k not in lt.get("raus", ())
+                                 and k not in self.flucht),
                                 key=lambda k: (k in self.ziel or k in self.jagd, schach(pos(k), lp), -L[k]["leben"], k))
                 while frei_k and len(lt["mitglieder"]) < n_bedarf:
                     k = frei_k.pop(0)
@@ -1204,20 +1340,41 @@ class Einzeln:
                     if platz is None:
                         platz = self._bereit_zuweisen(k, L, G, lt["plaetze"], ereignis)
                     if schach(pos(k), platz) <= self.BEREIT_NAH:
+                        # 18.10. (Gegenpruefung): der Platz wurde nur beim Start geprueft - wird er unsicher (Schuetzen ruecken
+                        # nach) oder verliert der Wartende dort Leben, Platz streichen und einen neuen nehmen
+                        if k in verletzt or not self._sicht.sicher(platz):
+                            lt["plaetze"] = [q for q in lt["plaetze"] if q != platz]
+                            if not lt["plaetze"]:
+                                lt["plaetze"] = [q for q in self._bereit_plaetze(lp) if q != platz]
+                            if lt["plaetze"]:
+                                neu_p = self._bereit_zuweisen(k, L, G, lt["plaetze"], ereignis)
+                                ereignis.append("LORD-BEREITSTELLUNG: Platz %s unsicher - %d nach %s" % (platz, k, neu_p))
+                            else:
+                                self._aus_bereit(k, "kein sicherer Platz mehr", ereignis)
+                            continue
                         bereit.add(k)
                         continue
                     weg = lt["weg"][k]
                     while len(weg) > 1 and schach(pos(k), weg[0]) <= self.WEGPUNKT_NAH:
                         weg.pop(0)
+                        lt["neu"][k] = 0           # 18.10.: Wegpunkt erreicht = er laeuft; nur Befehle ohne Fortschritt zaehlen
                     lauf = (L[k].get("laufx", -99), L[k].get("laufy", -99))
-                    if schach(lauf, weg[0]) > 2 and self.runde - lt["befohlen"].get(k, -99) >= 2:
-                        if lt["neu"].get(k, 0) >= self.BEREIT_NEU and schach(lauf, pos(k)) <= 1:
+                    # 18.10.: blockiert = steht STEH_TICKS ohne Spielziel auf demselben Feld, auch wenn das Laufziel noch stimmt
+                    f_s, seit_s = self._steht.get(k, (None, self.jetzt))
+                    blockiert = f_s == pos(k) and self.jetzt - seit_s >= self.STEH_TICKS
+                    # 18.10.: im Spiel zeigt das Laufziel beim Gehen nur 1 Feld voraus (1017j, Assassine 336) - "Laufziel = eigenes
+                    # Feld" heisst also nicht "steht". Gezaehlt werden nur Befehle ohne Fortschritt seit dem letzten Befehl
+                    if schach(pos(k), lt.setdefault("ort_bef", {}).get(k, pos(k))) > 1:
+                        lt["neu"][k] = 0
+                    if (schach(lauf, weg[0]) > 2 or blockiert) and self.runde - lt["befohlen"].get(k, -99) >= 2:
+                        if lt["neu"].get(k, 0) >= self.BEREIT_NEU and (schach(lauf, pos(k)) <= 1 or blockiert):
                             ereignis.append("LORD-BEREITSTELLUNG: %d laeuft nach %d Befehlen nicht los (Feld %s, Zustand %d) - raus, raidet" % (
                                 k, lt["neu"][k], pos(k), L[k]["zustand"]))
-                            lt["mitglieder"].discard(k)
+                            self._aus_bereit(k, "laeuft nicht los", ereignis)
                             continue
                         lt["neu"][k] = lt["neu"].get(k, 0) + 1
                         lt["befohlen"][k] = self.runde
+                        lt["ort_bef"][k] = pos(k)
                         lord_lauf.setdefault(weg[0], []).append(k)
                 lt["bereit"] = bereit
                 if len(bereit) >= n_bedarf and lord_machbar(len(bereit), le["leben"], self._sicht.feuer_gesamt(lp) / len(bereit))[0]:
@@ -1304,11 +1461,16 @@ class Einzeln:
                         lt["mitglieder"].discard(k)
                         self._vergessen(k)
                         continue
-                    if schach(pos(k), lp) > self.ANLAUF_NAH:
-                        if schach((L[k].get("laufx", -99), L[k].get("laufy", -99)), lp) > 3:
-                            lord_lauf.setdefault(lp, []).append(k)
-                    else:
+                    # 18.10. (Gegenpruefung): 2-3 Felder vor dem Lord ging weder Lauf- noch Angriffsbefehl hinaus. Jetzt: wer
+                    # hoechstens 3 Felder vor ihm nicht mehr laeuft, bekommt den Angriffsbefehl; wer weiter weg steht und
+                    # nicht laeuft oder ein anderes Laufziel hat, einen neuen Laufbefehl auf den Lord (Kletterweg)
+                    d_l = schach(pos(k), lp)
+                    lauf_k = (L[k].get("laufx", -99), L[k].get("laufy", -99))
+                    steht_k = schach(lauf_k, pos(k)) <= 1 or (f == pos(k) and self.jetzt - seit >= self.BLOCK_TICKS)
+                    if d_l <= self.ANLAUF_NAH or (d_l <= 3 and steht_k):
                         lord_ziel.append(k)
+                    elif schach(lauf_k, lp) > 3 or steht_k:
+                        lord_lauf.setdefault(lp, []).append(k)
                 lt["seit"] = self.runde
             if lt["phase"] == "angriff" and lt["mitglieder"] and self.angriffe:
                 self._lord_messen(L, G, ln, le, lp, fern, nah)
@@ -1339,7 +1501,7 @@ class Einzeln:
         platz = lambda k: (2 if WERT.get(k[2], 10) >= self.TEUER else self.JE_GEBAEUDE) + angegriffen.get(k[0], 0)
         # 17.10. Raiden geht vor: lohnende Raid-Plaetze = erreichbare Gebaeude ohne Beschuss am Ziel x Plaetze je Gebaeude.
         # Gilt in der NAECHSTEN Runde fuer die Frage, ob ein Ueberschuss fuer den Lord da ist.
-        self._raid_plaetze = sum(platz(k) for k in kand if k[3] and self._sicht.beschuss(k[1], 16) <= 0)
+        self._raid_plaetze = sum(platz(k) for k in kand if k[3] and self._beschuss_angriff(k[0], G) <= 0)
         # Zielwechsel: wer ein Gebaeude angreift, wechselt sofort, wenn ein freies, erreichbares Gebaeude mindestens WECHSEL-mal
         # mehr Wert je Weg bringt (z.B. ein neu gebautes in der Naehe)
         wert = lambda ort, k: WERT.get(k[2], 10) / ((schach(ort, k[1]) + 20.0) * (1 + k[5]))
@@ -1348,8 +1510,11 @@ class Einzeln:
                 continue
             ort = (L[n]["x"], L[n]["y"])
             jetzt = next((k for k in kand if k[0] == gn), None)
+            # 17.10. (1017k nachgespielt: Zielwechsel sprang immer wieder auf Gebaeude 29, auf dessen Weg 86 an Feuerwerfern starb):
+            # gewechselt wird nur auf ein Ziel, das an der Anlaufseite nicht staerker beobachtet ist als das jetzige
+            b_jetzt = self._beschuss_angriff(gn, G, ort)
             besser = [k for k in kand if k[3] and k[0] != gn and zahl.get(k[0], 0) < platz(k) and k[5] <= self.ZIEL_FERN_MAX
-                      and guter_tausch(k)]
+                      and guter_tausch(k) and self._beschuss_angriff(k[0], G, ort) <= b_jetzt]
             if jetzt and besser:
                 b_k = max(besser, key=lambda k: wert(ort, k))
                 if wert(ort, b_k) >= self.WECHSEL * wert(ort, jetzt):
@@ -1379,25 +1544,32 @@ class Einzeln:
             # beim Angriff -> Todeswahrscheinlichkeit; Saldo = Wert x Ueberleben - Tod x Preis; das beste Saldo je Zeit.
             g_r = self._gitter(L, G)
             rk = g_r.risiko_von(ort, TEMPO) if g_r is not None else {}
-            beste = None
+            beste, beste_bew = None, None     # 17.10.: unbeobachtete Ziele zuerst, beobachtete nur bis ZIEL_RISIKO
             for k in frei:
                 if k[8] > zahl.get(k[0], 0) + 1:
                     continue                   # 4a: nicht dorthin, wo mehr Nahkampf-Wachen stehen als wir Angreifer haetten
+                b_ziel = self._beschuss_angriff(k[0], G, ort)
                 # 17.10.: Zeit am Ziel = gemessene Arbeit / Zahl der Angreifer (statt VERWEILEN 300 ungemessen); Beschuss am
                 # Ziel aus der Sicht (sichtbar nur bei waehlbarem Feind <= 20 Feldern, Schusslinie) statt Schadenssatz L73
                 verweilen = self._arbeit(k[2], zahl.get(k[0], 0) + 1)
                 if g_r is not None:
                     c = g_r.zelle_von(k[1])
                     r_weg, felder = rk.get(c, (1e9, 999))
-                    risiko = r_weg + self._sicht.beschuss(k[1], 16) * verweilen
+                    risiko = (r_weg + b_ziel * verweilen) * self.KALIB
                 else:
                     felder = schach(ort, k[1])
-                    risiko = self._sicht.beschuss(k[1], 16) * (verweilen + felder * TEMPO)
+                    risiko = b_ziel * (verweilen + felder * TEMPO) * self.KALIB
                 p_tod = min(1.0, risiko / max(1.0, float(L[n]["leben"])))
                 saldo = WERT.get(k[2], 10) * (1 - p_tod) - p_tod * self.KOSTEN
                 je_zeit = saldo / (felder * TEMPO + verweilen)
-                if saldo > 0 and (beste is None or je_zeit > beste[0]):
-                    beste = (je_zeit, k, p_tod, saldo)
+                if saldo <= 0:
+                    continue
+                if b_ziel <= 0:
+                    if beste is None or je_zeit > beste[0]:
+                        beste = (je_zeit, k, p_tod, saldo)
+                elif p_tod <= self.ZIEL_RISIKO and (beste_bew is None or je_zeit > beste_bew[0]):
+                    beste_bew = (je_zeit, k, p_tod, saldo)
+            beste = beste or beste_bew
             if beste:
                 _, k_b, p_tod, saldo = beste
                 gn, p, typ, _, f10, f20, f30, _, _ = k_b
@@ -1409,7 +1581,7 @@ class Einzeln:
                 angriffe.append((n, gn))
                 ereignis.append("ZIELWAHL %d -> %d Typ %d in %d: Saldo %.0f, Todesrisiko %.0f %%, Fern<=30 %d, Leben %d, "
                                 "Beschuss am Ziel %.2f/Takt, Arbeit %s %d Takte" % (
-                    n, gn, typ, schach(ort, p), saldo, 100 * p_tod, f30, L[n]["leben"], self._sicht.beschuss(p, 16),
+                    n, gn, typ, schach(ort, p), saldo, 100 * p_tod, f30, L[n]["leben"], self._beschuss_angriff(gn, G, ort),
                     "gemessen" if typ in ARBEIT else "geschaetzt", ARBEIT.get(typ, ARBEIT_SONST)))
                 continue
             ohne += 1
@@ -1420,6 +1592,12 @@ class Einzeln:
                 sicher_ort = self._sicherer_ort(ort, orte, fern, nah, n)
                 if sicher_ort and self.warte.get(n) != sicher_ort:
                     self._warten(n, sicher_ort, halten)
+            elif n not in self.warte and min((schach(ort, k[1]) for k in kand), default=0) > self.FRONT_AB:
+                # 17.10. (Daniel, Bild: "es wird am Ausbildungslager gesammelt anstatt nah an der KI"): an unserer Burg ist es
+                # immer sicher - wer ohne Ziel weit weg steht, wartet verdeckt nah am Gegner (Ring um den naechsten Lord)
+                front = self._front_platz(ort)
+                if front:
+                    self._warten(n, front, halten)
         # 6. Stapel: viele Wartende -> alle gebuendelt auf EINEN erreichbaren Fernkaempfer am Boden, dann den naechsten
         stapel_befehl = None
         stp = self.stapel
@@ -1455,6 +1633,11 @@ class Einzeln:
                 else:
                     ereignis.append("STAPEL aufgeloest: kein erreichbarer Fernkaempfer, den %d schlagen koennen (zurueck ins Warten)" % len(stp["mitglieder"]))
                     stp["mitglieder"], stp["ziel"] = set(), None
+        # 18.10. (Gegenpruefung): die Zaehlung oben nahm jedes Gebaeude mit irgendeiner unbeobachteten Seite - die Zielwahl
+        # nimmt aber nur die Anlaufseite, ohne Wachen, mit Wegrisiko. Bleibt jemand ohne Ziel, sind alle annehmbaren Plaetze
+        # besetzt: dann zaehlen nur die vergebenen (sonst sperrte die Zahl Jagd und Lord, waehrend Assassinen standen)
+        if ohne > 0:
+            self._raid_plaetze = len(self.ziel)
         if ohne != self.ohne_ziel_zuletzt:
             self.ohne_ziel_zuletzt = ohne
             ereignis.append("%d Assassinen ohne Ziel (%s)" % (ohne, ", ".join("%s %d" % kv for kv in gruende.items() if kv[1])))
@@ -1501,7 +1684,7 @@ class Einzeln:
         return ("zerstoert %d Gebaeude %s, eigene Verluste %d, im Spiel gleichzeitig angelaufen zuletzt %d, neu befohlen %d, "
                 "Rueckzuege %d, ausgewichen %d, Fernkaempfer angegriffen %d, Warten neu geschickt %d, Stapel-Ziele %d, "
                 "gesperrte Warteplaetze %d" % (
-                    sum(b["gebaeude"].values()), b["gebaeude"], len(b["verluste"]), self.gemessen, b["neu_befohlen"],
+                    sum(b["gebaeude"].values()), b["gebaeude"], b.get("tote", len(b["verluste"])), self.gemessen, b["neu_befohlen"],
                     b["rueckzug"], b.get("ausgewichen", 0), b["zuschlagen"], b.get("warten_neu", 0),
                     b.get("stapel_ziele", 0), len(self.schlechte_orte)) + ", Lord-Trupps %d" % b.get("lordtrupps", 0)
                 + ", Uebermacht ausgewichen %d" % b.get("uebermacht", 0)
