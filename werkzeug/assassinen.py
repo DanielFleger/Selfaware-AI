@@ -709,11 +709,12 @@ class Einzeln:
             gruppen = sorted({e.get("gruppe") for e in L.values() if e["besitzer"] not in (0, self.sp)
                               and e["typ"] in sicht.NAHKAMPF and e.get("gruppe")})
             neu = [g for g in gruppen if g not in self._haltung]
-            if neu or self.runde - self._haltung_runde >= 10:
+            # 18.10. (1017m: Assassinen-Teil 0,12 s je Runde statt 0,01-0,02 - die Nomaden werben laufend an, jeder neue Trupp
+            # loeste jede Runde eine Abfrage im Spiel aus): nur alle 10 Runden; neue Trupps gelten bis dahin als Verteidigung (5)
+            if self.runde - self._haltung_runde >= 10:
                 try:
-                    self._haltung.update(self.lies_haltung(gruppen if self.runde - self._haltung_runde >= 10 else neu) or {})
-                    if self.runde - self._haltung_runde >= 10:
-                        self._haltung_runde = self.runde
+                    self._haltung.update(self.lies_haltung(gruppen) or {})
+                    self._haltung_runde = self.runde
                 except Exception:
                     pass
         # 17.10.: wer in den letzten 128 Takten sichtbar war, bleibt Ziel bis zu seiner naechsten Pruefrunde (L75)

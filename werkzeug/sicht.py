@@ -150,6 +150,7 @@ class Lage:
             h = (haltung or {}).get(g, 1)
             if HALTUNG_RADIUS.get(h, 5):
                 self.verfolger.append(((e["x"], e["y"]), e["typ"], HALTUNG_RADIUS.get(h, 5)))
+        self._linie_cache = {}
         self.zuteilen()
 
     def zuteilen(self):
@@ -186,11 +187,33 @@ class Lage:
         return any(abstand_fein(feld, w) <= SICHT + rand for w in self.waehl if schach(feld, w) <= 21 + rand // 8)
 
     def linie_frei(self, s, steht, ziel):
-        for q in linie(s, ziel):
-            b = self.gebaeude.get(q)
-            if b and b[1] not in FLACH and b[0] != steht:
-                return False
-        return True
+        """18.10. (1017m: ~394.000 Aufrufe je 21 Runden, 0,4 s je Runde): Bresenham wie linie(), aber ohne Liste, Abbruch beim
+        ersten sperrenden Gebaeude, je Runde (Lage) einmal je Linie gemerkt. Ergebnis gleich."""
+        schl = (s, steht, ziel)
+        c = self._linie_cache.get(schl)
+        if c is not None:
+            return c
+        frei = True
+        if self.gebaeude:
+            x0, y0 = int(s[0]), int(s[1])
+            x1, y1 = int(ziel[0]), int(ziel[1])
+            dx, dy = abs(x1 - x0), -abs(y1 - y0)
+            sx, sy = (1 if x0 < x1 else -1), (1 if y0 < y1 else -1)
+            err = dx + dy
+            geb = self.gebaeude
+            while (x0, y0) != (x1, y1):
+                e2 = 2 * err
+                if e2 >= dy:
+                    err += dy; x0 += sx
+                if e2 <= dx:
+                    err += dx; y0 += sy
+                if (x0, y0) != (x1, y1):
+                    b = geb.get((x0, y0))
+                    if b and b[1] not in FLACH and b[0] != steht:
+                        frei = False
+                        break
+        self._linie_cache[schl] = frei
+        return frei
 
     def beschuss(self, feld, rand=0, nr=None):
         """Erwarteter Lebensverlust je Takt. nr = eigene Einheit an ihrem Ort: die Schuetzen, die ihr zugeteilt sind.
