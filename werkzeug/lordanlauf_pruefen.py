@@ -10,6 +10,8 @@ Vorher festgelegt:
      Losgelaufenen 21 Felder weg, laufen die Nahen los -> alle 20 unterwegs, Phase angriff
   4. (17.10., Partie 1017c) EINER 60 Felder weg, 19 nah: er laeuft allein los; in der naechsten Runde KEIN "vorbei" (die 19
      Wartenden gehoeren zur Gruppe), Phase bleibt anlauf
+  5. (17.10., 1017c-e) Bedarf nur VORLAEUFIG 40, 25 Assassinen (Lord 1,5 Mio): Anlauf mit der gerechneten Gruppe (18,
+     lord_machbar), aus den naechsten - die 5 weiten 100-104 sind nicht dabei
 Gegenprobe: LORD_TAKT_R = 999 -> Fall 2 rot (alle sofort).
 Aufruf: python werkzeug/lordanlauf_pruefen.py [sofort]"""
 import os
@@ -91,6 +93,15 @@ def main():
     pruefe(4, "einer weit, 19 nah: zuerst an %s, danach vorbei-Meldungen %d, Phase %s, warten %d" % (
         an, len(vorbei), t.lordtrupp["phase"], len(t.lordtrupp.get("warte", ()))),
         an == [100] and not vorbei and t.lordtrupp["phase"] == "anlauf" and len(t.lordtrupp.get("warte", ())) == 19)
+    t = neu(); L, G = szene()
+    t._lord_bedarf = lambda L, G, ereignis: (40, "vorlaeufig", None)
+    t.aufnehmen([n for n in L if n != 500])
+    erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=10000)
+    gruppe = set(t.lordtrupp["mitglieder"]) | set(t.lordtrupp.get("warte", ()))
+    pruefe(5, "vorlaeufig 40, 25 da: Phase %s, Gruppe %d, davon weite %d, Meldung %s" % (
+        t.lordtrupp["phase"], len(gruppe), len([n for n in gruppe if n < 200]),
+        [z for z in erg if "LORD-BEDARF gerechnet" in z][:1]),
+        t.lordtrupp["phase"] == "anlauf" and len(gruppe) == 18 and not [n for n in gruppe if n < 200])
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

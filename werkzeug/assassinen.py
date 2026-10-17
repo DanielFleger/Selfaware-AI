@@ -1020,6 +1020,19 @@ class Einzeln:
             ln, le = fest[0] if fest else min(lords, key=lambda x: (schach((x[1]["x"], x[1]["y"]), (mx, my)), x[0]))
             lp = (le["x"], le["y"])
             n_bedarf, bedarf_art, gruppe_leben = self._lord_bedarf(L, G, ereignis)
+            # 17.10. (1017c-e: vorlaeufiger Bedarf 40 = alle Lebenden, auch 211 Felder weit; Anlauf jedes Mal abgebrochen):
+            # ohne gemessene Lage die kleinste Gruppe, mit der die Kampfrechnung (lord_machbar: 98,6 je Assassine und Takt,
+            # der Lord toetet alle ~90 Takte eine, Feuer der Schuetzen am Lord verteilt) den Lord schafft. OFFEN: Verluste auf
+            # dem Anmarsch rechnet sie nicht - jeder Angriff schreibt Groesse und Ausgang mit (Alle-auf-den-Lord im Bericht).
+            if bedarf_art != "belegt":
+                f_ges = self._sicht.feuer_gesamt(lp)
+                n_r = next((k for k in range(5, len(self.mitglieder) + 1) if lord_machbar(k, le["leben"], f_ges / k)[0]), None)
+                if n_r is not None:
+                    if (n_r, "gerechnet") != getattr(self, "_bedarf_rech", None):
+                        self._bedarf_rech = (n_r, "gerechnet")
+                        ereignis.append("LORD-BEDARF gerechnet: %d (statt %d %s) - Lord %d Leben, Feuer am Lord %.1f je Takt" % (
+                            n_r, n_bedarf, bedarf_art, le["leben"], f_ges))
+                    n_bedarf, bedarf_art, gruppe_leben = n_r, "gerechnet", None
             # 17.10. (Partie 1017c: 18x "vorbei: noch 1 leben" - beim gestaffelten Anlauf laeuft zuerst nur der Weiteste los,
             # die Wartenden zaehlten nicht mit): im Anlauf gehoeren die Wartenden zur Gruppe
             unterwegs = len(lt["mitglieder"]) + (len(lt.get("warte", ())) if lt["phase"] == "anlauf" else 0)
