@@ -1792,9 +1792,16 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             schreib("WARNUNG: Runde dauerte %d Ticks (%d -> %d) - Waechter war so lange blind; Zeit der Runde davor: %s" % (
                 st["t"] - letzter_tick, letzter_tick, st["t"], ", ".join("%s %.2f s" % kv for kv in sorted(diese_runde.items(), key=lambda kv: -kv[1]))))
         diese_runde.clear()
-        stand = stand + 1 if st["t"] == letzter_tick else 0
-        if stand >= 4:
-            schreib("ABBRUCH - Spielzeit steht bei %d" % st["t"]); break
+        # 18.10. (1018o: Abbruch bei Tick 14.621 - die Spielzeit stand 1,7 s ohne Pause, 4 Runden zu je 0,4 s): Stillstand in
+        # SEKUNDEN messen, nicht in Runden - der schnellere Lenker machte aus "4 Runden" einen Ausrutscher von gut 1 Sekunde
+        if st["t"] != letzter_tick:
+            if stand and time.time() - stand >= 1.0:
+                schreib("SPIELZEIT stand %.1f s bei Tick %s (Pause %s)" % (time.time() - stand, letzter_tick, st.get("pause")))
+            stand = 0
+        elif not stand:
+            stand = time.time()
+        elif time.time() - stand >= 30:
+            schreib("ABBRUCH - Spielzeit steht bei %d (seit %.0f s)" % (st["t"], time.time() - stand)); break
         letzter_tick = st["t"]
         if REGEL50 and st.get("t", 0) > 0 and st.get("beliebt", 10000) < 5000:
             schreib("REGELBRUCH bei Tick %d: Beliebtheit %.2f unter 50 - Lauf abgebrochen" % (st["t"], st["beliebt"] / 100.0))

@@ -124,6 +124,11 @@ class Lage:
         L = {nr: dict(e, nr=nr) for nr, e in L.items()}
         feinde = [e for e in L.values() if e["besitzer"] not in (0, sp) and e["typ"] not in TIERE]
         self.waehl = [(e["x"], e["y"]) for e in feinde if e["typ"] in WAEHLBAR]
+        # 18.10. (1018n spaet: ~100 Waehlbare, ~90 Schuetzen, ~250 eigene - jede Punktabfrage ging alle durch): Gitter mit
+        # 8x8 Feldern; sichtbar/beschuss pruefen nur die Zellen in Reichweite, mit denselben Bedingungen. Ergebnis gleich.
+        self._waehl_gitter = {}
+        for w in self.waehl:
+            self._waehl_gitter.setdefault((w[0] // 8, w[1] // 8), []).append(w)
         self.gebaeude = {}                   # Feld -> (Nr, Typ) aller Gebaeude mit bekannter Grundflaeche
         for nr, g in (G or {}).items():
             b = GROESSE.get(g["typ"])
@@ -140,6 +145,12 @@ class Lage:
                                        SCHUETZE_ART[e["typ"]]))
         self.eigene = [(e.get("nr", 0), (e["x"], e["y"]), e["typ"]) for e in L.values()
                        if e["besitzer"] == sp and e["typ"] not in TIERE]
+        self._eigen_ort = {}                 # Feld -> [(Nr, Typ)] in der Reihenfolge von eigene
+        self._eigen_gitter = {}              # Zelle (8x8) -> [(Nr, Ort, Typ)]
+        for n_, p_, t_ in self.eigene:
+            self._eigen_ort.setdefault(p_, []).append((n_, t_))
+            self._eigen_gitter.setdefault((p_[0] // 8, p_[1] // 8), []).append((n_, p_, t_))
+        self._zell_schuetzen = {}            # Zelle (8x8) -> Nummern der Schuetzen, die ein Feld darin erreichen koennen
         self.verfolger = []                  # (Ort, Typ, Radius in Feldern)
         for e in feinde:
             if e["typ"] not in NAHKAMPF:
@@ -159,9 +170,13 @@ class Lage:
         wenn eine weitere Assassine an einem Ort auftaucht (beschuss)."""
         self.feuer, self.bestwert, zahl = {}, [], {}
         sichtbar = {nr: nr in self.noch_sichtbar or self.sichtbar(p) for nr, p, t in self.eigene if t == 73}
+        eg = self._eigen_gitter
         for ort, r, erh, steht, art in self.schuetzen:
             kand = []
-            for nr, p, typ in self.eigene:
+            # 18.10.: nur eigene aus den Zellen in Reichweite (Reihenfolge egal: min() ueber eindeutige Tupel)
+            nahe = [e for cx in range((ort[0] - r) // 8, (ort[0] + r) // 8 + 1)
+                    for cy in range((ort[1] - r) // 8, (ort[1] + r) // 8 + 1) for e in eg.get((cx, cy), ())]
+            for nr, p, typ in nahe:
                 if schach(ort, p) > r or (p[0] - ort[0]) ** 2 + (p[1] - ort[1]) ** 2 > r * r:
                     continue
                 if typ == 73 and not sichtbar.get(nr):
@@ -184,7 +199,30 @@ class Lage:
         return min((abstand_fein(feld, w) for w in self.waehl), default=99999)
 
     def sichtbar(self, feld, rand=0):
-        return any(abstand_fein(feld, w) <= SICHT + rand for w in self.waehl if schach(feld, w) <= 21 + rand // 8)
+        r, grenze = 21 + rand // 8, SICHT + rand
+        fx, fy = feld[0], feld[1]
+        g = self._waehl_gitter
+        for cx in range(int((fx - r) // 8), int((fx + r) // 8) + 1):
+            for cy in range(int((fy - r) // 8), int((fy + r) // 8) + 1):
+                for w in g.get((cx, cy), ()):
+                    if max(abs(fx - w[0]), abs(fy - w[1])) <= r and abstand_fein(feld, w) <= grenze:
+                        return True
+        return False
+
+    def _schuetzen_bei(self, feld):
+        """Nummern (aufsteigend) der Schuetzen, deren Reichweite die 8x8-Zelle von feld beruehrt - je Lage einmal je Zelle."""
+        z = (int(feld[0] // 8), int(feld[1] // 8))
+        c = self._zell_schuetzen.get(z)
+        if c is None:
+            x0, y0 = z[0] * 8, z[1] * 8
+            c = []
+            for i, (ort, r, erh, steht, art) in enumerate(self.schuetzen):
+                dx = max(x0 - ort[0], 0, ort[0] - x0 - 8)
+                dy = max(y0 - ort[1], 0, ort[1] - y0 - 8)
+                if dx * dx + dy * dy <= r * r:
+                    c.append(i)
+            self._zell_schuetzen[z] = c
+        return c
 
     def linie_frei(self, s, steht, ziel):
         """18.10. (1017m: ~394.000 Aufrufe je 21 Runden, 0,4 s je Runde): Bresenham wie linie(), aber ohne Liste, Abbruch beim
@@ -215,30 +253,40 @@ class Lage:
         self._linie_cache[schl] = frei
         return frei
 
-    def beschuss(self, feld, rand=0, nr=None):
+    def beschuss(self, feld, rand=0, nr=None, nur_ob=False):
         """Erwarteter Lebensverlust je Takt. nr = eigene Einheit an ihrem Ort: die Schuetzen, die ihr zugeteilt sind.
         Sonst: eine (weitere) Assassine an feld - jeder Schuetze in Reichweite mit freier Linie nimmt sie, wenn er sonst
-        kein Ziel hat oder sie ihm lieber ist (Wert < 1,5 x bester und < bester Unbeschossener). 0, wenn nicht sichtbar."""
-        da = [n for n, p, t in self.eigene if p == tuple(feld) and (n == nr or (nr is None and t == 73))]
+        kein Ziel hat oder sie ihm lieber ist (Wert < 1,5 x bester und < bester Unbeschossener). 0, wenn nicht sichtbar.
+        nur_ob: nur ob > 0 (fuer sicher) - hoert beim ersten treffenden Schuetzen auf."""
+        da = [n for n, t in self._eigen_ort.get(tuple(feld), ()) if n == nr or (nr is None and t == 73)]
         if da:                           # dort steht schon eine eigene Einheit: was ihr zugeteilt ist
             return sum(dps(a, d) for n in da[:1] for a, d in self.feuer.get(n, ()))
         if not self.sichtbar(feld, rand):
             return 0.0
         s = 0.0
-        for i, (ort, r, erh, steht, art) in enumerate(self.schuetzen):
+        sch, bw = self.schuetzen, self.bestwert
+        for i in self._schuetzen_bei(feld):
+            ort, r, erh, steht, art = sch[i]
             d2 = (ort[0] - feld[0]) ** 2 + (ort[1] - feld[1]) ** 2
-            if d2 > r * r or not (erh or self.linie_frei(ort, steht, feld)):
+            if d2 > r * r:
                 continue
-            best, frei = self.bestwert[i]
-            w = prio(73, schach(ort, feld) * 8)
-            if best == float("inf") or (w < best * 1.5 and w < frei):
+            best, frei = bw[i]
+            if best != float("inf"):
+                w = prio(73, schach(ort, feld) * 8)
+                if not (w < best * 1.5 and w < frei):
+                    continue
+            if erh or self.linie_frei(ort, steht, feld):
                 s += dps(art, math.sqrt(d2))
+                if nur_ob and s > 0:
+                    return s
         return s
 
     def feuer_gesamt(self, feld):
         """Alle Schuetzen, die feld erreichen koennen (Linie frei), zusammen - fuer viele Assassinen an einem Ort (Lord)."""
         s = 0.0
-        for ort, r, erh, steht, art in self.schuetzen:
+        sch = self.schuetzen
+        for i in self._schuetzen_bei(feld):
+            ort, r, erh, steht, art = sch[i]
             d2 = (ort[0] - feld[0]) ** 2 + (ort[1] - feld[1]) ** 2
             if d2 <= r * r and (erh or self.linie_frei(ort, steht, feld)):
                 s += dps(art, math.sqrt(d2))
@@ -252,7 +300,7 @@ class Lage:
         """Hier trifft ihn gerade nichts: kein Beschuss (unsichtbar ODER kein Schuetze mit Linie) und kein Verfolger.
         17.10.: zuerst "unsichtbar" verlangt - dann wartete jede Assassine 20 Felder neben dem feindlichen Lord weg, obwohl
         dort kein Schuetze stand (lordanlauf_pruefen Fall 2). Gesehen werden allein schadet nicht."""
-        return self.beschuss(feld, 16) <= 0 and not self.verfolgt(feld)
+        return self.beschuss(feld, 16, nur_ob=True) <= 0 and not self.verfolgt(feld)
 
     # --- Zellen fuer schussfeld.Gitter -----------------------------------------------------------------------------
     def zellsatz(self, zelle, n):

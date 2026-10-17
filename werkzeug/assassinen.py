@@ -876,7 +876,8 @@ class Einzeln:
                     return 0.0
                 m = w if m is None else min(m, w)
             return m
-        nah = sorted(rand, key=lambda q: (schach(q, von), q))[:3]
+        vx, vy = von[0], von[1]
+        nah = sorted(rand, key=lambda q: (max(abs(q[0] - vx), abs(q[1] - vy)), q))[:3]
         return max(wert(q) for q in nah)
 
     def _anlauf_leben(self, von, lp, n):
@@ -1575,9 +1576,11 @@ class Einzeln:
             if g["besitzer"] in (0, self.sp) or g["typ"] not in WERT:
                 continue
             p = (g["x"], g["y"])
-            kand.append((gn, p, g["typ"], g.get("erreichbar", 1), self._anzahl(p, fern, 10),
-                         self._anzahl(p, fern, self.ZIEL_FERN), self._anzahl(p, fern, 30), self._anzahl(p, fern, self.SCHWACH_FERN),
-                         self._anzahl(p, nah, self.UEBERMACHT_R)))
+            # 18.10.: Abstaende zu den Fernkaempfern einmal je Gebaeude, dann vier Zaehlungen (vorher vier Durchlaeufe)
+            df = [max(abs(p[0] - q[0]), abs(p[1] - q[1])) for _, q, _ in fern]
+            kand.append((gn, p, g["typ"], g.get("erreichbar", 1), sum(1 for d in df if d <= 10),
+                         sum(1 for d in df if d <= self.ZIEL_FERN), sum(1 for d in df if d <= 30),
+                         sum(1 for d in df if d <= self.SCHWACH_FERN), self._anzahl(p, nah, self.UEBERMACHT_R)))
         # 12.10. 01:47 Gute Tauschgeschaefte (Daniel: "warum hast du ueberhaupt einen Assassinen verloren - nur gute Trades
         # eingehen oder schlauer angreifen"; 1012i: 8 Tote an Holzfaellerhuetten mit 4 Schuetzen im Umkreis 30): ein Gebaeude
         # ist nur Ziel, wenn hoechstens SCHUETZEN_MAX feindliche Schuetzen es mit ihrer Reichweite (schussfeld.REICHWEITE)
