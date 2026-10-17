@@ -1047,7 +1047,14 @@ class Einzeln:
             # weisst, es reicht nicht wegen Lord-Leben UND vor allem der Fernkaempfer in Sichtweite"): Kampf vorher durchrechnen
             # 17.10.: am Lord ist sie sichtbar; alle Schuetzen mit freier Linie zum Lord verteilen ihr Feuer auf die Gruppe
             # (Zielwahl: +50 je Schuetze auf demselben Ziel) - je Assassine also Gesamtfeuer / Gruppengroesse
-            n_l = len(self.mitglieder) if lt["phase"] is None else len(lt["mitglieder"]) + len(lt.get("warte", ()))
+            # 17.10. (1017f: 5x Anlauf mit genau 18 abgebrochen, sobald EINER starb - Ersatz wurde erst danach nachgezogen):
+            # im Anlauf zaehlen die freien Assassinen als Ersatz mit, bis zur Gruppengroesse
+            if lt["phase"] is None:
+                n_l = len(self.mitglieder)
+            elif lt["phase"] == "anlauf":
+                n_l = min(n_bedarf, len(self.mitglieder))
+            else:
+                n_l = len(lt["mitglieder"]) + len(lt.get("warte", ()))
             satz_lord = self._sicht.feuer_gesamt(lp) / max(1, n_l)
             machbar, t_l, rest_l = lord_machbar(n_l, le["leben"], satz_lord)
             if lt["phase"] == "anlauf" and not machbar:

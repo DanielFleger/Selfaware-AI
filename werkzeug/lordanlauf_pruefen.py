@@ -12,6 +12,8 @@ Vorher festgelegt:
      Wartenden gehoeren zur Gruppe), Phase bleibt anlauf
   5. (17.10., 1017c-e) Bedarf nur VORLAEUFIG 40, 25 Assassinen (Lord 1,5 Mio): Anlauf mit der gerechneten Gruppe (18,
      lord_machbar), aus den naechsten - die 5 weiten 100-104 sind nicht dabei
+  6. (17.10., 1017f) im Anlauf von Fall 5 stirbt ein schon LOSGELAUFENER: KEIN Abbruch (vorher zaehlte die Pruefung dann
+     nur noch 17 < 18), ein freier Assassine rueckt nach (Gruppe wieder 18)
 Gegenprobe: LORD_TAKT_R = 999 -> Fall 2 rot (alle sofort).
 Aufruf: python werkzeug/lordanlauf_pruefen.py [sofort]"""
 import os
@@ -102,6 +104,13 @@ def main():
         t.lordtrupp["phase"], len(gruppe), len([n for n in gruppe if n < 200]),
         [z for z in erg if "LORD-BEDARF gerechnet" in z][:1]),
         t.lordtrupp["phase"] == "anlauf" and len(gruppe) == 18 and not [n for n in gruppe if n < 200])
+    tot = sorted(t.lordtrupp["mitglieder"])[0]
+    L.pop(tot)
+    erg6, bef6 = t.schritt(L, G, sichere_orte=ORTE, tick=10030)
+    gruppe6 = set(t.lordtrupp["mitglieder"]) | set(t.lordtrupp.get("warte", ()))
+    pruefe(6, "ein Losgelaufener tot: Abbruch-Meldungen %d, Phase %s, Gruppe %d" % (
+        len([z for z in erg6 if "ABGEBROCHEN" in z]), t.lordtrupp["phase"], len(gruppe6)),
+        not [z for z in erg6 if "ABGEBROCHEN" in z] and t.lordtrupp["phase"] in ("anlauf", "angriff") and len(gruppe6) == 18)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
