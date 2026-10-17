@@ -14,11 +14,8 @@ Gegenprobe: werkzeug/schussfeld_pruefen.py."""
 import heapq
 
 REICHWEITE = {22: 40, 23: 40, 70: 40, 74: 40, 72: 18, 76: 11}   # Bogen, Armbrust, arab. Bogen, Pferdebogen, Schleuder, Feuerwerfer
-# GEMESSEN 12.10. 01:51 (beschuss_messen.py, 6 Kampfprotokolle 1012f-k, ~6.900 Runden): Schaden je Schuetze in Reichweite und
-# Tick an einer Assassine haengt am Abstand zum NAECHSTEN Feind (Entdeckung, Assassinen sind getarnt) und an Deckung durch
-# Gebaeude (Daniel 01:50 "man kann sich hinter Soeldnerposten/Kasernen, Haeusern verstecken"): (Feind bis, (Gebaeude<=5, offen))
-SCHADEN_SATZ = ((3, (0.76, 2.10)), (8, (0.37, 1.37)), (15, (0.06, 0.56)), (999, (0.0, 0.06)))
-DECKUNG_R = 5
+# 17.10.: der Schadenssatz nach Abstand zum naechsten Feind (SCHADEN_SATZ, L73) ist ersetzt durch sicht.py - sichtbar nur bei
+# waehlbarem Feind <= 160 Feinmass, Beschuss je Schuetze mit freier/versperrter Linie (L75-L79, Plan_Entdeckung.md).
 ZELLE = 4
 GEWICHT = 50.0
 MAX_ABSTAND = 24
@@ -43,7 +40,7 @@ def gefahr_am(ort, schuetzen_liste):
 class Gitter:
     """Grobes Gitter: begehbar je Zelle (Mehrheit der Felder) und Gefahr je Zelle (Mitte der Zelle)."""
 
-    def __init__(self, gelaende, schuetzen_liste, zelle=ZELLE, frei=None, feinde=None, gebaeude=None):
+    def __init__(self, gelaende, schuetzen_liste, zelle=ZELLE, frei=None, sicht=None):
         self.z = zelle
         self.n = GROESSE // zelle
         self.frei = frei if frei is not None else [[True] * self.n for _ in range(self.n)]
@@ -58,7 +55,6 @@ class Gitter:
                             gut += x < len(zeile) and zeile[x] in BEGEHBAR
                     self.frei[cy][cx] = gut * 2 > alle
         self.gefahr = [[0] * self.n for _ in range(self.n)]
-        self.satz = None                  # 01:51: erwarteter Schaden je Tick je Zelle (nur mit feinde/gebaeude)
         for (px, py), r in schuetzen_liste:
             c0x, c1x = max(0, (px - r) // zelle), min(self.n - 1, (px + r) // zelle)
             c0y, c1y = max(0, (py - r) // zelle), min(self.n - 1, (py + r) // zelle)
@@ -66,19 +62,8 @@ class Gitter:
                 for cx in range(c0x, c1x + 1):
                     if schach(self.mitte((cx, cy)), (px, py)) <= r:
                         self.gefahr[cy][cx] += 1
-
-        if feinde is not None:
-            self.satz = [[0.0] * self.n for _ in range(self.n)]
-            for cy in range(self.n):
-                for cx in range(self.n):
-                    k = self.gefahr[cy][cx]
-                    if not k:
-                        continue
-                    m = self.mitte((cx, cy))
-                    dn = min((schach(m, f) for f in feinde), default=999)
-                    gedeckt = any(schach(m, q) <= DECKUNG_R for q in (gebaeude or ()))
-                    satz = next(s for grenze, s in SCHADEN_SATZ if dn <= grenze)
-                    self.satz[cy][cx] = k * (satz[0] if gedeckt else satz[1])
+        # 17.10.: erwarteter Lebensverlust je Takt je Zelle aus sicht.Lage (sichtbar? x Schuetzen mit freier Linie)
+        self.satz = sicht.zellsatz(zelle, self.n) if sicht is not None else None
 
     def schaden_je_tick(self, c):
         return self.satz[c[1]][c[0]] if self.satz is not None else float(self.gefahr[c[1]][c[0]])

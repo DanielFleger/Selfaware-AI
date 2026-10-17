@@ -19,7 +19,21 @@ from laden import befehl
 from waechter import sicherster_ort
 from bedrohung import fingerabdruck, bedarf as lage_bedarf, lagen_laden
 import schussfeld
+import sicht
 import lordschutz
+import json as _json
+import os as _os
+
+# 17.10. (Plan_Entdeckung.md, Daniel 10:10 "Gebaeude: Leben minus Schaden je Takt je Einheit"): Arbeit bis zerstoert in
+# Assassinen-Takten je Gebaeudeart, gemessen in 11 Mitschriften (Median; daten/gebaeude_arbeit.json). Zeit = Arbeit / Zahl.
+# Unbekannte Arten: der Median aller gemessenen Arten (benannt in der ZIELWAHL-Zeile als "Arbeit geschaetzt").
+try:
+    ARBEIT = {int(k): v["median"] for k, v in _json.load(open(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "daten",
+                                                                          "gebaeude_arbeit.json"))).items()}
+except (OSError, ValueError):
+    ARBEIT = {}
+ARBEIT_SONST = sorted(ARBEIT.values())[len(ARBEIT) // 2] if ARBEIT else 200
+TEMPO = 14.6               # Takte je Feld, Assassine (L80, gemessen 17.10.)
 
 ASSASSINE = 73
 TRUPPE = {22, 23, 24, 25, 26, 27, 28, 37, 55, 70, 71, 72, 73, 74, 75, 76}
@@ -235,8 +249,10 @@ class Einzeln:
 
     Gefahr (05.10., gemessen in Partie 9e: 21 von 25 Toten hatten KEIN Ziel und standen untaetig im Schussfeld,
     meist ~10 Bogenschuetzen 9-19 Felder weg; bei 223 Verletzungen stand der naechste Fernkaempfer meist 9-30 Felder weg):
-      1. Ohne Ziel wartet ein Assassine ausser Reichweite (eigener Ort ohne Fernkaempfer bis SICHER_FERN).
-      2. Verletzt und Fernkaempfer bis RUECKZUG_FERN: Rueckzug - ausser ein Fernkaempfer steht direkt daneben
+      17.10.: "Reichweite"/"Gefahr" heisst jetzt sicht.py - sichtbar nur bei waehlbarem Feind <= 20 Feldern (Arbeiter
+      verraten nicht), Beschuss nur mit freier Schusslinie, Verfolgung nur nach Haltung (L75-L80, Plan_Entdeckung.md).
+      1. Ohne Ziel wartet ein Assassine dort, wo ihn keiner sieht und kein Trupp ihm nachlaeuft (sicht.sicher).
+      2. Verletzt und beschiessbar, und der Beschuss bis zum Ende des Auftrags uebersteigt sein Leben: Rueckzug - ausser ein Fernkaempfer steht direkt daneben
          (bis ZUSCHLAGEN Felder) und hoechstens 1 Nahkaempfer im Umkreis 5: dann ihn angreifen (Daniel 04.10. 23:4x).
       3. Zielwahl: Gebaeude mit mehr als ZIEL_FERN_MAX Fernkaempfern im Umkreis ZIEL_FERN auslassen; wer unter
          SCHWACH Leben hat, nimmt nur Ziele ganz ohne Fernkaempfer bis SCHWACH_FERN.
@@ -248,7 +264,7 @@ class Einzeln:
     LORD_TAKT_R = 3          # 12.10.: wer hoechstens so viel kuerzer hat als der Restweg der Losgelaufenen, laeuft los
     SCHUETZEN_MAX, SCHUETZEN_MAX_TEUER, SCHUETZEN_NOT = 1, 2, 3   # (01:54 nicht mehr in der Zielwahl)
     KOSTEN = 70              # Preis einer Assassine (L63, gemessen)
-    VERWEILEN = 300          # Ticks am Ziel bis zur Zerstoerung - UNGEMESSEN, Stellgroesse (naechste Messung)   # 12.10.: gute Tauschgeschaefte (Stellgroessen)
+    VERWEILEN = 300          # 17.10. ERSETZT durch ARBEIT (gemessen) / Zahl - bleibt nur fuer alte Pruefungen stehen   # 12.10.: gute Tauschgeschaefte (Stellgroessen)
     WEGPUNKT_NAH = 3         # 12.10.: so nah am Wegpunkt gilt er als erreicht
     BEUTE_R = 15             # 12.10.: Fernkaempfer am Boden in diesem Umkreis werden gejagt (Stellgroesse)
     # Laufzeit-Typen mit begehbarem Dach (abgelesen VillageStudio/lib/aiv_typen.lua AIV_ZU_LAUFZEIT): Tuerme 74-78,
@@ -261,7 +277,7 @@ class Einzeln:
     ZIEL_NAH = 8           # gemessen 05.10.: Gebaeudeangriff -> Laufziel 1-2 Felder neben dem Gebaeude
     NEU_NACH = 4           # Runden (je ~30 Ticks bei Tempo 1000), bis ein Befehl im Spiel sichtbar sein muss
     VOLL = 12500           # gemessen 05.10.: Leben eines frisch angeworbenen Assassinen
-    SICHER_FERN, SICHER_NAH = SCHUSSWEITE, 10
+    SICHER_FERN, SICHER_NAH = SCHUSSWEITE, 10      # 17.10.: fuer Warten/Rueckzug ersetzt durch sicht.sicher (L75/L77)
     RUECKZUG_FERN = SCHUSSWEITE
     UEBERMACHT_R, FLUCHT_RUHE = 10, 2  # 4a (Daniel 22:16): Umkreis fuer "mehr Feinde als eigene", Runden ohne Verfolger bis zum Wiederangriff
                                        # (raidzuerst_4: mit 5 erst im Kontakt erkannt - Daniel 22:25 "er muss instant verstehen, wann das ist")
@@ -301,7 +317,7 @@ class Einzeln:
     ZUSCHLAGEN = 3
     ZIEL_FERN, ZIEL_FERN_MAX = 20, 2
     SCHWACH, SCHWACH_FERN = 0.6, 25
-    VORAUS_FERN, VORAUS_ANZAHL = 10, 3   # Startwert aus Partie 9f: Tote standen 2-9 Felder neben ~7 Bogenschuetzen
+    VORAUS_FERN, VORAUS_ANZAHL = 10, 3   # 17.10. ERSETZT (4b rechnet Beschuss x Restzeit gegen Leben) - Startwert aus 9f
     STAPEL_AB = 12         # Daniel 05.10. 00:30: "oben stehen noch so 30 Assassinen, die nichts machen" - ab so vielen
                            # Wartenden greifen ALLE gebuendelt einen erreichbaren Fernkaempfer am Boden an (perfekt stapeln)
     STAPEL_RUECKZUG = 0.3  # im Stapel erst unter 30 % Leben zurueck (Daniel: manchmal ist kein Rueckzug besser)
@@ -343,6 +359,9 @@ class Einzeln:
         # n -> {"punkte": [Wegpunkte ohne Ziel], "gebaeude": Nr, "befohlen": Runde}; Gelaende-Gitter einmal je Partie
         self.route, self._frei, self.mit_wegen = {}, None, True
         self._gelaende_geschrieben = False
+        # 17.10. Sicht (sicht.py): Haltung der feindlichen Trupps (L77) - Funktion(Gruppen) -> {Gruppe: 0/1/2}, setzt erstes_spiel
+        self.lies_haltung, self._haltung, self._haltung_runde = None, {}, -99
+        self._sicht = None
         self.runde, self.gemessen, self.ohne_ziel_zuletzt = 0, 0, None
         self.bilanz = {"gebaeude": {}, "verluste": set(), "neu_befohlen": 0, "rueckzug": 0, "zuschlagen": 0}
         self.lagen = lagen_laden()           # gemessene Lagen (daten/lagen_belegt.json) fuer den Lord-Bedarf
@@ -386,17 +405,21 @@ class Einzeln:
         return sum(1 for _, p, _ in liste if schach(ort, p) <= r)
 
     def _sicherer_ort(self, ort, orte, fern, nah, n=None):
-        """Zuerst KURZ weg vom Feind (begehbar laut Modul, der Punkt mit dem groessten Abstand zum naechsten Fernkaempfer);
-        nur wenn das nicht geht: naechster begehbarer eigener Ort ohne Fernkaempfer bis SICHER_FERN und Nahkaempfer bis
-        SICHER_NAH, sonst der Ort mit dem groessten Abstand zum naechsten Feind. Gesperrte Orte nie."""
+        """17.10. (sicht.py statt fester Umkreise SICHER_FERN/SICHER_NAH): sicher = von keinem waehlbaren Feind gesehen (L75)
+        und in keinem Verfolgungs-Radius (Haltung, L77). Zuerst der NAECHSTE sichere unter den kurzen Rueckzugspunkten
+        (begehbar laut Modul), dann unter den eigenen Orten; gibt es keinen, der mit dem kleinsten Beschuss und dann dem
+        groessten Sicht-Abstand. Gesperrte Orte nie."""
+        s = self._sicht
         kurz = [p for p in self._kand.get(n, []) if p in self._begehbar and p not in self.schlechte_orte]
-        if kurz:
-            return max(kurz, key=lambda p: (self._naechster(p, fern)[0], -schach(ort, p)))
         orte = [o for o in orte if o not in self.schlechte_orte]
-        gut = [o for o in orte if self._naechster(o, fern)[0] > self.SICHER_FERN and self._naechster(o, nah)[0] > self.SICHER_NAH]
-        if gut:
-            return min(gut, key=lambda o: schach(ort, o))
-        return max(orte, key=lambda o: min(self._naechster(o, fern)[0], self._naechster(o, nah)[0])) if orte else None
+        if s is None:
+            return max(kurz, key=lambda p: (self._naechster(p, fern)[0], -schach(ort, p))) if kurz else (orte[0] if orte else None)
+        for liste in (kurz, orte):
+            gut = [p for p in liste if s.sicher(p)]
+            if gut:
+                return min(gut, key=lambda p: schach(ort, p))
+        alle = kurz + orte
+        return min(alle, key=lambda p: (s.beschuss(p), -s.sicht_abstand(p), schach(ort, p))) if alle else None
 
     def _fluchtpunkt(self, ort, nah, n, L=None, nicht_bei=None, mitte=None):
         """4a: wohin vor einer Nahkampf-Uebermacht? Unter den begehbaren Punkten weg vom Feind (_weg_vom_feind, 15-25 Felder,
@@ -431,7 +454,7 @@ class Einzeln:
                 # und nicht unter ihre Fernkaempfer (Pruefung 18: der Ring streifte bei (209,259) ihre Aussenmauer)
                 fern = getattr(self, "_fern", [])
                 return min(kurz, key=lambda q: (weg(q), self._an_feindburg(q), min(schach(q, h) for h in alle_heim) < self.HEIM_ABSTAND,
-                                                self._anzahl(q, fern, self.RUECKZUG_FERN),
+                                                self._sicht.beschuss(q) if self._sicht else self._anzahl(q, fern, self.RUECKZUG_FERN),
                                                 abs(schach(q, mitte) - self.KREIS_R) // 4, -self._naechster(q, nah)[0]))
             if alle_heim:                    # Heim zu schwach: seitlich weg, die Verfolger NICHT an unsere Burg ziehen
                 return min(kurz, key=lambda q: (weg(q), min(schach(q, h) for h in alle_heim) < self.HEIM_ABSTAND,
@@ -548,10 +571,13 @@ class Einzeln:
                  default=(999, 0))
         z = self.ziel.get(n)
         zd = schach(ort, (G[z]["x"], G[z]["y"])) if z in G else -1
+        s = self._sicht
         return ("ort (%d,%d) zustand %d | naechster Feind Typ %d in %d | naechster Fernkaempfer Typ %d in %d | "
-                "Fern<=%d: %d | Nah<=%d: %d | naechstes Feindgebaeude Typ %d in %d | Ziel %s in %d" % (
+                "Fern<=%d: %d | Nah<=%d: %d | naechstes Feindgebaeude Typ %d in %d | Ziel %s in %d | "
+                "Sicht-Abstand %s Feinmass, Beschuss %.2f, Verfolger %d" % (
                     ort[0], ort[1], L[n]["zustand"], feind[2], feind[0], nf[2], nf[0],
-                    FERN, self._anzahl(ort, fern, FERN), NAH, self._anzahl(ort, nah, NAH), gb[1], gb[0], z, zd))
+                    FERN, self._anzahl(ort, fern, FERN), NAH, self._anzahl(ort, nah, NAH), gb[1], gb[0], z, zd,
+                    s.sicht_abstand(ort) if s else "-", s.beschuss(ort) if s else -1, len(s.verfolgt(ort)) if s else -1))
 
     def _lord_messen(self, L, G, ln, le, lp, fern, nah):
         """S1 (Plan_Lord.md): je Runde, was der Angriff tut - leben, Abstand zum Lord, wer greift den Lord an, wer etwas
@@ -611,16 +637,38 @@ class Einzeln:
         self.ziel.pop(n, None); self.jagd.pop(n, None); self.warte.pop(n, None); self.warte_seit.pop(n, None)
         self.route.pop(n, None)
 
+    def _lage(self, L, G):
+        """17.10.: Sicht dieser Runde (sicht.Lage): wer uns sehen kann, wer schiessen kann, wer nachlaeuft. Die Haltung der
+        feindlichen Trupps wird alle 10 Runden und fuer neue Trupps gelesen (lies_haltung, ein peek je Trupp)."""
+        if self._sicht is not None and getattr(self, "_sicht_runde", None) == self.runde:
+            return self._sicht
+        if self.lies_haltung:
+            gruppen = sorted({e.get("gruppe") for e in L.values() if e["besitzer"] not in (0, self.sp)
+                              and e["typ"] in sicht.NAHKAMPF and e.get("gruppe")})
+            neu = [g for g in gruppen if g not in self._haltung]
+            if neu or self.runde - self._haltung_runde >= 10:
+                try:
+                    self._haltung.update(self.lies_haltung(gruppen if self.runde - self._haltung_runde >= 10 else neu) or {})
+                    if self.runde - self._haltung_runde >= 10:
+                        self._haltung_runde = self.runde
+                except Exception:
+                    pass
+        self._sicht = sicht.Lage(L, G, self.sp, self._haltung if self.lies_haltung else None)
+        self._sicht_runde = self.runde
+        return self._sicht
+
+    def _arbeit(self, typ, zahl):
+        """Takte bis zerstoert bei zahl Assassinen (gemessene Arbeit / Zahl)."""
+        return ARBEIT.get(typ, ARBEIT_SONST) / max(1, zahl)
+
     def _gitter(self, L, G=None):
-        """Gefahren-Gitter dieser Runde (schussfeld.py) mit den gemessenen Schadenssaetzen (Entdeckung + Deckung); einmal je
-        Runde gerechnet, das Gelaende-Gitter nur einmal je Partie."""
+        """Gefahren-Gitter dieser Runde (schussfeld.py) mit der Sicht (17.10., sicht.py: sichtbar nur bei waehlbarem Feind
+        <= 20 Feldern, Beschuss je Schuetze mit freier/versperrter Linie); einmal je Runde, Gelaende einmal je Partie."""
         if not self.mit_wegen or not self.gelaende:
             return None
         if getattr(self, "_gitter_runde", (None,))[0] == self.runde:
             return self._gitter_runde[1]
-        feinde = [(e["x"], e["y"]) for e in L.values() if e["besitzer"] not in (0, self.sp) and e["typ"] not in (44, 45)]
-        geb = [(g["x"], g["y"]) for g in (G or {}).values() if g["besitzer"] not in (0, self.sp)]
-        g = schussfeld.Gitter(self.gelaende, schussfeld.schuetzen(L, self.sp), frei=self._frei, feinde=feinde, gebaeude=geb)
+        g = schussfeld.Gitter(self.gelaende, schussfeld.schuetzen(L, self.sp), frei=self._frei, sicht=self._lage(L, G or {}))
         self._frei = g.frei
         self._gitter_runde = (self.runde, g)
         return g
@@ -700,6 +748,7 @@ class Einzeln:
             gut = self.pruefe_begehbar(orte)
             orte = [o for o in orte if o in gut] or orte
         fern, nah = self._feinde(L)
+        self._lage(L, G)                     # 17.10.: Sicht dieser Runde (sicht.py) - vor allen Sicherheitsfragen
         self._fern = fern                    # 4a: Fluchtpunkte nicht unter feindliche Fernkaempfer
         # 4a: ihre Burg ist tabu (gewinn_1, Tick 4.312: Assassine 163 starb auf der Flucht an ihrer Aussenmauer, 13 Felder
         # neben ihrem Lord, 14 Fernkaempfer im Umkreis 40) - Fluchtpunkte und Kreismitte mind. SCHUSSWEITE von ihrem Lord
@@ -774,7 +823,14 @@ class Einzeln:
         for n in verletzt:
             ort = (L[n]["x"], L[n]["y"])
             nf = self._naechster(ort, fern)
-            if nf[0] > self.RUECKZUG_FERN:
+            # 17.10. (L75/L78 statt RUECKZUG_FERN 40): nur wer gerade beschossen werden kann, zieht sich zurueck - und nur, wenn
+            # der Beschuss bis zum Ende seines Gebaeude-Angriffs sein Leben ueberstiege (Risiko gegen Ertrag, Daniel 12.10. 01:49)
+            b_ort = self._sicht.beschuss(ort)
+            if b_ort <= 0:
+                continue
+            gz = self.ziel.get(n)
+            if gz in G and n not in self.route and \
+                    b_ort * self._arbeit(G[gz]["typ"], sum(1 for z in self.ziel.values() if z == gz)) < L[n]["leben"]:
                 continue
             if n in self.lordtrupp["mitglieder"]:
                 continue                   # der Lord-Trupp bleibt dran (gebuendelt; Daniel: nur die letzten Lebenspunkte zaehlen)
@@ -884,7 +940,15 @@ class Einzeln:
             if n in verletzt or n in self.jagd or n in self.warte or n in self.stapel["mitglieder"] or n in self.lordtrupp["mitglieder"]:
                 continue
             ort = (L[n]["x"], L[n]["y"])
-            if self._anzahl(ort, fern, self.VORAUS_FERN) >= self.VORAUS_ANZAHL:
+            # 17.10. (statt VORAUS_FERN/VORAUS_ANZAHL: 3 Schuetzen im Umkreis 10): ausweichen, wenn er hier beschossen werden
+            # kann und der Beschuss bis zum Ende seines Auftrags sein Leben ueberstiege; auf einer sicheren Route nicht (die
+            # Route ist schon um die Gefahr gerechnet)
+            if n in self.route:
+                continue
+            b_ort = self._sicht.beschuss(ort)
+            gz = self.ziel.get(n)
+            rest = self._arbeit(G[gz]["typ"], sum(1 for z in self.ziel.values() if z == gz)) if gz in G else self.RUNDE_TICKS
+            if b_ort > 0 and b_ort * rest >= L[n]["leben"]:
                 sicher = self._sicherer_ort(ort, orte, fern, nah, n)
                 if sicher:
                     self._vergessen(n)
@@ -926,8 +990,7 @@ class Einzeln:
             pos = lambda k: (L[k]["x"], L[k]["y"])
             # 12.10. 01:55 (Daniel: "das wird beim besten Willen nicht reichen - besser die Assassinen fuers Raiden nutzen, wenn du
             # weisst, es reicht nicht wegen Lord-Leben UND vor allem der Fernkaempfer in Sichtweite"): Kampf vorher durchrechnen
-            g_l = self._gitter(L, G)
-            satz_lord = g_l.schaden_je_tick(g_l.zelle_von(lp)) if g_l is not None else 0.0
+            satz_lord = self._sicht.beschuss(lp)        # 17.10.: am Lord ist sie sichtbar - Schuetzen mit freier Linie
             machbar, t_l, rest_l = lord_machbar(len(self.mitglieder) if lt["phase"] is None else len(lt["mitglieder"]) + len(lt.get("warte", ())),
                                                 le["leben"], satz_lord)
             if lt["phase"] == "anlauf" and not machbar:
@@ -1093,20 +1156,24 @@ class Einzeln:
             # auf dem Weg (Dijkstra ueber die GEMESSENE Gefahrenkarte schussfeld.SCHADEN_SATZ: Entdeckung + Deckung) plus Schaden
             # beim Angriff -> Todeswahrscheinlichkeit; Saldo = Wert x Ueberleben - Tod x Preis; das beste Saldo je Zeit.
             g_r = self._gitter(L, G)
-            rk = g_r.risiko_von(ort) if g_r is not None else {}
+            rk = g_r.risiko_von(ort, TEMPO) if g_r is not None else {}
             beste = None
             for k in frei:
                 if k[8] > zahl.get(k[0], 0) + 1:
                     continue                   # 4a: nicht dorthin, wo mehr Nahkampf-Wachen stehen als wir Angreifer haetten
+                # 17.10.: Zeit am Ziel = gemessene Arbeit / Zahl der Angreifer (statt VERWEILEN 300 ungemessen); Beschuss am
+                # Ziel aus der Sicht (sichtbar nur bei waehlbarem Feind <= 20 Feldern, Schusslinie) statt Schadenssatz L73
+                verweilen = self._arbeit(k[2], zahl.get(k[0], 0) + 1)
                 if g_r is not None:
                     c = g_r.zelle_von(k[1])
                     r_weg, felder = rk.get(c, (1e9, 999))
-                    risiko = r_weg + g_r.schaden_je_tick(c) * self.VERWEILEN
+                    risiko = r_weg + self._sicht.beschuss(k[1], 16) * verweilen
                 else:
-                    risiko, felder = k[5] * 2000.0, schach(ort, k[1])
+                    felder = schach(ort, k[1])
+                    risiko = self._sicht.beschuss(k[1], 16) * (verweilen + felder * TEMPO)
                 p_tod = min(1.0, risiko / max(1.0, float(L[n]["leben"])))
                 saldo = WERT.get(k[2], 10) * (1 - p_tod) - p_tod * self.KOSTEN
-                je_zeit = saldo / (felder * 15.0 + self.VERWEILEN)
+                je_zeit = saldo / (felder * TEMPO + verweilen)
                 if saldo > 0 and (beste is None or je_zeit > beste[0]):
                     beste = (je_zeit, k, p_tod, saldo)
             if beste:
@@ -1118,13 +1185,16 @@ class Einzeln:
                 self.befohlen[n] = self.runde
                 self.warte.pop(n, None); self.warte_seit.pop(n, None)
                 angriffe.append((n, gn))
-                ereignis.append("ZIELWAHL %d -> %d Typ %d in %d: Saldo %.0f, Todesrisiko %.0f %%, Fern<=30 %d, Leben %d" % (
-                    n, gn, typ, schach(ort, p), saldo, 100 * p_tod, f30, L[n]["leben"]))
+                ereignis.append("ZIELWAHL %d -> %d Typ %d in %d: Saldo %.0f, Todesrisiko %.0f %%, Fern<=30 %d, Leben %d, "
+                                "Beschuss am Ziel %.2f/Takt, Arbeit %s %d Takte" % (
+                    n, gn, typ, schach(ort, p), saldo, 100 * p_tod, f30, L[n]["leben"], self._sicht.beschuss(p, 16),
+                    "gemessen" if typ in ARBEIT else "geschaetzt", ARBEIT.get(typ, ARBEIT_SONST)))
                 continue
             ohne += 1
             gruende["keins erreichbar" if not erreichbar else "alle voll" if not frei else "alle gefaehrlich"] += 1
-            nf, nn = self._naechster(ort, fern)[0], self._naechster(ort, nah)[0]
-            if nf <= self.SICHER_FERN or nn <= self.SICHER_NAH:
+            # 17.10.: warten nur dort, wo ihn kein waehlbarer Feind sieht und kein Trupp ihm nachlaeuft (sicht.sicher) - statt
+            # 40 Felder von jedem Schuetzen; so warten sie nah am Feind und sind schnell wieder am naechsten Ziel
+            if not self._sicht.sicher(ort):
                 sicher_ort = self._sicherer_ort(ort, orte, fern, nah, n)
                 if sicher_ort and self.warte.get(n) != sicher_ort:
                     self._warten(n, sicher_ort, halten)

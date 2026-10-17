@@ -421,6 +421,11 @@ def wegtest(nr, punkte):
     m = re.search(r"WEGTEST \d+: ([01]*)", z)
     return [c == "1" for c in m.group(1)] if m else [False] * len(punkte)
 
+def lies_haltung(gruppen):
+    """17.10. (L77, Daniel 09:58 "das Angreifen wird auch durch ihre Stance geaendert"): Haltung je feindlichem Trupp -
+    Tribe = 0x01667F78 + 40 + Gruppe * 0x334 (wie logik.lua angriff), unitStance +0x2B8 (0 Stehen, 1 Verteidigung, 2 Angriff)."""
+    return {g: peek(0x01667F78 + 40 + g * 0x334 + 0x2B8)[0] & 0xFFFF for g in gruppen}
+
 def runde_lesen():
     """EIN Aufruf fuer die ganze Runde (04.10.: einzelne Abfragen kosteten ~20 s = 800 Ticks je Runde):
     Modulbefehle status + lagebild in einer Liste. Gibt (status, einheiten, gebaeude)."""
@@ -1535,6 +1540,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     befehlskanal.STRENG = True     # ab hier bricht jeder Modulfehler den Lauf laut ab
     w = Waechter(SP, posten=plan["lager_mitte"]) if mit_waechter else None
     trupp = Einzeln(SP, pruefe_begehbar=pruefe_begehbar, wegtest=wegtest) if assassinen else None
+    if trupp is not None:
+        trupp.lies_haltung = lies_haltung        # 17.10.: Verfolgung nach Haltung (sicht.py)
     if trupp is not None and trainingsstand:
         # Kein Angriff: erst einen wiederholbaren Stand mit mindestens 40 gemeinsam angekommenen Assassinen sichern.
         trupp.angriff_aus = True

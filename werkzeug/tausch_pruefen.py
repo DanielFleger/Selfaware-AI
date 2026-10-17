@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """Pruefung ohne Spiel: Zielwahl nach RISIKO GEGEN ERTRAG (12.10. 01:54; Daniel 01:49 "frei entscheiden, Risk/Reward abwaegen
-statt fixem Umkreis", 01:47 "nur gute Trades"). Gefahr aus den GEMESSENEN Saetzen (schussfeld.SCHADEN_SATZ). Vorher festgelegt:
+statt fixem Umkreis", 01:47 "nur gute Trades"). Gefahr seit 17.10. aus sicht.py (sichtbar + Schusslinie, gemessene Raten). Vorher festgelegt:
   1. Apfelplantage, keine Feinde -> Ziel
   2. dieselbe, 12 Bogenschuetzen 2 Felder daneben (entdeckt, offen) -> KEIN Ziel (Saldo negativ)
-  3. dieselbe, 12 Bogenschuetzen 30 Felder weg (in Reichweite 40, aber weit weg = kaum Entdeckung) -> Ziel
+  3. dieselbe, 12 Bogenschuetzen 30 Felder weg (in Reichweite 40, aber kein waehlbarer Feind <= 20 Felder = unsichtbar) -> Ziel
      (die alte feste Regel "hoechstens 1 Schuetze in Reichweite" haette es verboten)
-Gegenprobe: SCHADEN_SATZ ohne Schaden -> Fall 2 rot.
+Gegenprobe: Beschussraten 0 (sicht.RATE_FREI/RATE_ZU) -> Fall 2 rot.
 Aufruf: python werkzeug/tausch_pruefen.py [ohne_schaden]"""
 import os
 import sys
@@ -18,8 +18,9 @@ import assassinen as A
 import schussfeld as S
 from ausweichen_pruefen import einheit, ORTE
 
+import sicht
 if OHNE:
-    S.SCHADEN_SATZ = ((999, (0.0, 0.0)),)
+    sicht.RATE_FREI = sicht.RATE_ZU = 0.0
 
 
 def ziel(schuetzen):

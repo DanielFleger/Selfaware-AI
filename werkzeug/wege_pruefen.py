@@ -2,7 +2,9 @@
 """Pruefung ohne Spiel: Assassinen nehmen den sicheren Weg (assassinen.py Abschnitt 6 + schussfeld.py, 12.10., Daniel 01:03/
 01:08). Vorher festgelegt, was gelten muss:
   1. Assassine bei (60,200), feindliches Gebaeude bei (300,200), drei Bogenschuetzen bei x=180 auf der Geraden: der erste
-     Befehl ist ein LAUFBEFEHL (kein Gebaeude-Angriff), die Route hat Wegpunkte, keiner in Schussweite.
+     Befehl ist ein LAUFBEFEHL (kein Gebaeude-Angriff), die Route hat Wegpunkte, an keinem wird er beschossen.
+     17.10. bewusst geaendert: vorher "keiner in Schussweite (Schach 40)"; seit sicht.py darf die Route in Reichweite liegen,
+     solange ihn dort kein waehlbarer Feind sieht (L75) - beschossen = sicht.Lage.beschuss > 0.
   2. Laeuft er Wegpunkt fuer Wegpunkt: in keiner Runde gilt er als "laeuft nicht zu seinem Ziel" (Abschnitt 3), und nach dem
      letzten Wegpunkt kommt der Gebaeude-Angriff.
   3. Ohne Schuetzen: sofort der Gebaeude-Angriff (keine Route).
@@ -18,6 +20,7 @@ AUS = len(sys.argv) > 1 and sys.argv[1] == "aus"
 sys.argv = sys.argv[:1]             # ausweichen_pruefen liest argv[1] als Dateipfad
 import assassinen as A
 import schussfeld as S
+import sicht
 from ausweichen_pruefen import einheit
 
 ORTE = [(40, 200)]
@@ -48,11 +51,11 @@ def main():
     erg, bef = t.schritt(L, G, sichere_orte=ORTE)
     b = befehle_fuer(bef, 100)
     lauf = [x["angriff"]["lauf"] for x in b if "lauf" in x["angriff"]]
-    sch = [((e["x"], e["y"]), 40) for e in schuetzen.values()]
+    lage = sicht.Lage(L, G, 1)
     punkte = t.route.get(100, {}).get("punkte", [])
-    pruefe(1, "erster Befehl %s, Route %d Wegpunkte, in Schussweite %s" % (
-        b, len(punkte), [p for p in punkte if S.gefahr_am(p, sch)]),
-        lauf and not any("gebaeude" in x["angriff"] for x in b) and punkte and not any(S.gefahr_am(p, sch) for p in punkte))
+    pruefe(1, "erster Befehl %s, Route %d Wegpunkte, beschossen an %s" % (
+        b, len(punkte), [p for p in punkte if lage.beschuss(p)]),
+        lauf and not any("gebaeude" in x["angriff"] for x in b) and punkte and not any(lage.beschuss(p) for p in punkte))
     # 2. Wegpunkt fuer Wegpunkt laufen
     abweich, angriff_am_ende, runden = 0, False, 0
     while t.route.get(100) and runden < 40:
