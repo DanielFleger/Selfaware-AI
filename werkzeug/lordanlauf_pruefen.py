@@ -6,6 +6,8 @@ Vorher festgelegt:
   2. Tick 10.000: 5 Assassinen 60 Felder vom Lord, 20 Assassinen 20 Felder: Lord-Befehl nur an die WEITEN (die 5 + so viele
      nahe, wie es braucht, um 20 zu fuellen, aber nur wer >= Takt-3 weg ist) - kein Halte-/Sammelbefehl an einen Punkt
   3. Die Losgelaufenen sind jetzt 21 Felder weg: die Nahen (20 Felder) laufen los -> danach alle 20 unterwegs, Phase angriff
+  4. (17.10., Partie 1017c) EINER 60 Felder weg, 19 nah: er laeuft allein los; in der naechsten Runde KEIN "vorbei" (die 19
+     Wartenden gehoeren zur Gruppe), Phase bleibt anlauf
 Gegenprobe: LORD_TAKT_R = 999 -> Fall 2 rot (alle sofort).
 Aufruf: python werkzeug/lordanlauf_pruefen.py [sofort]"""
 import os
@@ -66,6 +68,19 @@ def main():
     pruefe(3, "Losgelaufene 21 weg: jetzt Lord-Befehl an %d weitere, Phase %s, unterwegs %d" % (
         len([n for n in an2 if n >= 200]), t.lordtrupp["phase"], len(t.lordtrupp["mitglieder"])),
         len([n for n in an2 if n >= 200]) == 15 and len(t.lordtrupp["mitglieder"]) == 20 and t.lordtrupp["phase"] == "angriff")
+    t = neu(); L, G = szene()
+    for n in (101, 102, 103, 104, 219):
+        L.pop(n)
+    t.aufnehmen([n for n in L if n != 500])
+    erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=10000)
+    an = lord_an(bef)
+    for n in an:
+        L[n].update(x=LORD[0] - 55, laufx=LORD[0], laufy=LORD[1], zielart=4, zieleinheit=500)
+    erg2, bef2 = t.schritt(L, G, sichere_orte=ORTE, tick=10030)
+    vorbei = [z for z in erg + erg2 if "vorbei" in z]
+    pruefe(4, "einer weit, 19 nah: zuerst an %s, danach vorbei-Meldungen %d, Phase %s, warten %d" % (
+        an, len(vorbei), t.lordtrupp["phase"], len(t.lordtrupp.get("warte", ()))),
+        an == [100] and not vorbei and t.lordtrupp["phase"] == "anlauf" and len(t.lordtrupp.get("warte", ())) == 19)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

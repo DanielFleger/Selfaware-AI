@@ -1007,7 +1007,10 @@ class Einzeln:
             ln, le = lords[0]
             lp = (le["x"], le["y"])
             n_bedarf, bedarf_art, gruppe_leben = self._lord_bedarf(L, G, ereignis)
-            if lt["mitglieder"] and len(lt["mitglieder"]) < self.LORD_REST:
+            # 17.10. (Partie 1017c: 18x "vorbei: noch 1 leben" - beim gestaffelten Anlauf laeuft zuerst nur der Weiteste los,
+            # die Wartenden zaehlten nicht mit): im Anlauf gehoeren die Wartenden zur Gruppe
+            unterwegs = len(lt["mitglieder"]) + (len(lt.get("warte", ())) if lt["phase"] == "anlauf" else 0)
+            if lt["mitglieder"] and unterwegs < self.LORD_REST:
                 ereignis.append("GEMEINSAMER LORD-ANGRIFF vorbei: noch %d leben, Lord-Leben %d - wieder raiden bis %d" % (
                     len(lt["mitglieder"]), le["leben"], n_bedarf))
                 for n in list(lt["mitglieder"]):
