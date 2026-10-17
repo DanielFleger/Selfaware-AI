@@ -7,6 +7,8 @@ damit im Nahkampf einfach zu snacken sind"). Vorher festgelegt, was gelten muss:
   3. Schuetze mit 2 feindlichen Nahkaempfern im Umkreis 5 -> KEINE Jagd (bewacht)
   4. Schuetze 3 Felder neben ihrem Lord -> KEINE Jagd
   5. Schuetze 30 Felder weg (> BEUTE_R) -> KEINE Jagd
+  6. (17.10., Partie 1017a: Assassine 195) Schuetze am Boden, aber 12 weitere Armbrustschuetzen 8-12 Felder dahinter mit
+     freier Linie -> KEINE Jagd (Beschuss x Toetungszeit uebersteigt den Wert); Gegenprobe: Raten 0 -> Jagd
 Aufruf: python werkzeug/beute_pruefen.py [andere_assassinen.py]   (Rueckgabe 0 = gruen)
 """
 import importlib.util, os, sys
@@ -56,6 +58,9 @@ def main():
     pruefe(4, "Schuetze 3 Felder neben ihrem Lord: keine Jagd (%s)" % jagd, jagd != 600)
     jagd, bef, _ = lauf(*szene(schuetze=(230, 270)))
     pruefe(5, "Schuetze 30 Felder weg: keine Jagd (%s)" % jagd, jagd != 600)
+    viele = {610 + i: einheit(23, 2, 214 + (i % 4), 266 + i // 4 * 3, leben=17500) for i in range(12)}
+    jagd, bef, _ = lauf(*szene(extra=viele))
+    pruefe(6, "Schuetze vor 12 Armbrustschuetzen: keine Jagd (%s)" % jagd, jagd != 600)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

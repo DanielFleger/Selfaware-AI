@@ -20,7 +20,7 @@ from ausweichen_pruefen import einheit, ORTE
 
 import sicht
 if OHNE:
-    sicht.RATE_FREI = sicht.RATE_ZU = 0.0
+    sicht.RATE, sicht.RATE_FREI, sicht.RATE_ZU = {}, 0.0, 0.0     # 17.10.: auch die gemessene Tabelle (sonst hohl)
 
 
 def ziel(schuetzen):

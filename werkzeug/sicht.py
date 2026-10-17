@@ -16,6 +16,7 @@ Was hier NICHT drin ist (Plan, Frage-Agent 17.10.): Pruefungs-Phase der Assassin
 wie schnell ein Befehl im Spiel ankommt; Gebaeudehoehen (jedes nicht flache Gebaeude sperrt).
 Gegenprobe: werkzeug/sicht_pruefen.py."""
 import json
+import math
 import os
 
 HIER = os.path.dirname(os.path.abspath(__file__))
@@ -30,6 +31,47 @@ RATE_FREI, RATE_ZU = 1.352, 0.070
 HALTUNG_RADIUS = {0: 0, 1: 5, 2: 25}     # Felder (stanceBasedRange 0x28 / 200 Feinmass)
 FLACH = {10, 30, 31, 32, 33}             # Lagerplatz, Felder (vermutet flach)
 ERHOEHT = {41, 45, 46, 74, 75, 76, 77, 78}
+# Zielwahl der Schuetzen (acquireShootTarget 0x0054B0D0, L78): jeder Schuetze schiesst auf EIN Ziel, das mit dem kleinsten
+# Wert; ein noch von niemandem beschossenes Ziel nimmt er, wenn sein Wert unter dem 1,5-fachen des besten liegt (Feuer
+# verteilt sich). Wert = Schach-Abstand in Feinmass + 50 je Schuetze, der schon darauf zielt, dann je Zielart (prio).
+SCHUETZE_ART = {22: "bogen", 70: "bogen", 74: "bogen", 23: "armbrust", 72: "schleuder", 76: "feuer"}
+BAENDER = {"bogen": (10, 20, 30, 41), "armbrust": (10, 20, 30, 41), "schleuder": (10, 19), "feuer": (12,)}
+_SR = os.path.join(HIER, "..", "daten", "schussrate.json")
+try:                                     # Schaden je ZUGETEILTEM Schuetzen und Takt (schussrate_messen.py), sonst Mittelwert
+    _d = json.load(open(_SR, encoding="utf-8"))
+    RATE = {(k.split(":")[0], int(k.split(":")[1])): v for k, v in zip(_d["spalten"], _d["rate"])}
+    RATE_QUELLE = "gemessen je Art und Abstand (%s)" % os.path.basename(_SR)
+except (OSError, ValueError, KeyError):
+    RATE, RATE_QUELLE = {}, "Mittelwert 1,352 (schussrate.json fehlt)"
+
+
+def band(art, d):
+    for i, grenze in enumerate(BAENDER.get(art, ())):
+        if d < grenze:
+            return i
+    return None
+
+
+def dps(art, d):
+    b = band(art, d)
+    return 0.0 if b is None else RATE.get((art, b), RATE_FREI)
+
+
+def prio(typ, d):
+    """Zielwert eines Schuetzen fuer ein Ziel der Art typ im Abstand d (Feinmass, schon mit +50 je anderem Schuetzen)."""
+    if typ in (22, 23, 70, 74):
+        return d + 75
+    if typ in (24, 25, 26, 27, 28, 71, 72, 73, 75):
+        return d * 5 + 200
+    if typ == 29:
+        return d * 7 + 300
+    if typ in (30, 39, 40, 55):
+        return d * 2 + 100
+    if typ in (41, 61, 76, 77):
+        return d
+    return (d * 5 + 200) * 2
+
+
 _GJ = os.path.join(HIER, "..", "..", "VillageStudio", "lib", "gebaeude.json")
 GROESSE = {int(v["laufzeit"]): int(v["b"]) for v in json.load(open(_GJ, encoding="utf-8"))["gebaeude"].values()
            if isinstance(v, dict) and v.get("laufzeit")}
@@ -80,13 +122,16 @@ class Lage:
             for x in range(g["x"], g["x"] + (b or 0)):
                 for y in range(g["y"], g["y"] + (b or 0)):
                     self.gebaeude[(x, y)] = (nr, g["typ"])
-        self.schuetzen = []                  # (Ort, Reichweite, erhoeht, Nr des Gebaeudes unter ihm)
-        for e in feinde:
+        self.schuetzen = []                  # (Ort, Reichweite, erhoeht, Nr des Gebaeudes unter ihm, Art)
+        for e in sorted(feinde, key=lambda x: x.get("nr", 0)):
             r = REICHWEITE.get(e["typ"])
             if r:
                 ort = (e["x"], e["y"])
                 steht = self.gebaeude.get(ort)
-                self.schuetzen.append((ort, r, bool(steht and steht[1] in ERHOEHT), steht[0] if steht else None))
+                self.schuetzen.append((ort, r, bool(steht and steht[1] in ERHOEHT), steht[0] if steht else None,
+                                       SCHUETZE_ART[e["typ"]]))
+        self.eigene = [(e.get("nr", 0), (e["x"], e["y"]), e["typ"]) for e in L.values()
+                       if e["besitzer"] == sp and e["typ"] not in TIERE]
         self.verfolger = []                  # (Ort, Typ, Radius in Feldern)
         for e in feinde:
             if e["typ"] not in NAHKAMPF:
@@ -97,6 +142,33 @@ class Lage:
             h = (haltung or {}).get(g, 1)
             if HALTUNG_RADIUS.get(h, 5):
                 self.verfolger.append(((e["x"], e["y"]), e["typ"], HALTUNG_RADIUS.get(h, 5)))
+        self.zuteilen()
+
+    def zuteilen(self):
+        """Wer schiesst gerade auf wen (Nachbau der Zielwahl, siehe oben). self.feuer: eigene Nr -> [(Art, Abstand)];
+        self.bestwert[i]: (bester Wert, bester Wert unter den Unbeschossenen) des Schuetzen i - fuer die Frage, was waere,
+        wenn eine weitere Assassine an einem Ort auftaucht (beschuss)."""
+        self.feuer, self.bestwert, zahl = {}, [], {}
+        sichtbar = {nr: self.sichtbar(p) for nr, p, t in self.eigene if t == 73}
+        for ort, r, erh, steht, art in self.schuetzen:
+            kand = []
+            for nr, p, typ in self.eigene:
+                if schach(ort, p) > r or (p[0] - ort[0]) ** 2 + (p[1] - ort[1]) ** 2 > r * r:
+                    continue
+                if typ == 73 and not sichtbar.get(nr):
+                    continue
+                if not (erh or self.linie_frei(ort, steht, p)):
+                    continue
+                kand.append((prio(typ, schach(ort, p) * 8 + 50 * zahl.get(nr, 0)), nr, zahl.get(nr, 0) == 0, p))
+            if not kand:
+                self.bestwert.append((float("inf"), float("inf")))
+                continue
+            best = min(kand)
+            frei = min((k for k in kand if k[2]), default=None)
+            wahl = frei if frei is not None and frei[0] < best[0] * 1.5 else best
+            zahl[wahl[1]] = zahl.get(wahl[1], 0) + 1
+            self.feuer.setdefault(wahl[1], []).append((art, math.hypot(wahl[3][0] - ort[0], wahl[3][1] - ort[1])))
+            self.bestwert.append((best[0], frei[0] if frei is not None else float("inf")))
 
     # --- Punktabfragen ---------------------------------------------------------------------------------------------
     def sicht_abstand(self, feld):
@@ -112,14 +184,33 @@ class Lage:
                 return False
         return True
 
-    def beschuss(self, feld, rand=0):
-        """Erwarteter Lebensverlust je Takt am Feld (0, wenn nicht sichtbar)."""
+    def beschuss(self, feld, rand=0, nr=None):
+        """Erwarteter Lebensverlust je Takt. nr = eigene Einheit an ihrem Ort: die Schuetzen, die ihr zugeteilt sind.
+        Sonst: eine (weitere) Assassine an feld - jeder Schuetze in Reichweite mit freier Linie nimmt sie, wenn er sonst
+        kein Ziel hat oder sie ihm lieber ist (Wert < 1,5 x bester und < bester Unbeschossener). 0, wenn nicht sichtbar."""
+        da = [n for n, p, t in self.eigene if p == tuple(feld) and (n == nr or (nr is None and t == 73))]
+        if da:                           # dort steht schon eine eigene Einheit: was ihr zugeteilt ist
+            return sum(dps(a, d) for n in da[:1] for a, d in self.feuer.get(n, ()))
         if not self.sichtbar(feld, rand):
             return 0.0
         s = 0.0
-        for ort, r, erh, steht in self.schuetzen:
-            if (ort[0] - feld[0]) ** 2 + (ort[1] - feld[1]) ** 2 <= r * r:
-                s += RATE_FREI if erh or self.linie_frei(ort, steht, feld) else RATE_ZU
+        for i, (ort, r, erh, steht, art) in enumerate(self.schuetzen):
+            d2 = (ort[0] - feld[0]) ** 2 + (ort[1] - feld[1]) ** 2
+            if d2 > r * r or not (erh or self.linie_frei(ort, steht, feld)):
+                continue
+            best, frei = self.bestwert[i]
+            w = prio(73, schach(ort, feld) * 8)
+            if best == float("inf") or (w < best * 1.5 and w < frei):
+                s += dps(art, math.sqrt(d2))
+        return s
+
+    def feuer_gesamt(self, feld):
+        """Alle Schuetzen, die feld erreichen koennen (Linie frei), zusammen - fuer viele Assassinen an einem Ort (Lord)."""
+        s = 0.0
+        for ort, r, erh, steht, art in self.schuetzen:
+            d2 = (ort[0] - feld[0]) ** 2 + (ort[1] - feld[1]) ** 2
+            if d2 <= r * r and (erh or self.linie_frei(ort, steht, feld)):
+                s += dps(art, math.sqrt(d2))
         return s
 
     def verfolgt(self, feld):
@@ -146,7 +237,8 @@ class Lage:
                 for x in range(max(0, cx - rz), min(n, cx + rz + 1)):
                     if (x, y) not in sicht and abstand_fein(mitte((x, y)), w) <= SICHT + rand:
                         sicht.add((x, y))
-        for ort, r, erh, steht in self.schuetzen:
+        for i, (ort, r, erh, steht, art) in enumerate(self.schuetzen):
+            best, frei = self.bestwert[i]
             cx, cy = ort[0] // zelle, ort[1] // zelle
             rc = r // zelle + 1
             for y in range(max(0, cy - rc), min(n, cy + rc + 1)):
@@ -154,7 +246,12 @@ class Lage:
                     if (x, y) not in sicht:
                         continue
                     m = mitte((x, y))
-                    if (m[0] - ort[0]) ** 2 + (m[1] - ort[1]) ** 2 > r * r:
+                    d2 = (m[0] - ort[0]) ** 2 + (m[1] - ort[1]) ** 2
+                    if d2 > r * r:
                         continue
-                    satz[y][x] += RATE_FREI if erh or self.linie_frei(ort, steht, m) else RATE_ZU
+                    w = prio(73, max(0, schach(ort, m) - zelle // 2) * 8)
+                    if best != float("inf") and not (w < best * 1.5 and w < frei):
+                        continue
+                    if erh or self.linie_frei(ort, steht, m):
+                        satz[y][x] += dps(art, math.sqrt(d2))
         return satz

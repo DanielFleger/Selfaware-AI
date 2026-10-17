@@ -34,6 +34,16 @@ except (OSError, ValueError):
     ARBEIT = {}
 ARBEIT_SONST = sorted(ARBEIT.values())[len(ARBEIT) // 2] if ARBEIT else 200
 TEMPO = 14.6               # Takte je Feld, Assassine (L80, gemessen 17.10.)
+# 17.10.: Lebensverlust des Ziels je Assassine und Takt im Nahkampf (daten/nahkampf_raten.json, gemessen), sonst 230
+try:
+    NAHKAMPF_RATE = {int(k): v for k, v in _json.load(open(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "daten",
+                                                                      "nahkampf_raten.json")))["leben_je_takt"].items()}
+except (OSError, ValueError, KeyError):
+    NAHKAMPF_RATE = {}
+# Wert einer feindlichen Einheit = Anwerbepreis in Gold (L63 gemessen: arab. Bogen 60, Sklave 5, Schleuder 12, Assassine 70,
+# Pferdebogen 75, arab. Schwert 100, Feuerwerfer 125). Euro-Bogen 22 und Armbrust 23: UNGEMESSEN, wie arab. Bogen angesetzt.
+EINHEIT_WERT = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125, 22: 60, 23: 60}
+EINHEIT_WERT_GEMESSEN = {70, 71, 72, 73, 74, 75, 76}
 
 ASSASSINE = 73
 TRUPPE = {22, 23, 24, 25, 26, 27, 28, 37, 55, 70, 71, 72, 73, 74, 75, 76}
@@ -813,12 +823,28 @@ class Einzeln:
                 continue
             ort = (L[n]["x"], L[n]["y"])
             nah_b = [b_ for b_ in beute if schach(ort, b_[1]) <= self.BEUTE_R]
-            if nah_b:
-                ziel_b = min(nah_b, key=lambda b_: schach(ort, b_[1]))
+            # 17.10. (Partie 1017a: Assassine 195 jagte eine Armbrust neben 21 Schuetzen und starb in ~80 Takten): Risiko gegen
+            # Ertrag wie bei Gebaeuden - Beschuss am Beuteort (nachgebaute Zielwahl der Schuetzen, sicht.py) x (Weg + gemessene
+            # Toetungszeit = Leben / Nahkampf-Rate) gegen Wert der Einheit (Anwerbepreis L63) und Preis einer Assassine
+            beste_b = None
+            for b_ in nah_b:
+                ziel_e = L.get(b_[0], {})
+                t_toeten = ziel_e.get("leben", 10000) / float(NAHKAMPF_RATE.get(ziel_e.get("typ"), 230))
+                t_weg = schach(ort, b_[1]) * TEMPO
+                risiko = self._sicht.beschuss(b_[1], 16) * (t_toeten + t_weg)
+                p_tod = min(1.0, risiko / max(1.0, float(L[n]["leben"])))
+                saldo = EINHEIT_WERT.get(ziel_e.get("typ"), 30) * (1 - p_tod) - p_tod * self.KOSTEN
+                if saldo > 0 and (beste_b is None or saldo / (t_toeten + t_weg) > beste_b[0]):
+                    beste_b = (saldo / (t_toeten + t_weg), b_, p_tod, saldo, t_toeten)
+            if beste_b:
+                _, ziel_b, p_tod, saldo, t_toeten = beste_b
                 self.ziel.pop(n, None); self.warte.pop(n, None)
                 self.jagd[n] = ziel_b[0]
                 jagen.append((n, ziel_b[0]))
-                ereignis.append("BEUTE %d jagt Fernkaempfer %d am Boden (%d Felder)" % (n, ziel_b[0], schach(ort, ziel_b[1])))
+                typ_b = L[ziel_b[0]]["typ"]
+                ereignis.append("BEUTE %d jagt Fernkaempfer %d (Typ %d) am Boden (%d Felder): Saldo %.0f, Todesrisiko %.0f %%, "
+                                "toeten %.0f Takte, Wert %s" % (n, ziel_b[0], typ_b, schach(ort, ziel_b[1]), saldo, 100 * p_tod,
+                                                               t_toeten, "gemessen" if typ_b in EINHEIT_WERT_GEMESSEN else "geschaetzt"))
         # 4. Verletzt im Schussfeld: Rueckzug oder zuschlagen
         for n in verletzt:
             ort = (L[n]["x"], L[n]["y"])
@@ -990,9 +1016,11 @@ class Einzeln:
             pos = lambda k: (L[k]["x"], L[k]["y"])
             # 12.10. 01:55 (Daniel: "das wird beim besten Willen nicht reichen - besser die Assassinen fuers Raiden nutzen, wenn du
             # weisst, es reicht nicht wegen Lord-Leben UND vor allem der Fernkaempfer in Sichtweite"): Kampf vorher durchrechnen
-            satz_lord = self._sicht.beschuss(lp)        # 17.10.: am Lord ist sie sichtbar - Schuetzen mit freier Linie
-            machbar, t_l, rest_l = lord_machbar(len(self.mitglieder) if lt["phase"] is None else len(lt["mitglieder"]) + len(lt.get("warte", ())),
-                                                le["leben"], satz_lord)
+            # 17.10.: am Lord ist sie sichtbar; alle Schuetzen mit freier Linie zum Lord verteilen ihr Feuer auf die Gruppe
+            # (Zielwahl: +50 je Schuetze auf demselben Ziel) - je Assassine also Gesamtfeuer / Gruppengroesse
+            n_l = len(self.mitglieder) if lt["phase"] is None else len(lt["mitglieder"]) + len(lt.get("warte", ()))
+            satz_lord = self._sicht.feuer_gesamt(lp) / max(1, n_l)
+            machbar, t_l, rest_l = lord_machbar(n_l, le["leben"], satz_lord)
             if lt["phase"] == "anlauf" and not machbar:
                 ereignis.append("LORD-ANLAUF ABGEBROCHEN: reicht nicht mehr (Lord %d Leben, Beschuss am Lord %.1f je Tick) - alle raiden" % (
                     le["leben"], satz_lord))
