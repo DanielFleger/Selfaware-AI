@@ -45,6 +45,9 @@ WIDERLEGUNG, vorher festgelegt (05.10. 19:55, gilt weiter):
 import json, os, time
 from laden import befehl, peek
 
+_PACK_MERK = {}   # 18.10.: (Groesse, Platzliste) -> Ergebnis von _dicht_packen
+
+
 def schach(a, b):
     return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
 
@@ -385,14 +388,36 @@ class Ertragsplaner:
         Vorher nahm der Planer (81,268) mitten im Steinfeld - danach passte dort keiner mehr (v12, Lernlauf 3)."""
         if not orte:
             return orte
+        # 18.10. (Profil Probepartie: 114 von 207 s hier, 82 Mio. Abstandsrechnungen in 70 Runden): Nachbarn nur aus den
+        # umliegenden Rasterzellen (Zelle 3b), Ergebnis je gleicher Platzliste gemerkt. Ergebnis gleich (Vergleich alt/neu).
+        schl = (b, tuple(orte))
+        if schl in _PACK_MERK:
+            return list(_PACK_MERK[schl])
+        zelle = 3 * b
+        gitter = {}
+        for x in orte:
+            gitter.setdefault((x[0] // zelle, x[1] // zelle), []).append(x)
+
+        def nachbarn(p, r):
+            cx, cy = p[0] // zelle, p[1] // zelle
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    for x in gitter.get((cx + dx, cy + dy), ()):
+                        if max(abs(x[0] - p[0]), abs(x[1] - p[1])) <= r:
+                            yield x
+
         def packung(p):
             gew = [p]
-            for q in sorted(x for x in orte if schach(x, p) <= 3 * b):
-                if all(schach(q, g) >= b for g in gew):
+            for q in sorted(nachbarn(p, 3 * b)):
+                if all(max(abs(q[0] - g[0]), abs(q[1] - g[1])) >= b for g in gew):
                     gew.append(q)
             return len(gew)
         wert = {p: packung(p) for p in orte}
-        return [p for p in orte if wert[p] >= max(wert[q] for q in orte if schach(q, p) <= 2 * b)]
+        aus = [p for p in orte if wert[p] >= max(wert[q] for q in nachbarn(p, 2 * b))]
+        if len(_PACK_MERK) > 64:
+            _PACK_MERK.clear()
+        _PACK_MERK[schl] = tuple(aus)
+        return aus
 
     def _orte_roh(self, typ, L, G):
         """Kandidaten-Orte fuer typ (Ankerpunkte)."""

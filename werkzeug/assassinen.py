@@ -278,6 +278,12 @@ class Einzeln:
     KOSTEN = 70              # Preis einer Assassine (L63, gemessen)
     VERWEILEN = 300          # 17.10. ERSETZT durch ARBEIT (gemessen) / Zahl - bleibt nur fuer alte Pruefungen stehen   # 12.10.: gute Tauschgeschaefte (Stellgroessen)
     WEGPUNKT_NAH = 3         # 12.10.: so nah am Wegpunkt gilt er als erreicht
+    # 18.10. (Daniel: "der Assassine hat alle 1 Sekunde angehalten"; Probepartie: er erreichte jeden Wegpunkt, stand dort
+    # (Zustand 1) bis zur naechsten Lenker-Runde): der naechste Wegpunkt geht hinaus, wenn er bis zur naechsten Runde ankommt -
+    # Vorlauf = gemessene Rundenlaenge / TEMPO + VORLAUF_RESERVE Felder
+    VORLAUF_RESERVE = 2
+    VORLAUF_MAX = 8
+    LOEWE = 45               # 18.10. (Daniel: Assassine von Loewen getoetet; UT_LIONSHWOLF, Besitzer 0) - Nahkampf-Gefahr
     BEUTE_R = 15             # 12.10.: Fernkaempfer am Boden in diesem Umkreis werden gejagt (Stellgroesse)
     # 17.10. (1017j, Daniel mit Bild: der erste Assassine jagte bei Tick 3.313 einen Feuerwerfer neben einem arab. Bogen,
     # Todesrisiko 47 %, "aussenrum gehen und unbeschaut die Gebaeude zerstoeren haette mehr gebracht"): gejagt wird nur,
@@ -324,7 +330,8 @@ class Einzeln:
     # Einheiten = powerLevel (abgelesen ascension_ai.json "units") / powerLevel der Assassine (20). Vorher zaehlte jeder
     # Nahkaempfer 1 - drei Sklaven (powerLevel 1, die Assassine trifft sie mit 450 statt 120) galten als Uebermacht.
     # Ihr Lord: 5 (gemessen 1012d: toetet alle ~90 Ticks eine Assassine). Unbekannte Typen: 1.
-    NAH_GEFAHR = {24: 0.2, 25: 1.0, 26: 0.75, 27: 2.0, 28: 2.5, 71: 0.05, 73: 1.0, 75: 0.8, 55: 5.0}
+    NAH_GEFAHR = {24: 0.2, 25: 1.0, 26: 0.75, 27: 2.0, 28: 2.5, 71: 0.05, 73: 1.0, 75: 0.8, 55: 5.0,
+                  45: 2.0}   # 18.10. Loewe: STARTWERT (1 Probe: Assassine 12.500 -> 2.900 im Kampf)
     VERFOLGER_AB = 0.2       # schwaechere Feinde (Sklaven) gelten nicht als Verfolger
     HEIM_R, HEIM_ABSTAND = 15, 25   # eigene Truppen bis HEIM_R um Lager/Bergfried; zu schwach -> Fluchtpunkt mind. HEIM_ABSTAND weg
     # T2 Im Kreis fuehren (Daniel 22:49): Ring mit Radius KREIS_R um eine Mitte KREIS_MITTE Felder in der ersten Fluchtrichtung,
@@ -394,6 +401,10 @@ class Einzeln:
     ANKUNFT_MIN = 0.3                    # 18.10.: so viel Leben je Assassine muss nach dem Anlauf am Lord uebrig sein (STARTWERT)
     SPERRE_ROUTE = 1500                  # 18.10.: so lange nimmt der Zielwechsel ein Ziel mit gefaehrlicher Route nicht wieder
     ZIEL_RISIKO = 0.05
+    # 18.10. (Tode 1018n, tode_erklaeren.py: Zielwahl nahm 25/29/43 % Todesrisiko auf dem WEG zu unbeobachteten Zielen; das
+    # Modell sah am Todesort 88-177 Beschuss je Takt): Risikogrenze auch fuer unbeobachtete Ziele; Schwache noch strenger
+    ZIEL_RISIKO_WEG = 0.10
+    ZIEL_RISIKO_SCHWACH = 0.02
 
     def __init__(self, sp=1, pruefe_begehbar=None, wegtest=None):
         self.sp = sp
@@ -440,6 +451,9 @@ class Einzeln:
         fern, nah = [], []
         self._arbeiter = []                  # 4a: feindliche Arbeiter, die Assassinen schlagen (ARBEITER_GEFAHR)
         for nr, e in L.items():
+            if e["besitzer"] == 0 and e["typ"] == self.LOEWE:
+                nah.append((nr, (e["x"], e["y"]), e["typ"]))      # 18.10.: Loewen greifen Assassinen an
+                continue
             if e["besitzer"] in (0, self.sp):
                 continue
             if e["typ"] not in TRUPPE:
@@ -776,7 +790,7 @@ class Einzeln:
                 self.route.pop(n, None)
                 continue
             ort = (L[n]["x"], L[n]["y"])
-            while r["punkte"] and schach(ort, r["punkte"][0]) <= self.WEGPUNKT_NAH:
+            while r["punkte"] and schach(ort, r["punkte"][0]) <= self._vorlauf():
                 r["punkte"].pop(0)
             if not r["punkte"]:
                 self.route.pop(n, None)
@@ -894,6 +908,12 @@ class Einzeln:
         r = self.BEREIT_R[1]
         return (int(round(lp[0] + (mx - lp[0]) * r / d)), int(round(lp[1] + (my - lp[1]) * r / d)))
 
+    def _vorlauf(self):
+        """18.10.: so nah (Felder) am Wegpunkt gilt er als 'gleich da' - der naechste Wegpunkt geht schon hinaus."""
+        rt = getattr(self, "_runde_ticks", self.RUNDE_TICKS)
+        # hoechstens VORLAUF_MAX: sonst ueberspraenge er bei langsamen Runden Wegpunkte, der sichere Weg wuerde zur Geraden
+        return max(self.WEGPUNKT_NAH, min(self.VORLAUF_MAX, int(rt / TEMPO) + self.VORLAUF_RESERVE))
+
     def _im_lordangriff(self, n):
         """18.10. (Gegenpruefung): "Der Lord-Trupp bleibt dran" gilt nur im gemeinsamen Angriff, nicht in der Bereitstellung."""
         return n in self.lordtrupp["mitglieder"] and self.lordtrupp["phase"] in ("angriff", "sammeln")
@@ -963,6 +983,10 @@ class Einzeln:
         # Ticks - "2 Runden ohne Feldwechsel" war normales Gehen, er wechselte staendig die Richtung und wurde eingeholt).
         # Ohne Spielzeit (Pruefung ohne Spiel): RUNDE_TICKS je Runde.
         self.jetzt = tick if tick is not None else self.runde * self.RUNDE_TICKS
+        if getattr(self, "_letzt_tick", None) is not None and self.jetzt > self._letzt_tick:
+            rt = self.jetzt - self._letzt_tick
+            self._runde_ticks = rt if not hasattr(self, "_runde_ticks") else 0.7 * self._runde_ticks + 0.3 * rt
+        self._letzt_tick = self.jetzt
         self._heim = list(sichere_orte or [])          # 4a: Fluchtrichtung (Lager, Bergfried)
         # begehbare Warteplaetze: wo gerade eine eigene Nicht-Kampfeinheit steht, ist begehbarer Boden
         orte = list(sichere_orte or []) + sorted({(e["x"], e["y"]) for e in L.values()
@@ -1422,7 +1446,7 @@ class Einzeln:
                         bereit.add(k)
                         continue
                     weg = lt["weg"][k]
-                    while len(weg) > 1 and schach(pos(k), weg[0]) <= self.WEGPUNKT_NAH:
+                    while len(weg) > 1 and schach(pos(k), weg[0]) <= self._vorlauf():
                         weg.pop(0)
                         lt["neu"][k] = 0           # 18.10.: Wegpunkt erreicht = er laeuft; nur Befehle ohne Fortschritt zaehlen
                     lauf = (L[k].get("laufx", -99), L[k].get("laufy", -99))
@@ -1569,7 +1593,8 @@ class Einzeln:
         platz = lambda k: (2 if WERT.get(k[2], 10) >= self.TEUER else self.JE_GEBAEUDE) + angegriffen.get(k[0], 0)
         # 17.10. Raiden geht vor: lohnende Raid-Plaetze = erreichbare Gebaeude ohne Beschuss am Ziel x Plaetze je Gebaeude.
         # Gilt in der NAECHSTEN Runde fuer die Frage, ob ein Ueberschuss fuer den Lord da ist.
-        self._raid_plaetze = sum(platz(k) for k in kand if k[3] and self._beschuss_angriff(k[0], G) <= 0)
+        # 18.10.: gerechnet wird erst nach der Zielwahl (unten) und nur, wenn alle ein Ziel bekamen - sonst gilt ohnehin die
+        # Zahl der vergebenen Ziele (spaet im Spiel kostete diese Zaehlung die Haelfte der Rechenzeit)
         # Zielwechsel: wer ein Gebaeude angreift, wechselt sofort, wenn ein freies, erreichbares Gebaeude mindestens WECHSEL-mal
         # mehr Wert je Weg bringt (z.B. ein neu gebautes in der Naehe)
         wert = lambda ort, k: WERT.get(k[2], 10) / ((schach(ort, k[1]) + 20.0) * (1 + k[5]))
@@ -1614,9 +1639,15 @@ class Einzeln:
             g_r = self._gitter(L, G)
             rk = g_r.risiko_von(ort, TEMPO) if g_r is not None else {}
             beste, beste_bew = None, None     # 17.10.: unbeobachtete Ziele zuerst, beobachtete nur bis ZIEL_RISIKO
+            # 18.10.: Grenzen fuer den ganzen Auftrag (Weg + Angriff) - schwach = unter SCHWACH x volles Leben (Regel war
+            # berechnet, aber nicht angewendet: Assassine 163 zog mit 120 Leben los, 17 mit 3.100)
+            grenze = self.ZIEL_RISIKO_SCHWACH if schwach else self.ZIEL_RISIKO_WEG
+            grenze_bew = min(self.ZIEL_RISIKO, grenze)
             for k in frei:
                 if k[8] > zahl.get(k[0], 0) + 1:
                     continue                   # 4a: nicht dorthin, wo mehr Nahkampf-Wachen stehen als wir Angreifer haetten
+                if self._route_sperre.get((n, k[0]), -1) >= self.jetzt:
+                    continue                   # 18.10. (1018n, Assassine 17): nach ROUTE GEFAEHRLICH nicht gleich dasselbe Ziel
                 b_ziel = self._beschuss_angriff(k[0], G, ort)
                 # 17.10.: Zeit am Ziel = gemessene Arbeit / Zahl der Angreifer (statt VERWEILEN 300 ungemessen); Beschuss am
                 # Ziel aus der Sicht (sichtbar nur bei waehlbarem Feind <= 20 Feldern, Schusslinie) statt Schadenssatz L73
@@ -1634,9 +1665,9 @@ class Einzeln:
                 if saldo <= 0:
                     continue
                 if b_ziel <= 0:
-                    if beste is None or je_zeit > beste[0]:
+                    if p_tod <= grenze and (beste is None or je_zeit > beste[0]):
                         beste = (je_zeit, k, p_tod, saldo)
-                elif p_tod <= self.ZIEL_RISIKO and (beste_bew is None or je_zeit > beste_bew[0]):
+                elif p_tod <= grenze_bew and (beste_bew is None or je_zeit > beste_bew[0]):
                     beste_bew = (je_zeit, k, p_tod, saldo)
             beste = beste or beste_bew
             if beste:
@@ -1707,6 +1738,8 @@ class Einzeln:
         # besetzt: dann zaehlen nur die vergebenen (sonst sperrte die Zahl Jagd und Lord, waehrend Assassinen standen)
         if ohne > 0:
             self._raid_plaetze = len(self.ziel)
+        else:
+            self._raid_plaetze = sum(platz(k) for k in kand if k[3] and self._beschuss_angriff(k[0], G) <= 0)
         if ohne != self.ohne_ziel_zuletzt:
             self.ohne_ziel_zuletzt = ohne
             ereignis.append("%d Assassinen ohne Ziel (%s)" % (ohne, ", ".join("%s %d" % kv for kv in gruende.items() if kv[1])))

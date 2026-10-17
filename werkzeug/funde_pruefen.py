@@ -17,6 +17,14 @@ Vorher festgelegt:
      mehr Wert je Weg bringt als das neue Ziel
  11. (1017l, alle 5 im Anlauf tot) 5 Assassinen 28 Felder vor dem Lord, auf der Strecke 13 Schleuderer und 6 Boegen, der Lord
      selbst ohne freie Linie: KEINE Bereitstellung / kein Angriff; ohne die Schuetzen auf der Strecke: Bereitstellung oder Angriff
+ 12. (Daniel 18.10. "haelt jede Sekunde an") Runden je 150 Takte, Routen-Laeufer 6 Felder vor dem Wegpunkt: der naechste
+     Wegpunkt geht schon jetzt hinaus (vorher erst ab 3 Feldern -> er stand am Wegpunkt bis zur naechsten Runde)
+ 13. (Daniel 18.10. "von Loewen getoetet") Loewe (Typ 45, Besitzer 0) 3 Felder neben einer Assassine -> sie weicht aus
+ 14. (Tode 1018n: 25-43 % Todesrisiko auf dem Weg zu unbeobachteten Zielen) einziges Ziel unbeobachtet, der Weg fuehrt durch
+     einen Durchgang, den ein Bogen mit Spaeher sieht: ~17 % Todesrisiko -> KEIN Ziel (Grenze ZIEL_RISIKO_WEG 10 %)
+ 15. (Tode 1018n, Assassine 163 mit 120 Leben) derselbe Weg mit ~9 %: volles Leben -> Ziel; mit 7.000 Leben (schwach, dann ~16 %)
+     -> KEIN Ziel (prueft beide Grenzen zusammen)
+ 16. (Tode 1018n, Assassine 17) Ziel 900 fuer sie gesperrt (ROUTE GEFAEHRLICH) -> die Zielwahl nimmt 900 nicht
 Gegenprobe: python funde_pruefen.py <alte assassinen.py> [<alte sicht.py>] - die Faelle muessen dort rot sein.
 Aufruf: python werkzeug/funde_pruefen.py"""
 import importlib.util
@@ -222,6 +230,59 @@ def main():
         return t.lordtrupp["phase"]
     ph_mit, ph_ohne = lord_lage(True), lord_lage(False)
     pruefe(11, "Anlauf durch 19 Schuetzen: Phase %s; ohne Schuetzen: Phase %s" % (ph_mit, ph_ohne), ph_mit is None and ph_ohne in ("bereit", "angriff"))
+    # 12
+    t = neu(); t._raid_plaetze = 99
+    L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000)}
+    G = {900: {"besitzer": 2, "typ": 3, "x": 180, "y": 100, "leben": 100, "uid": 1, "erreichbar": 1}}
+    t.aufnehmen([100])
+    t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
+    t.route[100] = {"punkte": [(130, 100), (150, 100)], "gebaeude": 900, "befohlen": 0}
+    for i, tk in enumerate((10000, 10150)):
+        L[100].update(x=100 + 12 * i, y=100, laufx=130, laufy=100, zustand=101)
+        erg, bef = t.schritt(L, G, sichere_orte=[(50, 50)], tick=tk)
+    L[100].update(x=124, y=100, laufx=130, laufy=100, zustand=101)          # 6 Felder vor dem Wegpunkt
+    erg, bef = t.schritt(L, G, sichere_orte=[(50, 50)], tick=10300)
+    naechster = [b_ for b_ in bef if b_.get("angriff", {}).get("lauf") == [150, 100]]
+    pruefe(12, "Rundenlaenge 150 Takte, 6 Felder vor dem Wegpunkt: Laufbefehl zum naechsten (150,100) %s" % bool(naechster), naechster)
+    # 13
+    t = neu(); t._raid_plaetze = 99
+    L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000), 700: einheit(45, 0, 103, 100, leben=20000)}
+    G = {900: {"besitzer": 2, "typ": 3, "x": 180, "y": 100, "leben": 100, "uid": 1, "erreichbar": 1}}
+    t.aufnehmen([100])
+    erg, bef = t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
+    pruefe(13, "Loewe 3 Felder daneben: Ausweichen %s" % [z[:40] for z in erg if "AUSWEICHEN" in z][:1],
+           any("AUSWEICHEN" in z for z in erg) or 100 in t.flucht)
+    # 14 - 16: Wand bei x 112-127 mit einem Durchgang y 96-103; ein Bogen mit Spaeher (Speer) noerdlich davon macht ein
+    # kurzes Stueck des Weges sichtbar - so liegt das Wegrisiko zwischen den Grenzen (alte Fassung: erst ab ~42 % kein Ziel)
+    zeilen = []
+    for y in range(400):
+        z = ['G'] * 400
+        if not (96 <= y <= 103):
+            for x in range(112, 128):
+                z[x] = 'X'
+        zeilen.append(''.join(z))
+
+    def lage_risiko(leben, spaeher_y, sperre=False):
+        t = neu(); t._raid_plaetze = 99
+        t.gelaende = zeilen
+        L = {100: einheit(73, 1, 100, 100, leben=leben), 500: einheit(55, 2, 390, 390, leben=30000)}
+        if spaeher_y:
+            L[650] = einheit(24, 2, 120, spaeher_y, leben=10000)
+            L[600] = einheit(22, 2, 120, spaeher_y - 1, leben=10000)
+        G = {900: {"besitzer": 2, "typ": 3, "x": 140, "y": 98, "leben": 100, "uid": 1, "erreichbar": 1}}
+        t.aufnehmen([100])
+        if sperre and hasattr(t, "_route_sperre"):
+            t._route_sperre[(100, 900)] = 10000 + 1500
+        erg, bef = t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
+        return t.ziel.get(100), [z[:90] for z in erg if z.startswith("ZIELWAHL")][:1]
+    z14, m14 = lage_risiko(12500, 82)
+    pruefe(14, "Weg mit ~17 %% Todesrisiko (Bogen + Spaeher am Durchgang): Ziel %s %s" % (z14, m14), z14 is None)
+    z15a, _ = lage_risiko(12500, 78)
+    z15, m15 = lage_risiko(7000, 78)
+    pruefe(15, "Weg mit ~9 %%: volles Leben Ziel %s (soll 900); mit 7.000 Leben (schwach, ~16 %%): Ziel %s %s" % (z15a, z15, m15),
+           z15a == 900 and z15 is None)
+    z16, m16 = lage_risiko(12500, None, sperre=True)
+    pruefe(16, "Ziel 900 gesperrt: Ziel %s" % z16, z16 != 900)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
