@@ -136,6 +136,14 @@ def gefecht_starten(tempo):
             raise SystemExit("GEGNER FALSCH, nicht %s: %s" % (GEGNER_ERWARTET, "; ".join(fehler)))
         schreib("GEGNER geprueft: Lord-Staerke und Truppenarten passen zu %s" % GEGNER_ERWARTET)
     schreib("Partie laeuft seit Tick %d: Lords da, unser Lord bei %s, %s" % (t_lords, eigener[0], zustand))
+    # 17.10. (Daniel 12:18 "war der Run mit 150 Gold Start?" - im Mitschnitt nicht belegt, erst ab Tick 914): Gold und
+    # Startnahrung aller Spieler beim Start (PlayerData +0x50C Gold, +0x4D0 + Ware*4 Waren)
+    try:
+        spieler = sorted({l[0] for l in lords()} | {SP})
+        schreib("STARTGUETER Tick %d: %s" % (tick(), "; ".join(
+            "Spieler %d Gold %d" % (s, s32(peek(0x0115BDF8 + s * 0x39F4 + 0x50C)[0])) for s in spieler)))
+    except Exception as ex:
+        schreib("STARTGUETER nicht gelesen: %s" % ex)
     return t_lords
 
 def freier_platz(typ, mitte, r, frei_von=()):
