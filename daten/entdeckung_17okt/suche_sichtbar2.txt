@@ -1,0 +1,502 @@
+// ===== UpdateTrebutchetBuilding @ 0041f7c0
+             DAT_UnitsState.units[unitID].y = sVar5;
+             DAT_UnitsState.units[unitID].mimicCurrentYPosition = sVar5;
+>>           DAT_UnitsState.units[unitID].microXPosition = sVar2 * 8 + 4;
+             DAT_UnitsState.units[unitID].microYPosition = sVar5 * 8 + 4;
+             DAT_UnitsState.units[unitID].totalSizeOfPathPlan = 0;
+   --
+             DAT_UnitsState.units[unitID].mimicCurrentYPosition = sVar5;
+             DAT_UnitsState.units[unitID].microXPosition = sVar2 * 8 + 4;
+>>           DAT_UnitsState.units[unitID].microYPosition = sVar5 * 8 + 4;
+             DAT_UnitsState.units[unitID].totalSizeOfPathPlan = 0;
+             DAT_UnitsState.units[unitID].unknownMovementRelated_0x2d2 = 0;
+   --
+// ===== UpdateSiegeTowerBuilding @ 0041fc90
+             DAT_UnitsState.units[iVar13].y = sVar5;
+             DAT_UnitsState.units[iVar13].mimicCurrentYPosition = sVar5;
+>>           DAT_UnitsState.units[iVar13].microXPosition = sVar2 * 8 + 4;
+             DAT_UnitsState.units[iVar13].microYPosition = sVar5 * 8 + 4;
+             DAT_UnitsState.units[iVar13].totalSizeOfPathPlan = 0;
+   --
+             DAT_UnitsState.units[iVar13].mimicCurrentYPosition = sVar5;
+             DAT_UnitsState.units[iVar13].microXPosition = sVar2 * 8 + 4;
+>>           DAT_UnitsState.units[iVar13].microYPosition = sVar5 * 8 + 4;
+             DAT_UnitsState.units[iVar13].totalSizeOfPathPlan = 0;
+             DAT_UnitsState.units[iVar13].unknownMovementRelated_0x2d2 = 0;
+   --
+// ===== UpdateBatteringRamBuilding @ 00420120
+             DAT_UnitsState.units[iVar13].y = sVar5;
+             DAT_UnitsState.units[iVar13].mimicCurrentYPosition = sVar5;
+>>           DAT_UnitsState.units[iVar13].microXPosition = sVar2 * 8 + 4;
+             DAT_UnitsState.units[iVar13].microYPosition = sVar5 * 8 + 4;
+             DAT_UnitsState.units[iVar13].totalSizeOfPathPlan = 0;
+   --
+             DAT_UnitsState.units[iVar13].mimicCurrentYPosition = sVar5;
+             DAT_UnitsState.units[iVar13].microXPosition = sVar2 * 8 + 4;
+>>           DAT_UnitsState.units[iVar13].microYPosition = sVar5 * 8 + 4;
+             DAT_UnitsState.units[iVar13].totalSizeOfPathPlan = 0;
+             DAT_UnitsState.units[iVar13].unknownMovementRelated_0x2d2 = 0;
+   --
+// ===== UpdateShieldBuilding @ 004205b0
+             DAT_UnitsState.units[iVar11].y = sVar5;
+             DAT_UnitsState.units[iVar11].mimicCurrentYPosition = sVar5;
+>>           DAT_UnitsState.units[iVar11].microXPosition = sVar2 * 8 + 4;
+             DAT_UnitsState.units[iVar11].microYPosition = sVar5 * 8 + 4;
+             DAT_UnitsState.units[iVar11].totalSizeOfPathPlan = 0;
+   --
+             DAT_UnitsState.units[iVar11].mimicCurrentYPosition = sVar5;
+             DAT_UnitsState.units[iVar11].microXPosition = sVar2 * 8 + 4;
+>>           DAT_UnitsState.units[iVar11].microYPosition = sVar5 * 8 + 4;
+             DAT_UnitsState.units[iVar11].totalSizeOfPathPlan = 0;
+             DAT_UnitsState.units[iVar11].unknownMovementRelated_0x2d2 = 0;
+   --
+// ===== setLastEncounteredTroopUnit @ 004565a0
+       DAT_GameState.playerDataArray[playerID].someXPosition = (int)sVar2;
+       DAT_GameState.playerDataArray[playerID].someYPosition = (int)DAT_UnitsState.units[unitID].y;
+>>     if ((DAT_UnitsState.units[iVar5].isSelectable_OR_matchTime == 0) ||
+          (DAT_GameState.mapAndTime.playerTeams[DAT_UnitsState.units[iVar5].owner] ==
+           DAT_GameState.mapAndTime.playerTeams[playerID])) {
+   --
+// ===== SelectUnitAndOpenStatusMenu @ 00463a00
+     if ((((0 < unitIndex) &&
+          (DAT_UnitsState.units[unitIndex].owner == DAT_GameSynchronyState.currentPlayerSlotID)) &&
+>>       (DAT_UnitsState.units[unitIndex].isSelectable_OR_matchTime == 0)) &&
+        (((DAT_GameCore.gameMode_2 != GM_EDITOR && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) &&
+         ((DAT_GameCore.gamePausedLogical == 0 &&
+   --
+// ===== drawMinimap @ 004b66c0
+                 }
+                 else {
+>>                 if (DAT_UnitsState.units[iVar16].isSelectable_OR_matchTime == 0) {
+   LAB_004b6cb0:
+                     iVar9 = (int)sVar1;
+   --
+// ===== spawnUnitsForAITribe @ 00522f70
+     
+     if (((0 < param_2) || (0 < param_3)) && (0 < param_6)) {
+>>     microXPosition = param_2 * 8;
+       param_2 = param_6;
+       do {
+   --
+// ===== spawnUnitsIntoNewTribe @ 00523030
+       }
+       if (0 < unitType2Count) {
+>>       microYPosition = y * 8;
+         y = unitType2Count;
+         do {
+   --
+// ===== updateTribeRallyFlags @ 00523f70
+            ((sVar2 = DAT_UnitsState.units[iVar3].goToRallyPoint,
+             DAT_UnitsState.units[iVar3].rallyRelatedFlag = 0, sVar2 != 0 ||
+>>           (DAT_UnitsState.units[iVar3].isSelectable_OR_matchTime == 0)))) {
+           local_4 = 1;
+           DAT_UnitsState.units[iVar3].rallyRelatedFlag = 1;
+   --
+// ===== giveTribeAnInstruction @ 00527c80
+             DAT_UnitsState.units[iVar18].tile = iVar12;
+             DAT_UnitsState.units[iVar18].nextTileUnk = iVar12;
+>>           DAT_UnitsState.units[iVar18].microXPosition = sVar9 * 8 + 4;
+             DAT_UnitsState.units[iVar18].microYPosition = sVar19 * 8 + 4;
+             UnitsState::updateMicroPosition(&DAT_UnitsState,iVar18);
+   --
+             DAT_UnitsState.units[iVar18].nextTileUnk = iVar12;
+             DAT_UnitsState.units[iVar18].microXPosition = sVar9 * 8 + 4;
+>>           DAT_UnitsState.units[iVar18].microYPosition = sVar19 * 8 + 4;
+             UnitsState::updateMicroPosition(&DAT_UnitsState,iVar18);
+             UnitsState::resetUnitMovementState(&DAT_UnitsState,iVar18);
+   --
+// ===== calculateUnitMovementSpeed @ 0052f7e0
+         }
+       }
+>>     else if (DAT_UnitsState.units[unitID].isSelectable_OR_matchTime == 0) {
+         DAT_UnitsState.units[unitID].calculatedMovementSpeed =
+              DAT_UnitsState.units[unitID].movementSpeed;
+   --
+// ===== despawnUnreachableUnit @ 00533fc0
+     int iVar2;
+     
+>>   if ((DAT_UnitsState.units[param_1].isSelectable_OR_matchTime == 0) &&
+        (((UVar1 = DAT_UnitsState.units[param_1].unitType, (short)UVar1 < 0x37 || (0x39 < (short)UVar1)
+          ) && ((DAT_TileMapState.LogicLayer[DAT_UnitsState.units[param_1].tile] & 0x100U) != 0)))) {
+   --
+// ===== setUnitValues @ 0053b8e0
+     }
+     DAT_UnitsState.units[unitID].field275_0x3d1 = bVar3;
+>>   DAT_UnitsState.units[unitID].isSelectable_OR_matchTime = 0;
+     DAT_UnitsState.units[unitID].field333_0x430 = 0;
+     if (unitType != UT_CAGEDOG) {
+   --
+// ===== teleportUnitToUnitXAndY @ 0053bb90
+        (iVar3 != DAT_UnitsState.units[unitID].x)) {
+       sVar2 = (short)iVar3;
+>>     DAT_UnitsState.units[unitID].microXPosition = sVar2 * 8 + 4;
+       DAT_UnitsState.units[unitID].microYPosition = sVar1 * 8 + 4;
+       DAT_UnitsState.units[unitID].mimicCurrentXPosition = sVar2;
+   --
+       sVar2 = (short)iVar3;
+       DAT_UnitsState.units[unitID].microXPosition = sVar2 * 8 + 4;
+>>     DAT_UnitsState.units[unitID].microYPosition = sVar1 * 8 + 4;
+       DAT_UnitsState.units[unitID].mimicCurrentXPosition = sVar2;
+       DAT_UnitsState.units[unitID].x = sVar2;
+   --
+// ===== UpdateShield @ 0053c300
+     piVar15 = &DAT_GameState.playerDataArray[iVar16].currentSiegeWeaponCount;
+     *piVar15 = *piVar15 + 1;
+>>   DAT_UnitsState.units[uVar10].isSelectable_OR_matchTime = 1;
+     DAT_UnitsState.units[uVar10].calculatedOwnerPlayerIndex = iVar16;
+     UVar4 = DAT_UnitsState.units[uVar10].state.generic;
+   --
+// ===== setDestinationForUnit @ 0053d3d0
+     DAT_PathFindingState.unitX = (int)DAT_UnitsState.units[unitID].x;
+     DAT_PathFindingState.unitY = (int)DAT_UnitsState.units[unitID].y;
+>>   if (DAT_UnitsState.units[unitID].isSelectable_OR_matchTime == 0) {
+       DAT_PathFindingState.notAllAssassinsUnk = 1;
+     }
+   --
+// ===== exitLadder @ 0053d900
+     DAT_UnitsState.units[unitID].x = sVar2;
+     iVar3 = DAT_ViewportRenderState.translationMatrix[sVar1].addXgetTile;
+>>   DAT_UnitsState.units[unitID].microYPosition = sVar1 * 8 + 4;
+     DAT_UnitsState.units[unitID].tile = sVar2 + iVar3;
+     DAT_UnitsState.units[unitID].microXPosition = sVar2 * 8 + 4;
+   --
+     DAT_UnitsState.units[unitID].microYPosition = sVar1 * 8 + 4;
+     DAT_UnitsState.units[unitID].tile = sVar2 + iVar3;
+>>   DAT_UnitsState.units[unitID].microXPosition = sVar2 * 8 + 4;
+     updateMicroPosition(&DAT_UnitsState,unitID);
+     commitPendingUnitPosition(&DAT_UnitsState,unitID);
+   --
+// ===== spawnUnit @ 0053e440
+     DAT_UnitsState.units[unitID].owner = (short)playerID;
+     DAT_UnitsState.units[unitID].terrainOrClimbHeight = (short)terrainHeight;
+>>   DAT_UnitsState.units[unitID].microXPosition = (short)microXPosition + 4;
+     DAT_UnitsState.units[unitID].time = dVar1;
+     DAT_UnitsState.units[unitID].calculatedOwnerPlayerIndex = (int)(short)displayColor;
+   --
+     DAT_UnitsState.units[unitID].time = dVar1;
+     DAT_UnitsState.units[unitID].calculatedOwnerPlayerIndex = (int)(short)displayColor;
+>>   DAT_UnitsState.units[unitID].microYPosition = (short)microYPosition + 4;
+     DAT_UnitsState.units[unitID].facingDirection = 0;
+     DAT_UnitsState.units[unitID].displayColorPlayerID = (short)displayColor;
+   --
+// ===== setPositionOfUnit @ 0053e900
+       setupUnitSharingCurrentTilePosition(&DAT_UnitsState,unitID);
+       sVar1 = (short)x;
+>>     DAT_UnitsState.units[unitID].microXPosition = sVar1 * 8 + 4;
+       sVar2 = (short)y;
+       DAT_UnitsState.units[unitID].microYPosition = sVar2 * 8 + 4;
+   --
+       DAT_UnitsState.units[unitID].microXPosition = sVar1 * 8 + 4;
+       sVar2 = (short)y;
+>>     DAT_UnitsState.units[unitID].microYPosition = sVar2 * 8 + 4;
+       DAT_UnitsState.units[unitID].terrainOrClimbHeight = (short)height;
+       DAT_UnitsState.units[unitID].mimicCurrentXPosition = sVar1;
+   --
+// ===== commitMimmicLocation @ 0053e9f0
+     sVar2 = DAT_UnitsState.units[unitID].mimicCurrentYPosition;
+     DAT_UnitsState.units[unitID].y = sVar2;
+>>   DAT_UnitsState.units[unitID].microXPosition = sVar1 * 8 + 4;
+     DAT_UnitsState.units[unitID].x = sVar1;
+     DAT_UnitsState.units[unitID].microYPosition = sVar2 * 8 + 4;
+   --
+     DAT_UnitsState.units[unitID].microXPosition = sVar1 * 8 + 4;
+     DAT_UnitsState.units[unitID].x = sVar1;
+>>   DAT_UnitsState.units[unitID].microYPosition = sVar2 * 8 + 4;
+     iVar3 = (int)sVar1 + DAT_ViewportRenderState.translationMatrix[sVar2].addXgetTile;
+     DAT_UnitsState.units[unitID].tile = iVar3;
+   --
+// ===== UpdateGhost @ 00543b80
+     piVar1 = &DAT_GameState.playerDataArray[iVar8].nonInteractiveCitizenCountUnk;
+     *piVar1 = *piVar1 + 1;
+>>   DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime = 0;
+     DAT_UnitsState.units[uVar9].calculatedOwnerPlayerIndex = 0;
+     UVar4 = DAT_UnitsState.units[uVar9].state.generic;
+   --
+// ===== UpdateSiegeTower @ 00544750
+     piVar21 = &DAT_GameState.playerDataArray[(int)playerID].currentSiegeWeaponCount;
+     *piVar21 = *piVar21 + 1;
+>>   DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime = 1;
+     DAT_UnitsState.units[uVar9].calculatedOwnerPlayerIndex = 0;
+     DAT_UnitsState.units[uVar9].displayColorPlayerID = 0;
+   --
+               DAT_UnitsState.units[uVar16].y = sVar11;
+               DAT_UnitsState.units[uVar16].mimicCurrentYPosition = sVar11;
+>>             DAT_UnitsState.units[uVar16].microXPosition = sVar14 * 8 + 4;
+               DAT_UnitsState.units[uVar16].microYPosition = sVar11 * 8 + 4;
+               Map::Units::UnitsState::updateMicroPosition(&DAT_UnitsState,local_b8[0]);
+   --
+               DAT_UnitsState.units[uVar16].mimicCurrentYPosition = sVar11;
+               DAT_UnitsState.units[uVar16].microXPosition = sVar14 * 8 + 4;
+>>             DAT_UnitsState.units[uVar16].microYPosition = sVar11 * 8 + 4;
+               Map::Units::UnitsState::updateMicroPosition(&DAT_UnitsState,local_b8[0]);
+               Map::Units::UnitsState::resetUnitMovementState(&DAT_UnitsState,uVar9);
+   --
+         piVar21 = &DAT_GameState.playerDataArray[(int)playerID].countEntities;
+         *piVar21 = *piVar21 + -1;
+>>       DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime = 0;
+         DAT_GameState.playerDataArray[(int)playerID].armySize = iVar19 + -1;
+         sVar11 = DAT_UnitsState.units[uVar9].workplaceBuildingID_1;
+   --
+// ===== UpdateBatteringRam @ 005459b0
+     piVar23 = &DAT_GameState.playerDataArray[iVar21].currentSiegeWeaponCount;
+     *piVar23 = *piVar23 + 1;
+>>   DAT_UnitsState.units[uVar16].isSelectable_OR_matchTime = 1;
+     DAT_UnitsState.units[uVar16].calculatedOwnerPlayerIndex = (int)DAT_UnitsState.units[uVar16].owner;
+     DAT_UnitsState.units[uVar16].displayColorPlayerID = DAT_UnitsState.units[uVar16].owner;
+   --
+// ===== findNearestEnemyAndHeadTowardsIt @ 0054a7b0
+       }
+     }
+>>   if (DAT_UnitsState.units[unitID].isSelectable_OR_matchTime == 0) {
+       bVar11 = true;
+     }
+   --
+// ===== acquireShootTarget @ 0054b0d0
+               if (DAT_GameSynchronyState.currentPlayerFullIDArray
+                   [DAT_UnitsState.units[(int)psVar3].owner] != -1) goto switchD_0054ba67_caseD_1f;
+>>             if (DAT_UnitsState.units[iVar10].isSelectable_OR_matchTime == 0) {
+                 iVar14 = (iVar14 * 5 + 0x32) * 2;
+               }
+   --
+// ===== UpdateTunneler @ 0054e6c0
+     *piVar1 = *piVar1 + 1;
+     DAT_UnitsState.units[uVar14].calculatedOwnerPlayerIndex = iVar15;
+>>   if (DAT_UnitsState.units[uVar14].isSelectable_OR_matchTime == 0) {
+       DAT_UnitsState.units[uVar14].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+     }
+   --
+     DAT_UnitsState.units[uVar14].calculatedOwnerPlayerIndex = iVar15;
+     if (DAT_UnitsState.units[uVar14].isSelectable_OR_matchTime == 0) {
+>>     DAT_UnitsState.units[uVar14].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+     }
+     Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar14);
+   --
+// ===== UpdateCrusaderArcher @ 0055a800
+     piVar1 = &DAT_GameState.playerDataArray[iVar14].currentArchers;
+     *piVar1 = *piVar1 + 1;
+>>   if (DAT_UnitsState.units[uVar15].isSelectable_OR_matchTime == 0) {
+       DAT_UnitsState.units[uVar15].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+     }
+   --
+     *piVar1 = *piVar1 + 1;
+     if (DAT_UnitsState.units[uVar15].isSelectable_OR_matchTime == 0) {
+>>     DAT_UnitsState.units[uVar15].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+     }
+     DAT_UnitsState.units[uVar15].field333_0x430 = 1;
+   --
+// ===== UpdateCrossbowman @ 0055c7b0
+     piVar1 = &DAT_GameState.playerDataArray[iVar15].currentCrossbowmen;
+     *piVar1 = *piVar1 + 1;
+>>   if (DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime == 0) {
+       DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+     }
+   --
+     *piVar1 = *piVar1 + 1;
+     if (DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime == 0) {
+>>     DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+     }
+     DAT_UnitsState.units[uVar9].field333_0x430 = 1;
+   --
+// ===== UpdateSpearman @ 0055da50
+     piVar1 = &DAT_GameState.playerDataArray[iVar15].currentSpearmen;
+     *piVar1 = *piVar1 + 1;
+>>   DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime = 1;
+     Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar9);
+     uVar9 = DAT_CurrentUnitSlotID;
+   --
+// ===== UpdatePikeman @ 0055f110
+     piVar1 = &DAT_GameState.playerDataArray[iVar16].currentPikemen;
+     *piVar1 = *piVar1 + 1;
+>>   DAT_UnitsState.units[uVar11].isSelectable_OR_matchTime = 1;
+     Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar11);
+     uVar11 = DAT_CurrentUnitSlotID;
+   --
+// ===== UpdateMaceman @ 00560700
+     piVar1 = &DAT_GameState.playerDataArray[iVar14].currentMacemen;
+     *piVar1 = *piVar1 + 1;
+>>   DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime = 1;
+     Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar9);
+     uVar9 = DAT_CurrentUnitSlotID;
+   --
+// ===== UpdateSwordsman @ 00561c10
+     piVar1 = &DAT_GameState.playerDataArray[iVar12].currentSwordsmen;
+     *piVar1 = *piVar1 + 1;
+>>   DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime = 1;
+     Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar9);
+     uVar9 = DAT_CurrentUnitSlotID;
+   --
+// ===== UpdateKnight @ 00562aa0
+     *piVar1 = *piVar1 + 1;
+     DAT_UnitsState.units[uVar10].gmIDUnk = 0x6e;
+>>   DAT_UnitsState.units[uVar10].isSelectable_OR_matchTime = 1;
+     Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar10);
+     uVar10 = DAT_CurrentUnitSlotID;
+   --
+// ===== UpdateLadderman @ 00563910
+     *piVar1 = *piVar1 + 1;
+     DAT_UnitsState.units[uVar10].calculatedOwnerPlayerIndex = iVar11;
+>>   if (DAT_UnitsState.units[uVar10].isSelectable_OR_matchTime == 0) {
+       DAT_UnitsState.units[uVar10].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+     }
+   --
+     DAT_UnitsState.units[uVar10].calculatedOwnerPlayerIndex = iVar11;
+     if (DAT_UnitsState.units[uVar10].isSelectable_OR_matchTime == 0) {
+>>     DAT_UnitsState.units[uVar10].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+     }
+     Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar10);
+   --
+// ===== UpdateEngineer @ 00564250
+       DAT_UnitsState.units[DAT_CurrentUnitSlotID].movementSpeed = 2;
+     }
+>>   DAT_UnitsState.units[uVar13].isSelectable_OR_matchTime = 1;
+     Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar13);
+     uVar13 = DAT_CurrentUnitSlotID;
+   --
+// ===== UpdateMonk @ 00567640
+     *piVar1 = *piVar1 + 1;
+     iVar11 = 0;
+>>   DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime = 1;
+     Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar9);
+     uVar9 = DAT_CurrentUnitSlotID;
+   --
+// ===== UpdateCatapult @ 00568320
+     piVar20 = &DAT_GameState.playerDataArray[iVar8].currentSiegeWeaponCount;
+     *piVar20 = *piVar20 + 1;
+>>   DAT_UnitsState.units[uVar12].isSelectable_OR_matchTime = 1;
+     DAT_UnitsState.units[uVar12].calculatedOwnerPlayerIndex = iVar8;
+     UVar4 = DAT_UnitsState.units[uVar12].state.generic;
+   --
+// ===== UpdateTrebuchet @ 00569410
+     piVar20 = &DAT_GameState.playerDataArray[iVar10].currentSiegeWeaponCount;
+     *piVar20 = *piVar20 + 1;
+>>   DAT_UnitsState.units[uVar14].isSelectable_OR_matchTime = 1;
+     DAT_UnitsState.units[uVar14].calculatedOwnerPlayerIndex = iVar10;
+     UVar4 = DAT_UnitsState.units[uVar14].state.generic;
+   --
+// ===== UpdateMangonel @ 0056a3f0
+     piVar17 = &DAT_GameState.playerDataArray[local_4].currentSiegeWeaponCount;
+     *piVar17 = *piVar17 + 1;
+>>   DAT_UnitsState.units[uVar18].isSelectable_OR_matchTime = 1;
+     DAT_UnitsState.units[uVar18].calculatedOwnerPlayerIndex = local_4;
+     UVar3 = DAT_UnitsState.units[uVar18].state.generic;
+   --
+// ===== UpdateLord @ 0056c560
+     DAT_UnitsState.units[DAT_CurrentUnitSlotID].stateBasedSpeed = 0;
+     local_10 = 0;
+>>   if ((DAT_UnitsState.units[uVar14].isSelectable_OR_matchTime == 0) &&
+        (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)) {
+       DAT_UnitsState.units[uVar14].isSelectable_OR_matchTime = (short)dVar12;
+   --
+     if ((DAT_UnitsState.units[uVar14].isSelectable_OR_matchTime == 0) &&
+        (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)) {
+>>     DAT_UnitsState.units[uVar14].isSelectable_OR_matchTime = (short)dVar12;
+     }
+     else {
+   --
+     }
+     else {
+>>     DAT_UnitsState.units[uVar14].isSelectable_OR_matchTime = 1;
+     }
+     if (DAT_UnitsState.units[uVar14].unknownLordTypeBasedMissionSpecificValue_01 == 1) {
+   --
+// ===== UpdateBallista @ 0056ecd0
+     piVar17 = &DAT_GameState.playerDataArray[local_4].armySize;
+     *piVar17 = *piVar17 + 1;
+>>   DAT_UnitsState.units[uVar18].isSelectable_OR_matchTime = 1;
+     DAT_UnitsState.units[uVar18].calculatedOwnerPlayerIndex = local_4;
+     UVar3 = DAT_UnitsState.units[uVar18].state.generic;
+   --
+// ===== UpdateArabianArcher @ 00570400
+     piVar1 = &DAT_GameState.playerDataArray[iVar16].countArabianArcher;
+     *piVar1 = *piVar1 + 1;
+>>   if (DAT_UnitsState.units[uVar11].isSelectable_OR_matchTime == 0) {
+       DAT_UnitsState.units[uVar11].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+     }
+   --
+     *piVar1 = *piVar1 + 1;
+     if (DAT_UnitsState.units[uVar11].isSelectable_OR_matchTime == 0) {
+>>     DAT_UnitsState.units[uVar11].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+     }
+     DAT_UnitsState.units[uVar11].field333_0x430 = 1;
+   --
+// ===== UpdateSlave @ 00571c00
+     piVar1 = &DAT_GameState.playerDataArray[iVar15].countSlaves2;
+     *piVar1 = *piVar1 + 1;
+>>   DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime = 1;
+     Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar9);
+     uVar9 = DAT_CurrentUnitSlotID;
+   --
+// ===== UpdateSlinger @ 00572e80
+     piVar1 = &DAT_GameState.playerDataArray[iVar14].countSlingers2;
+     *piVar1 = *piVar1 + 1;
+>>   if (DAT_UnitsState.units[uVar10].isSelectable_OR_matchTime == 0) {
+       DAT_UnitsState.units[uVar10].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+     }
+   --
+     *piVar1 = *piVar1 + 1;
+     if (DAT_UnitsState.units[uVar10].isSelectable_OR_matchTime == 0) {
+>>     DAT_UnitsState.units[uVar10].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+     }
+     DAT_UnitsState.units[uVar10].field333_0x430 = 1;
+   --
+// ===== UpdateAssassin @ 005744d0
+     DAT_UnitsState.units[uVar10].gmIDUnk = 0xc6;
+     DAT_UnitsState.units[uVar10].imageIDUnk = 0;
+>>   DAT_UnitsState.units[uVar10].isSelectable_OR_matchTime = 1;
+     Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar10);
+     uVar10 = DAT_CurrentUnitSlotID;
+   --
+// ===== UpdateArabianSwordsman @ 00575c40
+     piVar1 = &DAT_GameState.playerDataArray[iVar13].countArabSwordsman;
+     *piVar1 = *piVar1 + 1;
+>>   DAT_UnitsState.units[uVar10].isSelectable_OR_matchTime = 1;
+     Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar10);
+     uVar10 = DAT_CurrentUnitSlotID;
+   --
+// ===== UpdateFireThrower @ 005769f0
+     piVar1 = &DAT_GameState.playerDataArray[iVar13].countFirethrowers;
+     *piVar1 = *piVar1 + 1;
+>>   if (DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime == 0) {
+       DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+     }
+   --
+     *piVar1 = *piVar1 + 1;
+     if (DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime == 0) {
+>>     DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+     }
+     DAT_UnitsState.units[uVar9].field333_0x430 = 1;
+   --
+// ===== UpdateFireBallista @ 00577cc0
+     piVar22 = &DAT_GameState.playerDataArray[iVar19].currentSiegeWeaponCount;
+     *piVar22 = *piVar22 + 1;
+>>   DAT_UnitsState.units[uVar13].isSelectable_OR_matchTime = 1;
+     DAT_UnitsState.units[uVar13].calculatedOwnerPlayerIndex = iVar19;
+     UVar3 = DAT_UnitsState.units[uVar13].state.generic;
+   --
+// ===== processUnitMove @ 00578c40
+                      *(short *)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix +
+                                uVar12 * 8 + 4) + sVar11;
+>>               DAT_UnitsState.units[unitID].microXPosition = sVar6 * 8 + 4;
+                 DAT_UnitsState.units[unitID].microYPosition = sVar11 * 8 + 4;
+               }
+   --
+                                uVar12 * 8 + 4) + sVar11;
+                 DAT_UnitsState.units[unitID].microXPosition = sVar6 * 8 + 4;
+>>               DAT_UnitsState.units[unitID].microYPosition = sVar11 * 8 + 4;
+               }
+               setupUnitSharingCurrentTilePosition(&DAT_UnitsState,unitID);
+   --
+// ===== updateUnits @ 00579300
+                DAT_UnitsState.units[DAT_CurrentUnitSlotID].occupancyOrFlag;
+           piVar13 = DAT_UnitsState.unitCountOfSelection + uVar19 * 0x124 + -9;
+>>         if (DAT_UnitsState.units[uVar19].isSelectable_OR_matchTime == 0) {
+   switchD_00579a5d_caseD_3:
+           }
+   --
+// ===== UpdateHorseArcher @ 0057ab50
+     *piVar1 = *piVar1 + 1;
+     DAT_UnitsState.units[uVar9].gmIDUnk = 0xc2;
+>>   DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime = 1;
+     DAT_UnitsState.units[uVar9].field333_0x430 = 1;
+     Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar9);
+   --

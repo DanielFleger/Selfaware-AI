@@ -1,0 +1,815 @@
+// ===== hasWorker @ 0040f540
+     }
+     UVar1 = DAT_UnitsState.units[iVar2].logicalState;
+>>   if (((UVar1 != ULS_REMOVE) && (UVar1 != ULS_INVISIBLE)) &&
+        (DAT_UnitsState.units[iVar2].buildingID == param_1)) {
+       return DAT_UnitsState.units[iVar2].uid ==
+   --
+// ===== LaunchSinglePlayerGameUnk @ 0042c620
+       pUVar10 = &DAT_UnitsState.units[1].unitType;
+       do {
+>>       if ((pUVar10[-1] != ULS_INVISIBLE) && (*pUVar10 == UT_PEASANT)) {
+           Map::Units::UnitsState::deleteUnit(&DAT_UnitsState,uVar11);
+         }
+   --
+// ===== CountPlayerUnitsByType @ 00440360
+       psVar3 = &DAT_UnitsState.units[1].owner;
+       do {
+>>       if ((((psVar3[-5] != ULS_INVISIBLE) && (*psVar3 == iVar1)) && (*(byte *)(psVar3 + 0x14b) == 0)
+             ) && ((iVar2 = (int)psVar3[-4], 0 < iVar2 && ((iVar2 < 0x43 || (0x45 < iVar2)))))) {
+           DAT_UnitTypeRelatedCounter[iVar2] = DAT_UnitTypeRelatedCounter[iVar2] + 1;
+   --
+// ===== spawnChicken @ 004580c0
+             psVar5 = &DAT_UnitsState.units[1].owner;
+             do {
+>>             if (((psVar5[-5] != ULS_INVISIBLE) && (*psVar5 == playerID)) &&
+                  (psVar5[-4] == UT_CHICKEN)) {
+                 DAT_UnitsState.units[iVar3].state.generic = US_DISAPPEAR;
+   --
+// ===== migrateGameStateForMapVersion @ 0045c1c0
+         pUVar4 = &DAT_UnitsState.units[1].unitType;
+         do {
+>>         if ((pUVar4[-1] != ULS_INVISIBLE) && (*pUVar4 != 0)) {
+             Map::Units::UnitsState::assignNameToUnit(&DAT_UnitsState,iVar9);
+           }
+   --
+           pUVar4 = &DAT_UnitsState.units[1].unitType;
+           do {
+>>           if (((pUVar4[-1] != ULS_INVISIBLE) && (UVar1 = *pUVar4, UVar1 != 0)) &&
+                ((short)pUVar4[4] == iVar9)) {
+               if (UVar1 == UT_COW) {
+   --
+         pUVar5 = &DAT_UnitsState.units[1].logicalState;
+         do {
+>>         if ((*pUVar5 != ULS_INVISIBLE) &&
+              (((pUVar5[1] == UT_JESTER && (sVar3 == 0)) || ((pUVar5[1] == UT_LADY && (sVar2 == 0))))))
+           {
+   --
+// ===== findNearestEnemyUnitWithinDistance @ 004a06b0
+                  (DAT_GameState.mapAndTime.playerTeams[param_1] !=
+                   DAT_GameState.mapAndTime.playerTeams[DAT_UnitsState.units[iVar4].owner])) &&
+>>               (UVar2 = DAT_UnitsState.units[iVar4].logicalState, UVar2 != ULS_INVISIBLE)) &&
+                ((UVar2 != ULS_REMOVE && (DAT_UnitsState.units[iVar4].dying == 0)))) {
+               return iVar4;
+   --
+// ===== findDistanceOrThreatLevelToUnitUnk @ 004a0b20
+                (DAT_GameState.mapAndTime.playerTeams[param_1] !=
+                 DAT_GameState.mapAndTime.playerTeams[DAT_UnitsState.units[iVar5].owner])) &&
+>>             (DAT_UnitsState.units[iVar5].logicalState != ULS_INVISIBLE)) &&
+              ((DAT_UnitsState.units[iVar5].dying == 0 &&
+               (DAT_UnitsState.units[iVar5].isSelectable_OR_matchTime != 0)))) {
+   --
+// ===== drawMinimap @ 004b66c0
+                            DAT_GameState.mapAndTime.playerTeams
+                            [DAT_GameSynchronyState.currentPlayerSlotID]) &&
+>>                        (0xa0 < DAT_UnitsState.units[iVar16].assassinsMicroDistanceToEnemyUnk)) &&
+                         (UVar3 = DAT_UnitsState.units[iVar16].state.generic, UVar3 != US_MELEE_ATTACK)
+                         ) && ((UVar3 != US_MELEE_ATTACK_WALL &&
+   --
+                   if (((((DAT_GameState.mapAndTime.playerTeams[sVar1] ==
+                           DAT_GameState.mapAndTime.playerTeams[iVar16]) ||
+>>                       (DAT_UnitsState.units[iVar9].assassinsMicroDistanceToEnemyUnk < 0xa1)) ||
+                        (UVar3 = DAT_UnitsState.units[iVar9].state.generic, UVar3 == US_MELEE_ATTACK))
+                       || (UVar3 == US_MELEE_ATTACK_WALL)) ||
+   --
+// ===== determineScenarioMissionTypeAndResetEvents @ 004b7980
+     psVar4 = &DAT_UnitsState.units[1].owner;
+     do {
+>>     if ((psVar4[-5] != ULS_INVISIBLE) && (1 < *psVar4)) {
+         bVar2 = true;
+         break;
+   --
+// ===== computeMissionCompletionScore @ 004bde40
+       iVar5 = DAT_GameSynchronyState.currentPlayerSlotID;
+       do {
+>>       if (((psVar8[-5] != ULS_INVISIBLE) && (*psVar8 == iVar5)) && (psVar8[0x107] != 0)) {
+           iVar5 = Units::TroopValueState::getValueOfTroopType(&DAT_TroopValueState,(int)psVar8[-4]);
+           iVar6 = iVar6 + iVar5;
+   --
+       psVar8 = &DAT_UnitsState.units[1].owner;
+       do {
+>>       if (((psVar8[-5] != ULS_INVISIBLE) && (*psVar8 == 1)) && (psVar8[0x107] != 0)) {
+           iVar6 = Units::TroopValueState::getValueOfTroopType(&DAT_TroopValueState,(int)psVar8[-4]);
+           iVar5 = iVar5 + iVar6;
+   --
+// ===== loadMap @ 004c62c0
+       pUVar3 = &DAT_UnitsState.units[1].unitType;
+       do {
+>>       if (((pUVar3[-1] != ULS_INVISIBLE) && (*pUVar3 == UT_E_ARCHER)) && (pUVar3[4] == 1)) {
+           iVar6 = iVar6 + -1;
+           *(int *)(pUVar3 + -0x3f) = 3;
+   --
+// ===== recruitHarrassingSiegeEngines @ 004cd2a0
+             pUVar5 = &DAT_UnitsState.units[1].unitType;
+             do {
+>>             if ((((pUVar5[-1] != ULS_INVISIBLE) && (pUVar5[0x109] == 0)) &&
+                   ((*pUVar5 == UT_S_CATAPULT || (*pUVar5 == UT_S_FBALLISTA)))) &&
+                  (pUVar5[0x1ce] == 0x15)) {
+   --
+// ===== addRallyPointForTribe @ 004cfa10
+     pUVar4 = &DAT_UnitsState.units[1].unitType;
+     do {
+>>     if (pUVar4[-1] != ULS_INVISIBLE) {
+         BVar3 = Game::GameStateStructures::getTeamsDifferent
+                           (&DAT_GameState,DAT_TribesState.tribes[tribeID].owner,(int)(short)pUVar4[4])
+   --
+// ===== disbandAIPlayerSiegeUnits @ 004cfb20
+     pUVar2 = &DAT_UnitsState.units[1].unitType;
+     do {
+>>     if ((((pUVar2[-1] != ULS_INVISIBLE) && ((short)pUVar2[4] == playerID)) &&
+           (((UVar1 = *pUVar2, UVar1 == UT_S_CATAPULT ||
+             (((UVar1 == UT_S_TREBUCHET || (UVar1 == UT_S_TOWER)) || (UVar1 == UT_S_BATTERINGRAM)))) ||
+   --
+// ===== countSiegeEngineUnits @ 004cfbc0
+     do {
+                       /* this is optimized code to do three units simultaneously */
+>>     if (((((pUVar4[-1] != ULS_INVISIBLE) && ((short)pUVar4[4] == playerID)) &&
+            (*(byte *)(pUVar4 + 0x1b8) == 3)) && (pUVar4[0x1ce] != 0x15)) &&
+          (((UVar1 = *pUVar4, UVar1 == UT_S_CATAPULT || (UVar1 == UT_S_TREBUCHET)) ||
+   --
+// ===== aiCommandSiegeEngineTribes @ 004cfcd0
+     local_14 = &DAT_UnitsState.units[1].unitType;
+     do {
+>>     if ((local_14[-1] != ULS_INVISIBLE) &&
+          ((((UVar1 = *local_14, UVar1 == UT_S_TOWER || (UVar1 == UT_S_BATTERINGRAM)) ||
+            (UVar1 == UT_S_SHIELD)) &&
+   --
+// ===== moveAttackingUnitsToNextRallyPoint @ 004d2f80
+               }
+               else {
+>>               sVar1 = DAT_UnitsState.units[sVar2].closestEnemyMicroDistance;
+                 bVar8 = SBORROW2(sVar1,0x60);
+                 bVar7 = (short)(sVar1 + -0x60) < 0;
+   --
+// ===== aiAssignMoatDiggers @ 004d3f20
+       pUVar3 = &DAT_UnitsState.units[1].unitType;
+       do {
+>>       if ((((((pUVar3[-1] != ULS_INVISIBLE) && ((short)pUVar3[4] == playerID)) &&
+               ((pUVar3[0x10b] != 0 && ((pUVar3[0x1ce] == 0 && (pUVar3[0x109] == 0)))))) &&
+              (UVar1 = *pUVar3, UVar1 != UT_LORD)) &&
+   --
+// ===== renderUnits @ 004e7810
+             if (((DAT_GameState.mapAndTime.playerTeams[DAT_UnitsState.units[_unitID].owner] !=
+                   DAT_GameState.mapAndTime.playerTeams[DAT_GameSynchronyState.currentPlayerSlotID]) &&
+>>               (0x78 < DAT_UnitsState.units[_unitID].assassinsMicroDistanceToEnemyUnk)) &&
+                ((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY ||
+                 (DAT_UnitsState.units[_unitID].idleCounterUnk < 0x961)))) {
+   --
+                   (DAT_GameState.mapAndTime.playerTeams[DAT_UnitsState.units[_unitID].owner] ==
+                    DAT_GameState.mapAndTime.playerTeams[DAT_GameSynchronyState.currentPlayerSlotID]))
+>>                && ((DAT_UnitsState.units[_unitID].assassinsMicroDistanceToEnemyUnk < 0xa1 ||
+                      ((UVar4 = DAT_UnitsState.units[_unitID].state.generic, UVar4 == US_MELEE_ATTACK
+                       || (UVar4 == US_MELEE_ATTACK_WALL)))))) {
+   --
+// ===== renderMap @ 004e8cf0
+       psVar16 = &DAT_UnitsState.units[1].drawX;
+       do {
+>>       if (psVar16[0x3c] != ULS_INVISIBLE) {
+           *psVar16 = 0;
+           psVar16[1] = 0;
+   --
+              0 < local_60)) {
+             while (iVar26 = DAT_RenderMap_DrawSomeX,
+>>                 DAT_UnitsState.units[local_60].logicalState != ULS_INVISIBLE) {
+               DAT_CurrentlyRenderedSpriteID = (GmIDInt)DAT_UnitsState.units[local_60].spriteID;
+               local_2c = 0;
+   --
+                  (DAT_GameState.mapAndTime.playerTeams[DAT_UnitsState.units[local_60].owner] !=
+                   DAT_GameState.mapAndTime.playerTeams[DAT_GameSynchronyState.currentPlayerSlotID])) {
+>>               iVar17 = DAT_UnitsState.units[local_60].assassinsMicroDistanceToEnemyUnk;
+                 if ((iVar17 < 0xa1) ||
+                    ((UVar3 = DAT_UnitsState.units[local_60].state.generic, UVar3 == US_MELEE_ATTACK ||
+   --
+                                DAT_GameState.mapAndTime.playerTeams
+                                [DAT_GameSynchronyState.currentPlayerSlotID])) &&
+>>                            ((DAT_UnitsState.units[local_60].assassinsMicroDistanceToEnemyUnk < 0xa1
+                               || ((UVar3 = DAT_UnitsState.units[local_60].state.generic,
+                                   UVar3 == US_MELEE_ATTACK || (UVar3 == US_MELEE_ATTACK_WALL)))))) {
+   --
+// ===== triggerLoweredView @ 004f6fd0
+       pUVar3 = &DAT_UnitsState.units[1].unitType;
+       do {
+>>       if ((pUVar3[-1] != ULS_INVISIBLE) &&
+            (((((UVar1 = *pUVar3, UVar1 == UT_DRUNK || (UVar1 == UT_RABBIT)) ||
+               ((UVar1 == UT_HUNTERDOG || ((UVar1 == UT_JESTER || (UVar1 == UT_CHICKEN)))))) ||
+   --
+// ===== giveLightPitchInstructionToUnitClosestToPitch @ 0051bf70
+       iVar4 = iVar2;
+       do {
+>>       if (pUVar8[-1] != ULS_INVISIBLE) {
+           uVar9 = getPlayerNot1AndHasKeep((int)(short)pUVar8[4]);
+           iVar3 = (int)((ulonglong)uVar9 >> 0x20);
+   --
+// ===== updateArcherBrazierProximityFlags @ 0051c2d0
+       pUVar2 = &DAT_UnitsState.units[1].unitType;
+       do {
+>>       if ((((pUVar2[-1] != ULS_INVISIBLE) &&
+              (iVar1 = getPlayerNot1AndHasKeep((int)(short)pUVar2[4]), iVar1 != 0)) &&
+             ((*pUVar2 == UT_E_ARCHER || (*pUVar2 == UT_A_ARCHER)))) && (pUVar2[0x109] == 0)) {
+   --
+// ===== queueOilThrowForIdleArchers @ 0051c470
+       psVar2 = &DAT_UnitsState.units[1].owner;
+       do {
+>>       if ((((psVar2[-5] != ULS_INVISIBLE) &&
+              (iVar1 = getPlayerNot1AndHasKeep((int)*psVar2), iVar1 != 0)) &&
+             (psVar2[-4] == UT_E_ENGINEER)) &&
+   --
+// ===== ifNecessaryThrowOilAutomatically @ 0051c570
+       iVar6 = 5;
+     }
+>>   if (((iVar9 < 1) || (0x50 < DAT_UnitsState.units[param_1].closestEnemyMicroDistance)) ||
+        ((iVar7 = (int)DAT_UnitsState.units[param_1].owner,
+         DAT_GameSynchronyState.currentPlayerFullIDArray[iVar7] != -1 &&
+   --
+// ===== commandUnitsToMoveToKeep @ 0051c800
+         pUVar7 = &DAT_UnitsState.units[1].unitType;
+         do {
+>>         if ((((pUVar7[-1] != ULS_INVISIBLE) &&
+                (iVar6 = getPlayerNot1AndHasKeep((int)(short)pUVar7[4]), iVar6 != 0)) &&
+               (((UVar2 = *pUVar7, UVar2 == UT_E_MACE ||
+   --
+// ===== collectArcherUnitsByLocation @ 0051ca50
+       pUVar1 = &DAT_UnitsState.units[1].unitType;
+       do {
+>>       if (pUVar1[-1] != ULS_INVISIBLE) {
+           lVar2 = getPlayerNot1AndHasKeep((int)(short)pUVar1[4]);
+           if (((int)lVar2 != 0) && ((*pUVar1 == UT_E_ARCHER || (*pUVar1 == UT_E_XBOW)))) {
+   --
+// ===== assignMacemenAndKnightsNotFromPlayer1ToTribes @ 0051ccb0
+       pUVar6 = &DAT_UnitsState.units[1].unitType;
+       do {
+>>       if (pUVar6[-1] != ULS_INVISIBLE) {
+           uVar7 = getPlayerNot1AndHasKeep((int)(short)pUVar6[4]);
+           iVar2 = (int)((ulonglong)uVar7 >> 0x20);
+   --
+// ===== updateTribeBehaviorBasedOnBehaviorType @ 0051d7f0
+           if ((1 < sVar3) &&
+              (0x60 < DAT_UnitsState.units[DAT_TribesState.tribes[tribeID].selectionTargetUnitID].
+>>                    closestEnemyMicroDistance)) {
+             TribesState::giveTribeMoveInstruction
+                       (&DAT_TribesState,tribeID,(int)sVar4,(int)sVar5,0,0,UMSE_0);
+   --
+// ===== recountTotalTroopValue @ 0051f9c0
+       iVar6 = DAT_UnitsState.maxUnitCount - 1;
+       do {
+>>       if ((((pUVar5[-1] != ULS_INVISIBLE) && (pUVar5[0x109] == 0)) && (pUVar5[0x10b] != 0)) &&
+            (((UVar2 = *pUVar5, UVar2 != UT_E_ENGINEER && (UVar2 != UT_TUNNELER)) &&
+             (UVar2 != UT_E_LADDER)))) {
+   --
+// ===== recomputeTotalTroopValueOfTroopsNearKeep @ 0051fa70
+       psVar6 = &DAT_UnitsState.units[1].dying;
+       do {
+>>       if ((((psVar6[-0x10a] != ULS_INVISIBLE) && (*psVar6 == 0)) && (psVar6[2] != 0)) &&
+            (((UVar2 = psVar6[-0x109], UVar2 != UT_E_ENGINEER && (UVar2 != UT_TUNNELER)) &&
+             (UVar2 != UT_E_LADDER)))) {
+   --
+// ===== updateTribeCombatStanceBehavior @ 0052a7d0
+           if (((UVar3 == UT_E_ARCHER) || (UVar3 == UT_E_XBOW)) ||
+              ((UVar3 == UT_A_ARCHER || ((UVar3 == UT_A_SLINGER || (UVar3 == UT_A_FIRETHROWER)))))) {
+>>           if (0x1b0 < DAT_UnitsState.units[iVar7].closestEnemyMicroDistance) {
+               giveTribeMoveInstruction(&DAT_TribesState,tribeID,x1,y1,0,0,UMSE_0);
+             }
+   --
+             giveUnitSelectionMoveInstructionNoMatchedSpeed(&DAT_TribesState,tribeID,x1,y1,0,0);
+           }
+>>         else if ((0x60 < DAT_UnitsState.units[iVar7].closestEnemyMicroDistance) ||
+                   (DAT_TribesState.tribes[tribeID].unitStance != USE_AGGRESSIVE)) {
+             giveUnitSelectionMoveInstructionNoMatchedSpeed(&DAT_TribesState,tribeID,x1,y1,0,0);
+   --
+// ===== recomputeTroopValuesForPlayer @ 00532ba0
+     destinationYPosition = DAT_GameState.playerDataArray[playerID].campground.yEntry;
+     bVar9 = DAT_GameSynchronyState.currentGameMode == GM_SOLITARY;
+>>   DAT_GameState.playerDataArray[playerID].enemies = 0;
+     DAT_GameState.playerDataArray[playerID].totalEnemyUnitsCount = 0;
+     DAT_GameState.playerDataArray[playerID].sumOfTotalEnemyUnitsCount = 0;
+   --
+                 iVar7 = DAT_GameState.playerDataArray[playerID].enemies;
+                 if (iVar7 < 0x9c3) {
+>>                 DAT_GameState.playerDataArray[playerID].enemies = iVar7 + 1;
+                 }
+                 else {
+   --
+                 }
+                 iVar5 = *(int *)(pUVar8 + 5);
+>>               DAT_GameState.playerDataArray[playerID].enemyIDArray[iVar7] = (short)_unitID;
+                 DAT_GameState.mapAndTime.playerEnemenyUnitUIDShortList[playerID][iVar7] = iVar5;
+               }
+   --
+// ===== chooseHusbandAndWife @ 00539df0
+       pUVar6 = &DAT_UnitsState.units[1].unitType;
+       do {
+>>       if ((((pUVar6[-1] != ULS_INVISIBLE) && (*pUVar6 != 0)) && (iVar4 != DAT_00ee102c)) &&
+            (iVar4 != DAT_00ee1028)) {
+           switch(*pUVar6) {
+   --
+// ===== CurrentUnitHasHealer @ 0053a020
+       psVar1 = &DAT_UnitsState.units[1].owner;
+       do {
+>>       if (((psVar1[-5] != ULS_INVISIBLE) && (*psVar1 == DAT_GameSynchronyState.currentPlayerSlotID))
+            && (psVar1[-4] == UT_HEALER)) {
+           return TRUE;
+   --
+// ===== renderDebugDataUnitData @ 0053a5b0
+               (&DAT_TextManagerObject,"enemyD ",xParam_03,y + 0x1c,TTA_LEFT,0xffffff,0x12,FALSE,0);
+     Text::TextManager::renderNumberToScreen2
+>>             (&DAT_TextManagerObject,(int)DAT_UnitsState.units[iVar1].closestEnemyMicroDistance,
+                xParam_03,y + 0x1c,TTA_LEFT,0x80ff,0x12,TRUE,0);
+     Text::TextManager::renderTextToScreen
+   --
+// ===== UpgradeMapUnitsTo_155 @ 0053b5e0
+     DAT_CurrentUnitSlotID = 0x9c4;
+     do {
+>>     if (psVar1[-0x1b2] != ULS_INVISIBLE) {
+         *psVar1 = 0;
+       }
+   --
+// ===== setUnitValues @ 0053b8e0
+     DAT_UnitsState.units[unitID].someUnitStat2_meleeDamageUnk =
+          (short)DAT_UnitPropertiesDefinedData.DAT_UNIT_CAN_MELEE[unitType];
+>>   DAT_UnitsState.units[unitID].enemyNoticeFrequencyUnk =
+          DAT_UnitPropertiesDefinedData.DAT_UNIT_ENEMY_NOTICE_RANGE[unitType];
+     DAT_UnitsState.units[unitID].moveableUnk =
+   --
+                       /* Assassin */
+     if (unitType == UT_A_ASSASSIN) {
+>>     DAT_UnitsState.units[unitID].assassinsMicroDistanceToEnemyUnk = 32000;
+     }
+     return;
+   --
+// ===== spawnUnit @ 0053e440
+     pUVar3 = &DAT_UnitsState.units[1].logicalState;
+     do {
+>>     if (*pUVar3 == ULS_INVISIBLE) break;
+       if (0x9c2 < unitID) {
+         return 0;
+   --
+// ===== UpdateDeer @ 00541de0
+     case US_DETERMINE_NEXT_STATEUnk:
+       DAT_UnitsState.units[unitID].field_0x30_animRelated = 0;
+>>     if (200 < DAT_UnitsState.units[unitID].closestEnemyMicroDistance) {
+         Map::Units::UnitsState::setUnitFacingDirectionTowardsTarget
+                   (&DAT_UnitsState,unitID,(int)DAT_TribesState.tribes[sVar5].selectionTargetUnitID);
+   --
+// ===== UpdateRabbit @ 00542630
+     case US_DETERMINE_NEXT_STATEUnk:
+       DAT_UnitsState.units[unitID].field_0x30_animRelated = 0;
+>>     if (DAT_UnitsState.units[unitID].closestEnemyMicroDistance < 1) {
+         DAT_UnitsState.units[unitID].state.generic = 0xcc;
+         return;
+   --
+// ===== UpdateMother @ 00546bc0
+             pUVar9 = &DAT_UnitsState.units[1].unitType;
+             do {
+>>             if ((((pUVar9[-1] != ULS_INVISIBLE) && (*pUVar9 == UT_MOTHER)) &&
+                   ((short)pUVar9[4] == playerID)) &&
+                  ((((UnitStateUnion *)(pUVar9 + 0x119))->generic == US_DETERMINE_NEXT_STATEUnk ||
+   --
+// ===== UpdateChild @ 005477c0
+               pUVar10 = &DAT_UnitsState.units[1].unitType;
+               do {
+>>               if ((((pUVar10[-1] != ULS_INVISIBLE) && (*pUVar10 == UT_CHILD)) &&
+                     ((short)pUVar10[4] == iVar16)) &&
+                    ((((UnitStateUnion *)(pUVar10 + 0x119))->generic == US_DETERMINE_NEXT_STATEUnk ||
+   --
+               pUVar10 = &DAT_UnitsState.units[1].unitType;
+               do {
+>>               if ((((pUVar10[-1] != ULS_INVISIBLE) && (*pUVar10 == UT_CHILD)) &&
+                     ((short)pUVar10[4] == iVar16)) &&
+                    (((((UnitStateUnion *)(pUVar10 + 0x119))->generic == US_DETERMINE_NEXT_STATEUnk ||
+   --
+                   psVar12 = &DAT_UnitsState.units[1].isSelectable_OR_matchTime;
+                   do {
+>>                   if ((((psVar12[-0x10c] != ULS_INVISIBLE) && (*psVar12 != 0)) &&
+                         (psVar12[-0x107] == iVar16)) &&
+                        (Map::Navigation::DirectionAlgorithmState::setAxisBasedDistanceResult
+   --
+           pUVar11 = &DAT_UnitsState.units[1].state;
+           do {
+>>           if ((((pUVar11[-0x11a].generic != ULS_INVISIBLE) && (pUVar11[-0x119].generic == UT_CHILD))
+                 && ((short)pUVar11[-0x115].generic == iVar16)) &&
+                ((pUVar11->generic == US_DETERMINE_NEXT_STATEUnk || (pUVar11->generic == US_IDLEUnk))))
+   --
+// ===== processMeleeInitiation @ 00549c70
+         iVar8 = 0x10e;
+       }
+>>     if (((DAT_UnitsState.units[unitID].closestEnemyMicroDistance <= iVar8) ||
+           (DAT_UnitsState.units[unitID].attackedUnitID != 0)) ||
+          ((DAT_UnitsState.units[unitID].unitType == UT_LIONSHWOLF ||
+   --
+// ===== findNearestEnemyAndHeadTowardsIt @ 0054a7b0
+     iVar18 = (int)DAT_UnitsState.units[unitID].microYPosition;
+     uVar3 = DAT_TileMapState.PathConnectionLayer[DAT_UnitsState.units[unitID].tile];
+>>   DAT_UnitsState.unitDistanceComputationResultUnk = 100000;
+     _minDistance = 100000;
+     local_14 = 0;
+   --
+         if (((DAT_UnitsState.units[unitID].unitType == UT_A_ASSASSIN) &&
+             (DAT_UnitsState.units[iVar12].isSelectable_OR_matchTime != 0)) &&
+>>          ((int)_triangleDistanceUnk < (int)DAT_UnitsState.unitDistanceComputationResultUnk)) {
+           DAT_UnitsState.unitDistanceComputationResultUnk = _triangleDistanceUnk;
+         }
+   --
+             (DAT_UnitsState.units[iVar12].isSelectable_OR_matchTime != 0)) &&
+            ((int)_triangleDistanceUnk < (int)DAT_UnitsState.unitDistanceComputationResultUnk)) {
+>>         DAT_UnitsState.unitDistanceComputationResultUnk = _triangleDistanceUnk;
+         }
+         if (((!bVar11) && (_stanceBasedRange != 0)) &&
+   --
+// ===== acquireShootTarget @ 0054b0d0
+             break;
+           case UT_A_ASSASSIN:
+>>           if (0xa0 < DAT_UnitsState.units[iVar10].assassinsMicroDistanceToEnemyUnk)
+             goto switchD_0054ba67_caseD_1f;
+           }
+   --
+// ===== UpdateTunneler @ 0054e6c0
+         return;
+       }
+>>     sVar8 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].closestEnemyMicroDistance;
+       if (400 < sVar8) {
+         DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_AIM_WEAPONUnk;
+   --
+// ===== UpdateHunter @ 0054f860
+             return;
+           }
+>>         if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].closestEnemyMicroDistance < 0x191) {
+                       /* old code: if (((DAT_CurrentGameType == 0) && (_unitID =
+                          FUN_0054b0d0(DAT_00ee0fc8), _unitID != 0) */
+   --
+// ===== UpdateCrusaderArcher @ 0055a800
+         iVar14 = DAT_GameState.playerDataArray[iVar14].aiControlStatusRelated;
+         if ((0 < iVar14) &&
+>>          ((400 < DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance || (iVar14 == 100000)))
+            ) {
+           DAT_UnitsState.units[(int)unitID].state.generic = US_LOOK_AROUNDUnk;
+   --
+           return;
+         }
+>>       sVar7 = DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance;
+         if (400 < sVar7) {
+           DAT_UnitsState.units[(int)unitID].state.generic = US_SIT_DOWNUnk;
+   --
+         DAT_UnitsState.units[(int)unitID].substate = 0x66;
+       }
+>>     if ((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 400) ||
+          ((DAT_UnitsState.units[(int)unitID].field300_0x3f8 == 0 &&
+           ((((UVar8 = *pUVar13, UVar8 == UIT_UNIT_ATTACK_UNIT || (UVar8 == UIT_ATTACK_BUILDING)) ||
+   --
+   LAB_0055c165:
+       DAT_UnitsState.units[(int)unitID].animationCycleNumber = 0;
+>>     if (((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 0x191) ||
+           (UVar8 = *pUVar13, UVar8 == UIT_UNIT_ATTACK_UNIT)) ||
+          ((UVar8 == UIT_ATTACK_BUILDING || ((UVar8 == UIT_LIGHT_PITCH || (UVar8 == UIT_ATTACK_LAND))))
+   --
+          (iVar16 = DAT_GameCore.mapTimeInTicks + (int)unitID,
+          DAT_UnitsState.units[(int)unitID].facingDirection = 4, iVar16 % 0x28 == 0)) {
+>>       if ((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 0x1b1) &&
+            (BVar12 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID),
+            uVar15 = DAT_CurrentUnitSlotID, unitID = (short *)DAT_CurrentUnitSlotID, BVar12 != FALSE))
+   --
+// ===== UpdateCrossbowman @ 0055c7b0
+            (BVar11 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID),
+            unitID = (short *)DAT_CurrentUnitSlotID, BVar11 == FALSE)) {
+>>         sVar6 = DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance;
+           if (400 < sVar6) {
+                       /* unit.state = IDLE? */
+   --
+       DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+       DAT_UnitsState.units[(int)unitID].field134_0x2ac = 10;
+>>     if (((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 400) &&
+           (DAT_GameState.playerDataArray[iVar15].totalEnemyUnitsCount != 0)) ||
+          ((DAT_UnitsState.units[(int)unitID].field300_0x3f8 == 0 &&
+   --
+          (iVar12 = DAT_GameCore.mapTimeInTicks + (int)unitID,
+          DAT_UnitsState.units[(int)unitID].facingDirection = 4, iVar12 % 0x28 == 0)) {
+>>       if ((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 0x1b1) &&
+            (BVar11 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID),
+            uVar9 = DAT_CurrentUnitSlotID, unitID = (short *)DAT_CurrentUnitSlotID, BVar11 != FALSE)) {
+   --
+// ===== UpdateSpearman @ 0055da50
+         iVar15 = DAT_GameState.playerDataArray[iVar15].aiControlStatusRelated;
+         if ((0 < iVar15) &&
+>>          ((400 < DAT_UnitsState.units[uVar9].closestEnemyMicroDistance || (iVar15 == 100000)))) {
+           DAT_UnitsState.units[uVar9].state.generic = US_FIRE_WEAPONUnk;
+           return;
+   --
+           return;
+         }
+>>       sVar5 = DAT_UnitsState.units[uVar9].closestEnemyMicroDistance;
+         if (400 < sVar5) {
+           DAT_UnitsState.units[uVar9].state.generic = US_IDLEUnk;
+   --
+// ===== UpdatePikeman @ 0055f110
+         iVar14 = DAT_GameState.playerDataArray[iVar16].aiControlStatusRelated;
+         if ((0 < iVar14) &&
+>>          ((400 < DAT_UnitsState.units[uVar11].closestEnemyMicroDistance || (iVar14 == 100000)))) {
+           DAT_UnitsState.units[uVar11].state.generic = 3;
+           return;
+   --
+         if (0 < DAT_GameState.playerDataArray[iVar16].totalEnemyUnitsCount) {
+           DAT_UnitsState.units[uVar11].state.generic =
+>>              (DAT_UnitsState.units[uVar11].closestEnemyMicroDistance < 0x191) + US_IDLEUnk;
+           return;
+         }
+   --
+       DAT_UnitsState.units[uVar11].field134_0x2ac = 10;
+       DAT_UnitsState.units[uVar11].SA = 1;
+>>     if ((DAT_UnitsState.units[uVar11].closestEnemyMicroDistance < 400) &&
+          (DAT_GameState.playerDataArray[iVar16].totalEnemyUnitsCount != 0)) {
+         DAT_UnitHasBecomeIdle = 1;
+   --
+// ===== UpdateMaceman @ 00560700
+         iVar12 = DAT_GameState.playerDataArray[iVar14].aiControlStatusRelated;
+         if ((0 < iVar12) &&
+>>          ((400 < DAT_UnitsState.units[uVar9].closestEnemyMicroDistance || (iVar12 == 100000)))) {
+           DAT_UnitsState.units[uVar9].state.generic = 3;
+           return;
+   --
+         if (0 < DAT_GameState.playerDataArray[iVar14].totalEnemyUnitsCount) {
+           DAT_UnitsState.units[uVar9].state.generic =
+>>              (DAT_UnitsState.units[uVar9].closestEnemyMicroDistance < 0x191) + US_IDLEUnk;
+           return;
+         }
+   --
+       DAT_UnitsState.units[uVar9].field134_0x2ac = 10;
+       DAT_UnitsState.units[uVar9].SA = 1;
+>>     if ((DAT_UnitsState.units[uVar9].closestEnemyMicroDistance < 400) &&
+          (DAT_GameState.playerDataArray[iVar14].totalEnemyUnitsCount != 0)) {
+         DAT_UnitHasBecomeIdle = 1;
+   --
+            ((DAT_UnitsState.units[uVar9].movementType_OR_targetUnitID == 0 &&
+             ((DAT_UnitsState.units[uVar9].isMatchingSpeed != false ||
+>>            ((0xc0 < DAT_UnitsState.units[uVar9].closestEnemyMicroDistance &&
+               (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY)))))))) {
+           DAT_UnitsState.units[uVar9].animationSheetFrameOffset = 1;
+   --
+// ===== UpdateSwordsman @ 00561c10
+         iVar12 = DAT_GameState.playerDataArray[iVar12].aiControlStatusRelated;
+         if ((0 < iVar12) &&
+>>          ((400 < DAT_UnitsState.units[uVar9].closestEnemyMicroDistance || (iVar12 == 100000)))) {
+           DAT_UnitsState.units[uVar9].state.generic = 3;
+           return;
+   --
+// ===== UpdateKnight @ 00562aa0
+         iVar11 = DAT_GameState.playerDataArray[iVar11].aiControlStatusRelated;
+         if ((0 < iVar11) &&
+>>          ((400 < DAT_UnitsState.units[uVar10].closestEnemyMicroDistance || (iVar11 == 100000)))) {
+           DAT_UnitsState.units[uVar10].state.generic = 3;
+           return;
+   --
+// ===== UpdateLadderman @ 00563910
+           goto LAB_00563b47;
+         }
+>>       sVar7 = DAT_UnitsState.units[uVar10].closestEnemyMicroDistance;
+         if (sVar7 < 0x191) {
+           DAT_UnitsState.units[uVar10].state.generic = (0x60 < sVar7) + US_IDLEUnk;
+   --
+// ===== UpdateEngineer @ 00564250
+       }
+       else if (DAT_UnitsState.units[uVar13].resourceToDeposit == 0) {
+>>       if (DAT_UnitsState.units[uVar13].closestEnemyMicroDistance < 0x191) {
+           DAT_UnitsState.units[uVar13].state.generic = 2;
+         }
+   --
+// ===== UpdateMonk @ 00567640
+           if (0 < DAT_GameState.playerDataArray[iVar12].totalEnemyUnitsCount) {
+             DAT_UnitsState.units[uVar9].state.generic =
+>>                (DAT_UnitsState.units[uVar9].closestEnemyMicroDistance < 0x191) + US_IDLEUnk;
+             return;
+           }
+   --
+       DAT_UnitsState.units[uVar9].field134_0x2ac = 10;
+       DAT_UnitsState.units[uVar9].SA = 1;
+>>     if ((DAT_UnitsState.units[uVar9].closestEnemyMicroDistance < 0xc0) &&
+          (DAT_GameState.playerDataArray[iVar12].totalEnemyUnitsCount != 0)) {
+         DAT_UnitHasBecomeIdle = 1;
+   --
+// ===== UpdateMangonel @ 0056a3f0
+       }
+       if (DAT_GameSynchronyState.currentPlayerFullIDArray[DAT_UnitsState.units[uVar18].owner] == -1) {
+>>       if ((((DAT_UnitsState.units[uVar18].closestEnemyMicroDistance < 0x2a9) ||
+              (UVar4 = DAT_UnitsState.units[uVar18].targetingType, UVar4 == UIT_ATTACK_LAND)) ||
+             (UVar4 == UIT_ATTACK_BUILDING)) &&
+   --
+         return;
+       }
+>>     if (((0x2a8 < DAT_UnitsState.units[uVar18].closestEnemyMicroDistance) &&
+           (UVar4 = DAT_UnitsState.units[uVar18].targetingType, UVar4 != UIT_ATTACK_LAND)) &&
+          (UVar4 != UIT_ATTACK_BUILDING)) {
+   --
+// ===== UpdateHunterDog @ 0056b970
+         return;
+       }
+>>     sVar5 = DAT_UnitsState.units[uVar10].closestEnemyMicroDistance;
+       if (sVar5 < 0xc9) {
+         DAT_UnitsState.units[uVar10].state.generic = (0 < sVar5) + US_IDLEUnk;
+   --
+// ===== UpdateLord @ 0056c560
+     bVar29 = DAT_GameSynchronyState.currentGameMode != GM_SOLITARY;
+     DAT_GameState.playerDataArray[iVar21].closestEnemyDistanceToTheLord =
+>>        (int)DAT_UnitsState.units[uVar14].closestEnemyMicroDistance;
+     if ((bVar29) && (DAT_UnitsState.units[uVar14].dying == 0)) {
+       DAT_GameSynchronyState.finalResults.finalTimeAlive[iVar21] = dVar12;
+   --
+// ===== UpdateBallista @ 0056ecd0
+       }
+       else {
+>>       if (((0x2a8 < DAT_UnitsState.units[uVar18].closestEnemyMicroDistance) &&
+             (UVar4 = DAT_UnitsState.units[uVar18].targetingType, UVar4 != UIT_ATTACK_LAND)) &&
+            (UVar4 != UIT_ATTACK_BUILDING)) {
+   --
+// ===== UpdateArabianArcher @ 00570400
+                       /* Scan ranges start here ... */
+           if ((0 < iVar16) &&
+>>            ((400 < DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance || (iVar16 == 100000)
+               ))) {
+             DAT_UnitsState.units[(int)unitID].state.generic = US_LOOK_AROUNDUnk;
+   --
+             return;
+           }
+>>         sVar6 = DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance;
+           if (400 < sVar6) {
+             DAT_UnitsState.units[(int)unitID].state.generic = US_SIT_DOWNUnk;
+   --
+         DAT_UnitsState.units[(int)unitID].substate = 0x66;
+       }
+>>     if ((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 400) ||
+          ((DAT_UnitsState.units[(int)unitID].field300_0x3f8 == 0 &&
+           (((UVar7 = DAT_UnitsState.units[(int)unitID].targetingType, UVar7 == UIT_UNIT_ATTACK_UNIT ||
+   --
+   LAB_0057161c:
+       DAT_UnitsState.units[(int)unitID].animationCycleNumber = 0;
+>>     if ((((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 0x191) ||
+            (UVar7 = DAT_UnitsState.units[(int)unitID].targetingType, UVar7 == UIT_UNIT_ATTACK_UNIT))
+           || (UVar7 == UIT_ATTACK_BUILDING)) ||
+   --
+          (iVar12 = DAT_GameCore.mapTimeInTicks + (int)unitID,
+          DAT_UnitsState.units[(int)unitID].facingDirection = 4, iVar12 % 0x28 == 0)) {
+>>       if ((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 0x1b1) &&
+            (BVar10 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID),
+            uVar11 = DAT_CurrentUnitSlotID, unitID = (short *)DAT_CurrentUnitSlotID, BVar10 != FALSE))
+   --
+// ===== UpdateSlave @ 00571c00
+         DAT_UnitsState.units[uVar9].targetingType = UIT_NO_INSTRUCTION_OR_MOVEUnk;
+   LAB_00571ef6:
+>>       if (DAT_UnitsState.units[uVar9].closestEnemyMicroDistance < 0x191) {
+           DAT_UnitsState.units[uVar9].state.generic = 2;
+           return;
+   --
+// ===== UpdateSlinger @ 00572e80
+            (BVar13 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID),
+            unitID = (short *)DAT_CurrentUnitSlotID, BVar13 == FALSE)) {
+>>         sVar6 = DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance;
+           if (400 < sVar6) {
+             DAT_UnitsState.units[(int)unitID].state.generic = US_SIT_DOWNUnk;
+   --
+         DAT_UnitsState.units[(int)unitID].substate = 0x66;
+       }
+>>     if ((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 400) ||
+          ((DAT_UnitsState.units[(int)unitID].field300_0x3f8 == 0 &&
+           (((UVar9 = DAT_UnitsState.units[(int)unitID].targetingType, UVar9 == UIT_UNIT_ATTACK_UNIT ||
+   --
+   LAB_00573f2e:
+       DAT_UnitsState.units[(int)unitID].animationCycleNumber = 0;
+>>     if ((((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 0x191) ||
+            (UVar9 = DAT_UnitsState.units[(int)unitID].targetingType, UVar9 == UIT_UNIT_ATTACK_UNIT))
+           || (UVar9 == UIT_ATTACK_BUILDING)) ||
+   --
+          DAT_UnitsState.units[(int)unitID].facingDirection = 4, iVar15 % 0x28 != 0))
+       goto LAB_0057313a;
+>>     if ((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 0x1b1) &&
+          (BVar13 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID),
+          uVar10 = DAT_CurrentUnitSlotID, unitID = (short *)DAT_CurrentUnitSlotID, BVar13 != FALSE)) {
+   --
+// ===== UpdateAssassin @ 005744d0
+       sVar6 = DAT_UnitsState.units[uVar10].moveInstructionSpeedDelayTracker;
+       if (sVar6 == 0) {
+>>       if (DAT_UnitsState.units[uVar10].closestEnemyMicroDistance < 0xc1) {
+           DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 0x81;
+           goto LAB_0057475b;
+   --
+// ===== UpdateArabianSwordsman @ 00575c40
+         iVar13 = DAT_GameState.playerDataArray[iVar13].aiControlStatusRelated;
+         if ((0 < iVar13) &&
+>>          ((400 < DAT_UnitsState.units[uVar10].closestEnemyMicroDistance || (iVar13 == 100000)))) {
+           DAT_UnitsState.units[uVar10].state.generic = 3;
+           return;
+   --
+// ===== UpdateFireThrower @ 005769f0
+            (BVar11 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID),
+            unitID = (short *)DAT_CurrentUnitSlotID, BVar11 == FALSE)) {
+>>         sVar6 = DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance;
+           if (400 < sVar6) {
+             DAT_UnitsState.units[(int)unitID].state.generic = US_SIT_DOWNUnk;
+   --
+       DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+       DAT_UnitsState.units[(int)unitID].field134_0x2ac = 10;
+>>     if ((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 400) ||
+          ((DAT_UnitsState.units[(int)unitID].field300_0x3f8 == 0 &&
+           (((UVar8 = DAT_UnitsState.units[(int)unitID].targetingType, UVar8 == UIT_UNIT_ATTACK_UNIT ||
+   --
+       }
+       DAT_UnitsState.units[(int)unitID].animationCycleNumber = 0;
+>>     if ((((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 0x191) ||
+            (UVar8 = DAT_UnitsState.units[(int)unitID].targetingType, UVar8 == UIT_UNIT_ATTACK_UNIT))
+           || (UVar8 == UIT_ATTACK_BUILDING)) ||
+   --
+          DAT_UnitsState.units[(int)unitID].facingDirection = 4, iVar14 % 0x28 != 0))
+       goto LAB_00576caa;
+>>     if ((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 0xa1) &&
+          (BVar11 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID),
+          uVar9 = DAT_CurrentUnitSlotID, unitID = (short *)DAT_CurrentUnitSlotID, BVar11 != FALSE)) {
+   --
+// ===== UpdateFireBallista @ 00577cc0
+       if (DAT_GameSynchronyState.currentPlayerFullIDArray[DAT_UnitsState.units[uVar13].owner] == -1) {
+         DAT_UnitsState.units[uVar13].targetingType = UIT_NO_INSTRUCTION_OR_MOVEUnk;
+>>       if ((0x2a8 < DAT_UnitsState.units[uVar13].closestEnemyMicroDistance) ||
+            (BVar11 = Map::Units::UnitsState::acquireShootTarget
+                                (&DAT_UnitsState,(short *)DAT_CurrentUnitSlotID), BVar11 == FALSE)) {
+   --
+       }
+       else {
+>>       if (((0x1b0 < DAT_UnitsState.units[uVar13].closestEnemyMicroDistance) &&
+             (UVar4 = DAT_UnitsState.units[uVar13].targetingType, UVar4 != UIT_ATTACK_LAND)) &&
+            (UVar4 != UIT_ATTACK_BUILDING)) {
+   --
+// ===== updateUnits @ 00579300
+     do {
+       uVar18 = DAT_CurrentUnitSlotID;
+>>     if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].logicalState != ULS_INVISIBLE) {
+         DAT_UnitsState.maxUnitCount = DAT_CurrentUnitSlotID + 1;
+         DAT_UnitsState.units[DAT_CurrentUnitSlotID].field250_0x39a = 0;
+   --
+     if (1 < (int)DAT_UnitsState.maxUnitCount) {
+       do {
+>>       if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].logicalState != ULS_INVISIBLE) {
+           if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic == US_MELEE_ATTACK) {
+             sVar17 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].attackedUnitID;
+   --
+     if (1 < (int)DAT_UnitsState.maxUnitCount) {
+       do {
+>>       if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].logicalState != ULS_INVISIBLE) {
+           DAT_UnitsState.DAT_UnitCount = DAT_UnitsState.DAT_UnitCount + 1;
+           if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].field67_0x90 != 0) {
+   --
+             uVar19 = DAT_CurrentUnitSlotID;
+           }
+>>         if ((DAT_UnitsState.units[uVar19].enemyNoticeFrequencyUnk != 0) &&
+              (uVar18 = DAT_UnitsState.units[uVar19].enemyNoticeFrequencyUnk,
+              (DAT_GameState.mapAndTime.totalGameTicksUnk & uVar18) ==
+   --
+           }
+           if ((DAT_UnitsState.units[uVar19].enemyNoticeFrequencyUnk != 0) &&
+>>            (uVar18 = DAT_UnitsState.units[uVar19].enemyNoticeFrequencyUnk,
+              (DAT_GameState.mapAndTime.totalGameTicksUnk & uVar18) ==
+              (DAT_UnitsState.units[uVar19].fixedRng & uVar18))) {
+   --
+             if (DAT_UnitsState.units[uVar19].owner == 0) {
+               iVar11 = computeDistanceToNearestEnemyForLegacyMissions(&DAT_UnitsState,uVar19);
+>>             DAT_UnitsState.units[uVar19].closestEnemyMicroDistance = (short)iVar11;
+               uVar19 = DAT_CurrentUnitSlotID;
+             }
+   --
+             else {
+               dVar14 = findNearestEnemyAndHeadTowardsIt(&DAT_UnitsState,uVar19);
+>>             DAT_UnitsState.units[DAT_CurrentUnitSlotID].closestEnemyMicroDistance = (short)dVar14;
+               DAT_UnitsState.units[DAT_CurrentUnitSlotID].assassinsMicroDistanceToEnemyUnk =
+                    DAT_UnitsState.unitDistanceComputationResultUnk;
+   --
+               dVar14 = findNearestEnemyAndHeadTowardsIt(&DAT_UnitsState,uVar19);
+               DAT_UnitsState.units[DAT_CurrentUnitSlotID].closestEnemyMicroDistance = (short)dVar14;
+>>             DAT_UnitsState.units[DAT_CurrentUnitSlotID].assassinsMicroDistanceToEnemyUnk =
+                    DAT_UnitsState.unitDistanceComputationResultUnk;
+               uVar19 = DAT_CurrentUnitSlotID;
+   --
+               DAT_UnitsState.units[DAT_CurrentUnitSlotID].closestEnemyMicroDistance = (short)dVar14;
+               DAT_UnitsState.units[DAT_CurrentUnitSlotID].assassinsMicroDistanceToEnemyUnk =
+>>                  DAT_UnitsState.unitDistanceComputationResultUnk;
+               uVar19 = DAT_CurrentUnitSlotID;
+             }
+   --
+         pUVar4 = &DAT_UnitsState.units[DAT_CurrentUnitSlotID].logicalState;
+         switch(DAT_UnitsState.units[DAT_CurrentUnitSlotID].logicalState) {
+>>       case ULS_INVISIBLE:
+           break;
+         case 1:
+   --
+// ===== UpdateHorseArcher @ 0057ab50
+             (BVar10 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID),
+             unitID = (short *)DAT_CurrentUnitSlotID, BVar10 == FALSE)) &&
+>>          ((0x1af < DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance ||
+             (BVar10 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID),
+             unitID = (short *)DAT_CurrentUnitSlotID, BVar10 == FALSE)))) {
+   --
+              (DAT_UnitsState.units[(int)unitID].horseArcherShootCheckInterval = 0,
+              DAT_UnitsState.units[(int)unitID].horseArcherShootingVariation == 0)) &&
+>>           (DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 0x1b0)) &&
+            (BVar10 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID),
+            uVar9 = DAT_CurrentUnitSlotID, unitID = (short *)DAT_CurrentUnitSlotID, BVar10 != FALSE)) {
+   --
+          DAT_UnitsState.units[(int)unitID].facingDirection = 4, iVar12 % 0x28 != 0))
+       goto LAB_0057adfb;
+>>     if ((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 0x1b1) &&
+          (BVar10 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID),
+          uVar9 = DAT_CurrentUnitSlotID, unitID = (short *)DAT_CurrentUnitSlotID, BVar10 != FALSE)) {
+   --
