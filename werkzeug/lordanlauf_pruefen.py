@@ -1,27 +1,28 @@
 # -*- coding: utf-8 -*-
-"""Pruefung ohne Spiel: Lord-Anlauf OHNE Sammelpunkt (12.10. 01:48; Daniel 00:49 "nicht an einem Punkt sammeln, Hauptsache
-sie kommen ca. gleich schnell an", 01:42 "warum sammeln sich wieder Assassinen in einem Klump?"). Bedarf hier fest 20.
-Vorher festgelegt:
-  1. Tick 9.000 (erstes Jahr), 25 Assassinen: KEIN Anlauf, kein Lord-Befehl
-  2. Tick 10.000: 5 Assassinen 60 Felder vom Lord, 20 Assassinen 20 Felder: die Gruppe sind die 20 NAECHSTEN (17.10., 1017d:
-     vorher nahm sie bei gleichem Leben die weitesten) -> Gruppe (unterwegs + wartend) = genau 200-219, Lord-Befehl nur an
-     sie (zuerst die weitesten unter ihnen, 20-40 Felder), die 5 weiten 100-104 raiden weiter, kein Halten
-  3. Nur 15 nahe + 5 weite (genau 20): Lord-Befehl nur an die WEITEN (die Nahen warten, bis der Takt passt); sind die
-     Losgelaufenen 21 Felder weg, laufen die Nahen los -> alle 20 unterwegs, Phase angriff
-  4. (17.10., Partie 1017c) EINER 60 Felder weg, 19 nah: er laeuft allein los; in der naechsten Runde KEIN "vorbei" (die 19
-     Wartenden gehoeren zur Gruppe), Phase bleibt anlauf
-  5. (17.10., 1017c-e) Bedarf nur VORLAEUFIG 40, 25 Assassinen (Lord 1,5 Mio): Anlauf mit der gerechneten Gruppe (18,
-     lord_machbar), aus den naechsten - die 5 weiten 100-104 sind nicht dabei
-  6. (17.10., 1017f) im Anlauf von Fall 5 stirbt ein schon LOSGELAUFENER: KEIN Abbruch (vorher zaehlte die Pruefung dann
-     nur noch 17 < 18), ein freier Assassine rueckt nach (Gruppe wieder 18)
-Gegenprobe: LORD_TAKT_R = 999 -> Fall 2 rot (alle sofort).
-Aufruf: python werkzeug/lordanlauf_pruefen.py [sofort]"""
+"""Pruefung ohne Spiel: Lord-Angriff mit BEREITSTELLUNG (17.10. Laptop, Partie 1017h: 35x lief genau ein Assassine los, 38 von
+93 Toten am Lord mit 4+ Fernkaempfern im Umkreis 20; ~6 Assassinen standen als Lord-Trupp an unserer Burg still) und
+Raiden vor dem Lord (Daniel 17.10. "prio ist am Anfang raiden und auch waehrend des laufs spaeter"). Bedarf hier fest 20,
+Lord 30.000 Leben (Nomade). Vorher festgelegt:
+  1. Tick 9.000 (Lord-Schutz), 25 Assassinen, keine Raid-Plaetze: KEINE Bereitstellung, kein Lord-Befehl
+  2. Tick 10.000, keine Raid-Plaetze: Bereitstellung mit den 20 NAECHSTEN (200-219); Laufbefehle nur an sie, jeder Platz
+     24-32 Felder vom Lord; KEIN Angriffsbefehl auf den Lord, solange nicht alle bereit sind; 100-104 nicht dabei
+  3. Raiden geht vor: 30 lohnende Raid-Plaetze bei 25 Assassinen -> keine Bereitstellung, Meldung "LORD WARTET"
+  4. Spaetestens: wie 3, aber Tick 9.600 + LORD_SPAETESTENS -> Bereitstellung trotz Raid-Plaetzen
+  5. 19 von 20 am Platz: noch kein Angriff (Phase bereit)
+  6. alle 20 am Platz: Phase angriff, alle 20 bekommen in DERSELBEN Runde einen Befehl auf den Lord (Laufbefehl, weil
+     weiter als ANLAUF_NAH), sonst niemand
+  7. in der Bereitstellung stirbt einer: ein Freier rueckt nach (Gruppe wieder 20), kein Abbruch
+  8. im Angriff steht einer STEH_TICKS ohne Spielziel auf demselben Feld: er faellt aus der Gruppe (Meldung), die anderen bleiben
+  9. Raider mit Gebaeude-Ziel steht STEH_TICKS ohne Spielziel: "STILLSTAND geloest", danach wieder ein Ziel
+ 10. Bereitstellung laenger als BEREIT_MAX: Abbruch, Phase None
+Gegenprobe: STEH_TICKS = 10**9 -> 8 und 9 rot.
+Aufruf: python werkzeug/lordanlauf_pruefen.py [gegenprobe]"""
 import os
 import sys
 
 HIER = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HIER)
-SOFORT = len(sys.argv) > 1 and sys.argv[1] == "sofort"
+GEGEN = len(sys.argv) > 1 and sys.argv[1] == "gegenprobe"
 sys.argv = sys.argv[:1]
 import assassinen as A
 from ausweichen_pruefen import einheit
@@ -30,87 +31,125 @@ LORD = (300, 200)
 ORTE = [(100, 200)]
 
 
-def neu():
+def neu(raid=0):
     t = A.Einzeln(1, pruefe_begehbar=lambda pkt: set(pkt), wegtest=lambda nr, p: [True] * len(p))
     t._lord_bedarf = lambda L, G, ereignis: (20, "belegt", None)
-    if SOFORT:
-        t.LORD_TAKT_R = 999
+    t._raid_plaetze = raid
+    if GEGEN:
+        t.STEH_TICKS = 10 ** 9
     return t
 
 
 def szene():
-    L = {500: einheit(55, 2, LORD[0], LORD[1], leben=1500000)}
+    L = {500: einheit(55, 2, LORD[0], LORD[1], leben=30000)}
     for i in range(5):
         L[100 + i] = einheit(73, 1, LORD[0] - 60, LORD[1] - 10 + 4 * i)
     for i in range(20):
-        L[200 + i] = einheit(73, 1, LORD[0] - 20, LORD[1] - 40 + 4 * i)
-    G = {900: {"besitzer": 2, "typ": 32, "x": 200, "y": 300, "leben": 100, "uid": 1, "erreichbar": 1}}
-    return L, G
+        L[200 + i] = einheit(73, 1, LORD[0] - 40, LORD[1] - 40 + 4 * i)
+    return L, {}
 
 
-def lord_an(bef):
-    return sorted(n for b in bef if b.get("angriff", {}).get("ziel") == 500 for n in b["angriff"]["einheiten"])
+def an_lord(bef):
+    aus = set()
+    for b in bef:
+        a = b.get("angriff", {})
+        if a.get("ziel") == 500 or (a.get("lauf") and tuple(a["lauf"]) == LORD):
+            aus |= set(a["einheiten"])
+    return sorted(aus)
+
+
+def lauf_an(bef):
+    return {n: tuple(b["angriff"]["lauf"]) for b in bef if b.get("angriff", {}).get("lauf") for n in b["angriff"]["einheiten"]}
+
+
+def an_platz(t, L, nummern):
+    for n in nummern:
+        p = t.lordtrupp["platz"][n]
+        L[n].update(x=p[0], y=p[1], laufx=p[0], laufy=p[1])
 
 
 def main():
     ok = []
     def pruefe(nr, text, bed):
         ok.append(bool(bed)); print("%-4s %d %s" % ("OK" if bed else "ROT", nr, text))
-    t = neu(); L, G = szene()
-    t.aufnehmen([n for n in L if n != 500])
+    lt = lambda t: t.lordtrupp
+    # 1
+    t = neu(); L, G = szene(); t.aufnehmen([n for n in L if n != 500])
     erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=9000)
-    pruefe(1, "Tick 9.000: Lord-Befehle %s, Phase %s" % (lord_an(bef), t.lordtrupp["phase"]), not lord_an(bef) and t.lordtrupp["phase"] is None)
-    t = neu(); L, G = szene()
-    t.aufnehmen([n for n in L if n != 500])
+    pruefe(1, "Tick 9.000: Phase %s, Lord-Befehle %s" % (lt(t)["phase"], an_lord(bef)), lt(t)["phase"] is None and not an_lord(bef))
+    # 2
+    t = neu(); L, G = szene(); t.aufnehmen([n for n in L if n != 500])
     erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=10000)
-    an = lord_an(bef)
-    halten = [b for b in bef if "halten" in b]
-    gruppe = set(t.lordtrupp["mitglieder"]) | set(t.lordtrupp.get("warte", ()))
-    pruefe(2, "Tick 10.000: Gruppe %s, Lord-Befehl an %s, Halten/Sammeln %d" % (sorted(gruppe), an, len(halten)),
-           gruppe == set(range(200, 220)) and an and all(200 <= n < 220 for n in an) and not halten)
-    t = neu(); L, G = szene()
-    for n in range(215, 220):
-        L.pop(n)
-    t.aufnehmen([n for n in L if n != 500])
+    la = lauf_an(bef)
+    abst = [A.schach(p, LORD) for p in lt(t)["platz"].values()]
+    pruefe(2, "Tick 10.000: Phase %s, Gruppe %s..%s (%d), Laufbefehle an %d, Plaetze %s-%s Felder, Lord-Befehle %s" % (
+        lt(t)["phase"], min(lt(t)["mitglieder"] or [0]), max(lt(t)["mitglieder"] or [0]), len(lt(t)["mitglieder"]), len(la),
+        min(abst or [0]), max(abst or [0]), an_lord(bef)),
+        lt(t)["phase"] == "bereit" and lt(t)["mitglieder"] == set(range(200, 220)) and set(la) == set(range(200, 220))
+        and abst and min(abst) >= 24 and max(abst) <= 32 and not an_lord(bef))
+    # 3
+    t = neu(raid=30); L, G = szene(); t.aufnehmen([n for n in L if n != 500])
+    t.runde = 19
     erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=10000)
-    an = lord_an(bef)
-    for n in an:
-        L[n].update(x=LORD[0] - 21, laufx=LORD[0], laufy=LORD[1], zielart=4, zieleinheit=500)
+    pruefe(3, "30 Raid-Plaetze, 25 Assassinen: Phase %s, Meldung %s" % (lt(t)["phase"], [z[:40] for z in erg if "LORD WARTET" in z]),
+           lt(t)["phase"] is None and any("LORD WARTET" in z for z in erg))
+    # 4
+    t = neu(raid=30); L, G = szene(); t.aufnehmen([n for n in L if n != 500])
+    erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=9600 + t.LORD_SPAETESTENS)
+    pruefe(4, "spaetestens: Phase %s, Gruppe %d" % (lt(t)["phase"], len(lt(t)["mitglieder"])),
+           lt(t)["phase"] == "bereit" and len(lt(t)["mitglieder"]) == 20)
+    # 5 und 6
+    t = neu(); L, G = szene(); t.aufnehmen([n for n in L if n != 500])
+    t.schritt(L, G, sichere_orte=ORTE, tick=10000)
+    an_platz(t, L, range(200, 219))
     erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=10030)
-    an2 = lord_an(bef)
-    pruefe(3, "15 nah + 5 weit: zuerst an %s; Losgelaufene 21 weg: jetzt an %d weitere, Phase %s, unterwegs %d" % (
-        an, len([n for n in an2 if n >= 200]), t.lordtrupp["phase"], len(t.lordtrupp["mitglieder"])),
-        an == [100, 101, 102, 103, 104] and len([n for n in an2 if n >= 200]) == 15
-        and len(t.lordtrupp["mitglieder"]) == 20 and t.lordtrupp["phase"] == "angriff")
-    t = neu(); L, G = szene()
-    for n in (101, 102, 103, 104, 219):
+    pruefe(5, "19 von 20 bereit: Phase %s, Lord-Befehle %s" % (lt(t)["phase"], an_lord(bef)),
+           lt(t)["phase"] == "bereit" and not an_lord(bef))
+    an_platz(t, L, [219])
+    erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=10060)
+    pruefe(6, "alle 20 bereit: Phase %s, Befehl auf den Lord an %d (%s..%s)" % (
+        lt(t)["phase"], len(an_lord(bef)), min(an_lord(bef) or [0]), max(an_lord(bef) or [0])),
+        lt(t)["phase"] == "angriff" and an_lord(bef) == list(range(200, 220)))
+    # 8 (im Angriff aus Fall 6 weiter): 205 steht ohne Spielziel
+    for n in range(200, 220):
+        L[n].update(laufx=LORD[0], laufy=LORD[1])
+    L[205].update(laufx=L[205]["x"], laufy=L[205]["y"])
+    for k, tk in enumerate((10090, 10200, 10320)):
+        erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=tk)
+    raus = [z for z in erg if "LORD-ANGRIFF: 205 steht" in z]
+    pruefe(8, "im Angriff steht 205: Meldung %s, 205 in Gruppe %s, Gruppe %d" % (
+        bool(raus), 205 in lt(t)["mitglieder"], len(lt(t)["mitglieder"])),
+        raus and 205 not in lt(t)["mitglieder"] and len(lt(t)["mitglieder"]) == 19)
+    # 7
+    t = neu(); L, G = szene(); t.aufnehmen([n for n in L if n != 500])
+    t.schritt(L, G, sichere_orte=ORTE, tick=10000)
+    L.pop(203)
+    erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=10030)
+    pruefe(7, "einer tot in der Bereitstellung: Phase %s, Gruppe %d, nachgerueckt %s, Abbruch %s" % (
+        lt(t)["phase"], len(lt(t)["mitglieder"]), sorted(lt(t)["mitglieder"] - set(range(200, 220))),
+        any("ABGEBROCHEN" in z for z in erg)),
+        lt(t)["phase"] == "bereit" and len(lt(t)["mitglieder"]) == 20 and not any("ABGEBROCHEN" in z for z in erg))
+    # 9
+    t = neu(raid=99); L, G = szene()
+    for n in range(200, 220):
         L.pop(n)
+    G = {900: {"besitzer": 2, "typ": 32, "x": 160, "y": 200, "leben": 100, "uid": 1, "erreichbar": 1}}
     t.aufnehmen([n for n in L if n != 500])
     erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=10000)
-    an = lord_an(bef)
-    for n in an:
-        L[n].update(x=LORD[0] - 55, laufx=LORD[0], laufy=LORD[1], zielart=4, zieleinheit=500)
-    erg2, bef2 = t.schritt(L, G, sichere_orte=ORTE, tick=10030)
-    vorbei = [z for z in erg + erg2 if "vorbei" in z]
-    pruefe(4, "einer weit, 19 nah: zuerst an %s, danach vorbei-Meldungen %d, Phase %s, warten %d" % (
-        an, len(vorbei), t.lordtrupp["phase"], len(t.lordtrupp.get("warte", ()))),
-        an == [100] and not vorbei and t.lordtrupp["phase"] == "anlauf" and len(t.lordtrupp.get("warte", ())) == 19)
-    t = neu(); L, G = szene()
-    t._lord_bedarf = lambda L, G, ereignis: (40, "vorlaeufig", None)
-    t.aufnehmen([n for n in L if n != 500])
-    erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=10000)
-    gruppe = set(t.lordtrupp["mitglieder"]) | set(t.lordtrupp.get("warte", ()))
-    pruefe(5, "vorlaeufig 40, 25 da: Phase %s, Gruppe %d, davon weite %d, Meldung %s" % (
-        t.lordtrupp["phase"], len(gruppe), len([n for n in gruppe if n < 200]),
-        [z for z in erg if "LORD-BEDARF gerechnet" in z][:1]),
-        t.lordtrupp["phase"] == "anlauf" and len(gruppe) == 18 and not [n for n in gruppe if n < 200])
-    tot = sorted(t.lordtrupp["mitglieder"])[0]
-    L.pop(tot)
-    erg6, bef6 = t.schritt(L, G, sichere_orte=ORTE, tick=10030)
-    gruppe6 = set(t.lordtrupp["mitglieder"]) | set(t.lordtrupp.get("warte", ()))
-    pruefe(6, "ein Losgelaufener tot: Abbruch-Meldungen %d, Phase %s, Gruppe %d" % (
-        len([z for z in erg6 if "ABGEBROCHEN" in z]), t.lordtrupp["phase"], len(gruppe6)),
-        not [z for z in erg6 if "ABGEBROCHEN" in z] and t.lordtrupp["phase"] in ("anlauf", "angriff") and len(gruppe6) == 18)
+    hatte = {n: g for n, g in t.ziel.items()}
+    erg = []
+    for tk in (10100, 10250, 10400):
+        e, bef = t.schritt(L, G, sichere_orte=ORTE, tick=tk)
+        erg += e
+    pruefe(9, "Raider stehen ohne Spielziel: Ziele vorher %s, STILLSTAND-Meldung %s, Ziele danach %s" % (
+        hatte, [z[:60] for z in erg if "STILLSTAND" in z][:1], t.ziel),
+        hatte and any("STILLSTAND geloest" in z for z in erg) and t.ziel)
+    # 10
+    t = neu(); L, G = szene(); t.aufnehmen([n for n in L if n != 500])
+    t.schritt(L, G, sichere_orte=ORTE, tick=10000)
+    erg, bef = t.schritt(L, G, sichere_orte=ORTE, tick=10000 + t.BEREIT_MAX + 30)
+    pruefe(10, "Bereitstellung zu lang: Phase %s, Meldung %s" % (lt(t)["phase"], [z[:50] for z in erg if "ABGEBROCHEN" in z][:1]),
+           lt(t)["phase"] is None and any("ABGEBROCHEN" in z for z in erg))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

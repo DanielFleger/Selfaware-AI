@@ -271,7 +271,7 @@ class Einzeln:
     Gegenprobe je Runde: laeuft ein Assassine nicht zu seinem Gebaeude (Laufziel im Lagebild weiter als ZIEL_NAH),
     bekommt er den Befehl neu - der Plan im Kopf zaehlt nicht, nur das Laufziel im Spiel."""
     JE_GEBAEUDE = 1          # 12.10. Daniel 00:41/00:44: EIN Assassine je Gebaeude reisst ein, bei teuren (Wert >= TEUER) zwei;
-    LORD_TAKT_R = 3          # 12.10.: wer hoechstens so viel kuerzer hat als der Restweg der Losgelaufenen, laeuft los
+    LORD_TAKT_R = 3          # 12.10. gestaffelter Anlauf - 17.10. ERSETZT durch die Bereitstellung (BEREIT_R), bleibt fuer alte Pruefungen
     SCHUETZEN_MAX, SCHUETZEN_MAX_TEUER, SCHUETZEN_NOT = 1, 2, 3   # (01:54 nicht mehr in der Zielwahl)
     KOSTEN = 70              # Preis einer Assassine (L63, gemessen)
     VERWEILEN = 300          # 17.10. ERSETZT durch ARBEIT (gemessen) / Zahl - bleibt nur fuer alte Pruefungen stehen   # 12.10.: gute Tauschgeschaefte (Stellgroessen)
@@ -348,6 +348,26 @@ class Einzeln:
     LORD_SAMMELN_AB = 20
     LORD_SAMMEL_ABSTAND = SCHUSSWEITE + 5
     LORD_REST = 3          # weniger Ueberlebende aus dem Angriff -> vorbei, wieder raiden bis zum naechsten Bedarf
+    # 17.10. Laptop, Partie 1017h (Lageprotokoll): 35x lief genau EIN Assassine los ("1 laufen los"), 38 von 93 Toten starben
+    # am Lord mit 4+ Fernkaempfern im Umkreis 20 - die Rechnung lord_machbar gilt nur, wenn alle zugleich ankommen. Dazu standen
+    # im Mittel ~6 Assassinen (= eine Lord-Gruppe) an unserer Burg still (Zustand 105, Laufziel = eigener Ort, 77 % aller
+    # Stehzeit): der Angriffsbefehl auf einen Lord hinter Mauern wurde vermutlich ignoriert (nur Laufbefehl 17 sucht einen
+    # Kletterweg, Wissensregister), im Lord-Trupp prueft niemand nach. Darum jetzt:
+    #   Bereitstellung: jeder der Gruppe laeuft (Laufbefehl, sicherer Weg) zu einem Platz BEREIT_R Felder vom Lord, den kein
+    #   waehlbarer Feind sieht (sicht.sicher); erst wenn n_bedarf dort stehen, greifen genau diese zugleich an.
+    #   Angriff: wer weiter als ANLAUF_NAH vom Lord steht, bekommt einen LAUFbefehl auf den Lord (Kletterweg), erst daneben
+    #   den Angriffsbefehl. Wer STEH_TICKS ohne Spielziel auf demselben Feld steht, faellt aus der Gruppe und raidet.
+    BEREIT_R = (24, 28, 32)          # Felder vom Lord: ausserhalb der 20 Felder, in denen der Lord ihn sieht (L75)
+    BEREIT_NAH = 3                   # so nah am Platz gilt er als bereit
+    BEREIT_MAX = 3000                # Ticks fuer die Bereitstellung, dann Abbruch -> alle raiden
+    BEREIT_NEU = 3                   # hoechstens so viele Laufbefehle zum Platz, dann raus aus der Gruppe
+    ANLAUF_NAH = 6                   # naeher am Lord: Angriffsbefehl statt Laufbefehl
+    STEH_TICKS = 200                 # ohne Spielziel auf demselben Feld -> Lenker-Zustand loesen
+    BEREIT_PAUSE = 1000              # nach Abbruch/Ende eines Lord-Versuchs so viele Ticks nur raiden (STARTWERT)
+    # Raiden geht vor (Daniel 17.10. "prio ist am Anfang raiden und auch waehrend des laufs spaeter"): eine Lord-Gruppe
+    # bekommt nur, wer UEBER die lohnenden Raid-Plaetze hinaus da ist (Plaetze = freie Gebaeude ohne Beschuss am Ziel x
+    # Assassinen je Gebaeude). Spaetestens LORD_SPAETESTENS Ticks nach dem Lord-Schutz darf der Lord trotzdem dran (STARTWERT).
+    LORD_SPAETESTENS = 9600
 
     def __init__(self, sp=1, pruefe_begehbar=None, wegtest=None):
         self.sp = sp
@@ -378,6 +398,8 @@ class Einzeln:
         self.angriff_aus = False             # Trainingsstand: nur sammeln, nie angreifen (setzt erstes_spiel.py)
         self.bedarf_zuletzt = None
         self.bedarf_grund, self.bedarf_fa = "", None
+        self._raid_plaetze = None            # 17.10.: lohnende Raid-Plaetze der letzten Runde (Raiden geht vor)
+        self._steht = {}                     # 17.10.: n -> (Feld, seit Tick) - Stillstand ohne Spielziel
 
     def aufnehmen(self, nummern):
         self.mitglieder |= set(n for n in nummern if n not in self.bilanz["verluste"])
@@ -750,6 +772,46 @@ class Einzeln:
         self.warte_seit[n] = self.runde
         halten.setdefault(ort_sicher, []).append(n)
 
+    def _bereit_plaetze(self, lp):
+        """17.10.: Bereitstellungsplaetze um den Lord - Ring BEREIT_R, alle 20 Grad, begehbar laut Modul. Zuerst die, die
+        kein waehlbarer Feind sieht (sicht.sicher); gibt es keinen, die mit dem kleinsten Beschuss und groessten Sicht-Abstand."""
+        ring = []
+        for r in self.BEREIT_R:
+            for k in range(18):
+                w = k * math.pi / 9
+                q = (int(round(lp[0] + r * math.cos(w))), int(round(lp[1] + r * math.sin(w))))
+                if 2 <= q[0] <= 397 and 2 <= q[1] <= 397 and q not in ring:
+                    ring.append(q)
+        if self.pruefe_begehbar and ring:
+            gut = self.pruefe_begehbar(ring)
+            ring = [q for q in ring if q in gut]
+        s = self._sicht
+        sicher = [q for q in ring if s is None or s.sicher(q)]
+        if sicher:
+            return sicher
+        return sorted(ring, key=lambda q: (s.beschuss(q), -s.sicht_abstand(q)))[:6]
+
+    def _bereit_zuweisen(self, n, L, G, plaetze, ereignis):
+        """17.10.: Platz fuer n = kleinstes Wegrisiko (Gefahren-Gitter, wie die Zielwahl), dann kuerzester Weg; Weg ueber
+        den toten Winkel (schussfeld.sicherer_weg), sonst gerade."""
+        ort = (L[n]["x"], L[n]["y"])
+        g = self._gitter(L, G)
+        rk = g.risiko_von(ort, TEMPO) if g is not None else {}
+        def kosten(q):
+            r = rk.get(g.zelle_von(q)) if g is not None else None
+            return (r[0], r[1]) if r else (0, schach(ort, q))
+        platz = min(plaetze, key=kosten)
+        punkte = [platz]
+        if g is not None:
+            wp, bw, bg, _ = schussfeld.sicherer_weg(self.gelaende, L, self.sp, ort, platz, gitter=g)
+            if len(wp) > 1:
+                punkte = list(wp[:-1]) + [platz]
+        self.lordtrupp.setdefault("platz", {})[n] = platz
+        self.lordtrupp.setdefault("weg", {})[n] = punkte
+        self.lordtrupp.setdefault("neu", {})[n] = 0
+        self.lordtrupp.setdefault("befohlen", {})[n] = -99
+        return platz
+
     # --- eine Runde -----------------------------------------------------------------------------------------------
     def schritt(self, L, G, sichere_orte=None, tick=None):
         ereignis, angriffe, jagen, halten, flieh = [], [], [], {}, {}
@@ -786,6 +848,14 @@ class Einzeln:
                 self.bilanz["verluste"].add(n); self.mitglieder.discard(n); self._vergessen(n); self.flucht.pop(n, None)
                 ereignis.append("MESSUNG tot %d: zuletzt %s" % (n, self.umfeld.pop(n, "unbekannt")))
                 self.leben.pop(n, None)
+        # 17.10. (1017h: 304.000 Assassinen-Ticks Stillstand ohne Spielziel): seit wann steht er ohne Spielziel auf diesem Feld?
+        for n in list(self._steht):
+            if n not in self.mitglieder:
+                del self._steht[n]
+        for n in self.mitglieder:
+            f = (L[n]["x"], L[n]["y"])
+            if L[n]["zielart"] != 0 or self._steht.get(n, (None,))[0] != f:
+                self._steht[n] = (f, self.jetzt)
         verletzt = set()
         for n in self.mitglieder:
             u = self.umgebung(n, L, G, fern, nah)
@@ -815,6 +885,25 @@ class Einzeln:
             elif self.runde - self.befohlen.get(n, 0) >= self.NEU_NACH:
                 abweichler += 1
                 del self.ziel[n]
+        # 3a. 17.10. (1017h): Stillstand - hat er im Lenker ein Ziel (Gebaeude, Route, Jagd, Stapel), steht aber STEH_TICKS ohne
+        # Spielziel auf demselben Feld und will auch nirgends hin, wird der Lenker-Zustand geloest: er bekommt neu ein Ziel.
+        # Routen-Laeufer waren von der Gegenprobe oben ausgenommen.
+        stehen = []
+        for n in sorted(self.mitglieder):
+            f, seit = self._steht.get(n, (None, self.jetzt))
+            if n in self.lordtrupp["mitglieder"] or self.jetzt - seit < self.STEH_TICKS:
+                continue
+            if schach((L[n].get("laufx", -99), L[n].get("laufy", -99)), f) > 1:
+                continue
+            if n in self.ziel or n in self.route or n in self.jagd or n in self.stapel["mitglieder"]:
+                stehen.append("%d (%s, %d Ticks bei %s)" % (n, "Route" if n in self.route else "Gebaeude" if n in self.ziel else
+                                                          "Jagd" if n in self.jagd else "Stapel", self.jetzt - seit, f))
+                self._vergessen(n)
+                self.stapel["mitglieder"].discard(n)
+                self._steht[n] = (f, self.jetzt)
+        if stehen:
+            self.bilanz["stillstand"] = self.bilanz.get("stillstand", 0) + len(stehen)
+            ereignis.append("STILLSTAND geloest: %s" % ", ".join(stehen))
         self.gemessen = len(wirklich)
         if abweichler:
             self.bilanz["neu_befohlen"] += abweichler
@@ -835,11 +924,16 @@ class Einzeln:
             # Ertrag wie bei Gebaeuden - Beschuss am Beuteort (nachgebaute Zielwahl der Schuetzen, sicht.py) x (Weg + gemessene
             # Toetungszeit = Leben / Nahkampf-Rate) gegen Wert der Einheit (Anwerbepreis L63) und Preis einer Assassine
             beste_b = None
+            # 17.10. (Daniel: "manche gehen frontal auf Fernkaempfer"): Risiko auf dem WEG wie bei Gebaeuden (Gefahren-Gitter),
+            # nicht nur am Beuteort
+            g_b = self._gitter(L, G) if nah_b else None
+            rk_b = g_b.risiko_von(ort, TEMPO) if g_b is not None else {}
             for b_ in nah_b:
                 ziel_e = L.get(b_[0], {})
                 t_toeten = ziel_e.get("leben", 10000) / float(NAHKAMPF_RATE.get(ziel_e.get("typ"), 230))
                 t_weg = schach(ort, b_[1]) * TEMPO
-                risiko = self._sicht.beschuss(b_[1], 16) * (t_toeten + t_weg)
+                r_weg = rk_b.get(g_b.zelle_von(b_[1])) if g_b is not None else None
+                risiko = (r_weg[0] + self._sicht.beschuss(b_[1], 16) * t_toeten) if r_weg else                     self._sicht.beschuss(b_[1], 16) * (t_toeten + t_weg)
                 p_tod = min(1.0, risiko / max(1.0, float(L[n]["leben"])))
                 saldo = EINHEIT_WERT.get(ziel_e.get("typ"), 30) * (1 - p_tod) - p_tod * self.KOSTEN
                 if saldo > 0 and (beste_b is None or saldo / (t_toeten + t_weg) > beste_b[0]):
@@ -1006,6 +1100,7 @@ class Einzeln:
         # diese heraus - Nachzuegler werden nicht abgewartet, sie raiden weiter. Unter LORD_REST Ueberlebenden beginnt der
         # Ablauf wieder mit Raids.
         lord_befehl = None
+        lord_lauf, lord_ziel = {}, []        # 17.10.: Laufbefehle {Ort: [n]} und Angriffsbefehle auf den Lord
         lt = self.lordtrupp
         lt["mitglieder"] = {n for n in lt["mitglieder"] if n in self.mitglieder}
         lords = [(n, e) for n, e in L.items() if e["typ"] == 55 and e["besitzer"] not in (0, self.sp)]
@@ -1033,79 +1128,122 @@ class Einzeln:
                         ereignis.append("LORD-BEDARF gerechnet: %d (statt %d %s) - Lord %d Leben, Feuer am Lord %.1f je Takt" % (
                             n_r, n_bedarf, bedarf_art, le["leben"], f_ges))
                     n_bedarf, bedarf_art, gruppe_leben = n_r, "gerechnet", None
-            # 17.10. (Partie 1017c: 18x "vorbei: noch 1 leben" - beim gestaffelten Anlauf laeuft zuerst nur der Weiteste los,
-            # die Wartenden zaehlten nicht mit): im Anlauf gehoeren die Wartenden zur Gruppe
-            unterwegs = len(lt["mitglieder"]) + (len(lt.get("warte", ())) if lt["phase"] == "anlauf" else 0)
-            if lt["mitglieder"] and unterwegs < self.LORD_REST:
+            # 17.10. Laptop (1017h): Bereitstellung statt gestaffeltem Anlauf - die Gruppe zaehlt ganz (unterwegs + bereit)
+            if lt["mitglieder"] and lt["phase"] == "angriff" and len(lt["mitglieder"]) < self.LORD_REST:
                 ereignis.append("GEMEINSAMER LORD-ANGRIFF vorbei: noch %d leben, Lord-Leben %d - wieder raiden bis %d" % (
                     len(lt["mitglieder"]), le["leben"], n_bedarf))
                 for n in list(lt["mitglieder"]):
                     self._vergessen(n)
-                lt.update(mitglieder=set(), phase=None, sammelpunkt=None)
+                lt.update(mitglieder=set(), phase=None, sammelpunkt=None, pause_bis=self.jetzt + self.BEREIT_PAUSE)
             pos = lambda k: (L[k]["x"], L[k]["y"])
             # 12.10. 01:55 (Daniel: "das wird beim besten Willen nicht reichen - besser die Assassinen fuers Raiden nutzen, wenn du
             # weisst, es reicht nicht wegen Lord-Leben UND vor allem der Fernkaempfer in Sichtweite"): Kampf vorher durchrechnen
             # 17.10.: am Lord ist sie sichtbar; alle Schuetzen mit freier Linie zum Lord verteilen ihr Feuer auf die Gruppe
-            # (Zielwahl: +50 je Schuetze auf demselben Ziel) - je Assassine also Gesamtfeuer / Gruppengroesse
-            # 17.10. (1017f: 5x Anlauf mit genau 18 abgebrochen, sobald EINER starb - Ersatz wurde erst danach nachgezogen):
-            # im Anlauf zaehlen die freien Assassinen als Ersatz mit, bis zur Gruppengroesse
             if lt["phase"] is None:
                 n_l = len(self.mitglieder)
-            elif lt["phase"] == "anlauf":
+            elif lt["phase"] == "bereit":
                 n_l = min(n_bedarf, len(self.mitglieder))
             else:
-                n_l = len(lt["mitglieder"]) + len(lt.get("warte", ()))
+                n_l = len(lt["mitglieder"])
             satz_lord = self._sicht.feuer_gesamt(lp) / max(1, n_l)
             machbar, t_l, rest_l = lord_machbar(n_l, le["leben"], satz_lord)
-            if lt["phase"] == "anlauf" and not machbar:
-                ereignis.append("LORD-ANLAUF ABGEBROCHEN: reicht nicht mehr (Lord %d Leben, Beschuss am Lord %.1f je Tick) - alle raiden" % (
+            if lt["phase"] == "bereit" and not machbar:
+                ereignis.append("LORD-BEREITSTELLUNG ABGEBROCHEN: reicht nicht mehr (Lord %d Leben, Beschuss am Lord %.1f je Tick) - alle raiden" % (
                     le["leben"], satz_lord))
-                for k in list(lt["mitglieder"]) + list(lt.get("warte", ())):
+                for k in list(lt["mitglieder"]):
                     self._vergessen(k)
-                lt.update(mitglieder=set(), warte=set(), phase=None)
-            if not self.angriff_aus and lt["phase"] is None and len(self.mitglieder) >= n_bedarf and self.jetzt >= lordschutz.BIS                     and not machbar and self.runde % 20 == 0:
+                lt.update(mitglieder=set(), phase=None, pause_bis=self.jetzt + self.BEREIT_PAUSE)
+            if lt["phase"] == "bereit" and self.jetzt - lt.get("seit_tick", self.jetzt) > self.BEREIT_MAX:
+                ereignis.append("LORD-BEREITSTELLUNG ABGEBROCHEN: nach %d Ticks erst %d von %d bereit - alle raiden" % (
+                    self.jetzt - lt["seit_tick"], len(lt.get("bereit", ())), n_bedarf))
+                for k in list(lt["mitglieder"]):
+                    self._vergessen(k)
+                lt.update(mitglieder=set(), phase=None, pause_bis=self.jetzt + self.BEREIT_PAUSE)
+            if not self.angriff_aus and lt["phase"] is None and len(self.mitglieder) >= n_bedarf and self.jetzt >= lordschutz.BIS \
+                    and not machbar and self.runde % 20 == 0:
                 ereignis.append("LORD-ANGRIFF NICHT MACHBAR mit %d: Lord %d Leben, Beschuss am Lord %.1f je Tick und Assassine -> raiden" % (
                     len(self.mitglieder), le["leben"], satz_lord))
-            if not self.angriff_aus and lt["phase"] is None and len(self.mitglieder) >= n_bedarf and self.jetzt >= lordschutz.BIS                     and machbar:
-                # 12.10. 01:48 OHNE SAMMELPUNKT (Daniel 00:49 "man muss nicht an einem Punkt sammeln, Hauptsache sie kommen ca.
-                # gleich schnell an"; 00:52 "beim Sammeln wird alles im Stich gelassen"; 01:42 "warum sammeln sich wieder
-                # Assassinen in einem Klump?"): die gesuendesten n_bedarf bilden die Gruppe; wer am weitesten weg ist, laeuft
-                # zuerst los, die anderen raiden weiter, bis ihr Weg so lang ist wie der Restweg der Losgelaufenen (Takt)
-                # 17.10. (1017d): die NAECHSTEN zuerst (bei gleichem Leben nahm die alte Reihenfolge die weitesten - 227 Felder,
-                # einer nach dem anderen lief los, die Wartenden starben beim Raiden, Anlauf abgebrochen)
-                gruppe = sorted(self.mitglieder, key=lambda k: (schach(pos(k), lp), -L[k]["leben"], k))[:n_bedarf]
-                lt.update(mitglieder=set(), warte=set(gruppe), lord=ln, phase="anlauf", seit=self.runde, sammelpunkt=None)
-                ereignis.append("LORD-ANLAUF: %d Assassinen ohne Sammelpunkt, Wege %d-%d Felder (Bedarf %d %s: %s)" % (
-                    len(gruppe), min(schach(pos(k), lp) for k in gruppe), max(schach(pos(k), lp) for k in gruppe),
-                    n_bedarf, bedarf_art, self.bedarf_grund))
-            if lt["phase"] == "anlauf":
-                lt["warte"] = {k for k in lt.get("warte", set()) if k in self.mitglieder}
-                frei_k = sorted((k for k in self.mitglieder if k not in lt["warte"] and k not in lt["mitglieder"]),
-                                key=lambda k: (-L[k]["leben"], k))
-                while frei_k and len(lt["warte"]) + len(lt["mitglieder"]) < n_bedarf:
-                    lt["warte"].add(frei_k.pop(0))            # Tote ersetzen, bevor die Gruppe loslaeuft
-                rest = [schach(pos(k), lp) for k in lt["mitglieder"]]
-                takt = max(rest) if rest else max((schach(pos(k), lp) for k in lt["warte"]), default=0)
-                los = sorted(k for k in lt["warte"] if schach(pos(k), lp) >= takt - self.LORD_TAKT_R)
-                if los:
-                    for k in los:
+            # Raiden geht vor (Daniel 17.10.): nur der Ueberschuss ueber die lohnenden Raid-Plaetze geht auf den Lord
+            plaetze_r = self._raid_plaetze if self._raid_plaetze is not None else len(self.mitglieder)
+            ueber = len(self.mitglieder) - plaetze_r
+            spaet = self.jetzt >= lordschutz.BIS + self.LORD_SPAETESTENS
+            if not self.angriff_aus and lt["phase"] is None and len(self.mitglieder) >= n_bedarf and self.jetzt >= lordschutz.BIS \
+                    and machbar and ueber < n_bedarf and not spaet and self.runde % 20 == 0:
+                ereignis.append("LORD WARTET: Raiden geht vor - %d Assassinen, %d lohnende Raid-Plaetze (Lord-Gruppe %d erst ab Ueberschuss)" % (
+                    len(self.mitglieder), plaetze_r, n_bedarf))
+            if not self.angriff_aus and lt["phase"] is None and len(self.mitglieder) >= n_bedarf and self.jetzt >= lordschutz.BIS \
+                    and machbar and (ueber >= n_bedarf or spaet) and self.jetzt >= lt.get("pause_bis", 0):
+                plaetze = self._bereit_plaetze(lp)
+                if plaetze:
+                    # zuerst, wer kein Raid-Ziel hat, dann die naechsten am Lord (1017d: nie die weitesten)
+                    gruppe = sorted(self.mitglieder, key=lambda k: (k in self.ziel or k in self.jagd, schach(pos(k), lp), -L[k]["leben"], k))[:n_bedarf]
+                    lt.update(mitglieder=set(gruppe), warte=set(), lord=ln, phase="bereit", seit=self.runde, seit_tick=self.jetzt,
+                              sammelpunkt=None, platz={}, weg={}, neu={}, befohlen={}, bereit=set(), plaetze=plaetze)
+                    for k in gruppe:
                         self._vergessen(k)
-                        lt["warte"].discard(k)
-                        lt["mitglieder"].add(k)
-                    lord_befehl = {"angriff": {"einheiten": los, "ziel": ln}}
-                    if not self.angriffe or self.angriffe[-1].get("runde") != lt["seit"]:
-                        self.bilanz["lordtrupps"] = self.bilanz.get("lordtrupps", 0) + 1
-                        self.angriffe.append({"runde": lt["seit"], "groesse": n_bedarf, "lord_vorher": le["leben"], "lord_nachher": le["leben"],
-                                              "fern": self._anzahl(lp, fern, self.LORD_UMKREIS), "nah": self._anzahl(lp, nah, self.LORD_UMKREIS),
-                                              "weg_min": min(schach(pos(k), lp) for k in los), "weg_max": takt, "am_lord_max": 0,
-                                              "erreicht_runde": None, "anderes": {}, "truppe": set(), "verluste": 0,
-                                              "bedarf": n_bedarf, "bedarf_art": bedarf_art, "bedarf_grund": self.bedarf_grund,
-                                              "fingerabdruck": self.bedarf_fa})
-                    self.angriffe[-1]["truppe"] |= set(los)
-                    ereignis.append("LORD-ANLAUF: %d laufen los (Takt %d Felder), %d raiden noch, %d unterwegs" % (
-                        len(los), takt, len(lt["warte"]), len(lt["mitglieder"])))
-                if not lt["warte"]:
-                    lt["phase"] = "angriff"
+                        self.stapel["mitglieder"].discard(k)
+                        self.flucht.pop(k, None)
+                        self._bereit_zuweisen(k, L, G, plaetze, ereignis)
+                    ereignis.append("LORD-BEREITSTELLUNG: %d Assassinen zu %d verdeckten Plaetzen %s Felder vom Lord %d, Wege %d-%d Felder (Bedarf %d %s; %s; %d Raid-Plaetze)" % (
+                        len(gruppe), len(set(lt["platz"].values())), "/".join(map(str, self.BEREIT_R)), ln,
+                        min(schach(pos(k), lt["platz"][k]) for k in gruppe), max(schach(pos(k), lt["platz"][k]) for k in gruppe),
+                        n_bedarf, bedarf_art, "spaetestens" if spaet and ueber < n_bedarf else "Ueberschuss %d" % ueber, plaetze_r))
+            if lt["phase"] == "bereit":
+                # Tote ersetzen (1017f: sonst Abbruch beim ersten Toten) - zuerst Freie ohne Raid-Ziel, dann die naechsten
+                frei_k = sorted((k for k in self.mitglieder if k not in lt["mitglieder"]),
+                                key=lambda k: (k in self.ziel or k in self.jagd, schach(pos(k), lp), -L[k]["leben"], k))
+                while frei_k and len(lt["mitglieder"]) < n_bedarf:
+                    k = frei_k.pop(0)
+                    self._vergessen(k); self.stapel["mitglieder"].discard(k); self.flucht.pop(k, None)
+                    lt["mitglieder"].add(k)
+                    self._bereit_zuweisen(k, L, G, lt["plaetze"], ereignis)
+                    ereignis.append("LORD-BEREITSTELLUNG: %d rueckt nach (Platz %s)" % (k, lt["platz"][k]))
+                bereit = set()
+                for k in sorted(lt["mitglieder"]):
+                    platz = lt["platz"].get(k)
+                    if platz is None:
+                        platz = self._bereit_zuweisen(k, L, G, lt["plaetze"], ereignis)
+                    if schach(pos(k), platz) <= self.BEREIT_NAH:
+                        bereit.add(k)
+                        continue
+                    weg = lt["weg"][k]
+                    while len(weg) > 1 and schach(pos(k), weg[0]) <= self.WEGPUNKT_NAH:
+                        weg.pop(0)
+                    lauf = (L[k].get("laufx", -99), L[k].get("laufy", -99))
+                    if schach(lauf, weg[0]) > 2 and self.runde - lt["befohlen"].get(k, -99) >= 2:
+                        if lt["neu"].get(k, 0) >= self.BEREIT_NEU and schach(lauf, pos(k)) <= 1:
+                            ereignis.append("LORD-BEREITSTELLUNG: %d laeuft nach %d Befehlen nicht los (Feld %s, Zustand %d) - raus, raidet" % (
+                                k, lt["neu"][k], pos(k), L[k]["zustand"]))
+                            lt["mitglieder"].discard(k)
+                            continue
+                        lt["neu"][k] = lt["neu"].get(k, 0) + 1
+                        lt["befohlen"][k] = self.runde
+                        lord_lauf.setdefault(weg[0], []).append(k)
+                lt["bereit"] = bereit
+                if len(bereit) >= n_bedarf and lord_machbar(len(bereit), le["leben"], self._sicht.feuer_gesamt(lp) / len(bereit))[0]:
+                    alle = sorted(bereit)
+                    for k in lt["mitglieder"] - bereit:
+                        self._vergessen(k)            # wer noch unterwegs ist, raidet weiter
+                    lt.update(mitglieder=set(alle), phase="angriff", seit=self.runde, angriff_tick=self.jetzt)
+                    for k in alle:
+                        if schach(pos(k), lp) > self.ANLAUF_NAH:
+                            lord_lauf.setdefault(lp, []).append(k)
+                        else:
+                            lord_ziel.append(k)
+                    self.bilanz["lordtrupps"] = self.bilanz.get("lordtrupps", 0) + 1
+                    wege = sorted(schach(pos(k), lp) for k in alle)
+                    self.angriffe.append({"runde": self.runde, "groesse": len(alle), "lord_vorher": le["leben"], "lord_nachher": le["leben"],
+                                          "fern": self._anzahl(lp, fern, self.LORD_UMKREIS), "nah": self._anzahl(lp, nah, self.LORD_UMKREIS),
+                                          "weg_min": wege[0], "weg_max": wege[-1], "am_lord_max": 0, "erreicht_runde": None,
+                                          "anderes": {}, "truppe": set(alle), "verluste": 0,
+                                          "bedarf": n_bedarf, "bedarf_art": bedarf_art, "bedarf_grund": self.bedarf_grund,
+                                          "fingerabdruck": self.bedarf_fa})
+                    ereignis.append("GEMEINSAM-AUF-LORD: %d Assassinen bereit, greifen zugleich an (Wege %d-%d Felder, Bereitstellung %d Ticks; Lord %d Leben, Fern %d / Nah %d um ihn)" % (
+                        len(alle), wege[0], wege[-1], self.jetzt - lt["seit_tick"], le["leben"],
+                        self._anzahl(lp, fern, self.LORD_UMKREIS), self._anzahl(lp, nah, self.LORD_UMKREIS)))
+                elif self.runde % 10 == 0:
+                    ereignis.append("LORD-BEREITSTELLUNG: %d/%d bereit, %d in der Gruppe (seit %d Ticks)" % (
+                        len(bereit), n_bedarf, len(lt["mitglieder"]), self.jetzt - lt["seit_tick"]))
             elif self.angriff_aus and lt["phase"] is None and len(self.mitglieder) >= min(n_bedarf, self.LORD_SAMMELN_AB):
                 punkt = self._lord_sammelpunkt(lp, sichere_orte, fern)
                 if punkt is not None:
@@ -1152,11 +1290,26 @@ class Einzeln:
                         len(angekommen), len(lt["mitglieder"]), len(self.mitglieder), n_bedarf, bedarf_art))
             elif lt["phase"] == "angriff" and lt["mitglieder"]:
                 # S2a (Daniel 21:46: "jeder Tick, wo sie rumstehen, ist eine Sekunde mehr, wo der Gegner rekrutieren und auf
-                # unsere schiessen kann"): wer nicht den Lord angreift, bekommt den Befehl JEDE Runde neu (vorher erst nach NEU_NACH)
-                abseits = [n for n in lt["mitglieder"] if not (L[n]["zielart"] == 4 and L[n].get("zieleinheit") == ln)]
-                if abseits:
-                    lord_befehl = {"angriff": {"einheiten": sorted(abseits), "ziel": ln}}
-                    lt["seit"] = self.runde
+                # unsere schiessen kann"): wer nicht den Lord angreift, bekommt den Befehl JEDE Runde neu.
+                # 17.10. (1017h): weiter weg -> Laufbefehl auf den Lord (Kletterweg), erst daneben der Angriffsbefehl;
+                # wer STEH_TICKS ohne Spielziel steht, faellt aus der Gruppe (sonst stand er an unserer Burg bis Partieende)
+                for k in sorted(lt["mitglieder"]):
+                    if L[k]["zielart"] == 4 and L[k].get("zieleinheit") == ln:
+                        continue
+                    f, seit = self._steht.get(k, (None, self.jetzt))
+                    will_nirgends = schach((L[k].get("laufx", -99), L[k].get("laufy", -99)), pos(k)) <= 1
+                    if f == pos(k) and will_nirgends and self.jetzt - seit >= self.STEH_TICKS                             and self.jetzt - lt.get("angriff_tick", 0) >= self.STEH_TICKS:
+                        ereignis.append("LORD-ANGRIFF: %d steht %d Ticks ohne Spielziel bei %s (Zustand %d, Lord %d Felder) - raus, raidet" % (
+                            k, self.jetzt - seit, pos(k), L[k]["zustand"], schach(pos(k), lp)))
+                        lt["mitglieder"].discard(k)
+                        self._vergessen(k)
+                        continue
+                    if schach(pos(k), lp) > self.ANLAUF_NAH:
+                        if schach((L[k].get("laufx", -99), L[k].get("laufy", -99)), lp) > 3:
+                            lord_lauf.setdefault(lp, []).append(k)
+                    else:
+                        lord_ziel.append(k)
+                lt["seit"] = self.runde
             if lt["phase"] == "angriff" and lt["mitglieder"] and self.angriffe:
                 self._lord_messen(L, G, ln, le, lp, fern, nah)
         # 5. Ziele verteilen (Gefahr am Gebaeude beachten); wer keins bekommt, wartet ausser Reichweite
@@ -1184,6 +1337,9 @@ class Einzeln:
             if n_a in L and L[n_a].get("nahangreifer"):
                 angegriffen[g_a] = angegriffen.get(g_a, 0) + 1
         platz = lambda k: (2 if WERT.get(k[2], 10) >= self.TEUER else self.JE_GEBAEUDE) + angegriffen.get(k[0], 0)
+        # 17.10. Raiden geht vor: lohnende Raid-Plaetze = erreichbare Gebaeude ohne Beschuss am Ziel x Plaetze je Gebaeude.
+        # Gilt in der NAECHSTEN Runde fuer die Frage, ob ein Ueberschuss fuer den Lord da ist.
+        self._raid_plaetze = sum(platz(k) for k in kand if k[3] and self._sicht.beschuss(k[1], 16) <= 0)
         # Zielwechsel: wer ein Gebaeude angreift, wechselt sofort, wenn ein freies, erreichbares Gebaeude mindestens WECHSEL-mal
         # mehr Wert je Weg bringt (z.B. ein neu gebautes in der Naehe)
         wert = lambda ort, k: WERT.get(k[2], 10) / ((schach(ort, k[1]) + 20.0) * (1 + k[5]))
@@ -1317,6 +1473,20 @@ class Einzeln:
             befehle.append(stapel_befehl)
         if lord_befehl:
             befehle.append(lord_befehl)
+        befehle += [{"angriff": {"einheiten": ns, "lauf": [o[0], o[1]]}} for o, ns in lord_lauf.items()]   # 17.10.: Kletterweg
+        if lord_ziel:
+            befehle.append({"angriff": {"einheiten": sorted(lord_ziel), "ziel": self.lordtrupp.get("lord")}})
+        # 17.10. (Daniel: "manche Assassinen stehen rum ohne Grund"): alle 50 Runden, wer STEH_TICKS ohne Spielziel steht und warum
+        if self.runde % 50 == 0:
+            st_alle = [n for n in self.mitglieder if self.jetzt - self._steht.get(n, (None, self.jetzt))[1] >= self.STEH_TICKS]
+            if st_alle:
+                grund = {}
+                for n in st_alle:
+                    g_ = ("Lord-Trupp" if n in self.lordtrupp["mitglieder"] else "Flucht" if n in self.flucht else
+                          "Warten" if n in self.warte else "Ziel" if n in self.ziel or n in self.jagd else "ohne Ziel")
+                    grund[g_] = grund.get(g_, 0) + 1
+                ereignis.append("STEHEN: %d von %d Assassinen seit >= %d Ticks ohne Spielziel (%s)" % (
+                    len(st_alle), len(self.mitglieder), self.STEH_TICKS, ", ".join("%s %d" % kv for kv in sorted(grund.items()))))
         if angriffe:
             ereignis.append("%d Assassinen auf %d Gebaeude verteilt (im Spiel gemessen: %d Gebaeude gleichzeitig angelaufen)" % (
                 len(angriffe), len(set(g for _, g in angriffe)), self.gemessen))
