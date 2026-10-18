@@ -681,6 +681,9 @@ HEER_GOLD_RAND, HEER_MAX = 150, 100
 # fuer LEBENDE (Tote werden ersetzt); dazu bis ASSASSINEN_EXTRA mehr, solange jede ein Ziel hat, es weitere lohnende
 # Raid-Plaetze gibt und das Gold ueber Ruecklage + HEER_GOLD_RAND liegt. Hoechstens eine je WERB_ABSTAND Takte.
 ASSASSINEN_EXTRA, WERB_ABSTAND = 10, 60
+# 19.10. (1019k: nach dem Tod von Lord 6 bis zu 14 Assassinen "ohne Ziel, alle gefaehrlich" - trotzdem wurde jeder Tote
+# ersetzt, ab 12 Wartenden lief der Stapel los): nicht werben, solange mindestens A_OHNE_ZIEL_MAX ohne Ziel sind
+A_OHNE_ZIEL_MAX = 2
 STEIN_LOS_GOLD = 120     # 19.10. (1019g): ab so viel freiem Gold Stein fuer die Kaserne kaufen (5er-Los, Kauf ~14 je Stein, L65)
 PRODUKTION = False       # 19.10. (Daniel: eigene Waffenproduktion statt nur Markt) - produktion=ja, nur mit weg=feldzug
 PRODUKTION_FENSTER = 10000   # Ticks, in denen die Kette 30 Kaempfer liefern soll (bestimmt die Zahl der Betriebe)
@@ -2512,6 +2515,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 ereignis.append("Soeldnerlager gesetzt %s (Gold %d)" % (soeldner, st["gold"]))
             elif posten and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] and st["feuer"] >= 1 \
                     and (assassinen < 0 or a_stand["lebend"] < ziel_a) and st["t"] - a_stand["zuletzt"] >= WERB_ABSTAND \
+                    and (getattr(trupp, "ohne_ziel_zuletzt", None) or 0) < A_OHNE_ZIEL_MAX \
                     and not ausbau.braucht_gold \
                     and not loewen_am_posten(L, G, posten[0]) \
                     and not wirt.a_offen(G):   # Daniel 23:09: Farmen nicht vergessen - erst die fehlenden A-Plantagen (45 Gold)   # erst rollen (Daniel 18:51/19:05)

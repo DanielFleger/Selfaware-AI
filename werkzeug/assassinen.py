@@ -55,7 +55,12 @@ WERT = {
     # 1019j: mit Soeldnerposten UND Markt warben die Nomaden 2,5-2,9 Truppen je 1.000 Takte an, fehlte einer von beiden
     # 0-0,7 (4 Ausfaelle, 1.300-3.600 Takte je Lage); wieder aufgebaut nach 1.300-4.400 Takten -> ein Ausfall kostet sie
     # ~3-10 Truppen): Soeldnerposten 100 -> 300, Markt 150 -> 300
-    9: 100, 8: 300,                     # Kaserne, Soeldnerposten (Ausbildungslager)
+    # Kaserne (Daniel 19.10. waehrend 1019k: "so ein Ausbildungslager, 15 Steine, ist viel kostspieliger nachzubauen - ich
+    # wuerde das immer bevorzugen, sogar vor einem Markt"; Ascension-Balance: Kaserne 10 Stein, Soeldnerposten 50 Gold, Markt
+    # 0; Lageprotokoll 1019j: ohne Kaserne 0 europaeische Rekruten - von dort kamen 33 von 159 neuen Truppen, alle Bogen-
+    # schuetzen; Spieler 2 baute sie 8.000 Takte lang nicht wieder auf): 100 -> 800. Ihre Arbeit (666 Takte fuer eine
+    # Assassine, L81) geht voll in "Wert je Zeit" ein - erst ab ~800 liegt sie ab ~10 Feldern Weg vor einem gleich weiten Markt
+    9: 800, 8: 300,                     # Kaserne, Soeldnerposten
     19: 100,                            # Kornspeicher
     # 17.10. (Daniel: "nie den unzerstoerbaren Abstellhaufen des Steinbruchs angreifen"): Steinhaufen Typ 21 (L8) raus -
     # in den 1017-Partien 89x Ziel, 6x "zerstoert" (vermutlich nur mit seinem Steinbruch)
@@ -353,6 +358,12 @@ class Einzeln:
     STAPEL_AB = 12         # Daniel 05.10. 00:30: "oben stehen noch so 30 Assassinen, die nichts machen" - ab so vielen
                            # Wartenden greifen ALLE gebuendelt einen erreichbaren Fernkaempfer am Boden an (perfekt stapeln)
     STAPEL_RUECKZUG = 0.3  # im Stapel erst unter 30 % Leben zurueck (Daniel: manchmal ist kein Rueckzug besser)
+    # 19.10. (1019k: 12 Assassinen auf eine Armbrust 36 Felder weit neben dem Bergfried von Lord 6, 16 auf eine Armbrust 80 Felder
+    # weit an der Burg von Lord 8 - 10 der 18 Toten der Partie kamen aus diesen beiden Stapeln, beschossen von 11-33 Schuetzen):
+    # Ziel nur bis STAPEL_WEG Felder von der Stapelmitte, mindestens STAPEL_BURG von jedem feindlichen Lord, und nur, wenn die
+    # Gefechtsrechnung (Stapel gegen alle Schuetzen, die das Ziel erreichen, und alle Nahkaempfer bis GEGEN_UMKREIS) einen Sieg
+    # mit GEGEN_BEHALTEN ergibt; jede Runde neu gerechnet. Nach einem Abbruch STAPEL_PAUSE Takte kein neuer Stapel
+    STAPEL_WEG, STAPEL_BURG, STAPEL_PAUSE = 40, SCHUSSWEITE + 5, 600
     # Lord-Trupp (Daniel 05.10. 00:52): nebenher immer wieder pruefen; freie Raid-Assassinen gebuendelt auf den Lord -
     # meist reichen 10, steht er allein sogar 5, bei Bogenschuetzen mehr, je nach Feindmenge noch viel mehr.
     # STARTWERTE aus dieser Regel: 5 allein, sonst 10 + 2 je Fernkaempfer + 1 je Nahkaempfer im Umkreis LORD_UMKREIS.
@@ -1306,6 +1317,33 @@ class Einzeln:
             len(wir), len(sie), len(trupp["mitglieder"]), trupp["gewicht"], "Sieg" if sieg else "kein Sieg", 100 * anteil), wir_nr)
         self._tr_merk = (schluessel, erg)
         return erg
+
+    def _stapel_rechnung(self, mitglieder, f, L):
+        """19.10. (1019k): (lohnt, Text) - der Stapel gegen alle feindlichen Schuetzen, die den Ort des Ziels f erreichen (sie
+        stehen), und alle feindlichen Nahkaempfer bis GEGEN_UMKREIS um ihn; lohnt = Sieg mit mindestens GEGEN_BEHALTEN Rest."""
+        import gefecht
+        if f not in L:
+            return False, "Ziel weg"
+        p = (L[f]["x"], L[f]["y"])
+        wir = [dict(typ=ASSASSINE, leben=L[m]["leben"], x=L[m]["x"], y=L[m]["y"]) for m in mitglieder if m in L]
+        sie, schuetzen = [], 0
+        for k, e in L.items():
+            if e["besitzer"] in (0, self.sp):
+                continue
+            q = (e["x"], e["y"])
+            if e["typ"] in sicht.REICHWEITE and schach(q, p) <= sicht.REICHWEITE[e["typ"]]:
+                sie.append(dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=True))
+                schuetzen += 1
+            elif e["typ"] in sicht.NAHKAMPF and schach(q, p) <= self.GEGEN_UMKREIS:
+                sie.append(dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"]))
+        try:
+            voll = sum(w["leben"] for w in wir)
+            r_wir, r_sie, t_, sieg = gefecht.simuliere(wir, sie)
+        except Exception as ex:
+            return False, "Rechnung fehlgeschlagen (%s)" % ex
+        anteil = r_wir / float(max(1, voll))
+        return sieg and anteil >= self.GEGEN_BEHALTEN, "%d eigene gegen %d feindliche (%d Schuetzen erreichen das Ziel): %s, uns bleiben %.0f %%" % (
+            len(wir), len(sie), schuetzen, "Sieg" if sieg else "kein Sieg", 100 * anteil)
 
     def _gemeinsam_angreifen(self, wir_nr, ziele, L, jagen):
         """19.10.: alle aus wir_nr greifen zugleich an - jeder das naechste der Ziele (Nummern feindlicher Einheiten)."""
@@ -2686,34 +2724,54 @@ class Einzeln:
         ziel_lebt = stp["ziel"] in L and L[stp["ziel"]]["besitzer"] not in (0, self.sp)
         wartende = [n for n in self.mitglieder if n not in self.ziel and n not in self.jagd and n not in stp["mitglieder"]
                     and n not in self.lordtrupp["mitglieder"] and n not in self.flucht and L[n]["leben"] >= self.SCHWACH * self.VOLL]
-        if stp["mitglieder"] or len(wartende) >= self.STAPEL_AB:
+        if stp["mitglieder"] or (len(wartende) >= self.STAPEL_AB and self.jetzt >= stp.get("pause_bis", 0)):
             if not stp["mitglieder"]:
                 stp["mitglieder"] = set(wartende)
                 for n in wartende:
                     self.warte.pop(n, None)
                     self.warte_seit.pop(n, None)
-            if not ziel_lebt:
+            if ziel_lebt:
+                # 19.10. (1019k): jede Runde neu rechnen - unterwegs kommen Schuetzen in Sicht, die beim Start fehlten
+                lohnt_s, text_s = self._stapel_rechnung(stp["mitglieder"], stp["ziel"], L)
+                if not lohnt_s:
+                    ereignis.append("STAPEL abgebrochen: Ziel %d lohnt nicht mehr - %s" % (stp["ziel"], text_s))
+                    for n in stp["mitglieder"]:
+                        self.jagd.pop(n, None)
+                    stp["mitglieder"], stp["ziel"] = set(), None
+                    stp["pause_bis"] = self.jetzt + self.STAPEL_PAUSE
+            elif stp["mitglieder"]:
                 # 9h: der naechste Schuetze stand inmitten von 17 weiteren - jetzt nur Schuetzen, um die hoechstens
-                # (Stapelgroesse - 4) / 2 weitere Fernkaempfer im Umkreis 10 stehen; davon der einsamste, dann der naechste
+                # (Stapelgroesse - 4) / 2 weitere Fernkaempfer im Umkreis 10 stehen; davon der einsamste, dann der naechste.
+                # 19.10. (1019k): nur bis STAPEL_WEG Felder, nicht naeher als STAPEL_BURG an einem feindlichen Lord, und nur, was
+                # die Gefechtsrechnung gewinnt (die drei einsamsten/naechsten werden gerechnet)
                 mx = sum(L[n]["x"] for n in stp["mitglieder"]) / len(stp["mitglieder"])
                 my = sum(L[n]["y"] for n in stp["mitglieder"]) / len(stp["mitglieder"])
                 erreichbar = []
                 for f in fern:
-                    if L[f[0]].get("erreichbar", -1) != 1:
+                    if L[f[0]].get("erreichbar", -1) != 1 or schach((mx, my), f[1]) > self.STAPEL_WEG \
+                            or any(schach(f[1], b) < self.STAPEL_BURG for b in self._feindburg):
                         continue
                     um = self._anzahl(f[1], fern, 10) - 1
                     if len(stp["mitglieder"]) >= 2 * um + 4:
                         erreichbar.append((um, schach((mx, my), f[1]), f))
-                if erreichbar:
-                    um, d, (f, _, typ) = min(erreichbar)
+                wahl, text_s = None, "kein Schuetze bis %d Felder, ausserhalb %d Feldern um ihre Lords" % (self.STAPEL_WEG, self.STAPEL_BURG)
+                for um, d, f_ in sorted(erreichbar)[:3]:
+                    lohnt_s, text_s = self._stapel_rechnung(stp["mitglieder"], f_[0], L)
+                    if lohnt_s:
+                        wahl = (um, d, f_)
+                        break
+                if wahl:
+                    um, d, (f, _, typ) = wahl
                     stp["ziel"] = f
                     stapel_befehl = {"angriff": {"einheiten": sorted(stp["mitglieder"]), "ziel": f}}
                     self.bilanz["stapel_ziele"] = self.bilanz.get("stapel_ziele", 0) + 1
-                    ereignis.append("STAPEL: %d Assassinen gebuendelt auf Fernkaempfer %d (Typ %d, %d Felder vom Stapel, Fern<=10 dort %d)" % (
-                        len(stp["mitglieder"]), f, typ, d, self._anzahl((L[f]["x"], L[f]["y"]), fern, 10)))
+                    ereignis.append("STAPEL: %d Assassinen gebuendelt auf Fernkaempfer %d (Typ %d, %d Felder vom Stapel, Fern<=10 dort %d) - %s" % (
+                        len(stp["mitglieder"]), f, typ, d, self._anzahl((L[f]["x"], L[f]["y"]), fern, 10), text_s))
                 else:
-                    ereignis.append("STAPEL aufgeloest: kein erreichbarer Fernkaempfer, den %d schlagen koennen (zurueck ins Warten)" % len(stp["mitglieder"]))
+                    ereignis.append("STAPEL aufgeloest: kein Fernkaempfer, den %d sicher schlagen (%s) - zurueck ins Warten" % (
+                        len(stp["mitglieder"]), text_s))
                     stp["mitglieder"], stp["ziel"] = set(), None
+                    stp["pause_bis"] = self.jetzt + self.STAPEL_PAUSE
         # 18.10. (Gegenpruefung): die Zaehlung oben nahm jedes Gebaeude mit irgendeiner unbeobachteten Seite - die Zielwahl
         # nimmt aber nur die Anlaufseite, ohne Wachen, mit Wegrisiko. Bleibt jemand ohne Ziel, sind alle annehmbaren Plaetze
         # besetzt: dann zaehlen nur die vergebenen (sonst sperrte die Zahl Jagd und Lord, waehrend Assassinen standen)

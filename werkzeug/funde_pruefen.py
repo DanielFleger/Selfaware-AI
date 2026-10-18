@@ -793,6 +793,34 @@ def main():
     z48, z48g = lage_markt(A.WERT[26]), lage_markt(150)
     pruefe(48, "Markt 60 Felder, Apfelplantage 25 Felder: Ziel %s (Wert %d); mit Wert 150: %s" % (z48, A.WERT[26], z48g),
            z48 == 901 and z48g == 900)
+
+    # 49-51 (1019k: zwei Stapel an den Burgen von Lord 6 und Lord 8 brachten 10 der 18 Toten)
+    def lage_stapel(armbrust, lord, dazu=0):
+        t = neu(); t._raid_plaetze = 99
+
+        def bei(n_dazu):
+            L = {500: einheit(55, 2, lord[0], lord[1], leben=30000), 600: einheit(23, 2, armbrust[0], armbrust[1], leben=17500)}
+            for i in range(12):
+                L[100 + i] = einheit(73, 1, 100 + i % 4, 100 + i // 4)
+            for i in range(n_dazu):
+                L[610 + i] = einheit(23, 2, armbrust[0] + 2 + i % 5, armbrust[1] - 4 + i // 5 * 2, leben=17500)
+            return L
+        t.aufnehmen(range(100, 112))
+        erg, bef = t.schritt(bei(0), {}, sichere_orte=[(20, 300)], tick=10000)
+        ziel1 = t.stapel["ziel"]
+        if dazu:
+            erg2, _ = t.schritt(bei(dazu), {}, sichere_orte=[(20, 300)], tick=10030)
+            erg += erg2
+        return ziel1, t.stapel["ziel"], [z[:110] for z in erg if z.startswith("STAPEL")][-1:]
+    z49, _, m49 = lage_stapel((125, 100), (390, 390))
+    z49b, _, m49b = lage_stapel((125, 100), (150, 100))
+    pruefe(49, "12 Wartende, einzelne Armbrust 24 Felder weit: Stapel auf %s %s; dieselbe Armbrust 25 Felder vor ihrem Lord: %s %s" % (
+        z49, m49, z49b, m49b), z49 == 600 and z49b is None)
+    z50, _, m50 = lage_stapel((160, 100), (390, 390))
+    pruefe(50, "einzelne Armbrust 58 Felder weit: Stapel auf %s %s" % (z50, m50), z50 is None)
+    z51, z51b, m51 = lage_stapel((125, 100), (390, 390), dazu=20)
+    pruefe(51, "Stapel laeuft (Ziel %s), dann 20 weitere Armbrustschuetzen am Ziel: Ziel jetzt %s %s" % (z51, z51b, m51),
+           z51 == 600 and z51b is None)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
