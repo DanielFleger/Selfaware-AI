@@ -2152,6 +2152,11 @@ local function einzelbefehl(cmd)
     elseif a.gebaeude then
       art, zielNr = 9, tonumber(a.gebaeude)
       zielUid = core.readInteger(GEBAEUDE + zielNr * G_SCHRITT + 0xEC) or 0
+    elseif type(a.graben) == "table" then
+      -- 19.10.2026 (Selfaware 1v1, Daniel 00:10 "erweitere logik.lua um graben"): geplanten Burggraben ausheben wie ein
+      -- Mensch - Befehl 36 mit Art 6 (UIT_DIG_MOAT) und Ziel x, y (abgelesen AICState::digNearestMoat ->
+      -- giveTribeAnInstruction(Gruppe, UIT_DIG_MOAT, x, y, 0)). Graben planen: Spielbefehl 21 mit L_MOAT (Selfaware-AI L126).
+      art, zielNr, zielUid = 6, tonumber(a.graben[1]) or 0, tonumber(a.graben[2]) or 0
     end
     local ok1 = befehlAbsetzen(16, { gruppe })
     local ok2
