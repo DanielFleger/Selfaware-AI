@@ -10,8 +10,12 @@ Ablauf je Runde (schritt):
            einen Feind in VERTEIDIGEN Feldern sieht, greift ihn an (statt zu stehen). Neu befohlen wird nur, wer nicht dort
            ist und nicht dorthin laeuft.
   ANGRIFF  sobald N am Sammelpunkt stehen (Ueberlebende zaehlen) und der Lord Schaden nimmt (ab LORD_SCHUTZ_BIS):
-           alle zusammen auf den Lord (ein Befehl, sie laufen als Haufen); alle WIEDERHOLEN Runden neu, wer nicht
-           angreift. Ist der Lord tot: naechstes Ziel, die Ueberlebenden sammeln neu, aufgefuellt wird auf N.
+           19.10. (1018y, Daniel: "die Streitkolben lassen sich unnoetig von den Fernkaempfern ablenken und werden die
+           ganze Zeit erschossen, weil sie nicht einfach auf den Lord gehen; von der Seite angreifen macht keinen Sinn -
+           obenrum haetten die Bogenschuetzen sie erst am Ende erkannt"): als Haufen per LAUF-Befehl (laeuft an Feinden
+           vorbei, klettert auf den Bergfried) ueber Wegpunkte des Weges mit dem geringsten Beschuss (wegplaner, wie bei
+           den Assassinen); erst wer ANGRIFF_NAH am Lord steht, bekommt den Angriffsbefehl auf ihn.
+           Ist der Lord tot: naechstes Ziel, die Ueberlebenden sammeln neu, aufgefuellt wird auf N.
 Anwerben/Kaufen macht erstes_spiel.ruestung_kaufen (Ziel N lebende Streitkolben, nur Gold ueber der Ruecklage).
 """
 
@@ -32,6 +36,8 @@ class Feldzug:
     AM_PUNKT = 10             # so nah am Sammelpunkt gilt als "da"
     VERTEIDIGEN = 18          # Feind so nah am Sammelpunkt -> angreifen
     WIEDERHOLEN = 5           # Runden zwischen zwei Angriffsbefehlen
+    ANGRIFF_NAH = 4           # so nah am Lord: Angriffsbefehl statt Laufbefehl
+    WEGPUNKT_NAH = 4          # so nah am Wegpunkt (Mitte des Haufens): naechster Wegpunkt
 
     def __init__(self, sp, heim, lord_schutz_bis=0, n=None):
         self.sp, self.heim, self.schutz_bis = sp, tuple(heim), lord_schutz_bis
@@ -44,6 +50,8 @@ class Feldzug:
         self.letzter_befehl = -99
         self.tote_lords = []
         self.verteidigt = {}
+        self.wegplaner = None       # (L, G, start, ziel) -> [Wegpunkte, letzter = ziel]; setzt erstes_spiel
+        self.weg, self.weg_i, self.weg_ziel = [], 0, None
 
     def _lords(self, L):
         return {n: e for n, e in L.items() if e["typ"] == LORD and e["besitzer"] not in (0, self.sp) and e["leben"] > 0}
@@ -112,13 +120,36 @@ class Feldzug:
             if len(da) >= self.N and t >= self.schutz_bis:
                 self.phase = "angriff"
                 self.letzter_befehl = -99
+                self.weg, self.weg_i, self.weg_ziel = [], 0, None
                 aus.append("FELDZUG ANGRIFF: %d Streitkolben gemeinsam auf Lord %d (Leben %d) bei Tick %d" % (
                     len(kolben), self.ziel, lord["leben"], t))
         if self.phase == "angriff":
-            if self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
-                befehl({"angriff": {"einheiten": kolben, "ziel": self.ziel}}, 1.0, bis="ANGRIFF")
+            orte = sorted((L[n]["x"], L[n]["y"]) for n in kolben)
+            mitte = (sorted(o[0] for o in orte)[len(orte) // 2], sorted(o[1] for o in orte)[len(orte) // 2])
+            # Weg neu, wenn keiner da ist oder der Lord sich weit von seinem Ende entfernt hat
+            if not self.weg or self.weg_ziel is None or schach(self.weg_ziel, lp) > 5:
+                wp = list(self.wegplaner(L, G, mitte, lp)) if self.wegplaner else [lp]
+                if not wp or tuple(wp[-1]) != tuple(lp):
+                    wp.append(lp)
+                self.weg, self.weg_i, self.weg_ziel = [tuple(p) for p in wp], 0, lp
+                aus.append("FELDZUG Weg zum Lord %d: %d Wegpunkte %s" % (self.ziel, len(self.weg), self.weg[:6]))
+            while self.weg_i < len(self.weg) - 1 and schach(mitte, self.weg[self.weg_i]) <= self.WEGPUNKT_NAH:
+                self.weg_i += 1
+            p = self.weg[self.weg_i] if self.weg_i < len(self.weg) - 1 else lp
+            am_lord = [n for n in kolben if schach((L[n]["x"], L[n]["y"]), lp) <= self.ANGRIFF_NAH]
+            if am_lord and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
+                befehl({"angriff": {"einheiten": am_lord, "ziel": self.ziel}}, 1.0, bis="ANGRIFF")
                 self.letzter_befehl = self.runde
-                abst = sorted(schach((L[n]["x"], L[n]["y"]), lp) for n in kolben)
-                aus.append("FELDZUG Stand Tick %d: %d Streitkolben, Abstand zum Lord naechster %d / Mitte %d, Lord %d Leben %d" % (
-                    t, len(kolben), abst[0], abst[len(abst) // 2], self.ziel, lord["leben"]))
+            unterwegs = [n for n in kolben if n not in am_lord and schach((L[n]["laufx"], L[n]["laufy"]), p) > 2]
+            if unterwegs:
+                befehl({"angriff": {"einheiten": unterwegs, "lauf": [p[0], p[1]]}}, 1.0, bis="ANGRIFF")
+            if self.runde % 5 == 0:
+                abst = sorted(schach(o, lp) for o in orte)
+                aus.append("FELDZUG Stand Tick %d: %d Streitkolben, Abstand zum Lord naechster %d / Mitte %d, Wegpunkt %d/%d, "
+                           "am Lord %d, Lord %d Leben %d" % (t, len(kolben), abst[0], abst[len(abst) // 2], self.weg_i + 1,
+                                                            len(self.weg), len(am_lord), self.ziel, lord["leben"]))
         return aus
+
+    def einheiten(self, L):
+        """19.10.: die Streitkolben des Feldzugs - der Waechter laesst sie in Ruhe (1018y: sein "Stapeln" holte sie heim)."""
+        return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] == STREITKOLBEN}

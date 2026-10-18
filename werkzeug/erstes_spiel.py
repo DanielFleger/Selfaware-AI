@@ -1786,6 +1786,18 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     if weg == "feldzug" and streitkolben:
         from feldzug import Feldzug
         feldzug = Feldzug(SP, BERGFRIED, LORD_SCHUTZ_BIS, n=streitkolben)
+
+        def feldzug_weg(L_, G_, start, ziel):
+            """19.10.: Weg mit dem geringsten Beschuss (schussfeld wie bei den Assassinen), letzter Punkt = ziel."""
+            if trupp is None or not getattr(trupp, "gelaende", None):
+                return [ziel]
+            import schussfeld
+            try:
+                wp = schussfeld.sicherer_weg(trupp.gelaende, L_, SP, start, ziel, gitter=trupp._gitter(L_, G_))[0]
+            except Exception:
+                wp = []
+            return list(wp) if wp else [ziel]
+        feldzug.wegplaner = feldzug_weg
         # 19.10. (Daniel: "warum wird keine Waffenproduktion gebaut? Wenn die Streitis es nicht schaffen, muesste teuer
         # nachgebaut werden - longterm denken"): produktion=ja - eigene Kette (Minen, Schmieden, Kuhhoefe, Gerber), Groesse
         # aus PRODUKTION_FENSTER (30 Kaempfer in so vielen Ticks); bis sie steht, nur bei grossem Ueberschuss Markt-Kauf
@@ -1910,7 +1922,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         gebs = [(g["x"] + NACH_TYP.get(g["typ"], {"b": 2})["b"] // 2, g["y"] + NACH_TYP.get(g["typ"], {"b": 2})["b"] // 2)
                 for g in eig if g["typ"] in EIGENE_ARTEN]
         tz = time.time()
-        ereignis = w.schritt(L, gebs, ausgenommen=trupp.mitglieder if trupp else ()) if w is not None else []
+        # 19.10. (1018y: das "Stapeln" des Waechters holte die angreifenden Streitkolben alle 5 Runden heim): Feldzug-Truppen
+        # ausnehmen
+        ausgenommen_w = set(trupp.mitglieder if trupp else ()) | (feldzug.einheiten(L) if feldzug is not None else set())
+        ereignis = w.schritt(L, gebs, ausgenommen=ausgenommen_w) if w is not None else []
         tz = uhr("waechter", tz)
         if NOTWERBUNG and st.get("t", 0) > 0:
             # 12.10. (Daniel 11.10. 23:40 "du siehst doch, dass du angegriffen wirst und nicht ausbildest"; 23:45 "arabische

@@ -3,11 +3,15 @@
 Vorher festgelegt, was gelten muss:
   1. 10 Streitkolben am Bergfried, Lord weit weg, Schuetzen um den Lord -> Phase sammeln, Laufbefehl an den Sammelpunkt;
      der Sammelpunkt liegt mehr als 50 Felder von jedem Schuetzen und mehr als 30 von jedem feindlichen Gebaeude
-  2. 30 Streitkolben am Sammelpunkt, Tick nach dem Lord-Schutz -> ANGRIFF: ein Befehl mit allen 30 auf den Lord
+  2. 30 Streitkolben am Sammelpunkt, Tick nach dem Lord-Schutz -> ANGRIFF: ein LAUF-Befehl mit allen 30 (19.10.: laufen
+     an Feinden vorbei, klettern), noch kein Angriffsbefehl - der Lord ist weit weg
   3. dieselben 30 vor dem Lord-Schutz -> KEIN Angriff
   4. der Ziel-Lord ist tot -> naechstes Ziel ist der andere Lord, Phase sammeln (Ueberlebende sammeln neu)
   5. feindlicher Speer 12 Felder vor dem Sammelpunkt -> die dort stehenden Streitkolben greifen ihn an
   6. 29 Streitkolben am Sammelpunkt -> kein Angriff (erst ab 30, Ueberlebende zaehlen mit)
+  7. (19.10.) im Angriff: 10 Streitkolben 3 Felder neben dem Lord -> Angriffsbefehl auf den Lord fuer genau diese 10
+  8. (19.10., Daniel: "obenrum haetten die Bogenschuetzen sie erst am Ende erkannt") Wegplaner liefert einen Umweg ->
+     der erste Laufbefehl geht an den ersten Wegpunkt, nicht an den Lord
 Aufruf: python werkzeug/feldzug_pruefen.py   (Rueckgabe 0 = gruen)
 """
 import os
@@ -65,8 +69,10 @@ def main():
     b = Befehle()
     f.schritt({"t": 12100}, L, G, b)
     angr = [x for x in b.liste if x.get("angriff", {}).get("ziel") == 500]
-    pruefe(2, "30 am Punkt nach dem Lord-Schutz: Phase %s, Angriffsbefehl mit %s Einheiten" % (
-        f.phase, len(angr[0]["angriff"]["einheiten"]) if angr else 0), f.phase == "angriff" and angr and len(angr[0]["angriff"]["einheiten"]) == 30)
+    lauf2 = [x for x in b.liste if "lauf" in x.get("angriff", {})]
+    pruefe(2, "30 am Punkt nach dem Lord-Schutz: Phase %s, Laufbefehl mit %s Einheiten, Angriffsbefehle %d" % (
+        f.phase, len(lauf2[-1]["angriff"]["einheiten"]) if lauf2 else 0, len(angr)),
+        f.phase == "angriff" and lauf2 and len(lauf2[-1]["angriff"]["einheiten"]) == 30 and not angr)
     # 3
     f3 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
     f3.schritt({"t": 5000}, *lage(10, heim), Befehle())
@@ -96,6 +102,25 @@ def main():
     b = Befehle()
     f6.schritt({"t": 12050}, L, G, b)
     pruefe(6, "29 am Punkt: Phase %s" % f6.phase, f6.phase == "sammeln")
+    # 7
+    f7 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f7.schritt({"t": 12000}, *lage(10, heim), Befehle())
+    f7.schritt({"t": 12050}, *lage(30, f7.punkt), Befehle())
+    L, G = lage(10, (298, 98))
+    b = Befehle()
+    f7.schritt({"t": 12100}, L, G, b)
+    angr7 = [x for x in b.liste if x.get("angriff", {}).get("ziel") == 500]
+    pruefe(7, "10 Streitkolben 3 Felder neben dem Lord: Angriffsbefehl %s" % (angr7[:1],),
+           angr7 and sorted(angr7[0]["angriff"]["einheiten"]) == list(range(10, 20)))
+    # 8
+    f8 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f8.wegplaner = lambda L_, G_, s, z: [(240, 60), (290, 80), z]
+    f8.schritt({"t": 12000}, *lage(10, heim), Befehle())
+    L, G = lage(30, f8.punkt)
+    b = Befehle()
+    f8.schritt({"t": 12050}, L, G, b)
+    lauf8 = [x["angriff"]["lauf"] for x in b.liste if "lauf" in x.get("angriff", {})]
+    pruefe(8, "Umweg (240,60) -> (290,80) -> Lord: Laufbefehle %s" % lauf8, lauf8 and lauf8[-1] == [240, 60])
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
