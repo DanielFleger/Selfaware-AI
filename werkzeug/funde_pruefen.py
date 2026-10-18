@@ -49,6 +49,9 @@ Vorher festgelegt:
      nahe der Armbrust, die ihn sah, Ziel B weit weg -> AUSSENDIENST auf B (nicht A, nicht warten)
  29. (1018w, Daniel: "hier laeuft ein Assassine einem Sklaven weg") ein Sklave 5 Felder neben ihm sieht ihn, eine Armbrust
      30 Felder weg hat Linie -> er greift den Sklaven an (kein ENTDECKT); Gegenprobe: dazu 6 Armbrustschuetzen -> ENTDECKT
+ 30. (Daniel 19.10.: "unten Apfelfarmen, hinten keine Verteidigung - nimm die Farmen alle mit") Holzfaeller 30 Felder weit,
+     ein Speer 24 Felder daneben (unsichtbar, aber nah); Apfelplantage 45 Felder weit, kein Feind in 60 Feldern -> die
+     Apfelplantage (Gegenprobe: alter Stand nimmt den naeheren Holzfaeller)
  28. (Daniel 19.10.: "wenn nicht ausweichbar, zerstoert er lieber noch moeglichst viel") 6.000 Leben, je zwei Armbrustschuetzen
      links und rechts in 10 Feldern, ein Speer sieht ihn: jeder Fluchtweg kostet mehr Leben, als er hat -> LETZTER EINSATZ auf
      einen der Armbrustschuetzen, die ihn treffen (Wert 60 x 2), nicht auf die Apfelplantage daneben (30)
@@ -487,6 +490,14 @@ def main():
     j29v, e29v, _ = lage_sklave(True)
     pruefe(29, "nur Sklave sieht ihn: Jagd %s, entdeckt %s %s; mit 7 Armbrust: Jagd %s, entdeckt %s" % (j29, e29, m29, j29v, e29v),
            j29 == 700 and not e29 and e29v)
+    # 30
+    t = neu(); t._raid_plaetze = 99
+    L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000), 601: einheit(24, 2, 154, 100, leben=10000)}
+    G = {900: {"besitzer": 2, "typ": 3, "x": 130, "y": 100, "leben": 100, "uid": 1, "erreichbar": 1},
+         901: {"besitzer": 2, "typ": 32, "x": 100, "y": 145, "leben": 100, "uid": 2, "erreichbar": 1}}
+    t.aufnehmen([100])
+    erg, bef = t.schritt(L, G, sichere_orte=[(20, 300)], tick=10000)
+    pruefe(30, "Holzfaeller nahe am Speer vs. ruhige Apfelplantage: Ziel %s" % t.ziel.get(100), t.ziel.get(100) == 901)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

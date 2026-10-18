@@ -59,9 +59,11 @@ WERT = {
     11: 70, 12: 70, 13: 70, 14: 70, 15: 70,  # Waffenkammer und Waffenbauer
     24: 60, 25: 50, 35: 40,             # Ingenieurs-, Tunnelgraebergilde, Stall
     1: 60,                              # Huetten (Wohnraum = Arbeiter)
-    4: 50, 3: 50,                       # Ochsenjoch, Holzfaeller
+    # 19.10. (Daniel: "unten stehen Apfelfarmen und hinten ist keine Verteidigung - du nimmst die Farmen alle mit, dann ein paar
+    # Holzfaeller, sneakst dich hinten in die Wirtschaft"): Nahrung und Holz der KI zuerst - Apfel 30 -> 70, Holzfaeller 50 -> 60
+    4: 50, 3: 60,                       # Ochsenjoch, Holzfaeller
     22: 40, 18: 40, 17: 35, 34: 35, 33: 40, 30: 30, 36: 40, 37: 40, 38: 40,  # Wirtshaus, Brauerei, Baeckerei, Muehle, Milch, Weizen, Kirchen
-    32: 30, 7: 30,                      # Apfelplantage, Jaegerhuette
+    32: 70, 7: 30,                      # Apfelplantage, Jaegerhuette
     # 19.10. (Daniel: "auf dem Weg nimmt ein Assassine kein Markt mit, den ich als Mensch sofort mitgesnackt haette - die KI ist
     # ohne Markt komplett gelaehmt"): Markt hoechster Wert (vorher 20, unter der Apfelplantage) - der Zielwechsel unterwegs
     # (WECHSEL 1,5 x Wert je Weg) nimmt ihn dann mit; ab TEUER zwei Plaetze
@@ -413,6 +415,7 @@ class Einzeln:
     GERADE_TEIL = 20          # lange Wege ohne Umweg trotzdem in Stuecken laufen (198 lief 222 Felder am Stueck)
     FLUCHT_MIN = 8            # 19.10. (1018s): Fluchtpunkte naeher als 8 Felder nur, wenn es weiter weg keinen gibt
     LOEWE_HEIM, LOEWE_GRUPPE, LOEWE_LEBEN = 25, 3, 9000      # 19.10. (1018t): Loewen am Heim gemeinsam erledigen
+    RUHE_FELDER = 40          # 19.10.: so viele Felder ohne waehlbaren Feind = voller Ruhe-Bonus (x2)
     SPAEHER_MAX, SPAEHER_R, SPAEHER_ANTEIL = 2, 8, 0.3     # 19.10. (1018w): Sklaven als Spaeher erledigen statt fliehen
     ARBEITER_MIT = 2          # 19.10. (Daniel: "nie gesagt aktiv jagen - mitnehmen, wenn er will; zu viel Traffic -> auf ein Minimum"): nur direkt am Weg
     ARBEITER_FREI = 30        # 19.10. (1018v): ... nur, wenn kein waehlbarer Feind naeher als so viele Felder steht
@@ -2162,7 +2165,10 @@ class Einzeln:
                     risiko = b_ziel * (verweilen + felder * TEMPO) * self.KALIB
                 p_tod = min(1.0, risiko / max(1.0, float(L[n]["leben"])))
                 saldo = WERT.get(k[2], 10) * (1 - p_tod) - p_tod * self.KOSTEN
-                je_zeit = saldo / (felder * TEMPO + verweilen)
+                # 19.10. (Daniel: zwei Fronten, "hinten ist keine Verteidigung"): Ruhe-Bonus bis x2 fuer Ziele weit weg von jedem
+                # waehlbaren Feind (Sicht-Abstand in Feldern / RUHE_FELDER) - dort wird er nicht entdeckt, verliert keine Zeit
+                ruhe = 1.0 + min(self._sicht.sicht_abstand(k[1]) / 8.0, self.RUHE_FELDER) / self.RUHE_FELDER
+                je_zeit = ruhe * saldo / (felder * TEMPO + verweilen)
                 if saldo <= 0:
                     continue
                 if b_ziel <= 0:
