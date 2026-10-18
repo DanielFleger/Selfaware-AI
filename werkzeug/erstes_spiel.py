@@ -621,6 +621,16 @@ def setze_mauer(x1, y1, x2, y2, n):
     import kornring as KR
     befehl({"spielbefehl": {"nr": 25, "werte": [x1, y1, x2, y2, KR.MAUER, n]}}, 1.0, bis="SPIELBEFEHL")
 
+def setze_grube(x, y):
+    """18.10. (Moerderloecher, kornring.py): Fallgrube (Mapper 98, 1x1) genau auf (x, y) ueber den normalen Baubefehl - nur
+    wenn die Platzsuche des Spiels das Feld annimmt (Gruben gehen nur nahe der eigenen Gebaeude, gemessen). True = gesendet."""
+    z = " ".join(befehl({"platzsuche": {"spieler": SP, "mapper": 98, "groesse": 1, "x": x, "y": y, "r": 0, "max": 1}}, 1.0,
+                        bis="PLATZSUCHE"))
+    if "(%d,%d)" % (x, y) not in z.split("geprueft:")[-1]:
+        return False
+    befehl({"baue": {"mapper": 98, "x": x, "y": y, "groesse": 1, "richtung": 0}}, 1.0, bis="BAUE")
+    return True
+
 def lies_haltung(gruppen):
     """17.10. (L77, Daniel 09:58 "das Angreifen wird auch durch ihre Stance geaendert"): Haltung je feindlichem Trupp -
     Tribe = 0x01667F78 + 40 + Gruppe * 0x334 (wie logik.lua angriff), unitStance +0x2B8 (0 Stehen, 1 Verteidigung, 2 Angriff)."""
@@ -882,6 +892,7 @@ ANGRIFF_AB = 0           # ab so vielen Streitkolbenkaempfern alle auf den feind
 LORD_SCHUTZ_BIS = 9600   # Daniel 11.10. 16:41: der gegnerische Lord nimmt im ersten Spieljahr keinen Schaden
 NOTWERBUNG = False       # 12.10.: Soeldnerposten + Nachwerben bei Gegnern im eigenen Gebiet (Schalter notwerbung=ja)
 KORNRING = True          # 18.10. (Daniel: "bau den Kornspeicher ein bis auf die Ecken" wie der Nomade): kornring.py, Schalter kornring=nein
+GRUBEN = True            # 18.10. (Daniel 23:07 "4 Holz ist sehr wenig, wenn es einem Assassinen das Leben nimmt"): Schalter gruben=nein
 SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # gemessen 12.10. 00:04 (L63, Ascension)
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
@@ -2331,14 +2342,16 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 eig_k = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] == SP and g["typ"] == 19]
                 if eig_k:
                     import kornring as KR
+                    feind_k = next(((e["x"], e["y"]) for e in L.values() if e["typ"] == 55 and e["besitzer"] not in (0, SP)), None)
                     korn = KR.Kornring(min(eig_k, key=lambda q: abs(q[0] - plan["kornspeicher"][0]) + abs(q[1] - plan["kornspeicher"][1])),
-                                       lies_mauer, setze_mauer)
+                                       lies_mauer, setze_mauer, setze_grube=setze_grube if GRUBEN else None, feind=feind_k)
                     box_k = KR.kasten(*korn.ort)
                     RESERVIERT.append((box_k, korn.ort))
                     ausbau.sperr = ausbau.sperr + [box_k]
                     ereignis.append("KORNRING um den Kornspeicher %s angelegt, Flaeche %s frei gehalten" % (korn.ort, box_k))
             if korn is not None:
-                ereignis += korn.schritt(st["t"], st.get("stein", 0))
+                ereignis += korn.schritt(st["t"], st.get("stein", 0), holz=st.get("holz", 0),
+                                         gruben=[(g["x"], g["y"]) for g in G.values() if g["besitzer"] == SP and g["typ"] == 67])
             if speicher_nachbauen(G, BUCH.offen if BUCH is not None else [], st["t"],
                                   fruehpruefung.get("speicher_nachbau", -10 ** 6)):
                 fruehpruefung["speicher_nachbau"] = st["t"]
@@ -3169,8 +3182,9 @@ def main():
     GEGNER_ERWARTET = arg.get("gegner_erwartet", "")
     global ZUSCHAU_TEMPO
     ZUSCHAU_TEMPO = int(arg.get("zuschau_tempo", 0))
-    global NOTWERBUNG, KORNRING
+    global NOTWERBUNG, KORNRING, GRUBEN
     KORNRING = arg.get("kornring", "ja") == "ja"
+    GRUBEN = arg.get("gruben", "ja") == "ja"
     NOTWERBUNG = arg.get("notwerbung", "nein") == "ja"
     STUFE2_BELIEBT = arg.get("stufe2_beliebt", "halten")
     ANGRIFF_AB = int(arg.get("angriff_ab", 0))

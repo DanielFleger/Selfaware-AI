@@ -9,7 +9,15 @@
   5. alles steht: eine Meldung "steht", kein Befehl, Steinbedarf 0
   6. zweiter Aufruf nach 50 Ticks: keine Pruefung, kein Befehl
   7. Kornspeicherplatz beider 1v1-Plaetze auf Close Encounters: keine geplante Apfelplantage auf dem Ring
-Gegenprobe: mit "alt" sendet der Baustein ohne Steinpruefung und die Platzwahl ohne Ringabstand -> Faelle 2, 3 und 7 rot.
+Moerderloecher (Gegner oben links, Speicher (100, 50)):
+  8. 20 Holz, 0 Stein, keine Mauer: genau 3 Gruben, alle auf Ecken (5 Holz Reserve fuer den Speicher bleiben)
+  9. 100 Holz, 0 Stein: erster Schritt die 4 Ecken; zweiter Schritt (100 Ticks spaeter, Ecken stehen) 4 Seitenfelder,
+     alle auf den Seiten oben/links (dem Gegner zugewandt)
+ 10. Mauer steht ganz (16), 100 Holz: nur die 4 Ecken, keine Seite
+ 11. 20 Stein, keine Mauer, 100 Holz: Gruben nur auf die Ecken, die Seiten bekommen Mauer (4 Seiten gesendet)
+ 12. das Spiel lehnt ein Eckfeld ab: 100 Ticks spaeter kein neuer Versuch dort, nach 1000 Ticks wieder
+Gegenprobe: mit "alt" sendet der Baustein ohne Steinpruefung, die Platzwahl ohne Ringabstand und die Gruben ohne
+Holzreserve -> Faelle 2, 3, 7 und 8 rot.
 Aufruf: python werkzeug/kornring_pruefen.py [alt]"""
 import json
 import os
@@ -23,6 +31,7 @@ import nahrungswahl as N
 if len(sys.argv) > 1 and sys.argv[1] == "alt":
     KR.bezahlbar = lambda stein, kacheln: True
     N.RING_RAND = 0
+    KR.HOLZ_RESERVE = 0
 
 
 def neu(stehen=()):
@@ -84,6 +93,43 @@ def main():
         auf = sum(len({(x + i, y + j) for i in range(10) for j in range(10)} & ring) for x, y in (w["aepfel"] or []))
         erg.append((kurz.split("_")[1], (gx, gy), auf))
     pruefe(7, "Plantagen-Kacheln auf dem Ring je Platz: %s" % erg, all(a == 0 for _, _, a in erg))
+    # Moerderloecher
+    def mit_gruben(stehen=(), ablehnen=()):
+        mauer, gruben = [], []
+        stehen = set(stehen)
+        def grube(x, y):
+            if (x, y) in ablehnen:
+                return False
+            gruben.append((x, y))
+            return True
+        r = KR.Kornring((100, 50), lambda ks: {k: k in stehen for k in ks},
+                        lambda x1, y1, x2, y2, n: mauer.append((x1, y1, x2, y2, n)), setze_grube=grube, feind=(60, 10))
+        return r, mauer, gruben
+    eck = set(KR.ecken(100, 50))
+    r, m, g = mit_gruben()
+    r.schritt(1000, 0, holz=20)
+    pruefe(8, "20 Holz: Gruben %s" % g, len(g) == 3 and all(k in eck for k in g))
+    r, m, g = mit_gruben()
+    r.schritt(1000, 0, holz=100)
+    erste = list(g)
+    r.schritt(1100, 0, holz=100, gruben=erste)
+    zweite = g[len(erste):]
+    pruefe(9, "100 Holz: erst %s, dann %s" % (erste, zweite),
+           set(erste) == eck and len(zweite) == 4 and all(k[1] == 49 or k[0] == 99 for k in zweite))
+    r, m, g = mit_gruben(stehen=alle)
+    r.schritt(1000, 0, holz=100)
+    pruefe(10, "Mauer steht: Gruben %s" % g, set(g) == eck)
+    r, m, g = mit_gruben()
+    r.schritt(1000, 20, holz=100)
+    pruefe(11, "20 Stein: Gruben %s, Mauerbefehle %d" % (g, len(m)), set(g) == eck and len(m) == 4)
+    ecke = (99, 49)
+    r, m, g = mit_gruben(stehen=alle, ablehnen={ecke})
+    r.schritt(1000, 0, holz=100)
+    n1 = sum(1 for k in g if k == ecke)
+    r.schritt(1100, 0, holz=100, gruben=list(g))
+    r.schritt(2100, 0, holz=100, gruben=list(g))
+    pruefe(12, "abgelehnte Ecke: gesetzt %d, gesperrt bis Tick %s, Versuche danach angenommen? %s" % (
+        n1, r.gesperrt.get(ecke), ecke in g), n1 == 0 and r.gesperrt.get(ecke) == 2100)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
