@@ -1724,6 +1724,15 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     gold_marke = 1000
     kaempfer_marken = {}
     prod = Produktion(streitkolben, kaempfer_marken, plan.get("lager"), ZIEL_TICK) if streitkolben and weg == "produktion" else None
+    # 18.10. (Daniel: "maximal 20 Assassinen, den Rest in Wirtschaft und Waffen; 30 Streitkolben pro Nomade, gestackt, eins
+    # nach dem anderen"): weg=feldzug - kein Bilanz-Endspiel (die Wirtschaft bleibt), Ruestung laufend aus dem Gold ueber
+    # der Ruecklage auf streitkolben lebende Kaempfer aufgefuellt, Angriff ueber feldzug.py; Assassinen ohne Lord-Angriff
+    feldzug = None
+    if weg == "feldzug" and streitkolben:
+        from feldzug import Feldzug
+        feldzug = Feldzug(SP, BERGFRIED, LORD_SCHUTZ_BIS, n=streitkolben)
+        if trupp is not None:
+            trupp.lord_aus = True
     if prod:
         BEV_ZIEL = max(BEV_ZIEL, prod.bevoelkerung_ziel)
         schreib("PRODUKTION skaliert auf Ziel %d: Minen %d, Schmieden %d, Gerber %d, Hoefe %d, Holzfaeller %d, Bevoelkerung %d" % (
@@ -2359,8 +2368,12 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             if leder is not None and KASSE == "nein" and not endspiel["fertig"] and not (BUCH is not None and HOLZ_SPAM and
                     sum(1 for g in G.values() if g["besitzer"] == SP and g["typ"] == 3) < HOLZ_SPAM):
                 ereignis += leder.schritt(st, G, wirt)
-            ereignis += bilanz_schritt(st, L, G, ausbau, streitkolben, endspiel, runde, kaempfer_marken)
-            if not endspiel["fertig"] and weg != "bilanz":     # weg=bilanz: nur Wirtschaft + Bilanz-Endspiel (v5)
+            if feldzug is not None:
+                ereignis += ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
+                ereignis += feldzug.schritt(st, L, G, befehl)
+            else:
+                ereignis += bilanz_schritt(st, L, G, ausbau, streitkolben, endspiel, runde, kaempfer_marken)
+            if feldzug is None and not endspiel["fertig"] and weg != "bilanz":     # weg=bilanz: nur Wirtschaft + Bilanz-Endspiel (v5)
                 ereignis += prod.schritt(st, L, G, wirt, ausbau) if prod else ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
             # Daniel 11.10. "Nomade installieren, gegen sie gewinnen": ab ANGRIFF_AB Streitkolbenkaempfern alle auf den
             # feindlichen Lord (Befehl wie der Lord-Angriff der Assassinen); Ende erst bei SIEG/NIEDERLAGE
@@ -2386,7 +2399,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     abst = sorted(max(abs(L[n]["x"] - lx), abs(L[n]["y"] - ly)) for n in kolben)
                     ereignis.append("ANGRIFF Stand Tick %d: %d Kaempfer, Abstand zum Lord naechster %d / Mitte %d, Lord-Leben %d" % (
                         st["t"], len(kolben), abst[0], abst[len(abst) // 2], L[feind]["leben"]))
-            if st.get("T26", 0) >= streitkolben and not kasse.get("endziel"):
+            if feldzug is None and st.get("T26", 0) >= streitkolben and not kasse.get("endziel"):
                 schreib("ZIEL %d Streitkolbenkaempfer erreicht bei Tick %d" % (streitkolben, st["t"]))
                 # Daniel 11.10. 14:28 "erst die 50, dann 100 Streitis in einem Run": gestufte Ziele - nach jeder Stufe
                 # beginnt die naechste mit frischem Endspiel, die Wirtschaft laeuft weiter (vor dem letzten Ziel kein Abriss)

@@ -451,6 +451,7 @@ class Einzeln:
         self._frei_nr = set()
         self.lagen = lagen_laden()           # gemessene Lagen (daten/lagen_belegt.json) fuer den Lord-Bedarf
         self.angriff_aus = False             # Trainingsstand: nur sammeln, nie angreifen (setzt erstes_spiel.py)
+        self.lord_aus = False                # 18.10. (weg=feldzug, Daniel): Assassinen nur fuer die Wirtschaft, Lords toeten Streitkolben
         self.bedarf_zuletzt = None
         self.bedarf_grund, self.bedarf_fa = "", None
         self._raid_plaetze = None            # 17.10.: lohnende Raid-Plaetze der letzten Runde (Raiden geht vor)
@@ -1354,6 +1355,12 @@ class Einzeln:
         hoch = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] not in (0, self.sp) and g["typ"] in self.ERHOEHT]
         beute = [(nr, p) for nr, p, typ in fern if all(schach(p, h) > self.HOCH_R for h in hoch)
                  and all(schach(p, b) > self.LORD_ABSTAND for b in self._feindburg) and self._anzahl(p, nah, 5) <= 1]
+        # 18.10. (1018q/r: die meisten Entdeckungen durch Sklaven; 16 Assassinen standen "ohne Ziel, alle gefaehrlich" - Daniel:
+        # "alle Einheiten sollten irgendwas Begruendetes machen"): ein Sklave allein (kein weiterer Nahkaempfer in 5) wird Beute,
+        # wenn an seinem Ort kein Schuetze trifft (Risiko unten wie bei Fernkaempfern, Wert 5 + Spaeher weg)
+        beute += [(k, (e["x"], e["y"])) for k, e in L.items() if e["typ"] == 71 and e["besitzer"] not in (0, self.sp)
+                  and all(schach((e["x"], e["y"]), b) > self.LORD_ABSTAND for b in self._feindburg)
+                  and self._anzahl((e["x"], e["y"]), nah, 5) <= 1 and self._sicht.beschuss((e["x"], e["y"]), self._sicht.RAND) <= 0]
         for n in sorted(self.mitglieder):
             if n in self.jagd or n in self.lordtrupp["mitglieder"] or n in self.stapel["mitglieder"] or n in self.flucht or n not in L \
                     or n in self.entdeckt:
@@ -1646,8 +1653,8 @@ class Einzeln:
                     and machbar and ueber < n_bedarf and not spaet and self.runde % 20 == 0:
                 ereignis.append("LORD WARTET: Raiden geht vor - %d Assassinen, %d lohnende Raid-Plaetze (Lord-Gruppe %d erst ab Ueberschuss)" % (
                     len(self.mitglieder), plaetze_r, n_bedarf))
-            if not self.angriff_aus and lt["phase"] is None and len(self.mitglieder) >= n_bedarf and self.jetzt >= lordschutz.BIS \
-                    and machbar and (ueber >= n_bedarf or spaet) and self.jetzt >= lt.get("pause_bis", 0):
+            if not self.angriff_aus and not self.lord_aus and lt["phase"] is None and len(self.mitglieder) >= n_bedarf \
+                    and self.jetzt >= lordschutz.BIS and machbar and (ueber >= n_bedarf or spaet) and self.jetzt >= lt.get("pause_bis", 0):
                 plaetze = self._bereit_plaetze(lp)
                 if plaetze:
                     # zuerst, wer kein Raid-Ziel hat, dann die naechsten am Lord (1017d: nie die weitesten)

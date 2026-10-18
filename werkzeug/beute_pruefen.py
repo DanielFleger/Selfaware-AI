@@ -72,6 +72,16 @@ def main():
     drei = {630 + i: einheit(23, 2, 214 + i, 268 + i, leben=17500) for i in range(3)}
     jagd, bef, t8 = lauf(*szene(extra=drei))
     pruefe(8, "Schuetze vor 3 Armbrustschuetzen: keine Jagd (%s)" % jagd, jagd != 600)
+    # 9 (18.10., 1018q/r: Sklaven waren die haeufigsten Spaeher): Sklave allein, kein Schuetze in Reichweite -> Jagd;
+    # derselbe Sklave mit einer Armbrust 15 Felder dahinter -> keine Jagd
+    def sklave(extra=None):
+        L = {100: einheit(73, 1, 200, 270), 600: einheit(71, 2, 207, 270, leben=2000)}
+        L.update(extra or {})
+        return L, dict(G0)
+    jagd_a, bef_a, _ = lauf(*sklave())
+    jagd_b, _, _ = lauf(*sklave({640: einheit(23, 2, 222, 270, leben=17500)}))
+    pruefe(9, "Sklave allein: Jagd %s (Befehl %s); mit Armbrust dahinter: Jagd %s" % (jagd_a, bef_a, jagd_b),
+           jagd_a == 600 and bef_a and jagd_b != 600)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
