@@ -39,6 +39,14 @@ Vorher festgelegt:
  22. (1018s, 3/240/283 pendelten 4-9 Felder im Feuer) gesehen von Armbrust A (Osten); Armbrust B im Westen hat sie NICHT
      gesehen, deckt aber den Westen -> der Fluchtpunkt liegt ausser Reichweite von A UND B
  23. (1018s, 283 blieb stehen, als kein Punkt passte) kein Kandidat begehbar -> Laufbefehl nach Hause (sichere_orte)
+ 24. (Daniel 19.10.: "auf dem Weg nimmt ein Assassine kein Markt mit") Assassine auf dem Weg zu einer Apfelplantage 60 Felder
+     weit, ein unbewachter feindlicher Markt 30 Felder neben ihr -> ZIELWECHSEL auf den Markt (Gegenprobe: Wert 20 wechselt nicht)
+ 25. (Daniel 19.10.: "statt ganz nach Hause einen besseren Platz") der Wegfinder lehnt die ersten 8 Fluchtpunkte ab -> ein
+     anderer erreichbarer Punkt, NICHT nach Hause
+ 26. (1018t: drei Loewen am Soeldnerposten toeteten zwei Rekruten) drei Loewen 10 Felder neben unserem sicheren Ort, vier
+     gesunde Assassinen ohne Auftrag -> LOEWENJAGD: alle vier auf denselben Loewen, keiner weicht aus
+ 27. (Daniel 19.10.: "Aussendienst, so viel klatschen wie moeglich") entdeckt, jetzt ausser Sicht und Reichweite; Ziel A
+     nahe der Armbrust, die ihn sah, Ziel B weit weg -> AUSSENDIENST auf B (nicht A, nicht warten)
 Gegenprobe: python funde_pruefen.py <alte assassinen.py> [<alte sicht.py>] - die Faelle muessen dort rot sein.
 Aufruf: python werkzeug/funde_pruefen.py"""
 import importlib.util
@@ -395,6 +403,56 @@ def main():
     erg, bef = t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
     heim23 = any(b.get("angriff", {}).get("lauf") == [50, 50] and 100 in b["angriff"].get("einheiten", []) for b in bef)
     pruefe(23, "kein begehbarer Fluchtpunkt: Laufbefehl nach Hause %s" % heim23, heim23)
+    # 24
+    t = neu(); t._raid_plaetze = 99
+    L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000)}
+    G = {900: {"besitzer": 2, "typ": 32, "x": 160, "y": 100, "leben": 100, "uid": 1, "erreichbar": 1},
+         901: {"besitzer": 2, "typ": 26, "x": 100, "y": 130, "leben": 100, "uid": 2, "erreichbar": 1}}
+    t.aufnehmen([100])
+    t.ziel[100] = 900; t.ziel_typ[900] = 32; t.befohlen[100] = 0
+    L[100].update(laufx=160, laufy=100, zustand=101)
+    erg, bef = t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
+    pruefe(24, "Markt 30 Felder neben dem Weg: Ziel jetzt %s %s" % (t.ziel.get(100), [z[:60] for z in erg if "ZIELWECHSEL" in z][:1]),
+           t.ziel.get(100) == 901)
+    # 25
+    aufrufe = []
+
+    def wt25(n, punkte):
+        aufrufe.append(len(punkte))
+        return [len(aufrufe) > 1] * len(punkte)          # erster Aufruf (8 beste Punkte): alle unerreichbar
+    t = A.Einzeln(1, pruefe_begehbar=lambda pkt: set(pkt), wegtest=wt25); t._raid_plaetze = 99
+    L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
+         600: einheit(23, 2, 130, 100, leben=17500), 601: einheit(24, 2, 112, 100, leben=10000)}
+    G = {900: {"besitzer": 2, "typ": 3, "x": 160, "y": 140, "leben": 100, "uid": 1, "erreichbar": 1}}
+    t.aufnehmen([100])
+    t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
+    t.schritt(L, G, sichere_orte=[(20, 300)], tick=10000)
+    p25 = t.entdeckt.get(100, {}).get("punkt") if hasattr(t, "entdeckt") else None
+    pruefe(25, "erste 8 Fluchtpunkte unerreichbar: Punkt %s (nicht Heim (20, 300))" % (p25,), p25 is not None and p25 != (20, 300))
+    # 26
+    t = neu(); t._raid_plaetze = 0
+    L = {500: einheit(55, 2, 390, 390, leben=30000)}
+    for i in range(4):
+        L[100 + i] = einheit(73, 1, 60 + i, 60)
+    for i in range(3):
+        L[700 + i] = einheit(45, 0, 58 + i, 72, leben=12000 - 3000 * i)
+    t.aufnehmen([100, 101, 102, 103])
+    erg, bef = t.schritt(L, {}, sichere_orte=[(60, 62)], tick=10000)
+    ziele26 = {t.jagd.get(n) for n in (100, 101, 102, 103)}
+    weg26 = [n for n in (100, 101, 102, 103) if n in t.flucht]
+    pruefe(26, "drei Loewen am Heim: Jagd %s, ausgewichen %s, %s" % (ziele26, weg26, [z[:50] for z in erg if "LOEWEN" in z][:1]),
+           ziele26 == {702} and not weg26)
+    # 27
+    t = neu(); t._raid_plaetze = 99
+    L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000), 600: einheit(23, 2, 150, 100, leben=17500)}
+    G = {900: {"besitzer": 2, "typ": 3, "x": 130, "y": 100, "leben": 100, "uid": 1, "erreichbar": 1},
+         901: {"besitzer": 2, "typ": 3, "x": 60, "y": 140, "leben": 100, "uid": 2, "erreichbar": 1}}
+    t.aufnehmen([100])
+    if hasattr(t, "entdeckt"):
+        t.entdeckt[100] = {"schuetzen": {600}, "seit": 9800, "punkt": (100, 100), "bis": 10200, "abstand": 0}
+    erg, bef = t.schritt(L, G, sichere_orte=[(20, 300)], tick=10000)
+    pruefe(27, "entdeckt, ausser Reichweite: Ziel %s %s" % (t.ziel.get(100), [z[:50] for z in erg if "AUSSENDIENST" in z][:1]),
+           t.ziel.get(100) == 901)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

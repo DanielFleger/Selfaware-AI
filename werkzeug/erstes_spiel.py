@@ -899,6 +899,15 @@ def ruestung_kaufen(st, G, wirt, ausbau, ziel, marken):
             aus.append("KAEMPFER %d bei Tick %d" % (n, st["t"]))
     return aus
 
+def loewen_am_posten(L, G, posten, r=15):
+    """19.10. (1018t: drei Loewen lagerten am Soeldnerposten, zwei frisch angeworbene Assassinen starben sofort): solange
+    ein Loewe (Typ 45, Besitzer 0) r Felder am Posten steht, keine Assassine anwerben - die Loewenjagd raeumt zuerst."""
+    g = G.get(posten)
+    if not g:
+        return False
+    return any(e["typ"] == 45 and e["besitzer"] == 0 and max(abs(e["x"] - g["x"]), abs(e["y"] - g["y"])) <= r
+               for e in L.values())
+
 def kaserne_am_feuer(G):
     """Kaserne so nah wie moeglich am Lagerfeuer (Typ 55): die Bauern laufen vom Feuer zur Kaserne (v5: weit weg gebaut)."""
     feuer = next((g for g in G.values() if g["besitzer"] == SP and g["typ"] == 55), None)
@@ -2258,6 +2267,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 soeldner = baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25)
                 ereignis.append("Soeldnerlager gesetzt %s (Gold %d)" % (soeldner, st["gold"]))
             elif posten and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] and st["feuer"] >= 1 and (assassinen < 0 or geworben < assassinen) and not ausbau.braucht_gold \
+                    and not loewen_am_posten(L, G, posten[0]) \
                     and not wirt.a_offen(G):   # Daniel 23:09: Farmen nicht vergessen - erst die fehlenden A-Plantagen (45 Gold)   # erst rollen (Daniel 18:51/19:05)
                 befehl({"werbe": {"typ": 73, "gebaeude": posten[0]}}, 1.0, bis="WERBE")
                 geworben += 1
