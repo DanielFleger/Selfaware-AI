@@ -65,8 +65,11 @@ def main():
     jagd, bef, _ = lauf(*szene(schuetze=(230, 270)))
     pruefe(5, "Schuetze 30 Felder weg: keine Jagd (%s)" % jagd, jagd != 600)
     viele = {610 + i: einheit(23, 2, 214 + (i % 4), 266 + i // 4 * 3, leben=17500) for i in range(12)}
-    jagd, bef, _ = lauf(*szene(extra=viele))
-    pruefe(6, "Schuetze vor 12 Armbrustschuetzen: keine Jagd (%s)" % jagd, jagd != 600)
+    jagd, bef, t6 = lauf(*szene(extra=viele))
+    # 19.10.: unter 12 Armbrustschuetzen kommt er nicht mehr weg - dann ist die Jagd sein LETZTER EINSATZ (Daniel: "zerstoert
+    # lieber noch moeglichst viel"), aber keine BEUTE-Jagd aus der Risikorechnung
+    pruefe(6, "Schuetze vor 12 Armbrustschuetzen: keine Beute-Jagd (Jagd %s, letzter Einsatz %s)" % (jagd, 100 in getattr(t6, "letzter", {})),
+           jagd != 600 or 100 in getattr(t6, "letzter", {}))
     jagd, bef, _ = lauf(*szene(), raid=5)
     pruefe(7, "lohnende Raid-Plaetze da: keine Jagd (%s)" % jagd, jagd != 600)
     drei = {630 + i: einheit(23, 2, 214 + i, 268 + i, leben=17500) for i in range(3)}
@@ -87,6 +90,30 @@ def main():
     L10[100] = einheit(73, 1, 200, 270, leben=5000)
     jagd_c, _, _ = lauf(L10, G10)
     pruefe(10, "Sklave allein, Assassine mit 5.000 Leben: Jagd %s" % jagd_c, jagd_c != 600)
+    # 11-13 (19.10., Daniel: "die koennen gerne Bauern mitnehmen, aber Holzfaeller machen gut Damage - mit wenig Leben lieber
+    # den Holzfaellern ausweichen"): Assassine auf dem Weg zu Gebaeude 900, feindlicher Arbeiter 4 Felder daneben
+    def arbeiter(typ, leben):
+        t = neu()
+        t._raid_plaetze = 99
+        L = {100: einheit(73, 1, 200, 270, leben=leben), 600: einheit(typ, 2, 204, 270, leben=800)}
+        t.aufnehmen([100])
+        t.ziel[100] = 900; t.ziel_typ[900] = 32; t.befohlen[100] = 0
+        L[100].update(laufx=230, laufy=270, zustand=101)
+        bef = []
+        for _ in range(2):
+            t._raid_plaetze = 99
+            bef += t.schritt(L, dict(G0), sichere_orte=ORTE)[1]
+        return t.jagd.get(100), 100 in t.flucht, t
+    j11, _, _ = arbeiter(3, 12500)
+    pruefe(11, "gesund, mit Ziel, Holzfaeller 4 Felder daneben: Jagd %s" % j11, j11 == 600)
+    j12h, _, _ = arbeiter(3, 5000)
+    j12b, _, _ = arbeiter(13, 5000)
+    pruefe(12, "geschwaecht (5.000): Holzfaeller Jagd %s (soll nicht), Apfelbauer Jagd %s (soll)" % (j12h, j12b), j12h != 600 and j12b == 600)
+    t13 = neu(); t13._raid_plaetze = 99
+    L13 = {100: einheit(73, 1, 200, 270, leben=5000), 600: einheit(3, 2, 202, 270, leben=800)}
+    t13.aufnehmen([100])
+    t13.schritt(L13, dict(G0), sichere_orte=ORTE)
+    pruefe(13, "geschwaecht, Holzfaeller 2 Felder neben ihm: ausgewichen %s" % (100 in t13.flucht,), 100 in t13.flucht)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

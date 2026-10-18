@@ -413,6 +413,16 @@ class Einzeln:
     GERADE_TEIL = 20          # lange Wege ohne Umweg trotzdem in Stuecken laufen (198 lief 222 Felder am Stueck)
     FLUCHT_MIN = 8            # 19.10. (1018s): Fluchtpunkte naeher als 8 Felder nur, wenn es weiter weg keinen gibt
     LOEWE_HEIM, LOEWE_GRUPPE, LOEWE_LEBEN = 25, 3, 9000      # 19.10. (1018t): Loewen am Heim gemeinsam erledigen
+    ARBEITER_MIT = 6          # 19.10. (Daniel): feindliche Arbeiter so nah am Weg nimmt er mit
+    ARBEITER_SCHWACH = 25     # 19.10. (Daniel): Gewicht schlagender Arbeiter fuer Geschwaechte - ein Holzfaeller (0,08) wiegt dann 2 > die Assassine selbst
+    # 19.10. (Daniel: "weisst du, du verlierst den Assassinen eh, weil du Nahkaempfern, die schneller sind, nicht ausweichen
+    # kannst - versteck dich, und wenn nicht ausweichbar, zerstoert er lieber noch moeglichst viel: Haeuser, Apfelplantagen,
+    # Fern- oder Nahkaempfer, je nachdem wo er den meisten absoluten Wert hat"): LETZTER EINSATZ
+    LETZT_R = 30              # Felder: Ziele fuer den letzten Einsatz
+    NAH_SCHADEN = 60          # Leben je Takt je feindlichem Nahkaempfer <= 2 Felder (Schaetzung: 3 Loewen 9.200 in ~40 Takten)
+    # Das Fluchtmodell rechnet jeden Schuetzen als Dauertreffer; 1018q kamen 34 von 44 Entdeckten ohne Treffer >= 1.000 davon
+    # (Zielen ~140 Takte, bewegte Ziele) - fuer Gesunde zaehlt nur ein Viertel, wer ein Bolzen toetet, zaehlt voll
+    LETZT_KALIB = 0.25
     # 19.10. (1018q: Einheiten heilen nie - in zwei Partien kein einziger Anstieg; 153 raidete mit 1.960 Leben, 86 mit 2.730,
     # beide starben am naechsten Treffer): unter EIN_TREFFER (ein Armbrustbolzen 6.000 + Rand) nur Ziele, die kein waehlbarer
     # Feind naeher als SICHT + RAND_SCHWACH Feinmass (32 Felder) sieht
@@ -450,6 +460,7 @@ class Einzeln:
         self.bilanz = {"gebaeude": {}, "verluste": set(), "neu_befohlen": 0, "rueckzug": 0, "zuschlagen": 0, "tote": 0}
         self.akte = {}                       # 19.10.: n -> {"erst": erste Verletzung, "treffer": Runden mit Treffern}
         self.entdeckt = {}                   # 19.10.: n -> {"schuetzen": {Nr}, "bis": Tick, "punkt": Ort, "seit": Tick}
+        self.letzter = {}                    # 19.10.: n -> {"ziel": ("g"|"e", Nr), "seit": Tick} - letzter Einsatz
         # 17.10. (1017i nachgespielt: 299.038 Assassinen-Ticks ungesteuert = die ganze Stehzeit an unserer Burg): das Spiel
         # vergibt die Nummer einer toten Einheit neu; "verluste" sperrte die Nummer fuer immer, der neue Assassine stand bis
         # Partieende. Eine Nummer, die nach dem Tod einmal aus dem Lagebild verschwunden war, darf wieder aufgenommen werden.
@@ -470,6 +481,7 @@ class Einzeln:
     def _feinde(self, L):
         fern, nah = [], []
         self._arbeiter = []                  # 4a: feindliche Arbeiter, die Assassinen schlagen (ARBEITER_GEFAHR)
+        self._alle_arbeiter = []             # 19.10.: alle feindlichen Arbeiter (Beute unterwegs)
         for nr, e in L.items():
             if e["besitzer"] == 0 and e["typ"] == self.LOEWE:
                 nah.append((nr, (e["x"], e["y"]), e["typ"]))      # 18.10.: Loewen greifen Assassinen an
@@ -479,15 +491,19 @@ class Einzeln:
             if e["typ"] not in TRUPPE:
                 if e["typ"] in self.ARBEITER_GEFAHR:
                     self._arbeiter.append((nr, (e["x"], e["y"]), e["typ"]))
+                if e["typ"] not in sicht.TIERE:
+                    self._alle_arbeiter.append((nr, (e["x"], e["y"]), e["typ"]))
                 continue
             (fern if e["typ"] in FERNKAMPF else nah).append((nr, (e["x"], e["y"]), e["typ"]))
         return fern, nah
 
-    def _bedrohung(self, ort, nah):
+    def _bedrohung(self, ort, nah, schwach=False):
         """4a: Gewicht der Feinde um ihn - jeder Nahkaempfer im Umkreis UEBERMACHT_R zaehlt 1, jeder schlagende Arbeiter im
-        Umkreis ARBEITER_R sein ARBEITER_GEFAHR-Gewicht."""
+        Umkreis ARBEITER_R sein ARBEITER_GEFAHR-Gewicht; 19.10. (Daniel: "mit wenig Leben lieber den Holzfaellern
+        ausweichen"): fuer Geschwaechte x ARBEITER_SCHWACH, so weicht er schon einem einzelnen Holzfaeller aus."""
+        f = self.ARBEITER_SCHWACH if schwach else 1.0
         return sum(self.NAH_GEFAHR.get(t, 1.0) for _, p, t in nah if schach(ort, p) <= self.UEBERMACHT_R) + sum(
-            self.ARBEITER_GEFAHR[t] for _, p, t in getattr(self, "_arbeiter", []) if schach(ort, p) <= self.ARBEITER_R)
+            f * self.ARBEITER_GEFAHR[t] for _, p, t in getattr(self, "_arbeiter", []) if schach(ort, p) <= self.ARBEITER_R)
 
     def _staerke(self, einheiten):
         """Staerke gegen Assassinen in Assassinen-Einheiten (STAERKE, aus der Liga-Balance)."""
@@ -1038,7 +1054,7 @@ class Einzeln:
         return {k for k, e in L.items() if e["besitzer"] not in (0, self.sp) and e["typ"] in sicht.REICHWEITE
                 and schach(ort, (e["x"], e["y"])) <= r}
 
-    def _entdeckt_pruefen(self, L, G, ereignis, flieh, jagen=None):
+    def _entdeckt_pruefen(self, L, G, ereignis, flieh, jagen=None, angriffe=None):
         """19.10. (Daniel: "wenn 5 gestorben sind dann sofort stoppen und verhindern"; Partie 1018p): sichtbar (waehlbarer Feind
         <= 160 Feinmass, L75) UND ein Schuetze erreicht ihn mit freier Linie -> entdeckt: Auftrag ab, Laufbefehl ausser Sicht
         und ausser Reichweite aller Schuetzen, die ihn gesehen haben; dort bleiben, bis ENTDECKT_TICKS nach dem letzten Sehen
@@ -1091,6 +1107,11 @@ class Einzeln:
                 continue
             if e.get("ziel_ok") is not None and self.ziel.get(n) == e["ziel_ok"]:
                 continue                       # Aussendienst: Ziel weit weg von den Schuetzen, die ihn gesehen haben
+            if n in self.letzter:
+                if self._drohende(ort, self._nahe_schuetzen(ort, L), L) or s.sichtbar(ort):
+                    self._letzter_einsatz(n, L, G, "weiter", ereignis, angriffe or [], jagen if jagen is not None else [])
+                    continue
+                del self.letzter[n]            # die Gefahr ist weg: wieder normal fliehen/warten
             if n in self.ziel or n in self.jagd or n in self.route or n in self.stapel["mitglieder"]:
                 if n in self.ziel:             # dasselbe Ziel nicht gleich wieder (wie nach ROUTE GEFAEHRLICH)
                     self._route_sperre[(n, self.ziel[n])] = self.jetzt + self.SPERRE_ROUTE
@@ -1115,6 +1136,12 @@ class Einzeln:
                     p = None
             if p is None:
                 p = self._ausser_reichweite(n, ort, e["schuetzen"] | self._nahe_schuetzen(ort, L), L)
+                # 19.10. (Daniel): kostet der Fluchtweg mehr Leben, als er hat, kommt er nicht weg -> letzter Einsatz
+                kalib = 1.0 if L[n]["leben"] < self.EIN_TREFFER else self.LETZT_KALIB
+                if p is not None and kalib * self._fluchtschaden(ort, p, e["schuetzen"] | self._nahe_schuetzen(ort, L), L) >= L[n]["leben"]:
+                    if self._letzter_einsatz(n, L, G, "Fluchtweg toedlich", ereignis, angriffe if angriffe is not None else [],
+                                             jagen if jagen is not None else []):
+                        continue
                 if p is None:
                     # 19.10. (1018s, 283 blieb im Feuer stehen, weil kein Punkt passte): dann nach Hause, nie stehen bleiben
                     heim = getattr(self, "_heim", [])
@@ -1129,6 +1156,69 @@ class Einzeln:
                 self._fliehen(n, p, flieh)       # laeuft nicht dorthin (z.B. vom Spiel umgelenkt): Befehl erneuern
             else:
                 self.warte[n] = p
+
+    def _feuer_von(self, q, nrs, L):
+        """19.10.: Leben je Takt an q von den Schuetzen nrs, die q erreichen (Linie frei)."""
+        s = 0.0
+        for k in self._drohende(q, nrs, L):
+            e = L[k]
+            s += sicht.dps(sicht.SCHUETZE_ART[e["typ"]], math.hypot(e["x"] - q[0], e["y"] - q[1]))
+        return s
+
+    def _fluchtschaden(self, ort, p, nrs, L):
+        """19.10.: erwarteter Lebensverlust auf dem geraden Weg ort -> p (alle 2 Felder: Feuer x 2 x TEMPO)."""
+        k = max(1, schach(ort, p) // 2)
+        return sum(self._feuer_von((ort[0] + (p[0] - ort[0]) * i // k, ort[1] + (p[1] - ort[1]) * i // k), nrs, L)
+                   for i in range(1, k + 1)) * 2 * TEMPO
+
+    def _letzter_einsatz(self, n, L, G, grund, ereignis, angriffe, jagen):
+        """19.10.: er kommt nicht mehr weg - in der Restzeit (Leben / eingehender Schaden je Takt) das Ziel mit dem hoechsten
+        ABSOLUTEN Wert, das er noch schafft: Gebaeude (Weg + gemessene Arbeit) oder Einheit (Weg + Toetungszeit); Schuetzen,
+        die ihn gerade treffen, zaehlen doppelt (ihr Tod verlaengert sein Leben). Schafft er keines, das mit dem besten
+        Wert je Zeit."""
+        ort = (L[n]["x"], L[n]["y"])
+        nrs = self._nahe_schuetzen(ort, L)
+        auf_ihn = set(self._drohende(ort, nrs, L))
+        nah = sum(1 for e in L.values() if e["besitzer"] not in (0, self.sp) and e["typ"] in sicht.NAHKAMPF
+                  and schach(ort, (e["x"], e["y"])) <= 2)
+        nah += sum(1 for e in L.values() if e["besitzer"] == 0 and e["typ"] == self.LOEWE and schach(ort, (e["x"], e["y"])) <= 2)
+        dps = self._feuer_von(ort, nrs, L) + nah * self.NAH_SCHADEN
+        rest = L[n]["leben"] / max(dps, 1.0)
+        kand = []
+        for gn, g in G.items():
+            if g["besitzer"] in (0, self.sp) or g["typ"] not in WERT:
+                continue
+            d = schach(ort, (g["x"], g["y"]))
+            if d <= self.LETZT_R:
+                kand.append((WERT[g["typ"]], d * TEMPO + ARBEIT.get(g["typ"], ARBEIT_SONST), ("g", gn)))
+        for k, e in L.items():
+            if e["besitzer"] in (0, self.sp) or e["typ"] not in TRUPPE or e["typ"] == 55:
+                continue
+            d = schach(ort, (e["x"], e["y"]))
+            if d <= self.LETZT_R:
+                w = EINHEIT_WERT.get(e["typ"], 30) * (2 if k in auf_ihn else 1)
+                kand.append((w, d * TEMPO + e["leben"] / float(NAHKAMPF_RATE.get(e["typ"], 230)), ("e", k)))
+        if not kand:
+            return False
+        schafft = [x for x in kand if x[1] <= rest]
+        best = max(schafft, key=lambda x: (x[0], -x[1])) if schafft else max(kand, key=lambda x: x[0] / max(x[1], 1.0))
+        art, nr = best[2]
+        alt = self.letzter.get(n, {}).get("ziel")
+        self.letzter[n] = {"ziel": best[2], "seit": self.letzter.get(n, {}).get("seit", self.jetzt)}
+        if alt != best[2]:
+            self._vergessen(n)
+            if art == "g":
+                self.ziel[n] = nr
+                self.ziel_typ[nr] = G[nr]["typ"]
+                angriffe.append((n, nr))
+            else:
+                self.jagd[n] = nr
+                jagen.append((n, nr))
+            ereignis.append("LETZTER EINSATZ %d (%s): Leben %d, Schaden %.0f je Takt -> noch ~%d Takte; Ziel %s %d (Typ %d, Wert %d, "
+                            "braucht ~%d Takte%s)" % (n, grund, L[n]["leben"], dps, rest, "Gebaeude" if art == "g" else "Einheit",
+                                                     nr, (G[nr] if art == "g" else L[nr])["typ"], best[0], best[1],
+                                                     "" if schafft else ", schafft keines ganz"))
+        return True
 
     def _aussendienst_frei(self, n, L):
         """19.10.: entdeckt, aber gerade weder sichtbar noch in Reichweite eines Schuetzen, der ihn sah oder nah ist."""
@@ -1449,16 +1539,31 @@ class Einzeln:
         beute += [(k, (e["x"], e["y"])) for k, e in L.items() if e["typ"] == 71 and e["besitzer"] not in (0, self.sp)
                   and all(schach((e["x"], e["y"]), b) > self.LORD_ABSTAND for b in self._feindburg)
                   and self._anzahl((e["x"], e["y"]), nah, 5) <= 1 and self._sicht.beschuss((e["x"], e["y"]), self._sicht.RAND) <= 0]
+        # 19.10. (Daniel: "sie beachten die Bauern nicht - die koennen gerne Bauern mitnehmen, aber Holzfaeller machen gut
+        # Damage; das kann in Kauf genommen werden, aber mit wenig Leben lieber den Holzfaellern ausweichen"): feindliche Arbeiter
+        # bis ARBEITER_MIT Felder, an deren Ort kein Schuetze trifft, nimmt jede Assassine unterwegs mit (auch mit Ziel);
+        # schlagende Arbeiter (ARBEITER_GEFAHR) nur, wer gesund ist
+        arbeiter_b = [(k, p) for k, p, typ in getattr(self, "_alle_arbeiter", [])
+                      if all(schach(p, b) > self.LORD_ABSTAND for b in self._feindburg) and self._anzahl(p, nah, 5) == 0
+                      and self._sicht.beschuss(p, self._sicht.RAND) <= 0]
+        schlagend = {k for k, p, typ in getattr(self, "_alle_arbeiter", []) if typ in self.ARBEITER_GEFAHR}
         for n in sorted(self.mitglieder):
             if n in self.jagd or n in self.lordtrupp["mitglieder"] or n in self.stapel["mitglieder"] or n in self.flucht or n not in L \
                     or n in self.entdeckt:
                 continue
-            if n in self.ziel or n in self.route or (self._raid_plaetze or 0) > len(self.ziel):
-                continue                   # 17.10.: Raiden geht vor (Daniel)
-            if L[n]["leben"] < self.EIN_TREFFER:
-                continue                   # 19.10. (1018s, 262 jagte mit 1.460 Leben einen Sklaven und starb im Nahkampf)
             ort = (L[n]["x"], L[n]["y"])
-            nah_b = [b_ for b_ in beute if schach(ort, b_[1]) <= self.BEUTE_R]
+            schwach_n = L[n]["leben"] < self.EIN_TREFFER
+            mit = [b_ for b_ in arbeiter_b if schach(ort, b_[1]) <= self.ARBEITER_MIT and not (schwach_n and b_[0] in schlagend)]
+            if n in self.ziel or n in self.route or (self._raid_plaetze or 0) > len(self.ziel):
+                if not mit:
+                    continue                   # 17.10.: Raiden geht vor (Daniel) - ausser ein Arbeiter liegt am Weg
+                nah_b = mit
+            elif schwach_n:
+                if not mit:
+                    continue                   # 19.10. (1018s, 262 jagte mit 1.460 Leben einen Sklaven und starb im Nahkampf)
+                nah_b = mit
+            else:
+                nah_b = [b_ for b_ in beute if schach(ort, b_[1]) <= self.BEUTE_R] + mit
             # 17.10. (Partie 1017a: Assassine 195 jagte eine Armbrust neben 21 Schuetzen und starb in ~80 Takten): Risiko gegen
             # Ertrag wie bei Gebaeuden - Beschuss am Beuteort (nachgebaute Zielwahl der Schuetzen, sicht.py) x (Weg + gemessene
             # Toetungszeit = Leben / Nahkampf-Rate) gegen Wert der Einheit (Anwerbepreis L63) und Preis einer Assassine
@@ -1486,7 +1591,7 @@ class Einzeln:
                 ereignis.append("BEUTE %d jagt Fernkaempfer %d (Typ %d) am Boden (%d Felder): Saldo %.0f, Todesrisiko %.0f %%, "
                                 "toeten %.0f Takte, Wert %s" % (n, ziel_b[0], typ_b, schach(ort, ziel_b[1]), saldo, 100 * p_tod,
                                                                t_toeten, "gemessen" if typ_b in EINHEIT_WERT_GEMESSEN else "geschaetzt"))
-        self._entdeckt_pruefen(L, G, ereignis, flieh, jagen)
+        self._entdeckt_pruefen(L, G, ereignis, flieh, jagen, angriffe)
         self._loewenjagd(L, jagen, ereignis)
         # 4. Verletzt im Schussfeld: Rueckzug oder zuschlagen
         for n in verletzt:
@@ -1533,7 +1638,7 @@ class Einzeln:
             if self._im_lordangriff(n) or n in self.entdeckt or n in getattr(self, "_loewen_jaeger", ()):
                 continue                   # 19.10.: wer entdeckt ist, flieht nach ENTDECKT (Schuetzen UND Verfolger); Loewenjaeger bleiben                   # der Lord-Angriff bleibt dran (Daniel 21:47)
             ort = (L[n]["x"], L[n]["y"])
-            feinde = self._bedrohung(ort, nah)
+            feinde = self._bedrohung(ort, nah, L[n]["leben"] < self.EIN_TREFFER)
             eigene = sum(1 for q in eigene_orte if schach(ort, q) <= self.UEBERMACHT_R)
             if n in self.flucht:
                 verfolger = self._naechster(ort, [x for x in nah if self.NAH_GEFAHR.get(x[2], 1.0) >= self.VERFOLGER_AB])[0]
@@ -2112,7 +2217,9 @@ class Einzeln:
         befehle += [{"angriff": {"einheiten": ns, "lauf": [o[0], o[1]]}} for o, ns in lauf_weg.items()]
         befehle += [{"angriff": {"einheiten": [n], "ziel": f}} for n, f in jagen]
         befehle += [{"halten": {"nr": ns, "x": o[0], "y": o[1]}} for o, ns in halten.items()]
-        befehle += [{"angriff": {"einheiten": ns, "lauf": [o[0], o[1]]}} for o, ns in flieh.items()]   # 4a: echter Laufbefehl
+        # 19.10. (1018u: der Fluchtbefehl fuer 207 lief ~100 Ticks spaeter - hinter 5-15 Routinebefehlen in der Schlange des
+        # Moduls): Flucht mit Vorrang, logik.lua stellt sie vorn an
+        befehle += [{"angriff": {"einheiten": ns, "lauf": [o[0], o[1]], "vorrang": True}} for o, ns in flieh.items()]   # 4a: echter Laufbefehl
         if stapel_befehl:
             befehle.append(stapel_befehl)
         if lord_befehl:
