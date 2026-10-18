@@ -418,7 +418,7 @@ class Einzeln:
     RUHE_FELDER = 40          # 19.10.: so viele Felder ohne waehlbaren Feind = voller Ruhe-Bonus (x2)
     FERTIG_TAKTE = 120        # 19.10. (1018x): Restarbeit, die er beim Entdecktwerden noch fertig macht (Erkennen->Treffer 64-170, L81)
     ARBEITER_ZEIT = 120       # 19.10. (1018x, 203 verfolgte einen Arbeiter 500 Takte): so lange darf "mitnehmen" dauern
-    SPAEHER_MAX, SPAEHER_R, SPAEHER_ANTEIL = 2, 8, 0.3     # 19.10. (1018w): Sklaven als Spaeher erledigen statt fliehen
+    SPAEHER_MAX, SPAEHER_R, SPAEHER_ANTEIL = 3, 16, 0.3    # 19.10. (1018w; 1018y: 20 floh vor 2 Sklaven in 13 Feldern - Daniel: "merkt zu spaet, dass er sie besiegen kann")
     ARBEITER_MIT = 2          # 19.10. (Daniel: "nie gesagt aktiv jagen - mitnehmen, wenn er will; zu viel Traffic -> auf ein Minimum"): nur direkt am Weg
     ARBEITER_FREI = 30        # 19.10. (1018v): ... nur, wenn kein waehlbarer Feind naeher als so viele Felder steht
     ARBEITER_SCHWACH = 25     # 19.10. (Daniel): Gewicht schlagender Arbeiter fuer Geschwaechte - ein Holzfaeller (0,08) wiegt dann 2 > die Assassine selbst
@@ -1181,6 +1181,16 @@ class Einzeln:
         zahl = max(1, sum(1 for z in self.ziel.values() if z == gn))
         rest = ARBEIT.get(g["typ"], ARBEIT_SONST) * g["leben"] / float(voll) / zahl
         if rest > self.FERTIG_TAKTE:
+            return False
+        # 19.10. (1018y: ein Markt im Bau - sein Leben stieg 20 -> 60, die Restarbeit sank nie, "fertig zuerst" hielt 86 zehn
+        # Runden im Feuer): je Gebaeude hoechstens FERTIG_TAKTE + 30 Takte, und nach 40 Takten muss das Leben gesunken sein
+        fs = getattr(self, "_fertig_seit", {})
+        self._fertig_seit = fs
+        alt = fs.get(n)
+        if alt is None or alt[0] != gn:
+            fs[n] = alt = (gn, self.jetzt, g["leben"])
+        dauer = self.jetzt - alt[1]
+        if dauer > self.FERTIG_TAKTE + 30 or (dauer > 40 and g["leben"] >= alt[2]):
             return False
         ereignis.append("FERTIG ZUERST %d: entdeckt, aber Gebaeude %d (Typ %d) braucht nur noch ~%d Takte - erst abreissen" % (
             n, gn, g["typ"], rest))

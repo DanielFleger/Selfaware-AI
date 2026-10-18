@@ -1797,7 +1797,14 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 prod.minen, prod.schmieden, prod.gerber, prod.hoefe, len(prod.hof_orte)))
         if BIER:
             from bierkette import Bierkette
-            bier = Bierkette(SP, lambda typ, x, y, r: baue_schnell(typ, x, y, r, zweck="Bierkette"), plaetze_live, preis)
+            # 19.10. (1018x: die dritte Brauerei stand auf einem fuer Kuhhoefe reservierten Platz): reservierte Flaechen
+            # (ausbau.sperr) meidet die Bierkette - ausser fuer die eigenen Hopfen-Reserven
+            def bier_plaetze(typ, kern, r):
+                b = NACH_TYP[typ]["b"]
+                sperr = [s for s in (getattr(ausbau, "sperr", None) or []) if typ != 31]
+                return [q for q in plaetze_live(typ, kern, r)
+                        if not any(q[0] <= s[2] and q[0] + b - 1 >= s[0] and q[1] <= s[3] and q[1] + b - 1 >= s[1] for s in sperr)]
+            bier = Bierkette(SP, lambda typ, x, y, r: baue_schnell(typ, x, y, r, zweck="Bierkette"), bier_plaetze, preis)
             belegt = [q for _t, q in reserve]
             hopfen = [q for q in plaetze_live(31, BERGFRIED, 80)
                       if all(abs(q[0] - o[0]) >= 10 or abs(q[1] - o[1]) >= 10 for o in belegt)][:bier.RESERVE]
