@@ -1,0 +1,77 @@
+CODE-KENNUNG 517d5f2f (38 Dateien: ablaufanalyse.py 044bf9, assassinen.py 8d6d4d, aufbau_planer.py e47d65, auftragsbuch.py 0c17ed, bauen.py 653eba, bedrohung.py 5585cf, befehl.py 8e3abc, bierkette.py 619398, bilanz.py 33d335, brotbau.py 9c91ec, eroeffnung.py 52e1ce, erstes_spiel.py f02476, ertrag_startwerte_M19.json c8d390, ertragsplaner.py 8165ae, farmen_mischen.py 39fea3, feldzug.py 411e71, gefecht.py 3f2be6, gegner_pruefen.py ffc108, haushalt.py 989720, karten_holen.py 8404ce, kausal.py ddff05, kennung.py c1d186, laden.py f8c499, lageprotokoll.py a81b4c, logik.lua ebfa4d, lordschutz.py 5815d5, nahrungsmodell.py 462245, nahrungswahl.py 98a294, schussfeld.py b61ca8, serie.py 665cfa, sicht.py ab4e56, speichern.py 00a42e, steuerkarte.py 57bd5a, stillstand.py e33c6a, waechter.py 7bef36, wegkarte.py 29ee1f, wirtschaft.py 096ca6, zielwaechter.py 63a435)
+START-BEFEHL Instanz 1: python erstes_spiel.py leere_ki=nein experiment=ja regel50=ja minuten=40 tempo=100 bis_tick=12000 ziel_tick=80000 streitkolben=30 weg=feldzug produktion=ja bier=ja abriss=nein assassinen=20 aufloesen=ende b_versatz=600 bevoelkerung_ziel=90 einzelkauf=nein entscheider=kausal gegner=1 gegner_ki=7 gute_dinge=0 haushalt_rand=650 holz_kaufen=ja holz_spam=20 holzfaeller_je_baum=4 holzfaeller_max=30 holzfaeller_vorab=4 huetten_voraus=nein je_arbeiter=ja joch_nach_stein=ja "karte=Green Haven" kasse=nein kasse_grenze=0 kasse_stufe=11 nahrung_ausbau=nein notwerbung=ja penner=20 plaetze=4,3 rationen=doppelt schub=nein stein_max=nein stein_parallel=ja steinbruch_zuerst=nein steuer_ende=nein steuer_runter=90 umzug=frueh v14=nein vollbeschaeftigung=ja wachstum_boden=9500 waechter=ja stopp_tote=0 eins_gegen_eins=ja
+NAHRUNGSWAHL GreenHaven_pl4-3: 0 Jaeger + 0 Brotkette(n) + 10 Apfelplantagen, Kornspeicher an den Aepfeln | {"plaetze_eigene_seite": 75, "herden": [], "jaeger_moeglich": 0, "ration": "doppelt", "bev_ziel": 90, "rehe_gezaehlt": true, "ration_frueh": "doppelt", "bedarf_frueh_1000": 30.4, "bedarf_spaet_1000": 35.1, "entscheidung": "0 Jaeger + 0 Brotkette(n) + 10 Apfelplantagen, Kornspeicher an den Aepfeln", "kornspeicher_zum_bergfried": 22, "kornspeicher_zum_lager": 24}
+== Phase 1: neue Partie ab Tick 0, Tempo 100 durchgehend, ohne Pausen (Plan eroeffnung_plan_GreenHaven_pl4-3.json)
+Zuruecksetzen: Ansicht 14 (Partie vorbei: 0) -> Hauptmenue, pausiert
+1v1: KI der Plaetze [2] bei Tick 0 aus (currentAIArray, aiType, Mensch-Eintrag)
+SAAT fest aus saat_liga.json (Modul meldet {'karte': 1788115329, 'partie': 1788115329, 'wert1': 7474, 'wert2': 22872, 'zaehler1': 1, 'zaehler2': 118})
+LEERE KI: aus
+Partie laeuft seit Tick 101: Lords da, unser Lord bei (142, 151), {'Ansicht': 14, 'gameOver': 0, 'Mensch': 1, 'Platz': 1}
+STARTGUETER Tick 121: Spieler 1 Gold 0; Spieler 2 Gold 76
+1v1 ANGEGLICHEN bei Tick 704: Waren Spieler 1 {'Holz': 150}; Spieler 2 {'Holz': 150}; Truppen vorher {1: {22: 5, 24: 7}, 2: {76: 4, 23: 8, 70: 4}}, ergaenzt ['Spieler 2 +5 Typ 22', 'Spieler 1 +8 Typ 23', 'Spieler 2 +7 Typ 24', 'Spieler 1 +4 Typ 70', 'Spieler 1 +4 Typ 76']
+1v1: Startsignal bei Tick 704 - warte pausiert auf den Lenker von Spieler 2 (C:\Users\danie\SHC-Modding\Selfaware-AI\werkzeug\.eins_gegen_eins_bereit.json)
+1v1: Spieler 2 bereit - beide laufen los bei Tick 706
+Markt und Posten fuer Green Haven live gesucht: Markt (146, 154), Posten None
+ERSTE BAUBEFEHLE bei Tick 722: 17 von 19 Holz-Bauten stehen bei Tick 782 (Kornspeicher, Markt, Holzfaeller, Steinbruch, Ochsenjoch, Huetten); nicht gebaut: [('Huette', 135, 149), ('Huette', 146, 151)]
+VERKAUFT bis Tick 1005: {'kaese': 3, 'brot': 3, 'apfel': 3} Lose, Gold 195
+SEASONING FRUEH: 5 von 5 A-Plantagen mit dem Posten bei Tick 1005, Gold jetzt 145
+RAID ZUERST: Nahrung da bei Tick 794, {'kaese': 3, 'brot': 3, 'apfel': 3} verkauft (Lose zu 5); Soeldnerposten (133, 160); 0 Assassinen angeworben (freie Leute am Feuer jetzt 0) -> Gold 145, Nahrung uebrig {'fleisch': 15}, Tick 1005
+NACHGEHOLT bei Tick 1005: 0 von 2 (Apfelplantagen A + Rest); nicht gebaut: [('Huette', 135, 149), ('Huette', 146, 151)]; Holz 7, Gold 145
+Apfelplantagen A 5, B 5 spaeter [(164, 167), (153, 153), (162, 182), (173, 149), (183, 149)]; altes Lager bleibt mit {'holz': 7}
+== Phase 2: Echtzeit, Tempo 100, 40 Minuten, Waechter an
+Lager: frueher Umzug an (176, 184) (Startlager raeumen und abreissen, neues in derselben Runde)
+Lageprotokoll (jede Runde komplett): C:\Users\danie\SHC-Modding\Selfaware-AI\werkzeug\..\daten\lage_20261018_162313_i1.jsonl.gz
+Ertrags-Planer: Baukosten aus dem Spiel {1: {'holz': 5}, 3: {'holz': 5}, 4: {'holz': 8}, 5: {'holz': 40}, 7: {'holz': 8}, 10: {}, 19: {'holz': 5}, 20: {'holz': 25}, 31: {'holz': 15, 'gold': 20}, 32: {'holz': 8}}; Protokoll ertrag_live_20261018_162313_i1.jsonl
+Ertrags-Planer: keine Startwerte-Datei (ertrag_startwerte_GreenHaven_pl4-3.json) - Messpartie-Werte
+Wirtschaft: Apfel A [(154, 163), (151, 173), (163, 152), (140, 177), (141, 187)], B [(164, 167), (153, 153), (162, 182), (173, 149), (183, 149)]; alte Lagerteile [6, 7, 8, 9]
+Tick | Holz Stein Eisen | Aepfel Brot | Beliebt | Leute/Platz (Feuer) | Holzf. Apfelb. | Ereignis
+PRODUKTION fuer den Feldzug: 5 Minen, 4 Schmieden, 3 Gerber, 3 Hoefe (Plaetze 30, vom Spiel geprueft)
+RESERVE fuer Hoefe/Hopfen (fuer Aepfel gesperrt): [('Milchviehhof', (164, 171)), ('Milchviehhof', (187, 163)), ('Milchviehhof', (155, 201)), ('Hopfenfarm', (154, 154)), ('Hopfenfarm', (173, 147))]
+PRODUKTION skaliert auf Ziel 30: Minen 5, Schmieden 4, Gerber 3, Hoefe 3, Holzfaeller 13, Bevoelkerung 90
+STAND Tick 1016 | Feuer 0, Leute 10/10 | Holzfaellerhuette 13 (Arbeiter 10/13), Ochsenkarren 1 (Arbeiter 0/1), Soeldnerposten 1, Lagerplatz 4, Kornspeicher 1, Steinbruch 1 (Arbeiter 0/3), 21 1, Marktplatz 1, Apfelplantage 5 (Arbeiter 0/5), Bergfried 1, 55 1, 56 1, 57 1, 58 1, 71 1, 72 1, 73 1 | offen [('Huette', (133, 147))] | bestellt 1, bestaetigt 0, gescheitert 0, abgelehnt 0
+ 1016 |   7   0   0 |   0   0 |  93.75 | 10/10 (0) | 10 0 | Stellung: 28 Truppen zum Posten (179, 187); Stapeln: 4 Nahkaempfer auf das Feld der Fernkaempfer (145,150); WACHSTUM Huette (Platz 10, Ziel 90, frei 0): (133, 147); LORD-BEDARF: 40 VORLAEUFIG - keine gemessene Lage deckt diese: Trainingsstand 2026-10-06 T24521: Lord an anderem Ort (180, 303) statt (230, 287); Partie 2026-10-06 T19596 (26 gesammelt): Lord an anderem Ort (180, 303) statt (230, 287); 0 Assassinen ohne Ziel (); FELDZUG: Ziel Lord 5 (Spieler 2) bei (180, 303), 152 Felder vom Bergfried; FELDZUG: Sammelpunkt (158, 217) (86 Felder vor dem Lord 5); Altes Lager leeren (Holz): verkauft (weder Holzfaeller noch Fernhaus moeglich; 7 Holz sicher im alten Lager; Inhalt {'holz': 7}); PLANER Lage (Gewinn bis Ende / Amortisation): Apfelplantage 283/2133 | Stein-Reserve 0; PLANER wartet auf Arbeiter fuer Apfelplantage (Feuer 0, braucht 1)
+ 1178 |   0   0   0 |   0   0 |  93.75 | 13/18 (0) | 10 0 | BAU ABGELEHNT Huette bei (135, 149): fehlt holz 3; BAU BESTAETIGT Huette Nr 75 bei (133,147) nach 162 Ticks; Altes Lager abgerissen (4 Teile, Rest leer) bei Tick 1178
+ 1213 |   0   0   0 |   0   0 |  94.00 | 14/18 (0) | 10 0 | verkauft: fleisch x2; Lager gesetzt bei (176, 184) - 0 Holzfaeller wollen abliefern (Tick 1213)
+ 1279 |   0   0   0 |   0   0 |  94.00 | 15/18 (1) | 10 0 | BAU BESTAETIGT Lagerplatz Nr 7 bei (176,184) nach 66 Ticks; UNTERBESETZT Holzfaellerhuette Nr 31 bei (158,191): 0 von 1 Arbeitern seit Tick 1016; UNTERBESETZT Holzfaellerhuette Nr 32 bei (198,190): 0 von 1 Arbeitern seit Tick 1016; UNTERBESETZT Holzfaellerhuette Nr 33 bei (171,206): 0 von 1 Arbeitern seit Tick 1016; UNTERBESETZT Steinbruch Nr 34 bei (87,152): 0 von 3 Arbeitern seit Tick 1016; UNTERBESETZT Ochsenkarren Nr 36 bei (94,159): 0 von 1 Arbeitern seit Tick 1016; UNTERBESETZT Apfelplantage Nr 66 bei (154,163): 0 von 1 Arbeitern seit Tick 1016; UNTERBESETZT Apfelplantage Nr 67 bei (151,173): 0 von 1 Arbeitern seit Tick 1016; UNTERBESETZT Apfelplantage Nr 68 bei (163,152): 0 von 1 Arbeitern seit Tick 1016; UNTERBESETZT Apfelplantage Nr 69 bei (140,177): 0 von 1 Arbeitern seit Tick 1016; UNTERBESETZT Apfelplantage Nr 70 bei (141,187): 0 von 1 Arbeitern seit Tick 1016; 1 Assassinen angeworben (Gold jetzt 177, 1 leben, Soll 20)
+ 1301 |   0   0   0 |   0   0 |  94.00 | 15/18 (0) | 10 0 | Stapeln: 4 Nahkaempfer auf das Feld der Fernkaempfer (150,154); BESETZT Apfelplantage Nr 66 nach 285 Ticks
+ 1347 |   0   0   0 |   0   0 |  94.00 | 15/18 (0) | 10 1 | ZIELWAHL 91 -> 37 Typ 19 in 106: Saldo 100, Todesrisiko 0 %, Fern<=30 0, Leben 12500, Beschuss am Ziel 0.00/Takt, Arbeit geschaetzt 202 Takte; WEG 91 -> Gebaeude 37 ueber 5 Wegpunkte (Beschuss Weg 0.0 statt gerade 0.0); 1 Assassinen auf 1 Gebaeude verteilt (im Spiel gemessen: 0 Gebaeude gleichzeitig angelaufen)
+ 1412 |   0   0   0 |   0   0 |  94.25 | 16/18 (2) | 10 1 | FELDZUG sammeln: 0 von 30 am Sammelpunkt (158, 217), 14 Streitkolben leben, Lord 5 Leben 150000 (Lord-Schutz bis Tick 9600)
+ZEITEN nach 10 Runden: wirtschaft 1.92 s, auftragsbuch 0.94 s, lesen 0.45 s, ruestung 0.29 s, assassinen 0.22 s, bauen_werben_verkauf 0.13 s, waechter 0.11 s, buch_abgleich 0.00 s, haus_lager_zeile 0.00 s
+STAND Tick 1421 | Feuer 2, Leute 16/18 | Huette 1, Holzfaellerhuette 13 (Arbeiter 10/13), Ochsenkarren 1 (Arbeiter 0/1), Soeldnerposten 1, Lagerplatz 4, Kornspeicher 1, Steinbruch 1 (Arbeiter 0/3), 21 1, Marktplatz 1, Apfelplantage 5 (Arbeiter 1/5), Bergfried 1, 55 1, 56 1, 57 1, 58 1, 71 1, 72 1, 73 1 | offen - | bestellt 2, bestaetigt 2, gescheitert 0, abgelehnt 2
+ 1421 |   0   0   0 |   0   0 |  94.25 | 16/18 (2) | 10 1 | Stapeln: 4 Nahkaempfer auf das Feld der Fernkaempfer (153,158)
+ 1500 |   0   0   0 |   0   0 |  94.25 | 18/18 (0) | 10 1 | BESETZT Apfelplantage Nr 67 nach 484 Ticks; BESETZT Apfelplantage Nr 68 nach 484 Ticks; BESETZT Apfelplantage Nr 69 nach 484 Ticks
+ 1541 |   0   0   0 |   0   0 |  94.25 | 18/18 (1) | 10 4 | Stapeln: 4 Nahkaempfer auf das Feld der Fernkaempfer (157,162)
+ 1614 |   0   0   0 |   0   0 |  94.50 | 18/18 (2) | 10 4 | FELDZUG sammeln: 0 von 30 am Sammelpunkt (158, 217), 14 Streitkolben leben, Lord 5 Leben 150000 (Lord-Schutz bis Tick 9600)
+ZEITEN nach 20 Runden: wirtschaft 2.49 s, auftragsbuch 1.73 s, lesen 0.92 s, assassinen 0.31 s, ruestung 0.30 s, waechter 0.21 s, bauen_werben_verkauf 0.14 s, buch_abgleich 0.01 s, haus_lager_zeile 0.00 s
+STAND Tick 1620 | Feuer 2, Leute 18/18 | Huette 1, Holzfaellerhuette 13 (Arbeiter 10/13), Ochsenkarren 1 (Arbeiter 0/1), Soeldnerposten 1, Lagerplatz 4, Kornspeicher 1, Steinbruch 1 (Arbeiter 0/3), 21 1, Marktplatz 1, Apfelplantage 5 (Arbeiter 4/5), Bergfried 1, 55 1, 56 1, 57 1, 58 1, 71 1, 72 1, 73 1 | offen - | bestellt 2, bestaetigt 2, gescheitert 0, abgelehnt 2
+ 1620 |   0   0   0 |   0   0 |  94.50 | 18/18 (2) | 10 4 | Stapeln: 4 Nahkaempfer auf das Feld der Fernkaempfer (158,164); Seasoning: A-Plantagen reif bei Tick 1620 (Baum 166) - setze 5 B-Plantagen; Holz fuer B gekauft (Holz 0, Gold 107)
+ 1684 |   5   0   0 |   0   0 |  94.50 | 18/18 (3) | 10 4 | WACHSTUM Huette (Platz 18, Ziel 90, frei 0): (132, 152)
+ 1726 |   0   0   0 |   0   0 |  94.50 | 19/26 (0) | 10 4 | BAU ABGELEHNT Apfelplantage bei (164, 167): fehlt holz 8; BAU BESTAETIGT Huette Nr 76 bei (132,152) nach 42 Ticks; BESETZT Holzfaellerhuette Nr 31 nach 710 Ticks; BESETZT Holzfaellerhuette Nr 32 nach 710 Ticks; BESETZT Holzfaellerhuette Nr 33 nach 710 Ticks; BESETZT Apfelplantage Nr 70 nach 710 Ticks; Holz fuer B gekauft (Holz 0, Gold 92)
+ 1808 |   5   0   0 |   0   0 |  94.75 | 20/26 (0) | 13 5 | Stapeln: 4 Nahkaempfer auf das Feld der Fernkaempfer (162,168)
+ 1893 |   5   0   0 |   0   0 |  94.75 | 22/26 (0) | 13 5 | WACHSTUM Huette (Platz 26, Ziel 90, frei 4): (129, 143)
+ 1932 |   0   0   0 |   0   0 |  94.75 | 23/34 (1) | 13 5 | BAU ABGELEHNT Apfelplantage bei (164, 167): fehlt holz 8; BAU BESTAETIGT Huette Nr 77 bei (129,143) nach 39 Ticks; Holz fuer B gekauft (Holz 0, Gold 77)
+ 1941 |   5   0   0 |   0   0 |  94.75 | 23/34 (1) | 13 5 | FELDZUG sammeln: 3 von 30 am Sammelpunkt (158, 217), 14 Streitkolben leben, Lord 5 Leben 150000 (Lord-Schutz bis Tick 9600); Seasoning: 5 B-Plantagen noch offen (Holz 5, Gold 62)
+ZEITEN nach 30 Runden: wirtschaft 4.32 s, auftragsbuch 2.93 s, lesen 1.31 s, assassinen 0.39 s, waechter 0.31 s, ruestung 0.30 s, bauen_werben_verkauf 0.14 s, buch_abgleich 0.01 s, haus_lager_zeile 0.00 s
+STAND Tick 1986 | Feuer 2, Leute 24/34 | Huette 3, Holzfaellerhuette 13 (Arbeiter 13/13), Ochsenkarren 1 (Arbeiter 0/1), Soeldnerposten 1, Lagerplatz 4, Kornspeicher 1, Steinbruch 1 (Arbeiter 0/3), 21 1, Marktplatz 1, Apfelplantage 5 (Arbeiter 5/5), Bergfried 1, 55 1, 56 1, 57 1, 58 1, 71 1, 72 1, 73 1 | offen - | bestellt 4, bestaetigt 4, gescheitert 0, abgelehnt 37
+ 1986 |   5   0   0 |   0   0 |  94.75 | 24/34 (2) | 13 5 | Stapeln: 4 Nahkaempfer auf das Feld der Fernkaempfer (166,172); Seasoning: B (164, 167) kein Bauplatz (Spielraum 20)
+ 2119 |   5   0   0 |   0   0 |  95.00 | 26/34 (0) | 13 5 | BESETZT Steinbruch Nr 34 nach 1103 Ticks; BESETZT Ochsenkarren Nr 36 nach 1103 Ticks
+ 2147 |   5   0   0 |   0   0 |  95.00 | 27/34 (1) | 13 5 | Stapeln: 2 Nahkaempfer auf das Feld der Fernkaempfer (167,174); BAU ABGELEHNT Apfelplantage bei (164, 167): fehlt holz 3
+Traceback (most recent call last):
+  File "C:\Users\danie\SHC-Modding\Selfaware-AI\werkzeug\erstes_spiel.py", line 3067, in main
+        befehl({"eigenerPlatz": SP}, 0.8)
+    ...<2 lines>...
+    try:
+  File "C:\Users\danie\SHC-Modding\Selfaware-AI\werkzeug\erstes_spiel.py", line 2864, in phase2
+    n, alt, e["leben"], e["x"], e["y"], bei or "keine"))
+    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\SHC-Modding\Selfaware-AI\werkzeug\wirtschaft.py", line 185, in schritt
+    stufe = self.stufe_a() if self.B_tick is None else REIF
+            ~~~~~~~~~~~~^^
+  File "C:\Users\danie\SHC-Modding\Selfaware-AI\werkzeug\wirtschaft.py", line 114, in stufe_a
+    return peek(BAUM_BASIS + self.apfelbaum * BAUM_SCHRITT + BAUM_STUFE)[0]
+           ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\SHC-Modding\Selfaware-AI\werkzeug\laden.py", line 47, in peek
+    raise RuntimeError("keine Antwort auf peek 0x%08X" % adr)
+RuntimeError: keine Antwort auf peek 0x00F331FC
+ABBRUCH - Spiel angehalten - RuntimeError('keine Antwort auf peek 0x00F331FC')
+RUECKGABE 1

@@ -742,6 +742,14 @@ local heimPlatz = nil          -- Platz des Menschen/Hauptspielers (Wert vor jed
 local laufDirekt = false       -- {"laufDirekt": true}: Laufbefehle anderer Spieler je Einheit direkt (ohne Kletterweg) - aus,
                                -- seit der Gruppenweg im sauberen Gefecht auch fuer Spieler 2 belegt ist (siehe unten)
 
+-- 19.10.: Abzuege je Spieler - Spieler 1 wie bisher abzug/, jeder andere abzug_sp<N>/ (legt befehl.py an), damit zwei
+-- Lenker sich Lagebild, Gebaeude und Karten nicht gegenseitig ueberschreiben. Spieler = Platz waehrend des Befehls.
+local function abzugPfad(name)
+  local ich = core.readInteger(SLOT_ICH) or 1
+  if ich == 1 or ich < 1 or ich > 8 then return "ucp/villagestudio/abzug/" .. name end
+  return string.format("ucp/villagestudio/abzug_sp%d/%s", ich, name)
+end
+
 local function istSpielbefehl(c)
   for k in pairs(SPIELBEFEHL_ART) do if c[k] ~= nil then return true end end
   return false
@@ -1706,7 +1714,7 @@ local function einzelbefehl(cmd)
     local sp, m, g = tonumber(p.spieler) or 1, tonumber(p.mapper), tonumber(p.groesse)
     local x0, y0, x1, y1 = tonumber(p.x0), tonumber(p.y0), tonumber(p.x1), tonumber(p.y1)
     local zeichen = "0123456789abcdefghijklmnopqrstuvwxyz"
-    local f = io.open("ucp/villagestudio/abzug/platzkarte.txt", "w")
+    local f = io.open(abzugPfad("platzkarte.txt"), "w")
     f:write(string.format("mapper=%d groesse=%d x0=%d y0=%d x1=%d y1=%d" .. string.char(10), m, g, x0, y0, x1, y1))
     local gut, alle = 0, 0
     for y = y0, y1 do
@@ -1738,7 +1746,7 @@ local function einzelbefehl(cmd)
     local g = cmd.rohstoffkarte
     local x0, y0, x1, y1 = tonumber(g.x0) or 0, tonumber(g.y0) or 0, tonumber(g.x1) or 399, tonumber(g.y1) or 399
     local NL = string.char(10)
-    local f = io.open("ucp/villagestudio/abzug/rohstoffe.txt", "w")
+    local f = io.open(abzugPfad("rohstoffe.txt"), "w")
     local n = {}
     f:write(string.format("x0=%d y0=%d x1=%d y1=%d", x0, y0, x1, y1) .. NL)
     for y = y0, y1 do
@@ -1770,7 +1778,7 @@ local function einzelbefehl(cmd)
     f:close()
     local LS = 0x00F2CC38
     local anzahl = core.readInteger(LS + 16) or 0
-    local fb = io.open("ucp/villagestudio/abzug/baeume.txt", "w")
+    local fb = io.open(abzugPfad("baeume.txt"), "w")
     fb:write("nr art zustand x y stufe rest voll groesse" .. NL)
     local lebend = 0
     for i = 1, math.min(anzahl, 1999) do
@@ -1800,7 +1808,7 @@ local function einzelbefehl(cmd)
   if cmd.lagebild ~= nil then
     local NL = string.char(10)
     local E = 0x0138854C
-    local f = io.open("ucp/villagestudio/abzug/lagebild.txt", "w")
+    local f = io.open(abzugPfad("lagebild.txt"), "w")
     f:write(string.format("tick %d", tick()) .. NL .. "nr besitzer typ x y leben zustand zielart zieleinheit zieluid zielgebaeude ziel zielx ziely laufx laufy auswahlvon auswahlmarke gruppe gruppenuid ladung arbeitsplatz erreichbar nahziel nahangreifer" .. NL)
     local WEGNETZ = 0x01DF6FD8
     local kannHin = core.exposeCode(0x004A5320, 5, 1)
@@ -1848,7 +1856,7 @@ local function einzelbefehl(cmd)
     end
     f:close()
     -- dazu alle Gebaeude (eigene UND fremde): nr besitzer typ x y leben uid -> abzug/gebaeude.txt
-    local fg = io.open("ucp/villagestudio/abzug/gebaeude.txt", "w")
+    local fg = io.open(abzugPfad("gebaeude.txt"), "w")
     fg:write("nr besitzer typ x y leben uid erreichbar vorrat grenze verbund ware" .. NL)
     -- erreichbar (04.10., Daniel: zugebaute Gebaeude erkennen): irgendein Feld rund um den Grundriss liegt in einem
     -- Wegnetz-Gebiet (PathConnectionLayer, TileMapState +0x363DD0 = 0x01DF6FD8, ushort je Feld), das Spieler 1 vom
@@ -1905,7 +1913,7 @@ local function einzelbefehl(cmd)
     local x0, y0 = tonumber(g.x0) or 0, tonumber(g.y0) or 0
     local x1, y1 = tonumber(g.x1) or 399, tonumber(g.y1) or 399
     local NL = string.char(10)
-    local f = io.open("ucp/villagestudio/abzug/wegkarte.txt", "w")
+    local f = io.open(abzugPfad("wegkarte.txt"), "w")
     f:write(string.format("tick %d x0=%d y0=%d x1=%d y1=%d", tick(), x0, y0, x1, y1) .. NL)
     local n, offen = 0, 0
     for y = y0, y1 do
@@ -1938,7 +1946,7 @@ local function einzelbefehl(cmd)
   if cmd.gruenland ~= nil and type(cmd.gruenland) == "table" then
     local g = cmd.gruenland
     local x0, y0, x1, y1 = tonumber(g.x0), tonumber(g.y0), tonumber(g.x1), tonumber(g.y1)
-    local f = io.open("ucp/villagestudio/abzug/gruenland.txt", "w")
+    local f = io.open(abzugPfad("gruenland.txt"), "w")
     local n = { G = 0, s = 0, ["#"] = 0, x = 0, ["."] = 0 }
     f:write(string.format("x0=%d y0=%d x1=%d y1=%d\n", x0, y0, x1, y1))
     for y = y0, y1 do
@@ -2794,6 +2802,11 @@ local function einzelbefehl(cmd)
     -- Rotkaeppchen sitzt in diesem Mod auf dem Vanilla-Platz "rat" = aiType 0.
     local ki    = tonumber(cmd.ki) or 1
     local anzKI = tonumber(cmd.gegner) or 2
+    -- 19.10.2026 (Selfaware 1v1, Daniel: "Start angleichen - gleiche Waren, gleiches Gold, gleiche Starttruppen"):
+    -- { "menschen": N } - Plaetze 1..N sind Menschen (Mensch-Eintrag 1, keine KI, je eigene Mannschaft); die KI-Gegner
+    -- folgen auf den Plaetzen N+1.. Gemessen vorher: ein KI-Platz, dessen KI im Gefecht abgeschaltet wird, behaelt den
+    -- KI-Start (150 Gold statt Start-Nahrung, Nomaden-Truppen, eigene Burgvariante).
+    local menschen = math.max(1, math.min(8, tonumber(cmd.menschen) or 1))
 
     setupLobby(GSS)
     core.writeInteger(0x0191DEF8, 1)                  -- isHost
@@ -2826,13 +2839,19 @@ local function einzelbefehl(cmd)
     -- ein Vergleich mit 0xFFFFFFFF greift also nie (Betriebsregel 4). Zweimal
     -- setzen schadet nicht, einmal zu wenig kostet den ganzen Lauf.
     core.writeInteger(fullID + 4, 1)                  -- Slot 1 = der Mensch
+    for slot = 2, menschen do                         -- 19.10.: weitere Menschen (1v1 Selfaware)
+      core.writeInteger(fullID + slot * 4, 1)
+      for i, c in ipairs({83, 101, 108, 102, 97, 119, 97, 114, 101, 48 + slot, 0}) do   -- "Selfaware<N>"
+        core.writeByte(namen + slot * 250 + (i - 1), c)
+      end
+    end
     core.writeInteger(0x01A275DC, 1)                  -- currentPlayerSlotID
     log(INFO, string.format("GEFECHT: Mensch in Slot 1 (steht jetzt: %s)",
       tostring(core.readInteger(fullID + 4))))
 
     for i = 0, 8 do core.writeInteger(bereit + i*4, 1) end
 
-    for slot = 2, 1 + anzKI do
+    for slot = 1 + menschen, menschen + anzKI do
       core.writeInteger(aiArr + slot*4, ki)
       resetAiVar(slot)
     end
@@ -2846,8 +2865,10 @@ local function einzelbefehl(cmd)
       local wert = 0xFF
       if i == 1 then
         wert = 0                                   -- der Mensch
-      elseif i >= 2 and i <= 1 + anzKI then
-        wert = teams and (tonumber(teams[i - 1]) or (i - 1)) or (i - 1)
+      elseif i >= 2 and i <= menschen then
+        wert = i - 1                               -- 19.10.: weiterer Mensch, eigene Mannschaft
+      elseif i > menschen and i <= menschen + anzKI then
+        wert = teams and (tonumber(teams[i - menschen]) or (i - 1)) or (i - 1)
       end
       core.writeByte(gruppe + i, wert)
     end
@@ -2883,7 +2904,7 @@ local function einzelbefehl(cmd)
       for slot = 2, 1 + anzKI do core.writeInteger(aiVar + slot * 4, tonumber(var[slot - 1]) or 0) end
       log(INFO, "GEFECHT: Selbstspiel-Aufbau (kein Mensch, feste Startplaetze) nach Lobby-Messung 30.09.")
     else
-      for slot = 1, 1 + anzKI do platziereZuf(slot) end
+      for slot = 1, menschen + anzKI do platziereZuf(slot) end
       -- 05.10.2026 (Daniel 22:52 "starte bei Tick 0"): feste Startplaetze auch mit Mensch, sonst Zufall. Gemessen im
       -- Startstand M19: playerPositionsArray = 0, 1, 246... (Mensch Platz 0, Rotkaeppchen Platz 1).
       if type(cmd.startliste) == "table" then
@@ -2990,7 +3011,7 @@ local function einzelbefehl(cmd)
     local lies, char, concat = core.readInteger, string.char, table.concat
     local summe = 0
     for _, b in ipairs(bereiche) do
-      local pfad = string.format("ucp/villagestudio/abzug/%s_t%d_%s.bin", name, t, b[1])
+      local pfad = abzugPfad(string.format("%s_t%d_%s.bin", name, t, b[1]))
       local f = io.open(pfad, "wb")
       if not f then
         log(WARNING, "ABZUG: nicht schreibbar: " .. pfad)

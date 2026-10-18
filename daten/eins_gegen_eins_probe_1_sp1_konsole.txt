@@ -1,0 +1,24 @@
+CODE-KENNUNG b3c289b7 (38 Dateien: ablaufanalyse.py 044bf9, assassinen.py 8d6d4d, aufbau_planer.py e47d65, auftragsbuch.py 0c17ed, bauen.py 653eba, bedrohung.py 5585cf, befehl.py 8e3abc, bierkette.py 619398, bilanz.py 33d335, brotbau.py 9c91ec, eroeffnung.py 52e1ce, erstes_spiel.py add5c4, ertrag_startwerte_M19.json c8d390, ertragsplaner.py 8165ae, farmen_mischen.py 39fea3, feldzug.py 411e71, gefecht.py 3f2be6, gegner_pruefen.py ffc108, haushalt.py 989720, karten_holen.py 8404ce, kausal.py ddff05, kennung.py c1d186, laden.py f8c499, lageprotokoll.py a81b4c, logik.lua ebfa4d, lordschutz.py 5815d5, nahrungsmodell.py 462245, nahrungswahl.py 98a294, schussfeld.py b61ca8, serie.py 665cfa, sicht.py ab4e56, speichern.py 00a42e, steuerkarte.py 57bd5a, stillstand.py e33c6a, waechter.py 7bef36, wegkarte.py 29ee1f, wirtschaft.py 096ca6, zielwaechter.py 63a435)
+START-BEFEHL Instanz 1: python erstes_spiel.py leere_ki=nein experiment=ja regel50=ja minuten=40 tempo=100 bis_tick=4000 ziel_tick=80000 streitkolben=30 weg=feldzug produktion=ja bier=ja abriss=nein assassinen=20 aufloesen=ende b_versatz=600 bevoelkerung_ziel=90 einzelkauf=nein entscheider=kausal gegner=1 gegner_ki=7 gute_dinge=0 haushalt_rand=650 holz_kaufen=ja holz_spam=20 holzfaeller_je_baum=4 holzfaeller_max=30 holzfaeller_vorab=4 huetten_voraus=nein je_arbeiter=ja joch_nach_stein=ja "karte=Green Haven" kasse=nein kasse_grenze=0 kasse_stufe=11 nahrung_ausbau=nein notwerbung=ja penner=20 plaetze=4,3 rationen=doppelt schub=nein stein_max=nein stein_parallel=ja steinbruch_zuerst=nein steuer_ende=nein steuer_runter=90 umzug=frueh v14=nein vollbeschaeftigung=ja wachstum_boden=9500 waechter=ja stopp_tote=0 eins_gegen_eins=ja
+Traceback (most recent call last):
+  File "C:\Users\danie\SHC-Modding\Selfaware-AI\werkzeug\erstes_spiel.py", line 3089, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\danie\SHC-Modding\Selfaware-AI\werkzeug\erstes_spiel.py", line 3051, in main
+    w_n = nahrungswahl.waehle(kurz, plan, bev_ziel=BEV_ZIEL or 90,
+                              ration=RATIONEN if RATIONEN in nahrungswahl.VERBRAUCH else "doppelt",
+                              horizont=int(arg.get("bis_tick", 16000)))
+  File "C:\Users\danie\SHC-Modding\Selfaware-AI\werkzeug\nahrungswahl.py", line 199, in waehle
+    frueh, spaet, opts = alle(ration)
+                         ~~~~^^^^^^^^
+  File "C:\Users\danie\SHC-Modding\Selfaware-AI\werkzeug\nahrungswahl.py", line 194, in alle
+    f, s, oo = rechne(r_frueh, ort)
+               ~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\danie\SHC-Modding\Selfaware-AI\werkzeug\nahrungswahl.py", line 163, in rechne
+    frueh, spaet = bedarf(r_frueh, 0, t_brot), bedarf(ration, t_brot, horizont)
+                                               ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\SHC-Modding\Selfaware-AI\werkzeug\nahrungswahl.py", line 148, in <lambda>
+    bedarf = lambda r, a, b: max(leute(t, bev_ziel) * VERBRAUCH[r] for t in range(a, b + 1, 500))
+                             ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: max() iterable argument is empty
+RUECKGABE 1

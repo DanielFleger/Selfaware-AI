@@ -23,17 +23,36 @@ from steuerkarte import laufe, tick, spielzustand
 from bauen import NACH_TYP, gebaeude_von, vorrat, baue_irgendwo
 from waechter import Waechter, lies_lagebild, lies_gebaeude
 from assassinen import Angriffstrupp, Einzeln
-from befehl import sende, neue_id, ABZUG, INSTANZ
+from befehl import sende, neue_id, ABZUG, INSTANZ, SPIELER, PARTNER
 from wirtschaft import Wirtschaft, apfel_gruppen
 from ertragsplaner import Ertragsplaner
 
 HIER = os.path.dirname(os.path.abspath(__file__))
 D = os.path.join(HIER, "..", "daten")
-SP = 1
+SP = SPIELER         # 19.10. (1v1): SHC_SPIELER waehlt den Spieler dieses Lenkers, sonst 1
 PD = 0x0115BDF8 + SP * 0x39F4
 ARBEITER_JE = {3: 1, 32: 1, 30: 1, 31: 1, 33: 1, 20: 3, 4: 1, 5: 2, 7: 1, 6: 1, 16: 1, 13: 1}   # Betrieb -> Arbeiter (Steinbruch 3, Mine 2: Annahme)
 LAGERWAREN = ("holz", "hopfen", "stein", "eisen", "pech", "weizen", "mehl")
-LOG = os.path.join(D, "erstes_spiel_log%s.txt" % ("" if INSTANZ == 1 else INSTANZ))   # je Instanz ein Protokoll
+LOG = os.path.join(D, "erstes_spiel_log%s%s.txt" % ("" if INSTANZ == 1 else INSTANZ, "" if SP == 1 else "_sp%d" % SP))   # je Instanz (und Spieler) ein Protokoll
+# 19.10. (Daniel: "1v1 Selfaware gegen sich selbst", "Start angleichen: gleiche Waren, gleiches Gold, gleiche Starttruppen"):
+# eins_gegen_eins=ja (Lenker von Spieler 1): Gefecht mit startpause 1, die KI der Gegner-Plaetze sofort aus (currentAIArray,
+# PlayerData.aiType, Mensch-Eintrag), bis ANGLEICH_TICK laufen lassen (die Startwaren treffen bis ~Tick 600 ein, gemessen),
+# dann angleichen (Waren und Gold wie Spieler 1, Truppen je Art auf den groesseren Bestand) und pausiert warten, bis der
+# Lenker von Spieler 2 (anhaengen=ja, SHC_SPIELER=2) bereit ist - erst dann laufen beide gleichzeitig los.
+PROZESS_START = time.time()     # 19.10. (1v1): Signale aelter als dieser Lenker gelten nicht (alte Dateien eines frueheren Laufs)
+
+
+def signal_da(datei):
+    return os.path.exists(datei) and os.path.getmtime(datei) >= PROZESS_START - 1
+
+
+EINS_GEGEN_EINS, ANHAENGEN, ANGLEICH_TICK = False, False, 150   # 150: beide Lords stehen (mit zwei Menschen ist der Start gleich)
+BARRIERE_START = os.path.join(HIER, ".eins_gegen_eins_start%s.json" % ("" if INSTANZ == 1 else INSTANZ))
+BARRIERE_BEREIT = os.path.join(HIER, ".eins_gegen_eins_bereit%s.json" % ("" if INSTANZ == 1 else INSTANZ))
+WARE_NR = {"Holz": 2, "Hopfen": 3, "Stein": 4, "Eisen": 6, "Pech": 7, "Weizen": 9, "Brot": 10, "Kaese": 11, "Fleisch": 12,
+           "Apfel": 13, "Bier": 14, "Gold": 15, "Mehl": 16, "Bogen": 17, "Armbrust": 18, "Speer": 19, "Pike": 20, "Keule": 21,
+           "Schwert": 22, "Leder": 23, "Ruestung": 24}     # abgelesen logik.lua (vorrat)
+TRUPPEN_ARTEN = {22, 23, 24, 25, 26, 27, 28, 29, 30, 70, 71, 72, 73, 74, 75, 76}
 
 def s32(v): return v - 0x100000000 if v > 0x7FFFFFFF else v
 
@@ -100,7 +119,16 @@ def gefecht_starten(tempo):
     befehl({"tempo": tempo}, 1.0, bis="TEMPO")
     kanal.sende({"player": SP, "pause": False}, 0.5)
     saat = saat_laden()
-    zeilen = kanal.sende(dict(LIGA_GEFECHT, **({"saat": saat} if saat else {})), 4, bis="LaunchSkirmishGame zurueck")
+    if EINS_GEGEN_EINS:
+        for f_ in (BARRIERE_START, BARRIERE_BEREIT):
+            if os.path.exists(f_):
+                os.remove(f_)
+    # 19.10. (1v1): zwei menschliche Plaetze, keine KI (gleicher Start fuer beide, logik.lua "menschen")
+    zeilen = kanal.sende(dict(LIGA_GEFECHT, **({"saat": saat} if saat else {}),
+                              **({"startpause": 1, "gegner": 0, "menschen": 1 + GEGNER_ZAHL} if EINS_GEGEN_EINS else {})),
+                         4, bis="LaunchSkirmishGame zurueck")
+    if EINS_GEGEN_EINS:
+        ki_aus()
     gelesen = saat_lesen(zeilen)
     if saat:
         schreib("SAAT fest aus %s (Modul meldet %s)" % (os.path.basename(SAAT_DATEI), gelesen))
@@ -144,7 +172,108 @@ def gefecht_starten(tempo):
             "Spieler %d Gold %d" % (s, s32(peek(0x0115BDF8 + s * 0x39F4 + 0x50C)[0])) for s in spieler)))
     except Exception as ex:
         schreib("STARTGUETER nicht gelesen: %s" % ex)
+    if EINS_GEGEN_EINS:
+        t_lords = eins_gegen_eins_start()
     return t_lords
+
+
+def ki_aus():
+    """19.10. (1v1): sobald das Gefecht steht (startpause 1), die KI aller Gegner-Plaetze aus - gemessen: currentAIArray[sp] = 0
+    und Mensch-Eintrag 1 -> der Platz baut nichts mehr, die Partie laeuft weiter; PlayerData.aiType = 0 dazu."""
+    t0 = time.time()
+    while time.time() - t0 < 20 and tick() < 1:
+        time.sleep(0.05)
+    befehl({"pause": True}, 0.5)
+    for sp in range(2, 2 + GEGNER_ZAHL):
+        for adr, wert in ((0x0191DE7C + sp * 4, 0), (0x0115BDF8 + sp * 0x39F4 + 0x2300, 0), (0x0191DE10 + sp * 4, 1)):
+            befehl({"poke": adr, "wert": wert}, 1.0, bis="POKE")
+    schreib("1v1: KI der Plaetze %s bei Tick %d aus (currentAIArray, aiType, Mensch-Eintrag)" % (
+        list(range(2, 2 + GEGNER_ZAHL)), tick()))
+    befehl({"pause": False}, 0.5)
+
+
+def angleichen():
+    """19.10. (1v1, Daniel: gleiche Waren, gleiches Gold, gleiche Starttruppen): Waren und Gold der anderen Spieler = Spieler 1
+    (gemessen: der Nomaden-Platz bekam 150 Start-Gold, Spieler 1 0); Truppen je Art auf den groesseren Bestand ergaenzt
+    (gemessen: Spieler 1 5 Bogen, Spieler 2 8 Armbrust - Wegnehmen geht nicht: Leben 0 toetet nicht), neben dem Lord."""
+    def vorrat_von(sp):
+        z = " ".join(befehl({"vorrat": sp}, 1.0, bis="VORRAT"))
+        teil = z.split("VORRAT")[-1].split("QUITTUNG")[0]
+        return {k: int(v) for k, v in re.findall(r"(\w+)=(-?\d+)", teil) if k in WARE_NR}
+    alle = list(range(1, 2 + GEGNER_ZAHL))
+    v1 = vorrat_von(1)
+    for sp in alle[1:]:
+        v = vorrat_von(sp)
+        for name, m in v1.items():
+            if v.get(name) != m:
+                befehl({"player": sp, "ware": {"typ": WARE_NR[name], "menge": m}}, 1.0, bis="WARE")
+    _, L_, _ = runde_lesen()      # (Status, Lagebild, Gebaeude)
+    zahl = {sp: {} for sp in alle}
+    for e in L_.values():
+        if e["besitzer"] in zahl and e["typ"] in TRUPPEN_ARTEN:
+            zahl[e["besitzer"]][e["typ"]] = zahl[e["besitzer"]].get(e["typ"], 0) + 1
+    lords_ = {sp: (x, y) for sp, x, y in lords()}
+    gesetzt = []
+    for typ in sorted({t_ for z_ in zahl.values() for t_ in z_}):
+        ziel = max(z_.get(typ, 0) for z_ in zahl.values())
+        for sp in alle:
+            fehlt = ziel - zahl[sp].get(typ, 0)
+            if fehlt > 0 and sp in lords_:
+                x, y = lords_[sp]
+                befehl({"setzeEinheit": {"spieler": sp, "typ": typ, "x": x + 2, "y": y + 2, "anzahl": fehlt}}, 1.0, bis="SETZE EINHEIT")
+                gesetzt.append("Spieler %d +%d Typ %d" % (sp, fehlt, typ))
+    nachher = {sp: vorrat_von(sp) for sp in alle}
+    schreib("1v1 ANGEGLICHEN bei Tick %d: Waren %s; Truppen vorher %s, ergaenzt %s" % (
+        tick(), "; ".join("Spieler %d %s" % (sp, {k: v for k, v in nachher[sp].items() if v}) for sp in alle),
+        {sp: z_ for sp, z_ in zahl.items()}, gesetzt or "nichts"))
+
+
+def eins_gegen_eins_start():
+    """19.10. (1v1): bis ANGLEICH_TICK laufen lassen, pausieren, angleichen, Startsignal fuer den Lenker von Spieler 2 und
+    pausiert warten, bis er bereit ist (hoechstens 10 Minuten) - dann laufen beide gleichzeitig los."""
+    import json as _j
+    import befehl as kanal
+    warte_bis(lambda: tick() >= ANGLEICH_TICK, "Tick %d (Startwaren vollstaendig)" % ANGLEICH_TICK, 300)
+    befehl({"pause": True}, 0.5)
+    angleichen()
+    _j.dump({"pid": os.getpid(), "tick": tick(), "zeit": time.time()}, open(BARRIERE_START, "w"))
+    schreib("1v1: Startsignal bei Tick %d - warte pausiert auf den Lenker von Spieler 2 (%s)" % (tick(), BARRIERE_BEREIT))
+    t0 = time.time()
+    while not signal_da(BARRIERE_BEREIT):
+        if time.time() - t0 > 600:
+            raise SystemExit("1v1: Lenker von Spieler 2 nach 10 Minuten nicht bereit")
+        kanal.belege()
+        time.sleep(0.5)
+    befehl({"pause": False}, 0.5)
+    t = tick()
+    schreib("1v1: Spieler 2 bereit - beide laufen los bei Tick %d" % t)
+    return t
+
+
+def anhaengen():
+    """19.10. (1v1, Lenker von Spieler 2): an die laufende Partie anhaengen statt ein Gefecht zu starten - warten auf das
+    Startsignal des Lenkers von Spieler 1 (nach dem Angleichen), pruefen, Bereitschaft melden, warten bis das Spiel laeuft."""
+    import json as _j
+    schreib("1v1: Spieler %d wartet auf das Startsignal (%s)" % (SP, BARRIERE_START))
+    t0 = time.time()
+    while not signal_da(BARRIERE_START):
+        if time.time() - t0 > 900:
+            raise SystemExit("1v1: kein Startsignal nach 15 Minuten")
+        time.sleep(0.5)
+    signal = _j.load(open(BARRIERE_START))
+    zustand = partie_pruefen()
+    eigener = [(x, y) for sp, x, y in lords() if sp == SP]
+    if not eigener or max(abs(eigener[0][0] - BERGFRIED[0]), abs(eigener[0][1] - BERGFRIED[1])) > 8:
+        raise SystemExit("STARTPLATZ FALSCH: Lord von Spieler %d bei %s, Plan erwartet den Bergfried-Eingang %s" % (SP, eigener, BERGFRIED))
+    _j.dump({"pid": os.getpid(), "tick": tick(), "zeit": time.time()}, open(BARRIERE_BEREIT, "w"))
+    schreib("1v1: Spieler %d angehaengt (Startsignal %s), Lord bei %s, %s - bereit" % (SP, signal, eigener[0], zustand))
+    t1 = tick()
+    if warte_bis(lambda: tick() > t1, "Spiel laeuft wieder (Spieler 1 gibt frei)", 30, pflicht=False) is None:
+        # 19.10. (1v1-Probe 2): Spieler 1 laeuft schon (Neustart von Spieler 2 nach einem Absturz, der das Spiel anhielt)
+        schreib("1v1: Spiel steht weiter - Spieler %d setzt es selbst fort" % SP)
+        befehl({"pause": False}, 0.5)
+        warte_bis(lambda: tick() > t1, "Spiel laeuft wieder", 60)
+    return tick()
 
 def freier_platz(typ, mitte, r, frei_von=()):
     """Erster freier Bauplatz laut Platzsuche des Spiels, der keines der Rechtecke in frei_von [(Ort, Groesse)]
@@ -166,6 +295,9 @@ def phase1(plan, tempo, mit_posten=True):
     # 11.10. (Nomade, Instanz 4): manche Starts ohne Gegner-Lord (Burgvariante) oder auf dem anderen Startplatz - dann
     # neu wuerfeln statt den Lauf zu verlieren; andere Fehler bleiben harte Abbrueche
     for versuch in range(1, 6):
+        if ANHAENGEN:
+            anhaengen()
+            break
         try:
             gefecht_starten(tempo)
             break
@@ -2002,8 +2134,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 if getoetet[SP] <= 0 and all(getoetet[sp] > 0 for sp in feinde):
                     schreib("SIEG bei Tick %d: %s" % (st["t"], ", ".join("Lord von Spieler %d getoetet durch Spieler %d" % (
                         sp, getoetet[sp]) for sp in feinde))); break
-                if getoetet[1] > 0:
-                    schreib("NIEDERLAGE bei Tick %d: unser Lord getoetet durch Spieler %d" % (st["t"], getoetet[1])); break
+                if getoetet[SP] > 0:     # 19.10. (1v1): unser Lord = Spieler SP (vorher fest Spieler 1)
+                    schreib("NIEDERLAGE bei Tick %d: unser Lord getoetet durch Spieler %d" % (st["t"], getoetet[SP])); break
             schreib("ABBRUCH - Testbedingung weg: %s" % {k: st.get(k) for k in ("ansicht", "over", "pause", "t")}); break
         if letzter_tick is not None and st["t"] - letzter_tick > 400:
             schreib("WARNUNG: Runde dauerte %d Ticks (%d -> %d) - Waechter war so lange blind; Zeit der Runde davor: %s" % (
@@ -2782,7 +2914,15 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     ausbau.sichern(os.path.join(D, "ertrag_gelernt_%s_i%d.json" % (time.strftime("%Y%m%d_%H%M%S"), INSTANZ)))
 
 def main():
+    global EINS_GEGEN_EINS, ANHAENGEN, ANGLEICH_TICK      # 19.10. (1v1) - vor jeder Verwendung in main
     arg = dict(a.split("=") for a in sys.argv[1:])
+    EINS_GEGEN_EINS = arg.get("eins_gegen_eins", "nein") == "ja"
+    ANHAENGEN = arg.get("anhaengen", "nein") == "ja"
+    ANGLEICH_TICK = int(arg.get("angleich_tick", ANGLEICH_TICK))
+    if (EINS_GEGEN_EINS or ANHAENGEN) and not PARTNER:
+        raise SystemExit("1v1 braucht SHC_PARTNER=ja (zwei Lenker teilen sich den Kanal)")
+    if ANHAENGEN and SP == 1:
+        raise SystemExit("anhaengen=ja ist fuer den Lenker von Spieler 2 (SHC_SPIELER=2)")
     import kennung                    # Daniel 20:46: sofort sehen, welcher Code-Stand diese Partie spielt
     schreib(kennung.zeile())
     # Daniel 17.10.: der Laptop musste den Startbefehl von 1017a-g raten (Karte, Gegner, Schalter) - jede Partie nennt ihn
@@ -2812,6 +2952,26 @@ def main():
     KH.GEFECHT_EXTRA = dict(gegner=GEGNER_ZAHL, **({"startliste": (startliste + [246] * 8)[:8]} if startliste else {}))
     if GEGNER_ZAHL > 1 and arg.get("verbuendet", "ja") == "ja":
         KH.GEFECHT_EXTRA["teams"] = [1] * GEGNER_ZAHL     # alle Gegner in einer Mannschaft gegen uns (Mannschaft 0)
+    if EINS_GEGEN_EINS or ANHAENGEN:
+        # 19.10. (1v1): eigene Kurznamen - beide Plaetze werden in einem Gefecht mit zwei Menschen live vermessen
+        kurz += "_1v1"
+    if EINS_GEGEN_EINS:
+        gegen = KH.kurz_von(karte) + "_pl" + "-".join(map(str, list(reversed(plaetze or [])))) + "_1v1"
+        if not all(os.path.exists(os.path.join(D, "start_%s.json" % k)) for k in (kurz, gegen)):
+            schreib("1v1: vermesse beide Plaetze in einem eigenen Gefecht mit zwei Menschen (%s, %s)" % (kurz, gegen))
+            KH.eins_gegen_eins_vorbereiten(karte, (startliste + [246] * 8)[:8], [(1, kurz), (2, gegen)])
+    if ANHAENGEN:
+        # 19.10. (1v1): Spieler 2 wartet, bis der Lenker von Spieler 1 die Plaetze vermessen, das Gefecht gestartet und
+        # pausiert hat; fehlt die Vermessung trotzdem, vermisst er seinen Platz selbst live
+        schreib("1v1: Spieler %d wartet auf das Startsignal zur Vermessung (%s)" % (SP, BARRIERE_START))
+        t0_ = time.time()
+        while not signal_da(BARRIERE_START):
+            if time.time() - t0_ > 900:
+                raise SystemExit("1v1: kein Startsignal nach 15 Minuten")
+            time.sleep(0.5)
+        if not os.path.exists(os.path.join(D, "start_%s.json" % kurz)):
+            schreib("1v1: vermesse den Platz von Spieler %d live -> start_%s.json" % (SP, kurz))
+            KH.vermessen_live(kurz, SP)
     if not os.path.exists(os.path.join(D, "start_%s.json" % kurz)):
         schreib("KARTE %s unbekannt - einmalige Vermessung in eigenem Gefecht (vor der Partie)" % karte)
         KH.vermessen("gefecht:" + karte, kurz)
@@ -2819,6 +2979,10 @@ def main():
     if not os.path.exists(datei):
         import eroeffnung
         p_neu = eroeffnung.plane(K=14, A=6, start=kurz)      # K/A wie der M19-Plan (14 Holzfaeller, 6 Plantagen)
+        if "fehler" in p_neu and "Apfelplantagen" in str(p_neu["fehler"]):
+            # 19.10. (1v1, Green Haven Platz 3: "keine 6 Apfelplantagen") - mit 4 Plantagen statt Abbruch
+            schreib("Eroeffnungsplan %s: %s - neu mit 4 Apfelplantagen" % (kurz, p_neu["fehler"]))
+            p_neu = eroeffnung.plane(K=14, A=4, start=kurz)
         if "fehler" in p_neu:
             raise SystemExit("EROEFFNUNGSPLAN %s: %s" % (kurz, p_neu["fehler"]))
         p_neu["karte"] = karte

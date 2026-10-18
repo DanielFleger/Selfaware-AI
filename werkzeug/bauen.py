@@ -82,7 +82,8 @@ def platzkarte(typ, x0, y0, x1, y1, ziel, sp=1, hoechstens=900):
             f.seek(vorher)
             m = re.search(r"PLATZKARTE .*?: (\d+) von (\d+) gehen", f.read())
         if m:
-            shutil.copy(os.path.join(SPIEL, "ucp", "villagestudio", "abzug", "platzkarte.txt"), ziel)
+            from befehl import ABZUG     # 19.10. (1v1): Abzug je Spieler (abzug_sp<N>)
+            shutil.copy(os.path.join(ABZUG, "platzkarte.txt"), ziel)
             return int(m.group(1)), int(m.group(2)), round(time.time() - t0, 1)
         time.sleep(1.0)
     raise RuntimeError("platzkarte: keine Fertig-Zeile nach %d s" % hoechstens)

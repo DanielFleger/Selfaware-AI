@@ -31,8 +31,20 @@ if not os.path.isdir(SPIEL):
 _ENDUNG = "" if INSTANZ == 1 else str(INSTANZ)
 BEFEHL = os.path.join(SPIEL, "ucp", "villagestudio", "befehl.json")
 LOG    = os.path.join(SPIEL, "ucp3.log")
-ABZUG  = os.path.join(SPIEL, "ucp", "villagestudio", "abzug")
+# 19.10.2026 (1v1, Selfaware gegen sich selbst): SHC_SPIELER waehlt den Spieler dieses Prozesses - jeder Befehl traegt dann
+# "player" = SPIELER (das Modul stellt den Platz je Befehl um, logik.lua 19.10.), Abzuege (Lagebild, Gebaeude, Karten)
+# kommen in einen eigenen Ordner abzug_sp<N>. SHC_PARTNER=ja: zwei Lenker teilen sich den Kanal - statt der Sperre fuer
+# den ganzen Lauf eine kurze Sperre je Befehl (Schreiben bis zur eigenen Quittung).
+_SP = os.environ.get("SHC_SPIELER", "").strip() or "1"
+if not _SP.isdigit() or not 1 <= int(_SP) <= 8:
+    raise RuntimeError("SHC_SPIELER=%r ist keine Spielernummer (1-8)" % _SP)
+SPIELER = int(_SP)
+PARTNER = os.environ.get("SHC_PARTNER", "").strip().lower() in ("ja", "1", "true")
+ABZUG  = os.path.join(SPIEL, "ucp", "villagestudio", "abzug" if SPIELER == 1 else "abzug_sp%d" % SPIELER)
+if SPIELER != 1:
+    os.makedirs(ABZUG, exist_ok=True)      # das Modul legt keine Ordner an
 MERKER = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".letzte_id" + _ENDUNG)
+SENDE  = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".sende" + _ENDUNG)   # Sperre je Befehl (PARTNER)
 
 
 def neue_id():
@@ -63,8 +75,9 @@ LAUF = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".lauf" + _ENDUN
 
 def belege():
     """Der Lenker meldet sich als Besitzer des Kanals (je Runde aufrufen). 05.10.: eine Nebenabfrage aus einem zweiten
-    Prozess lief mitten in Partie 9f in den Kanal - zwei Schreiber auf befehl.json verlieren Befehle."""
-    io.open(LAUF, "w").write(str(os.getpid()))
+    Prozess lief mitten in Partie 9f in den Kanal - zwei Schreiber auf befehl.json verlieren Befehle. 19.10.: mit PARTNER
+    "<pid> partner" - ein zweiter Lenker mit PARTNER darf dann mitsenden (Sperre je Befehl, _sperren)."""
+    io.open(LAUF, "w").write(str(os.getpid()) + (" partner" if PARTNER else ""))
 
 def freigeben():
     try:
@@ -79,8 +92,51 @@ def _kanal_frei():
         alter = time.time() - os.path.getmtime(LAUF)
     except OSError:
         return
-    if pid != str(os.getpid()) and alter < 15:
+    if PARTNER and pid.endswith(" partner"):
+        return                                 # 19.10.: zwei Lenker im 1v1 - die Sperre je Befehl regelt den Zugriff
+    if pid.split()[0] != str(os.getpid()) and alter < 15:
         raise RuntimeError("KANAL BELEGT: ein Lauf (Prozess %s) benutzt den Befehlskanal von Instanz %d gerade (vor %.0f s gemeldet)" % (pid, INSTANZ, alter))
+
+def _sperren():
+    """19.10. (PARTNER): exklusive Sperrdatei je Befehl - verwaist (aelter als 8 s) wird sie entfernt."""
+    ende = time.time() + 30
+    while True:
+        try:
+            fd = os.open(SENDE, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.write(fd, str(os.getpid()).encode())
+            os.close(fd)
+            return
+        except (FileExistsError, PermissionError):
+            # 19.10. (1v1-Probe 2): unter Windows meldet O_EXCL "Zugriff verweigert", solange der andere Prozess die Datei
+            # gerade loescht - das heisst dasselbe wie "belegt"
+            try:
+                if time.time() - os.path.getmtime(SENDE) > 8:
+                    os.remove(SENDE)
+            except OSError:
+                pass
+            if time.time() > ende:
+                raise RuntimeError("SENDESPERRE: %s seit 30 s belegt" % SENDE)
+            time.sleep(0.005)
+
+
+def _entsperren():
+    try:
+        os.remove(SENDE)
+    except OSError:
+        pass
+
+
+def _als_spieler(befehl):
+    """19.10.: jeder Befehl (und jeder Eintrag einer Befehlsliste) mit "player" wirkt fuer SPIELER."""
+    if SPIELER == 1:
+        return befehl
+    b = dict(befehl)
+    if "player" in b:
+        b["player"] = SPIELER
+    if isinstance(b.get("befehle"), list):
+        b["befehle"] = [dict(c, player=SPIELER) if isinstance(c, dict) and "player" in c else c for c in b["befehle"]]
+    return b
+
 
 def sende(befehl, warte=3.0, bis=None):
     """Schickt den Befehl (dict) und gibt die neuen Modul-Logzeilen zurueck.
@@ -94,25 +150,35 @@ def sende(befehl, warte=3.0, bis=None):
         print(m, flush=True)
     if befehl is None:
         return meld
-    befehl = dict(befehl)
+    befehl = _als_spieler(dict(befehl))
     befehl["id"] = neue_id()
-    vorher = os.path.getsize(LOG)
-    io.open(BEFEHL, "wb").write(json.dumps(befehl).encode("utf-8"))
-    if bis is None:
-        # Daniel 05.10. 23:01: "loesch das feste Zeit-Warten - Sekunden sind Killer". Die Logik quittiert jeden Befehl mit
-        # "QUITTUNG <id>" (gleicher Tick); warte ist nur noch die Notbremse, falls keine Quittung kommt (z. B. Hauptmenue).
+    if PARTNER:
+        _sperren()
+        # 19.10.: mit Partner immer auf die EIGENE Quittung warten - sonst schreibt der andere Lenker befehl.json, bevor das
+        # Modul diesen Befehl gelesen hat (die Quittung ist die letzte Zeile eines Befehls, nach allen Antwortzeilen)
         bis = "QUITTUNG %s" % befehl["id"]
-    ende = time.time() + warte
-    while time.time() < ende:
-        time.sleep(0.02)
-        if os.path.getsize(LOG) > vorher:
-            with io.open(LOG, encoding="utf-8", errors="replace") as f:
-                f.seek(vorher)
-                if bis in f.read():
-                    break
-    with io.open(LOG, encoding="utf-8", errors="replace") as f:
-        f.seek(vorher)
-        neu = f.read()
+    try:
+        vorher = os.path.getsize(LOG)
+        io.open(BEFEHL, "wb").write(json.dumps(befehl).encode("utf-8"))
+        if bis is None:
+            # Daniel 05.10. 23:01: "loesch das feste Zeit-Warten - Sekunden sind Killer". Die Logik quittiert jeden Befehl mit
+            # "QUITTUNG <id>" (gleicher Tick); warte ist nur noch die Notbremse, falls keine Quittung kommt (z. B. Hauptmenue).
+            bis = "QUITTUNG %s" % befehl["id"]
+        # 19.10. (1v1-Probe 2: "keine Antwort auf peek" - der andere Lenker hielt das Modul mit einer Karte mehrere Sekunden)
+        ende = time.time() + (max(warte, 20.0) if PARTNER else warte)
+        while time.time() < ende:
+            time.sleep(0.02)
+            if os.path.getsize(LOG) > vorher:
+                with io.open(LOG, encoding="utf-8", errors="replace") as f:
+                    f.seek(vorher)
+                    if bis in f.read():
+                        break
+        with io.open(LOG, encoding="utf-8", errors="replace") as f:
+            f.seek(vorher)
+            neu = f.read()
+    finally:
+        if PARTNER:
+            _entsperren()
     zeilen = [z.split("| ", 1)[-1].strip() for z in neu.splitlines()
               if "villagestudio" in z and "ZUSTAND" not in z]
     return pruefe(zeilen) if STRENG else zeilen

@@ -114,6 +114,63 @@ def vermessen(spielstand, kurz):
     return info
 
 
+def vermessen_live(kurz, sp):
+    """19.10. (1v1, Lenker von Spieler 2): den eigenen Platz in der LAUFENDEN Partie vermessen - kein eigenes Gefecht, kein
+    Abriss. Anlass: die Burg der KI steht auf demselben Kartenplatz anders als die eines Menschen (Green Haven Platz 3:
+    Mensch Bergfried (188,326), KI (176,300), gemessen 19.10.) - eine Vorab-Vermessung passt fuer Spieler 2 nicht.
+    Lagerkarte "lager_keins": Platzkarte des Marktes als Ersatz (siehe unten)."""
+    bf = bergfriede()
+    eigen = bf[sp]
+    befehl({"rohstoffkarte": {}}, 8.0, bis="ROHSTOFF")
+    shutil.copy(os.path.join(ABZUG, "rohstoffe.txt"), os.path.join(D, "rohstoffe_%s.txt" % kurz))
+    shutil.copy(os.path.join(ABZUG, "baeume.txt"), os.path.join(D, "baeume_%s.txt" % kurz))
+    zeilen = open(os.path.join(D, "rohstoffe_%s.txt" % kurz)).read().splitlines()[1:]
+    x0, y0, x1, y1 = 0, 0, max(len(r) for r in zeilen) - 1, len(zeilen) - 1
+    print("LIVE Bergfried Spieler %d: Anker %s, Eingang %s" % (sp, eigen["anker"], eigen["eingang"]), flush=True)
+    # Lagerkarte ohne Startlager: im laufenden Spiel nicht messbar (ein Lager muss an ein bestehendes grenzen - 16 Felder);
+    # ersatzweise die Karte des Marktes (5x5 wie das Lager, ohne Anschlusspflicht) - gemessen fuer Spieler 1 auf Green Haven:
+    # 68.236 von 69.823 Feldern der echten Karte "lager_keins" gleich (98 %), die Abweichung liegt an den Startlagern
+    for name, typ in list(KARTEN.items()) + [("lager_keins", 26)]:
+        gut, alle, sek = platzkarte(typ, x0, y0, x1, y1, os.path.join(D, "start_%s_platz_%s.txt" % (kurz, name)), sp=sp)
+        print("Platzkarte %-11s: %6d von %6d Feldern gehen (%.0f s)" % (name, gut, alle, sek), flush=True)
+    L = lies_lagebild(neu_holen=True)
+    G0 = lies_gebaeude()
+    info = {"spielstand": "live", "kurz": kurz, "spieler": sp, "bergfried_anker": eigen["anker"], "bergfried_eingang": eigen["eingang"],
+            "feind_bergfried": {str(s): v for s, v in bf.items() if s != sp},
+            "lord": [(e["x"], e["y"]) for e in L.values() if e["besitzer"] == sp and e["typ"] == 55],
+            "lager_start": sorted((g["x"], g["y"]) for g in G0.values() if g["besitzer"] == sp and g["typ"] == 10),
+            "fenster": (x0, y0, x1, y1),
+            "rehe": sorted((e["x"], e["y"]) for e in L.values() if e["typ"] == 44 and e["besitzer"] == 0)}
+    json.dump(info, open(os.path.join(D, "start_%s.json" % kurz), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print(json.dumps(info, ensure_ascii=False), flush=True)
+    return info
+
+
+def eins_gegen_eins_vorbereiten(karte, startliste, plaetze_kurz):
+    """19.10. (1v1): eigenes Gefecht mit ZWEI menschlichen Plaetzen (logik.lua "menschen": 2 - beide bekommen den Start eines
+    Menschen: gleiche Truppen, Waren, Start-Nahrung, Burgvariante; gemessen 19.10.), beide Plaetze auf DIESELBE Weise live
+    vermessen (vermessen_live). plaetze_kurz: [(Spieler, Kurzname), ...]."""
+    import time
+    import befehl as kanal
+    from serie import zuruecksetzen
+    from laden import TICK
+    print("1v1 vorbereiten - Zuruecksetzen:", zuruecksetzen(), flush=True)
+    kanal.sende({"eigenesGefecht": True, "karte": karte, "ki": 1, "gegner": 0, "menschen": 2, "ausgleich": 3,
+                 "startliste": startliste}, 4, bis="LaunchSkirmishGame zurueck")
+    befehl({"tempo": 300}, 0.5)
+    befehl({"pause": False}, 0.5)
+    t0 = time.time()
+    while time.time() - t0 < 90:
+        if len(bergfriede()) >= 2 and peek(TICK)[0] >= 150:
+            break
+        time.sleep(0.5)
+    befehl({"pause": True}, 0.5)
+    aus = {}
+    for sp, kurz in plaetze_kurz:
+        aus[sp] = vermessen_live(kurz, sp)
+    return aus
+
+
 def rehe_zaehlen(spielstand, kurz):
     """Wild zu Spielbeginn (SAI 11.10. 23:25, Daniel 23:20 "warum nicht hybrid, z.B. Rehe, besonders auf der Map mit so viel
     Reh"): Positionen aller Rehe (Typ 44, ohne Besitzer) im frischen Gefecht -> start_<kurz>.json "rehe". Die Startlage
