@@ -43,16 +43,27 @@ PARTNER = os.environ.get("SHC_PARTNER", "").strip().lower() in ("ja", "1", "true
 ABZUG  = os.path.join(SPIEL, "ucp", "villagestudio", "abzug" if SPIELER == 1 else "abzug_sp%d" % SPIELER)
 if SPIELER != 1:
     os.makedirs(ABZUG, exist_ok=True)      # das Modul legt keine Ordner an
-MERKER = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".letzte_id" + _ENDUNG)
+# 18.10. (1v1-Lauf 1018a): je Spieler ein eigener Merker - im gemeinsamen las ein Lenker die kleinere Nummer des anderen und
+# vergab eigene Nummern doppelt (Gegenprobe ids_pruefen: 5.754 doppelte von 6.000)
+MERKER = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".letzte_id" + _ENDUNG + ("" if SPIELER == 1 else "_sp%d" % SPIELER))
 SENDE  = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".sende" + _ENDUNG)   # Sperre je Befehl (PARTNER)
 
 
+_LETZTE = 0
+
+
 def neue_id():
+    """Befehlsnummer. 18.10. (1v1-Lauf 1018a): beide Lenker zaehlten im selben Merker ohne Sperre hoch - gleiche Nummern,
+    das Modul hielt den zweiten Befehl fuer "schon erledigt" und antwortete nicht (Spieler 1: Spieltakt None, Absturz).
+    Jetzt hat jeder Spieler eigene Nummern (Rest SPIELER beim Teilen durch 8, eigener Merker) - steigend und nie dieselbe."""
+    global _LETZTE
     try:
         letzte = int(io.open(MERKER).read().strip())
     except (OSError, ValueError):
         letzte = 0
-    nummer = max(int(time.time()), letzte + 1)
+    nummer = max(int(time.time()) * 8, letzte + 1, _LETZTE + 1)
+    nummer += (SPIELER - nummer) % 8
+    _LETZTE = nummer
     io.open(MERKER, "w").write(str(nummer))
     return nummer
 
