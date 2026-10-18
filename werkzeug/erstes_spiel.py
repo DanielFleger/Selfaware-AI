@@ -674,6 +674,8 @@ STOPP_TOTE = 0           # 19.10. (Daniel: "wenn 5 gestorben sind dann sofort st
 MARKE_TOTE = 5           # 19.10. (Daniel: "nur markieren, nicht stoppen"): ohne stopp_tote eine Marke bei so vielen Toten
 HEIM_FERN, HEIM_NAH = 6, 4   # 19.10.: Heimwache (Schuetzen, Nahkaempfer) - der Rest ist das Heer des Feldzugs (Stellgroessen)
 NOT_R, NOT_JE_RUNDE = 12, 2  # 19.10.: Notwerbung nur gegen Feinde so nah an unseren Gebaeuden, hoechstens so viele je Runde
+HEER_GOLD_RAND, HEER_MAX = 150, 60   # 19.10. (1019g): Soeldner fuers Heer nur mit so viel Gold ueber der Ruecklage, hoechstens so viele
+STEIN_LOS_GOLD = 120     # 19.10. (1019g): ab so viel freiem Gold Stein fuer die Kaserne kaufen (5er-Los, Kauf ~14 je Stein, L65)
 PRODUKTION = False       # 19.10. (Daniel: eigene Waffenproduktion statt nur Markt) - produktion=ja, nur mit weg=feldzug
 PRODUKTION_FENSTER = 10000   # Ticks, in denen die Kette 30 Kaempfer liefern soll (bestimmt die Zahl der Betriebe)
 BIER = False             # 19.10. (Daniel: Bierbeliebtheit - Hopfen, Brauerei, Schenke) - bier=ja, nur mit weg=feldzug
@@ -914,6 +916,11 @@ def ruestung_kaufen(st, G, wirt, ausbau, ziel, marken):
             aus.append("Waffenlager gesetzt %s (Gold %d)" % (baue_schnell(11, BERGFRIED[0] - 14, BERGFRIED[1] + 14, 25), st["gold"]))
         if not kas and st["stein"] >= 12:
             aus.append("Kaserne gesetzt %s (Gold %d)" % (baue_schnell(9, BERGFRIED[0] - 16, BERGFRIED[1] + 18, 30), st["gold"]))
+        elif not kas and st["gold"] - rl["gold"] >= STEIN_LOS_GOLD:
+            # 19.10. (1019g, Green Haven: kaum Stein auf unserer Seite, keine Kaserne - also kein einziger Streitkolben, waehrend
+            # 1.163 Gold lagen): den Stein fuer die Kaserne am Markt kaufen (5er-Los, Spielbefehl 38: kaufen = 0, Stein = 4)
+            befehl({"spielbefehl": {"nr": 38, "werte": [0, WAREN_NR["stein"]]}}, 1.0, bis="SPIELBEFEHL")
+            aus.append("Stein fuer die Kaserne gekauft (5, Stein vorher %d, Gold %d)" % (st["stein"], st["gold"]))
     if not (waf and kas) or not [n for n, g in eig.items() if g["typ"] == 26]:
         return aus
     v = vorrat(SP)
@@ -1658,6 +1665,11 @@ class Produktion:
         # schon beim ersten voll bezahlbaren Paar kommen: 50/100 passen nicht gleichzeitig in das eine Waffenlager.
         if not kas and paare >= 1 and gold >= KAEMPFER_GOLD and stein >= preis(9, "stein"):
             aus.append("PRODUKTION Kaserne %s" % (baue_schnell(9, BERGFRIED[0] - 16, BERGFRIED[1] + 18, 30),))
+        elif not kas and paare >= 1 and stein < preis(9, "stein") and gold >= STEIN_LOS_GOLD                 and st["t"] - getattr(self, "_stein_kauf", -10 ** 6) >= 100:
+            # 19.10. (1019g, Green Haven: kaum Stein, die Kaserne kam nie - ohne sie wird kein Streitkolben angeworben)
+            self._stein_kauf = st["t"]
+            befehl({"spielbefehl": {"nr": 38, "werte": [0, WAREN_NR["stein"]]}}, 1.0, bis="SPIELBEFEHL")
+            aus.append("PRODUKTION Stein fuer die Kaserne gekauft (5, Stein vorher %d von %d)" % (stein, preis(9, "stein")))
         if kas:
             werben = anwerbe_menge(self.ziel, st.get("T26", 0), v.get("keule", 0), v.get("leder", 0), feuer, gold)
             anwerbewelle(st, L, self.marken, aus, kas[0], werben)
@@ -2599,6 +2611,27 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 else:
                     ereignis += ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
                 ereignis += feldzug.schritt(st, L, G, befehl)
+                # 19.10. (1019g: das Heer blieb bei 5 Mann, Gold 1.163 lag brach; Daniel: "beim naechsten Run sollen beide
+                # Nomaden sterben"): Soeldner fuers Heer, sobald Gold ueber der Ruecklage + HEER_GOLD_RAND liegt - arab.
+                # Schwertkaempfer (Editor-Duelle: 28.000 Leben, ~180 je Takt), jeder vierte ein arab. Bogen; hoechstens 2 je
+                # Runde und bis HEER_MAX im Heer
+                posten_h = next((n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 8), None)
+                if posten_h is not None and runde % 2 == 0:
+                    import bauen as BA_h
+                    frei_h = st["gold"] - wirt.ruecklage(G)["gold"] - HEER_GOLD_RAND
+                    heer_n, n_h, feuer_h = len(feldzug.einheiten(L)), 0, st.get("feuer", 0)
+                    while n_h < 2 and heer_n + n_h < HEER_MAX and feuer_h - n_h >= 1:
+                        typ_h = 70 if (fruehpruefung.get("heer_zaehler", 0) + n_h) % 4 == 3 else 75
+                        if frei_h < SOELDNER_GOLD[typ_h]:
+                            break
+                        BA_h.werbe(typ_h, posten_h)
+                        frei_h -= SOELDNER_GOLD[typ_h]
+                        n_h += 1
+                    if n_h:
+                        fruehpruefung["heer_zaehler"] = fruehpruefung.get("heer_zaehler", 0) + n_h
+                        if fruehpruefung["heer_zaehler"] % 10 < n_h or fruehpruefung["heer_zaehler"] <= 2:
+                            ereignis.append("HEER-WERBUNG: %d Soeldner fuers Heer angeworben (zusammen %d, Heer jetzt %d), Gold %d" % (
+                                n_h, fruehpruefung["heer_zaehler"], heer_n + n_h, st["gold"]))
                 if bier is not None and runde % 5 == 0:
                     ereignis += bier.schritt(st, G, wirt.ruecklage(G))
             else:
