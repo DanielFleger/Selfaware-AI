@@ -30,6 +30,9 @@ from ertragsplaner import Ertragsplaner
 HIER = os.path.dirname(os.path.abspath(__file__))
 D = os.path.join(HIER, "..", "daten")
 SP = SPIELER         # 19.10. (1v1): SHC_SPIELER waehlt den Spieler dieses Lenkers, sonst 1
+# 18.10. (1018g: beide Lenker starteten Phase 2 in derselben Sekunde und schrieben in DIESELBE lage_..._i4.jsonl.gz):
+# Laufdateien tragen je Spieler eine eigene Endung
+LAUF_ENDUNG = "_i%d%s" % (INSTANZ, "" if SP == 1 else "_sp%d" % SP)
 PD = 0x0115BDF8 + SP * 0x39F4
 ARBEITER_JE = {3: 1, 32: 1, 30: 1, 31: 1, 33: 1, 20: 3, 4: 1, 5: 2, 7: 1, 6: 1, 16: 1, 13: 1}   # Betrieb -> Arbeiter (Steinbruch 3, Mine 2: Annahme)
 LAGERWAREN = ("holz", "hopfen", "stein", "eisen", "pech", "weizen", "mehl")
@@ -1921,7 +1924,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         # Kein Angriff: erst einen wiederholbaren Stand mit mindestens 40 gemeinsam angekommenen Assassinen sichern.
         trupp.angriff_aus = True
     if trupp is not None:   # S1 (Plan_Lord.md): was tut der Angriff auf den Lord, Runde fuer Runde
-        trupp.wellen_protokoll = os.path.join(D, "angriff_live_%s_i%d.jsonl" % (time.strftime("%Y%m%d_%H%M%S"), INSTANZ))
+        trupp.wellen_protokoll = os.path.join(D, "angriff_live_%s%s.jsonl" % (time.strftime("%Y%m%d_%H%M%S"), LAUF_ENDUNG))
     wirt = Wirtschaft(plan, SP, baue_schnell, [nr for nr, _, _ in gebaeude_von(SP, 10)])
     if not V14:
         # 12.10. 01:49 (Daniel 01:46 "hier gibt es keinen Grund, das Vorratslager nicht umzuplatzieren"; 1012i: Umzug erst bei
@@ -1947,10 +1950,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     karte_laden()        # Begehbarkeit fuer kurze Rueckzuege - jetzt, solange das Spiel noch steht
     if trupp is not None:
         trupp.gelaende = list(_KARTE)   # einmal im Angriffsprotokoll: Gelände darf als Einfluss nicht vorab verschwinden
-    lernlog = os.path.join(D, "ertrag_live_%s_i%d.jsonl" % (time.strftime("%Y%m%d_%H%M%S"), INSTANZ))   # je Instanz: Serien laufen parallel
+    lernlog = os.path.join(D, "ertrag_live_%s%s.jsonl" % (time.strftime("%Y%m%d_%H%M%S"), LAUF_ENDUNG))   # je Instanz: Serien laufen parallel
     # Daniel 22:39: jede Runde die ganze Lage (jede Einheit, jedes Gebaeude der Karte) - abfragbar mit lageprotokoll.py
     from lageprotokoll import Lageprotokoll
-    lage = Lageprotokoll(os.path.join(D, "lage_%s_i%d.jsonl.gz" % (time.strftime("%Y%m%d_%H%M%S"), INSTANZ)))
+    lage = Lageprotokoll(os.path.join(D, "lage_%s%s.jsonl.gz" % (time.strftime("%Y%m%d_%H%M%S"), LAUF_ENDUNG)))
     schreib("Lageprotokoll (jede Runde komplett): %s" % lage.pfad)
     ausbau = Ertragsplaner(plan, SP, baue_schnell, wirt, s32(peek(PD + 0x2188)[0]), ende=ZIEL_TICK, protokoll=lernlog, wegtest=wegtest)   # lernt im Spiel (Daniel 19:44)
 
@@ -3070,7 +3073,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         schreib("Wissen angehaengt: %s" % AA.wissen_anhaengen(erg))
     except Exception as ex:
         schreib("ABLAUFANALYSE fehlgeschlagen: %r" % ex)
-    ausbau.sichern(os.path.join(D, "ertrag_gelernt_%s_i%d.json" % (time.strftime("%Y%m%d_%H%M%S"), INSTANZ)))
+    ausbau.sichern(os.path.join(D, "ertrag_gelernt_%s%s.json" % (time.strftime("%Y%m%d_%H%M%S"), LAUF_ENDUNG)))
 
 def main():
     global EINS_GEGEN_EINS, ANHAENGEN, ANGLEICH_TICK      # 19.10. (1v1) - vor jeder Verwendung in main
