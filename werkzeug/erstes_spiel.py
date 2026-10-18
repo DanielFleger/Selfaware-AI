@@ -1212,6 +1212,7 @@ class Produktion:
     angeworben wird erst, wenn Zielware und Anwerbegold bereitliegen."""
     UEBERSCHUSS = 800              # Gold ueber der Ruecklage, ab dem ein fehlendes Los gekauft werden darf
     HOF_NEU = 1000                 # 19.10.: Ticks zwischen zwei Abfragen frischer Hofplaetze beim Spiel (fremde Karten)
+    WERKPLAN_PAUSE = 2000          # 19.10. (1019e, Stocken): so lange nach einem leeren Werkstattplan kein neuer Versuch
 
     def __init__(self, ziel, marken, plan_lager=None, ziel_tick=14400):
         import math
@@ -1457,7 +1458,10 @@ class Produktion:
         # Eine gemeinsame, abwechselnde Werkstattfolge verhindert den alten Fehlstart mit vielen Schmieden und null
         # Gerbern. Leder braucht laenger; deshalb kommt je Paar der Gerber zuerst. Ein einziger bestaetigter Hof reicht
         # als Weganker, auf alle Hoefe oder auf die erste Kuh wird fuer die Planung nicht gewartet.
-        if self.stufe == 0 and mitte and hoefe and len(minen) >= minenkern:
+        # 19.10. (Daniel, 1019e: "das Spiel stockt immer ein bisschen"): der Werkstattplan haelt das Spiel fuer die Wegekarte
+        # und die Planung an (~3 s) - in 1019e scheiterte er 32-mal (2 von 4 Schmieden passten) und lief jede Runde neu.
+        # Jetzt: Teilplan nehmen, sobald mindestens eine Schmiede und ein Gerber passen; sonst erst nach WERKPLAN_PAUSE wieder
+        if self.stufe == 0 and mitte and hoefe and len(minen) >= minenkern and st["t"] >= getattr(self, "werk_naechster", 0):
             lager_g = waffenlager[0] if waffenlager else None
             we = (lager_g["x"] + 2, lager_g["y"] + 4) if lager_g else None
             fehlen_s = max(0, self.schmieden - len(schmieden))
@@ -1479,9 +1483,17 @@ class Produktion:
             hat_g = sum(1 for a, _x, _y, _r, _e in plan.bauten if a == 16)
             soll_w = 0 if lager_g else 1
             if hat_w < soll_w or hat_s < fehlen_s or hat_g < fehlen_g:
-                aus.append("PRODUKTION Werkstattplan unvollstaendig: Waffenlager neu %d/%d, Schmieden neu %d/%d, Gerber neu %d/%d; %s" % (
-                    hat_w, soll_w, hat_s, fehlen_s, hat_g, fehlen_g, bericht))
-                return aus
+                genug = hat_w >= soll_w and (hat_s or not fehlen_s) and (hat_g or not fehlen_g)
+                if not genug:
+                    self.werk_naechster = st["t"] + self.WERKPLAN_PAUSE
+                    aus.append("PRODUKTION Werkstattplan unvollstaendig: Waffenlager neu %d/%d, Schmieden neu %d/%d, Gerber neu "
+                               "%d/%d - naechster Versuch ab Tick %d; %s" % (hat_w, soll_w, hat_s, fehlen_s, hat_g, fehlen_g,
+                                                                           self.werk_naechster, bericht))
+                    return aus
+                self.schmieden = len(schmieden) + hat_s
+                self.gerber = len(gerber) + hat_g
+                aus.append("PRODUKTION Werkstattplan nur teilweise (die Karte erlaubt nicht mehr): Schmieden %d, Gerber %d - genommen" % (
+                    self.schmieden, self.gerber))
             self.werk_plan, self.werk_abschnitt = list(plan.bauten), "gesamt"
             self.werkstaetten_sperren(ausbau)
             self.werk_index, self.werk_gebaut_ids, self.werk_versuche = 0, set(), 0
@@ -1489,7 +1501,7 @@ class Produktion:
             aus.append("PRODUKTION abwechselnder Werkstattplan gespeichert: %s" % [
                 (NACH_TYP[a]["name"], x, y, r) for a, x, y, r, _e in self.werk_plan])
 
-        if self.stufe == 2 and not self.werk_plan and len(hoefe) >= self.hoefe and waffenlager:
+        if self.stufe == 2 and not self.werk_plan and len(hoefe) >= self.hoefe and waffenlager                 and st["t"] >= getattr(self, "werk_naechster", 0):
             lager_g = waffenlager[0]
             we = (lager_g["x"] + 2, lager_g["y"] + 4)  # alle freigegebenen Produktionsbauten stehen in Richtung 0
             befehl({"pause": True}, 0.5)
@@ -1506,9 +1518,13 @@ class Produktion:
                 befehl({"pause": False}, 0.5)
             hat_g = sum(1 for a, _x, _y, _r, _e in plan.bauten if a == 16)
             if hat_g < fehlen_g:
-                aus.append("PRODUKTION Gerberplan unvollstaendig: Gerber neu %d/%d am vorhandenen Waffenlager; %s" % (
-                    hat_g, fehlen_g, bericht))
-                return aus
+                if not hat_g:
+                    self.werk_naechster = st["t"] + self.WERKPLAN_PAUSE
+                    aus.append("PRODUKTION Gerberplan unvollstaendig: Gerber neu %d/%d am vorhandenen Waffenlager - naechster "
+                               "Versuch ab Tick %d; %s" % (hat_g, fehlen_g, self.werk_naechster, bericht))
+                    return aus
+                self.gerber = len(gerber) + hat_g
+                aus.append("PRODUKTION Gerberplan nur teilweise (die Karte erlaubt nicht mehr): Gerber %d - genommen" % self.gerber)
             self.werk_plan, self.werk_abschnitt = list(plan.bauten), "leder"
             self.werkstaetten_sperren(ausbau)
             self.werk_index, self.werk_gebaut_ids, self.werk_versuche = 0, set(), 0

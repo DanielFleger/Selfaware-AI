@@ -320,7 +320,7 @@ class Waechter:
             if beste is None or (lohnt, anteil) > (beste[0], beste[3]):
                 beste = (lohnt, "%s: %s" % (name, text), ns, anteil)
         lohnt, text, einsatz = beste[0], beste[1], beste[2]
-        text = "Gruppe %d + %d Schuetzen am Rand; %s" % (len(gruppe), len(helfer), text)
+        text = "Gruppe %d + %d Schuetzen am Rand - %s" % (len(gruppe), len(helfer), text)
         self._wertung = (self.ziel, self.runde_w, lohnt, text, einsatz)
         return lohnt, text, einsatz
 
