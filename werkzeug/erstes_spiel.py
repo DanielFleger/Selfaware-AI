@@ -542,7 +542,7 @@ def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
         # Die vier exakten Jochplaetze sind als ganze, erreichbare Kette im Spiel bestaetigt. Der allgemeine Schutz vor
         # kuenftigen Laufspuren sperrte sie dauerhaft, weil Steinmetze genau dort vorbeilaufen; das Spiel selbst prueft
         # die aktuelle Belegung bereits und die Einheit berechnet ihren Weg nach dem Bau neu.
-        frei = platz_sauber(typ, frei, eigen=(x, y) if zweck == "B" else None)
+        frei = platz_sauber(typ, frei, eigen=(x, y) if zweck in ("B", "Kornspeicher im Ring") else None)
     if not frei:
         if BUCH is not None:
             BUCH.ablehnen(typ, (x, y), "kein Platz im Umkreis %d" % r)
@@ -594,6 +594,32 @@ def wegtest(nr, punkte):
     z = " ".join(befehl({"wegtest": {"nr": nr, "punkte": [list(p) for p in punkte]}}, 1.0, bis="WEGTEST"))
     m = re.search(r"WEGTEST \d+: ([01]*)", z)
     return [c == "1" for c in m.group(1)] if m else [False] * len(punkte)
+
+def lies_mauer(kacheln):
+    """18.10. (Kornring): Mauerbit (LogicLayer 0x01BF8368, Bit 0x100) je Kachel - Kachel = translationMatrix[y].addXgetTile
+    (0x023372F8 + y*12 + 8) + x. Zwei Befehlslisten: Zeilenanfaenge, dann Kacheln. Fehlt eine Antwort, fehlt die Kachel."""
+    def lies(adressen):
+        adressen = list(dict.fromkeys(adressen))
+        if not adressen:
+            return {}
+        z = " ".join(sende({"befehle": [{"player": 1, "id": neue_id(), "peek": a_, "worte": 1} for a_ in adressen]}, 2.0,
+                           bis="PEEK 0x%08X" % adressen[-1]))
+        aus = {}
+        for a_ in adressen:
+            m = re.search(r"PEEK 0x%08X: ([0-9A-Fa-f]+)" % a_, z)
+            if m:
+                aus[a_] = int(m.group(1), 16)
+        return aus
+    zeilen = {y: 0x023372F8 + y * 12 + 8 for y in sorted({k[1] for k in kacheln})}
+    basis = lies(zeilen.values())
+    adr = {k: 0x01BF8368 + 4 * (basis[zeilen[k[1]]] + k[0]) for k in kacheln if zeilen[k[1]] in basis}
+    werte = lies(adr.values())
+    return {k: bool(werte[a_] & 0x100) for k, a_ in adr.items() if a_ in werte}
+
+def setze_mauer(x1, y1, x2, y2, n):
+    """18.10. (Kornring): Spielbefehl 25 ClickPlaceWall wie ein Mensch - Strecke, hohe Steinmauer, Kachelzahl."""
+    import kornring as KR
+    befehl({"spielbefehl": {"nr": 25, "werte": [x1, y1, x2, y2, KR.MAUER, n]}}, 1.0, bis="SPIELBEFEHL")
 
 def lies_haltung(gruppen):
     """17.10. (L77, Daniel 09:58 "das Angreifen wird auch durch ihre Stance geaendert"): Haltung je feindlichem Trupp -
@@ -855,6 +881,7 @@ GEGNER_ERWARTET = ""     # KI-Ordnername (z.B. Nomade): Gegner beim Start gegen 
 ANGRIFF_AB = 0           # ab so vielen Streitkolbenkaempfern alle auf den feindlichen Lord (0 = nie; Nomade 11.10.)
 LORD_SCHUTZ_BIS = 9600   # Daniel 11.10. 16:41: der gegnerische Lord nimmt im ersten Spieljahr keinen Schaden
 NOTWERBUNG = False       # 12.10.: Soeldnerposten + Nachwerben bei Gegnern im eigenen Gebiet (Schalter notwerbung=ja)
+KORNRING = True          # 18.10. (Daniel: "bau den Kornspeicher ein bis auf die Ecken" wie der Nomade): kornring.py, Schalter kornring=nein
 SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # gemessen 12.10. 00:04 (L63, Ascension)
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
@@ -2125,6 +2152,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                              lambda: baue_schnell(10, wirt.lager_ort[0], wirt.lager_ort[1], 10, zweck="Stillstand"),
                              lambda: BUCH is not None and any(a["typ"] == 10 for a in BUCH.offen))
     serie, fortgesetzt, ende_grund = PT.Serie(), 0, None      # 18.10. (1v1 robust, partner.py)
+    korn = None                                                # 18.10.: Kornring (kornring.py), sobald ein Kornspeicher steht
     probe = {"fehler": FEHLERPROBE, "pause": PAUSEPROBE}
     while time.time() < ende and not os.path.exists(os.path.join(HIER, "STOP")):
         try:
@@ -2297,11 +2325,30 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         ereignis.append("NOTWERBUNG %d Einheiten gegen %d Gegner an unseren Gebaeuden (%s), Gold danach %d - %s" % (
                             n_n, len(feinde_n), ",".join(sorted({str(e["typ"]) for e in feinde_n})), gold_n, text_n))
             ereignis += still_w.schritt(st["t"], L, G, lager_stopp=getattr(wirt, "lager_stopp", False))
+            # 18.10. (Daniel: "bau den Kornspeicher ein bis auf die Ecken" wie der Nomade): Ring aus hoher Steinmauer um den
+            # ersten eigenen Kornspeicher; Flaeche (Speicher, Ring, Ecken) bleibt fuer andere Bauten frei
+            if KORNRING and korn is None:
+                eig_k = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] == SP and g["typ"] == 19]
+                if eig_k:
+                    import kornring as KR
+                    korn = KR.Kornring(min(eig_k, key=lambda q: abs(q[0] - plan["kornspeicher"][0]) + abs(q[1] - plan["kornspeicher"][1])),
+                                       lies_mauer, setze_mauer)
+                    box_k = KR.kasten(*korn.ort)
+                    RESERVIERT.append((box_k, korn.ort))
+                    ausbau.sperr = ausbau.sperr + [box_k]
+                    ereignis.append("KORNRING um den Kornspeicher %s angelegt, Flaeche %s frei gehalten" % (korn.ort, box_k))
+            if korn is not None:
+                ereignis += korn.schritt(st["t"], st.get("stein", 0))
             if speicher_nachbauen(G, BUCH.offen if BUCH is not None else [], st["t"],
                                   fruehpruefung.get("speicher_nachbau", -10 ** 6)):
                 fruehpruefung["speicher_nachbau"] = st["t"]
-                ereignis.append("KORNSPEICHER fehlt - Nachbau am Planplatz %s: %s" % (tuple(plan["kornspeicher"]), baue_schnell(
-                    19, plan["kornspeicher"][0], plan["kornspeicher"][1], 12, zweck="Kornspeicher nachbauen")))
+                ort_k = None
+                if korn is not None:     # zuerst genau in den Ring (Mauer steht schon, der Vorrat ist dort geschuetzt)
+                    ort_k = baue_schnell(19, korn.ort[0], korn.ort[1], 0, zweck="Kornspeicher im Ring")
+                    ereignis.append("KORNSPEICHER fehlt - Nachbau im Ring %s: %s" % (korn.ort, ort_k))
+                if ort_k is None:
+                    ereignis.append("KORNSPEICHER fehlt - Nachbau am Planplatz %s: %s" % (tuple(plan["kornspeicher"]), baue_schnell(
+                        19, plan["kornspeicher"][0], plan["kornspeicher"][1], 12, zweck="Kornspeicher nachbauen")))
             rueck = {}
             if jagd_bau is not None:
                 ereignis += jagd_bau.schritt(st["t"], st, L, G)
@@ -2686,6 +2733,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 # Produktion darf Stein oberhalb ihrer noch offenen Minen/Werkstaetten/Kaserne verkaufen. Das fruehere
                 # Totalverbot liess im 18-Monats-Lauf 133 Stein ungenutzt liegen, obwohl 500 Gold zum Anwerben gebraucht werden.
                 stein_reserve = (prod.stein_bedarf(G) if prod else ausbau.reserve()["stein"] + (12 if kas_fehlt else 0))
+                stein_reserve += korn.stein_bedarf() if korn is not None else 0     # 18.10.: Stein fuer den Kornring
                 v = verkaufen(st, stein_reserve,
                               ausbau.messer, holz_verkaufen=bremst, eisen_reserve=10 if prod else 0,
                               # Haushalt: Nahrung fuer doppelte Rationen behalten (2 x 0,1 je Kopf und 1.000 Ticks, gemessen 05.10.)
@@ -3119,7 +3167,8 @@ def main():
     GEGNER_ERWARTET = arg.get("gegner_erwartet", "")
     global ZUSCHAU_TEMPO
     ZUSCHAU_TEMPO = int(arg.get("zuschau_tempo", 0))
-    global NOTWERBUNG
+    global NOTWERBUNG, KORNRING
+    KORNRING = arg.get("kornring", "ja") == "ja"
     NOTWERBUNG = arg.get("notwerbung", "nein") == "ja"
     STUFE2_BELIEBT = arg.get("stufe2_beliebt", "halten")
     ANGRIFF_AB = int(arg.get("angriff_ab", 0))

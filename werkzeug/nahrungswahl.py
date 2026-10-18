@@ -123,12 +123,21 @@ def brotketten(frei, b, lager, speicher):
     return brot, baeck, arb, holz
 
 
+# 18.10. (Daniel: "bau den Kornspeicher ein bis auf die Ecken" wie der Nomade, kornring.py): um den Kornspeicher bleibt ein
+# Feld frei fuer den Mauerring - in 1018e lag an beiden Plaetzen eine Plantage darauf (3 bzw. 4 Ringkacheln)
+RING_RAND = 1
+
+
 def speicherplatz(kurz, punkt, belegt):
-    """Gueltiger Kornspeicher-Platz (Platzkarte des Spiels) naechst `punkt`, ohne Plantagen-/Farmflaeche."""
+    """Gueltiger Kornspeicher-Platz (Platzkarte des Spiels) naechst `punkt`, ohne Plantagen-/Farmflaeche - mit RING_RAND
+    Feldern Abstand fuer den Mauerring."""
     from farmen_mischen import lies_karte
     speicher = lies_karte(os.path.join(D, "start_%s_platz_speicher.txt" % kurz))
-    frei = [s for s in speicher if all(s[0] + 4 <= q[0] or q[0] + GROESSE_APFEL <= s[0] or s[1] + 4 <= q[1]
-                                       or q[1] + GROESSE_APFEL <= s[1] for q in belegt)]
+    r = RING_RAND
+    # belegt: (x, y) = Plantage/Farm (10x10) oder (x, y, Groesse) fuer andere geplante Bauten (Holzfaeller, Huetten, Lager)
+    gr = lambda q: q[2] if len(q) > 2 else GROESSE_APFEL
+    frei = [s for s in speicher if all(s[0] + 4 + r <= q[0] or q[0] + gr(q) + r <= s[0] or s[1] + 4 + r <= q[1]
+                                       or q[1] + gr(q) + r <= s[1] for q in belegt)]
     return tuple(min(frei, key=lambda s: schach((s[0] + 2, s[1] + 2), punkt))) if frei else tuple(punkt)
 
 
@@ -228,6 +237,12 @@ def waehle(kurz, plan, bev_ziel=90, ration="doppelt", horizont=16000):
         brot = dict(getreide=[list(f) for f in beste["_farmen"]], baeckereien=beste["baeckereien"],
                     ab_tick=max(0, bedarf_ab - t_brot), bedarf_ab_tick=bedarf_ab)
     belegt = [tuple(p) for p in aepfel] + [tuple(f) for f in (brot or {}).get("getreide", [])]
+    # 18.10. (Kornring): auch die festen Eroeffnungsbauten meiden - in CloseEncounters pl3-2 laege sonst ein Holzfaeller
+    # (231,300) auf dem Ring des Speichers (227,298)
+    from bauen import NACH_TYP           # Groessen aus der Bautabelle (Holzfaeller 3, Huette 4); Lagerplatz 4 Teile = 6x6
+    belegt += [(p[0], p[1], NACH_TYP[3]["b"]) for p in plan.get("holzfaeller", [])] +               [(p[0], p[1], NACH_TYP[1]["b"]) for p in plan.get("huetten", [])]
+    if plan.get("lager"):
+        belegt.append((plan["lager"][0], plan["lager"][1], 6))
     ks = list(speicherplatz(kurz, beste["_speicher"], belegt))
     grund["kornspeicher_zum_bergfried"] = schach(tuple(ks), K)
     grund["kornspeicher_zum_lager"] = schach(tuple(ks), lager)
