@@ -739,6 +739,8 @@ local aufgeschoben = {}        -- Spielbefehle eines anderen Spielers aus diesem
 local abgesetzt = false        -- befehlAbsetzen meldet: Spielbefehl eingereiht
 local PLATZ_TAKTE = 1          -- so viele Spieltakte haelt ein Spielbefehl den Platz (1 reichte: Bauen, Anwerben, Handel)
 local heimPlatz = nil          -- Platz des Menschen/Hauptspielers (Wert vor jedem Umschalten)
+local laufDirekt = false       -- {"laufDirekt": true}: Laufbefehle anderer Spieler je Einheit direkt (ohne Kletterweg) - aus,
+                               -- seit der Gruppenweg im sauberen Gefecht auch fuer Spieler 2 belegt ist (siehe unten)
 
 local function istSpielbefehl(c)
   for k in pairs(SPIELBEFEHL_ART) do if c[k] ~= nil then return true end end
@@ -1971,6 +1973,12 @@ local function einzelbefehl(cmd)
   -- 19.10.2026 (1v1, Laufbefehl 17 wirkt fuer Gruppen von Spieler 2 nicht): { "zugpruefung": { "nr": N, "x": X, "y": Y } }
   -- meldet Gruppe, Besitzer, Wegnetz-Gebiete und die Pruefungen des Spiels fuer Besitzer und Spieler 1, dann
   -- giveTribeMoveInstruction (0x005263a0) direkt mit Rueckgabewert
+  if cmd.laufDirekt ~= nil then
+    laufDirekt = cmd.laufDirekt == true
+    log(INFO, "LAUFDIREKT: " .. tostring(laufDirekt))
+    return true
+  end
+
   if cmd.zugpruefung ~= nil and type(cmd.zugpruefung) == "table" then
     local z = cmd.zugpruefung
     local nr, x, y = tonumber(z.nr) or 0, tonumber(z.x) or 0, tonumber(z.y) or 0
@@ -2099,11 +2107,12 @@ local function einzelbefehl(cmd)
         gewaehlt[n] = nr
       end
     end
-    -- 19.10.2026 (1v1): Laufbefehl 17 bewegt Gruppen eines anderen Spielers als des Menschen nicht - gemessen auf
-    -- Green Haven: Gruppe von Spieler 2 entsteht (Befehl 16, Besitzer 2, Leiteinheit richtig), giveTribeMoveInstruction
-    -- meldet 1, die Einheiten bleiben stehen; Angriff (36) und setDestinationForUnit wirken. Darum fuer andere Spieler
-    -- als heimPlatz: Laufziel je Einheit direkt (setDestinationForUnit). GRENZE: kein Kletterweg (nur 17 sucht ihn).
-    if type(a.lauf) == "table" and heimPlatz ~= nil and ich ~= heimPlatz then
+    -- 19.10.2026 (1v1): im ERSTEN Testgefecht bewegte Laufbefehl 17 Gruppen von Spieler 2 nicht (Gruppe entstand, Besitzer 2,
+    -- giveTribeMoveInstruction meldete 1); im frischen Gefecht mit sauber abgeschalteter KI (currentAIArray, aiType,
+    -- Mensch-Eintrag) liefen Bogenschuetzen, Feuerwerfer, Sklaven und Assassinen-Gruppen von Spieler 2 ueber 17 ans Ziel -
+    -- das erste Gefecht war durch Speicher-Versuche verstellt. Ersatzweg (je Einheit setDestinationForUnit, ohne
+    -- Kletterweg) bleibt abschaltbar vorhanden: {"laufDirekt": true}.
+    if laufDirekt and type(a.lauf) == "table" and heimPlatz ~= nil and ich ~= heimPlatz then
       _setDest = _setDest or core.exposeCode(ADR_SETDEST, 5, 1)
       local lx, ly, gut = tonumber(a.lauf[1]) or 0, tonumber(a.lauf[2]) or 0, 0
       for _, nr in ipairs(gewaehlt) do
