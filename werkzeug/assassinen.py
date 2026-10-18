@@ -416,6 +416,20 @@ class Einzeln:
     FLUCHT_MIN = 8            # 19.10. (1018s): Fluchtpunkte naeher als 8 Felder nur, wenn es weiter weg keinen gibt
     LOEWE_HEIM, LOEWE_GRUPPE, LOEWE_LEBEN = 25, 3, 9000      # 19.10. (1018t): Loewen am Heim gemeinsam erledigen
     LOEWE_WEG_R, LOEWE_WEG_SCHADEN = 8, 80                     # 19.10.: Loewen-Zone in der Wegplanung (wie starker Beschuss)
+    # 19.10. (1018z, alle schweren Treffer >= 1.000 Feind fuer Feind zugeordnet: 14 von 17 kamen von EINEM wandernden Trupp aus
+    # 7-9 Boegen, 1018v 7 von 10, 1018y 6 von 9; der Trupp laeuft zu angegriffenen Gebaeuden, kommt auf 16-20 Felder heran -
+    # erst dann sieht er nach L75 - und schiesst aus 20-39 Feldern, die Flucht ist zu langsam): wandernde Schuetzen (in
+    # JAEGER_ZEIT Takten mindestens JAEGER_WEG Felder gelaufen) frueh meiden - ab JAEGER_MIN, die naeher als JAEGER_R sind oder
+    # deren Laufziel naeher als JAEGER_ZIEL_R ist, gilt er als entdeckt (JAEGER), und die Wegplanung meidet den Trupp
+    JAEGER_ZEIT, JAEGER_WEG, JAEGER_MIN = 600, 8, 3
+    # Radius nachgerechnet an 1018z/y/v (jaeger_raster): 40 Felder warnen vor 18 von 23 schweren Treffern, meist 300-900 Takte
+    # vorher, und gelten in 7-9 % der Assassinen-Runden (30 Felder: 15 von 23); der Trupp zielte aus 18-39 Feldern
+    JAEGER_R, JAEGER_ZIEL_R = 40, 25
+    JAEGER_WEG_R, JAEGER_WEG_SCHADEN = 40, 80
+    # 19.10. (1018z, 222: "Fluchtweg toedlich" mit 164 Schaden je Takt im Modell, echt ~1 je Takt fuer 377 Takte - er lief in
+    # die Burg und starb dort): nach LETZT_PRUEF Takten im letzten Einsatz mit weniger als LETZT_IRRTUM des Modell-Verlusts
+    # -> abbrechen und fliehen; LETZT_SPERRE Takte kein neuer "Fluchtweg toedlich" (ausser unter EIN_TREFFER)
+    LETZT_PRUEF, LETZT_IRRTUM, LETZT_SPERRE = 80, 0.25, 400
     RUHE_FELDER = 40          # 19.10.: so viele Felder ohne waehlbaren Feind = voller Ruhe-Bonus (x2)
     FERTIG_TAKTE = 120        # 19.10. (1018x): Restarbeit, die er beim Entdecktwerden noch fertig macht (Erkennen->Treffer 64-170, L81)
     ARBEITER_ZEIT = 120       # 19.10. (1018x, 203 verfolgte einen Arbeiter 500 Takte): so lange darf "mitnehmen" dauern
@@ -817,6 +831,19 @@ class Einzeln:
                     for cx in range(max(0, c[0] - rz), min(g.n, c[0] + rz + 1)):
                         if schach(g.mitte((cx, cy)), (e["x"], e["y"])) <= self.LOEWE_WEG_R:
                             g.satz[cy][cx] += self.LOEWE_WEG_SCHADEN
+            # 19.10. (1018z): wandernde Trupps als Zone - JAEGER_WEG_R um jeden, JAEGER_ZIEL_R um sein Laufziel, je Zelle einmal
+            zone = set()
+            for k in self._trupps(L):
+                e = L[k]
+                for q, r in (((e["x"], e["y"]), self.JAEGER_WEG_R), ((e["laufx"], e["laufy"]), self.JAEGER_ZIEL_R)):
+                    c = g.zelle_von(q)
+                    rz = r // g.z + 1
+                    for cy in range(max(0, c[1] - rz), min(g.n, c[1] + rz + 1)):
+                        for cx in range(max(0, c[0] - rz), min(g.n, c[0] + rz + 1)):
+                            if (cx, cy) not in zone and schach(g.mitte((cx, cy)), q) <= r:
+                                zone.add((cx, cy))
+            for cx, cy in zone:
+                g.satz[cy][cx] += self.JAEGER_WEG_SCHADEN
         self._gitter_runde = (self.runde, g)
         return g
 
@@ -1027,6 +1054,8 @@ class Einzeln:
         gut = self.pruefe_begehbar(kand) if self.pruefe_begehbar else set(kand)
         kand = [q for q in kand if q in gut and q not in self.schlechte_orte
                 and q not in self.entdeckt.get(n, {}).get("gesperrt", ())]
+        # 19.10. (1018z, 16 und 230 flohen in die Richtung, in die der Trupp lief): nicht dorthin, wo ein Trupp hinlaeuft
+        kand = [q for q in kand if not self._jaeger_nah(q, L)] or kand
         if not kand:
             return None
 
@@ -1074,6 +1103,32 @@ class Einzeln:
                 pass
         return kand[0]
 
+    def _spur_pflegen(self, L):
+        """19.10.: Orte jedes feindlichen Schuetzen der letzten JAEGER_ZEIT Takte; self._jaeger = die, die darin mindestens
+        JAEGER_WEG Felder gelaufen sind."""
+        alt = getattr(self, "_spur", {})
+        spur, jaeger = {}, set()
+        for k, e in L.items():
+            if e["besitzer"] in (0, self.sp) or e["typ"] not in sicht.REICHWEITE:
+                continue
+            p = (e["x"], e["y"])
+            d = [x for x in alt.get(k, ()) if x[0] >= self.jetzt - self.JAEGER_ZEIT and x[1] != p] + [(self.jetzt, p)]
+            spur[k] = d[-12:]
+            if any(schach(p, q) >= self.JAEGER_WEG for _, q in d):
+                jaeger.add(k)
+        self._spur, self._jaeger = spur, jaeger
+
+    def _jaeger_nah(self, ort, L):
+        """19.10.: wandernde Schuetzen nah an ort (Ort <= JAEGER_R oder Laufziel <= JAEGER_ZIEL_R) - ab JAEGER_MIN die Nummern."""
+        nah = [k for k in getattr(self, "_jaeger", ()) if k in L and (
+            schach(ort, (L[k]["x"], L[k]["y"])) <= self.JAEGER_R or schach(ort, (L[k]["laufx"], L[k]["laufy"])) <= self.JAEGER_ZIEL_R)]
+        return nah if len(nah) >= self.JAEGER_MIN else []
+
+    def _trupps(self, L):
+        """19.10.: wandernde Schuetzen mit mindestens JAEGER_MIN wandernden (sich eingeschlossen) in 8 Feldern - ein Trupp."""
+        j = [k for k in getattr(self, "_jaeger", ()) if k in L]
+        return [k for k in j if sum(1 for m in j if schach((L[k]["x"], L[k]["y"]), (L[m]["x"], L[m]["y"])) <= 8) >= self.JAEGER_MIN]
+
     def _nahe_schuetzen(self, ort, L, r=60):
         """19.10.: alle feindlichen Schuetzen bis r Felder - die Flucht meidet alle, nicht nur die, die ihn gesehen haben."""
         return {k for k, e in L.items() if e["besitzer"] not in (0, self.sp) and e["typ"] in sicht.REICHWEITE
@@ -1100,6 +1155,20 @@ class Einzeln:
             # in der Fluchtpunkt-Wahl)
             if n in self.flucht and e is None and not s.sichtbar(ort):
                 continue
+            jg = self._jaeger_nah(ort, L)
+            if jg:
+                if e is None:
+                    e = self.entdeckt[n] = {"schuetzen": set(), "seit": self.jetzt, "punkt": None, "jaeger": True}
+                    self.flucht.pop(n, None)
+                    self.bilanz["jaeger"] = self.bilanz.get("jaeger", 0) + 1
+                    nk = min(jg, key=lambda k: schach(ort, (L[k]["x"], L[k]["y"])))
+                    ereignis.append("JAEGER %d bei %s (Auftrag: %s): %d wandernde Schuetzen, naechster %d Felder, sein Laufziel %d "
+                                    "Felder von ihm, Leben %d -> weicht aus" % (
+                                        n, ort, self._taetigkeit(n, G), len(jg), schach(ort, (L[nk]["x"], L[nk]["y"])),
+                                        schach(ort, (L[nk]["laufx"], L[nk]["laufy"])), L[n]["leben"]))
+                e["schuetzen"].update(k for k in self._jaeger if k in L and schach(ort, (L[k]["x"], L[k]["y"])) <= 60)
+                e["bis"] = max(e.get("bis", 0), self.jetzt + self.ENTDECKT_TICKS)
+                e["ziel_ok"] = None                # Aussendienst nicht neben dem Trupp
             if s.sichtbar(ort):
                 sehen = [k for k, (p, r, erh, steht, art) in zip(s.schuetzen_nr, s.schuetzen)
                          if (p[0] - ort[0]) ** 2 + (p[1] - ort[1]) ** 2 <= (r + self.ENTDECKT_RAND) ** 2
@@ -1111,10 +1180,12 @@ class Einzeln:
                 if e is None and sehen and self._fertig_zuerst(n, ort, G, L, ereignis):
                     continue                   # 19.10.: fast kaputt - erst fertig abreissen
                 if sehen:
+                    if e is not None:
+                        e["gesehen"] = True
                     if e is not None and e.get("ziel_ok") is not None:
                         e["ziel_ok"], e["punkt"] = None, None      # beim Aussendienst wieder gesehen: wieder raus
                     if e is None:
-                        e = self.entdeckt[n] = {"schuetzen": set(), "seit": self.jetzt, "punkt": None}
+                        e = self.entdeckt[n] = {"schuetzen": set(), "seit": self.jetzt, "punkt": None, "gesehen": True}
                         self.flucht.pop(n, None)
                         self.bilanz["entdeckt"] = self.bilanz.get("entdeckt", 0) + 1
                         sp = min(((sicht.abstand_fein(ort, (x["x"], x["y"])), x["typ"], schach(ort, (x["x"], x["y"])))
@@ -1137,10 +1208,22 @@ class Einzeln:
             if e.get("ziel_ok") is not None and self.ziel.get(n) == e["ziel_ok"]:
                 continue                       # Aussendienst: Ziel weit weg von den Schuetzen, die ihn gesehen haben
             if n in self.letzter:
-                if self._drohende(ort, self._nahe_schuetzen(ort, L), L) or s.sichtbar(ort):
+                le = self.letzter[n]
+                dauer = self.jetzt - le.get("seit", self.jetzt)
+                verlust = le.get("leben0", L[n]["leben"]) - L[n]["leben"]
+                if le.get("dps") and dauer >= self.LETZT_PRUEF and L[n]["leben"] >= self.EIN_TREFFER and \
+                        verlust < self.LETZT_IRRTUM * le["dps"] * dauer:
+                    del self.letzter[n]
+                    self._letzt_irrtum = getattr(self, "_letzt_irrtum", {})
+                    self._letzt_irrtum[n] = self.jetzt
+                    e["punkt"] = None
+                    ereignis.append("LETZTER EINSATZ abgebrochen %d: in %d Takten %d Leben verloren statt ~%d (Modell %.0f je Takt) "
+                                    "- er kommt weg, flieht" % (n, dauer, verlust, le["dps"] * dauer, le["dps"]))
+                elif self._drohende(ort, self._nahe_schuetzen(ort, L), L) or s.sichtbar(ort):
                     self._letzter_einsatz(n, L, G, "weiter", ereignis, angriffe or [], jagen if jagen is not None else [])
                     continue
-                del self.letzter[n]            # die Gefahr ist weg: wieder normal fliehen/warten
+                else:
+                    del self.letzter[n]        # die Gefahr ist weg: wieder normal fliehen/warten
             if n in self.ziel or n in self.jagd or n in self.route or n in self.stapel["mitglieder"]:
                 if n in self.ziel:             # dasselbe Ziel nicht gleich wieder (wie nach ROUTE GEFAEHRLICH)
                     self._route_sperre[(n, self.ziel[n])] = self.jetzt + self.SPERRE_ROUTE
@@ -1161,13 +1244,18 @@ class Einzeln:
                         60, 2 * getattr(self, "_runde_ticks", self.RUNDE_TICKS))):
                     e.setdefault("gesperrt", []).append(p)
                     p = None
-                elif self._drohende(p, e["schuetzen"] | self._nahe_schuetzen(p, L), L) or s.sichtbar(p, s.RAND):
+                elif self._drohende(p, e["schuetzen"] | self._nahe_schuetzen(p, L), L) or s.sichtbar(p, s.RAND) \
+                        or self._jaeger_nah(p, L):
                     p = None
             if p is None:
                 p = self._ausser_reichweite(n, ort, e["schuetzen"] | self._nahe_schuetzen(ort, L), L)
                 # 19.10. (Daniel): kostet der Fluchtweg mehr Leben, als er hat, kommt er nicht weg -> letzter Einsatz
                 kalib = 1.0 if L[n]["leben"] < self.EIN_TREFFER else self.LETZT_KALIB
-                if p is not None and kalib * self._fluchtschaden(ort, p, e["schuetzen"] | self._nahe_schuetzen(ort, L), L) >= L[n]["leben"]:
+                # 19.10.: nicht, wenn ihn nur ein Trupp jagt, der ihn noch nicht gesehen hat, und nicht kurz nach einem Irrtum
+                irrtum = self.jetzt - getattr(self, "_letzt_irrtum", {}).get(n, -10 ** 6) < self.LETZT_SPERRE \
+                    and L[n]["leben"] >= self.EIN_TREFFER
+                if p is not None and e.get("gesehen", not e.get("jaeger")) and not irrtum and \
+                        kalib * self._fluchtschaden(ort, p, e["schuetzen"] | self._nahe_schuetzen(ort, L), L) >= L[n]["leben"]:
                     if self._letzter_einsatz(n, L, G, "Fluchtweg toedlich", ereignis, angriffe if angriffe is not None else [],
                                              jagen if jagen is not None else []):
                         continue
@@ -1286,7 +1374,9 @@ class Einzeln:
         best = max(schafft, key=lambda x: (x[0], -x[1])) if schafft else max(kand, key=lambda x: x[0] / max(x[1], 1.0))
         art, nr = best[2]
         alt = self.letzter.get(n, {}).get("ziel")
-        self.letzter[n] = {"ziel": best[2], "seit": self.letzter.get(n, {}).get("seit", self.jetzt)}
+        vor = self.letzter.get(n, {})
+        self.letzter[n] = {"ziel": best[2], "seit": vor.get("seit", self.jetzt), "leben0": vor.get("leben0", L[n]["leben"]),
+                           "dps": vor.get("dps", dps)}
         if alt != best[2]:
             self._vergessen(n)
             if art == "g":
@@ -1488,6 +1578,7 @@ class Einzeln:
             orte = [o for o in orte if o in gut] or orte
         fern, nah = self._feinde(L)
         self._lage(L, G)                     # 17.10.: Sicht dieser Runde (sicht.py) - vor allen Sicherheitsfragen
+        self._spur_pflegen(L)                # 19.10.: wandernde feindliche Schuetzen (JAEGER)
         self._fern = fern                    # 4a: Fluchtpunkte nicht unter feindliche Fernkaempfer
         # 4a: ihre Burg ist tabu (gewinn_1, Tick 4.312: Assassine 163 starb auf der Flucht an ihrer Aussenmauer, 13 Felder
         # neben ihrem Lord, 14 Fernkaempfer im Umkreis 40) - Fluchtpunkte und Kreismitte mind. SCHUSSWEITE von ihrem Lord

@@ -58,6 +58,13 @@ Vorher festgelegt:
  32. (1018x, 203 verfolgte einen Arbeiter 500 Takte) "mitnehmen" laeuft seit 200 Takten -> abgebrochen
  33. (Daniel 19.10.: "geht erst zu den Loewen hin, merkt dann Gefahr, geht zurueck") drei Loewen genau auf der Geraden
      zum Ziel -> der Weg fuehrt ueber Wegpunkte, die mehr als 8 Felder von den Loewen wegbleiben
+ 34. (1018z: EIN wandernder Trupp aus 7-9 Boegen traf 14 von 17 schweren Treffern, kam auf 16-20 Felder heran und zielte
+     dann; Sicht nach L75 erst dann) 5 Boegen, die in 300 Takten 30 Felder naeher kamen, jetzt 30 Felder weg (unsichtbar)
+     -> JAEGER: Auftrag ab, Punkt ausser Reichweite (mehr als 46 Felder von der Mitte); Gegenprobe: dieselben 5 stehend -> Ziel bleibt
+ 35. wie 34, Trupp 45 Felder weg, sein Laufziel 8 Felder neben ihm -> JAEGER; Gegenprobe: Laufziel weit weg -> Ziel bleibt
+ 36. (1018z, 222: "Fluchtweg toedlich", Modell 164 Schaden je Takt, echt ~1 je Takt fuer 377 Takte - er lief in die Burg)
+     letzter Einsatz seit 200 Takten, echt nur 140 verloren -> abgebrochen, normal fliehen; Gegenprobe: 10.000 verloren -> bleibt
+ 37. (1018z) wandernder Trupp mitten auf dem Weg zum Ziel -> alle Wegpunkte mehr als 30 Felder vom Trupp
  28. (Daniel 19.10.: "wenn nicht ausweichbar, zerstoert er lieber noch moeglichst viel") 6.000 Leben, je zwei Armbrustschuetzen
      links und rechts in 10 Feldern, ein Speer sieht ihn: jeder Fluchtweg kostet mehr Leben, als er hat -> LETZTER EINSATZ auf
      einen der Armbrustschuetzen, die ihn treffen (Wert 60 x 2), nicht auf die Apfelplantage daneben (30)
@@ -541,6 +548,73 @@ def main():
     weit33 = bool(r33) and all(max(abs(p[0] - 130), abs(p[1] - 100)) > 8 for p in r33)
     pruefe(33, "Loewen auf der Geraden: Ziel %s, Wegpunkte %s, alle > 8 Felder weg %s" % (t.ziel.get(100), r33[:5], weit33),
            t.ziel.get(100) == 900 and weit33)
+
+    # 34 / 35
+    def lage_jaeger(vorher, jetzt, lauf=None):
+        t = neu(); t._raid_plaetze = 99
+        G = {900: {"besitzer": 2, "typ": 3, "x": 60, "y": 60, "leben": 100, "uid": 1, "erreichbar": 1}}
+
+        def bei(p):
+            L = {100: einheit(73, 1, 100, 100, laufx=60, laufy=60, zustand=101), 500: einheit(55, 2, 390, 390, leben=30000)}
+            for i in range(5):
+                L[620 + i] = einheit(22, 2, p[0] - 2 + i, p[1], leben=6000)
+                if lauf:
+                    L[620 + i].update(laufx=lauf[0], laufy=lauf[1], zustand=101)
+            return L
+        t.aufnehmen([100])
+        t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
+        t.schritt(bei(vorher), G, sichere_orte=[(20, 300)], tick=9700)
+        erg, bef = t.schritt(bei(jetzt), G, sichere_orte=[(20, 300)], tick=10000)
+        p = t.entdeckt.get(100, {}).get("punkt") if hasattr(t, "entdeckt") else None
+        frei = p is not None and (p[0] - jetzt[0]) ** 2 + (p[1] - jetzt[1]) ** 2 > 46 ** 2
+        return 100 in getattr(t, "entdeckt", {}), t.ziel.get(100), p, frei, [z[:60] for z in erg if "JAEGER" in z][:1]
+    e34, z34, p34, f34, m34 = lage_jaeger((100, 160), (100, 130))
+    e34s, z34s, _, _, _ = lage_jaeger((100, 130), (100, 130))
+    pruefe(34, "5 Boegen kamen 30 Felder naeher, jetzt 30 weg: entdeckt %s, Ziel %s, Punkt %s weit %s %s; dieselben stehend: "
+           "entdeckt %s, Ziel %s" % (e34, z34, p34, f34, m34, e34s, z34s), e34 and z34 is None and f34 and not e34s and z34s == 900)
+    e35, _, p35, f35, m35 = lage_jaeger((100, 175), (100, 145), lauf=(100, 108))
+    e35g, z35g, _, _, _ = lage_jaeger((100, 175), (100, 145), lauf=(100, 190))
+    pruefe(35, "Trupp 45 Felder weg, Laufziel 8 Felder neben ihm: entdeckt %s, Punkt %s %s; Laufziel weit weg: entdeckt %s, Ziel %s" % (
+        e35, p35, m35, e35g, z35g), e35 and p35 is not None and not e35g and z35g == 900)
+
+    # 36
+    def lage_letzt(leben):
+        t = neu(); t._raid_plaetze = 99
+        L = {100: einheit(73, 1, 100, 100, leben=leben), 500: einheit(55, 2, 390, 390, leben=30000),
+             601: einheit(24, 2, 106, 100, leben=10000),
+             610: einheit(23, 2, 110, 100, leben=17500), 611: einheit(23, 2, 110, 104, leben=17500),
+             612: einheit(23, 2, 90, 100, leben=17500), 613: einheit(23, 2, 90, 104, leben=17500)}
+        G = {900: {"besitzer": 2, "typ": 32, "x": 102, "y": 103, "leben": 100, "uid": 1, "erreichbar": 1}}
+        t.aufnehmen([100])
+        t.entdeckt[100] = {"schuetzen": {610, 611, 612, 613}, "seit": 9800, "punkt": None, "bis": 10200}
+        t.letzter[100] = {"ziel": ("e", 610), "seit": 9800, "leben0": 11640, "dps": 164.0}
+        t.jagd[100] = 610
+        erg, bef = t.schritt(L, G, sichere_orte=[(20, 300)], tick=10000)
+        return 100 in t.letzter, [z[:70] for z in erg if "LETZTER EINSATZ" in z][:1]
+    l36, m36 = lage_letzt(11500)
+    l36g, _ = lage_letzt(1640)
+    pruefe(36, "letzter Einsatz seit 200 Takten, Modell 164/Takt, echt 140 verloren: noch im Einsatz %s %s; 10.000 verloren: %s" % (
+        l36, m36, l36g), not l36 and l36g)
+
+    # 37
+    def lage_umweg(vorher):
+        t = neu(); t._raid_plaetze = 99
+        t.gelaende = ["G" * 400 for _ in range(400)]
+
+        def bei(p):
+            L = {100: einheit(73, 1, 85, 100), 500: einheit(55, 2, 390, 390, leben=30000)}
+            for i in range(5):
+                L[620 + i] = einheit(22, 2, p[0] - 2 + i, p[1], leben=6000)
+            return L
+        t.aufnehmen([100])
+        t.schritt(bei(vorher), {}, sichere_orte=[(20, 300)], tick=9700)
+        G = {900: {"besitzer": 2, "typ": 32, "x": 175, "y": 100, "leben": 100, "uid": 1, "erreichbar": 1}}
+        erg, bef = t.schritt(bei((130, 100)), G, sichere_orte=[(20, 300)], tick=10000)
+        r = t.route.get(100, {}).get("punkte", [])
+        return t.ziel.get(100), r, bool(r) and all(max(abs(p[0] - 130), abs(p[1] - 100)) > 30 for p in r)
+    z37, r37, w37 = lage_umweg((130, 140))
+    pruefe(37, "wandernder Trupp mitten auf dem Weg: Ziel %s, Wegpunkte %s, alle > 30 Felder vom Trupp %s" % (z37, r37[:5], w37),
+           z37 == 900 and w37)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

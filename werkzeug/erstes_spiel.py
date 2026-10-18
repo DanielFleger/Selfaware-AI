@@ -1208,6 +1208,7 @@ class Produktion:
     1,13 Leder/1.000 und je zwei Hoefe pro Gerber. Gold bleibt bis zum fertigen Wirtschaftsaufbau in der Wirtschaft;
     angeworben wird erst, wenn Zielware und Anwerbegold bereitliegen."""
     UEBERSCHUSS = 800              # Gold ueber der Ruecklage, ab dem ein fehlendes Los gekauft werden darf
+    HOF_NEU = 1000                 # 19.10.: Ticks zwischen zwei Abfragen frischer Hofplaetze beim Spiel (fremde Karten)
 
     def __init__(self, ziel, marken, plan_lager=None, ziel_tick=14400):
         import math
@@ -1237,6 +1238,7 @@ class Produktion:
         # alle nicht ueberlappenden produktiven Ersatzplaetze vorhalten; im Lauf werden trotzdem exakt nur self.hoefe
         # gebaut. Ziel 100 widerlegte den festen Puffer +12: 15 Plaetze waren durch spaetere Baeume/Bauten ungueltig.
         hof_kern = ((self.plan_lager[0] + 3, self.plan_lager[1] + 3) if self.plan_lager else None)
+        self.hof_kern = hof_kern
         self.hof_orte = produktions_hofplaetze(None, hof_kern)
         if len(self.hof_orte) < self.hoefe:
             if V14 or not self.hof_orte:
@@ -1426,7 +1428,21 @@ class Produktion:
                 if V14:
                     raise RuntimeError("TECHNISCH UNGUELTIG: produktiver Hofplatzvorrat erschoepft (%d gebaut, %d benoetigt, %d verworfen)" % (
                         len(hoefe), self.hoefe, len(self.hof_verworfen)))
-                if hoefe and self.hoefe > len(hoefe):
+                # 19.10. (1018z: alle 6 Hofplaetze vom Start verbaut - zwei Hopfenfarmen auf den Reserven, die anderen spaeter
+                # belegt; kein einziger Kuhhof, also kein Leder): fremde Karte - frische Plaetze vom Spiel holen (hoechstens
+                # alle HOF_NEU Ticks) und die benoetigten gleich reservieren; erst wenn das Spiel keine kennt, weiter ohne
+                neu = []
+                if st["t"] - getattr(self, "_hof_neu", -10 ** 6) >= self.HOF_NEU:
+                    self._hof_neu = st["t"]
+                    neu = [p for p in produktions_hofplaetze(None, self.hof_kern) if not steht_bei(G, 33, p, 3)]
+                if neu:
+                    self.hof_orte, self.hof_verworfen = neu, set()
+                    b = NACH_TYP[33]["b"]
+                    fehlt = max(1, self.hoefe - len(hoefe))
+                    ausbau.sperr = list(getattr(ausbau, "sperr", None) or []) + [
+                        (x - 1, y - 1, x + b, y + b) for x, y in neu[:fehlt]]
+                    aus.append("PRODUKTION Hofplaetze neu vom Spiel: %d, die ersten %d reserviert %s" % (len(neu), fehlt, neu[:fehlt]))
+                elif hoefe and self.hoefe > len(hoefe):
                     aus.append("PRODUKTION nur %d von %d Hoefen moeglich (keine Plaetze mehr) - weiter mit %d" % (
                         len(hoefe), self.hoefe, len(hoefe)))
                     self.hoefe = len(hoefe)
@@ -1822,9 +1838,13 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             from bierkette import Bierkette
             # 19.10. (1018x: die dritte Brauerei stand auf einem fuer Kuhhoefe reservierten Platz): reservierte Flaechen
             # (ausbau.sperr) meidet die Bierkette - ausser fuer die eigenen Hopfen-Reserven
+            # 19.10. (1018z: Hopfenfarm 2 und 3 standen auf den Kuhhof-Reserven (93, 277) und (106, 290) - "ausser fuer die
+            # eigenen Hopfen-Reserven" galt fuer ALLE Reserven): Hopfen darf nur auf seine eigenen Reserven
+            hopfen_sperr = []
+
             def bier_plaetze(typ, kern, r):
                 b = NACH_TYP[typ]["b"]
-                sperr = [s for s in (getattr(ausbau, "sperr", None) or []) if typ != 31]
+                sperr = [s for s in (getattr(ausbau, "sperr", None) or []) if not (typ == 31 and s in hopfen_sperr)]
                 return [q for q in plaetze_live(typ, kern, r)
                         if not any(q[0] <= s[2] and q[0] + b - 1 >= s[0] and q[1] <= s[3] and q[1] + b - 1 >= s[1] for s in sperr)]
             bier = Bierkette(SP, lambda typ, x, y, r: baue_schnell(typ, x, y, r, zweck="Bierkette"), bier_plaetze, preis)
@@ -1833,6 +1853,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                       if all(abs(q[0] - o[0]) >= 10 or abs(q[1] - o[1]) >= 10 for o in belegt)][:bier.RESERVE]
             bier.reserviert = list(hopfen)
             reserve += [(31, q) for q in hopfen]
+            hopfen_sperr[:] = [(x - 1, y - 1, x + NACH_TYP[31]["b"], y + NACH_TYP[31]["b"]) for x, y in hopfen]
         if reserve:
             ausbau.sperr = list(getattr(ausbau, "sperr", None) or []) + [
                 (x - 1, y - 1, x + NACH_TYP[t_]["b"], y + NACH_TYP[t_]["b"]) for t_, (x, y) in reserve]
