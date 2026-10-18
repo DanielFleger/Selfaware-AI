@@ -59,6 +59,7 @@ class Kornring:
         self.fehlt = 16
         self.fertig_gemeldet = False
         self.gesendet = 0
+        self.gewartet = None        # zuletzt gemeldeter Wartegrund - "wartet auf Stein" nur bei einer Aenderung melden
 
     def stein_bedarf(self):
         """So viel Stein soll der Verkauf zuruecklassen, solange der Ring nicht steht."""
@@ -80,7 +81,7 @@ class Kornring:
                 return ["KORNRING um %s steht: 16 von 16 Mauerkacheln (Ecken frei), %d Befehle gesendet" % (self.ort, self.gesendet)]
             return []
         self.fertig_gemeldet = False
-        ev, rest = [], stein
+        ev, rest, warten = [], stein, []
         for name, a, b, ks in s:
             offen = fehlen[name]
             if not offen:
@@ -89,7 +90,7 @@ class Kornring:
             if self.versucht.get(name, 0) == 0 and len(offen) == len(ks):
                 # ganze Seite in einem Befehl (wie ein Mensch zieht)
                 if not bezahlbar(rest, len(ks)):
-                    ev.append("KORNRING Seite %s wartet auf Stein (%d da, %d Kacheln)" % (name, rest, len(ks)))
+                    warten.append(name)
                     continue
                 self.setze(a[0], a[1], b[0], b[1], len(ks))
                 self.versucht[name] = 1
@@ -100,11 +101,16 @@ class Kornring:
                 # Strecke stand nicht (jemand stand darauf, Feind nah) oder nur Teile fehlen: Kachel fuer Kachel
                 for k in offen:
                     if not bezahlbar(rest, 1):
-                        ev.append("KORNRING Kachel %s wartet auf Stein (%d da)" % (k, rest))
+                        warten.append("%s %s" % (name, k))
                         break
                     self.setze(k[0], k[1], k[0], k[1], 1)
                     self.gesendet += 1
                     rest -= 1
                     ev.append("KORNRING Kachel %s (Seite %s) einzeln gesendet" % (k, name))
                 self.versucht[name] = self.versucht.get(name, 0) + 1
+        grund = (tuple(warten), self.fehlt) if warten else None
+        if grund and grund != self.gewartet:
+            ev.append("KORNRING wartet auf Stein: %s (%d Stein da, %d Kacheln fehlen, Bedarf %d)" % (
+                ", ".join(warten), rest, self.fehlt, self.stein_bedarf()))
+        self.gewartet = grund
         return ev

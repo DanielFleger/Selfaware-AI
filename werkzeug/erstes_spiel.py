@@ -2887,6 +2887,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 if feldzug is not None:
                     if prod is not None:
                         prod.stein_extra = bier.stein_bedarf() if bier is not None else 0
+                        # 18.10. (1018f): auch der Stein-gegen-Holz-Tausch laesst den Stein fuer den Kornring liegen
+                        prod.stein_extra += korn.stein_bedarf() if korn is not None else 0
                         # 19.10. (1019i: ein Fehler im Werkstattplaner beendete den Lauf mitten im Feldzug): ein Fehler in der
                         # Produktion wird gemeldet, beendet aber nie die Partie
                         try:

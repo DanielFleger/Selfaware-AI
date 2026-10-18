@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """Pruefung ohne Spiel fuer kornring.py und den Ringabstand in nahrungswahl.speicherplatz (18.10.). Vorher festgelegt:
   1. Ring um (100, 50): 16 Kacheln, je Seite 4, alle direkt am 4x4-Speicher, keine der 4 Ecken
-  2. leerer Ring, 8 Stein: genau 3 Seiten gesendet (je 3 Stein noetig, 2 verbraucht), die vierte wartet auf Stein
+  2. leerer Ring, 8 Stein: genau 3 Seiten gesendet (je 3 Stein noetig, 2 verbraucht), die vierte wartet auf Stein;
+     bleibt der Wartegrund gleich, kommt keine zweite Wartemeldung (Lauf 1018f: 4 Zeilen alle 100 Ticks)
   3. leerer Ring, 0 Stein: NICHTS gesendet (das Spiel wuerde eine Gratiskachel setzen)
   4. eine ganze Seite gesendet, stand danach nicht (jemand stand darauf): beim naechsten Blick (100 Ticks spaeter) wird
      diese Seite Kachel fuer Kachel gesendet, die anderen nicht
@@ -48,8 +49,12 @@ def main():
            len(set(alle)) == 16 and all(len(ks) == 4 for _, _, _, ks in s) and not ecken & set(alle) and am_speicher)
     r, g, _ = neu()
     ev = r.schritt(1000, 8)
-    pruefe(2, "8 Stein: %d Seiten gesendet, wartet: %s" % (len(g), [e for e in ev if "wartet" in e]),
-           len(g) == 3 and all(x[4] == 4 for x in g) and sum("wartet" in e for e in ev) == 1)
+    ev2 = r.schritt(1100, 0)       # gleicher Wartegrund? nein - jetzt fehlen weniger Kacheln nicht (nichts stand), 0 Stein
+    ev3 = r.schritt(1200, 0)       # derselbe Grund wie eben -> keine neue Meldung
+    pruefe(2, "8 Stein: %d Seiten gesendet, wartet: %s; gleicher Grund erneut gemeldet: %s" % (
+        len(g), [e for e in ev if "wartet" in e], [e for e in ev3 if "wartet" in e]),
+           len(g) == 3 and all(x[4] == 4 for x in g) and sum("wartet" in e for e in ev) == 1
+           and not any("wartet" in e for e in ev3))
     r, g, _ = neu()
     r.schritt(1000, 0)
     pruefe(3, "0 Stein: %d Befehle" % len(g), len(g) == 0)
