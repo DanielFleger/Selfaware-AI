@@ -401,6 +401,13 @@ class Einzeln:
     ANKUNFT_MIN = 0.3                    # 18.10.: so viel Leben je Assassine muss nach dem Anlauf am Lord uebrig sein (STARTWERT)
     SPERRE_ROUTE = 1500                  # 18.10.: so lange nimmt der Zielwechsel ein Ziel mit gefaehrlicher Route nicht wieder
     ZIEL_RISIKO = 0.05
+    # 19.10. (Partie 1018p, alle 5 Tode Feind fuer Feind nachgesehen, treffer_genau.py): wer eine Assassine einmal gesehen hat,
+    # schiesst bis ~300 Takte spaeter noch (Armbrust 49 sah 198 bei Tick 7.512, der Bolzen traf 7.750 - laengst ausser Sicht);
+    # 265 stand 14 Runden in Sicht, 215 acht, 198 zwei - der Lenker reagierte nur auf Treffer. Neu: gesehen + Schuetze mit
+    # Reichweite und Linie -> Auftrag ab, sofort ausser Sicht UND ausser Reichweite dieser Schuetzen, dort bis zum Vergessen
+    ENTDECKT_TICKS = 400      # so lange gilt sie fuer jeden Schuetzen, der sie gesehen hat, als Ziel
+    ENTDECKT_RAND = 4         # Felder ueber die Reichweite hinaus (Bolzen aus 42 Feldern, 1018p)
+    GERADE_TEIL = 20          # lange Wege ohne Umweg trotzdem in Stuecken laufen (198 lief 222 Felder am Stueck)
     # 18.10. (Tode 1018n, tode_erklaeren.py: Zielwahl nahm 25/29/43 % Todesrisiko auf dem WEG zu unbeobachteten Zielen; das
     # Modell sah am Todesort 88-177 Beschuss je Takt): Risikogrenze auch fuer unbeobachtete Ziele; Schwache noch strenger
     ZIEL_RISIKO_WEG = 0.10
@@ -431,6 +438,8 @@ class Einzeln:
         self._sicht = None
         self.runde, self.gemessen, self.ohne_ziel_zuletzt = 0, 0, None
         self.bilanz = {"gebaeude": {}, "verluste": set(), "neu_befohlen": 0, "rueckzug": 0, "zuschlagen": 0, "tote": 0}
+        self.akte = {}                       # 19.10.: n -> {"erst": erste Verletzung, "treffer": Runden mit Treffern}
+        self.entdeckt = {}                   # 19.10.: n -> {"schuetzen": {Nr}, "bis": Tick, "punkt": Ort, "seit": Tick}
         # 17.10. (1017i nachgespielt: 299.038 Assassinen-Ticks ungesteuert = die ganze Stehzeit an unserer Burg): das Spiel
         # vergibt die Nummer einer toten Einheit neu; "verluste" sperrte die Nummer fuer immer, der neue Assassine stand bis
         # Partieende. Eine Nummer, die nach dem Tod einmal aus dem Lagebild verschwunden war, darf wieder aufgenommen werden.
@@ -738,7 +747,7 @@ class Einzeln:
                                  noch_sichtbar={k for k, b in sb.items() if b > jetzt and k in L})
         for k in self.mitglieder:
             if k in L and self._sicht.sichtbar((L[k]["x"], L[k]["y"])):
-                sb[k] = jetzt + 128
+                sb[k] = jetzt + self.ENTDECKT_TICKS      # 19.10.: 400 statt 128 (Bolzen bis ~300 Takte spaeter)
         self._sicht_bis = sb
         self._sicht_runde = self.runde
         return self._sicht
@@ -773,6 +782,11 @@ class Einzeln:
                 continue
             start, ziel = (L[n]["x"], L[n]["y"]), (G[gn]["x"], G[gn]["y"])
             wp, bw, bg, _ = schussfeld.sicherer_weg(self.gelaende, L, self.sp, start, ziel, gitter=g)
+            if len(wp) <= 1 and schach(start, ziel) > self.GERADE_TEIL:
+                # 19.10. (1018p, Assassine 198 lief 222 Felder am Stueck an 4 Armbrustschuetzen vorbei): auch ohne Umweg in
+                # Stuecken - dann prueft ROUTE GEFAEHRLICH jedes Stueck vor dem Betreten
+                k = schach(start, ziel) // self.GERADE_TEIL + 1
+                wp = [(start[0] + (ziel[0] - start[0]) * i // k, start[1] + (ziel[1] - start[1]) * i // k) for i in range(1, k)] + [ziel]
             if len(wp) > 1:
                 self.route[n] = {"punkte": wp[:-1], "gebaeude": gn, "befohlen": self.runde}
                 lauf.setdefault(wp[0], []).append(n)
@@ -919,6 +933,182 @@ class Einzeln:
         """18.10. (Gegenpruefung): "Der Lord-Trupp bleibt dran" gilt nur im gemeinsamen Angriff, nicht in der Bereitstellung."""
         return n in self.lordtrupp["mitglieder"] and self.lordtrupp["phase"] in ("angriff", "sammeln")
 
+    def _drohende(self, ort, nrs, L):
+        """19.10.: die Schuetzen aus nrs (Einheitennummern), die ort jetzt erreichen: Reichweite + ENTDECKT_RAND, Linie frei."""
+        s = self._sicht
+        aus = []
+        for k in nrs:
+            e = L.get(k)
+            if not e or e["besitzer"] in (0, self.sp) or e["typ"] not in sicht.REICHWEITE:
+                continue
+            p = (e["x"], e["y"])
+            r = sicht.REICHWEITE[e["typ"]] + self.ENTDECKT_RAND
+            if (p[0] - ort[0]) ** 2 + (p[1] - ort[1]) ** 2 > r * r:
+                continue
+            unter = s.gebaeude.get(p)
+            if (unter and unter[1] in sicht.ERHOEHT) or s.linie_frei(p, unter[0] if unter else None, ort):
+                aus.append(k)
+        return aus
+
+    def _ausser_reichweite(self, n, ort, nrs, L):
+        """19.10.: naechster begehbarer Ort, den keiner der Schuetzen nrs erreicht, den kein waehlbarer Feind sieht und an dem
+        kein Verfolger steht; gibt es keinen, der mit den wenigsten Schuetzen. Ringe 6-40 Felder in 16 Richtungen + Heim."""
+        s = self._sicht
+        kand = []
+        for r in (6, 10, 14, 18, 24, 30, 40):
+            for k in range(16):
+                w = k * math.pi / 8
+                q = (int(round(ort[0] + r * math.cos(w))), int(round(ort[1] + r * math.sin(w))))
+                if 2 <= q[0] <= 397 and 2 <= q[1] <= 397 and q not in kand:
+                    kand.append(q)
+        kand += [h for h in getattr(self, "_heim", []) if h not in kand]
+        gut = self.pruefe_begehbar(kand) if self.pruefe_begehbar else set(kand)
+        kand = [q for q in kand if q in gut and q not in self.schlechte_orte
+                and q not in self.entdeckt.get(n, {}).get("gesperrt", ())]
+        if not kand:
+            return None
+        return min(kand, key=lambda q: (len(self._drohende(q, nrs, L)), s.sichtbar(q, 16), bool(s.verfolgt(q)), schach(ort, q)))
+
+    def _entdeckt_pruefen(self, L, G, ereignis, flieh, jagen=None):
+        """19.10. (Daniel: "wenn 5 gestorben sind dann sofort stoppen und verhindern"; Partie 1018p): sichtbar (waehlbarer Feind
+        <= 160 Feinmass, L75) UND ein Schuetze erreicht ihn mit freier Linie -> entdeckt: Auftrag ab, Laufbefehl ausser Sicht
+        und ausser Reichweite aller Schuetzen, die ihn gesehen haben; dort bleiben, bis ENTDECKT_TICKS nach dem letzten Sehen
+        um sind. Nicht im gemeinsamen Lord-Angriff, nicht auf der Flucht vor Nahkaempfern (4a)."""
+        s = self._sicht
+        if s is None:
+            return
+        for n in list(self.entdeckt):
+            if n not in self.mitglieder or n not in L:
+                del self.entdeckt[n]
+        for n in sorted(self.mitglieder):
+            if n not in L or self._im_lordangriff(n) or n in self.flucht:
+                continue
+            ort = (L[n]["x"], L[n]["y"])
+            e = self.entdeckt.get(n)
+            if s.sichtbar(ort):
+                sehen = [k for k, (p, r, erh, steht, art) in zip(s.schuetzen_nr, s.schuetzen)
+                         if (p[0] - ort[0]) ** 2 + (p[1] - ort[1]) ** 2 <= (r + self.ENTDECKT_RAND) ** 2
+                         and (erh or s.linie_frei(p, steht, ort))]
+                if e is None and n in self.jagd and set(sehen) <= {self.jagd[n]}:
+                    sehen = []                 # jagt den einzigen Schuetzen, der ihn erreicht (Beute, 3b): weiter jagen
+                if sehen:
+                    if e is None:
+                        e = self.entdeckt[n] = {"schuetzen": set(), "seit": self.jetzt, "punkt": None}
+                        self.bilanz["entdeckt"] = self.bilanz.get("entdeckt", 0) + 1
+                        sp = min(((sicht.abstand_fein(ort, (x["x"], x["y"])), x["typ"], schach(ort, (x["x"], x["y"])))
+                                  for x in L.values() if x["besitzer"] not in (0, self.sp) and x["typ"] in sicht.WAEHLBAR),
+                                 default=(0, 0, 0))
+                        ereignis.append("ENTDECKT %d bei %s (Auftrag: %s): Spaeher Typ %d in %d Feldern, %d Schuetzen mit Linie, "
+                                        "Leben %d -> raus" % (n, ort, self._taetigkeit(n, G), sp[1], sp[2], len(sehen),
+                                                              L[n]["leben"]))
+                    e["schuetzen"].update(sehen)
+                    e["bis"] = self.jetzt + self.ENTDECKT_TICKS
+            if e is None:
+                continue
+            if self.jetzt >= e["bis"]:
+                del self.entdeckt[n]
+                self.warte.pop(n, None); self.warte_seit.pop(n, None)
+                ereignis.append("ENTDECKT vorbei %d: %d Takte nicht gesehen, Leben %d - raidet wieder" % (
+                    n, self.ENTDECKT_TICKS, L[n]["leben"]))
+                continue
+            if n in self.ziel or n in self.jagd or n in self.route or n in self.stapel["mitglieder"]:
+                if n in self.ziel:             # dasselbe Ziel nicht gleich wieder (wie nach ROUTE GEFAEHRLICH)
+                    self._route_sperre[(n, self.ziel[n])] = self.jetzt + self.SPERRE_ROUTE
+                self._vergessen(n)
+                self.stapel["mitglieder"].discard(n)
+                if jagen is not None:
+                    jagen[:] = [j for j in jagen if j[0] != n]
+            self._aus_bereit(n, "entdeckt, raus aus Sicht und Reichweite", ereignis)
+            p = e.get("punkt")
+            # neuer Punkt, wenn keiner da ist, der alte bedroht ist oder er seit BLOCK_TICKS nicht vorankommt
+            if p is not None:
+                if e.get("letzt") != ort:
+                    e["letzt"], e["feld_seit"] = ort, self.jetzt
+                if schach(ort, p) > 2 and self.jetzt - e.get("feld_seit", self.jetzt) >= max(
+                        60, 2 * getattr(self, "_runde_ticks", self.RUNDE_TICKS)):
+                    e.setdefault("gesperrt", []).append(p)
+                    p = None
+                elif self._drohende(p, e["schuetzen"], L) or s.sichtbar(p, 16):
+                    p = None
+            if p is None:
+                p = self._ausser_reichweite(n, ort, e["schuetzen"], L)
+                if p is None:
+                    continue
+                e["punkt"], e["letzt"], e["feld_seit"] = p, ort, self.jetzt
+                self._fliehen(n, p, flieh)
+                ereignis.append("ENTDECKT %d: laeuft nach %s (%d Felder; dort erreichen ihn %d der %d Schuetzen)" % (
+                    n, p, schach(ort, p), len(self._drohende(p, e["schuetzen"], L)), len(e["schuetzen"])))
+            elif schach((L[n]["laufx"], L[n]["laufy"]), p) > 2 and schach(ort, p) > 2:
+                self._fliehen(n, p, flieh)       # laeuft nicht dorthin (z.B. vom Spiel umgelenkt): Befehl erneuern
+            else:
+                self.warte[n] = p
+
+    def _taetigkeit(self, n, G):
+        """19.10.: was der Lenker ihn zuletzt tun liess (fuer die Akte)."""
+        lt = self.lordtrupp
+        if n in self.flucht:
+            return "Flucht"
+        if n in lt["mitglieder"]:
+            return "Lord-Trupp (%s)" % lt["phase"]
+        if n in self.jagd:
+            return "Jagd auf Einheit %s" % self.jagd[n]
+        if n in self.ziel:
+            gn = self.ziel[n]
+            return "%sGebaeude %d (Typ %s)" % ("Route zu " if n in self.route else "", gn,
+                                              G[gn]["typ"] if gn in G else self.ziel_typ.get(gn, "?"))
+        if n in self.stapel["mitglieder"]:
+            return "Stapel"
+        if n in self.warte:
+            return "wartet bei %s" % (self.warte[n],)
+        return "ohne Auftrag"
+
+    def _treffer_lage(self, n, L):
+        """19.10.: wer ihn hier treffen konnte - Spaeher (naechster waehlbarer Feind; <= 160 Feinmass = sichtbar, L75),
+        Schuetzen in Reichweite je Art mit freier Linie (Modell), die ihm vom Modell zugeteilten Schuetzen, Nahkaempfer <= 2,
+        Loewen <= 4."""
+        ort = (L[n]["x"], L[n]["y"])
+        s = self._sicht
+        spaeher, d_sp = None, 10 ** 9
+        nah, loewe = [], []
+        for e in L.values():
+            p = (e["x"], e["y"])
+            d = schach(ort, p)
+            if e["besitzer"] == 0:
+                if e["typ"] == 45 and d <= 4:
+                    loewe.append(d)
+                continue
+            if e["besitzer"] == self.sp:
+                continue
+            if e["typ"] in sicht.WAEHLBAR:
+                f = sicht.abstand_fein(ort, p)
+                if f < d_sp:
+                    spaeher, d_sp = (e["typ"], d), f
+            if e["typ"] in sicht.NAHKAMPF and d <= 2:
+                nah.append(e["typ"])
+        teile = ["Spaeher %s" % ("Typ %d in %d Feldern (%d Feinmass, %s)" % (spaeher[0], spaeher[1], d_sp,
+                                                                            "SICHTBAR" if d_sp <= sicht.SICHT else "nicht sichtbar")
+                                 if spaeher else "keiner")]
+        if s is not None:
+            arten = {}
+            for p, r, erh, steht, art in s.schuetzen:
+                d2 = (p[0] - ort[0]) ** 2 + (p[1] - ort[1]) ** 2
+                if d2 <= r * r:
+                    a = arten.setdefault(art, [0, 0, 999])
+                    a[0] += 1
+                    if erh or s.linie_frei(p, steht, ort):
+                        a[1] += 1
+                    a[2] = min(a[2], schach(p, ort))
+            teile.append("Schuetzen in Reichweite: %s" % (", ".join("%d %s (%d mit Linie, naechster %d)" % (a[0], k, a[1], a[2])
+                                                                      for k, a in sorted(arten.items())) or "keine"))
+            zu = s.feuer.get(n, ())
+            teile.append("Modell teilt ihm zu: %s (%.1f je Takt)" % (
+                ", ".join("%s in %.0f" % (k, d) for k, d in zu) or "niemand", sum(sicht.dps(k, d) for k, d in zu)))
+        if nah:
+            teile.append("Nahkaempfer <= 2: %s" % sorted(nah))
+        if loewe:
+            teile.append("Loewe in %d" % min(loewe))
+        return " / ".join(teile)
+
     def _aus_bereit(self, n, grund, ereignis):
         """18.10.: wer in der Bereitstellung zurueckweicht, flieht oder ausweicht, verlaesst die Gruppe (sonst schickt ihn die
         Bereitstellung in der naechsten Runde wieder zum Platz) und wird fuer diese Bereitstellung gesperrt."""
@@ -1018,6 +1208,7 @@ class Einzeln:
         for n in neu_alt:
             self._frei_nr.discard(n); self.bilanz["verluste"].discard(n)
             self._vergessen(n); self.flucht.pop(n, None); self.leben.pop(n, None); self._steht.pop(n, None)
+            self.akte.pop(n, None)
             self.mitglieder.add(n)
         if neu_alt:
             self.bilanz["alte_nummer"] = self.bilanz.get("alte_nummer", 0) + len(neu_alt)
@@ -1025,6 +1216,12 @@ class Einzeln:
         # 1. Verluste und Verletzungen messen
         for n in list(self.mitglieder):
             if n not in L or L[n]["besitzer"] != self.sp:
+                # 19.10. (Daniel: "bei jedem verlorenen Assassinen genau notieren, warum er verletzt wurde und dann gestorben
+                # ist"): Akte vor dem Vergessen - erste Verletzung, Zahl der Runden mit Treffern, letztes Umfeld, letzter Auftrag
+                a = self.akte.pop(n, {})
+                ereignis.append("TOD-AKTE %d: erste Verletzung: %s | Runden mit Treffern %d | Auftrag zuletzt: %s | Umfeld zuletzt: %s" % (
+                    n, a.get("erst", "keine gemessen - in einer Runde von voll auf tot"), a.get("treffer", 0),
+                    self._taetigkeit(n, G), self.umfeld.get(n, "unbekannt")))
                 self.bilanz["verluste"].add(n); self.mitglieder.discard(n); self._vergessen(n); self.flucht.pop(n, None)
                 self.bilanz["tote"] += 1
                 self.lordtrupp["mitglieder"].discard(n)
@@ -1057,6 +1254,14 @@ class Einzeln:
             if alt is not None and L[n]["leben"] < alt:
                 verletzt.add(n)
                 ereignis.append("MESSUNG verletzt %d: leben %d -> %d | %s" % (n, alt, L[n]["leben"], u))
+                a = self.akte.setdefault(n, {"treffer": 0})
+                a["treffer"] += 1
+                if "erst" not in a:
+                    a["erst"] = "Tick %d bei (%d, %d), Leben %d -> %d, Auftrag: %s / %s" % (
+                        self.jetzt, L[n]["x"], L[n]["y"], alt, L[n]["leben"], self._taetigkeit(n, G), self._treffer_lage(n, L))
+                    ereignis.append("ERSTE VERLETZUNG %d: %s" % (n, a["erst"]))
+            elif L[n]["leben"] >= self.VOLL:
+                self.akte.pop(n, None)       # wieder voll geheilt: neue Akte beim naechsten Treffer
             self.leben[n], self.umfeld[n] = L[n]["leben"], u
         # 2. Erledigte Ziele, erledigte Jagd
         for n, z in list(self.ziel.items()):
@@ -1110,7 +1315,8 @@ class Einzeln:
         beute = [(nr, p) for nr, p, typ in fern if all(schach(p, h) > self.HOCH_R for h in hoch)
                  and all(schach(p, b) > self.LORD_ABSTAND for b in self._feindburg) and self._anzahl(p, nah, 5) <= 1]
         for n in sorted(self.mitglieder):
-            if n in self.jagd or n in self.lordtrupp["mitglieder"] or n in self.stapel["mitglieder"] or n in self.flucht or n not in L:
+            if n in self.jagd or n in self.lordtrupp["mitglieder"] or n in self.stapel["mitglieder"] or n in self.flucht or n not in L \
+                    or n in self.entdeckt:
                 continue
             if n in self.ziel or n in self.route or (self._raid_plaetze or 0) > len(self.ziel):
                 continue                   # 17.10.: Raiden geht vor (Daniel)
@@ -1143,8 +1349,11 @@ class Einzeln:
                 ereignis.append("BEUTE %d jagt Fernkaempfer %d (Typ %d) am Boden (%d Felder): Saldo %.0f, Todesrisiko %.0f %%, "
                                 "toeten %.0f Takte, Wert %s" % (n, ziel_b[0], typ_b, schach(ort, ziel_b[1]), saldo, 100 * p_tod,
                                                                t_toeten, "gemessen" if typ_b in EINHEIT_WERT_GEMESSEN else "geschaetzt"))
+        self._entdeckt_pruefen(L, G, ereignis, flieh, jagen)
         # 4. Verletzt im Schussfeld: Rueckzug oder zuschlagen
         for n in verletzt:
+            if n in self.entdeckt:
+                continue                   # 19.10.: laeuft schon ausser Sicht und Reichweite
             ort = (L[n]["x"], L[n]["y"])
             nf = self._naechster(ort, fern)
             # 17.10. (L75/L78 statt RUECKZUG_FERN 40): nur wer gerade beschossen werden kann, zieht sich zurueck - und nur, wenn
@@ -1628,7 +1837,7 @@ class Einzeln:
         gruende = {"keins erreichbar": 0, "alle voll": 0, "alle gefaehrlich": 0}
         ohne = 0
         for n in sorted(self.mitglieder):
-            if n in self.ziel or n in self.jagd or n in self.stapel["mitglieder"] or n in self.lordtrupp["mitglieder"] \
+            if n in self.ziel or n in self.jagd or n in self.stapel["mitglieder"] or n in self.lordtrupp["mitglieder"] or n in self.entdeckt \
                     or (n in self.warte and n in verletzt) or n in self.flucht:
                 continue
             ort = (L[n]["x"], L[n]["y"])

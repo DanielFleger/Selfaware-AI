@@ -25,6 +25,9 @@ Vorher festgelegt:
  15. (Tode 1018n, Assassine 163 mit 120 Leben) derselbe Weg mit ~9 %: volles Leben -> Ziel; mit 7.000 Leben (schwach, dann ~16 %)
      -> KEIN Ziel (prueft beide Grenzen zusammen)
  16. (Tode 1018n, Assassine 17) Ziel 900 fuer sie gesperrt (ROUTE GEFAEHRLICH) -> die Zielwahl nimmt 900 nicht
+ 17. (Tode 1018p, 198/215/265: gesehen, keine Reaktion bis zum Treffer) Assassine auf dem Weg zu Gebaeude 900, ein Speer
+     sieht sie (12 Felder), eine Armbrust erreicht sie (30 Felder) -> ENTDECKT: Ziel ab und gesperrt, Laufbefehl an einen Ort,
+     den die Armbrust nicht erreicht; Gegenprobe: ohne Speer (niemand sieht sie) -> Ziel bleibt
 Gegenprobe: python funde_pruefen.py <alte assassinen.py> [<alte sicht.py>] - die Faelle muessen dort rot sein.
 Aufruf: python werkzeug/funde_pruefen.py"""
 import importlib.util
@@ -180,7 +183,8 @@ def main():
     # 8
     t = neu()
     viele = {600 + i: einheit(23, 2, 144 + i % 2, 151 + i // 2, leben=17500) for i in range(6)}
-    L = {100: einheit(73, 1, 130, 153), 500: einheit(55, 2, 390, 390, leben=30000)}
+    # 19.10.: 26 Felder vor den Schuetzen (ausser Sicht) - bei 14 Feldern greift jetzt ENTDECKT (sie flieht, statt ein Ziel zu suchen)
+    L = {100: einheit(73, 1, 118, 153), 500: einheit(55, 2, 390, 390, leben=30000)}
     L.update(viele)
     G = {900: {"besitzer": 2, "typ": 3, "x": 152, "y": 152, "leben": 100, "uid": 1, "erreichbar": 1}}
     t.aufnehmen([100])
@@ -189,8 +193,10 @@ def main():
            t._raid_plaetze == len(t.ziel))
     # 9
     t = neu(); t._raid_plaetze = 99
+    # 19.10.: Schuetzen 25-27 Felder weg - an seinem Ort sieht ihn keiner (sonst greift ENTDECKT, Fall 17), das Stueck bis
+    # zum naechsten Wegpunkt (115, 100) liegt aber in Sicht und Reichweite
     L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
-         600: einheit(23, 2, 112, 104, leben=17500), 601: einheit(24, 2, 112, 106, leben=10000)}
+         600: einheit(23, 2, 125, 104, leben=17500), 601: einheit(24, 2, 127, 106, leben=10000)}
     G = {900: {"besitzer": 2, "typ": 3, "x": 160, "y": 100, "leben": 100, "uid": 1, "erreichbar": 1}}
     t.aufnehmen([100])
     t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
@@ -283,6 +289,25 @@ def main():
            z15a == 900 and z15 is None)
     z16, m16 = lage_risiko(12500, None, sperre=True)
     pruefe(16, "Ziel 900 gesperrt: Ziel %s" % z16, z16 != 900)
+    # 17
+    def lage_entdeckt(mit_speer):
+        t = neu(); t._raid_plaetze = 99
+        L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
+             600: einheit(23, 2, 130, 100, leben=17500)}
+        if mit_speer:
+            L[601] = einheit(24, 2, 112, 100, leben=10000)
+        G = {900: {"besitzer": 2, "typ": 3, "x": 160, "y": 140, "leben": 100, "uid": 1, "erreichbar": 1}}
+        t.aufnehmen([100])
+        t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
+        L[100].update(laufx=160, laufy=140, zustand=101)
+        erg, bef = t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
+        p = t.entdeckt.get(100, {}).get("punkt") if hasattr(t, "entdeckt") else None
+        weit = p is not None and (p[0] - 130) ** 2 + (p[1] - 100) ** 2 > (44 + 4) ** 2
+        return t.ziel.get(100), p, weit, (100, 900) in getattr(t, "_route_sperre", {}), [z[:70] for z in erg if "ENTDECKT" in z][:1]
+    z17, p17, weit17, sp17, m17 = lage_entdeckt(True)
+    z17g, p17g, _, _, _ = lage_entdeckt(False)
+    pruefe(17, "gesehen: Ziel %s, Punkt %s ausser Reichweite %s, gesperrt %s %s; ungesehen: Ziel %s Punkt %s" % (
+        z17, p17, weit17, sp17, m17, z17g, p17g), z17 is None and weit17 and sp17 and z17g == 900 and p17g is None)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

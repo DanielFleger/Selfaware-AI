@@ -24,7 +24,9 @@ HIER = os.path.dirname(os.path.abspath(__file__))
 WAEHLBAR = {5, 22, 23, 24, 25, 26, 27, 28, 29, 30, 37, 39, 40, 41, 55, 58, 59, 60, 61,
             70, 71, 72, 73, 74, 75, 76, 77}
 # 17.10. Editor (L81): Schleuder traf bis 15 (18 nicht), Feuerwerfer bis 10 (12 nicht) - die vorsichtige Seite der Grenze
-REICHWEITE = {22: 40, 23: 40, 70: 40, 74: 40, 72: 17, 76: 11}
+# 19.10. (Partie 1018p, treffer_genau.py: Armbrust 43 loeste bei 42 Feldern aus, der Bolzen toetete Assassine 245): Bogen-
+# und Armbrust-Arten 44 statt 40 - im Spiel (Gelaendehoehe) weiter als im flachen Editor (39)
+REICHWEITE = {22: 44, 23: 44, 70: 44, 74: 44, 72: 17, 76: 11}
 NAHKAMPF = {24, 25, 26, 27, 28, 37, 55, 71, 73, 75}
 TIERE = {44, 45, 46, 47, 48, 49, 51, 52, 62, 67, 68, 69}
 SICHT = 160                      # Feinmass (acquireShootTarget 0x0054B0D0)
@@ -38,7 +40,7 @@ ERHOEHT = {41, 45, 46, 74, 75, 76, 77, 78}
 # 17.10. Editor (L81): arab. Bogen und Pferdebogen schiessen schneller als der Bogen - eigene Arten; Schaden haengt NICHT vom
 # Abstand ab (ein Band bis zur Reichweite). Alte Tabelle mit Baendern: daten/schussrate.json (aus Mitschriften, widerlegt).
 SCHUETZE_ART = {22: "bogen", 70: "arabbogen", 74: "pferdebogen", 23: "armbrust", 72: "schleuder", 76: "feuer"}
-BAENDER = {"bogen": (41,), "arabbogen": (41,), "pferdebogen": (41,), "armbrust": (41,), "schleuder": (18,), "feuer": (12,)}
+BAENDER = {"bogen": (45,), "arabbogen": (45,), "pferdebogen": (45,), "armbrust": (45,), "schleuder": (18,), "feuer": (12,)}
 _SR = os.path.join(HIER, "..", "daten", "schussrate_editor.json")
 try:                                     # Schaden je ZUGETEILTEM Schuetzen und Takt (schussrate_messen.py), sonst Mittelwert
     _d = json.load(open(_SR, encoding="utf-8"))
@@ -114,6 +116,10 @@ def linie(a, b):
 
 class Lage:
     """Eine Runde: L (Einheiten), G (Gebaeude), sp (wir), haltung {Gruppe: 0/1/2} oder None (unbekannt -> Verteidigung)."""
+    # 19.10. (Partie 1018p: 265 stand 14 Runden in Sicht, das Modell meldete 0 Beschuss, weil es die Schuetzen anderen Zielen
+    # zuteilte - die Schuetzen schossen trotzdem auf ihn): STRENG = jeder Schuetze mit Reichweite und freier Linie zaehlt fuer
+    # eine sichtbare (oder noch nicht vergessene) Assassine, egal worauf er laut Zuteilung gerade zielt
+    STRENG = True
 
     def __init__(self, L, G, sp=1, haltung=None, noch_sichtbar=()):
         """noch_sichtbar: eigene Assassinen, die in den letzten 128 Takten sichtbar waren - das Spiel setzt ihr Sicht-Feld
@@ -136,6 +142,7 @@ class Lage:
                 for y in range(g["y"], g["y"] + (b or 0)):
                     self.gebaeude[(x, y)] = (nr, g["typ"])
         self.schuetzen = []                  # (Ort, Reichweite, erhoeht, Nr des Gebaeudes unter ihm, Art)
+        self.schuetzen_nr = []               # 19.10.: Einheitennummer je Eintrag in schuetzen
         for e in sorted(feinde, key=lambda x: x.get("nr", 0)):
             r = REICHWEITE.get(e["typ"])
             if r:
@@ -143,6 +150,7 @@ class Lage:
                 steht = self.gebaeude.get(ort)
                 self.schuetzen.append((ort, r, bool(steht and steht[1] in ERHOEHT), steht[0] if steht else None,
                                        SCHUETZE_ART[e["typ"]]))
+                self.schuetzen_nr.append(e.get("nr"))
         self.eigene = [(e.get("nr", 0), (e["x"], e["y"]), e["typ"]) for e in L.values()
                        if e["besitzer"] == sp and e["typ"] not in TIERE]
         self._eigen_ort = {}                 # Feld -> [(Nr, Typ)] in der Reihenfolge von eigene
@@ -259,8 +267,10 @@ class Lage:
         kein Ziel hat oder sie ihm lieber ist (Wert < 1,5 x bester und < bester Unbeschossener). 0, wenn nicht sichtbar.
         nur_ob: nur ob > 0 (fuer sicher) - hoert beim ersten treffenden Schuetzen auf."""
         da = [n for n, t in self._eigen_ort.get(tuple(feld), ()) if n == nr or (nr is None and t == 73)]
-        if da:                           # dort steht schon eine eigene Einheit: was ihr zugeteilt ist
+        if da and not self.STRENG:       # dort steht schon eine eigene Einheit: was ihr zugeteilt ist
             return sum(dps(a, d) for n in da[:1] for a, d in self.feuer.get(n, ()))
+        if da and da[0] in self.noch_sichtbar:
+            return self.feuer_gesamt(feld)   # STRENG: noch nicht vergessen - jeder Schuetze in Reichweite mit Linie
         if not self.sichtbar(feld, rand):
             return 0.0
         s = 0.0
@@ -271,7 +281,7 @@ class Lage:
             if d2 > r * r:
                 continue
             best, frei = bw[i]
-            if best != float("inf"):
+            if best != float("inf") and not self.STRENG:
                 w = prio(73, schach(ort, feld) * 8)
                 if not (w < best * 1.5 and w < frei):
                     continue
@@ -329,7 +339,7 @@ class Lage:
                     if d2 > r * r:
                         continue
                     w = prio(73, max(0, schach(ort, m) - zelle // 2) * 8)
-                    if best != float("inf") and not (w < best * 1.5 and w < frei):
+                    if best != float("inf") and not self.STRENG and not (w < best * 1.5 and w < frei):
                         continue
                     if erh or self.linie_frei(ort, steht, m):
                         satz[y][x] += dps(art, math.sqrt(d2))

@@ -664,6 +664,7 @@ WACHSTUM_BODEN = 9500    # Lernkreis: vor der Kasse nie unter 95 (Liga-Zuzug +40
 GUTE_DINGE = 0           # Lernkreis: so viele Gaerten (30 Gold, Liga-Furcht bis +175 je Woche, Arbeitsleistung sinkt) ab Kasse-Start
 RATIONEN = "doppelt"     # Lernkreis: doppelte Rationen (+250 je Woche), sobald genug Nahrung da ist
 REGEL50 = False          # Aufgabe s25: faellt die Beliebtheit unter 50, bricht der Lauf ab (Regelbruch)
+STOPP_TOTE = 0           # 19.10. (Daniel: "wenn 5 gestorben sind dann sofort stoppen und verhindern"): 0 = aus
 STUFEN = []              # streitkolben=50,100: gestufte Ziele in EINEM Lauf (Daniel 11.10. 14:28)
 ZWISCHENZIEL = False     # solange ein spaeteres Ziel folgt: im Endspiel nie abreissen
 ZUSCHAU_TEMPO = 0        # ab dem ersten Lord-Angriff dieses Spieltempo (0 = bleibt; Daniel 11.10. 15:46 "ich will zuschauen")
@@ -1715,6 +1716,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     ende, letzter_tick, stand, runde, t0 = time.time() + 60 * minuten, None, 0, 0, time.time()
     schreib("Tick | Holz Stein Eisen | Aepfel Brot | Beliebt | Leute/Platz (Feuer) | Holzf. Apfelb. | Ereignis")
     zeiten, diese_runde, feindlord = {}, {}, {}
+    stopp_grund = None
     def uhr(name, t0):
         zeiten[name] = zeiten.get(name, 0.0) + time.time() - t0
         diese_runde[name] = time.time() - t0
@@ -2279,6 +2281,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         trainingsstand, len(angekommen), st["t"], pfad))
                     break
             tz = uhr("assassinen", tz)
+            if STOPP_TOTE and trupp.bilanz.get("tote", 0) >= STOPP_TOTE and not stopp_grund:
+                befehl({"pause": True}, 0.5)          # sofort anhalten, die Runde wird nur noch zu Ende geschrieben
+                stopp_grund = "STOPP: %d Assassinen tot bei Tick %d - Spiel angehalten (stopp_tote=%d)" % (
+                    trupp.bilanz["tote"], st["t"], STOPP_TOTE)
         if V14 and streitkolben:
             # v14-Fruehabbruch (Daniel 22:05: "ich brauche nicht noch einen Run, wo nicht zwei Steinbrueche direkt neben dem
             # Vorratslager sind"): nach dem Holz-Zeitplan stehen beide Steinbrueche + Joche bei ~350 (30 Holz bei 120,
@@ -2431,6 +2437,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             schreib(zeile)
         if runde % 10 == 0:
             schreib("ZEITEN nach %d Runden: %s" % (runde, ", ".join("%s %.2f s" % kv for kv in sorted(zeiten.items(), key=lambda kv: -kv[1]))))
+        if stopp_grund:
+            schreib(stopp_grund); break
     befehl({"pause": True}, 0.5)
     st, L, G = runde_lesen()
     schreib("Ende Phase 2 bei Tick %s nach %d Runden (%.1f s je Runde); Kornspeicher %d, Holzfaeller %d, Apfelplantagen %d%s" % (
@@ -2523,7 +2531,7 @@ def main():
     PENNER = int(arg.get("penner", 20))
     KASSE_STUFE = int(arg.get("kasse_stufe", 11))
     SCHUB = False if arg.get("schub", "nein") == "nein" else arg["schub"]    # "ja" = ein Schub, "immer" = einer nach dem anderen
-    global HAUSHALT_RAND, WACHSTUM_BODEN, GUTE_DINGE, RATIONEN, REGEL50, NAHRUNG_AUSBAU
+    global HAUSHALT_RAND, WACHSTUM_BODEN, GUTE_DINGE, RATIONEN, REGEL50, NAHRUNG_AUSBAU, STOPP_TOTE
     global STUFEN, ZWISCHENZIEL, STUFE2_BELIEBT, ANGRIFF_AB, LIGA_GEFECHT, GEGNER_ERWARTET
     GEGNER_ERWARTET = arg.get("gegner_erwartet", "")
     global ZUSCHAU_TEMPO
@@ -2541,6 +2549,7 @@ def main():
     GUTE_DINGE = int(arg.get("gute_dinge", GUTE_DINGE))
     RATIONEN = arg.get("rationen", RATIONEN)
     REGEL50 = arg.get("regel50", "nein") == "ja"
+    STOPP_TOTE = int(arg.get("stopp_tote", 0))
     AUFLOESEN = arg.get("aufloesen", "nein")   # "ja" = nach Bedarf als Arbeiter, "ende" = als Rekruten im Endspiel
     EINZELKAUF = arg.get("einzelkauf", "nein") == "ja"
     ABRISS = arg.get("abriss", "ja") == "ja"
