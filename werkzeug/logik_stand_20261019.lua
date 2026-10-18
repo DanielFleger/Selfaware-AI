@@ -721,6 +721,48 @@ local function goldVon(spieler)
   return core.readInteger(0x0115BDF8 + spieler * 0x39F4 + 0x4D0 + 15 * 4) or 0
 end
 
+-- 19.10.2026 (Selfaware 1v1, Daniel: "moeglichst nachhaltig"): jeder Befehl wirkt fuer den Spieler aus "player".
+-- Gemessen im Gefecht Green Haven, Platz 2 ohne KI (currentAIArray[2] = 0): Bauen, Abreissen, Anwerben und Handel gehen
+-- ueber queueCommand; das Spiel FUEHRT sie im naechsten Spieltakt aus (processGameTick laeuft vor unserem onTick, auch
+-- pausiert) - fuer den Platz, der DANN in currentPlayerSlotID steht (GameSynchronyState +0x109E74 = 0x01A275DC). Belegt:
+-- Platz 2 bis zum naechsten Takt -> Holzfaeller, Soeldnerposten, Markt, Sklave, Holzverkauf fuer Spieler 2; Platz noch im
+-- selben Takt zurueck auf 1 -> Holzfaeller fuer Spieler 1. Darum:
+--   - jeder Befehl laeuft mit Platz = "player";
+--   - hat er einen Spielbefehl eingereiht, bleibt der Platz bis zum naechsten Takt (platzFest), dann zurueck;
+--   - Spielbefehle eines ANDEREN Spielers im selben Takt werden einen Takt aufgeschoben (auch die Angriffs-Schlange).
+-- So teilen sich zwei Lenker (Spieler 1 und 2) einen Kanal. GRENZE: spielt ein Mensch mit, gehen seine Klicks in einem
+-- Takt mit festgehaltenem fremden Platz an diesen Spieler.
+local SLOT_ICH = 0x01A275DC
+local SPIELBEFEHL_ART = { abreissen = true, baue = true, spielbefehl = true, werbe = true }
+local platzFest = nil          -- { sp = Spieler, alt = Platz davor } bis zum naechsten Takt
+local aufgeschoben = {}        -- Spielbefehle eines anderen Spielers aus diesem Takt
+local abgesetzt = false        -- befehlAbsetzen meldet: Spielbefehl eingereiht
+local PLATZ_TAKTE = 1          -- so viele Spieltakte haelt ein Spielbefehl den Platz (1 reichte: Bauen, Anwerben, Handel)
+local heimPlatz = nil          -- Platz des Menschen/Hauptspielers (Wert vor jedem Umschalten)
+
+local function istSpielbefehl(c)
+  for k in pairs(SPIELBEFEHL_ART) do if c[k] ~= nil then return true end end
+  return false
+end
+
+local function alsSpieler(sp, f, arg)
+  sp = tonumber(sp)
+  if sp == nil or sp < 1 or sp > 8 then return f(arg) end
+  local alt = core.readInteger(SLOT_ICH)
+  if platzFest == nil then heimPlatz = alt end
+  if sp ~= alt then core.writeInteger(SLOT_ICH, sp) end
+  abgesetzt = false
+  local gut, erg = pcall(f, arg)
+  if abgesetzt then
+    if platzFest == nil then platzFest = { sp = sp, alt = alt, rest = PLATZ_TAKTE }
+    else platzFest.rest = PLATZ_TAKTE end
+  elseif sp ~= alt then
+    core.writeInteger(SLOT_ICH, alt)
+  end
+  if not gut then error(erg, 0) end
+  return erg
+end
+
 local function einzelbefehl(cmd)
   if type(cmd) ~= "table" then return false end
   local spieler = cmd.player
@@ -1585,6 +1627,7 @@ local function einzelbefehl(cmd)
   local function befehlAbsetzen(nr, werte)
     for i = 0, 5 do core.writeInteger(PARAM + i * 4, tonumber(werte[i + 1]) or 0) end
     local ok, err = pcall(function() core.exposeCode(0x00489100, 2, 1)(0x0191D768, nr) end)
+    if ok then abgesetzt = true end            -- 19.10.: Platz bis zum naechsten Takt halten (alsSpieler)
     return ok, err
   end
 
@@ -1925,6 +1968,36 @@ local function einzelbefehl(cmd)
   --   Abriss-Knopf ein (MenuItemActionHandler_BuildMenu_DeleteAction 0x00438ad9: Param1 = 0x32, gefunden 06.10.);
   --   hoeher als 50 wird gedeckelt - nie mehr als ein Mensch.
   --   uid = Referenz +0xD8 -> hier +0xEC (siehe Kopf: alle Gebaeude-Offsets + 0x14).
+  -- 19.10.2026 (1v1, Laufbefehl 17 wirkt fuer Gruppen von Spieler 2 nicht): { "zugpruefung": { "nr": N, "x": X, "y": Y } }
+  -- meldet Gruppe, Besitzer, Wegnetz-Gebiete und die Pruefungen des Spiels fuer Besitzer und Spieler 1, dann
+  -- giveTribeMoveInstruction (0x005263a0) direkt mit Rueckgabewert
+  if cmd.zugpruefung ~= nil and type(cmd.zugpruefung) == "table" then
+    local z = cmd.zugpruefung
+    local nr, x, y = tonumber(z.nr) or 0, tonumber(z.x) or 0, tonumber(z.y) or 0
+    local u = 0x0138854C + nr * 1168
+    local tribe = core.readSmallInteger(u + 728) or -1
+    local owner = core.readSmallInteger(u + 0x96) or -1
+    local ux, uy = math.floor((core.readSmallInteger(u + 0xB6) or 0) / 8), math.floor((core.readSmallInteger(u + 0xB8) or 0) / 8)
+    local function feld(fx, fy) return (core.readInteger(0x023372F8 + fy * 12 + 8) or 0) + fx end
+    local von = core.readSmallInteger(0x01DF6FD8 + feld(ux, uy) * 2) or -1
+    local zu = core.readSmallInteger(0x01DF6FD8 + feld(x, y) * 2) or -1
+    local kannHin = core.exposeCode(0x004A5320, 5, 1)
+    local kannNav = core.exposeCode(0x004A6DF0, 5, 1)
+    local aus = {}
+    for _, sp in ipairs({ owner, 1 }) do
+      local ok1, r1 = pcall(kannHin, 0x012BB8C8, sp, von, zu, 0)
+      local ok2, r2 = pcall(kannNav, 0x012BB8C8, sp, zu, ux, uy)
+      table.insert(aus, string.format("Spieler %d: kannHin=%s kannNav=%s", sp, ok1 and tostring(r1) or "Fehler", ok2 and tostring(r2) or "Fehler"))
+    end
+    local ok3, r3 = false, "nicht gerufen"
+    if z.ziehen == true and tribe > 0 then
+      ok3, r3 = pcall(core.exposeCode(0x005263A0, 7, 1), 0x01667F78, tribe, x, y, 0, 1, 0)
+    end
+    log(INFO, string.format("ZUGPRUEFUNG %d: Gruppe %d, Besitzer %d, bei (%d,%d) Gebiet %d -> (%d,%d) Gebiet %d | %s | giveTribeMoveInstruction=%s",
+      nr, tribe, owner, ux, uy, von, x, y, zu, table.concat(aus, "; "), ok3 and tostring(r3) or tostring(r3)))
+    return true
+  end
+
   if cmd.abreissen ~= nil and type(cmd.abreissen) == "table" then
     local nr = tonumber(cmd.abreissen.nr) or 0
     local b = GEBAEUDE + nr * G_SCHRITT
@@ -1983,6 +2056,7 @@ local function einzelbefehl(cmd)
   if cmd.angriff ~= nil and type(cmd.angriff) == "table" then
     local a = cmd.angriff
     if not cmd.ausSchlange then
+      a._als = core.readInteger(SLOT_ICH)       -- 19.10.: Spieler des Befehls (alsSpieler), gilt beim Abarbeiten
       -- Warteschlange (gemessen 04.10. nachts, pruefe_einzelbefehl.py): drei Angriffe im selben Takt landeten alle
       -- in der letzten Gruppe und liefen zum letzten Ziel - das Spiel arbeitet die Auswahl (Befehl 16) erst spaeter
       -- ab und liest dann die Auswahl-Bits des letzten Befehls. Darum setzt angriffSchlangeTick je Befehl ab und
@@ -2024,6 +2098,21 @@ local function einzelbefehl(cmd)
         n = n + 1
         gewaehlt[n] = nr
       end
+    end
+    -- 19.10.2026 (1v1): Laufbefehl 17 bewegt Gruppen eines anderen Spielers als des Menschen nicht - gemessen auf
+    -- Green Haven: Gruppe von Spieler 2 entsteht (Befehl 16, Besitzer 2, Leiteinheit richtig), giveTribeMoveInstruction
+    -- meldet 1, die Einheiten bleiben stehen; Angriff (36) und setDestinationForUnit wirken. Darum fuer andere Spieler
+    -- als heimPlatz: Laufziel je Einheit direkt (setDestinationForUnit). GRENZE: kein Kletterweg (nur 17 sucht ihn).
+    if type(a.lauf) == "table" and heimPlatz ~= nil and ich ~= heimPlatz then
+      _setDest = _setDest or core.exposeCode(ADR_SETDEST, 5, 1)
+      local lx, ly, gut = tonumber(a.lauf[1]) or 0, tonumber(a.lauf[2]) or 0, 0
+      for _, nr in ipairs(gewaehlt) do
+        local ok, r = pcall(_setDest, UNITS_STATE, nr, lx, ly, 0)
+        if ok and r ~= 0 and r ~= false then gut = gut + 1 end
+      end
+      log(INFO, string.format("ANGRIFF Tick %d: %d Einheiten von Spieler %d laufen direkt nach (%d,%d), %d angenommen",
+        tick(), n, ich, lx, ly, gut))
+      return true
     end
     local TR = 0x01667F78 + 40
     local gruppe = nil
@@ -2994,7 +3083,18 @@ local function handleCommand(cmd)
     if type(c) == "table" and c.id ~= nil and erledigt[c.id] then
       uebersprungen = uebersprungen + 1
     else
-      local gut, err = pcall(einzelbefehl, c)
+      local gut, err
+      if type(c) == "table" and c.player ~= nil and platzFest ~= nil and tonumber(c.player) ~= platzFest.sp
+         and istSpielbefehl(c) then
+        table.insert(aufgeschoben, c)            -- 19.10.: anderer Spieler haelt den Platz - naechster Takt
+        log(INFO, string.format("SPIELER %s: Befehl aufgeschoben (Platz haelt Spieler %d bis zum naechsten Takt)",
+          tostring(c.player), platzFest.sp))
+        gut, err = true, true
+      elseif type(c) == "table" and c.player ~= nil and c.eigenerPlatz == nil and c.eigenesGefecht == nil then
+        gut, err = pcall(alsSpieler, c.player, einzelbefehl, c)      -- 19.10.: Befehl wirkt fuer "player"
+      else
+        gut, err = pcall(einzelbefehl, c)
+      end
       if gut and err then ok = ok + 1 else
         fehler = fehler + 1
         if not gut then log(WARNING, "logik: " .. tostring(err)) end
@@ -3467,8 +3567,11 @@ local function angriffSchlangeTick()
     angriffWarten = nil
   end
   if #angriffSchlange == 0 then return end
+  if platzFest ~= nil and angriffSchlange[1]._als ~= nil and angriffSchlange[1]._als ~= platzFest.sp then
+    return                                      -- 19.10.: ein anderer Spieler haelt in diesem Takt den Platz
+  end
   local a = table.remove(angriffSchlange, 1)
-  local gut, err = pcall(einzelbefehl, { angriff = a, ausSchlange = true })
+  local gut, err = pcall(alsSpieler, a._als, einzelbefehl, { angriff = a, ausSchlange = true })
   if not gut then log(WARNING, "logik: " .. tostring(err)) end
 end
 
@@ -3525,7 +3628,29 @@ local function tickProtokollTick()
   end
 end
 
+-- 19.10.: das Spiel hat die eingereihten Spielbefehle in diesem Takt ausgefuehrt -> Platz zurueck, dann die aufgeschobenen
+local function platzTick()
+  if platzFest ~= nil then
+    platzFest.rest = (platzFest.rest or 1) - 1
+    if platzFest.rest > 0 then return end
+    core.writeInteger(SLOT_ICH, platzFest.alt)
+    platzFest = nil
+  end
+  if #aufgeschoben == 0 then return end
+  local liste = aufgeschoben
+  aufgeschoben = {}
+  for _, c in ipairs(liste) do
+    if platzFest ~= nil and tonumber(c.player) ~= platzFest.sp then
+      table.insert(aufgeschoben, c)
+    else
+      local gut, err = pcall(alsSpieler, c.player, einzelbefehl, c)
+      if not gut then log(WARNING, "logik (aufgeschoben): " .. tostring(err)) end
+    end
+  end
+end
+
 local function everyTick()
+  pcall(platzTick)            -- 19.10.: Platz zurueck / aufgeschobene Spielbefehle (1v1, zwei Lenker)
   pcall(ladePauseTick)        -- zuerst: die Pause soll vor allem anderen greifen
   pcall(leereKITick)
   pcall(zickzackTick)
