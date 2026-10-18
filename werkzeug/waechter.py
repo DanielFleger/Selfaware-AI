@@ -195,6 +195,7 @@ class Waechter:
         # zaehlt die Reserve mit (Streitkolben des Feldzugs, solange er sammelt) - ob sie kaempft, entscheidet die Bewertung
         eigene = dict(eigene)
         eigene.update({n: L[n] for n in reserve if n in L and L[n]["besitzer"] == self.sp})
+        self._reserve = set(reserve)
         # 12.10. 01:46 (Daniel: "warum hast du den Lord vorgeschickt?"): der Lord faengt nicht im Feld ab - nur wenn Feinde
         # hoechstens LORD_SELBST Felder neben IHM stehen (er schuetzt sich und die Schuetzen bei ihm). Sein Tod verliert die Partie.
         lord_feind_nah = lambda e: any(schach((e["x"], e["y"]), (f[1]["x"], f[1]["y"])) <= LORD_SELBST for f in feinde.values())
@@ -272,6 +273,9 @@ class Waechter:
                 ereignis.append("Schuetzen raus: %d weichen zum Bergfried, die Nahkaempfer uebernehmen" % len(bedroht))
             self.zurueck = (self.ziel, tuple(sorted(raus)))
         verfuegbar = list(einsatz)
+        for n in reserve:                        # 19.10.: nicht gebrauchte Reserve zurueck zum Feldzug
+            if n not in einsatz:
+                self.auftrag.pop(n, None)
         neu = [n for n in verfuegbar if self.auftrag.get(n) != self.ziel]
         if neu:
             befehl({"halten": {"los": verfuegbar}}, 1.0, bis="HALTEN")
@@ -320,6 +324,25 @@ class Waechter:
             if beste is None or (lohnt, anteil) > (beste[0], beste[3]):
                 beste = (lohnt, "%s: %s" % (name, text), ns, anteil)
         lohnt, text, einsatz = beste[0], beste[1], beste[2]
+        # 19.10. (1019h: der Waechter jagte mit dem ganzen Heer - 38 bis 51 Mann als Reserve - einzelne feindliche Assassinen
+        # durch unser Gebiet, 16-mal seit Tick 20.000; das Heer kam nie am Sammelpunkt zusammen): die KLEINSTE Gruppe, mit der
+        # die Rechnung noch lohnt - zuerst Truppen, die nicht zur Reserve gehoeren, dann die naechsten
+        if lohnt and len(einsatz) > 2:
+            tz = (L[self.ziel]["x"], L[self.ziel]["y"])
+            reserve_s = getattr(self, "_reserve", set())
+            ordnung = sorted(einsatz, key=lambda n: (n in reserve_s, schach((eigene[n]["x"], eigene[n]["y"]), tz)))
+            for k in (2, 4, 6, 9, 13, 20, 30):
+                if k >= len(ordnung):
+                    break
+                teil = ordnung[:k]
+                wir_k = [dict(typ=eigene[n]["typ"], leben=eigene[n]["leben"], x=eigene[n]["x"], y=eigene[n]["y"]) for n in teil]
+                try:
+                    l_k, t_k = gefecht.bewerte(wir_k, sie)
+                except Exception:
+                    break
+                if l_k:
+                    einsatz, text = teil, "kleinste Gruppe %d von %d: %s" % (k, len(ordnung), t_k)
+                    break
         text = "Gruppe %d + %d Schuetzen am Rand - %s" % (len(gruppe), len(helfer), text)
         self._wertung = (self.ziel, self.runde_w, lohnt, text, einsatz)
         return lohnt, text, einsatz

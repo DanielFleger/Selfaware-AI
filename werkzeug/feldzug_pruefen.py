@@ -17,6 +17,12 @@ Vorher festgelegt, was gelten muss:
      arab. Schwertkaempfer am Sammelpunkt, der Lord mit 2 Schuetzen -> ANGRIFF (das Heer sind alle Truppen, nicht nur
      Streitkolben; die Rechnung gewinnt)
  10. dieselben 12, davon 4 in der Heimwache -> das Heer hat 8, die 4 bekommen keinen Befehl
+ 11. (1019h: 79 Mann 6-22 Felder vor dem Lord, Wegpunkt 14/15, am Lord 0 - beschossen, ohne anzugreifen) Angriff laeuft, die
+     Spitze 20 Felder vor dem Lord, die Mitte nicht am Wegpunkt -> alle Nahkaempfer bekommen den Angriffsbefehl auf den Lord
+ 12. (Daniel: "arabische Bogenschuetzen sollten eher schiessen, wenn sie koennen") Schuetzen im Heer, ein feindlicher Bogen
+     30 Felder vor ihnen -> sie greifen ihn an statt zu laufen
+ 13. (1019h: Laufbefehle jede Runde neu) zwei Runden hintereinander, niemand ist angekommen -> in der zweiten kein neuer
+     Laufbefehl
 Aufruf: python werkzeug/feldzug_pruefen.py   (Rueckgabe 0 = gruen)
 """
 import os
@@ -144,6 +150,45 @@ def main():
     pruefe(9, "12 arab. Schwertkaempfer am Punkt, Lord mit 2 Schuetzen: Phase %s %s" % (ph9, m9), ph9 == "angriff")
     ph10, bef10, _ = heer((10, 11, 12, 13))
     pruefe(10, "4 davon Heimwache: Befehle an %s" % sorted(bef10), not bef10 & {10, 11, 12, 13} and bef10)
+    # 11
+    f11 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f11.wegplaner = lambda L_, G_, s, z: [(240, 60), (290, 80), z]
+    f11.schritt({"t": 12000}, *lage(10, heim), Befehle())
+    f11.schritt({"t": 12050}, *lage(30, f11.punkt), Befehle())
+    L, G = lage(0, heim)
+    for i in range(20):
+        L[10 + i] = einheit(75, 1, 300 - 20 + i % 5, 100 + i // 5, 28000)
+    b = Befehle()
+    f11.schritt({"t": 12100}, L, G, b)
+    angr11 = [x for x in b.liste if x.get("angriff", {}).get("ziel") == 500]
+    n11 = len(angr11[0]["angriff"]["einheiten"]) if angr11 else 0
+    pruefe(11, "Spitze 20 Felder vor dem Lord: Angriffsbefehl auf den Lord fuer %d von 20" % n11, n11 == 20)
+    # 12
+    f12 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f12.schritt({"t": 12000}, *lage(10, heim), Befehle())
+    f12.schritt({"t": 12050}, *lage(30, f12.punkt), Befehle())
+    L, G = lage(0, heim)
+    for i in range(6):
+        L[40 + i] = einheit(70, 1, 200 + i, 150, 15000)
+    L[777] = einheit(22, 2, 200, 180)
+    b = Befehle()
+    f12.schritt({"t": 12100}, L, G, b)
+    schuss = [x for x in b.liste if x.get("angriff", {}).get("ziel") == 777]
+    pruefe(12, "6 arab. Bogen, feindlicher Bogen 30 Felder: Angriff auf ihn %s" % (schuss[:1],),
+           schuss and set(schuss[0]["angriff"]["einheiten"]) == set(range(40, 46)))
+    # 13
+    f13 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    L, G = lage(10, heim)
+    for n in L:
+        if L[n]["besitzer"] == 1:
+            L[n]["zustand"] = 101
+    b1 = Befehle()
+    f13.schritt({"t": 12000}, L, G, b1)
+    b2 = Befehle()
+    f13.schritt({"t": 12050}, L, G, b2)
+    lauf1 = [x for x in b1.liste if "lauf" in x.get("angriff", {})]
+    lauf2 = [x for x in b2.liste if "lauf" in x.get("angriff", {})]
+    pruefe(13, "Laufbefehle Runde 1: %d, Runde 2: %d" % (len(lauf1), len(lauf2)), lauf1 and not lauf2)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

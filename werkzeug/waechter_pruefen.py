@@ -17,6 +17,9 @@ Vorher festgelegt:
   7. (1019b, Tick 14.204, mit den ECHTEN Editor-Messwerten) 7 arab. Bogen werden von 4 feindlichen Assassinen geschlagen,
      4 Speer + 3 arab. Schwert stehen 15 Felder weg -> Angriff nur mit den Nahkaempfern auf eine Assassine, die Bogen weichen
      zum Bergfried (Rechnung: alle 45 % Rest, nur Nahkampf 69 %)
+  8. (1019h: der Waechter jagte mit 38-51 Mann Reserve einzelne feindliche Assassinen) 20 arab. Schwertkaempfer als Reserve
+     30 Felder weg, eine feindliche Assassine an unserem Feld -> hoechstens 4 werden geschickt, die anderen bekommen keinen
+     Befehl
 Aufruf: python werkzeug/waechter_pruefen.py [<alte waechter.py>]   (Rueckgabe 0 = gruen)
 """
 import importlib.util, os, sys
@@ -116,6 +119,15 @@ def main():
     nur_nah = bool(ang) and set(ang[-1]["angriff"]["einheiten"]) <= set(range(60, 67))
     pruefe(7, "Bogen von Assassinen geschlagen: Angriff nur Nahkampf %s, Bogen weichen %s %s" % (
         nur_nah, bool(weg), [x[:110] for x in erg7 if "Abwehr" in x or "raus" in x][:2]), nur_nah and weg)
+    # 8
+    befehle.clear()
+    L8 = {300 + i: e(75, 1, 150 + i % 5, 190 + i // 5, leben=28000) for i in range(20)}
+    L8[700] = e(73, 2, 152, 160, leben=12500)
+    w8 = W.Waechter(1); w8.besetzt = True
+    w8.schritt(L8, [(150, 158)], reserve=set(range(300, 320)))
+    ang8 = [b for b in befehle if b.get("angriff", {}).get("ziel") == 700]
+    n8 = len(ang8[-1]["angriff"]["einheiten"]) if ang8 else 0
+    pruefe(8, "eine Assassine am Feld, 20 Reserve: geschickt %d" % n8, 0 < n8 <= 4)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

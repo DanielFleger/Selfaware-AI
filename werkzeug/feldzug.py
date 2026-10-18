@@ -46,6 +46,16 @@ class Feldzug:
     MIN_ANGRIFF = 8           # 19.10.: so viele am Sammelpunkt mindestens, dann entscheidet die Gefechtsrechnung
     LORD_UMKREIS = 25         # 19.10.: feindliche Truppen so nah am Lord kaempfen mit (Gefechtsrechnung)
     RECHNEN_ALLE = 5          # 19.10.: Gefechtsrechnung beim Sammeln je so viele Runden
+    # 19.10. (1019h, Daniel: "hier werden einfach 50 Einheiten gesammelt ohne anzugreifen - alle werden nach und nach
+    # abgeschossen, ohne sich zu bewegen"; Feldzug-Stand: 79 Mann, naechster 6 Felder vom Lord, Wegpunkt 14/15, am Lord 0 -
+    # die Mitte kam nie bis 4 Felder an den vorletzten Wegpunkt vor dem Bergfried): ab SCHLUSS_R Feldern (die Spitze) kein
+    # Wegpunkt mehr - alle bekommen den Angriffsbefehl auf den Lord (das Spiel sucht den Weg, auch die Treppe hinauf)
+    SCHLUSS_R = 25
+    WEGPUNKT_HALB = 10        # 19.10.: naechster Wegpunkt, sobald die Haelfte des Heeres so nah dran ist
+    # 19.10. (Daniel: "es macht keinen Sinn, dass arabische Bogenschuetzen im Team mit Schwertkaempfern laufen - sie sollten
+    # eher schiessen, wenn sie koennen"): Schuetzen des Heeres nehmen im Angriff den naechsten Feind in Reichweite (zuerst
+    # Schuetzen), statt im Haufen zu laufen
+    SCHUETZEN_ZIEL_R = 40
 
     def __init__(self, sp, heim, lord_schutz_bis=0, n=None):
         self.sp, self.heim, self.schutz_bis = sp, tuple(heim), lord_schutz_bis
@@ -121,9 +131,14 @@ class Feldzug:
                     self.verteidigt[feind[1]] = self.runde
                     aus.append("FELDZUG: %d Streitkolben greifen Einheit %d (Typ %d) %d Felder vor dem Sammelpunkt an" % (
                         len(da), feind[1], L[feind[1]]["typ"], feind[0]))
-            hin = [n for n in kolben if n not in da and n not in self.verteidiger and schach((L[n]["laufx"], L[n]["laufy"]), p) > 3]
+            befohlen = getattr(self, "_befohlen", {})
+            self._befohlen = befohlen
+            hin = [n for n in kolben if n not in da and n not in self.verteidiger
+                   and (befohlen.get(n) != ("lauf", p) or L[n]["zustand"] in (0, 1))]
             if hin:
                 befehl({"angriff": {"einheiten": hin, "lauf": [p[0], p[1]]}}, 1.0, bis="ANGRIFF")
+                for n in hin:
+                    befohlen[n] = ("lauf", p)
             if self.runde % 10 == 0:
                 aus.append("FELDZUG sammeln: %d von %d am Sammelpunkt %s, %d Streitkolben leben, Lord %d Leben %d%s" % (
                     len(da), self.N, p, len(kolben), self.ziel, lord["leben"],
@@ -151,18 +166,54 @@ class Feldzug:
                     wp.append(lp)
                 self.weg, self.weg_i, self.weg_ziel = [tuple(p) for p in wp], 0, lp
                 aus.append("FELDZUG Weg zum Lord %d: %d Wegpunkte %s" % (self.ziel, len(self.weg), self.weg[:6]))
-            while self.weg_i < len(self.weg) - 1 and schach(mitte, self.weg[self.weg_i]) <= self.WEGPUNKT_NAH:
-                self.weg_i += 1
+            spitze = min(schach(o, lp) for o in orte)
+            while self.weg_i < len(self.weg) - 1:
+                wp_i = self.weg[self.weg_i]
+                nah_i = sum(1 for o in orte if schach(o, wp_i) <= self.WEGPUNKT_HALB)
+                # (nicht "die Spitze ist naeher am Lord als der Wegpunkt" - das ueberspringt jeden Umweg, Pruefung 8)
+                if schach(mitte, wp_i) <= self.WEGPUNKT_NAH or 2 * nah_i >= len(orte):
+                    self.weg_i += 1
+                else:
+                    break
             p = self.weg[self.weg_i] if self.weg_i < len(self.weg) - 1 else lp
-            # Schuetzen greifen aus ihrer Reichweite an, Nahkaempfer erst am Lord
-            am_lord = [n for n in kolben if schach((L[n]["x"], L[n]["y"]), lp) <= (
-                FERN_REICH[L[n]["typ"]] - 4 if L[n]["typ"] in FERN_REICH else self.ANGRIFF_NAH)]
-            if am_lord and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
-                befehl({"angriff": {"einheiten": am_lord, "ziel": self.ziel}}, 1.0, bis="ANGRIFF")
+            schluss = spitze <= self.SCHLUSS_R
+            nah_kampf = [n for n in kolben if L[n]["typ"] not in FERN_REICH]
+            fern = [n for n in kolben if L[n]["typ"] in FERN_REICH]
+            # Schuetzen: naechster Feind in Reichweite (zuerst Schuetzen) - sonst mit dem Haufen
+            feinde_f = [(k, e) for k, e in L.items() if e["besitzer"] not in (0, self.sp) and e["typ"] in TRUPPE]
+            schiessen = {}
+            for n in fern:
+                o = (L[n]["x"], L[n]["y"])
+                kand = [(e["typ"] not in FERN, schach(o, (e["x"], e["y"])), k) for k, e in feinde_f
+                        if schach(o, (e["x"], e["y"])) <= self.SCHUETZEN_ZIEL_R]
+                if kand:
+                    schiessen[n] = min(kand)[2]
+            # Nahkaempfer: am Lord oder im Schluss -> Angriffsbefehl auf den Lord; sonst zum Wegpunkt
+            am_lord = [n for n in nah_kampf if schluss or schach((L[n]["x"], L[n]["y"]), lp) <= self.ANGRIFF_NAH]
+            befohlen = getattr(self, "_befohlen", {})
+            self._befohlen = befohlen
+            neu_lord = [n for n in am_lord if befohlen.get(n) != ("lord", self.ziel) or L[n]["zustand"] in (0, 1)]
+            if neu_lord and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
+                befehl({"angriff": {"einheiten": neu_lord, "ziel": self.ziel}}, 1.0, bis="ANGRIFF")
                 self.letzter_befehl = self.runde
-            unterwegs = [n for n in kolben if n not in am_lord and schach((L[n]["laufx"], L[n]["laufy"]), p) > 2]
+                for n in neu_lord:
+                    befohlen[n] = ("lord", self.ziel)
+            ziele_s = {}
+            for n, k in schiessen.items():
+                if befohlen.get(n) != ("schuss", k) or L[n]["zustand"] in (0, 1):
+                    ziele_s.setdefault(k, []).append(n)
+            for k, ns in ziele_s.items():
+                befehl({"angriff": {"einheiten": ns, "ziel": k}}, 1.0, bis="ANGRIFF")
+                for n in ns:
+                    befohlen[n] = ("schuss", k)
+            # 19.10. (1019h: Laufbefehle jede Runde neu - das Spiel meldet als Laufziel seinen naechsten Wegknoten, nicht
+            # unseren Punkt): nur, wer noch keinen Befehl zu p hat oder steht
+            unterwegs = [n for n in kolben if n not in am_lord and n not in schiessen
+                         and (befohlen.get(n) != ("lauf", p) or L[n]["zustand"] in (0, 1))]
             if unterwegs:
                 befehl({"angriff": {"einheiten": unterwegs, "lauf": [p[0], p[1]]}}, 1.0, bis="ANGRIFF")
+                for n in unterwegs:
+                    befohlen[n] = ("lauf", p)
             if self.runde % 5 == 0:
                 abst = sorted(schach(o, lp) for o in orte)
                 aus.append("FELDZUG Stand Tick %d: %d Streitkolben, Abstand zum Lord naechster %d / Mitte %d, Wegpunkt %d/%d, "

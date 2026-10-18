@@ -674,7 +674,8 @@ STOPP_TOTE = 0           # 19.10. (Daniel: "wenn 5 gestorben sind dann sofort st
 MARKE_TOTE = 5           # 19.10. (Daniel: "nur markieren, nicht stoppen"): ohne stopp_tote eine Marke bei so vielen Toten
 HEIM_FERN, HEIM_NAH = 6, 4   # 19.10.: Heimwache (Schuetzen, Nahkaempfer) - der Rest ist das Heer des Feldzugs (Stellgroessen)
 NOT_R, NOT_JE_RUNDE = 12, 2  # 19.10.: Notwerbung nur gegen Feinde so nah an unseren Gebaeuden, hoechstens so viele je Runde
-HEER_GOLD_RAND, HEER_MAX = 150, 60   # 19.10. (1019g): Soeldner fuers Heer nur mit so viel Gold ueber der Ruecklage, hoechstens so viele
+# 19.10. (1019g): Soeldner fuers Heer nur mit so viel Gold ueber der Ruecklage, hoechstens so viele (1019h: bei 60 lagen 3.400 Gold)
+HEER_GOLD_RAND, HEER_MAX = 150, 100
 STEIN_LOS_GOLD = 120     # 19.10. (1019g): ab so viel freiem Gold Stein fuer die Kaserne kaufen (5er-Los, Kauf ~14 je Stein, L65)
 PRODUKTION = False       # 19.10. (Daniel: eigene Waffenproduktion statt nur Markt) - produktion=ja, nur mit weg=feldzug
 PRODUKTION_FENSTER = 10000   # Ticks, in denen die Kette 30 Kaempfer liefern soll (bestimmt die Zahl der Betriebe)
@@ -914,9 +915,11 @@ def ruestung_kaufen(st, G, wirt, ausbau, ziel, marken):
     if st["gold"] >= erstes_los or (waf and kas):
         if not waf and st["holz"] >= 5 + rl["holz"]:
             aus.append("Waffenlager gesetzt %s (Gold %d)" % (baue_schnell(11, BERGFRIED[0] - 14, BERGFRIED[1] + 14, 25), st["gold"]))
-        if not kas and st["stein"] >= 12:
-            aus.append("Kaserne gesetzt %s (Gold %d)" % (baue_schnell(9, BERGFRIED[0] - 16, BERGFRIED[1] + 18, 30), st["gold"]))
-        elif not kas and st["gold"] - rl["gold"] >= STEIN_LOS_GOLD:
+        if not kas and st["stein"] >= 12 and not any(a["typ"] == 9 for a in (BUCH.offen if BUCH else [])):
+            # 19.10. (1019h: am festen Platz Bergfried -16/+18 "kein Platz im Umkreis 30", 40 Versuche): am Lagerfeuer suchen
+            aus.append("Kaserne gesetzt %s (Gold %d)" % (kaserne_am_feuer(G), st["gold"]))
+        elif not kas and st["stein"] < 12 and st["gold"] - rl["gold"] >= STEIN_LOS_GOLD                 and st["t"] - globals().get("_STEIN_KAUF_T", -10 ** 6) >= 300:
+            globals()["_STEIN_KAUF_T"] = st["t"]
             # 19.10. (1019g, Green Haven: kaum Stein auf unserer Seite, keine Kaserne - also kein einziger Streitkolben, waehrend
             # 1.163 Gold lagen): den Stein fuer die Kaserne am Markt kaufen (5er-Los, Spielbefehl 38: kaufen = 0, Stein = 4)
             befehl({"spielbefehl": {"nr": 38, "werte": [0, WAREN_NR["stein"]]}}, 1.0, bis="SPIELBEFEHL")
@@ -1664,7 +1667,7 @@ class Produktion:
         # Vor Abschluss der gesamten Produktionswirtschaft wird kein Gold in Truppen gebunden. Danach muss die Kaserne
         # schon beim ersten voll bezahlbaren Paar kommen: 50/100 passen nicht gleichzeitig in das eine Waffenlager.
         if not kas and paare >= 1 and gold >= KAEMPFER_GOLD and stein >= preis(9, "stein"):
-            aus.append("PRODUKTION Kaserne %s" % (baue_schnell(9, BERGFRIED[0] - 16, BERGFRIED[1] + 18, 30),))
+            aus.append("PRODUKTION Kaserne %s" % (kaserne_am_feuer(G),))   # 19.10. (1019h: fester Platz ohne Bauplatz)
         elif not kas and paare >= 1 and stein < preis(9, "stein") and gold >= STEIN_LOS_GOLD                 and st["t"] - getattr(self, "_stein_kauf", -10 ** 6) >= 100:
             # 19.10. (1019g, Green Haven: kaum Stein, die Kaserne kam nie - ohne sie wird kein Streitkolben angeworben)
             self._stein_kauf = st["t"]
