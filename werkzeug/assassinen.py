@@ -416,6 +416,8 @@ class Einzeln:
     FLUCHT_MIN = 8            # 19.10. (1018s): Fluchtpunkte naeher als 8 Felder nur, wenn es weiter weg keinen gibt
     LOEWE_HEIM, LOEWE_GRUPPE, LOEWE_LEBEN = 25, 3, 9000      # 19.10. (1018t): Loewen am Heim gemeinsam erledigen
     RUHE_FELDER = 40          # 19.10.: so viele Felder ohne waehlbaren Feind = voller Ruhe-Bonus (x2)
+    FERTIG_TAKTE = 120        # 19.10. (1018x): Restarbeit, die er beim Entdecktwerden noch fertig macht (Erkennen->Treffer 64-170, L81)
+    ARBEITER_ZEIT = 120       # 19.10. (1018x, 203 verfolgte einen Arbeiter 500 Takte): so lange darf "mitnehmen" dauern
     SPAEHER_MAX, SPAEHER_R, SPAEHER_ANTEIL = 2, 8, 0.3     # 19.10. (1018w): Sklaven als Spaeher erledigen statt fliehen
     ARBEITER_MIT = 2          # 19.10. (Daniel: "nie gesagt aktiv jagen - mitnehmen, wenn er will; zu viel Traffic -> auf ein Minimum"): nur direkt am Weg
     ARBEITER_FREI = 30        # 19.10. (1018v): ... nur, wenn kein waehlbarer Feind naeher als so viele Felder steht
@@ -1088,6 +1090,8 @@ class Einzeln:
                     sehen = []                 # jagt den einzigen Schuetzen, der ihn erreicht (Beute, 3b): weiter jagen
                 if e is None and sehen and self._spaeher_erledigen(n, ort, sehen, L, ereignis, jagen if jagen is not None else []):
                     continue                   # 19.10.: nur ein Sklave sieht ihn - erledigen statt fliehen
+                if e is None and sehen and self._fertig_zuerst(n, ort, G, L, ereignis):
+                    continue                   # 19.10.: fast kaputt - erst fertig abreissen
                 if sehen:
                     if e is not None and e.get("ziel_ok") is not None:
                         e["ziel_ok"], e["punkt"] = None, None      # beim Aussendienst wieder gesehen: wieder raus
@@ -1163,6 +1167,25 @@ class Einzeln:
                 self._fliehen(n, p, flieh)       # laeuft nicht dorthin (z.B. vom Spiel umgelenkt): Befehl erneuern
             else:
                 self.warte[n] = p
+
+    def _fertig_zuerst(self, n, ort, G, L, ereignis):
+        """19.10. (1018x, Daniel: "die Barracke nur bis kurz vor kaputt angegriffen, dann ist er nach hinten"): reisst er gerade
+        ab (Zustand 107, Ziel daneben) und braucht das Gebaeude nur noch FERTIG_TAKTE (gemessene Arbeit x Restleben / hoechstes
+        gesehenes Leben / Angreifer) - weniger, als die Schuetzen nach dem Erkennen bis zum ersten Treffer brauchen (L81) -,
+        dann erst fertig abreissen, danach fliehen."""
+        gn = self.ziel.get(n)
+        g = G.get(gn)
+        if g is None or L[n]["zustand"] != 107 or schach(ort, (g["x"], g["y"])) > self.ZIEL_NAH + 2:
+            return False
+        voll = max(getattr(self, "_gb_max", {}).get(gn, 0), g["leben"], 1)
+        zahl = max(1, sum(1 for z in self.ziel.values() if z == gn))
+        rest = ARBEIT.get(g["typ"], ARBEIT_SONST) * g["leben"] / float(voll) / zahl
+        if rest > self.FERTIG_TAKTE:
+            return False
+        ereignis.append("FERTIG ZUERST %d: entdeckt, aber Gebaeude %d (Typ %d) braucht nur noch ~%d Takte - erst abreissen" % (
+            n, gn, g["typ"], rest))
+        self._fertig.add(n)
+        return True
 
     def _spaeher_erledigen(self, n, ort, sehen, L, ereignis, jagen):
         """19.10. (1018w: alle 6 Entdeckungen durch Sklaven, oft mit nur 1 Schuetzen in Reichweite - die Assassine floh und
@@ -1490,6 +1513,8 @@ class Einzeln:
         self._gb_fort = {gn: self.jetzt for gn in fort} | {gn: tk for gn, tk in getattr(self, "_gb_fort", {}).items()
                                                            if gn in G and gn not in fort}
         self._gb_leben = {gn: g["leben"] for gn, g in G.items()}
+        gm = getattr(self, "_gb_max", {})
+        self._gb_max = {gn: max(gm.get(gn, 0), g["leben"]) for gn, g in G.items()}
         for n in self.mitglieder:
             f = (L[n]["x"], L[n]["y"])
             z = self.ziel.get(n)
@@ -1522,6 +1547,15 @@ class Einzeln:
                     ereignis.append("Gebaeude %d (Typ %d) zerstoert" % (z, typ))
                 del self.ziel[n]
         for n, f in list(self.jagd.items()):
+            seit = getattr(self, "_arb_seit", {}).get(n)
+            if seit is not None and n in L and f in L and L[f]["typ"] not in TRUPPE and (
+                    self.jetzt - seit > self.ARBEITER_ZEIT or schach((L[n]["x"], L[n]["y"]), (L[f]["x"], L[f]["y"])) > self.ARBEITER_MIT + 3):
+                # 19.10. (1018x: 203 verfolgte einen weglaufenden Arbeiter 500 Takte, bis 11 Schuetzen ihn sahen): mitnehmen
+                # heisst kurz - zu lang oder er laeuft weg -> lassen, das Ziel kommt in der Zielwahl wieder
+                del self.jagd[n]
+                self._arb_seit.pop(n, None)
+                ereignis.append("ARBEITER %d laesst Arbeiter %d (laeuft weg oder dauert zu lange)" % (n, f))
+                continue
             if f not in L or L[f]["besitzer"] in (0, self.sp):
                 del self.jagd[n]
         # 3. Gegenprobe: laeuft er wirklich zu seinem Gebaeude?
@@ -1598,6 +1632,8 @@ class Einzeln:
                 ziel_a = min(mit, key=lambda b_: schach(ort, b_[1]))
                 self.ziel.pop(n, None); self.route.pop(n, None); self.warte.pop(n, None)
                 self.jagd[n] = ziel_a[0]
+                self._arb_seit = getattr(self, "_arb_seit", {})
+                self._arb_seit[n] = self.jetzt
                 jaeger.add(ziel_a[0])
                 jagen.append((n, ziel_a[0]))
                 ereignis.append("ARBEITER %d nimmt Arbeiter %d (Typ %d) %d Felder neben dem Weg mit" % (
@@ -1635,12 +1671,13 @@ class Einzeln:
                 ereignis.append("BEUTE %d jagt Fernkaempfer %d (Typ %d) am Boden (%d Felder): Saldo %.0f, Todesrisiko %.0f %%, "
                                 "toeten %.0f Takte, Wert %s" % (n, ziel_b[0], typ_b, schach(ort, ziel_b[1]), saldo, 100 * p_tod,
                                                                t_toeten, "gemessen" if typ_b in EINHEIT_WERT_GEMESSEN else "geschaetzt"))
+        self._fertig = set()                 # 19.10.: diese Runde "fertig zuerst" - 4/4b lassen sie in Ruhe
         self._entdeckt_pruefen(L, G, ereignis, flieh, jagen, angriffe)
         self._loewenjagd(L, jagen, ereignis)
         # 4. Verletzt im Schussfeld: Rueckzug oder zuschlagen
         for n in verletzt:
-            if n in self.entdeckt:
-                continue                   # 19.10.: laeuft schon ausser Sicht und Reichweite
+            if n in self.entdeckt or n in self._fertig:
+                continue                   # 19.10.: laeuft schon ausser Sicht und Reichweite / reisst erst fertig ab
             ort = (L[n]["x"], L[n]["y"])
             nf = self._naechster(ort, fern)
             # 17.10. (L75/L78 statt RUECKZUG_FERN 40): nur wer gerade beschossen werden kann, zieht sich zurueck - und nur, wenn
@@ -1759,7 +1796,7 @@ class Einzeln:
                                                                        L[n]["leben"], sicher, "; ".join(getattr(self, "_heimgrund", []))))
         # 4b. Ausweichen, bevor es weh tut: rueckt eine Gruppe Fernkaempfer heran, Ziel aufgeben
         for n in self.mitglieder:
-            if n in verletzt or n in self.jagd or n in self.warte or n in self.stapel["mitglieder"] or self._im_lordangriff(n):
+            if n in verletzt or n in self.jagd or n in self.warte or n in self.stapel["mitglieder"] or self._im_lordangriff(n)                     or n in self._fertig:
                 continue
             ort = (L[n]["x"], L[n]["y"])
             # 17.10. (statt VORAUS_FERN/VORAUS_ANZAHL: 3 Schuetzen im Umkreis 10): ausweichen, wenn er hier beschossen werden

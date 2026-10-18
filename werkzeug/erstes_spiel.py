@@ -733,7 +733,7 @@ def produktions_hofplaetze(anzahl=None, kern=None):
     """Beliebig viele nicht ueberlappende Kuhhof-Plaetze aus der echten Platzkarte, die kuerzesten zuerst.
     Die alte feste Liste begann 70+ Felder vom Eisenlager entfernt; mit dem einzigen erlaubten Waffenlager machte das
     entweder die Gerber- oder die Schmiedewege unbrauchbar. Der echte Bauversuch verwirft spaeter belegte Stellen."""
-    if not V14_PLAN:                     # 19.10.: jede andere Karte - Plaetze vom Spiel
+    if not V14:                          # 19.10.: jede andere Karte - Plaetze vom Spiel
         aus = hofplaetze_live(kern or BERGFRIED)
         return aus[:anzahl] if anzahl is not None else aus
     from farmen_mischen import lies_karte
@@ -1236,7 +1236,7 @@ class Produktion:
         hof_kern = ((self.plan_lager[0] + 3, self.plan_lager[1] + 3) if self.plan_lager else None)
         self.hof_orte = produktions_hofplaetze(None, hof_kern)
         if len(self.hof_orte) < self.hoefe:
-            if V14_PLAN or not self.hof_orte:
+            if V14 or not self.hof_orte:
                 raise RuntimeError("nur %d produktive Hofplaetze fuer %d benoetigte Hoefe" % (len(self.hof_orte), self.hoefe))
             self.hoefe = len(self.hof_orte)          # 19.10.: fremde Karte - so viele Hoefe, wie das Spiel erlaubt
         self.hof_verworfen = set()
@@ -1306,6 +1306,11 @@ class Produktion:
             elif grund == "rohstoff":
                 aus.append("PRODUKTION Milchviehhof wartet auf Material; Platz %s bleibt im Vorrat" % (p,))
                 break
+            elif grund == "schutz":
+                # 19.10. (1018x: alle 58 Hofplaetze verworfen - auf 10x10 laeuft fast immer gerade jemand; "schutz" ist nur
+                # voruebergehend, siehe baue_schnell): diese Runde ueberspringen, Platz bleibt im Vorrat
+                aus.append("PRODUKTION Hofplatz %s gerade belegt (Laufweg) - spaeter wieder" % (p,))
+                continue
             else:
                 self.hof_verworfen.add(p)
                 aus.append("PRODUKTION Hofplatz %s verworfen; naechster Ersatzplatz wird versucht" % (p,))
@@ -1409,7 +1414,7 @@ class Produktion:
             hof_offen = self.hoefe_bauen(G, hoefe, gold, holz, feuer, aus)
             if hofvorrat_erschoepft(self.hoefe, len(hoefe), hof_offen, self.hof_orte, self.hof_verworfen):
                 # 19.10.: auf fremden Karten kein Abbruch des Lenkers - mit den Hoefen weiter, die stehen
-                if V14_PLAN:
+                if V14:
                     raise RuntimeError("TECHNISCH UNGUELTIG: produktiver Hofplatzvorrat erschoepft (%d gebaut, %d benoetigt, %d verworfen)" % (
                         len(hoefe), self.hoefe, len(self.hof_verworfen)))
                 if hoefe and self.hoefe > len(hoefe):

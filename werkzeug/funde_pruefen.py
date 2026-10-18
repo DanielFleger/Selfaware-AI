@@ -52,6 +52,10 @@ Vorher festgelegt:
  30. (Daniel 19.10.: "unten Apfelfarmen, hinten keine Verteidigung - nimm die Farmen alle mit") Holzfaeller 30 Felder weit,
      ein Speer 24 Felder daneben (unsichtbar, aber nah); Apfelplantage 45 Felder weit, kein Feind in 60 Feldern -> die
      Apfelplantage (Gegenprobe: alter Stand nimmt den naeheren Holzfaeller)
+ 31. (1018x, Daniel: "die Barracke nur bis kurz vor kaputt angegriffen, dann ist er nach hinten") reisst ab (Zustand 107),
+     Gebaeude hat noch 10 von 200 Leben, ein Speer sieht ihn, eine Armbrust erreicht ihn -> FERTIG ZUERST, kein ENTDECKT;
+     Gegenprobe: 200 von 200 -> ENTDECKT
+ 32. (1018x, 203 verfolgte einen Arbeiter 500 Takte) "mitnehmen" laeuft seit 200 Takten -> abgebrochen
  28. (Daniel 19.10.: "wenn nicht ausweichbar, zerstoert er lieber noch moeglichst viel") 6.000 Leben, je zwei Armbrustschuetzen
      links und rechts in 10 Feldern, ein Speer sieht ihn: jeder Fluchtweg kostet mehr Leben, als er hat -> LETZTER EINSATZ auf
      einen der Armbrustschuetzen, die ihn treffen (Wert 60 x 2), nicht auf die Apfelplantage daneben (30)
@@ -498,6 +502,30 @@ def main():
     t.aufnehmen([100])
     erg, bef = t.schritt(L, G, sichere_orte=[(20, 300)], tick=10000)
     pruefe(30, "Holzfaeller nahe am Speer vs. ruhige Apfelplantage: Ziel %s" % t.ziel.get(100), t.ziel.get(100) == 901)
+    # 31
+    def lage_fertig(leben_g):
+        t = neu(); t._raid_plaetze = 99
+        L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
+             601: einheit(24, 2, 112, 100, leben=10000), 610: einheit(23, 2, 130, 100, leben=17500)}
+        L[100].update(zustand=107)
+        G = {900: {"besitzer": 2, "typ": 9, "x": 101, "y": 101, "leben": leben_g, "uid": 1, "erreichbar": 1}}
+        t.aufnehmen([100])
+        t.ziel[100] = 900; t.ziel_typ[900] = 9; t.befohlen[100] = 0
+        t._gb_max = {900: 200}
+        erg, bef = t.schritt(L, G, sichere_orte=[(20, 300)], tick=10000)
+        return 100 in getattr(t, "entdeckt", {}), t.ziel.get(100), [z[:50] for z in erg if "FERTIG" in z][:1]
+    e31, z31, m31 = lage_fertig(10)
+    e31v, _, _ = lage_fertig(200)
+    pruefe(31, "Kaserne 10/200: entdeckt %s, Ziel %s %s; 200/200: entdeckt %s" % (e31, z31, m31, e31v), not e31 and z31 == 900 and e31v)
+    # 32
+    t = neu(); t._raid_plaetze = 99
+    L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000), 700: einheit(64, 2, 104, 100, leben=800)}
+    t.aufnehmen([100])
+    t.jagd[100] = 700
+    t._arb_seit = {100: 9800}
+    erg, bef = t.schritt(L, {}, sichere_orte=[(20, 300)], tick=10000)
+    pruefe(32, "Arbeiter-Mitnahme seit 200 Takten: Jagd noch %s %s" % (t.jagd.get(100), [z[:50] for z in erg if "laesst" in z][:1]),
+           t.jagd.get(100) != 700)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

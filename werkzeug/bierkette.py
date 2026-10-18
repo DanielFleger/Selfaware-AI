@@ -52,6 +52,7 @@ class Bierkette:
         m = self.merk.get(typ)
         if m is None or t - m[0] >= self.NEU_PLAETZE or not [p for p in m[1] if p not in self.verworfen]:
             self.merk[typ] = (t, self.plaetze(typ, kern, self.RADIUS[typ]))
+            self.verworfen.clear()       # 19.10.: neue Platzliste vom Spiel - frueher Abgelehntes darf wieder (Laufwege wandern)
         frei = [p for p in self.merk[typ][1] if p not in self.verworfen]
         return frei[0] if frei else None
 
