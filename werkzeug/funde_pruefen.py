@@ -56,6 +56,8 @@ Vorher festgelegt:
      Gebaeude hat noch 10 von 200 Leben, ein Speer sieht ihn, eine Armbrust erreicht ihn -> FERTIG ZUERST, kein ENTDECKT;
      Gegenprobe: 200 von 200 -> ENTDECKT
  32. (1018x, 203 verfolgte einen Arbeiter 500 Takte) "mitnehmen" laeuft seit 200 Takten -> abgebrochen
+ 33. (Daniel 19.10.: "geht erst zu den Loewen hin, merkt dann Gefahr, geht zurueck") drei Loewen genau auf der Geraden
+     zum Ziel -> der Weg fuehrt ueber Wegpunkte, die mehr als 8 Felder von den Loewen wegbleiben
  28. (Daniel 19.10.: "wenn nicht ausweichbar, zerstoert er lieber noch moeglichst viel") 6.000 Leben, je zwei Armbrustschuetzen
      links und rechts in 10 Feldern, ein Speer sieht ihn: jeder Fluchtweg kostet mehr Leben, als er hat -> LETZTER EINSATZ auf
      einen der Armbrustschuetzen, die ihn treffen (Wert 60 x 2), nicht auf die Apfelplantage daneben (30)
@@ -526,6 +528,19 @@ def main():
     erg, bef = t.schritt(L, {}, sichere_orte=[(20, 300)], tick=10000)
     pruefe(32, "Arbeiter-Mitnahme seit 200 Takten: Jagd noch %s %s" % (t.jagd.get(100), [z[:50] for z in erg if "laesst" in z][:1]),
            t.jagd.get(100) != 700)
+    # 33
+    t = neu(); t._raid_plaetze = 99
+    t.gelaende = ["G" * 400 for _ in range(400)]
+    L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000)}
+    for i in range(3):
+        L[700 + i] = einheit(45, 0, 129 + i, 100, leben=12000)
+    G = {900: {"besitzer": 2, "typ": 32, "x": 160, "y": 100, "leben": 100, "uid": 1, "erreichbar": 1}}
+    t.aufnehmen([100])
+    erg, bef = t.schritt(L, G, sichere_orte=[(20, 300)], tick=10000)
+    r33 = t.route.get(100, {}).get("punkte", [])
+    weit33 = bool(r33) and all(max(abs(p[0] - 130), abs(p[1] - 100)) > 8 for p in r33)
+    pruefe(33, "Loewen auf der Geraden: Ziel %s, Wegpunkte %s, alle > 8 Felder weg %s" % (t.ziel.get(100), r33[:5], weit33),
+           t.ziel.get(100) == 900 and weit33)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

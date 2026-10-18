@@ -415,6 +415,7 @@ class Einzeln:
     GERADE_TEIL = 20          # lange Wege ohne Umweg trotzdem in Stuecken laufen (198 lief 222 Felder am Stueck)
     FLUCHT_MIN = 8            # 19.10. (1018s): Fluchtpunkte naeher als 8 Felder nur, wenn es weiter weg keinen gibt
     LOEWE_HEIM, LOEWE_GRUPPE, LOEWE_LEBEN = 25, 3, 9000      # 19.10. (1018t): Loewen am Heim gemeinsam erledigen
+    LOEWE_WEG_R, LOEWE_WEG_SCHADEN = 8, 80                     # 19.10.: Loewen-Zone in der Wegplanung (wie starker Beschuss)
     RUHE_FELDER = 40          # 19.10.: so viele Felder ohne waehlbaren Feind = voller Ruhe-Bonus (x2)
     FERTIG_TAKTE = 120        # 19.10. (1018x): Restarbeit, die er beim Entdecktwerden noch fertig macht (Erkennen->Treffer 64-170, L81)
     ARBEITER_ZEIT = 120       # 19.10. (1018x, 203 verfolgte einen Arbeiter 500 Takte): so lange darf "mitnehmen" dauern
@@ -803,6 +804,19 @@ class Einzeln:
             return self._gitter_runde[1]
         g = schussfeld.Gitter(self.gelaende, schussfeld.schuetzen(L, self.sp), frei=self._frei, sicht=self._lage(L, G or {}))
         self._frei = g.frei
+        # 19.10. (Daniel: "anstatt zu sehen, dass Loewen eine Gefahr sind, und schon im Vorhinein den optimalen Weg zu gehen,
+        # geht der Assassine erst hin, merkt dann Gefahr, geht zurueck"): Loewen als Gefahrenzone ins Gitter - Zellen bis
+        # LOEWE_WEG_R Felder um jeden Loewen kosten LOEWE_WEG_SCHADEN je Takt; Weg- und Zielwahl machen gleich den Bogen
+        if g.satz is not None:
+            for e in L.values():
+                if e["besitzer"] != 0 or e["typ"] != self.LOEWE:
+                    continue
+                c = g.zelle_von((e["x"], e["y"]))
+                rz = self.LOEWE_WEG_R // g.z + 1
+                for cy in range(max(0, c[1] - rz), min(g.n, c[1] + rz + 1)):
+                    for cx in range(max(0, c[0] - rz), min(g.n, c[0] + rz + 1)):
+                        if schach(g.mitte((cx, cy)), (e["x"], e["y"])) <= self.LOEWE_WEG_R:
+                            g.satz[cy][cx] += self.LOEWE_WEG_SCHADEN
         self._gitter_runde = (self.runde, g)
         return g
 

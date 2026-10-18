@@ -1255,6 +1255,12 @@ class Produktion:
         arbeiter = (2 * self.minen + self.schmieden + self.gerber + self.hoefe + self.holzfaeller + 16)
         self.bevoelkerung_ziel = max(70, arbeiter + 24)
 
+    def werkstaetten_sperren(self, ausbau):
+        """19.10. (1018y: geplante Werkstattplaetze waren beim Bau Tausende Ticks spaeter belegt - "kein gueltiger Platz",
+        Plan neu, wieder belegt): die Flaechen des Werkstattplans fuer andere Bauten sperren (ausbau.sperr, 1 Feld Rand)."""
+        neu = [(x - 1, y - 1, x + NACH_TYP[a]["b"], y + NACH_TYP[a]["b"]) for a, x, y, _r, _e in self.werk_plan]
+        ausbau.sperr = list(getattr(ausbau, "sperr", None) or []) + neu
+
     def stein_bedarf(self, G):
         eig = [g for g in G.values() if g["besitzer"] == SP]
         n = lambda typ: sum(1 for g in eig if g["typ"] == typ)
@@ -1453,6 +1459,7 @@ class Produktion:
                     hat_w, soll_w, hat_s, fehlen_s, hat_g, fehlen_g, bericht))
                 return aus
             self.werk_plan, self.werk_abschnitt = list(plan.bauten), "gesamt"
+            self.werkstaetten_sperren(ausbau)
             self.werk_index, self.werk_gebaut_ids, self.werk_versuche = 0, set(), 0
             self.werkstatt_tick, self.stufe = st["t"], 1
             aus.append("PRODUKTION abwechselnder Werkstattplan gespeichert: %s" % [
@@ -1479,6 +1486,7 @@ class Produktion:
                     hat_g, fehlen_g, bericht))
                 return aus
             self.werk_plan, self.werk_abschnitt = list(plan.bauten), "leder"
+            self.werkstaetten_sperren(ausbau)
             self.werk_index, self.werk_gebaut_ids, self.werk_versuche = 0, set(), 0
             self.werkstatt_tick, self.stufe = st["t"], 3
             aus.append("PRODUKTION Gerberplan am vorhandenen Waffenlager gespeichert: %s" % [
