@@ -51,7 +51,8 @@ class Feldzug:
     # die Mitte kam nie bis 4 Felder an den vorletzten Wegpunkt vor dem Bergfried): ab SCHLUSS_R Feldern (die Spitze) kein
     # Wegpunkt mehr - alle bekommen den Angriffsbefehl auf den Lord (das Spiel sucht den Weg, auch die Treppe hinauf)
     SCHLUSS_R = 25
-    WEGPUNKT_HALB = 10        # 19.10.: naechster Wegpunkt, sobald die Haelfte des Heeres so nah dran ist
+    WEGPUNKT_HALB = 10        # 19.10.: naechster Wegpunkt, sobald die Haelfte der Spitzengruppe so nah dran ist
+    SPITZE_TIEFE = 25         # 19.10. (1019i): Spitzengruppe = bis so viele Felder hinter dem vordersten
     # 19.10. (Daniel: "es macht keinen Sinn, dass arabische Bogenschuetzen im Team mit Schwertkaempfern laufen - sie sollten
     # eher schiessen, wenn sie koennen"): Schuetzen des Heeres nehmen im Angriff den naechsten Feind in Reichweite (zuerst
     # Schuetzen), statt im Haufen zu laufen
@@ -167,11 +168,16 @@ class Feldzug:
                 self.weg, self.weg_i, self.weg_ziel = [tuple(p) for p in wp], 0, lp
                 aus.append("FELDZUG Weg zum Lord %d: %d Wegpunkte %s" % (self.ziel, len(self.weg), self.weg[:6]))
             spitze = min(schach(o, lp) for o in orte)
+            # 19.10. (1019i: die Spitze stand 2.000 Takte 37 Felder vor dem Lord, die Mitte wanderte von 55 auf 80 Felder
+            # zurueck - neu angeworbene Soeldner kamen von zu Hause nach): ueber den Wegpunkt entscheidet nur die Spitzengruppe
+            # (hoechstens SPITZE_TIEFE Felder weiter vom Lord als der vorderste)
+            vorn = [o for o in orte if schach(o, lp) <= spitze + self.SPITZE_TIEFE] or orte
+            mitte_v = (sorted(o[0] for o in vorn)[len(vorn) // 2], sorted(o[1] for o in vorn)[len(vorn) // 2])
             while self.weg_i < len(self.weg) - 1:
                 wp_i = self.weg[self.weg_i]
-                nah_i = sum(1 for o in orte if schach(o, wp_i) <= self.WEGPUNKT_HALB)
+                nah_i = sum(1 for o in vorn if schach(o, wp_i) <= self.WEGPUNKT_HALB)
                 # (nicht "die Spitze ist naeher am Lord als der Wegpunkt" - das ueberspringt jeden Umweg, Pruefung 8)
-                if schach(mitte, wp_i) <= self.WEGPUNKT_NAH or 2 * nah_i >= len(orte):
+                if schach(mitte_v, wp_i) <= self.WEGPUNKT_NAH or 2 * nah_i >= len(vorn):
                     self.weg_i += 1
                 else:
                     break

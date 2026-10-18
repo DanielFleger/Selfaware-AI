@@ -1290,7 +1290,14 @@ class Produktion:
         if not lauf[1].done():
             return None
         self._planung = None
-        return lauf[1].result()
+        try:
+            return lauf[1].result()
+        except Exception as ex:
+            # 19.10. (1019i: "vorhandenes Waffenlager ist fuer die neue Werkstattstufe nicht erreichbar" beendete den ganzen
+            # Lauf mitten im Feldzug): Planungsfehler = gerade kein Plan, naechster Versuch nach WERKPLAN_PAUSE
+            self.werk_naechster = getattr(self, "_tick", 0) + self.WERKPLAN_PAUSE
+            self._planfehler = "%s: %s" % (name, ex)
+            return None
 
     def werkstaetten_sperren(self, ausbau):
         """19.10. (1018y: geplante Werkstattplaetze waren beim Bau Tausende Ticks spaeter belegt - "kein gueltiger Platz",
@@ -1401,6 +1408,10 @@ class Produktion:
         import aufbau_planer as P
         import wegkarte as W
         aus = []
+        self._tick = st["t"]
+        if getattr(self, "_planfehler", None):
+            aus.append("PRODUKTION Planung gescheitert (%s) - naechster Versuch ab Tick %d" % (self._planfehler, self.werk_naechster))
+            self._planfehler = None
         eig = {n: g for n, g in G.items() if g["besitzer"] == SP}
         rl = wirt.ruecklage(G)
         gold, holz, stein, feuer = st["gold"] - rl["gold"], st["holz"] - rl["holz"], st["stein"], st.get("feuer", 0)
@@ -2608,12 +2619,20 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             if feldzug is not None:
                 if prod is not None:
                     prod.stein_extra = bier.stein_bedarf() if bier is not None else 0
-                    ereignis += prod.schritt(st, L, G, wirt, ausbau)
+                    # 19.10. (1019i: ein Fehler im Werkstattplaner beendete den Lauf mitten im Feldzug): ein Fehler in der
+                    # Produktion wird gemeldet, beendet aber nie die Partie
+                    try:
+                        ereignis += prod.schritt(st, L, G, wirt, ausbau)
+                    except Exception as ex_p:
+                        ereignis.append("PRODUKTION FEHLER %r - Partie laeuft weiter" % (ex_p,))
                     if prod.stufe < 4 and st["gold"] - wirt.ruecklage(G)["gold"] >= Produktion.UEBERSCHUSS:
                         ereignis += ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
                 else:
                     ereignis += ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
-                ereignis += feldzug.schritt(st, L, G, befehl)
+                try:
+                    ereignis += feldzug.schritt(st, L, G, befehl)
+                except Exception as ex_z:
+                    ereignis.append("FELDZUG FEHLER %r - Partie laeuft weiter" % (ex_z,))   # 19.10. (1019i): nie den Lauf beenden
                 # 19.10. (1019g: das Heer blieb bei 5 Mann, Gold 1.163 lag brach; Daniel: "beim naechsten Run sollen beide
                 # Nomaden sterben"): Soeldner fuers Heer, sobald Gold ueber der Ruecklage + HEER_GOLD_RAND liegt - arab.
                 # Schwertkaempfer (Editor-Duelle: 28.000 Leben, ~180 je Takt), jeder vierte ein arab. Bogen; hoechstens 2 je
@@ -2636,7 +2655,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             ereignis.append("HEER-WERBUNG: %d Soeldner fuers Heer angeworben (zusammen %d, Heer jetzt %d), Gold %d" % (
                                 n_h, fruehpruefung["heer_zaehler"], heer_n + n_h, st["gold"]))
                 if bier is not None and runde % 5 == 0:
-                    ereignis += bier.schritt(st, G, wirt.ruecklage(G))
+                    try:
+                        ereignis += bier.schritt(st, G, wirt.ruecklage(G))
+                    except Exception as ex_z:
+                        ereignis.append("BIER FEHLER %r - Partie laeuft weiter" % (ex_z,))   # 19.10. (1019i): nie den Lauf beenden
             else:
                 ereignis += bilanz_schritt(st, L, G, ausbau, streitkolben, endspiel, runde, kaempfer_marken)
             if feldzug is None and not endspiel["fertig"] and weg != "bilanz":     # weg=bilanz: nur Wirtschaft + Bilanz-Endspiel (v5)
