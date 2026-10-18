@@ -46,6 +46,13 @@ def signal_da(datei):
     return os.path.exists(datei) and os.path.getmtime(datei) >= PROZESS_START - 1
 
 
+import partner as PT
+# 18.10. (Daniel 22:22 "fixe diese und alle moeglichen auftretenden Fehlermeldungen"): Ende-Meldungen der beiden 1v1-Lenker
+ENDE = PT.Ende(HIER, INSTANZ, SP, PROZESS_START)
+START_FERTIG = False      # 1v1: Startsignal ausgetauscht - erst danach laeuft ein Fehler in Phase 1 in Phase 2 weiter
+FEHLERPROBE, PAUSEPROBE = None, None   # Pruefschalter (Tick): einmal einen Rundenfehler werfen / das Spiel anhalten
+
+
 EINS_GEGEN_EINS, ANHAENGEN, ANGLEICH_TICK = False, False, 150   # 150: beide Lords stehen (mit zwei Menschen ist der Start gleich)
 BARRIERE_START = os.path.join(HIER, ".eins_gegen_eins_start%s.json" % ("" if INSTANZ == 1 else INSTANZ))
 BARRIERE_BEREIT = os.path.join(HIER, ".eins_gegen_eins_bereit%s.json" % ("" if INSTANZ == 1 else INSTANZ))
@@ -242,11 +249,16 @@ def eins_gegen_eins_start():
     while not signal_da(BARRIERE_BEREIT):
         if time.time() - t0 > 600:
             raise SystemExit("1v1: Lenker von Spieler 2 nach 10 Minuten nicht bereit")
+        m_p = ENDE.partner()
+        if m_p:
+            raise SystemExit("1v1: der Lenker von Spieler %s hat vor dem Start aufgehoert (%s: %s)" % (m_p["sp"], m_p["art"], m_p["grund"]))
         kanal.belege()
         time.sleep(0.5)
     befehl({"pause": False}, 0.5)
     t = tick()
     schreib("1v1: Spieler 2 bereit - beide laufen los bei Tick %d" % t)
+    global START_FERTIG
+    START_FERTIG = True
     return t
 
 
@@ -259,6 +271,9 @@ def anhaengen():
     while not signal_da(BARRIERE_START):
         if time.time() - t0 > 900:
             raise SystemExit("1v1: kein Startsignal nach 15 Minuten")
+        m_p = ENDE.partner()
+        if m_p:
+            raise SystemExit("1v1: der Lenker von Spieler %s hat vor dem Start aufgehoert (%s: %s)" % (m_p["sp"], m_p["art"], m_p["grund"]))
         time.sleep(0.5)
     signal = _j.load(open(BARRIERE_START))
     zustand = partie_pruefen()
@@ -273,6 +288,8 @@ def anhaengen():
         schreib("1v1: Spiel steht weiter - Spieler %d setzt es selbst fort" % SP)
         befehl({"pause": False}, 0.5)
         warte_bis(lambda: tick() > t1, "Spiel laeuft wieder", 60)
+    global START_FERTIG
+    START_FERTIG = True
     return tick()
 
 def freier_platz(typ, mitte, r, frei_von=()):
@@ -487,6 +504,17 @@ def platz_sauber(typ, frei, eigen=None):
             continue
         gut.append((px, py))
     return gut
+
+def speicher_nachbauen(G, offen, t, zuletzt, sp=None, abstand=200):
+    """18.10. (1018d: die Assassinen von Spieler 2 rissen den Kornspeicher von Spieler 1 bei Tick 4.568 ein - kein Weg baute
+    ihn nach, die Aepfel hatten kein Lager mehr, Beliebtheit 97,75 -> 48,25, Regelbruch bei Tick 9.002): True, wenn kein
+    eigener Kornspeicher steht, keiner bestellt ist und der letzte Versuch mindestens <abstand> Ticks her ist."""
+    sp = SP if sp is None else sp
+    if any(g["besitzer"] == sp and g["typ"] == 19 for g in G.values()):
+        return False
+    if any(a["typ"] == 19 for a in offen):
+        return False
+    return t - zuletzt > abstand
 
 def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
     """Im laufenden Spiel: Platz suchen und bauen OHNE zu blockieren (04.10.: das alte Bauwerkzeug wartete fest und
@@ -2096,802 +2124,870 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     still_w = STW.Stillstand(SP, lambda n: peek(0xF98520 + 0x14 + int(n) * 0x32C + 0x184)[0],
                              lambda: baue_schnell(10, wirt.lager_ort[0], wirt.lager_ort[1], 10, zweck="Stillstand"),
                              lambda: BUCH is not None and any(a["typ"] == 10 for a in BUCH.offen))
+    serie, fortgesetzt, ende_grund = PT.Serie(), 0, None      # 18.10. (1v1 robust, partner.py)
+    probe = {"fehler": FEHLERPROBE, "pause": PAUSEPROBE}
     while time.time() < ende and not os.path.exists(os.path.join(HIER, "STOP")):
-        tz = time.time()
-        befehlskanal.belege()
-        st, L, G = runde_lesen()
-        if st:
-            lage.schreibe(st)
-        tz = uhr("lesen", tz)
-        if bis_tick and st.get("t", 0) >= bis_tick:
-            break
-        # Goldmarken (Daniel 06.10.: "wie man am schnellsten 10k Gold bekommt") - jede 1.000 einmal, am Ziel Schluss
-        while gold_ziel and st.get("gold", 0) >= gold_marke and gold_marke <= gold_ziel:
-            schreib("GOLD-MARKE %d bei Tick %d" % (gold_marke, st.get("t", 0)))
-            gold_marke += 1000
-        if gold_ziel and st.get("gold", 0) >= gold_ziel:
-            schreib("GOLD-ZIEL %d erreicht bei Tick %d" % (gold_ziel, st.get("t", 0)))
-            break
-        runde += 1
-        if not st:
-            continue
-        if st.get("over") == 0 and st.get("ansicht") not in (14, 16):
-            # 07.10. (Lauf 24/27/50/51: Daniel schaut zu, Ansicht 16 bei pause 0 -> Abbruch, Lauf verloren): Ansicht 16 ist
-            # Spiel mit offenem Menue (Spiel laeuft weiter) und zaehlt wie 14; andere Ansicht: warten, nach 120 s abbrechen
-            if "ansicht_weg" not in fruehpruefung:
-                fruehpruefung["ansicht_weg"] = time.time()
-                schreib("ANSICHT %s bei Tick %s (von aussen?) - Lenker wartet" % (st.get("ansicht"), st.get("t")))
-            if time.time() - fruehpruefung["ansicht_weg"] < 120:
-                time.sleep(0.5)
+        try:
+            tz = time.time()
+            befehlskanal.belege()
+            st, L, G = runde_lesen()
+            if st:
+                lage.schreibe(st)
+            tz = uhr("lesen", tz)
+            if PARTNER:
+                # 18.10.: der andere Lenker hat aufgehoert - Regelbruch/Niederlage entscheidet die Partie fuer uns, ein Absturz
+                # nicht (sein Platz bleibt dann ungesteuert, wir spielen weiter)
+                m_p = ENDE.neu_vom_partner()
+                if m_p and m_p["art"] in PT.SIEG_DURCH:
+                    ende_grund = ("sieg", "Spieler %s: %s (%s)" % (m_p["sp"], m_p["art"], m_p["grund"]))
+                    schreib("SIEG bei Tick %s: Spieler %s hat die Partie verloren - %s: %s (Tick %s)" % (
+                        st.get("t"), m_p["sp"], m_p["art"], m_p["grund"], m_p["tick"]))
+                    break
+                if m_p:
+                    schreib("1v1: der Lenker von Spieler %s hat aufgehoert (%s: %s, Tick %s) - Partie laeuft weiter, sein Platz "
+                            "ist ab jetzt ungesteuert" % (m_p["sp"], m_p["art"], m_p["grund"], m_p["tick"]))
+            if probe.get("fehler") is not None and st.get("t", 0) >= probe["fehler"]:
+                probe["fehler"] = None
+                raise RuntimeError("FEHLERPROBE bei Tick %d (Pruefschalter fehlerprobe)" % st["t"])
+            if probe.get("pause") is not None and st.get("t", 0) >= probe["pause"]:
+                probe["pause"] = None
+                schreib("PAUSEPROBE: Lenker haelt das Spiel bei Tick %d an (Pruefschalter pauseprobe)" % st["t"])
+                befehl({"pause": True}, 0.5)
+            if bis_tick and st.get("t", 0) >= bis_tick:
+                ende_grund = ("ende", "bis_tick %d erreicht" % bis_tick)
+                break
+            # Goldmarken (Daniel 06.10.: "wie man am schnellsten 10k Gold bekommt") - jede 1.000 einmal, am Ziel Schluss
+            while gold_ziel and st.get("gold", 0) >= gold_marke and gold_marke <= gold_ziel:
+                schreib("GOLD-MARKE %d bei Tick %d" % (gold_marke, st.get("t", 0)))
+                gold_marke += 1000
+            if gold_ziel and st.get("gold", 0) >= gold_ziel:
+                schreib("GOLD-ZIEL %d erreicht bei Tick %d" % (gold_ziel, st.get("t", 0)))
+                break
+            runde += 1
+            if not st:
                 continue
-        else:
-            fruehpruefung.pop("ansicht_weg", None)
-        if st.get("over") != 0 or st.get("ansicht") not in (14, 16):
-            # Spielende deutlich melden (Daniel 05.10. 00:44): wer hat wessen Lord getoetet? (PlayerData +8720)
-            if st.get("over") == 1:
-                getoetet = {sp: s32(peek(0x0115BDF8 + sp * 0x39F4 + 8720)[0]) for sp in range(1, 2 + GEGNER_ZAHL)}
-                feinde = [sp for sp in getoetet if sp != SP]
-                if getoetet[SP] <= 0 and all(getoetet[sp] > 0 for sp in feinde):
-                    schreib("SIEG bei Tick %d: %s" % (st["t"], ", ".join("Lord von Spieler %d getoetet durch Spieler %d" % (
-                        sp, getoetet[sp]) for sp in feinde))); break
-                if getoetet[SP] > 0:     # 19.10. (1v1): unser Lord = Spieler SP (vorher fest Spieler 1)
-                    schreib("NIEDERLAGE bei Tick %d: unser Lord getoetet durch Spieler %d" % (st["t"], getoetet[SP])); break
-            schreib("ABBRUCH - Testbedingung weg: %s" % {k: st.get(k) for k in ("ansicht", "over", "pause", "t")}); break
-        if letzter_tick is not None and st["t"] - letzter_tick > 400:
-            schreib("WARNUNG: Runde dauerte %d Ticks (%d -> %d) - Waechter war so lange blind; Zeit der Runde davor: %s" % (
-                st["t"] - letzter_tick, letzter_tick, st["t"], ", ".join("%s %.2f s" % kv for kv in sorted(diese_runde.items(), key=lambda kv: -kv[1]))))
-        diese_runde.clear()
-        # 18.10. (1018o: Abbruch bei Tick 14.621 - die Spielzeit stand 1,7 s ohne Pause, 4 Runden zu je 0,4 s): Stillstand in
-        # SEKUNDEN messen, nicht in Runden - der schnellere Lenker machte aus "4 Runden" einen Ausrutscher von gut 1 Sekunde
-        if st["t"] != letzter_tick:
-            if stand and time.time() - stand >= 1.0:
-                schreib("SPIELZEIT stand %.1f s bei Tick %s (Pause %s)" % (time.time() - stand, letzter_tick, st.get("pause")))
-            stand = 0
-        elif not stand:
-            stand = time.time()
-        elif time.time() - stand >= 30:
-            schreib("ABBRUCH - Spielzeit steht bei %d (seit %.0f s)" % (st["t"], time.time() - stand)); break
-        letzter_tick = st["t"]
-        if REGEL50 and st.get("t", 0) > 0 and st.get("beliebt", 10000) < 5000:
-            schreib("REGELBRUCH bei Tick %d: Beliebtheit %.2f unter 50 - Lauf abgebrochen" % (st["t"], st["beliebt"] / 100.0))
-            break
-        ausbau.beobachte(st, L, G)        # Buchfuehrung des Planers: Zugang je Ware seit der letzten Runde
-        eig = [g for g in G.values() if g["besitzer"] == SP]
-        gebs = [(g["x"] + NACH_TYP.get(g["typ"], {"b": 2})["b"] // 2, g["y"] + NACH_TYP.get(g["typ"], {"b": 2})["b"] // 2)
-                for g in eig if g["typ"] in EIGENE_ARTEN]
-        tz = time.time()
-        # 19.10. (1018y: das "Stapeln" des Waechters holte die angreifenden Streitkolben alle 5 Runden heim): Feldzug-Truppen
-        # ausnehmen
-        # 19.10. (Daniel, 1019b: "die lassen sich einfach angreifen ohne Grund"): solange der Feldzug sammelt, sind seine
-        # Streitkolben Reserve des Waechters - nur bei einer Bedrohung und nur, wenn die Gefechtsbewertung den Angriff lohnt
-        if feldzug is not None:
-            # 19.10. (Daniel, 1019f: "nur zum Verteidigen ist das Overkill ... danach besser verteilen um auch zu raiden"):
-            # eine kleine Heimwache bleibt am Bergfried (zuerst Schuetzen, dann Nahkaempfer, die naechsten am Bergfried, nur
-            # wer hoechstens 40 Felder weg ist), alle anderen Truppen sind das Heer des Feldzugs
-            import feldzug as FZ
-            heer_alle = {n: e for n, e in L.items() if e["besitzer"] == SP and e["typ"] in FZ.HEER}
-            hw = {n for n in feldzug.heimwache if n in heer_alle}
-            nah_heim = lambda n: max(abs(heer_alle[n]["x"] - BERGFRIED[0]), abs(heer_alle[n]["y"] - BERGFRIED[1]))
-            for arten, soll in ((FZ.FERN_REICH, HEIM_FERN), (None, HEIM_NAH)):
-                drin = [n for n in hw if (heer_alle[n]["typ"] in FZ.FERN_REICH) == (arten is not None)]
-                frei = sorted((n for n in heer_alle if n not in hw and (heer_alle[n]["typ"] in FZ.FERN_REICH) == (arten is not None)
-                               and nah_heim(n) <= 40), key=nah_heim)
-                hw |= set(frei[:max(0, soll - len(drin))])
-            feldzug.heimwache = hw
-        reserve_w = feldzug.einheiten(L) if feldzug is not None and feldzug.phase == "sammeln" else set()
-        ausgenommen_w = set(trupp.mitglieder if trupp else ()) | ((feldzug.einheiten(L) - reserve_w) if feldzug is not None else set())
-        ereignis = w.schritt(L, gebs, ausgenommen=ausgenommen_w, reserve=reserve_w) if w is not None else []
-        if feldzug is not None and w is not None:
-            feldzug.verteidiger = {n for n in w.auftrag if n in reserve_w}
-        tz = uhr("waechter", tz)
-        if NOTWERBUNG and st.get("t", 0) > 0:
-            # 12.10. (Daniel 11.10. 23:40 "du siehst doch, dass du angegriffen wirst und nicht ausbildest"; 23:45 "arabische
-            # Einheiten"): Soeldnerposten frueh bauen; stehen Gegnertruppen in unserem Gebiet, sofort nachwerben - je Gegner
-            # eine Einheit, abwechselnd Schwertkaempfer (75) und Bogenschuetzen (70), bis Gold oder Bauern am Feuer fehlen.
-            # Welche Art gegen Assassinen/Sklaven wirklich toetet, misst die Kampfpartie (Frage-Agent 00:08)
-            import bauen as BA
-            from waechter import TRUPPE as W_TRUPPE
-            posten_n = next((n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 8), None)
-            if posten_n is None and st.get("gold", 0) >= kosten_spiel(8).get("gold", 0)                     and st["t"] - fruehpruefung.get("posten_bestellt", -10 ** 6) > 600:
-                fruehpruefung["posten_bestellt"] = st["t"]
-                ereignis.append("NOTWERBUNG Soeldnerposten bestellt: %s" % (baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25),))
-            orte_n = gebs + [BERGFRIED]
-            # 19.10. (Daniel, 1019f: 53 Soeldner fuer gut 4.000 Gold - "nur zum Verteidigen ist das Overkill"): vorher je Feind
-            # bis 40 Felder von IRGENDEINEM unserer Gebaeude eine Einheit, ohne Obergrenze - auf Green Haven zaehlten die
-            # Truppen vor den feindlichen Burgen mit. Jetzt nur Feinde bis NOT_R Felder an unseren Gebaeuden, und nur wenn die
-            # Gefechtsrechnung sagt, dass unsere Truppen bis 60 Felder dort nicht gewinnen; hoechstens NOT_JE_RUNDE je Runde
-            feinde_n = [e for e in L.values() if e["besitzer"] not in (0, SP) and e["typ"] in W_TRUPPE
-                        and min(max(abs(e["x"] - o[0]), abs(e["y"] - o[1])) for o in orte_n) <= NOT_R]
-            if feinde_n and posten_n is not None:
-                import gefecht as GF
-                mx = sorted(e["x"] for e in feinde_n)[len(feinde_n) // 2]
-                my = sorted(e["y"] for e in feinde_n)[len(feinde_n) // 2]
-                wir_n = [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"]) for e in L.values()
-                         if e["besitzer"] == SP and e["typ"] in W_TRUPPE and e["typ"] not in (73, 55)
-                         and max(abs(e["x"] - mx), abs(e["y"] - my)) <= 60]
-                sie_n = [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=True) for e in feinde_n]
-                try:
-                    reicht_n, text_n = GF.bewerte(wir_n, sie_n)
-                except Exception as ex:
-                    reicht_n, text_n = False, "Rechnung fehlgeschlagen (%s)" % ex
-                if reicht_n:
-                    feinde_n = []
-            if feinde_n and posten_n is not None:
-                gold_n, feuer_n, n_n = st.get("gold", 0), st.get("feuer", 0), 0
-                for i in range(min(len(feinde_n), NOT_JE_RUNDE)):
-                    # zwei Schwertkaempfer je Bogen (Editor-Duelle: arab. Schwert 180 je Takt bei 28.000 Leben, arab. Bogen im
-                    # Nahkampf 16-27)
-                    typ_n = 70 if (fruehpruefung.get("werb_zaehler", 0) + i) % 3 == 2 else 75
-                    if gold_n < SOELDNER_GOLD[typ_n] or feuer_n <= 0:
-                        break
-                    BA.werbe(typ_n, posten_n)
-                    gold_n -= SOELDNER_GOLD[typ_n]
-                    feuer_n -= 1
-                    n_n += 1
-                fruehpruefung["werb_zaehler"] = fruehpruefung.get("werb_zaehler", 0) + n_n
-                if n_n:
-                    ereignis.append("NOTWERBUNG %d Einheiten gegen %d Gegner an unseren Gebaeuden (%s), Gold danach %d - %s" % (
-                        n_n, len(feinde_n), ",".join(sorted({str(e["typ"]) for e in feinde_n})), gold_n, text_n))
-        ereignis += still_w.schritt(st["t"], L, G, lager_stopp=getattr(wirt, "lager_stopp", False))
-        rueck = {}
-        if jagd_bau is not None:
-            ereignis += jagd_bau.schritt(st["t"], st, L, G)
-            rueck = jagd_bau.bedarf(st["t"], G, L)
-        if brot_bau is not None:
-            ereignis += brot_bau.schritt(st["t"], st, G)
-            b_r = brot_bau.bedarf(st["t"], G)
-            rueck = {w: rueck.get(w, 0) + b_r.get(w, 0) for w in ("holz", "gold")}
-        if jagd_bau is not None or brot_bau is not None:
-            wirt.brot = rueck                             # Ruecklage: Planer/Huetten/Holzfaeller halten das Holz frei
-        if BUCH is not None:
-            ereignis += BUCH.abgleich(G, L, st)            # jeder Bau bestaetigt oder gescheitert, jede Belegung
-            while BUCH.unerreichbar:                        # v18: laut Spiel unerreichbar -> abreissen, Platz sperren
-                n_u, typ_u, ort_u = BUCH.unerreichbar.pop()
-                befehl({"abreissen": {"nr": n_u}}, 0.8, bis="ABREISSEN")
-                ausbau.fehlschlag[(typ_u, ort_u)] = ausbau.fehlschlag.get((typ_u, ort_u), 0) + 1
-                ausbau.unerreichbar.add(tuple(ort_u))       # auch der Wegtest-Speicher: nie wieder als erreichbar anbieten
-                ausbau.erreichbar_ok.discard(tuple(ort_u))
-            tz = uhr("buch_abgleich", tz)
-            # 19.10. (1019e/f: Auftragsbuch-Abschnitt 0,26 s je Runde auf Green Haven gegen 0,04 auf The Killing Plains - auf
-            # der fruchtbaren Karte pruefte der Kausal-Planer jede Runde viel mehr Bauplaetze): nur jede KAUSAL_RUNDEN-te Runde
-            if ENTSCHEIDER == "kausal" and not endspiel["fertig"] and runde % KAUSAL_RUNDEN == 0:
-                # Kausalmodell (kausal.py): fuer jede Handlung die Wirkungskette bis ZIEL_TICK aus der aktuellen Lage
-                import kausal as KM
-                ausbau.kausal = True
-                feuer_g = next(((g["x"] + 1, g["y"] + 1) for g in G.values() if g["besitzer"] == SP and g["typ"] == 55), BERGFRIED)
-                lager_m = tuple(plan["lager"])
-                speicher_m = tuple(plan["kornspeicher"])
-                # 23:48 (Daniel: "warum wird hier keine Plantage gebaut"): je Art die 4 naechsten Plaetze zur Abgabe bewerten -
-                # vorher nur EINEN (den "besten" des Planers, (101,200) ganz oben); die Flaeche neben den Obstgaerten sah es nie
-                # 12.10. (Daniel 01:09 "Cash von Steinen/Eisen/Brot"): Hopfen 31, Eisenmine 5, Steinbruch 20 dazu - gemessene
-                # Ketten (kausal.py, Wissensregister L71/L72); Ablage am Lager
-                abgabe_k = {3: lager_m, 32: speicher_m, 7: speicher_m, 31: lager_m, 5: lager_m, 20: lager_m}
-                kand_k = []
-                for typ_a in (3, 32, 7, 31, 5, 20):
-                    if typ_a in getattr(ausbau, "ohne", ()):
-                        continue
-                    b_a = ausbau.groesse.get(typ_a, 3) // 2
-                    orte_a = sorted(ausbau._orte(typ_a, L, G), key=lambda p: max(abs(p[0] + b_a - abgabe_k[typ_a][0]), abs(p[1] + b_a - abgabe_k[typ_a][1])))
-                    # 08.10. 00:08 (Daniel, Bild: Holzfaeller jenseits des Flusses): nur Plaetze mit Weg laut Wegtest des Spiels -
-                    # vorher die 4 naechsten ungeprueft (Lauf s25/5: 21 Huetten bei x 8-54, nie besetzt)
-                    for p in ausbau.erreichbare(orte_a, L, 4):
-                        kost = dict(ausbau.kosten_von(typ_a))
-                        d_a = max(abs(p[0] + b_a - abgabe_k[typ_a][0]), abs(p[1] + b_a - abgabe_k[typ_a][1]))
-                        if typ_a == 20:            # Steinbruch als Paket: Bruch + so viele Ochsen, wie der Weg verlangt (L71)
-                            for w_o, m_o in ausbau.kosten_von(4).items():
-                                kost[w_o] = kost.get(w_o, 0) + KM.ochsen_fuer(d_a) * m_o
-                        kand_k.append((typ_a, p, kost, KM.arbeiter(typ_a, d_a)))
-                R_k = wirt.ruecklage(G)
-                st_k = dict(st, holz=st["holz"] - R_k["holz"], gold=st["gold"] - R_k["gold"])
-                # offene Stellen: unbesetzte Plaetze in stehenden Betrieben + Arbeiter der bestellten, noch nicht stehenden
-                offen_k = wohnraum_fehlt(st, G)[1] + sum(ARBEITER_JE.get(a["typ"], 0) for a in BUCH.offen)
-                # 12.10. 01:36 (1012h: bis Tick 11.000 nur 23 Apfelplantagen, kein Hopfen/Eisen - der feste ZIEL_TICK 16.753 liess
-                # Ketten mit langem Anlauf (Hopfen ~8.000, Eisen ~6.600) nie lohnen): mitlaufendes Fenster - eine Investition muss
-                # sich in den naechsten KAUSAL_HORIZONT Ticks lohnen, egal wann sie faellt
-                ziel_k = max(ZIEL_TICK, st["t"] + KAUSAL_HORIZONT)
-                for w_k, typ_k, ort_k, text_k in KM.entscheide(st["t"], ziel_k, st_k, kand_k, feuer_g,
-                                                                {3: lager_m, 32: speicher_m, 7: speicher_m}, kosten_spiel(1)["holz"],
-                                                                offene_stellen=offen_k):
-                    if typ_k == 1:
-                        o_k = baue_haus()
-                    else:
-                        o_k = baue_schnell(typ_k, ort_k[0], ort_k[1], 3, zweck="kausal")
-                        if not o_k:
-                            ausbau.fehlschlag[(typ_k, ort_k)] = ausbau.fehlschlag.get((typ_k, ort_k), 0) + 1
-                        elif typ_k == 20:          # die Ochsen des Pakets gleich mitbauen
-                            d_k = max(abs(ort_k[0] - lager_m[0]), abs(ort_k[1] - lager_m[1]))
-                            ochsen_k = [baue_schnell(4, ort_k[0], ort_k[1], 10, zweck="kausal Ochse") for _ in range(KM.ochsen_fuer(d_k))]
-                            text_k += " + %d Ochsen %s" % (len(ochsen_k), ochsen_k)
-                    ereignis.append("KAUSAL %s bei %s: %s -> %s" % (NACH_TYP[typ_k]["name"], ort_k, text_k, o_k))
-                # Holz aus dem Modell (Daniel 23:48 "mach das direkt aus dem Modell, sofort"): hat keine Handlung mit Holz mehr
-                # positiven Wert, ist Holz nur noch Verkaufsware -> alles ueber 20 verkaufen, Lager waechst nicht mehr
-                bedarf_holz = KM.entscheide(st["t"], ziel_k, dict(st_k, holz=999, gold=999), kand_k, feuer_g, abgabe_k, kosten_spiel(1)["holz"],
-                                            offene_stellen=offen_k)
-                # 12.10. Ochsen nachruesten (L71: der Ochse ist der Engpass, Steinhaufen lief auf 48): Haufen ueber 30 und weniger
-                # als ochsen_max Ochsen im Umkreis 12 -> ein Ochse dazu (je Runde hoechstens einer, nicht doppelt bestellt)
-                for n_h, g_h in G.items():
-                    if g_h["besitzer"] != SP or g_h["typ"] != 21 or (g_h.get("vorrat") or 0) <= 30:
-                        continue
-                    o_h = (g_h["x"], g_h["y"])
-                    ochsen_h = sum(1 for g2 in G.values() if g2["besitzer"] == SP and g2["typ"] == 4
-                                   and max(abs(g2["x"] - o_h[0]), abs(g2["y"] - o_h[1])) <= 12)
-                    if ochsen_h < KM.MODELL[20]["ochsen_max"] and not BUCH.offen_bei(4, o_h, 12) and st["holz"] >= ausbau.kosten_von(4).get("holz", 0):
-                        ereignis.append("OCHSE NACHGERUESTET am Steinhaufen %s (Vorrat %s, %d Ochsen): %s" % (
-                            o_h, g_h.get("vorrat"), ochsen_h, baue_schnell(4, o_h[0], o_h[1], 10, zweck="Ochse nachruesten")))
-                        break
-                fruehpruefung["holz_ueberfluessig"] = not bedarf_holz
-                ausbau.endphase = not bedarf_holz
-            if V14 and not endspiel["fertig"] and fruehpruefung.get("holz_ueberfluessig"):
-                # Daniel 23:46: gegen Ende Holz direkt verkaufen statt neue Lagerplaetze - Holzfaeller legen sofort ab
-                ausbau.lager_stopp = wirt.lager_stopp = True
-                lose_h = min(3, max(0, (st["holz"] - 20) // 20))
-                if lose_h:
-                    sende({"befehle": [{"player": 1, "id": neue_id(), "spielbefehl": {"nr": 38, "werte": [1, WAREN_NR["holz"]]}}
-                                       for _ in range(lose_h)]}, 1.0, bis="SPIELBEFEHL")
-                    ereignis.append("HOLZ VERKAUFT %d Lose (Holz %d, Lager waechst nicht mehr)" % (lose_h, st["holz"]))
-            if HUETTEN_VORAUS and not endspiel["fertig"] and ENTSCHEIDER != "kausal":
-                # v18 (Daniel 23:10 Punkt 3: "Haeuser bauen, bevor du Menschen brauchst, weil sie Spawnzeit brauchen"):
-                # freie Wohnplaetze >= offene Arbeitsplaetze + 4 (mind. 6)
-                fehlt_w, offene = wohnraum_fehlt(st, G)
-                frei_wohn = st.get("platz", 0) - st.get("leute", 0)
-                if fehlt_w and st["holz"] >= 5 and not any(a["typ"] == 1 for a in BUCH.offen):
-                    ereignis.append("HUETTE VORAUS (frei %d, offene Arbeitsplaetze %d): %s" % (frei_wohn, offene, baue_haus()))
-            # Daniel 07.10. 00:17/00:20: "maximal viel Bevoelkerung und Holzfaeller, dann relativ frueh bei 60-70 Leuten -40
-            # Steuern, Essen stoppen und verkaufen". Wachstum: Huetten, bis BEV_ZIEL Plaetze stehen (nur wenn fast voll).
-            # Daniel 00:48: "einfach maximal Bevoelkerung, aber bei 70 anfangen auf -40, dann kommen wir eher auf 80-90" -
-            # das Wachstum laeuft nach dem Kasse-Start weiter, solange noch Leute zuziehen (Beliebtheit >= 50, Liga +5 bei 50-54)
-            if BEV_ZIEL and not endspiel["fertig"] and (not kasse["an"] or st.get("beliebt", 0) >= 5000):
-                # Daniel 00:40: "ohne ausreichend Holzfaeller werden niemals 70 erreicht, da maximal 24 Leute im Pennerhof sind" -
-                # am Lagerfeuer warten hoechstens 24, dann zieht niemand mehr zu. Wartende bekommen sofort Arbeit: der billigste
-                # Arbeitsplatz ist der Holzfaeller (3 Holz, 1 Arbeiter, liefert Holz fuer Huetten und Verkauf)
-                # 00:44 (Daniel "er baut immer noch keine Holzfaeller"; Lauf 42: 2 Stueck, bei Tick 6.122 lagen 39 Holz bei 19
-                # Wartenden): nicht ueber holzfaeller_statt_verkauf (haelt Holz fuer den "besten Bau" zurueck, Entfernungsgrenze),
-                # sondern direkt: naechster Baum-Platz des Planers, sonst ein geplanter Holzfaeller-Platz; jede Absage mit Grund
-                R_w = wirt.ruecklage(G)
-                # Daniel 01:35: "Holz gekauft kurz bevor Holz reinkommt - unnoetig": was Holzfaeller gerade tragen, kommt gleich
-                holz_kommt = sum(e.get("ladung", 0) for e in L.values() if e["besitzer"] == SP and e["typ"] == 3 and e.get("ladung", 0) > 0)
-                # erst wenn die Steinbrueche besetzt sind (v15: Bauern nehmen Holzfaeller vor Steinbruch, Steinbrueche blieben 0/6)
-                # Daniel 00:54: "es muss noch Platz fuer Penner sein - wenn alle direkt Holzfaeller werden, ist kein Platz": die
-                # Wartenden sind der Puffer (sie gehen bei niedriger Beliebtheit zuerst, aus ihnen wird angeworben); Holzfaeller
-                # erst, wenn das Feuer fast voll ist (hoechstens 24, dann kein Zuzug) - Knopf penner
-                if st.get("feuer", 0) >= PENNER and "stein_besetzt" in fruehpruefung and not any(a["typ"] == 3 for a in BUCH.offen):
-                    if st["holz"] - R_w["holz"] >= kosten_spiel(3)["holz"]:
-                        ort_w, weg_w = ausbau._bester_ort(3, L, G)
-                        # Daniel 01:03 (rote Marker = "ausserhalb gebaut", jenseits des Flusses): der Plan-Platz wurde nicht auf
-                        # einen Weg geprueft und die Platzsuche durfte 3 Felder abweichen. Jetzt jeder Platz per Wegtest des
-                        # Spiels, Abweichung hoechstens 1 Feld
-                        if not ort_w:
-                            ort_w = ausbau._erreichbarer([tuple(q) for q in v16_holzfaeller(plan) if not steht_bei(G, 3, tuple(q), 1)], L)
-                        plaetze_w = [ort_w] if ort_w else []
-                        if plaetze_w:
-                            o_w = baue_schnell(3, plaetze_w[0][0], plaetze_w[0][1], 1, zweck="Wachstum")
-                            if not o_w and ort_w:
-                                ausbau.fehlschlag[(3, ort_w)] = ausbau.fehlschlag.get((3, ort_w), 0) + 1
-                            ereignis.append("WACHSTUM Holzfaeller fuer %d Wartende bei %s (Weg %s): %s" % (
-                                st["feuer"], plaetze_w[0], weg_w, o_w))
-                        elif runde % 20 == 0:
-                            ereignis.append("WACHSTUM kein Holzfaeller-Platz (Planer und Plan leer) bei %d Wartenden" % st["feuer"])
-                    elif holz_kommt + st["holz"] - R_w["holz"] >= kosten_spiel(3)["holz"]:
-                        if runde % 20 == 0:
-                            ereignis.append("WACHSTUM wartet auf %d Holz unterwegs (statt kaufen)" % holz_kommt)
-                    elif HOLZ_KAUFEN and st["gold"] - R_w["gold"] >= 15 and st["t"] - fruehpruefung.get("holz_gekauft_w", -999) >= 12:
-                        # Daniel 00:44: "Gold am Anfang fuer Holz ausgeben, bis das erste Holz reinkommt, und noch mehr Holzfaeller"
-                        # - 5 Holz fuer 15 Gold (L11) = ein Holzfaeller fuer einen Wartenden
-                        lose_w = int(min((st["gold"] - R_w["gold"]) // 15, max(1, st["feuer"] // 2)))
-                        sende({"befehle": [{"player": 1, "id": neue_id(), "spielbefehl": {"nr": 38, "werte": [0, WAREN_NR["holz"]]}}
-                                           for _ in range(lose_w)]}, 1.0, bis="SPIELBEFEHL")
-                        fruehpruefung["holz_gekauft_w"] = st["t"]
-                        ereignis.append("WACHSTUM Holz gekauft: %d Lose fuer %d Wartende (Holz %d, Gold %d)" % (
-                            lose_w, st["feuer"], st["holz"], st["gold"]))
-                    elif runde % 20 == 0:
-                        ereignis.append("WACHSTUM wartet: %d am Feuer, Holz %d (Ruecklage %d), Gold %d (Ruecklage %d)" % (
-                            st["feuer"], st["holz"], R_w["holz"], st["gold"], R_w["gold"]))
-                frei_w = st.get("platz", 0) - st.get("leute", 0)
-                if frei_w <= 4 and st["holz"] >= kosten_spiel(1)["holz"]                         and not any(a["typ"] == 1 for a in BUCH.offen):
-                    ereignis.append("WACHSTUM Huette (Platz %d, Ziel %d, frei %d): %s" % (st.get("platz", 0), BEV_ZIEL, frei_w, baue_haus()))
-            # mit Ziel-Bevoelkerung wartet die Kasse auf das Ziel (Daniel 00:34 "erst 60-70, dann -40"); frueher nur, wenn die
-            # Bevoelkerung einen Monat (~800 Ticks, L23) nicht mehr gewachsen ist und nichts mehr lohnt
-            if st.get("leute", 0) > kasse.get("leute_max", -1):
-                kasse["leute_max"], kasse["wuchs_tick"] = st.get("leute", 0), st["t"]
-            stillstand = st["t"] - kasse.get("wuchs_tick", st["t"]) >= 800
-            if KASSE != "nein" and not kasse["an"] and not endspiel["fertig"] and (
-                    (BEV_ZIEL and st.get("leute", 0) >= BEV_ZIEL)
-                    or (fruehpruefung.get("holz_ueberfluessig") and (not BEV_ZIEL or stillstand))):
-                kasse["an"] = st["t"]
-                ausbau.kasse, ausbau.wachstum = True, False
-                ereignis.append("KASSE ab Tick %d (%s): %s, Leute %d, Beliebtheit %.1f%s" % (
-                    st["t"], "Haushalt bis Beliebtheit %.2f" % ((5000 + HAUSHALT_RAND) / 100.0) if haus else "Steuer 11 bis zum Ende", "Ziel-Bevoelkerung" if BEV_ZIEL and st.get("leute", 0) >= BEV_ZIEL else "nichts lohnt mehr" + (", Bevoelkerung steht seit Tick %d" % kasse["wuchs_tick"] if BEV_ZIEL else ""),
-                    st.get("leute", 0), st.get("beliebt", 0) / 100.0, ", keine Rationen, Nahrung wird verkauft" if KASSE == "steuer_essen" else ""))
-            if kasse["an"] and KASSE == "steuer_essen":
-                # Lauf 38/39: unter der Grenze ging nur die Steuer aus, Rationen blieben 0 und Nahrung wurde weiter verkauft ->
-                # Beliebtheit bis 0, Lauf 39 von 34 auf 4 Leute, kein Kaempfer. Jetzt: unter der Grenze Rationen normal (2) und
-                # kein Nahrungsverkauf mehr, darueber Rationen 0 und alles verkaufen
-                essen_aus = st.get("beliebt", 0) / 100.0 >= KASSE_GRENZE
-                if essen_aus != kasse.get("essen_aus"):
-                    befehl({"spielbefehl": {"nr": 35, "werte": [0 if essen_aus else 2]}}, 1.0, bis="SPIELBEFEHL")
-                    kasse["essen_aus"] = essen_aus
-                    ereignis.append("KASSE Rationen %s (Beliebtheit %.1f, Grenze %d)" % (
-                        "aus, Nahrung wird verkauft" if essen_aus else "normal, kein Verkauf", st.get("beliebt", 0) / 100.0, KASSE_GRENZE))
-            if kasse["an"] and KASSE == "steuer_essen" and kasse.get("essen_aus") and runde % 3 == 1:
-                lose_n = [{"player": 1, "id": neue_id(), "spielbefehl": {"nr": 38, "werte": [1, WAREN_NR[w]]}}
-                          for w in ("apfel", "brot", "kaese", "fleisch") for _ in range(st.get(w, 0) // 5)]
-                if lose_n:
-                    sende({"befehle": lose_n}, 1.0, bis="SPIELBEFEHL")
-                    ereignis.append("KASSE Nahrung verkauft: %d Lose" % len(lose_n))
-            # Schub (07.10., Daniel 01:07 "macht was ihr koennt"): Lauf 45/46 - im Endspiel bei Beliebtheit 0 ging der 10.
-            # Angeworbene auf dem Weg verloren, Nachkauf 460 Gold = ~1.100 Ticks. Die ersten 5 Kaempfer darum schon waehrend
-            # der Kasse, solange die Beliebtheit hoeher ist (Liga-Wegzug -5 bei 25-29 statt -40 bei 0-4)
-            # schub=immer (25er, Rat 23:50): ein Schub nach dem anderen, solange Gold und Bauern reichen - unter der Regel 50
-            # wandert niemand ab, und 25 = 5 x 5 geht in 5er-Kaeufen genau auf
-            if SCHUB and kasse["an"] and not endspiel["fertig"] and (st.get("T26", 0) == 0 or kasse.get("schub") == "gekauft" or SCHUB == "immer") \
-                    and kasse.get("schub") != "geworben" and st.get("T26", 0) < streitkolben:
-                v_s = vorrat(SP)
-                kas_s = [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 9]
-                wl_s = [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 11]
-                bedarf_s = LOS_PREIS[21] + LOS_PREIS[23] + 5 * KAEMPFER_GOLD
-                if kasse.get("schub") == "gekauft":
-                    # eine Anwerbung je Runde, bis die Waffen aufgebraucht sind (siehe Endspiel, 01:25)
-                    werben_s = min(v_s.get("keule", 0), v_s.get("leder", 0), st.get("feuer", 0), v_s.get("gold", 0) // KAEMPFER_GOLD)
-                    if abwanderer_zuerst(L):
-                        werben_s = 0                     # Bauer wandert gerade ab (Zustand 110) - eine Runde warten
-                    if kas_s and werben_s > 0:
-                        befehl({"werbe": {"typ": 26, "gebaeude": kas_s[0]}}, 1.0, bis="WERBE")
-                        kasse["schub_n"] = kasse.get("schub_n", 0) + 1
-                        ereignis.append("SCHUB %d. Streitkolbenkaempfer angeworben (Beliebtheit %.1f, Wartende %d)" % (
-                            kasse["schub_n"], st.get("beliebt", 0) / 100.0, st.get("feuer", 0)))
-                    elif kasse.get("schub_n"):
-                        kasse["schub"] = None if SCHUB == "immer" else "geworben"
-                        kasse["schub_n"] = 0
-                elif v_s.get("gold", 0) >= bedarf_s and st.get("feuer", 0) >= 5:
-                    if not kas_s:
-                        if st.get("stein", 0) < 12:
-                            for _ in range(-(-(12 - st.get("stein", 0)) // 5)):
-                                befehl({"spielbefehl": {"nr": 38, "werte": [0, 4]}}, 1.0, bis="SPIELBEFEHL")
-                        elif not any(a["typ"] == 9 for a in BUCH.offen):
-                            ereignis.append("SCHUB Kaserne am Feuer %s" % (kaserne_am_feuer(G),))
-                    if not wl_s and not any(a["typ"] == 11 for a in BUCH.offen):
-                        ereignis.append("SCHUB Waffenlager %s" % (baue_schnell(11, BERGFRIED[0] - 14, BERGFRIED[1] + 14, 25),))
-                    if kas_s and wl_s:
-                        for ware, name in ((21, "keule"), (23, "leder")):
-                            if v_s.get(name, 0) < 5 and st.get("T26", 0) + v_s.get(name, 0) < streitkolben:
-                                befehl({"spielbefehl": {"nr": 38, "werte": [0, ware]}}, 1.0, bis="SPIELBEFEHL")
-                        kasse["schub"] = "gekauft"
-                        ereignis.append("SCHUB je 1 Los Keulen + Leder gekauft (Gold %d, Beliebtheit %.1f)" % (v_s.get("gold", 0), st.get("beliebt", 0) / 100.0))
-            # Daniel 01:29: "deine Starteinheiten einschlaefern - die werden dann zu Bevoelkerung". Gegen die leere KI nutzlos:
-            # Bogenschuetzen (22, 5 ab Start), Speertraeger (24, 7 spaeter) usw. aufloesen (disbandUnit -> Bauer am Feuer,
-            # M10.04); Streitkolbenkaempfer (26) und Lord (55) bleiben
-            # 01:39 (Daniel: "die 12 Starteinheiten chillen dann nur und werden nicht zu Arbeitern - eleganter loesen"; Lauf 61:
-            # alle 12 auf einmal fuellten den Wohnraum 26, 17 sassen am Feuer): nach Bedarf - ein Soldat wird erst Bauer, wenn
-            # ein Arbeitsplatz offen ist und niemand am Feuer wartet (er ersetzt den Bauern, auf den man ~52 Ticks warten muesste)
-            offene_a = wohnraum_fehlt(st, G)[1] if AUFLOESEN == "ja" else 0
-            if AUFLOESEN == "ja" and not endspiel["fertig"] and st.get("feuer", 0) == 0 and offene_a > 0:
-                opfer = [n for n, e in L.items() if e["besitzer"] == SP and 22 <= e["typ"] <= 30 and e["typ"] != 26][:min(offene_a, 2)]
-                if opfer:
-                    # das Modul erwartet eine LISTE von Nummern (aufloesen_ersetzen.py; Lauf 61: einzelne Nummer -> "0 Einheiten")
-                    befehl({"aufloesen": {"nr": [int(n) for n in opfer[:12]]}}, 1.0)
-                    ereignis.append("AUFGELOEST %d Soldaten fuer %d offene Arbeitsplaetze (Typen %s) -> Bauern" % (len(opfer[:12]), offene_a, 
-                        sorted({L[n]["typ"] for n in opfer[:12]})))
-            ausbau.nach_abriss = bool(endspiel["fertig"])
-            if haus is not None:
-                # Wochenrechnung: erst den letzten Schritt messen, dann Rationen und Stufe fuer die naechste Woche
-                txt_h = haus.beobachte(st)
-                if txt_h:
-                    ereignis.append(txt_h + ", Gold %d, Leute %d" % (st.get("gold", 0), st.get("leute", 0)))
-                regel_h = 5000 + HAUSHALT_RAND
-                if haus.jetzt_entscheiden(st, regel_h):
-                    haus.entschieden = st["t"]
-                    nahrung_h = sum(st.get(w, 0) for w in ("apfel", "brot", "kaese", "fleisch"))
-                    if nahrung_notkauf(nahrung_h, st.get("gold", 0) - wirt.ruecklage(G)["gold"]):
-                        befehl({"spielbefehl": {"nr": 38, "werte": [0, WAREN_NR["apfel"]]}}, 1.0, bis="SPIELBEFEHL")
-                        ereignis.append("NOTKAUF 5 Aepfel (Nahrung %d, Gold vorher %d)" % (nahrung_h, st.get("gold", 0)))
-                    ration_h = haus.waehle_ration(st, 3 + st.get("leute", 0) // 10)
-                    if ration_h != haus.ration:
-                        befehl({"spielbefehl": {"nr": 35, "werte": [ration_h]}}, 1.0, bis="SPIELBEFEHL")
-                        ereignis.append("HAUSHALT Rationen %s -> %d (Nahrung %d)" % (haus.ration, ration_h, nahrung_h))
-                        haus.ration = ration_h
-                    boden_h = max(regel_h, 0 if kasse["an"] else WACHSTUM_BODEN)
-                    if kasse.get("stufe2_hoch"):
-                        boden_h = 9000
-                        stufe_h = haus.waehle_stufe(st, boden_h, ration_h, not_boden=boden_h)
-                    else:
-                        stufe_h = haus.waehle_stufe(st, boden_h, ration_h)
-                    if stufe_h != haus.stufe:
-                        befehl({"spielbefehl": {"nr": 34, "werte": [stufe_h]}}, 1.0, bis="SPIELBEFEHL")
-                        ereignis.append("HAUSHALT Steuer %s -> %d (Beliebtheit %.2f, Boden %.2f, Rest %+d)" % (
-                            haus.stufe, stufe_h, st.get("beliebt", 0) / 100.0, boden_h / 100.0, haus.rest))
-                        haus.stufe = ausbau.steuer = stufe_h
-                    # Lauf s25/1 (07.10. 23:55): 6 Apfelplantagen fuer 85 Leute - doppelte Rationen fielen fast jede Woche
-                    # aus Mangel aus, die Steuer pendelte 2/3 (kaum Gold). Doppelt statt normal = +250 je Woche = rund 3
-                    # Stufen mehr Steuer. Fehlt die Nahrung dafuer, eine Apfelplantage mehr (hoechstens eine je Woche)
-                    # Lauf s25/3 gegen 4 (08.10. 00:06): Plantagen im Wachstum kosten Holz/Gold, wenn beides am knappsten ist
-                    # (Lauf 3 Kasse erst bei 9.922 gegen 9.460) - Wert "kasse": erst ab Kasse-Start
-                    if (NAHRUNG_AUSBAU == "ja" or (NAHRUNG_AUSBAU == "kasse" and kasse["an"])) and RATIONEN == "doppelt" \
-                            and ration_h != 4 and not endspiel["fertig"] \
-                            and st.get("feuer", 0) >= 1 and not any(a["typ"] == 32 for a in BUCH.offen):
-                        R_n = wirt.ruecklage(G)
-                        k_n = kosten_spiel(32)
-                        if st["holz"] - R_n["holz"] >= k_n["holz"] and st["gold"] - R_n["gold"] >= k_n["gold"]:
-                            ort_n, weg_n = ausbau._bester_ort(32, L, G)
-                            if ort_n:
-                                o_n = baue_schnell(32, ort_n[0], ort_n[1], 1, zweck="Nahrung")
-                                if not o_n:
-                                    ausbau.fehlschlag[(32, ort_n)] = ausbau.fehlschlag.get((32, ort_n), 0) + 1
-                                ereignis.append("HAUSHALT Apfelplantage fuer doppelte Rationen bei %s (Weg %s, Nahrung %d, Leute %d): %s" % (
-                                    ort_n, weg_n, nahrung_h, st.get("leute", 0), o_n))
-                if kasse["an"] and GUTE_DINGE and not endspiel["fertig"]:
-                    gd = sum(1 for g in G.values() if g["besitzer"] == SP and g["typ"] == 66) + \
-                        sum(1 for a in BUCH.offen if a["typ"] == 66)
-                    if gd < GUTE_DINGE and st.get("gold", 0) - wirt.ruecklage(G)["gold"] >= kosten_spiel(66)["gold"]:
-                        ereignis.append("GUTE DINGE Garten %d/%d: %s" % (gd + 1, GUTE_DINGE, baue_schnell(
-                            66, BERGFRIED[0] + 8, BERGFRIED[1] - 8, 20, zweck="Gute Dinge")))
-            if runde % 10 == 1:
-                schreib(BUCH.stand(G, st))
-            hf_jetzt = sum(1 for g in G.values() if g["besitzer"] == SP and g["typ"] == 3) + \
-                sum(1 for a in BUCH.offen if a["typ"] == 3)
-            # E4: erste ECHTE Holzlieferung = ein Holzfaeller (Typ 3) gibt Ladung ab (Lagebild), nicht "Holz im Lager steigt"
-            # (23:06: der Kauf "Holz fuer B" bei Tick 1.190 galt als Lieferung)
-            lad_jetzt = {n: e.get("ladung", 0) for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 3}
-            lad_vor = fruehpruefung.get("hf_ladung", {})
-            if "holz_geliefert" not in fruehpruefung and any(lad_vor.get(n, 0) > l for n, l in lad_jetzt.items()):
-                fruehpruefung["holz_geliefert"] = st["t"]
-                ereignis.append("ERSTE HOLZLIEFERUNG bei Tick %d (Holzfaeller gibt Ladung ab; Holzfaeller %d, Holz %d)" % (
-                    st["t"], hf_jetzt, st["holz"]))
-            fruehpruefung["hf_ladung"] = lad_jetzt
-            # Spam endet bei HOLZ_SPAM Holzfaellern ODER mit der ersten Lieferung (E4: 19 von 20 - die Steinbrueche kamen nie)
-            spam_offen = bool(HOLZ_SPAM) and hf_jetzt < HOLZ_SPAM and "holz_geliefert" not in fruehpruefung
-            holz_unterwegs = sum(e.get("ladung", 0) for e in L.values() if e["besitzer"] == SP and e["typ"] == 3 and e.get("ladung", 0) > 0)
-            if HOLZ_KAUFEN and not endspiel["fertig"] and st.get("feuer", 0) >= 4 and st["holz"] + holz_unterwegs < 5 \
-                    and st["gold"] >= 60 + wirt.ruecklage(G)["gold"] and st["t"] - fruehpruefung.get("holz_gekauft", -999) >= 100:
-                # v17 (22:57): untaetige Bauern bringen 0 - 5 Holz fuer 15 Gold (L11) = ein Arbeitsplatz; in jeder Bauweise
-                fruehpruefung["holz_gekauft"] = st["t"]
-                vor = vorrat(SP)["gold"]
-                befehl({"spielbefehl": {"nr": 38, "werte": [0, 2]}}, 1.0, bis="SPIELBEFEHL")
-                ereignis.append("HOLZ GEKAUFT (Feuer %d untaetig, Holz %d): Gold %d -> %d" % (st["feuer"], st["holz"], vor, vorrat(SP)["gold"]))
-            if VOLLBESCHAEFTIGUNG and ENTSCHEIDER != "kausal" and not endspiel["fertig"] and st.get("feuer", 0) >= 2:
-                # Lernlauf 1 (23:22): 93 % der Zeit >= 4 Bauern untaetig, am Ende 448 Holz + 510 Gold ungenutzt - ein Bauer am
-                # Feuer bringt 0. Jede freie Hand bekommt sofort einen Arbeitsplatz (beste Art je Platz laut Planer, ohne
-                # Horizont-Pruefung), bis zu 3 je Runde, Kosten ueber den Ruecklagen
-                frei_b = st["feuer"]
-                R = wirt.ruecklage(G)
-                habe_v = {"holz": st["holz"] - R["holz"], "stein": st["stein"], "gold": st["gold"] - R["gold"]}
-                gebaut_v = 0
-                for k in ausbau.kandidaten(st, L, G):
-                    if k["typ"] not in (3, 32, 7) or k["arbeiter"] > frei_b or gebaut_v >= 3:
-                        continue
-                    if all(habe_v[w] >= k["kosten"][w] for w in habe_v):
-                        o = baue_schnell(k["typ"], k["ort"][0], k["ort"][1], 3, zweck="Vollbeschaeftigung")
-                        ereignis.append("VOLL %s bei %s: %s (Feuer %d)" % (NACH_TYP[k["typ"]]["name"], k["ort"], o, st["feuer"]))
-                        if o:
-                            for w_v in habe_v:
-                                habe_v[w_v] -= k["kosten"][w_v]
-                            frei_b -= k["arbeiter"]
-                            gebaut_v += 1
-                        else:
-                            ausbau.fehlschlag[(k["typ"], k["ort"])] = ausbau.fehlschlag.get((k["typ"], k["ort"]), 0) + 1
-            if spam_offen and not endspiel["fertig"]:
-                # E3: so viele Holzfaeller wie das Holz hergibt (ueber der B-Ruecklage), naechste zum Lager, mehrere je Baum
-                holz = st["holz"] - wirt.ruecklage(G)["holz"]
-                for _ in range(3):
-                    if holz < 5 or hf_jetzt >= HOLZ_SPAM:
-                        break
-                    ort, weg_hf = ausbau._bester_ort(3, L, G)     # NICHT w - das ist der Waechter (E3-Absturz 23:03)
-                    if ort is None:
-                        ereignis.append("HOLZ-SPAM: kein Platz mehr (%d Holzfaeller)" % hf_jetzt)
-                        break
-                    o = baue_schnell(3, ort[0], ort[1], 1, zweck="E3 Holz-Spam")
-                    ereignis.append("HOLZ-SPAM %d/%d bei %s (Weg %d): %s" % (hf_jetzt + 1, HOLZ_SPAM, ort, weg_hf, o))
-                    if not o:
-                        ausbau.fehlschlag[(3, ort)] = ausbau.fehlschlag.get((3, ort), 0) + 1
-                        break
-                    holz -= 5
-                    hf_jetzt += 1
-            # E4 (Daniel 23:03: "wenn die ersten 20 Holzfaeller Holz geladen haben, direkt Steinbrueche, so viele wie geht")
-            stein_frei = STEIN_PARALLEL or not spam_offen
-            if V14 and not endspiel["fertig"] and stein_frei:
-                # Die zwei Lager-Brueche sind immer Pflicht. Nur die drei zusaetzlichen Brueche am zweiten Feld warten
-                # auf die erste Holzlieferung; vorher blockierte STEIN_MAX versehentlich sogar den fehlenden Pflichtbruch.
-                ereignis += v14_steinpflicht(st, G, wirt, "holz_geliefert" in fruehpruefung)
-                if "stein_besetzt" not in fruehpruefung:
-                    brueche = [n for o in V14_PLAN["brueche"] for n in steht_bei(G, 20, o)]
-                    joche = stein_joche(G)
-                    voll = (len(brueche) == 2 and len(joche) >= 4
-                            and all(BUCH.hat.get(n, 0) >= ARBEITER_JE[20] for n in brueche)
-                            and all(BUCH.hat.get(n, 0) >= ARBEITER_JE[4] for n, _g in joche[:4]))
-                    if voll:
-                        fruehpruefung["stein_besetzt"] = st["t"]
-                        ausbau.ohne.add(20)
-                        ereignis.append("STEINBRUECHE BESETZT bei Tick %d (6/6 + Joche 4/4) - Planer und restliche Holzfaeller frei" % st["t"])
-                if "stein_besetzt" in fruehpruefung and hf_spaeter and st["holz"] - wirt.ruecklage(G)["holz"] >= 5:
-                    o = hf_spaeter.pop(0)
-                    ereignis.append("HOLZFAELLER aus dem Plan nach den Steinbruechen bei %s: %s" % (o, baue_schnell(3, o[0], o[1], 1, zweck="Plan")))
-            tz = uhr("auftragsbuch", tz)
-        # Markt und Verkauf gehoeren zur Wirtschaft, nicht zu den Assassinen (gold10k_1: mit assassinen=0 wurde 60.000
-        # Ticks lang nichts verkauft - der Block stand im Assassinen-Teil; Gold am Ende 1.013, nur aus Steuern)
-        if not [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 26] and runde % 20 == 2:
-            ereignis.append("Markt gesetzt %s" % (baue_schnell(26, BERGFRIED[0], BERGFRIED[1], 25),))
-        elif runde % 3 == 0:
-            bremst = gold_bremst(st, G)
-            # 12 Stein fuer die Kaserne nicht verkaufen, solange sie fehlt (v2 Tick 5.246: "verkauft: stein" und "Kaserne
-            # gesetzt" in derselben Runde - danach reichte der Stein nicht mehr)
-            kas_fehlt = streitkolben and not [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 9]
-            # Produktion darf Stein oberhalb ihrer noch offenen Minen/Werkstaetten/Kaserne verkaufen. Das fruehere
-            # Totalverbot liess im 18-Monats-Lauf 133 Stein ungenutzt liegen, obwohl 500 Gold zum Anwerben gebraucht werden.
-            stein_reserve = (prod.stein_bedarf(G) if prod else ausbau.reserve()["stein"] + (12 if kas_fehlt else 0))
-            v = verkaufen(st, stein_reserve,
-                          ausbau.messer, holz_verkaufen=bremst, eisen_reserve=10 if prod else 0,
-                          # Haushalt: Nahrung fuer doppelte Rationen behalten (2 x 0,1 je Kopf und 1.000 Ticks, gemessen 05.10.)
-                          nahrung_puffer_h=(3 + st.get("leute", 0) // 3) if haus else None,
-                          obergrenzen={"holz": 150, "stein": 50, "eisen": 10} if prod else
-                          # 12.10. (L66: Holz wurde im Kausal-Zweig nie verkauft): Holz ueber Baureserve + 40 ist Ware
-                          ({"holz": max(60, wirt.ruecklage(G)["holz"] + 40)} if ENTSCHEIDER == "kausal" else None))
-            if v:
-                ereignis.append(v)
-            # Daniel 07.10. (Lauf 14: 9 statt 10 Kaempfer, "hier fehlt ein Arbeiter, schlecht kalkuliert"): nach dem Endspiel-
-            # Abriss lagen 59 Holz, daraus wurde ein Holzfaeller statt Gold - im Endspiel und ohne Holzbedarf nie
-            if (not bremst and st["holz"] > HOLZ_RESERVE + 4 and not endspiel["fertig"]
-                    and not fruehpruefung.get("holz_ueberfluessig")):
-                ort, text = ausbau.holzfaeller_statt_verkauf(st, L, G)
-                if ort:
-                    ereignis.append("Holzfaeller statt Holzverkauf bei %s (Holz %d; %s)" % (ort, st["holz"], text))
-        if trupp is not None:
-            # Soeldnerlager (120 Gold) einmal bauen, dann Assassinen (Typ 73) anwerben bis zur Zahl; Mitglieder = alle eigenen 73er
-            posten = [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 8]
-            # 19.10.: Zahl der LEBENDEN (ASSASSINEN_EXTRA); mehr, solange jede ein Ziel hat und es weitere Raid-Plaetze gibt
-            a_stand["lebend"] = sum(1 for e in L.values() if e["besitzer"] == SP and e["typ"] == 73)
-            ueber_a = getattr(trupp, "ohne_ziel_zuletzt", None) == 0 and (getattr(trupp, "_raid_plaetze", 0) or 0) > len(trupp.ziel) \
-                and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] + HEER_GOLD_RAND
-            ziel_a = assassinen + (ASSASSINEN_EXTRA if ueber_a and assassinen > 0 else 0)
-            if not posten and (soeldner is None or runde % 10 == 0) and not ausbau.braucht_gold:
-                # nicht am Lagerplatz (9i: Markt/Soeldnerlager belegten ihn - 14 Holzfaeller warteten Tick 4500-9035)
-                soeldner = baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25)
-                ereignis.append("Soeldnerlager gesetzt %s (Gold %d)" % (soeldner, st["gold"]))
-            elif posten and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] and st["feuer"] >= 1 \
-                    and (assassinen < 0 or a_stand["lebend"] < ziel_a) and st["t"] - a_stand["zuletzt"] >= WERB_ABSTAND \
-                    and (getattr(trupp, "ohne_ziel_zuletzt", None) or 0) < A_OHNE_ZIEL_MAX \
-                    and not ausbau.braucht_gold \
-                    and not loewen_am_posten(L, G, posten[0]) \
-                    and not wirt.a_offen(G):   # Daniel 23:09: Farmen nicht vergessen - erst die fehlenden A-Plantagen (45 Gold)   # erst rollen (Daniel 18:51/19:05)
-                befehl({"werbe": {"typ": 73, "gebaeude": posten[0]}}, 1.0, bis="WERBE")
-                geworben += 1
-                a_stand["zuletzt"] = st["t"]
-                if geworben == 1 or geworben % 5 == 0:     # der erste zaehlt einzeln (gewinn_5: Zeitpunkt fehlte)
-                    ereignis.append("%d Assassinen angeworben (Gold jetzt %d, %d leben, Soll %d%s)" % (
-                        geworben, st["gold"], a_stand["lebend"] + 1, ziel_a, " mit Raid-Ueberschuss" if ziel_a > assassinen else ""))
-            if posten and runde % 50 == 0:     # ganz_1: in 28.700 Ticks nur 1 Assassine - welche Bedingung bremst?
-                ereignis.append("ANWERBEN-BREMSE: Gold %d (braucht %d), Feuer %d, Planer braucht Gold %s, A-Farmen offen %d" % (
-                    st["gold"], 70 + wirt.ruecklage(G)["gold"], st["feuer"], bool(ausbau.braucht_gold), len(wirt.a_offen(G))))
-            tz = uhr("bauen_werben_verkauf", tz)
-            trupp.aufnehmen([n for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 73])
-            # nur begehbare Plaetze (9g: Gebaeudemitten waren nicht begehbar - die Wartenden blieben im Schussfeld)
-            erg = trupp.schritt(L, G, sichere_orte=[tuple(plan["lager_mitte"]), BERGFRIED], tick=st.get("t"))
-            if isinstance(erg, tuple):          # Einzeln: Befehle der Runde gesammelt in EINEM Aufruf
-                erg, liste = erg
-                if liste:
-                    sende({"befehle": [dict(b, player=1, id=neue_id()) for b in liste]}, 1.0,
-                          bis="ANGRIFF" if any("angriff" in b for b in liste) else "HALTEN")
-            ereignis += erg
-            if trainingsstand and trupp.lordtrupp.get("phase") == "sammeln":
-                punkt = trupp.lordtrupp.get("sammelpunkt")
-                angekommen = [n for n in trupp.lordtrupp["mitglieder"] if n in L and max(
-                    abs(L[n]["x"] - punkt[0]), abs(L[n]["y"] - punkt[1])) <= trupp.LORD_SAMMEL_R]
-                # trainingsstand_ab: so viele muessen am Treffpunkt stehen (bedarf_partie_2: in der ganzen Partie kamen nie
-                # 40 zusammen, hoechstens 27 - die Lage, in der wirklich angegriffen wuerde, braucht einen eigenen Stand)
-                if len(angekommen) >= trainingsstand_ab:
-                    befehl({"pause": True}, 0.5)
-                    from speichern import speichere
-                    pfad = speichere(trainingsstand)
-                    schreib("TRAININGSSTAND gesichert: %s mit %d gemeinsam angekommenen Assassinen bei Tick %d -> %s" % (
-                        trainingsstand, len(angekommen), st["t"], pfad))
-                    break
-            tz = uhr("assassinen", tz)
-            # 19.10. (Daniel: "einen Run durchspielen, auch wenn 5 oder mehr Assassinen sterben - das soll nur markiert werden")
-            if not STOPP_TOTE and trupp.bilanz.get("tote", 0) >= MARKE_TOTE and not fruehpruefung.get("marke_tote"):
-                fruehpruefung["marke_tote"] = st["t"]
-                ereignis.append("MARKE: %d Assassinen tot bei Tick %d - Partie laeuft weiter (stopp_tote=0)" % (
-                    trupp.bilanz["tote"], st["t"]))
-            if STOPP_TOTE and trupp.bilanz.get("tote", 0) >= STOPP_TOTE and not stopp_grund:
-                befehl({"pause": True}, 0.5)          # sofort anhalten, die Runde wird nur noch zu Ende geschrieben
-                stopp_grund = "STOPP: %d Assassinen tot bei Tick %d - Spiel angehalten (stopp_tote=%d)" % (
-                    trupp.bilanz["tote"], st["t"], STOPP_TOTE)
-        if V14 and streitkolben:
-            # v14-Fruehabbruch (Daniel 22:05: "ich brauche nicht noch einen Run, wo nicht zwei Steinbrueche direkt neben dem
-            # Vorratslager sind"): nach dem Holz-Zeitplan stehen beide Steinbrueche + Joche bei ~350 (30 Holz bei 120,
-            # +28 je 110 Ticks; Kornspeicher 5, Steinbruch 25, A-Plantagen 9, Joch 5, Steinbruch 25, Joch 5)
-            if st["t"] >= V14_STEIN_BIS and not fruehpruefung.get("stein") and not HOLZ_SPAM:   # E3: Steinbrueche absichtlich spaeter
-                fehlt = ["%s %s" % (NACH_TYP[typ]["name"], o) for typ, o in [(20, q) for q in V14_PLAN["brueche"]] +
-                         ([] if JOCH_NACH_STEIN else [(4, j) for j in V14_PLAN["joche"] + V14_PLAN["joche_zwei"]])
-                         if not steht_bei(G, typ, o)]
-                if fehlt:
-                    schreib("FRUEHABBRUCH bei Tick %d: fehlt %s" % (st["t"], ", ".join(fehlt)))
-                    break
-                fruehpruefung["stein"] = True
-                schreib("PRUEFUNG bestanden bei Tick %d: beide Steinbrueche + Joche stehen an den Plan-Plaetzen" % st["t"])
-            lager_bis = min(2000, wirt.B_tick + 400) if wirt.B_tick else 2000      # v15: Umzug erst nach B
-            teile = [g for g in G.values() if g["besitzer"] == SP and g["typ"] == 10]
-            if not teile:
-                fruehpruefung.setdefault("ohne_lager_seit", st["t"])
-                if st["t"] - fruehpruefung["ohne_lager_seit"] > 150:
-                    schreib("FRUEHABBRUCH bei Tick %d: seit Tick %d kein Lager (Holz und Stein kommen nicht an)" % (
-                        st["t"], fruehpruefung["ohne_lager_seit"]))
-                    break
+            if st.get("over") == 0 and st.get("ansicht") not in (14, 16):
+                # 07.10. (Lauf 24/27/50/51: Daniel schaut zu, Ansicht 16 bei pause 0 -> Abbruch, Lauf verloren): Ansicht 16 ist
+                # Spiel mit offenem Menue (Spiel laeuft weiter) und zaehlt wie 14; andere Ansicht: warten, nach 120 s abbrechen
+                if "ansicht_weg" not in fruehpruefung:
+                    fruehpruefung["ansicht_weg"] = time.time()
+                    schreib("ANSICHT %s bei Tick %s (von aussen?) - Lenker wartet" % (st.get("ansicht"), st.get("t")))
+                if time.time() - fruehpruefung["ansicht_weg"] < 120:
+                    time.sleep(0.5)
+                    continue
             else:
-                fruehpruefung.pop("ohne_lager_seit", None)
-            if STEIN_ZUERST and st["t"] >= 1500 and "stein_besetzt" not in fruehpruefung:
-                schreib("FRUEHABBRUCH bei Tick %d: Steinbrueche + Joche nicht besetzt (%s)" % (st["t"], BUCH.stand(G, st)))
-                break
-            if st["t"] >= lager_bis and not fruehpruefung.get("lager") and UMZUG != "nein":
-                neu = steht_bei(G, 10, V14_PLAN["lager"], 6)   # 23:40: Platzwahl haelt Abstand zum Steinhaufen -> (91,268) statt (89,270)
-                alt = [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 10 and
-                       max(abs(g["x"] - BASIS_LAGER[0]), abs(g["y"] - BASIS_LAGER[1])) <= 6]
-                if not neu or alt:
-                    schreib("FRUEHABBRUCH bei Tick %d: Lager nicht umgezogen (neu bei %s: %s, alt am Bergfried: %s)" % (
-                        st["t"], V14_PLAN["lager"], neu or "keins", alt or "weg"))
-                    break
-                fruehpruefung["lager"] = True
-                schreib("PRUEFUNG bestanden bei Tick %d: neues Lager steht bei %s, altes weg" % (st["t"], V14_PLAN["lager"]))
-        if streitkolben and not V14 and not EXPERIMENT and not fruehpruefung.get("ok4000"):   # Lernkreis: diese Regel wuergte alle 4 1-Jahr-Versuche ab
-            # schaerfer (Daniel 21:56: "er baut nur einen Steinbruch, hier wuerde ich auch abbrechen ... gleiches fuer
-            # andere nicht optimal platzierte Gebaeude"): genug Steinbrueche, keiner weit vom Lager
-            lager_teile = [g for g in G.values() if g["besitzer"] == SP and g["typ"] == 10]
-            weit = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] == SP and g["typ"] == 20 and lager_teile and
-                    min(max(abs(g["x"] - l["x"]), abs(g["y"] - l["y"])) for l in lager_teile) > 40]
-            # strenger (Daniel 21:57: "wenn das so frueh passiert und die Gewinnmarge so gering ist, musst du strenger sein")
-            soll = 3 if st["t"] >= FRUEH_TICK else 2 if st["t"] >= 1500 else 0
-            if st.get("G20", 0) < soll or (weit and st["t"] >= FRUEH_TICK):
-                schreib("FRUEHABBRUCH bei Tick %d: %d Steinbrueche (soll %d)%s" % (st["t"], st.get("G20", 0), soll,
-                        ", weit vom Lager: %s" % weit if weit else ""))
-                break
-            if st["t"] >= FRUEH_TICK:
-                fruehpruefung["ok4000"] = True
-        if streitkolben and st["t"] >= FRUEH_TICK and not EXPERIMENT and not fruehpruefung.get("ok"):
-            # Fruehabbruch (Daniel 21:55: "wenn du merkst, dass schon der Steinbruch nicht richtig gesetzt ist, muesstest du
-            # eigentlich schon aufhoeren ... das sind alles verschwendete Zeiten/Versuche")
-            fehlt = []
-            if not st.get("G20", 0) and not HOLZ_SPAM:          # E3/E4: Steinbrueche absichtlich nach dem Holz
-                fehlt.append("kein Steinbruch")
-            if [n for n in wirt.alt if n in G and G[n]["typ"] == 10 and max(abs(G[n]["x"] - BASIS_LAGER[0]), abs(G[n]["y"] - BASIS_LAGER[1])) <= 6]:
-                fehlt.append("Lager nicht umgezogen")
-            if wirt.B_offen:
-                fehlt.append("B-Seasoning offen")
-            if fehlt:
-                schreib("FRUEHABBRUCH bei Tick %d: %s" % (st["t"], ", ".join(fehlt)))
-                break
-            fruehpruefung["ok"] = True
-            schreib("FRUEHPRUEFUNG bestanden bei Tick %d (Steinbruch, Lager umgezogen, B-Seasoning)" % st["t"])
-        if streitkolben and endspiel.get("abbruch"):
-            schreib("FRUEHABBRUCH bei Tick %d: %s" % (st["t"], endspiel["abbruch"]))
-            break
-        if streitkolben:
-            # Daniel 00:54: "Gerber und Kaesereien machen keinen Sinn, wenn kein Platz fuer Bevoelkerung ist, wenn's als letztes
-            # gebaut wird" - mit Kasse gehen die Leute am Ende weg; Leder wird im Endspiel gekauft
-            if leder is not None and KASSE == "nein" and not endspiel["fertig"] and not (BUCH is not None and HOLZ_SPAM and
-                    sum(1 for g in G.values() if g["besitzer"] == SP and g["typ"] == 3) < HOLZ_SPAM):
-                ereignis += leder.schritt(st, G, wirt)
-            if feldzug is not None:
-                if prod is not None:
-                    prod.stein_extra = bier.stein_bedarf() if bier is not None else 0
-                    # 19.10. (1019i: ein Fehler im Werkstattplaner beendete den Lauf mitten im Feldzug): ein Fehler in der
-                    # Produktion wird gemeldet, beendet aber nie die Partie
-                    try:
-                        ereignis += prod.schritt(st, L, G, wirt, ausbau)
-                    except Exception as ex_p:
-                        ereignis.append("PRODUKTION FEHLER %r - Partie laeuft weiter" % (ex_p,))
-                    if prod.stufe < 4 and st["gold"] - wirt.ruecklage(G)["gold"] >= Produktion.UEBERSCHUSS:
-                        ereignis += ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
+                fruehpruefung.pop("ansicht_weg", None)
+            if st.get("over") != 0 or st.get("ansicht") not in (14, 16):
+                # Spielende deutlich melden (Daniel 05.10. 00:44): wer hat wessen Lord getoetet? (PlayerData +8720)
+                if st.get("over") == 1:
+                    getoetet = {sp: s32(peek(0x0115BDF8 + sp * 0x39F4 + 8720)[0]) for sp in range(1, 2 + GEGNER_ZAHL)}
+                    feinde = [sp for sp in getoetet if sp != SP]
+                    if getoetet[SP] <= 0 and all(getoetet[sp] > 0 for sp in feinde):
+                        ende_grund = ("sieg", "Lord des Gegners getoetet")
+                        schreib("SIEG bei Tick %d: %s" % (st["t"], ", ".join("Lord von Spieler %d getoetet durch Spieler %d" % (
+                            sp, getoetet[sp]) for sp in feinde))); break
+                    if getoetet[SP] > 0:     # 19.10. (1v1): unser Lord = Spieler SP (vorher fest Spieler 1)
+                        ende_grund = ("niederlage", "unser Lord getoetet durch Spieler %d" % getoetet[SP])
+                        schreib("NIEDERLAGE bei Tick %d: unser Lord getoetet durch Spieler %d" % (st["t"], getoetet[SP])); break
+                schreib("ABBRUCH - Testbedingung weg: %s" % {k: st.get(k) for k in ("ansicht", "over", "pause", "t")}); break
+            if letzter_tick is not None and st["t"] - letzter_tick > 400:
+                schreib("WARNUNG: Runde dauerte %d Ticks (%d -> %d) - Waechter war so lange blind; Zeit der Runde davor: %s" % (
+                    st["t"] - letzter_tick, letzter_tick, st["t"], ", ".join("%s %.2f s" % kv for kv in sorted(diese_runde.items(), key=lambda kv: -kv[1]))))
+            diese_runde.clear()
+            # 18.10. (1018o: Abbruch bei Tick 14.621 - die Spielzeit stand 1,7 s ohne Pause, 4 Runden zu je 0,4 s): Stillstand in
+            # SEKUNDEN messen, nicht in Runden - der schnellere Lenker machte aus "4 Runden" einen Ausrutscher von gut 1 Sekunde
+            if st["t"] != letzter_tick:
+                if stand and time.time() - stand >= 1.0:
+                    schreib("SPIELZEIT stand %.1f s bei Tick %s (Pause %s)" % (time.time() - stand, letzter_tick, st.get("pause")))
+                stand, fortgesetzt = 0, 0
+            elif not stand:
+                stand = time.time()
+            elif time.time() - stand >= 30:
+                # 18.10. (1018b/c/d: der Partner hielt das Spiel an, dieser Lenker brach nach 30 s ab): mit Partner das Spiel
+                # fortsetzen (hoechstens partner.FORTSETZEN_MAX Mal in Folge), ohne Partner wie bisher abbrechen
+                if PT.stillstand(time.time() - stand, fortgesetzt, PARTNER) == "fortsetzen":
+                    fortgesetzt += 1
+                    schreib("SPIELZEIT steht seit %.0f s bei Tick %d (Pause %s) - 1v1: Spiel fortgesetzt (%d. Mal)" % (
+                        time.time() - stand, st["t"], st.get("pause"), fortgesetzt))
+                    befehl({"pause": False}, 0.5)
+                    stand = time.time()
                 else:
-                    ereignis += ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
-                try:
-                    ereignis += feldzug.schritt(st, L, G, befehl)
-                except Exception as ex_z:
-                    ereignis.append("FELDZUG FEHLER %r - Partie laeuft weiter" % (ex_z,))   # 19.10. (1019i): nie den Lauf beenden
-                # 19.10. (1019g: das Heer blieb bei 5 Mann, Gold 1.163 lag brach; Daniel: "beim naechsten Run sollen beide
-                # Nomaden sterben"): Soeldner fuers Heer, sobald Gold ueber der Ruecklage + HEER_GOLD_RAND liegt - arab.
-                # Schwertkaempfer (Editor-Duelle: 28.000 Leben, ~180 je Takt), jeder vierte ein arab. Bogen; hoechstens 2 je
-                # Runde und bis HEER_MAX im Heer
-                posten_h = next((n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 8), None)
-                if posten_h is not None and runde % 2 == 0:
-                    import bauen as BA_h
-                    frei_h = st["gold"] - wirt.ruecklage(G)["gold"] - HEER_GOLD_RAND
-                    heer_n, n_h, feuer_h = len(feldzug.einheiten(L)), 0, st.get("feuer", 0)
-                    while n_h < 2 and heer_n + n_h < HEER_MAX and feuer_h - n_h >= 1:
-                        typ_h = 70 if (fruehpruefung.get("heer_zaehler", 0) + n_h) % 4 == 3 else 75
-                        if frei_h < SOELDNER_GOLD[typ_h]:
-                            break
-                        BA_h.werbe(typ_h, posten_h)
-                        frei_h -= SOELDNER_GOLD[typ_h]
-                        n_h += 1
-                    if n_h:
-                        fruehpruefung["heer_zaehler"] = fruehpruefung.get("heer_zaehler", 0) + n_h
-                        if fruehpruefung["heer_zaehler"] % 10 < n_h or fruehpruefung["heer_zaehler"] <= 2:
-                            ereignis.append("HEER-WERBUNG: %d Soeldner fuers Heer angeworben (zusammen %d, Heer jetzt %d), Gold %d" % (
-                                n_h, fruehpruefung["heer_zaehler"], heer_n + n_h, st["gold"]))
-                if bier is not None and runde % 5 == 0:
+                    ende_grund = ("absturz", "Spielzeit steht bei %d" % st["t"])
+                    schreib("ABBRUCH - Spielzeit steht bei %d (seit %.0f s)" % (st["t"], time.time() - stand)); break
+            letzter_tick = st["t"]
+            if REGEL50 and st.get("t", 0) > 0 and st.get("beliebt", 10000) < 5000:
+                schreib("REGELBRUCH bei Tick %d: Beliebtheit %.2f unter 50 - Lauf abgebrochen" % (st["t"], st["beliebt"] / 100.0))
+                ende_grund = ("regelbruch", "Beliebtheit %.2f unter 50" % (st["beliebt"] / 100.0))
+                break
+            ausbau.beobachte(st, L, G)        # Buchfuehrung des Planers: Zugang je Ware seit der letzten Runde
+            eig = [g for g in G.values() if g["besitzer"] == SP]
+            gebs = [(g["x"] + NACH_TYP.get(g["typ"], {"b": 2})["b"] // 2, g["y"] + NACH_TYP.get(g["typ"], {"b": 2})["b"] // 2)
+                    for g in eig if g["typ"] in EIGENE_ARTEN]
+            tz = time.time()
+            # 19.10. (1018y: das "Stapeln" des Waechters holte die angreifenden Streitkolben alle 5 Runden heim): Feldzug-Truppen
+            # ausnehmen
+            # 19.10. (Daniel, 1019b: "die lassen sich einfach angreifen ohne Grund"): solange der Feldzug sammelt, sind seine
+            # Streitkolben Reserve des Waechters - nur bei einer Bedrohung und nur, wenn die Gefechtsbewertung den Angriff lohnt
+            if feldzug is not None:
+                # 19.10. (Daniel, 1019f: "nur zum Verteidigen ist das Overkill ... danach besser verteilen um auch zu raiden"):
+                # eine kleine Heimwache bleibt am Bergfried (zuerst Schuetzen, dann Nahkaempfer, die naechsten am Bergfried, nur
+                # wer hoechstens 40 Felder weg ist), alle anderen Truppen sind das Heer des Feldzugs
+                import feldzug as FZ
+                heer_alle = {n: e for n, e in L.items() if e["besitzer"] == SP and e["typ"] in FZ.HEER}
+                hw = {n for n in feldzug.heimwache if n in heer_alle}
+                nah_heim = lambda n: max(abs(heer_alle[n]["x"] - BERGFRIED[0]), abs(heer_alle[n]["y"] - BERGFRIED[1]))
+                for arten, soll in ((FZ.FERN_REICH, HEIM_FERN), (None, HEIM_NAH)):
+                    drin = [n for n in hw if (heer_alle[n]["typ"] in FZ.FERN_REICH) == (arten is not None)]
+                    frei = sorted((n for n in heer_alle if n not in hw and (heer_alle[n]["typ"] in FZ.FERN_REICH) == (arten is not None)
+                                   and nah_heim(n) <= 40), key=nah_heim)
+                    hw |= set(frei[:max(0, soll - len(drin))])
+                feldzug.heimwache = hw
+            reserve_w = feldzug.einheiten(L) if feldzug is not None and feldzug.phase == "sammeln" else set()
+            ausgenommen_w = set(trupp.mitglieder if trupp else ()) | ((feldzug.einheiten(L) - reserve_w) if feldzug is not None else set())
+            ereignis = w.schritt(L, gebs, ausgenommen=ausgenommen_w, reserve=reserve_w) if w is not None else []
+            if feldzug is not None and w is not None:
+                feldzug.verteidiger = {n for n in w.auftrag if n in reserve_w}
+            tz = uhr("waechter", tz)
+            if NOTWERBUNG and st.get("t", 0) > 0:
+                # 12.10. (Daniel 11.10. 23:40 "du siehst doch, dass du angegriffen wirst und nicht ausbildest"; 23:45 "arabische
+                # Einheiten"): Soeldnerposten frueh bauen; stehen Gegnertruppen in unserem Gebiet, sofort nachwerben - je Gegner
+                # eine Einheit, abwechselnd Schwertkaempfer (75) und Bogenschuetzen (70), bis Gold oder Bauern am Feuer fehlen.
+                # Welche Art gegen Assassinen/Sklaven wirklich toetet, misst die Kampfpartie (Frage-Agent 00:08)
+                import bauen as BA
+                from waechter import TRUPPE as W_TRUPPE
+                posten_n = next((n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 8), None)
+                if posten_n is None and st.get("gold", 0) >= kosten_spiel(8).get("gold", 0)                     and st["t"] - fruehpruefung.get("posten_bestellt", -10 ** 6) > 600:
+                    fruehpruefung["posten_bestellt"] = st["t"]
+                    ereignis.append("NOTWERBUNG Soeldnerposten bestellt: %s" % (baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25),))
+                orte_n = gebs + [BERGFRIED]
+                # 19.10. (Daniel, 1019f: 53 Soeldner fuer gut 4.000 Gold - "nur zum Verteidigen ist das Overkill"): vorher je Feind
+                # bis 40 Felder von IRGENDEINEM unserer Gebaeude eine Einheit, ohne Obergrenze - auf Green Haven zaehlten die
+                # Truppen vor den feindlichen Burgen mit. Jetzt nur Feinde bis NOT_R Felder an unseren Gebaeuden, und nur wenn die
+                # Gefechtsrechnung sagt, dass unsere Truppen bis 60 Felder dort nicht gewinnen; hoechstens NOT_JE_RUNDE je Runde
+                feinde_n = [e for e in L.values() if e["besitzer"] not in (0, SP) and e["typ"] in W_TRUPPE
+                            and min(max(abs(e["x"] - o[0]), abs(e["y"] - o[1])) for o in orte_n) <= NOT_R]
+                if feinde_n and posten_n is not None:
+                    import gefecht as GF
+                    mx = sorted(e["x"] for e in feinde_n)[len(feinde_n) // 2]
+                    my = sorted(e["y"] for e in feinde_n)[len(feinde_n) // 2]
+                    wir_n = [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"]) for e in L.values()
+                             if e["besitzer"] == SP and e["typ"] in W_TRUPPE and e["typ"] not in (73, 55)
+                             and max(abs(e["x"] - mx), abs(e["y"] - my)) <= 60]
+                    sie_n = [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=True) for e in feinde_n]
                     try:
-                        ereignis += bier.schritt(st, G, wirt.ruecklage(G))
-                    except Exception as ex_z:
-                        ereignis.append("BIER FEHLER %r - Partie laeuft weiter" % (ex_z,))   # 19.10. (1019i): nie den Lauf beenden
-            else:
-                ereignis += bilanz_schritt(st, L, G, ausbau, streitkolben, endspiel, runde, kaempfer_marken)
-            if feldzug is None and not endspiel["fertig"] and weg != "bilanz":     # weg=bilanz: nur Wirtschaft + Bilanz-Endspiel (v5)
-                ereignis += prod.schritt(st, L, G, wirt, ausbau) if prod else ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
-            # Daniel 11.10. "Nomade installieren, gegen sie gewinnen": ab ANGRIFF_AB Streitkolbenkaempfern alle auf den
-            # feindlichen Lord (Befehl wie der Lord-Angriff der Assassinen); Ende erst bei SIEG/NIEDERLAGE
-            # Daniel 11.10. 16:41/16:44: der gegnerische Lord darf im ersten Spieljahr (bis Tick 9.600) keinen Schaden nehmen
-            if ANGRIFF_AB and st.get("T26", 0) >= ANGRIFF_AB and runde % 10 == 0 and st["t"] < LORD_SCHUTZ_BIS                     and "lordschutz_gemeldet" not in fruehpruefung:
-                fruehpruefung["lordschutz_gemeldet"] = st["t"]
-                ereignis.append("ANGRIFF wartet: %d Streitkolbenkaempfer bereit bei Tick %d, Lord-Schutz bis Tick %d" % (
-                    st.get("T26", 0), st["t"], LORD_SCHUTZ_BIS))
-            if ANGRIFF_AB and st.get("T26", 0) >= ANGRIFF_AB and runde % 10 == 0 and st["t"] >= LORD_SCHUTZ_BIS:
-                feind = next((n for n, e in L.items() if e["typ"] == 55 and e["besitzer"] not in (0, SP)), None)
-                kolben = [n for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 26]
-                if feind and kolben:
-                    befehl({"angriff": {"einheiten": kolben, "ziel": feind}}, 1.0, bis="ANGRIFF")
-                    if "angriff_start" not in fruehpruefung:
-                        fruehpruefung["angriff_start"] = st["t"]
-                        ereignis.append("ANGRIFF auf den feindlichen Lord Nr %d mit %d Streitkolbenkaempfern ab Tick %d (Lord-Leben %d)" % (
-                            feind, len(kolben), st["t"], L[feind]["leben"]))
-                        if ZUSCHAU_TEMPO:
-                            befehl({"tempo": ZUSCHAU_TEMPO}, 1.0, bis="TEMPO")
-                            ereignis.append("TEMPO %d ab dem ersten Angriff (zum Zuschauen)" % ZUSCHAU_TEMPO)
-                    # Beleg, dass der Befehl wirkt: Abstand der Kaempfer zum Lord und dessen Leben je Angriffsrunde
-                    lx, ly = L[feind]["x"], L[feind]["y"]
-                    abst = sorted(max(abs(L[n]["x"] - lx), abs(L[n]["y"] - ly)) for n in kolben)
-                    ereignis.append("ANGRIFF Stand Tick %d: %d Kaempfer, Abstand zum Lord naechster %d / Mitte %d, Lord-Leben %d" % (
-                        st["t"], len(kolben), abst[0], abst[len(abst) // 2], L[feind]["leben"]))
-            if feldzug is None and st.get("T26", 0) >= streitkolben and not kasse.get("endziel"):
-                schreib("ZIEL %d Streitkolbenkaempfer erreicht bei Tick %d" % (streitkolben, st["t"]))
-                # Daniel 11.10. 14:28 "erst die 50, dann 100 Streitis in einem Run": gestufte Ziele - nach jeder Stufe
-                # beginnt die naechste mit frischem Endspiel, die Wirtschaft laeuft weiter (vor dem letzten Ziel kein Abriss)
-                weiter = [z for z in (STUFEN or []) if z > streitkolben]
-                if not weiter:
-                    if ANGRIFF_AB:
-                        kasse["endziel"] = True       # weiterspielen bis SIEG/NIEDERLAGE
-                        continue
+                        reicht_n, text_n = GF.bewerte(wir_n, sie_n)
+                    except Exception as ex:
+                        reicht_n, text_n = False, "Rechnung fehlgeschlagen (%s)" % ex
+                    if reicht_n:
+                        feinde_n = []
+                if feinde_n and posten_n is not None:
+                    gold_n, feuer_n, n_n = st.get("gold", 0), st.get("feuer", 0), 0
+                    for i in range(min(len(feinde_n), NOT_JE_RUNDE)):
+                        # zwei Schwertkaempfer je Bogen (Editor-Duelle: arab. Schwert 180 je Takt bei 28.000 Leben, arab. Bogen im
+                        # Nahkampf 16-27)
+                        typ_n = 70 if (fruehpruefung.get("werb_zaehler", 0) + i) % 3 == 2 else 75
+                        if gold_n < SOELDNER_GOLD[typ_n] or feuer_n <= 0:
+                            break
+                        BA.werbe(typ_n, posten_n)
+                        gold_n -= SOELDNER_GOLD[typ_n]
+                        feuer_n -= 1
+                        n_n += 1
+                    fruehpruefung["werb_zaehler"] = fruehpruefung.get("werb_zaehler", 0) + n_n
+                    if n_n:
+                        ereignis.append("NOTWERBUNG %d Einheiten gegen %d Gegner an unseren Gebaeuden (%s), Gold danach %d - %s" % (
+                            n_n, len(feinde_n), ",".join(sorted({str(e["typ"]) for e in feinde_n})), gold_n, text_n))
+            ereignis += still_w.schritt(st["t"], L, G, lager_stopp=getattr(wirt, "lager_stopp", False))
+            if speicher_nachbauen(G, BUCH.offen if BUCH is not None else [], st["t"],
+                                  fruehpruefung.get("speicher_nachbau", -10 ** 6)):
+                fruehpruefung["speicher_nachbau"] = st["t"]
+                ereignis.append("KORNSPEICHER fehlt - Nachbau am Planplatz %s: %s" % (tuple(plan["kornspeicher"]), baue_schnell(
+                    19, plan["kornspeicher"][0], plan["kornspeicher"][1], 12, zweck="Kornspeicher nachbauen")))
+            rueck = {}
+            if jagd_bau is not None:
+                ereignis += jagd_bau.schritt(st["t"], st, L, G)
+                rueck = jagd_bau.bedarf(st["t"], G, L)
+            if brot_bau is not None:
+                ereignis += brot_bau.schritt(st["t"], st, G)
+                b_r = brot_bau.bedarf(st["t"], G)
+                rueck = {w: rueck.get(w, 0) + b_r.get(w, 0) for w in ("holz", "gold")}
+            if jagd_bau is not None or brot_bau is not None:
+                wirt.brot = rueck                             # Ruecklage: Planer/Huetten/Holzfaeller halten das Holz frei
+            if BUCH is not None:
+                ereignis += BUCH.abgleich(G, L, st)            # jeder Bau bestaetigt oder gescheitert, jede Belegung
+                while BUCH.unerreichbar:                        # v18: laut Spiel unerreichbar -> abreissen, Platz sperren
+                    n_u, typ_u, ort_u = BUCH.unerreichbar.pop()
+                    befehl({"abreissen": {"nr": n_u}}, 0.8, bis="ABREISSEN")
+                    ausbau.fehlschlag[(typ_u, ort_u)] = ausbau.fehlschlag.get((typ_u, ort_u), 0) + 1
+                    ausbau.unerreichbar.add(tuple(ort_u))       # auch der Wegtest-Speicher: nie wieder als erreichbar anbieten
+                    ausbau.erreichbar_ok.discard(tuple(ort_u))
+                tz = uhr("buch_abgleich", tz)
+                # 19.10. (1019e/f: Auftragsbuch-Abschnitt 0,26 s je Runde auf Green Haven gegen 0,04 auf The Killing Plains - auf
+                # der fruchtbaren Karte pruefte der Kausal-Planer jede Runde viel mehr Bauplaetze): nur jede KAUSAL_RUNDEN-te Runde
+                if ENTSCHEIDER == "kausal" and not endspiel["fertig"] and runde % KAUSAL_RUNDEN == 0:
+                    # Kausalmodell (kausal.py): fuer jede Handlung die Wirkungskette bis ZIEL_TICK aus der aktuellen Lage
+                    import kausal as KM
+                    ausbau.kausal = True
+                    feuer_g = next(((g["x"] + 1, g["y"] + 1) for g in G.values() if g["besitzer"] == SP and g["typ"] == 55), BERGFRIED)
+                    lager_m = tuple(plan["lager"])
+                    speicher_m = tuple(plan["kornspeicher"])
+                    # 23:48 (Daniel: "warum wird hier keine Plantage gebaut"): je Art die 4 naechsten Plaetze zur Abgabe bewerten -
+                    # vorher nur EINEN (den "besten" des Planers, (101,200) ganz oben); die Flaeche neben den Obstgaerten sah es nie
+                    # 12.10. (Daniel 01:09 "Cash von Steinen/Eisen/Brot"): Hopfen 31, Eisenmine 5, Steinbruch 20 dazu - gemessene
+                    # Ketten (kausal.py, Wissensregister L71/L72); Ablage am Lager
+                    abgabe_k = {3: lager_m, 32: speicher_m, 7: speicher_m, 31: lager_m, 5: lager_m, 20: lager_m}
+                    kand_k = []
+                    for typ_a in (3, 32, 7, 31, 5, 20):
+                        if typ_a in getattr(ausbau, "ohne", ()):
+                            continue
+                        b_a = ausbau.groesse.get(typ_a, 3) // 2
+                        orte_a = sorted(ausbau._orte(typ_a, L, G), key=lambda p: max(abs(p[0] + b_a - abgabe_k[typ_a][0]), abs(p[1] + b_a - abgabe_k[typ_a][1])))
+                        # 08.10. 00:08 (Daniel, Bild: Holzfaeller jenseits des Flusses): nur Plaetze mit Weg laut Wegtest des Spiels -
+                        # vorher die 4 naechsten ungeprueft (Lauf s25/5: 21 Huetten bei x 8-54, nie besetzt)
+                        for p in ausbau.erreichbare(orte_a, L, 4):
+                            kost = dict(ausbau.kosten_von(typ_a))
+                            d_a = max(abs(p[0] + b_a - abgabe_k[typ_a][0]), abs(p[1] + b_a - abgabe_k[typ_a][1]))
+                            if typ_a == 20:            # Steinbruch als Paket: Bruch + so viele Ochsen, wie der Weg verlangt (L71)
+                                for w_o, m_o in ausbau.kosten_von(4).items():
+                                    kost[w_o] = kost.get(w_o, 0) + KM.ochsen_fuer(d_a) * m_o
+                            kand_k.append((typ_a, p, kost, KM.arbeiter(typ_a, d_a)))
+                    R_k = wirt.ruecklage(G)
+                    st_k = dict(st, holz=st["holz"] - R_k["holz"], gold=st["gold"] - R_k["gold"])
+                    # offene Stellen: unbesetzte Plaetze in stehenden Betrieben + Arbeiter der bestellten, noch nicht stehenden
+                    offen_k = wohnraum_fehlt(st, G)[1] + sum(ARBEITER_JE.get(a["typ"], 0) for a in BUCH.offen)
+                    # 12.10. 01:36 (1012h: bis Tick 11.000 nur 23 Apfelplantagen, kein Hopfen/Eisen - der feste ZIEL_TICK 16.753 liess
+                    # Ketten mit langem Anlauf (Hopfen ~8.000, Eisen ~6.600) nie lohnen): mitlaufendes Fenster - eine Investition muss
+                    # sich in den naechsten KAUSAL_HORIZONT Ticks lohnen, egal wann sie faellt
+                    ziel_k = max(ZIEL_TICK, st["t"] + KAUSAL_HORIZONT)
+                    for w_k, typ_k, ort_k, text_k in KM.entscheide(st["t"], ziel_k, st_k, kand_k, feuer_g,
+                                                                    {3: lager_m, 32: speicher_m, 7: speicher_m}, kosten_spiel(1)["holz"],
+                                                                    offene_stellen=offen_k):
+                        if typ_k == 1:
+                            o_k = baue_haus()
+                        else:
+                            o_k = baue_schnell(typ_k, ort_k[0], ort_k[1], 3, zweck="kausal")
+                            if not o_k:
+                                ausbau.fehlschlag[(typ_k, ort_k)] = ausbau.fehlschlag.get((typ_k, ort_k), 0) + 1
+                            elif typ_k == 20:          # die Ochsen des Pakets gleich mitbauen
+                                d_k = max(abs(ort_k[0] - lager_m[0]), abs(ort_k[1] - lager_m[1]))
+                                ochsen_k = [baue_schnell(4, ort_k[0], ort_k[1], 10, zweck="kausal Ochse") for _ in range(KM.ochsen_fuer(d_k))]
+                                text_k += " + %d Ochsen %s" % (len(ochsen_k), ochsen_k)
+                        ereignis.append("KAUSAL %s bei %s: %s -> %s" % (NACH_TYP[typ_k]["name"], ort_k, text_k, o_k))
+                    # Holz aus dem Modell (Daniel 23:48 "mach das direkt aus dem Modell, sofort"): hat keine Handlung mit Holz mehr
+                    # positiven Wert, ist Holz nur noch Verkaufsware -> alles ueber 20 verkaufen, Lager waechst nicht mehr
+                    bedarf_holz = KM.entscheide(st["t"], ziel_k, dict(st_k, holz=999, gold=999), kand_k, feuer_g, abgabe_k, kosten_spiel(1)["holz"],
+                                                offene_stellen=offen_k)
+                    # 12.10. Ochsen nachruesten (L71: der Ochse ist der Engpass, Steinhaufen lief auf 48): Haufen ueber 30 und weniger
+                    # als ochsen_max Ochsen im Umkreis 12 -> ein Ochse dazu (je Runde hoechstens einer, nicht doppelt bestellt)
+                    for n_h, g_h in G.items():
+                        if g_h["besitzer"] != SP or g_h["typ"] != 21 or (g_h.get("vorrat") or 0) <= 30:
+                            continue
+                        o_h = (g_h["x"], g_h["y"])
+                        ochsen_h = sum(1 for g2 in G.values() if g2["besitzer"] == SP and g2["typ"] == 4
+                                       and max(abs(g2["x"] - o_h[0]), abs(g2["y"] - o_h[1])) <= 12)
+                        if ochsen_h < KM.MODELL[20]["ochsen_max"] and not BUCH.offen_bei(4, o_h, 12) and st["holz"] >= ausbau.kosten_von(4).get("holz", 0):
+                            ereignis.append("OCHSE NACHGERUESTET am Steinhaufen %s (Vorrat %s, %d Ochsen): %s" % (
+                                o_h, g_h.get("vorrat"), ochsen_h, baue_schnell(4, o_h[0], o_h[1], 10, zweck="Ochse nachruesten")))
+                            break
+                    fruehpruefung["holz_ueberfluessig"] = not bedarf_holz
+                    ausbau.endphase = not bedarf_holz
+                if V14 and not endspiel["fertig"] and fruehpruefung.get("holz_ueberfluessig"):
+                    # Daniel 23:46: gegen Ende Holz direkt verkaufen statt neue Lagerplaetze - Holzfaeller legen sofort ab
+                    ausbau.lager_stopp = wirt.lager_stopp = True
+                    lose_h = min(3, max(0, (st["holz"] - 20) // 20))
+                    if lose_h:
+                        sende({"befehle": [{"player": 1, "id": neue_id(), "spielbefehl": {"nr": 38, "werte": [1, WAREN_NR["holz"]]}}
+                                           for _ in range(lose_h)]}, 1.0, bis="SPIELBEFEHL")
+                        ereignis.append("HOLZ VERKAUFT %d Lose (Holz %d, Lager waechst nicht mehr)" % (lose_h, st["holz"]))
+                if HUETTEN_VORAUS and not endspiel["fertig"] and ENTSCHEIDER != "kausal":
+                    # v18 (Daniel 23:10 Punkt 3: "Haeuser bauen, bevor du Menschen brauchst, weil sie Spawnzeit brauchen"):
+                    # freie Wohnplaetze >= offene Arbeitsplaetze + 4 (mind. 6)
+                    fehlt_w, offene = wohnraum_fehlt(st, G)
+                    frei_wohn = st.get("platz", 0) - st.get("leute", 0)
+                    if fehlt_w and st["holz"] >= 5 and not any(a["typ"] == 1 for a in BUCH.offen):
+                        ereignis.append("HUETTE VORAUS (frei %d, offene Arbeitsplaetze %d): %s" % (frei_wohn, offene, baue_haus()))
+                # Daniel 07.10. 00:17/00:20: "maximal viel Bevoelkerung und Holzfaeller, dann relativ frueh bei 60-70 Leuten -40
+                # Steuern, Essen stoppen und verkaufen". Wachstum: Huetten, bis BEV_ZIEL Plaetze stehen (nur wenn fast voll).
+                # Daniel 00:48: "einfach maximal Bevoelkerung, aber bei 70 anfangen auf -40, dann kommen wir eher auf 80-90" -
+                # das Wachstum laeuft nach dem Kasse-Start weiter, solange noch Leute zuziehen (Beliebtheit >= 50, Liga +5 bei 50-54)
+                if BEV_ZIEL and not endspiel["fertig"] and (not kasse["an"] or st.get("beliebt", 0) >= 5000):
+                    # Daniel 00:40: "ohne ausreichend Holzfaeller werden niemals 70 erreicht, da maximal 24 Leute im Pennerhof sind" -
+                    # am Lagerfeuer warten hoechstens 24, dann zieht niemand mehr zu. Wartende bekommen sofort Arbeit: der billigste
+                    # Arbeitsplatz ist der Holzfaeller (3 Holz, 1 Arbeiter, liefert Holz fuer Huetten und Verkauf)
+                    # 00:44 (Daniel "er baut immer noch keine Holzfaeller"; Lauf 42: 2 Stueck, bei Tick 6.122 lagen 39 Holz bei 19
+                    # Wartenden): nicht ueber holzfaeller_statt_verkauf (haelt Holz fuer den "besten Bau" zurueck, Entfernungsgrenze),
+                    # sondern direkt: naechster Baum-Platz des Planers, sonst ein geplanter Holzfaeller-Platz; jede Absage mit Grund
+                    R_w = wirt.ruecklage(G)
+                    # Daniel 01:35: "Holz gekauft kurz bevor Holz reinkommt - unnoetig": was Holzfaeller gerade tragen, kommt gleich
+                    holz_kommt = sum(e.get("ladung", 0) for e in L.values() if e["besitzer"] == SP and e["typ"] == 3 and e.get("ladung", 0) > 0)
+                    # erst wenn die Steinbrueche besetzt sind (v15: Bauern nehmen Holzfaeller vor Steinbruch, Steinbrueche blieben 0/6)
+                    # Daniel 00:54: "es muss noch Platz fuer Penner sein - wenn alle direkt Holzfaeller werden, ist kein Platz": die
+                    # Wartenden sind der Puffer (sie gehen bei niedriger Beliebtheit zuerst, aus ihnen wird angeworben); Holzfaeller
+                    # erst, wenn das Feuer fast voll ist (hoechstens 24, dann kein Zuzug) - Knopf penner
+                    if st.get("feuer", 0) >= PENNER and "stein_besetzt" in fruehpruefung and not any(a["typ"] == 3 for a in BUCH.offen):
+                        if st["holz"] - R_w["holz"] >= kosten_spiel(3)["holz"]:
+                            ort_w, weg_w = ausbau._bester_ort(3, L, G)
+                            # Daniel 01:03 (rote Marker = "ausserhalb gebaut", jenseits des Flusses): der Plan-Platz wurde nicht auf
+                            # einen Weg geprueft und die Platzsuche durfte 3 Felder abweichen. Jetzt jeder Platz per Wegtest des
+                            # Spiels, Abweichung hoechstens 1 Feld
+                            if not ort_w:
+                                ort_w = ausbau._erreichbarer([tuple(q) for q in v16_holzfaeller(plan) if not steht_bei(G, 3, tuple(q), 1)], L)
+                            plaetze_w = [ort_w] if ort_w else []
+                            if plaetze_w:
+                                o_w = baue_schnell(3, plaetze_w[0][0], plaetze_w[0][1], 1, zweck="Wachstum")
+                                if not o_w and ort_w:
+                                    ausbau.fehlschlag[(3, ort_w)] = ausbau.fehlschlag.get((3, ort_w), 0) + 1
+                                ereignis.append("WACHSTUM Holzfaeller fuer %d Wartende bei %s (Weg %s): %s" % (
+                                    st["feuer"], plaetze_w[0], weg_w, o_w))
+                            elif runde % 20 == 0:
+                                ereignis.append("WACHSTUM kein Holzfaeller-Platz (Planer und Plan leer) bei %d Wartenden" % st["feuer"])
+                        elif holz_kommt + st["holz"] - R_w["holz"] >= kosten_spiel(3)["holz"]:
+                            if runde % 20 == 0:
+                                ereignis.append("WACHSTUM wartet auf %d Holz unterwegs (statt kaufen)" % holz_kommt)
+                        elif HOLZ_KAUFEN and st["gold"] - R_w["gold"] >= 15 and st["t"] - fruehpruefung.get("holz_gekauft_w", -999) >= 12:
+                            # Daniel 00:44: "Gold am Anfang fuer Holz ausgeben, bis das erste Holz reinkommt, und noch mehr Holzfaeller"
+                            # - 5 Holz fuer 15 Gold (L11) = ein Holzfaeller fuer einen Wartenden
+                            lose_w = int(min((st["gold"] - R_w["gold"]) // 15, max(1, st["feuer"] // 2)))
+                            sende({"befehle": [{"player": 1, "id": neue_id(), "spielbefehl": {"nr": 38, "werte": [0, WAREN_NR["holz"]]}}
+                                               for _ in range(lose_w)]}, 1.0, bis="SPIELBEFEHL")
+                            fruehpruefung["holz_gekauft_w"] = st["t"]
+                            ereignis.append("WACHSTUM Holz gekauft: %d Lose fuer %d Wartende (Holz %d, Gold %d)" % (
+                                lose_w, st["feuer"], st["holz"], st["gold"]))
+                        elif runde % 20 == 0:
+                            ereignis.append("WACHSTUM wartet: %d am Feuer, Holz %d (Ruecklage %d), Gold %d (Ruecklage %d)" % (
+                                st["feuer"], st["holz"], R_w["holz"], st["gold"], R_w["gold"]))
+                    frei_w = st.get("platz", 0) - st.get("leute", 0)
+                    if frei_w <= 4 and st["holz"] >= kosten_spiel(1)["holz"]                         and not any(a["typ"] == 1 for a in BUCH.offen):
+                        ereignis.append("WACHSTUM Huette (Platz %d, Ziel %d, frei %d): %s" % (st.get("platz", 0), BEV_ZIEL, frei_w, baue_haus()))
+                # mit Ziel-Bevoelkerung wartet die Kasse auf das Ziel (Daniel 00:34 "erst 60-70, dann -40"); frueher nur, wenn die
+                # Bevoelkerung einen Monat (~800 Ticks, L23) nicht mehr gewachsen ist und nichts mehr lohnt
+                if st.get("leute", 0) > kasse.get("leute_max", -1):
+                    kasse["leute_max"], kasse["wuchs_tick"] = st.get("leute", 0), st["t"]
+                stillstand = st["t"] - kasse.get("wuchs_tick", st["t"]) >= 800
+                if KASSE != "nein" and not kasse["an"] and not endspiel["fertig"] and (
+                        (BEV_ZIEL and st.get("leute", 0) >= BEV_ZIEL)
+                        or (fruehpruefung.get("holz_ueberfluessig") and (not BEV_ZIEL or stillstand))):
+                    kasse["an"] = st["t"]
+                    ausbau.kasse, ausbau.wachstum = True, False
+                    ereignis.append("KASSE ab Tick %d (%s): %s, Leute %d, Beliebtheit %.1f%s" % (
+                        st["t"], "Haushalt bis Beliebtheit %.2f" % ((5000 + HAUSHALT_RAND) / 100.0) if haus else "Steuer 11 bis zum Ende", "Ziel-Bevoelkerung" if BEV_ZIEL and st.get("leute", 0) >= BEV_ZIEL else "nichts lohnt mehr" + (", Bevoelkerung steht seit Tick %d" % kasse["wuchs_tick"] if BEV_ZIEL else ""),
+                        st.get("leute", 0), st.get("beliebt", 0) / 100.0, ", keine Rationen, Nahrung wird verkauft" if KASSE == "steuer_essen" else ""))
+                if kasse["an"] and KASSE == "steuer_essen":
+                    # Lauf 38/39: unter der Grenze ging nur die Steuer aus, Rationen blieben 0 und Nahrung wurde weiter verkauft ->
+                    # Beliebtheit bis 0, Lauf 39 von 34 auf 4 Leute, kein Kaempfer. Jetzt: unter der Grenze Rationen normal (2) und
+                    # kein Nahrungsverkauf mehr, darueber Rationen 0 und alles verkaufen
+                    essen_aus = st.get("beliebt", 0) / 100.0 >= KASSE_GRENZE
+                    if essen_aus != kasse.get("essen_aus"):
+                        befehl({"spielbefehl": {"nr": 35, "werte": [0 if essen_aus else 2]}}, 1.0, bis="SPIELBEFEHL")
+                        kasse["essen_aus"] = essen_aus
+                        ereignis.append("KASSE Rationen %s (Beliebtheit %.1f, Grenze %d)" % (
+                            "aus, Nahrung wird verkauft" if essen_aus else "normal, kein Verkauf", st.get("beliebt", 0) / 100.0, KASSE_GRENZE))
+                if kasse["an"] and KASSE == "steuer_essen" and kasse.get("essen_aus") and runde % 3 == 1:
+                    lose_n = [{"player": 1, "id": neue_id(), "spielbefehl": {"nr": 38, "werte": [1, WAREN_NR[w]]}}
+                              for w in ("apfel", "brot", "kaese", "fleisch") for _ in range(st.get(w, 0) // 5)]
+                    if lose_n:
+                        sende({"befehle": lose_n}, 1.0, bis="SPIELBEFEHL")
+                        ereignis.append("KASSE Nahrung verkauft: %d Lose" % len(lose_n))
+                # Schub (07.10., Daniel 01:07 "macht was ihr koennt"): Lauf 45/46 - im Endspiel bei Beliebtheit 0 ging der 10.
+                # Angeworbene auf dem Weg verloren, Nachkauf 460 Gold = ~1.100 Ticks. Die ersten 5 Kaempfer darum schon waehrend
+                # der Kasse, solange die Beliebtheit hoeher ist (Liga-Wegzug -5 bei 25-29 statt -40 bei 0-4)
+                # schub=immer (25er, Rat 23:50): ein Schub nach dem anderen, solange Gold und Bauern reichen - unter der Regel 50
+                # wandert niemand ab, und 25 = 5 x 5 geht in 5er-Kaeufen genau auf
+                if SCHUB and kasse["an"] and not endspiel["fertig"] and (st.get("T26", 0) == 0 or kasse.get("schub") == "gekauft" or SCHUB == "immer") \
+                        and kasse.get("schub") != "geworben" and st.get("T26", 0) < streitkolben:
+                    v_s = vorrat(SP)
+                    kas_s = [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 9]
+                    wl_s = [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 11]
+                    bedarf_s = LOS_PREIS[21] + LOS_PREIS[23] + 5 * KAEMPFER_GOLD
+                    if kasse.get("schub") == "gekauft":
+                        # eine Anwerbung je Runde, bis die Waffen aufgebraucht sind (siehe Endspiel, 01:25)
+                        werben_s = min(v_s.get("keule", 0), v_s.get("leder", 0), st.get("feuer", 0), v_s.get("gold", 0) // KAEMPFER_GOLD)
+                        if abwanderer_zuerst(L):
+                            werben_s = 0                     # Bauer wandert gerade ab (Zustand 110) - eine Runde warten
+                        if kas_s and werben_s > 0:
+                            befehl({"werbe": {"typ": 26, "gebaeude": kas_s[0]}}, 1.0, bis="WERBE")
+                            kasse["schub_n"] = kasse.get("schub_n", 0) + 1
+                            ereignis.append("SCHUB %d. Streitkolbenkaempfer angeworben (Beliebtheit %.1f, Wartende %d)" % (
+                                kasse["schub_n"], st.get("beliebt", 0) / 100.0, st.get("feuer", 0)))
+                        elif kasse.get("schub_n"):
+                            kasse["schub"] = None if SCHUB == "immer" else "geworben"
+                            kasse["schub_n"] = 0
+                    elif v_s.get("gold", 0) >= bedarf_s and st.get("feuer", 0) >= 5:
+                        if not kas_s:
+                            if st.get("stein", 0) < 12:
+                                for _ in range(-(-(12 - st.get("stein", 0)) // 5)):
+                                    befehl({"spielbefehl": {"nr": 38, "werte": [0, 4]}}, 1.0, bis="SPIELBEFEHL")
+                            elif not any(a["typ"] == 9 for a in BUCH.offen):
+                                ereignis.append("SCHUB Kaserne am Feuer %s" % (kaserne_am_feuer(G),))
+                        if not wl_s and not any(a["typ"] == 11 for a in BUCH.offen):
+                            ereignis.append("SCHUB Waffenlager %s" % (baue_schnell(11, BERGFRIED[0] - 14, BERGFRIED[1] + 14, 25),))
+                        if kas_s and wl_s:
+                            for ware, name in ((21, "keule"), (23, "leder")):
+                                if v_s.get(name, 0) < 5 and st.get("T26", 0) + v_s.get(name, 0) < streitkolben:
+                                    befehl({"spielbefehl": {"nr": 38, "werte": [0, ware]}}, 1.0, bis="SPIELBEFEHL")
+                            kasse["schub"] = "gekauft"
+                            ereignis.append("SCHUB je 1 Los Keulen + Leder gekauft (Gold %d, Beliebtheit %.1f)" % (v_s.get("gold", 0), st.get("beliebt", 0) / 100.0))
+                # Daniel 01:29: "deine Starteinheiten einschlaefern - die werden dann zu Bevoelkerung". Gegen die leere KI nutzlos:
+                # Bogenschuetzen (22, 5 ab Start), Speertraeger (24, 7 spaeter) usw. aufloesen (disbandUnit -> Bauer am Feuer,
+                # M10.04); Streitkolbenkaempfer (26) und Lord (55) bleiben
+                # 01:39 (Daniel: "die 12 Starteinheiten chillen dann nur und werden nicht zu Arbeitern - eleganter loesen"; Lauf 61:
+                # alle 12 auf einmal fuellten den Wohnraum 26, 17 sassen am Feuer): nach Bedarf - ein Soldat wird erst Bauer, wenn
+                # ein Arbeitsplatz offen ist und niemand am Feuer wartet (er ersetzt den Bauern, auf den man ~52 Ticks warten muesste)
+                offene_a = wohnraum_fehlt(st, G)[1] if AUFLOESEN == "ja" else 0
+                if AUFLOESEN == "ja" and not endspiel["fertig"] and st.get("feuer", 0) == 0 and offene_a > 0:
+                    opfer = [n for n, e in L.items() if e["besitzer"] == SP and 22 <= e["typ"] <= 30 and e["typ"] != 26][:min(offene_a, 2)]
+                    if opfer:
+                        # das Modul erwartet eine LISTE von Nummern (aufloesen_ersetzen.py; Lauf 61: einzelne Nummer -> "0 Einheiten")
+                        befehl({"aufloesen": {"nr": [int(n) for n in opfer[:12]]}}, 1.0)
+                        ereignis.append("AUFGELOEST %d Soldaten fuer %d offene Arbeitsplaetze (Typen %s) -> Bauern" % (len(opfer[:12]), offene_a, 
+                            sorted({L[n]["typ"] for n in opfer[:12]})))
+                ausbau.nach_abriss = bool(endspiel["fertig"])
+                if haus is not None:
+                    # Wochenrechnung: erst den letzten Schritt messen, dann Rationen und Stufe fuer die naechste Woche
+                    txt_h = haus.beobachte(st)
+                    if txt_h:
+                        ereignis.append(txt_h + ", Gold %d, Leute %d" % (st.get("gold", 0), st.get("leute", 0)))
+                    regel_h = 5000 + HAUSHALT_RAND
+                    if haus.jetzt_entscheiden(st, regel_h):
+                        haus.entschieden = st["t"]
+                        nahrung_h = sum(st.get(w, 0) for w in ("apfel", "brot", "kaese", "fleisch"))
+                        if nahrung_notkauf(nahrung_h, st.get("gold", 0) - wirt.ruecklage(G)["gold"]):
+                            befehl({"spielbefehl": {"nr": 38, "werte": [0, WAREN_NR["apfel"]]}}, 1.0, bis="SPIELBEFEHL")
+                            ereignis.append("NOTKAUF 5 Aepfel (Nahrung %d, Gold vorher %d)" % (nahrung_h, st.get("gold", 0)))
+                        ration_h = haus.waehle_ration(st, 3 + st.get("leute", 0) // 10)
+                        if ration_h != haus.ration:
+                            befehl({"spielbefehl": {"nr": 35, "werte": [ration_h]}}, 1.0, bis="SPIELBEFEHL")
+                            ereignis.append("HAUSHALT Rationen %s -> %d (Nahrung %d)" % (haus.ration, ration_h, nahrung_h))
+                            haus.ration = ration_h
+                        boden_h = max(regel_h, 0 if kasse["an"] else WACHSTUM_BODEN)
+                        if kasse.get("stufe2_hoch"):
+                            boden_h = 9000
+                            stufe_h = haus.waehle_stufe(st, boden_h, ration_h, not_boden=boden_h)
+                        else:
+                            stufe_h = haus.waehle_stufe(st, boden_h, ration_h)
+                        if stufe_h != haus.stufe:
+                            befehl({"spielbefehl": {"nr": 34, "werte": [stufe_h]}}, 1.0, bis="SPIELBEFEHL")
+                            ereignis.append("HAUSHALT Steuer %s -> %d (Beliebtheit %.2f, Boden %.2f, Rest %+d)" % (
+                                haus.stufe, stufe_h, st.get("beliebt", 0) / 100.0, boden_h / 100.0, haus.rest))
+                            haus.stufe = ausbau.steuer = stufe_h
+                        # Lauf s25/1 (07.10. 23:55): 6 Apfelplantagen fuer 85 Leute - doppelte Rationen fielen fast jede Woche
+                        # aus Mangel aus, die Steuer pendelte 2/3 (kaum Gold). Doppelt statt normal = +250 je Woche = rund 3
+                        # Stufen mehr Steuer. Fehlt die Nahrung dafuer, eine Apfelplantage mehr (hoechstens eine je Woche)
+                        # Lauf s25/3 gegen 4 (08.10. 00:06): Plantagen im Wachstum kosten Holz/Gold, wenn beides am knappsten ist
+                        # (Lauf 3 Kasse erst bei 9.922 gegen 9.460) - Wert "kasse": erst ab Kasse-Start
+                        if (NAHRUNG_AUSBAU == "ja" or (NAHRUNG_AUSBAU == "kasse" and kasse["an"])) and RATIONEN == "doppelt" \
+                                and ration_h != 4 and not endspiel["fertig"] \
+                                and st.get("feuer", 0) >= 1 and not any(a["typ"] == 32 for a in BUCH.offen):
+                            R_n = wirt.ruecklage(G)
+                            k_n = kosten_spiel(32)
+                            if st["holz"] - R_n["holz"] >= k_n["holz"] and st["gold"] - R_n["gold"] >= k_n["gold"]:
+                                ort_n, weg_n = ausbau._bester_ort(32, L, G)
+                                if ort_n:
+                                    o_n = baue_schnell(32, ort_n[0], ort_n[1], 1, zweck="Nahrung")
+                                    if not o_n:
+                                        ausbau.fehlschlag[(32, ort_n)] = ausbau.fehlschlag.get((32, ort_n), 0) + 1
+                                    ereignis.append("HAUSHALT Apfelplantage fuer doppelte Rationen bei %s (Weg %s, Nahrung %d, Leute %d): %s" % (
+                                        ort_n, weg_n, nahrung_h, st.get("leute", 0), o_n))
+                    if kasse["an"] and GUTE_DINGE and not endspiel["fertig"]:
+                        gd = sum(1 for g in G.values() if g["besitzer"] == SP and g["typ"] == 66) + \
+                            sum(1 for a in BUCH.offen if a["typ"] == 66)
+                        if gd < GUTE_DINGE and st.get("gold", 0) - wirt.ruecklage(G)["gold"] >= kosten_spiel(66)["gold"]:
+                            ereignis.append("GUTE DINGE Garten %d/%d: %s" % (gd + 1, GUTE_DINGE, baue_schnell(
+                                66, BERGFRIED[0] + 8, BERGFRIED[1] - 8, 20, zweck="Gute Dinge")))
+                if runde % 10 == 1:
+                    schreib(BUCH.stand(G, st))
+                hf_jetzt = sum(1 for g in G.values() if g["besitzer"] == SP and g["typ"] == 3) + \
+                    sum(1 for a in BUCH.offen if a["typ"] == 3)
+                # E4: erste ECHTE Holzlieferung = ein Holzfaeller (Typ 3) gibt Ladung ab (Lagebild), nicht "Holz im Lager steigt"
+                # (23:06: der Kauf "Holz fuer B" bei Tick 1.190 galt als Lieferung)
+                lad_jetzt = {n: e.get("ladung", 0) for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 3}
+                lad_vor = fruehpruefung.get("hf_ladung", {})
+                if "holz_geliefert" not in fruehpruefung and any(lad_vor.get(n, 0) > l for n, l in lad_jetzt.items()):
+                    fruehpruefung["holz_geliefert"] = st["t"]
+                    ereignis.append("ERSTE HOLZLIEFERUNG bei Tick %d (Holzfaeller gibt Ladung ab; Holzfaeller %d, Holz %d)" % (
+                        st["t"], hf_jetzt, st["holz"]))
+                fruehpruefung["hf_ladung"] = lad_jetzt
+                # Spam endet bei HOLZ_SPAM Holzfaellern ODER mit der ersten Lieferung (E4: 19 von 20 - die Steinbrueche kamen nie)
+                spam_offen = bool(HOLZ_SPAM) and hf_jetzt < HOLZ_SPAM and "holz_geliefert" not in fruehpruefung
+                holz_unterwegs = sum(e.get("ladung", 0) for e in L.values() if e["besitzer"] == SP and e["typ"] == 3 and e.get("ladung", 0) > 0)
+                if HOLZ_KAUFEN and not endspiel["fertig"] and st.get("feuer", 0) >= 4 and st["holz"] + holz_unterwegs < 5 \
+                        and st["gold"] >= 60 + wirt.ruecklage(G)["gold"] and st["t"] - fruehpruefung.get("holz_gekauft", -999) >= 100:
+                    # v17 (22:57): untaetige Bauern bringen 0 - 5 Holz fuer 15 Gold (L11) = ein Arbeitsplatz; in jeder Bauweise
+                    fruehpruefung["holz_gekauft"] = st["t"]
+                    vor = vorrat(SP)["gold"]
+                    befehl({"spielbefehl": {"nr": 38, "werte": [0, 2]}}, 1.0, bis="SPIELBEFEHL")
+                    ereignis.append("HOLZ GEKAUFT (Feuer %d untaetig, Holz %d): Gold %d -> %d" % (st["feuer"], st["holz"], vor, vorrat(SP)["gold"]))
+                if VOLLBESCHAEFTIGUNG and ENTSCHEIDER != "kausal" and not endspiel["fertig"] and st.get("feuer", 0) >= 2:
+                    # Lernlauf 1 (23:22): 93 % der Zeit >= 4 Bauern untaetig, am Ende 448 Holz + 510 Gold ungenutzt - ein Bauer am
+                    # Feuer bringt 0. Jede freie Hand bekommt sofort einen Arbeitsplatz (beste Art je Platz laut Planer, ohne
+                    # Horizont-Pruefung), bis zu 3 je Runde, Kosten ueber den Ruecklagen
+                    frei_b = st["feuer"]
+                    R = wirt.ruecklage(G)
+                    habe_v = {"holz": st["holz"] - R["holz"], "stein": st["stein"], "gold": st["gold"] - R["gold"]}
+                    gebaut_v = 0
+                    for k in ausbau.kandidaten(st, L, G):
+                        if k["typ"] not in (3, 32, 7) or k["arbeiter"] > frei_b or gebaut_v >= 3:
+                            continue
+                        if all(habe_v[w] >= k["kosten"][w] for w in habe_v):
+                            o = baue_schnell(k["typ"], k["ort"][0], k["ort"][1], 3, zweck="Vollbeschaeftigung")
+                            ereignis.append("VOLL %s bei %s: %s (Feuer %d)" % (NACH_TYP[k["typ"]]["name"], k["ort"], o, st["feuer"]))
+                            if o:
+                                for w_v in habe_v:
+                                    habe_v[w_v] -= k["kosten"][w_v]
+                                frei_b -= k["arbeiter"]
+                                gebaut_v += 1
+                            else:
+                                ausbau.fehlschlag[(k["typ"], k["ort"])] = ausbau.fehlschlag.get((k["typ"], k["ort"]), 0) + 1
+                if spam_offen and not endspiel["fertig"]:
+                    # E3: so viele Holzfaeller wie das Holz hergibt (ueber der B-Ruecklage), naechste zum Lager, mehrere je Baum
+                    holz = st["holz"] - wirt.ruecklage(G)["holz"]
+                    for _ in range(3):
+                        if holz < 5 or hf_jetzt >= HOLZ_SPAM:
+                            break
+                        ort, weg_hf = ausbau._bester_ort(3, L, G)     # NICHT w - das ist der Waechter (E3-Absturz 23:03)
+                        if ort is None:
+                            ereignis.append("HOLZ-SPAM: kein Platz mehr (%d Holzfaeller)" % hf_jetzt)
+                            break
+                        o = baue_schnell(3, ort[0], ort[1], 1, zweck="E3 Holz-Spam")
+                        ereignis.append("HOLZ-SPAM %d/%d bei %s (Weg %d): %s" % (hf_jetzt + 1, HOLZ_SPAM, ort, weg_hf, o))
+                        if not o:
+                            ausbau.fehlschlag[(3, ort)] = ausbau.fehlschlag.get((3, ort), 0) + 1
+                            break
+                        holz -= 5
+                        hf_jetzt += 1
+                # E4 (Daniel 23:03: "wenn die ersten 20 Holzfaeller Holz geladen haben, direkt Steinbrueche, so viele wie geht")
+                stein_frei = STEIN_PARALLEL or not spam_offen
+                if V14 and not endspiel["fertig"] and stein_frei:
+                    # Die zwei Lager-Brueche sind immer Pflicht. Nur die drei zusaetzlichen Brueche am zweiten Feld warten
+                    # auf die erste Holzlieferung; vorher blockierte STEIN_MAX versehentlich sogar den fehlenden Pflichtbruch.
+                    ereignis += v14_steinpflicht(st, G, wirt, "holz_geliefert" in fruehpruefung)
+                    if "stein_besetzt" not in fruehpruefung:
+                        brueche = [n for o in V14_PLAN["brueche"] for n in steht_bei(G, 20, o)]
+                        joche = stein_joche(G)
+                        voll = (len(brueche) == 2 and len(joche) >= 4
+                                and all(BUCH.hat.get(n, 0) >= ARBEITER_JE[20] for n in brueche)
+                                and all(BUCH.hat.get(n, 0) >= ARBEITER_JE[4] for n, _g in joche[:4]))
+                        if voll:
+                            fruehpruefung["stein_besetzt"] = st["t"]
+                            ausbau.ohne.add(20)
+                            ereignis.append("STEINBRUECHE BESETZT bei Tick %d (6/6 + Joche 4/4) - Planer und restliche Holzfaeller frei" % st["t"])
+                    if "stein_besetzt" in fruehpruefung and hf_spaeter and st["holz"] - wirt.ruecklage(G)["holz"] >= 5:
+                        o = hf_spaeter.pop(0)
+                        ereignis.append("HOLZFAELLER aus dem Plan nach den Steinbruechen bei %s: %s" % (o, baue_schnell(3, o[0], o[1], 1, zweck="Plan")))
+                tz = uhr("auftragsbuch", tz)
+            # Markt und Verkauf gehoeren zur Wirtschaft, nicht zu den Assassinen (gold10k_1: mit assassinen=0 wurde 60.000
+            # Ticks lang nichts verkauft - der Block stand im Assassinen-Teil; Gold am Ende 1.013, nur aus Steuern)
+            if not [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 26] and runde % 20 == 2:
+                ereignis.append("Markt gesetzt %s" % (baue_schnell(26, BERGFRIED[0], BERGFRIED[1], 25),))
+            elif runde % 3 == 0:
+                bremst = gold_bremst(st, G)
+                # 12 Stein fuer die Kaserne nicht verkaufen, solange sie fehlt (v2 Tick 5.246: "verkauft: stein" und "Kaserne
+                # gesetzt" in derselben Runde - danach reichte der Stein nicht mehr)
+                kas_fehlt = streitkolben and not [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 9]
+                # Produktion darf Stein oberhalb ihrer noch offenen Minen/Werkstaetten/Kaserne verkaufen. Das fruehere
+                # Totalverbot liess im 18-Monats-Lauf 133 Stein ungenutzt liegen, obwohl 500 Gold zum Anwerben gebraucht werden.
+                stein_reserve = (prod.stein_bedarf(G) if prod else ausbau.reserve()["stein"] + (12 if kas_fehlt else 0))
+                v = verkaufen(st, stein_reserve,
+                              ausbau.messer, holz_verkaufen=bremst, eisen_reserve=10 if prod else 0,
+                              # Haushalt: Nahrung fuer doppelte Rationen behalten (2 x 0,1 je Kopf und 1.000 Ticks, gemessen 05.10.)
+                              nahrung_puffer_h=(3 + st.get("leute", 0) // 3) if haus else None,
+                              obergrenzen={"holz": 150, "stein": 50, "eisen": 10} if prod else
+                              # 12.10. (L66: Holz wurde im Kausal-Zweig nie verkauft): Holz ueber Baureserve + 40 ist Ware
+                              ({"holz": max(60, wirt.ruecklage(G)["holz"] + 40)} if ENTSCHEIDER == "kausal" else None))
+                if v:
+                    ereignis.append(v)
+                # Daniel 07.10. (Lauf 14: 9 statt 10 Kaempfer, "hier fehlt ein Arbeiter, schlecht kalkuliert"): nach dem Endspiel-
+                # Abriss lagen 59 Holz, daraus wurde ein Holzfaeller statt Gold - im Endspiel und ohne Holzbedarf nie
+                if (not bremst and st["holz"] > HOLZ_RESERVE + 4 and not endspiel["fertig"]
+                        and not fruehpruefung.get("holz_ueberfluessig")):
+                    ort, text = ausbau.holzfaeller_statt_verkauf(st, L, G)
+                    if ort:
+                        ereignis.append("Holzfaeller statt Holzverkauf bei %s (Holz %d; %s)" % (ort, st["holz"], text))
+            if trupp is not None:
+                # Soeldnerlager (120 Gold) einmal bauen, dann Assassinen (Typ 73) anwerben bis zur Zahl; Mitglieder = alle eigenen 73er
+                posten = [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 8]
+                # 19.10.: Zahl der LEBENDEN (ASSASSINEN_EXTRA); mehr, solange jede ein Ziel hat und es weitere Raid-Plaetze gibt
+                a_stand["lebend"] = sum(1 for e in L.values() if e["besitzer"] == SP and e["typ"] == 73)
+                ueber_a = getattr(trupp, "ohne_ziel_zuletzt", None) == 0 and (getattr(trupp, "_raid_plaetze", 0) or 0) > len(trupp.ziel) \
+                    and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] + HEER_GOLD_RAND
+                ziel_a = assassinen + (ASSASSINEN_EXTRA if ueber_a and assassinen > 0 else 0)
+                if not posten and (soeldner is None or runde % 10 == 0) and not ausbau.braucht_gold:
+                    # nicht am Lagerplatz (9i: Markt/Soeldnerlager belegten ihn - 14 Holzfaeller warteten Tick 4500-9035)
+                    soeldner = baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25)
+                    ereignis.append("Soeldnerlager gesetzt %s (Gold %d)" % (soeldner, st["gold"]))
+                elif posten and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] and st["feuer"] >= 1 \
+                        and (assassinen < 0 or a_stand["lebend"] < ziel_a) and st["t"] - a_stand["zuletzt"] >= WERB_ABSTAND \
+                        and (getattr(trupp, "ohne_ziel_zuletzt", None) or 0) < A_OHNE_ZIEL_MAX \
+                        and not ausbau.braucht_gold \
+                        and not loewen_am_posten(L, G, posten[0]) \
+                        and not wirt.a_offen(G):   # Daniel 23:09: Farmen nicht vergessen - erst die fehlenden A-Plantagen (45 Gold)   # erst rollen (Daniel 18:51/19:05)
+                    befehl({"werbe": {"typ": 73, "gebaeude": posten[0]}}, 1.0, bis="WERBE")
+                    geworben += 1
+                    a_stand["zuletzt"] = st["t"]
+                    if geworben == 1 or geworben % 5 == 0:     # der erste zaehlt einzeln (gewinn_5: Zeitpunkt fehlte)
+                        ereignis.append("%d Assassinen angeworben (Gold jetzt %d, %d leben, Soll %d%s)" % (
+                            geworben, st["gold"], a_stand["lebend"] + 1, ziel_a, " mit Raid-Ueberschuss" if ziel_a > assassinen else ""))
+                if posten and runde % 50 == 0:     # ganz_1: in 28.700 Ticks nur 1 Assassine - welche Bedingung bremst?
+                    ereignis.append("ANWERBEN-BREMSE: Gold %d (braucht %d), Feuer %d, Planer braucht Gold %s, A-Farmen offen %d" % (
+                        st["gold"], 70 + wirt.ruecklage(G)["gold"], st["feuer"], bool(ausbau.braucht_gold), len(wirt.a_offen(G))))
+                tz = uhr("bauen_werben_verkauf", tz)
+                trupp.aufnehmen([n for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 73])
+                # nur begehbare Plaetze (9g: Gebaeudemitten waren nicht begehbar - die Wartenden blieben im Schussfeld)
+                erg = trupp.schritt(L, G, sichere_orte=[tuple(plan["lager_mitte"]), BERGFRIED], tick=st.get("t"))
+                if isinstance(erg, tuple):          # Einzeln: Befehle der Runde gesammelt in EINEM Aufruf
+                    erg, liste = erg
+                    if liste:
+                        sende({"befehle": [dict(b, player=1, id=neue_id()) for b in liste]}, 1.0,
+                              bis="ANGRIFF" if any("angriff" in b for b in liste) else "HALTEN")
+                ereignis += erg
+                if trainingsstand and trupp.lordtrupp.get("phase") == "sammeln":
+                    punkt = trupp.lordtrupp.get("sammelpunkt")
+                    angekommen = [n for n in trupp.lordtrupp["mitglieder"] if n in L and max(
+                        abs(L[n]["x"] - punkt[0]), abs(L[n]["y"] - punkt[1])) <= trupp.LORD_SAMMEL_R]
+                    # trainingsstand_ab: so viele muessen am Treffpunkt stehen (bedarf_partie_2: in der ganzen Partie kamen nie
+                    # 40 zusammen, hoechstens 27 - die Lage, in der wirklich angegriffen wuerde, braucht einen eigenen Stand)
+                    if len(angekommen) >= trainingsstand_ab:
+                        befehl({"pause": True}, 0.5)
+                        from speichern import speichere
+                        pfad = speichere(trainingsstand)
+                        schreib("TRAININGSSTAND gesichert: %s mit %d gemeinsam angekommenen Assassinen bei Tick %d -> %s" % (
+                            trainingsstand, len(angekommen), st["t"], pfad))
+                        break
+                tz = uhr("assassinen", tz)
+                # 19.10. (Daniel: "einen Run durchspielen, auch wenn 5 oder mehr Assassinen sterben - das soll nur markiert werden")
+                if not STOPP_TOTE and trupp.bilanz.get("tote", 0) >= MARKE_TOTE and not fruehpruefung.get("marke_tote"):
+                    fruehpruefung["marke_tote"] = st["t"]
+                    ereignis.append("MARKE: %d Assassinen tot bei Tick %d - Partie laeuft weiter (stopp_tote=0)" % (
+                        trupp.bilanz["tote"], st["t"]))
+                if STOPP_TOTE and trupp.bilanz.get("tote", 0) >= STOPP_TOTE and not stopp_grund:
+                    befehl({"pause": True}, 0.5)          # sofort anhalten, die Runde wird nur noch zu Ende geschrieben
+                    stopp_grund = "STOPP: %d Assassinen tot bei Tick %d - Spiel angehalten (stopp_tote=%d)" % (
+                        trupp.bilanz["tote"], st["t"], STOPP_TOTE)
+            if V14 and streitkolben:
+                # v14-Fruehabbruch (Daniel 22:05: "ich brauche nicht noch einen Run, wo nicht zwei Steinbrueche direkt neben dem
+                # Vorratslager sind"): nach dem Holz-Zeitplan stehen beide Steinbrueche + Joche bei ~350 (30 Holz bei 120,
+                # +28 je 110 Ticks; Kornspeicher 5, Steinbruch 25, A-Plantagen 9, Joch 5, Steinbruch 25, Joch 5)
+                if st["t"] >= V14_STEIN_BIS and not fruehpruefung.get("stein") and not HOLZ_SPAM:   # E3: Steinbrueche absichtlich spaeter
+                    fehlt = ["%s %s" % (NACH_TYP[typ]["name"], o) for typ, o in [(20, q) for q in V14_PLAN["brueche"]] +
+                             ([] if JOCH_NACH_STEIN else [(4, j) for j in V14_PLAN["joche"] + V14_PLAN["joche_zwei"]])
+                             if not steht_bei(G, typ, o)]
+                    if fehlt:
+                        schreib("FRUEHABBRUCH bei Tick %d: fehlt %s" % (st["t"], ", ".join(fehlt)))
+                        break
+                    fruehpruefung["stein"] = True
+                    schreib("PRUEFUNG bestanden bei Tick %d: beide Steinbrueche + Joche stehen an den Plan-Plaetzen" % st["t"])
+                lager_bis = min(2000, wirt.B_tick + 400) if wirt.B_tick else 2000      # v15: Umzug erst nach B
+                teile = [g for g in G.values() if g["besitzer"] == SP and g["typ"] == 10]
+                if not teile:
+                    fruehpruefung.setdefault("ohne_lager_seit", st["t"])
+                    if st["t"] - fruehpruefung["ohne_lager_seit"] > 150:
+                        schreib("FRUEHABBRUCH bei Tick %d: seit Tick %d kein Lager (Holz und Stein kommen nicht an)" % (
+                            st["t"], fruehpruefung["ohne_lager_seit"]))
+                        break
+                else:
+                    fruehpruefung.pop("ohne_lager_seit", None)
+                if STEIN_ZUERST and st["t"] >= 1500 and "stein_besetzt" not in fruehpruefung:
+                    schreib("FRUEHABBRUCH bei Tick %d: Steinbrueche + Joche nicht besetzt (%s)" % (st["t"], BUCH.stand(G, st)))
                     break
-                streitkolben = weiter[0]
-                endspiel = {"fertig": False, "tabelle": None}
-                ausbau.nach_abriss = False
-                if prod is not None:
-                    prod.ziel = streitkolben
-                ZWISCHENZIEL = streitkolben != STUFEN[-1]
-                # 11.10. (Lauf 50,100: nach Ziel 50 nur noch 0-1 Bauern am Feuer, Beliebtheit 57 = Liga-Zuzug 8 statt 36 bei 90):
-                # Knopf stufe2_beliebt=hoch - der Haushalt holt die Beliebtheit auf 90 zurueck, notfalls mit Bestechung
-                kasse["stufe2_hoch"] = STUFE2_BELIEBT == "hoch"
-                schreib("NAECHSTES ZIEL %d Streitkolbenkaempfer ab Tick %d (Endspiel neu, Wirtschaft laeuft weiter)" % (
-                    streitkolben, st["t"]))
-            tz = uhr("ruestung", tz)
-        # Feindlicher Lord: jede Runde mit Lebensverlust mitschreiben - wer steht bei ihm? (9i/9j: Sieg ohne Befehl auf ihn)
-        for n, e in L.items():
-            if e["typ"] == 55 and e["besitzer"] not in (0, SP):
-                alt = feindlord.get(n)
-                if alt is not None and e["leben"] < alt:
-                    bei = {}
-                    for m, u in L.items():
-                        if u["besitzer"] == SP and max(abs(u["x"] - e["x"]), abs(u["y"] - e["y"])) <= 5:
-                            bei[u["typ"]] = bei.get(u["typ"], 0) + 1
-                    ereignis.append("MESSUNG Feindlord %d: leben %d -> %d bei (%d,%d), eigene in 5 Feldern %s" % (
-                        n, alt, e["leben"], e["x"], e["y"], bei or "keine"))
-                feindlord[n] = e["leben"]
-        tz = time.time()
-        if not (streitkolben and endspiel["fertig"]):    # nach dem Endspiel ruht die Wirtschaft (v6: baute A-Plantagen nach)
-            ereignis += wirt.schritt(st, L, G)
-            ereignis += ausbau.schritt(st, L, G, runde)
-        tz = uhr("wirtschaft", tz)
-        bedarf = sum(ARBEITER_JE[t] * st.get("G%d" % t, 0) for t in ARBEITER_JE)
-        puffer = streitkolben and not endspiel["fertig"] and ENTSCHEIDER != "kausal" and wohnraum_fehlt(st, G)[0]   # Huetten vorab, aber nur mit Arbeit (23:21)
-        if st["holz"] >= 5 + wirt.ruecklage(G)["holz"] and ((bedarf > st["platz"] and st["feuer"] < 2) or puffer or (trupp is not None and st["feuer"] == 0 and st["platz"] - st["leute"] <= 2)):
-            ereignis.append("Huette %s (Bedarf %d, Platz %d, Leute %d, Feuer %d)" % (baue_haus(), bedarf, st["platz"], st["leute"], st["feuer"]))
-        zeile = "%5d | %3d %3d %3d | %3d %3d | %6.2f | %d/%d (%d) | %d %d | %s" % (
-            st["t"], st["holz"], st["stein"], st["eisen"], st["apfel"], st["brot"], st["beliebt"] / 100.0, st["leute"],
-            st["platz"], st["feuer"], st.get("T3", 0), st.get("T13", 0), "; ".join(ereignis) or "-")
-        tz = uhr("haus_lager_zeile", tz)
-        if ereignis or runde % 10 == 1:
-            schreib(zeile)
-        if runde % 10 == 0:
-            schreib("ZEITEN nach %d Runden: %s" % (runde, ", ".join("%s %.2f s" % kv for kv in sorted(zeiten.items(), key=lambda kv: -kv[1]))))
-        if stopp_grund:
-            schreib(stopp_grund); break
-    befehl({"pause": True}, 0.5)
+                if st["t"] >= lager_bis and not fruehpruefung.get("lager") and UMZUG != "nein":
+                    neu = steht_bei(G, 10, V14_PLAN["lager"], 6)   # 23:40: Platzwahl haelt Abstand zum Steinhaufen -> (91,268) statt (89,270)
+                    alt = [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 10 and
+                           max(abs(g["x"] - BASIS_LAGER[0]), abs(g["y"] - BASIS_LAGER[1])) <= 6]
+                    if not neu or alt:
+                        schreib("FRUEHABBRUCH bei Tick %d: Lager nicht umgezogen (neu bei %s: %s, alt am Bergfried: %s)" % (
+                            st["t"], V14_PLAN["lager"], neu or "keins", alt or "weg"))
+                        break
+                    fruehpruefung["lager"] = True
+                    schreib("PRUEFUNG bestanden bei Tick %d: neues Lager steht bei %s, altes weg" % (st["t"], V14_PLAN["lager"]))
+            if streitkolben and not V14 and not EXPERIMENT and not fruehpruefung.get("ok4000"):   # Lernkreis: diese Regel wuergte alle 4 1-Jahr-Versuche ab
+                # schaerfer (Daniel 21:56: "er baut nur einen Steinbruch, hier wuerde ich auch abbrechen ... gleiches fuer
+                # andere nicht optimal platzierte Gebaeude"): genug Steinbrueche, keiner weit vom Lager
+                lager_teile = [g for g in G.values() if g["besitzer"] == SP and g["typ"] == 10]
+                weit = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] == SP and g["typ"] == 20 and lager_teile and
+                        min(max(abs(g["x"] - l["x"]), abs(g["y"] - l["y"])) for l in lager_teile) > 40]
+                # strenger (Daniel 21:57: "wenn das so frueh passiert und die Gewinnmarge so gering ist, musst du strenger sein")
+                soll = 3 if st["t"] >= FRUEH_TICK else 2 if st["t"] >= 1500 else 0
+                if st.get("G20", 0) < soll or (weit and st["t"] >= FRUEH_TICK):
+                    schreib("FRUEHABBRUCH bei Tick %d: %d Steinbrueche (soll %d)%s" % (st["t"], st.get("G20", 0), soll,
+                            ", weit vom Lager: %s" % weit if weit else ""))
+                    break
+                if st["t"] >= FRUEH_TICK:
+                    fruehpruefung["ok4000"] = True
+            if streitkolben and st["t"] >= FRUEH_TICK and not EXPERIMENT and not fruehpruefung.get("ok"):
+                # Fruehabbruch (Daniel 21:55: "wenn du merkst, dass schon der Steinbruch nicht richtig gesetzt ist, muesstest du
+                # eigentlich schon aufhoeren ... das sind alles verschwendete Zeiten/Versuche")
+                fehlt = []
+                if not st.get("G20", 0) and not HOLZ_SPAM:          # E3/E4: Steinbrueche absichtlich nach dem Holz
+                    fehlt.append("kein Steinbruch")
+                if [n for n in wirt.alt if n in G and G[n]["typ"] == 10 and max(abs(G[n]["x"] - BASIS_LAGER[0]), abs(G[n]["y"] - BASIS_LAGER[1])) <= 6]:
+                    fehlt.append("Lager nicht umgezogen")
+                if wirt.B_offen:
+                    fehlt.append("B-Seasoning offen")
+                if fehlt:
+                    schreib("FRUEHABBRUCH bei Tick %d: %s" % (st["t"], ", ".join(fehlt)))
+                    break
+                fruehpruefung["ok"] = True
+                schreib("FRUEHPRUEFUNG bestanden bei Tick %d (Steinbruch, Lager umgezogen, B-Seasoning)" % st["t"])
+            if streitkolben and endspiel.get("abbruch"):
+                schreib("FRUEHABBRUCH bei Tick %d: %s" % (st["t"], endspiel["abbruch"]))
+                break
+            if streitkolben:
+                # Daniel 00:54: "Gerber und Kaesereien machen keinen Sinn, wenn kein Platz fuer Bevoelkerung ist, wenn's als letztes
+                # gebaut wird" - mit Kasse gehen die Leute am Ende weg; Leder wird im Endspiel gekauft
+                if leder is not None and KASSE == "nein" and not endspiel["fertig"] and not (BUCH is not None and HOLZ_SPAM and
+                        sum(1 for g in G.values() if g["besitzer"] == SP and g["typ"] == 3) < HOLZ_SPAM):
+                    ereignis += leder.schritt(st, G, wirt)
+                if feldzug is not None:
+                    if prod is not None:
+                        prod.stein_extra = bier.stein_bedarf() if bier is not None else 0
+                        # 19.10. (1019i: ein Fehler im Werkstattplaner beendete den Lauf mitten im Feldzug): ein Fehler in der
+                        # Produktion wird gemeldet, beendet aber nie die Partie
+                        try:
+                            ereignis += prod.schritt(st, L, G, wirt, ausbau)
+                        except Exception as ex_p:
+                            ereignis.append("PRODUKTION FEHLER %r - Partie laeuft weiter" % (ex_p,))
+                        if prod.stufe < 4 and st["gold"] - wirt.ruecklage(G)["gold"] >= Produktion.UEBERSCHUSS:
+                            ereignis += ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
+                    else:
+                        ereignis += ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
+                    try:
+                        ereignis += feldzug.schritt(st, L, G, befehl)
+                    except Exception as ex_z:
+                        ereignis.append("FELDZUG FEHLER %r - Partie laeuft weiter" % (ex_z,))   # 19.10. (1019i): nie den Lauf beenden
+                    # 19.10. (1019g: das Heer blieb bei 5 Mann, Gold 1.163 lag brach; Daniel: "beim naechsten Run sollen beide
+                    # Nomaden sterben"): Soeldner fuers Heer, sobald Gold ueber der Ruecklage + HEER_GOLD_RAND liegt - arab.
+                    # Schwertkaempfer (Editor-Duelle: 28.000 Leben, ~180 je Takt), jeder vierte ein arab. Bogen; hoechstens 2 je
+                    # Runde und bis HEER_MAX im Heer
+                    posten_h = next((n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 8), None)
+                    if posten_h is not None and runde % 2 == 0:
+                        import bauen as BA_h
+                        frei_h = st["gold"] - wirt.ruecklage(G)["gold"] - HEER_GOLD_RAND
+                        heer_n, n_h, feuer_h = len(feldzug.einheiten(L)), 0, st.get("feuer", 0)
+                        while n_h < 2 and heer_n + n_h < HEER_MAX and feuer_h - n_h >= 1:
+                            typ_h = 70 if (fruehpruefung.get("heer_zaehler", 0) + n_h) % 4 == 3 else 75
+                            if frei_h < SOELDNER_GOLD[typ_h]:
+                                break
+                            BA_h.werbe(typ_h, posten_h)
+                            frei_h -= SOELDNER_GOLD[typ_h]
+                            n_h += 1
+                        if n_h:
+                            fruehpruefung["heer_zaehler"] = fruehpruefung.get("heer_zaehler", 0) + n_h
+                            if fruehpruefung["heer_zaehler"] % 10 < n_h or fruehpruefung["heer_zaehler"] <= 2:
+                                ereignis.append("HEER-WERBUNG: %d Soeldner fuers Heer angeworben (zusammen %d, Heer jetzt %d), Gold %d" % (
+                                    n_h, fruehpruefung["heer_zaehler"], heer_n + n_h, st["gold"]))
+                    if bier is not None and runde % 5 == 0:
+                        try:
+                            ereignis += bier.schritt(st, G, wirt.ruecklage(G))
+                        except Exception as ex_z:
+                            ereignis.append("BIER FEHLER %r - Partie laeuft weiter" % (ex_z,))   # 19.10. (1019i): nie den Lauf beenden
+                else:
+                    ereignis += bilanz_schritt(st, L, G, ausbau, streitkolben, endspiel, runde, kaempfer_marken)
+                if feldzug is None and not endspiel["fertig"] and weg != "bilanz":     # weg=bilanz: nur Wirtschaft + Bilanz-Endspiel (v5)
+                    ereignis += prod.schritt(st, L, G, wirt, ausbau) if prod else ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
+                # Daniel 11.10. "Nomade installieren, gegen sie gewinnen": ab ANGRIFF_AB Streitkolbenkaempfern alle auf den
+                # feindlichen Lord (Befehl wie der Lord-Angriff der Assassinen); Ende erst bei SIEG/NIEDERLAGE
+                # Daniel 11.10. 16:41/16:44: der gegnerische Lord darf im ersten Spieljahr (bis Tick 9.600) keinen Schaden nehmen
+                if ANGRIFF_AB and st.get("T26", 0) >= ANGRIFF_AB and runde % 10 == 0 and st["t"] < LORD_SCHUTZ_BIS                     and "lordschutz_gemeldet" not in fruehpruefung:
+                    fruehpruefung["lordschutz_gemeldet"] = st["t"]
+                    ereignis.append("ANGRIFF wartet: %d Streitkolbenkaempfer bereit bei Tick %d, Lord-Schutz bis Tick %d" % (
+                        st.get("T26", 0), st["t"], LORD_SCHUTZ_BIS))
+                if ANGRIFF_AB and st.get("T26", 0) >= ANGRIFF_AB and runde % 10 == 0 and st["t"] >= LORD_SCHUTZ_BIS:
+                    feind = next((n for n, e in L.items() if e["typ"] == 55 and e["besitzer"] not in (0, SP)), None)
+                    kolben = [n for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 26]
+                    if feind and kolben:
+                        befehl({"angriff": {"einheiten": kolben, "ziel": feind}}, 1.0, bis="ANGRIFF")
+                        if "angriff_start" not in fruehpruefung:
+                            fruehpruefung["angriff_start"] = st["t"]
+                            ereignis.append("ANGRIFF auf den feindlichen Lord Nr %d mit %d Streitkolbenkaempfern ab Tick %d (Lord-Leben %d)" % (
+                                feind, len(kolben), st["t"], L[feind]["leben"]))
+                            if ZUSCHAU_TEMPO:
+                                befehl({"tempo": ZUSCHAU_TEMPO}, 1.0, bis="TEMPO")
+                                ereignis.append("TEMPO %d ab dem ersten Angriff (zum Zuschauen)" % ZUSCHAU_TEMPO)
+                        # Beleg, dass der Befehl wirkt: Abstand der Kaempfer zum Lord und dessen Leben je Angriffsrunde
+                        lx, ly = L[feind]["x"], L[feind]["y"]
+                        abst = sorted(max(abs(L[n]["x"] - lx), abs(L[n]["y"] - ly)) for n in kolben)
+                        ereignis.append("ANGRIFF Stand Tick %d: %d Kaempfer, Abstand zum Lord naechster %d / Mitte %d, Lord-Leben %d" % (
+                            st["t"], len(kolben), abst[0], abst[len(abst) // 2], L[feind]["leben"]))
+                if feldzug is None and st.get("T26", 0) >= streitkolben and not kasse.get("endziel"):
+                    schreib("ZIEL %d Streitkolbenkaempfer erreicht bei Tick %d" % (streitkolben, st["t"]))
+                    # Daniel 11.10. 14:28 "erst die 50, dann 100 Streitis in einem Run": gestufte Ziele - nach jeder Stufe
+                    # beginnt die naechste mit frischem Endspiel, die Wirtschaft laeuft weiter (vor dem letzten Ziel kein Abriss)
+                    weiter = [z for z in (STUFEN or []) if z > streitkolben]
+                    if not weiter:
+                        if ANGRIFF_AB:
+                            kasse["endziel"] = True       # weiterspielen bis SIEG/NIEDERLAGE
+                            continue
+                        break
+                    streitkolben = weiter[0]
+                    endspiel = {"fertig": False, "tabelle": None}
+                    ausbau.nach_abriss = False
+                    if prod is not None:
+                        prod.ziel = streitkolben
+                    ZWISCHENZIEL = streitkolben != STUFEN[-1]
+                    # 11.10. (Lauf 50,100: nach Ziel 50 nur noch 0-1 Bauern am Feuer, Beliebtheit 57 = Liga-Zuzug 8 statt 36 bei 90):
+                    # Knopf stufe2_beliebt=hoch - der Haushalt holt die Beliebtheit auf 90 zurueck, notfalls mit Bestechung
+                    kasse["stufe2_hoch"] = STUFE2_BELIEBT == "hoch"
+                    schreib("NAECHSTES ZIEL %d Streitkolbenkaempfer ab Tick %d (Endspiel neu, Wirtschaft laeuft weiter)" % (
+                        streitkolben, st["t"]))
+                tz = uhr("ruestung", tz)
+            # Feindlicher Lord: jede Runde mit Lebensverlust mitschreiben - wer steht bei ihm? (9i/9j: Sieg ohne Befehl auf ihn)
+            for n, e in L.items():
+                if e["typ"] == 55 and e["besitzer"] not in (0, SP):
+                    alt = feindlord.get(n)
+                    if alt is not None and e["leben"] < alt:
+                        bei = {}
+                        for m, u in L.items():
+                            if u["besitzer"] == SP and max(abs(u["x"] - e["x"]), abs(u["y"] - e["y"])) <= 5:
+                                bei[u["typ"]] = bei.get(u["typ"], 0) + 1
+                        ereignis.append("MESSUNG Feindlord %d: leben %d -> %d bei (%d,%d), eigene in 5 Feldern %s" % (
+                            n, alt, e["leben"], e["x"], e["y"], bei or "keine"))
+                    feindlord[n] = e["leben"]
+            tz = time.time()
+            if not (streitkolben and endspiel["fertig"]):    # nach dem Endspiel ruht die Wirtschaft (v6: baute A-Plantagen nach)
+                ereignis += wirt.schritt(st, L, G)
+                ereignis += ausbau.schritt(st, L, G, runde)
+            tz = uhr("wirtschaft", tz)
+            bedarf = sum(ARBEITER_JE[t] * st.get("G%d" % t, 0) for t in ARBEITER_JE)
+            puffer = streitkolben and not endspiel["fertig"] and ENTSCHEIDER != "kausal" and wohnraum_fehlt(st, G)[0]   # Huetten vorab, aber nur mit Arbeit (23:21)
+            if st["holz"] >= 5 + wirt.ruecklage(G)["holz"] and ((bedarf > st["platz"] and st["feuer"] < 2) or puffer or (trupp is not None and st["feuer"] == 0 and st["platz"] - st["leute"] <= 2)):
+                ereignis.append("Huette %s (Bedarf %d, Platz %d, Leute %d, Feuer %d)" % (baue_haus(), bedarf, st["platz"], st["leute"], st["feuer"]))
+            zeile = "%5d | %3d %3d %3d | %3d %3d | %6.2f | %d/%d (%d) | %d %d | %s" % (
+                st["t"], st["holz"], st["stein"], st["eisen"], st["apfel"], st["brot"], st["beliebt"] / 100.0, st["leute"],
+                st["platz"], st["feuer"], st.get("T3", 0), st.get("T13", 0), "; ".join(ereignis) or "-")
+            tz = uhr("haus_lager_zeile", tz)
+            if ereignis or runde % 10 == 1:
+                schreib(zeile)
+            if runde % 10 == 0:
+                schreib("ZEITEN nach %d Runden: %s" % (runde, ", ".join("%s %.2f s" % kv for kv in sorted(zeiten.items(), key=lambda kv: -kv[1]))))
+            if stopp_grund:
+                schreib(stopp_grund); break
+            serie.gut()                   # 18.10.: diese Runde lief vollstaendig durch
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except Exception as ex:
+            # 18.10. (1v1 1018a/c: ein Fehler in einer Runde beendete den Lenker und hielt das Spiel fuer beide an; Daniel
+            # 22:22 "fixe ... alle moeglichen auftretenden Fehlermeldungen"): mit Partner melden und weiterspielen,
+            # aufgeben erst nach partner.GRENZE_S ohne vollstaendige Runde. Ohne Partner wie bisher laut abbrechen (06.10.)
+            if not PARTNER:
+                raise
+            zeile_f, aufgeben, erstes_f = serie.fehler(ex, runde, letzter_tick)
+            schreib(zeile_f)
+            if erstes_f:
+                import traceback
+                traceback.print_exc()
+            if aufgeben:
+                ENDE.melde("absturz", zeile_f, letzter_tick)
+                raise
+            time.sleep(0.2)
+    ende_art, ende_text = ende_grund or ("ende", "Phase 2 beendet")
+    if PARTNER:
+        ENDE.melde(ende_art, ende_text, letzter_tick)
+    # 18.10.: im 1v1 haelt nur an, wer als Letzter aufhoert (oder wenn die Partie vorbei ist) - sonst stand das Spiel fuer den
+    # Partner still und er brach nach 30 s ab (1018b, 1018d)
+    if not PARTNER or ENDE.anhalten_erlaubt(vorbei=ende_art in ("sieg", "niederlage")):
+        befehl({"pause": True}, 0.5)
+    else:
+        schreib("1v1: Spiel bleibt fuer den anderen Lenker laufen (%s: %s)" % (ende_art, ende_text))
+    schreib(serie.bericht())
     st, L, G = runde_lesen()
     schreib("Ende Phase 2 bei Tick %s nach %d Runden (%.1f s je Runde); Kornspeicher %d, Holzfaeller %d, Apfelplantagen %d%s" % (
         st.get("t"), runde, (time.time() - t0) / max(runde, 1), st.get("G19", 0), st.get("G3", 0), st.get("G32", 0),
@@ -2919,6 +3015,9 @@ def main():
     EINS_GEGEN_EINS = arg.get("eins_gegen_eins", "nein") == "ja"
     ANHAENGEN = arg.get("anhaengen", "nein") == "ja"
     ANGLEICH_TICK = int(arg.get("angleich_tick", ANGLEICH_TICK))
+    global FEHLERPROBE, PAUSEPROBE
+    FEHLERPROBE = int(arg["fehlerprobe"]) if arg.get("fehlerprobe") else None
+    PAUSEPROBE = int(arg["pauseprobe"]) if arg.get("pauseprobe") else None
     if (EINS_GEGEN_EINS or ANHAENGEN) and not PARTNER:
         raise SystemExit("1v1 braucht SHC_PARTNER=ja (zwei Lenker teilen sich den Kanal)")
     if ANHAENGEN and SP == 1:
@@ -3078,11 +3177,20 @@ def main():
         b_n = w_n["begruendung"]
         schreib("NAHRUNGSWAHL %s: %s | %s" % (kurz, b_n.get("entscheidung", b_n.get("fehler")),
                 json.dumps({k: v for k, v in b_n.items() if k != "optionen"}, ensure_ascii=False)))
-    if arg.get("start"):
-        print("Tick", lade_stand(arg["start"], mit_bild=False))
-        befehl({"eigenerPlatz": SP}, 0.8)
-    elif arg.get("nur_phase2", "nein") != "ja":
-        phase1(plan, int(arg.get("tempo", 40)), mit_posten=int(arg.get("assassinen", 0)) != 0)   # Daniel 22:52: jede Partie ab Tick 0
+    try:
+        if arg.get("start"):
+            print("Tick", lade_stand(arg["start"], mit_bild=False))
+            befehl({"eigenerPlatz": SP}, 0.8)
+        elif arg.get("nur_phase2", "nein") != "ja":
+            phase1(plan, int(arg.get("tempo", 40)), mit_posten=int(arg.get("assassinen", 0)) != 0)   # Daniel 22:52: jede Partie ab Tick 0
+    except Exception as e:
+        # 18.10. (1018a: Spieler 1 stuerzte in der Eroeffnung bei Tick ~300 ab): im 1v1 nach dem gemeinsamen Start in Phase 2
+        # weiterspielen - der Planer dort baut nach, was die Eroeffnung nicht mehr schaffte. Vor dem Start bleibt es ein Abbruch
+        if not (PARTNER and START_FERTIG):
+            raise
+        import traceback
+        traceback.print_exc()
+        schreib("FEHLER in Phase 1 bei Tick %s: %r - 1v1: weiter mit Phase 2" % (tick(), e))
     try:
         phase2(plan, int(arg.get("minuten", 10)), int(arg.get("tempo", 40)), arg.get("waechter", "nein") == "ja",
                int(arg["bis_tick"]) if arg.get("bis_tick") else None, int(arg.get("assassinen", 0)), arg.get("trainingsstand"),
@@ -3094,12 +3202,18 @@ def main():
         import traceback
         import befehl as befehlskanal
         befehlskanal.STRENG = False
-        try:
-            befehl({"pause": True}, 0.8)
-        except Exception:
-            pass
+        # 18.10. (1v1): der Partner spielt weiter - anhalten nur, wenn er schon aufgehoert hat
+        halt = not PARTNER or ENDE.anhalten_erlaubt()
+        if PARTNER:
+            ENDE.melde("absturz", repr(e)[:300])
+        if halt:
+            try:
+                befehl({"pause": True}, 0.8)
+            except Exception:
+                pass
         traceback.print_exc()
-        print("ABBRUCH - Spiel angehalten -", repr(e), flush=True)
+        print("ABBRUCH - Spiel angehalten -" if halt else "ABBRUCH - Spiel laeuft fuer den anderen Lenker weiter -", repr(e),
+              flush=True)
         sys.exit(1)
 
 if __name__ == "__main__":
@@ -3107,5 +3221,11 @@ if __name__ == "__main__":
     befehlskanal.belege()
     try:
         main()
+    except BaseException as e_haupt:
+        # 18.10. (1v1): jeder Abbruch ausserhalb von Phase 2 (Start, Eroeffnung) hinterlegt eine Ende-Meldung - der andere Lenker
+        # wartet sonst bis zu 15 Minuten an der Startschranke. Die erste Meldung gilt (Phase 2 hat ihre schon geschrieben)
+        if PARTNER and not (isinstance(e_haupt, SystemExit) and e_haupt.code in (0, None)):
+            ENDE.melde("absturz", repr(e_haupt)[:300])
+        raise
     finally:
         befehlskanal.freigeben()
