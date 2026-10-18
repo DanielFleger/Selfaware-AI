@@ -408,6 +408,7 @@ class Einzeln:
     ENTDECKT_TICKS = 400      # so lange gilt sie fuer jeden Schuetzen, der sie gesehen hat, als Ziel
     ENTDECKT_RAND = 4         # Felder ueber die Reichweite hinaus (Bolzen aus 42 Feldern, 1018p)
     GERADE_TEIL = 20          # lange Wege ohne Umweg trotzdem in Stuecken laufen (198 lief 222 Felder am Stueck)
+    FLUCHT_MIN = 8            # 19.10. (1018s): Fluchtpunkte naeher als 8 Felder nur, wenn es weiter weg keinen gibt
     # 19.10. (1018q: Einheiten heilen nie - in zwei Partien kein einziger Anstieg; 153 raidete mit 1.960 Leben, 86 mit 2.730,
     # beide starben am naechsten Treffer): unter EIN_TREFFER (ein Armbrustbolzen 6.000 + Rand) nur Ziele, die kein waehlbarer
     # Feind naeher als SICHT + RAND_SCHWACH Feinmass (32 Felder) sieht
@@ -988,10 +989,18 @@ class Einzeln:
             k = max(1, schach(ort, q) // 2)
             return sum(dro((ort[0] + (q[0] - ort[0]) * i // k, ort[1] + (q[1] - ort[1]) * i // k)) for i in range(1, k + 1))
         # Rechenzeit (1018n nachgespielt: 0,09 -> 0,23 s je Runde, wenn jeder Kandidat den ganzen Weg rechnet): den Weg nur
-        # fuer die (hoechstens 24 naechsten) Punkte ausser Reichweite; gibt es keinen, die mit den wenigsten Schuetzen
-        frei = sorted((q for q in kand if dro(q) == 0), key=lambda q: schach(ort, q))[:24]
+        # fuer die (hoechstens 24 naechsten) Punkte ausser Reichweite; gibt es keinen, die mit den wenigsten Schuetzen.
+        # 19.10. (1018s: 3, 240, 283 bekamen Punkte 4-9 Felder weiter, ausser Reichweite nur der Schuetzen, die sie gesehen
+        # hatten - die daneben sahen sie gleich wieder, sie pendelten im Feuer): zuerst Punkte ausser Sicht (mit Rand) und
+        # mindestens FLUCHT_MIN Felder weit; Verfolger kosten wie 30 Wegstuecke in Reichweite
+        def wert(q):
+            return (weg(q) + (30 if s.verfolgt(q) else 0), s.sichtbar(q, s.RAND), schach(ort, q))
+        frei = sorted((q for q in kand if dro(q) == 0 and not s.sichtbar(q, s.RAND) and schach(ort, q) >= self.FLUCHT_MIN),
+                      key=lambda q: schach(ort, q))[:24]
+        if not frei:
+            frei = sorted((q for q in kand if dro(q) == 0), key=lambda q: schach(ort, q))[:24]
         if frei:
-            kand = sorted(frei, key=lambda q: (weg(q), s.sichtbar(q, s.RAND), bool(s.verfolgt(q)), schach(ort, q)))
+            kand = sorted(frei, key=wert)
         else:
             kand.sort(key=lambda q: (dro(q), s.sichtbar(q, s.RAND), bool(s.verfolgt(q)), schach(ort, q)))
         # 1018q (86 stand 3 Runden still: Fluchtpunkt laut Kartenabzug begehbar, im Spiel nicht erreichbar): die besten 8
@@ -1007,6 +1016,11 @@ class Einzeln:
                 pass
         return kand[0]
 
+    def _nahe_schuetzen(self, ort, L, r=60):
+        """19.10.: alle feindlichen Schuetzen bis r Felder - die Flucht meidet alle, nicht nur die, die ihn gesehen haben."""
+        return {k for k, e in L.items() if e["besitzer"] not in (0, self.sp) and e["typ"] in sicht.REICHWEITE
+                and schach(ort, (e["x"], e["y"])) <= r}
+
     def _entdeckt_pruefen(self, L, G, ereignis, flieh, jagen=None):
         """19.10. (Daniel: "wenn 5 gestorben sind dann sofort stoppen und verhindern"; Partie 1018p): sichtbar (waehlbarer Feind
         <= 160 Feinmass, L75) UND ein Schuetze erreicht ihn mit freier Linie -> entdeckt: Auftrag ab, Laufbefehl ausser Sicht
@@ -1019,10 +1033,15 @@ class Einzeln:
             if n not in self.mitglieder or n not in L:
                 del self.entdeckt[n]
         for n in sorted(self.mitglieder):
-            if n not in L or self._im_lordangriff(n) or n in self.flucht:
+            if n not in L or self._im_lordangriff(n):
                 continue
             ort = (L[n]["x"], L[n]["y"])
             e = self.entdeckt.get(n)
+            # 19.10. (1018s: 132 floh vor Nahkaempfern sichtbar durch 7 Boegen - die Flucht 4a kennt keine Schuetzen; 1018r
+            # 233/142 genauso): auf der Flucht nur, wenn Schuetzen ihn sehen - dann uebernimmt ENTDECKT (Verfolger zaehlen
+            # in der Fluchtpunkt-Wahl)
+            if n in self.flucht and e is None and not s.sichtbar(ort):
+                continue
             if s.sichtbar(ort):
                 sehen = [k for k, (p, r, erh, steht, art) in zip(s.schuetzen_nr, s.schuetzen)
                          if (p[0] - ort[0]) ** 2 + (p[1] - ort[1]) ** 2 <= (r + self.ENTDECKT_RAND) ** 2
@@ -1032,6 +1051,7 @@ class Einzeln:
                 if sehen:
                     if e is None:
                         e = self.entdeckt[n] = {"schuetzen": set(), "seit": self.jetzt, "punkt": None}
+                        self.flucht.pop(n, None)
                         self.bilanz["entdeckt"] = self.bilanz.get("entdeckt", 0) + 1
                         sp = min(((sicht.abstand_fein(ort, (x["x"], x["y"])), x["typ"], schach(ort, (x["x"], x["y"])))
                                   for x in L.values() if x["besitzer"] not in (0, self.sp) and x["typ"] in sicht.WAEHLBAR),
@@ -1043,6 +1063,7 @@ class Einzeln:
                     e["bis"] = self.jetzt + self.ENTDECKT_TICKS
             if e is None:
                 continue
+            self.flucht.pop(n, None)
             if self.jetzt >= e["bis"]:
                 del self.entdeckt[n]
                 self.warte.pop(n, None); self.warte_seit.pop(n, None)
@@ -1069,12 +1090,16 @@ class Einzeln:
                         60, 2 * getattr(self, "_runde_ticks", self.RUNDE_TICKS))):
                     e.setdefault("gesperrt", []).append(p)
                     p = None
-                elif self._drohende(p, e["schuetzen"], L) or s.sichtbar(p, 16):
+                elif self._drohende(p, e["schuetzen"] | self._nahe_schuetzen(p, L), L) or s.sichtbar(p, s.RAND):
                     p = None
             if p is None:
-                p = self._ausser_reichweite(n, ort, e["schuetzen"], L)
+                p = self._ausser_reichweite(n, ort, e["schuetzen"] | self._nahe_schuetzen(ort, L), L)
                 if p is None:
-                    continue
+                    # 19.10. (1018s, 283 blieb im Feuer stehen, weil kein Punkt passte): dann nach Hause, nie stehen bleiben
+                    heim = getattr(self, "_heim", [])
+                    p = min(heim, key=lambda h: schach(ort, h)) if heim else None
+                    if p is None:
+                        continue
                 e["punkt"], e["letzt"], e["feld_seit"], e["abstand"] = p, ort, self.jetzt, schach(ort, p)
                 self._fliehen(n, p, flieh)
                 ereignis.append("ENTDECKT %d: laeuft nach %s (%d Felder; dort erreichen ihn %d der %d Schuetzen)" % (
@@ -1367,6 +1392,8 @@ class Einzeln:
                 continue
             if n in self.ziel or n in self.route or (self._raid_plaetze or 0) > len(self.ziel):
                 continue                   # 17.10.: Raiden geht vor (Daniel)
+            if L[n]["leben"] < self.EIN_TREFFER:
+                continue                   # 19.10. (1018s, 262 jagte mit 1.460 Leben einen Sklaven und starb im Nahkampf)
             ort = (L[n]["x"], L[n]["y"])
             nah_b = [b_ for b_ in beute if schach(ort, b_[1]) <= self.BEUTE_R]
             # 17.10. (Partie 1017a: Assassine 195 jagte eine Armbrust neben 21 Schuetzen und starb in ~80 Takten): Risiko gegen
@@ -1439,8 +1466,8 @@ class Einzeln:
         # Feind; kein neues Ziel, bis FLUCHT_RUHE Runden lang kein feindlicher Nahkaempfer im Umkreis SICHER_NAH stand.
         eigene_orte = [(L[m]["x"], L[m]["y"]) for m in self.mitglieder]
         for n in sorted(self.mitglieder):
-            if self._im_lordangriff(n):
-                continue                   # der Lord-Angriff bleibt dran (Daniel 21:47)
+            if self._im_lordangriff(n) or n in self.entdeckt:
+                continue                   # 19.10.: wer entdeckt ist, flieht nach ENTDECKT (Schuetzen UND Verfolger)                   # der Lord-Angriff bleibt dran (Daniel 21:47)
             ort = (L[n]["x"], L[n]["y"])
             feinde = self._bedrohung(ort, nah)
             eigene = sum(1 for q in eigene_orte if schach(ort, q) <= self.UEBERMACHT_R)

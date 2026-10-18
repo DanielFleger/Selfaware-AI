@@ -82,6 +82,11 @@ def main():
     jagd_b, _, _ = lauf(*sklave({640: einheit(23, 2, 222, 270, leben=17500)}))
     pruefe(9, "Sklave allein: Jagd %s (Befehl %s); mit Armbrust dahinter: Jagd %s" % (jagd_a, bef_a, jagd_b),
            jagd_a == 600 and bef_a and jagd_b != 600)
+    # 10 (19.10., 1018s: 262 jagte mit 1.460 Leben einen Sklaven und starb im Nahkampf): geschwaecht -> keine Jagd
+    L10, G10 = sklave()
+    L10[100] = einheit(73, 1, 200, 270, leben=5000)
+    jagd_c, _, _ = lauf(L10, G10)
+    pruefe(10, "Sklave allein, Assassine mit 5.000 Leben: Jagd %s" % jagd_c, jagd_c != 600)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

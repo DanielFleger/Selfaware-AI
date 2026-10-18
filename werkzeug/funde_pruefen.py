@@ -34,6 +34,11 @@ Vorher festgelegt:
      aber ein Sklave 25 Felder daneben: mit 5.000 Leben KEIN Ziel, mit vollem Leben Ziel
  20. (1018q, 205 lief erst vom Fluchtpunkt weg) entdeckt, Laufbefehl gegeben, eine Runde spaeter (30 Takte) nicht naeher
      am Punkt -> sofort ein neuer Punkt (vorher erst nach 60 Takten)
+ 21. (1018s, 132 floh vor Nahkaempfern in Sicht von 7 Boegen) Assassine auf der Flucht (4a), ein Speer sieht sie, eine
+     Armbrust erreicht sie -> ENTDECKT uebernimmt: Flucht beendet, Fluchtpunkt ausser Reichweite
+ 22. (1018s, 3/240/283 pendelten 4-9 Felder im Feuer) gesehen von Armbrust A (Osten); Armbrust B im Westen hat sie NICHT
+     gesehen, deckt aber den Westen -> der Fluchtpunkt liegt ausser Reichweite von A UND B
+ 23. (1018s, 283 blieb stehen, als kein Punkt passte) kein Kandidat begehbar -> Laufbefehl nach Hause (sichere_orte)
 Gegenprobe: python funde_pruefen.py <alte assassinen.py> [<alte sicht.py>] - die Faelle muessen dort rot sein.
 Aufruf: python werkzeug/funde_pruefen.py"""
 import importlib.util
@@ -358,6 +363,38 @@ def main():
     t.schritt(L, G, sichere_orte=[(50, 50)], tick=10030)
     p20b = t.entdeckt.get(100, {}).get("punkt") if hasattr(t, "entdeckt") else None
     pruefe(20, "Punkt nach Runde 1 %s, nach Runde 2 ohne Fortschritt %s" % (p20a, p20b), p20a is not None and p20b is not None and p20b != p20a)
+    # 21
+    t = neu(); t._raid_plaetze = 99
+    L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
+         600: einheit(23, 2, 130, 100, leben=17500), 601: einheit(24, 2, 112, 100, leben=10000)}
+    G = {900: {"besitzer": 2, "typ": 3, "x": 160, "y": 140, "leben": 100, "uid": 1, "erreichbar": 1}}
+    t.aufnehmen([100])
+    t.flucht[100] = {"seit": 0, "ruhig": 0, "letzt": (100, 100), "mitte": (80, 80)}
+    t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
+    p21 = t.entdeckt.get(100, {}).get("punkt") if hasattr(t, "entdeckt") else None
+    weit21 = p21 is not None and (p21[0] - 130) ** 2 + (p21[1] - 100) ** 2 > 48 ** 2
+    pruefe(21, "auf der Flucht gesehen: Flucht noch %s, ENTDECKT-Punkt %s ausser Reichweite %s" % (100 in t.flucht, p21, weit21),
+           100 not in t.flucht and weit21)
+    # 22
+    t = neu(); t._raid_plaetze = 99
+    L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
+         600: einheit(23, 2, 130, 100, leben=17500), 601: einheit(24, 2, 112, 100, leben=10000),
+         610: einheit(23, 2, 50, 100, leben=17500)}      # 50 Felder westlich: sieht ihn nicht, erreicht ihn nicht
+    t.aufnehmen([100])
+    t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
+    t.schritt(L, G, sichere_orte=[(100, 200)], tick=10000)
+    p22 = t.entdeckt.get(100, {}).get("punkt") if hasattr(t, "entdeckt") else None
+    frei22 = p22 is not None and all((p22[0] - x) ** 2 + (p22[1] - 100) ** 2 > 48 ** 2 for x in (130, 50))
+    pruefe(22, "Punkt %s ausser Reichweite beider Armbrustschuetzen: %s" % (p22, frei22), frei22)
+    # 23
+    t = A.Einzeln(1, pruefe_begehbar=lambda pkt: set(), wegtest=lambda n, p: [True] * len(p)); t._raid_plaetze = 99
+    L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
+         600: einheit(23, 2, 130, 100, leben=17500), 601: einheit(24, 2, 112, 100, leben=10000)}
+    t.aufnehmen([100])
+    t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
+    erg, bef = t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
+    heim23 = any(b.get("angriff", {}).get("lauf") == [50, 50] and 100 in b["angriff"].get("einheiten", []) for b in bef)
+    pruefe(23, "kein begehbarer Fluchtpunkt: Laufbefehl nach Hause %s" % heim23, heim23)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
