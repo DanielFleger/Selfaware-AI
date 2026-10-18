@@ -38,6 +38,7 @@ class Bierkette:
         self.merk = {}            # typ -> (Tick, [Plaetze])
         self.verworfen = {}       # typ -> {Plaetze}
         self.reserviert = []      # beim Start gesperrte Hopfenplaetze (setzt erstes_spiel) - werden zuerst genommen
+        self.naechster = None     # 19.10.: Art des naechsten faelligen Baus (fuer die Steinreserve des Lenkers)
 
     def _kern(self, G, typ):
         eig = [g for g in G.values() if g["besitzer"] == self.sp]
@@ -66,12 +67,18 @@ class Bierkette:
         frei = [p for p in self.merk[typ][1] if p not in weg]
         return frei[0] if frei else None
 
+    def stein_bedarf(self):
+        """19.10. (1019b: das Wirtshaus scheiterte 7-mal an 5-8 fehlendem Stein): Stein fuer den naechsten faelligen Bau -
+        der Lenker haelt ihn vom Verkauf und vom Tausch gegen Holz zurueck."""
+        return self.preis(self.naechster, "stein") if self.naechster else 0
+
     def soll(self, leute):
         return 0 if leute < self.PRO_KETTE else min(self.HOECHSTENS, int(math.ceil(leute / float(self.PRO_KETTE))))
 
     def schritt(self, st, G, ruecklage):
         aus = []
         n = self.soll(st.get("leute", 0))
+        self.naechster = None
         if not n or st.get("feuer", 0) < 1:
             return aus
         zahl = {typ: sum(1 for g in G.values() if g["besitzer"] == self.sp and g["typ"] == typ)
@@ -84,8 +91,11 @@ class Bierkette:
         if zahl[HOPFEN] < n:
             reihe.append((HOPFEN, "Hopfenfarm"))
         for typ, name in reihe:
-            holz, gold = self.preis(typ, "holz"), self.preis(typ, "gold")
-            if st.get("holz", 0) - ruecklage.get("holz", 0) < holz or st.get("gold", 0) - ruecklage.get("gold", 0) < gold:
+            if self.naechster is None:
+                self.naechster = typ
+            holz, gold, stein = self.preis(typ, "holz"), self.preis(typ, "gold"), self.preis(typ, "stein")
+            # 19.10. (1019b): auch Stein - das Wirtshaus braucht ihn, das Spiel lehnte sonst jeden Bau ab ("fehlt stein 8")
+            if st.get("holz", 0) - ruecklage.get("holz", 0) < holz or st.get("gold", 0) - ruecklage.get("gold", 0) < gold                     or st.get("stein", 0) < stein:
                 return aus                   # die Reihe wartet auf das dringendste Glied
             p = self._platz(typ, G, st.get("t", 0))
             if p is None:

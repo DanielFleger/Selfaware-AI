@@ -60,7 +60,9 @@ Vorher festgelegt:
      zum Ziel -> der Weg fuehrt ueber Wegpunkte, die mehr als 8 Felder von den Loewen wegbleiben
  34. (1018z: EIN wandernder Trupp aus 7-9 Boegen traf 14 von 17 schweren Treffern, kam auf 16-20 Felder heran und zielte
      dann; Sicht nach L75 erst dann) 5 Boegen, die in 300 Takten 30 Felder naeher kamen, jetzt 30 Felder weg (unsichtbar)
-     -> JAEGER: Auftrag ab, Punkt ausser Reichweite (mehr als 46 Felder von der Mitte); Gegenprobe: dieselben 5 stehend -> Ziel bleibt
+     und weiter auf ihn zu -> JAEGER: Auftrag ab, Punkt ausser Reichweite (mehr als 46 Felder von der Mitte); Gegenproben
+     (Daniel 19.10.: "rennt vor Fernkaempfern weg, die ihn eh nicht sehen koennten"): dort stehen geblieben -> Ziel bleibt;
+     nie gelaufen -> Ziel bleibt
  35. wie 34, Trupp 45 Felder weg, sein Laufziel 8 Felder neben ihm -> JAEGER; Gegenprobe: Laufziel weit weg -> Ziel bleibt
  36. (1018z, 222: "Fluchtweg toedlich", Modell 164 Schaden je Takt, echt ~1 je Takt fuer 377 Takte - er lief in die Burg)
      letzter Einsatz seit 200 Takten, echt nur 140 verloren -> abgebrochen, normal fliehen; Gegenprobe: 10.000 verloren -> bleibt
@@ -568,10 +570,13 @@ def main():
         p = t.entdeckt.get(100, {}).get("punkt") if hasattr(t, "entdeckt") else None
         frei = p is not None and (p[0] - jetzt[0]) ** 2 + (p[1] - jetzt[1]) ** 2 > 46 ** 2
         return 100 in getattr(t, "entdeckt", {}), t.ziel.get(100), p, frei, [z[:60] for z in erg if "JAEGER" in z][:1]
-    e34, z34, p34, f34, m34 = lage_jaeger((100, 160), (100, 130))
+    e34, z34, p34, f34, m34 = lage_jaeger((100, 160), (100, 130), lauf=(100, 112))
+    e34h, z34h, _, _, _ = lage_jaeger((100, 160), (100, 130))
     e34s, z34s, _, _, _ = lage_jaeger((100, 130), (100, 130))
-    pruefe(34, "5 Boegen kamen 30 Felder naeher, jetzt 30 weg: entdeckt %s, Ziel %s, Punkt %s weit %s %s; dieselben stehend: "
-           "entdeckt %s, Ziel %s" % (e34, z34, p34, f34, m34, e34s, z34s), e34 and z34 is None and f34 and not e34s and z34s == 900)
+    pruefe(34, "5 Boegen kamen 30 Felder naeher, jetzt 30 weg und laufen weiter auf ihn zu: entdeckt %s, Ziel %s, Punkt %s weit %s %s; "
+           "dort stehen geblieben (sehen ihn nicht, Daniel): entdeckt %s, Ziel %s; nie gelaufen: entdeckt %s" % (
+               e34, z34, p34, f34, m34, e34h, z34h, e34s),
+           e34 and z34 is None and f34 and not e34h and z34h == 900 and not e34s and z34s == 900)
     e35, _, p35, f35, m35 = lage_jaeger((100, 175), (100, 145), lauf=(100, 108))
     e35g, z35g, _, _, _ = lage_jaeger((100, 175), (100, 145), lauf=(100, 190))
     pruefe(35, "Trupp 45 Felder weg, Laufziel 8 Felder neben ihm: entdeckt %s, Punkt %s %s; Laufziel weit weg: entdeckt %s, Ziel %s" % (

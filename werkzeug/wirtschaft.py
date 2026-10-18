@@ -27,6 +27,9 @@ from befehl import ABZUG
 
 APFEL, HOLZFAELLER, LAGER, BAUER = 32, 3, 10, 13
 APFEL_HOLZ, APFEL_GOLD = 3, 15          # Apfelplantage (Liga, gemessen 05.10.)
+A_FEHL_MAX = 3                           # 19.10. (1019b): so oft darf ein A-Platz scheitern, dann wird er aufgegeben
+B_FEHL_MAX = 10                          # 19.10. (1019b): B-Plaetze werden oefter versucht (jede Runde) - nach 10 aufgeben
+FEHL_TICKS = 1500                        # 19.10. (1019c: alle 5 B nach 10 Versuchen in einer Runde aufgegeben): und erst nach so langer Zeit
 SUCHRADIUS_BAUER = 30                       # abgelesen: selectClosestTree nimmt Baeume naeher als 0x1E Felder
 BAUM_BASIS, BAUM_SCHRITT, BAUM_STUFE = 0xF2CC54, 156, 0x80
 REIF = 3
@@ -123,6 +126,24 @@ class Wirtschaft:
         return {"holz": APFEL_HOLZ * n + self.extra.get("holz", 0) + brot.get("holz", 0),
                 "gold": APFEL_GOLD * n + self.extra.get("gold", 0) + brot.get("gold", 0)}
 
+    def _baue_grund(self, typ, x, y, r, **k):
+        """19.10.: Bauen mit Grund ("gebaut", "platz", "schutz", "rohstoff"); alte baue-Funktionen ohne Grund -> "platz"."""
+        try:
+            return self.baue_schnell(typ, x, y, r, mit_grund=True, **k)
+        except TypeError:
+            o = self.baue_schnell(typ, x, y, r, **k)
+            return o, ("gebaut" if o is not None else "platz")
+
+    def _platz_aufgeben(self, art, o, erg, grund, t, grenze=None):
+        """19.10. (1019b/1019c): echte Platzablehnungen je Platz zaehlen (nicht "rohstoff"/"schutz"); aufgeben erst nach
+        grenze Ablehnungen UND FEHL_TICKS seit der ersten."""
+        if erg is not None or grund != "platz":
+            return False
+        self._fehl = getattr(self, "_fehl", {})
+        zahl, seit = self._fehl.get((art, o), (0, t))
+        self._fehl[(art, o)] = (zahl + 1, seit)
+        return zahl + 1 >= (grenze or A_FEHL_MAX) and t - seit >= FEHL_TICKS
+
     def a_offen(self, G):
         """A-Plaetze, an denen (noch) keine eigene Apfelplantage steht."""
         stehen = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] == self.sp and g["typ"] == APFEL]
@@ -143,8 +164,15 @@ class Wirtschaft:
         for o in self.a_offen(G):
             if st.get("gold", 0) >= APFEL_GOLD and st.get("holz", 0) >= APFEL_HOLZ and t - self.a_versucht.get(o, -999) >= 50:
                 self.a_versucht[o] = t
-                ev.append("Apfelplantage A nachgeholt bei %s: %s (Gold %d, Holz %d)" % (o, self.baue_schnell(APFEL, o[0], o[1], 2),
-                                                                                   st.get("gold", 0), st.get("holz", 0)))
+                erg, grund = self._baue_grund(APFEL, o[0], o[1], 2)
+                ev.append("Apfelplantage A nachgeholt bei %s: %s (Gold %d, Holz %d)" % (o, erg, st.get("gold", 0), st.get("holz", 0)))
+                # 19.10. (1019b, Green Haven: der A-Platz (154, 163) wurde 20.000 Ticks lang immer wieder abgelehnt - "A-Farmen
+                # offen 1" hielt die ganze Partie das Anwerben an, eine einzige Assassine): nach A_FEHL_MAX echten
+                # Platzablehnungen ueber mindestens FEHL_TICKS aufgeben (fehlendes Holz/Gold zaehlt nicht - 1019c)
+                if self._platz_aufgeben("A", o, erg, grund, t) and o in self.A:
+                    self.A.remove(o)
+                    ev.append("A-Platz %s nach %d Platzablehnungen aufgegeben - bremst Anwerben und Seasoning nicht mehr" % (
+                        o, self._fehl[("A", o)][0]))
                 break
         # A-Baum suchen, sobald eine A-Plantage steht. gewinn_2 (Daniel 23:29 "Seasoning zu langsam"): die Raid-Eroeffnung
         # baut A erst spaeter nach, die Suche beim Start fand keinen Baum, merkte sich -1 - A in 28.700 Ticks nie reif, B nie.
@@ -186,11 +214,20 @@ class Wirtschaft:
                         # neue Plantage nach der Dreiecksregel weiterhin hoechstens 30 Felder von mindestens einer
                         # A-Plantage liegt. Damit bleibt der gemessene Baum-Suchradius garantiert erhalten.
                         spielraum = max(2, SUCHRADIUS_BAUER - min((schach(o, a) for a in self.A), default=SUCHRADIUS_BAUER - 2))
-                        ort = self.baue_schnell(APFEL, o[0], o[1], spielraum, zweck="B")
+                        ort, grund = self._baue_grund(APFEL, o[0], o[1], spielraum, zweck="B")
                         if ort is not None:
                             self.B_erwartet[o] = (tuple(ort), t)
                             ev.append("Seasoning: B %s bestellt bei %s" % (o, tuple(ort)))
-                        elif self.versuche_B % 10 == 0:
+                            continue
+                        # 19.10. (1019b, Green Haven: B (153, 153) ~260-mal "kein Bauplatz" - der live gesuchte Markt stand dort;
+                        # B blieb offen, der Planer meldete die ganze Partie "braucht Gold" und es wurde nicht angeworben)
+                        if self._platz_aufgeben("B", o, ort, grund, t, B_FEHL_MAX):
+                            self.B_offen.remove(o)
+                            self.B_erwartet.pop(o, None)
+                            ev.append("Seasoning: B %s nach %d Platzablehnungen aufgegeben - bremst Anwerben nicht mehr" % (
+                                o, self._fehl[("B", o)][0]))
+                            continue
+                        if self.versuche_B % 10 == 0:
                             ev.append("Seasoning: B %s kein Bauplatz (Spielraum %d)" % (o, spielraum))
                             holz_frei -= APFEL_HOLZ
                             gold_frei -= APFEL_GOLD

@@ -208,12 +208,15 @@ def phase1(plan, tempo, mit_posten=True):
     if plan.get("stein") and not V14:
         holz_bauten += [(20, tuple(plan["stein"]["steinbruch"])), (4, tuple(plan["stein"]["ochsen"]))]
     holz_bauten += [(1, tuple(p)) for p in plan["huetten"]]
+    # 19.10. (Kartenwechsel, Pruefung der festen Kartenannahmen): findet freier_platz keinen Markt, stand hier (26, None) -
+    # TypeError beim Entpacken; dann ohne festen Platz und gleich danach live suchen
+    holz_bauten = [(t_, p_) for t_, p_ in holz_bauten if p_ is not None]
     t_bau = tick()
     g1, f1 = baue_viele([(typ, x, y) for typ, (x, y) in holz_bauten], SP, live=True)
     schreib("ERSTE BAUBEFEHLE bei Tick %d: %d von %d Holz-Bauten stehen bei Tick %d (Kornspeicher, Markt, Holzfaeller, "
             "Steinbruch, Ochsenjoch, Huetten); nicht gebaut: %s" % (t_bau, len(g1), len(holz_bauten), tick(),
             [(NACH_TYP[t]["name"], x, y) for t, x, y in f1] or "keine"))
-    if any(t == 26 for t, _, _ in f1):                # Markt-Platz belegt (z. B. Einheit drauf): Platz suchen
+    if MARKT is None or any(t == 26 for t, _, _ in f1):   # Markt-Platz belegt (z. B. Einheit drauf) oder keiner: Platz suchen
         schreib("Markt am festen Platz nicht moeglich - gesucht: %s" % (baue_schnell(26, BERGFRIED[0], BERGFRIED[1], 25),))
     rest = [r for r in f1 if r[0] != 26]
     # live_3: sofort beim ersten Essen verkauft - es kommt nach und nach an, verkauft wurde 1 Los Kaese (30 Gold), dann
@@ -234,8 +237,8 @@ def phase1(plan, tempo, mit_posten=True):
     # ist". gewinn_3: A-Plantagen erst nach Posten + Assassine versucht (Tick 783, Gold 5 - alle gescheitert), erste A bei
     # 1.315, letzte nach 3.865; ohne eigenes Essen fiel die Beliebtheit 98 -> 58. Jetzt: Posten und A-Plantagen in EINEM
     # Befehl, sobald das Verkaufsgold da ist (Posten zuerst in der Liste, 120 + 3 x 15 von ~195 Gold).
-    gp, fp = baue_viele(([(8, POSTEN[0], POSTEN[1])] if mit_posten else []) + [(32, x, y) for (x, y) in A], SP, live=True)
-    posten = (POSTEN if any(r[0] == 8 for r in gp) else baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25)) if mit_posten else None
+    gp, fp = baue_viele(([(8, POSTEN[0], POSTEN[1])] if mit_posten and POSTEN else []) + [(32, x, y) for (x, y) in A], SP, live=True)
+    posten = (POSTEN if POSTEN and any(r[0] == 8 for r in gp) else baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25)) if mit_posten else None
     schreib("SEASONING FRUEH: %d von %d A-Plantagen mit dem Posten bei Tick %d, Gold jetzt %d" % (
         sum(1 for r in gp if r[0] == 32), len(A), tick(), vorrat(SP)["gold"]))
     if mit_posten:
@@ -1264,6 +1267,11 @@ class Produktion:
         ausbau.sperr = list(getattr(ausbau, "sperr", None) or []) + neu
 
     def stein_bedarf(self, G):
+        # 19.10. (1019b: das Wirtshaus scheiterte 7-mal an 5-8 fehlendem Stein, waehrend die Produktion Stein gegen Holz
+        # tauschte): Stein fuer den naechsten faelligen Bau der Bierkette kommt dazu (setzt der Lenker je Runde)
+        return self._stein_bedarf(G) + getattr(self, "stein_extra", 0)
+
+    def _stein_bedarf(self, G):
         eig = [g for g in G.values() if g["besitzer"] == SP]
         n = lambda typ: sum(1 for g in eig if g["typ"] == typ)
         # Nur die naechsten wirklich baubaren Glieder schuetzen. Die alte Summe aller spaeteren Bauten hielt hunderte
@@ -1953,8 +1961,13 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         tz = time.time()
         # 19.10. (1018y: das "Stapeln" des Waechters holte die angreifenden Streitkolben alle 5 Runden heim): Feldzug-Truppen
         # ausnehmen
-        ausgenommen_w = set(trupp.mitglieder if trupp else ()) | (feldzug.einheiten(L) if feldzug is not None else set())
-        ereignis = w.schritt(L, gebs, ausgenommen=ausgenommen_w) if w is not None else []
+        # 19.10. (Daniel, 1019b: "die lassen sich einfach angreifen ohne Grund"): solange der Feldzug sammelt, sind seine
+        # Streitkolben Reserve des Waechters - nur bei einer Bedrohung und nur, wenn die Gefechtsbewertung den Angriff lohnt
+        reserve_w = feldzug.einheiten(L) if feldzug is not None and feldzug.phase == "sammeln" else set()
+        ausgenommen_w = set(trupp.mitglieder if trupp else ()) | ((feldzug.einheiten(L) - reserve_w) if feldzug is not None else set())
+        ereignis = w.schritt(L, gebs, ausgenommen=ausgenommen_w, reserve=reserve_w) if w is not None else []
+        if feldzug is not None and w is not None:
+            feldzug.verteidiger = {n for n in w.auftrag if n in reserve_w}
         tz = uhr("waechter", tz)
         if NOTWERBUNG and st.get("t", 0) > 0:
             # 12.10. (Daniel 11.10. 23:40 "du siehst doch, dass du angegriffen wirst und nicht ausbildest"; 23:45 "arabische
@@ -2503,6 +2516,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 ereignis += leder.schritt(st, G, wirt)
             if feldzug is not None:
                 if prod is not None:
+                    prod.stein_extra = bier.stein_bedarf() if bier is not None else 0
                     ereignis += prod.schritt(st, L, G, wirt, ausbau)
                     if prod.stufe < 4 and st["gold"] - wirt.ruecklage(G)["gold"] >= Produktion.UEBERSCHUSS:
                         ereignis += ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)

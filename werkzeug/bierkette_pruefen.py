@@ -10,6 +10,8 @@ Vorher festgelegt:
   4. (1019a: "kein Platz fuer Hopfenfarm" ab Tick 7.559 - im Umkreis 45 alles verbaut) im Umkreis 45 kein Hopfenplatz, im
      Umkreis 90 einer -> er wird genommen
   5. ein Bau scheitert (Spiel setzt nicht) -> in derselben Runde kommt das naechste Glied dran
+  6. (1019b: das Wirtshaus scheiterte 7-mal an "fehlt stein 8") Schenke faellig, Stein 3 statt 10 -> kein Bauversuch,
+     die Kette meldet 10 Stein Bedarf (der Lenker haelt ihn vom Verkauf zurueck)
 Aufruf: python werkzeug/bierkette_pruefen.py [<alte bierkette.py>]   (Rueckgabe 0 = gruen)
 """
 import importlib.util
@@ -51,7 +53,7 @@ def kette(hopfen, brauerei, schenke, plaetze, setzt=lambda typ: True):
     return b, G, gebaut
 
 
-ST = {"leute": 100, "feuer": 3, "holz": 500, "gold": 500, "t": 10000}
+ST = {"leute": 100, "feuer": 3, "holz": 500, "gold": 500, "stein": 500, "t": 10000}
 RL = {"holz": 0, "gold": 0}
 
 
@@ -100,6 +102,11 @@ def main():
     b.schritt(ST, G, RL)
     pruefe(5, "Schenke scheitert: in derselben Runde bestellt %s" % gebaut,
            len(gebaut) >= 2 and gebaut[0][0] == B.SCHENKE and gebaut[1][0] == B.HOPFEN)
+    # 6
+    b, G, gebaut = kette(1, 1, 0, lambda typ, kern, r: [(kern[0] + 5, kern[1] + 5)])
+    b.schritt(dict(ST, stein=3), G, RL)
+    sb = b.stein_bedarf() if hasattr(b, "stein_bedarf") else None
+    pruefe(6, "Schenke faellig, 3 Stein (braucht 10): bestellt %s, Steinbedarf gemeldet %s" % (gebaut, sb), not gebaut and sb == 10)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

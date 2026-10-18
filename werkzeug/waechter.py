@@ -15,6 +15,7 @@ Gemessen 22:46: 8 Speertraeger gegen 2 Angreifer - beide tot, keiner von uns ver
 import math, os
 from laden import befehl
 from befehl import ABZUG
+import gefecht
 
 LAGEBILD = os.path.join(ABZUG, "lagebild.txt")
 NAHKAMPF = {24, 25, 26, 27, 28, 37, 55, 71, 73, 75}
@@ -23,6 +24,9 @@ TRUPPE = NAHKAMPF | FERNKAMPF
 LORD = 55
 LORD_SELBST = 15         # 12.10.: der Lord kaempft nur, wenn Feinde so nah an IHM sind
 LORD_FLUCHT = 0.35       # 12.10.: Lord weicht erst unter diesem Lebensanteil (Stellgroesse; vorher 0,5 oder sobald ein Heer kam)
+ANGREIFER_R = 40         # 19.10.: Angreifer unserer Einheiten zaehlen nur bis hierhin von unseren Gebaeuden (nicht draussen)
+GRUPPE_R = 10            # 19.10.: feindliche Einheiten so nah beieinander (Kette) = eine Gruppe fuer die Gefechtsbewertung
+WERTUNG_RUNDEN = 3       # 19.10.: Gefechtsbewertung neu je so viele Waechter-Runden (oder bei neuem Ziel)
 BERGFRIED_EINGANG = (165, 111)
 
 GEBAEUDEDATEI = LAGEBILD.replace("lagebild.txt", "gebaeude.txt")
@@ -90,6 +94,8 @@ class Waechter:
         self.bilanz = {"bedrohungen": set(), "tote_feinde": set(), "eigene_verluste": set()}
         self.bekannt = {}
         self.ziel, self.lauert = None, False
+        self.verzicht = None         # 19.10.: Ziel, gegen das die Gefechtsbewertung zuletzt "lohnt nicht" ergab
+        self.zurueck = None          # 19.10.: (Ziel, Schuetzen), die zuletzt aus dem Nahkampf herausgehalten wurden
 
     def stellung(self, L):
         """Zu Spielbeginn: alle Truppen (ohne Lord) an den Posten mitten in der Wirtschaft."""
@@ -100,7 +106,7 @@ class Waechter:
             return "Stellung: %d Truppen zum Posten %s" % (len(eig), tuple(self.posten))
         return None
 
-    def schritt(self, L, gebaeude, ausgenommen=()):
+    def schritt(self, L, gebaeude, ausgenommen=(), reserve=()):
         """gebaeude: Liste (x, y) unserer Gebaeude; ausgenommen: Einheiten, die der Waechter nicht anfasst
         (z. B. der Angriffstrupp). Gibt Liste von Ereignis-Texten."""
         ereignis = []
@@ -132,7 +138,7 @@ class Waechter:
         # Assassinen (73) nie zur Abwehr - wie in stellung(); sonst griff der Waechter frisch Angeworbene ab, bevor der
         # Angriffslenker sie aufnahm (Partie 9c: "Abwehr gebuendelt: alle 16 (22,24,55,73)")
         eigene = {n: e for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] in TRUPPE and e["typ"] != 73
-                  and n not in ausgenommen}
+                  and n not in ausgenommen and n not in reserve}
         # Lord
         lord = [n for n, e in eigene.items() if e["typ"] == LORD]
         if lord:
@@ -153,13 +159,22 @@ class Waechter:
         # 12.10. (Daniel 00:38 "die arabischen Schwertkaempfer reagieren nicht sofort auf die Assassinen, sonst haetten
         # sie die eigenen Bogenschuetzen verteidigt"): wer gerade eine unserer Einheiten angreift (nahangreifer), ist
         # sofort Ziel - auch ausserhalb des Gefahrenkreises, jede Runde neu geprueft
-        angreifer = {e.get("nahangreifer") for e in eigene.values() if e.get("nahangreifer")}
-        angreifer = {n for n in angreifer if n in L and L[n]["besitzer"] not in (0, self.sp)}
+        # 19.10. (1019b: vier feindliche Assassinen toeteten 7 arabische Bogen, waehrend alle 28 Verteidiger einem Bogen 50
+        # Felder weiter nachliefen; einmal "Abwehr gegen Feind 2 Typ 13", einen Arbeiter): "nahangreifer" ist die ZAHL der
+        # Angreifer, keine Nummer - Feind 2 war "2 greifen an". Angreifer sind die feindlichen Einheiten, deren nahziel
+        # (Nahkampf) oder zieleinheit (Schuss) eine unserer Einheiten in unserem Gebiet ist (Truppen des Waechters,
+        # Arbeiter, Bauern - nicht Assassinen oder Feldzug draussen) und die hoechstens ANGREIFER_R Felder von uns stehen
+        geschuetzt = set(eigene) | {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] not in TRUPPE}
+        angreifer = {n for n, e in L.items() if e["besitzer"] not in (0, self.sp) and e["typ"] in TRUPPE
+                     and (e.get("nahziel") in geschuetzt or e.get("zieleinheit") in geschuetzt)
+                     and min((schach((e["x"], e["y"]), g) for g in gebaeude), default=0) <= ANGREIFER_R}
         for n in angreifer:
             feinde.setdefault(n, (0, L[n]))
         fern = [e for e in eigene.values() if e["typ"] in FERNKAMPF]
         if not feinde:
             self.ziel = None
+            for n in reserve:                    # 19.10.: Reserve (Feldzug beim Sammeln) wieder frei fuer den Feldzug
+                self.auftrag.pop(n, None)
             # Stapeln (Daniel 00:38 "Bogenschuetzen und Schwertkaempfer auf ein Feld, damit diese sie schuetzen"):
             # ohne Gegner stehen die Nahkaempfer auf dem Feld der Fernkaempfer
             if fern:
@@ -176,6 +191,10 @@ class Waechter:
                         self.auftrag.pop(n, None)
                     ereignis.append("Stapeln: %d Nahkaempfer auf das Feld der Fernkaempfer (%d,%d)" % (len(weg), mx, my))
             return ereignis
+        # 19.10. (Daniel, Bild 1019b: Feinde zerstoerten unsere Felder, unsere Truppen standen daneben): bei einer Bedrohung
+        # zaehlt die Reserve mit (Streitkolben des Feldzugs, solange er sammelt) - ob sie kaempft, entscheidet die Bewertung
+        eigene = dict(eigene)
+        eigene.update({n: L[n] for n in reserve if n in L and L[n]["besitzer"] == self.sp})
         # 12.10. 01:46 (Daniel: "warum hast du den Lord vorgeschickt?"): der Lord faengt nicht im Feld ab - nur wenn Feinde
         # hoechstens LORD_SELBST Felder neben IHM stehen (er schuetzt sich und die Schuetzen bei ihm). Sein Tod verliert die Partie.
         lord_feind_nah = lambda e: any(schach((e["x"], e["y"]), (f[1]["x"], f[1]["y"])) <= LORD_SELBST for f in feinde.values())
@@ -221,6 +240,38 @@ class Waechter:
                     self.auftrag.pop(n, None)
                 ereignis.append("Schild: %d Fernkaempfer hinter den Lord nach %s (Lord %d Felder vom Ziel)" % (len(vorne), hinter, d_lord))
                 verfuegbar = [n for n in verfuegbar if n not in vorne]
+        # 19.10. (Daniel, 1019b: "die lassen sich einfach angreifen ohne Grund und koennen nicht evaluieren, wann ein Counter
+        # sich lohnt - jede Sekunde Zoegerung kostet Leben"): Gefecht vorher durchrechnen (gefecht.py, Editor-Duelle) - nur
+        # angreifen, wenn die Gruppe faellt und genug von uns bleibt; sonst Schuetzen zu den Nahkaempfern an den Bergfried
+        lohnt, text, einsatz = self._bewerten(L, eigene, verfuegbar)
+        if not lohnt:
+            if self.verzicht != self.ziel:
+                self.verzicht = self.ziel
+                sammel = BERGFRIED_EINGANG
+                # die Reserve (Feldzug) bleibt an ihrem Sammelpunkt - der Feldzug fuehrt sie, sobald sie frei ist
+                eigen_v = [n for n in verfuegbar if n not in reserve]
+                for n in verfuegbar:
+                    self.auftrag.pop(n, None)
+                if eigen_v:
+                    befehl({"halten": {"los": eigen_v}}, 1.0, bis="HALTEN")
+                    befehl({"angriff": {"einheiten": eigen_v, "lauf": [sammel[0], sammel[1]]}}, 1.0, bis="ANGRIFF")
+                ereignis.append("ABWEHR VERZICHTET gegen Feind %d Typ %d bei (%d,%d): %s - %d sammeln am Bergfried %s" % (
+                    self.ziel, fe["typ"], fe["x"], fe["y"], text, len(eigen_v), tuple(sammel)))
+            return ereignis
+        self.verzicht = None
+        # 19.10.: nur die Nahkaempfer, wenn das mehr von uns uebrig laesst - die Schuetzen bleiben dann aus dem Nahkampf
+        # (1019b: 7 arab. Bogen starben im Nahkampf mit 4 Assassinen); stehen Feinde der Gruppe nah an ihnen, weichen sie zurueck
+        raus = [n for n in verfuegbar if n not in einsatz]
+        if raus and self.zurueck != (self.ziel, tuple(sorted(raus))):
+            gruppe_orte = [(L[k]["x"], L[k]["y"]) for k in getattr(self, "_gruppe", ()) if k in L]
+            bedroht = [n for n in raus if any(schach((eigene[n]["x"], eigene[n]["y"]), q) <= 12 for q in gruppe_orte)]
+            if bedroht:
+                befehl({"angriff": {"einheiten": bedroht, "lauf": [BERGFRIED_EINGANG[0], BERGFRIED_EINGANG[1]]}}, 1.0, bis="ANGRIFF")
+                for n in bedroht:
+                    self.auftrag.pop(n, None)
+                ereignis.append("Schuetzen raus: %d weichen zum Bergfried, die Nahkaempfer uebernehmen" % len(bedroht))
+            self.zurueck = (self.ziel, tuple(sorted(raus)))
+        verfuegbar = list(einsatz)
         neu = [n for n in verfuegbar if self.auftrag.get(n) != self.ziel]
         if neu:
             befehl({"halten": {"los": verfuegbar}}, 1.0, bis="HALTEN")
@@ -228,9 +279,50 @@ class Waechter:
             for n in verfuegbar:
                 self.auftrag[n] = self.ziel
             self.lauert = False
-            ereignis.append("Abwehr gebuendelt: alle %d (%s) gegen Feind %d Typ %d bei (%d,%d)" % (
-                len(verfuegbar), ",".join(sorted({str(eigene[n]["typ"]) for n in verfuegbar})), self.ziel, fe["typ"], fe["x"], fe["y"]))
+            ereignis.append("Abwehr gebuendelt: alle %d (%s) gegen Feind %d Typ %d bei (%d,%d) - %s" % (
+                len(verfuegbar), ",".join(sorted({str(eigene[n]["typ"]) for n in verfuegbar})), self.ziel, fe["typ"], fe["x"], fe["y"],
+                text))
         return ereignis
+
+    def _bewerten(self, L, eigene, verfuegbar):
+        """19.10.: (lohnt, Text) fuer den Angriff aller verfuegbaren auf die Gruppe um self.ziel - die Gruppe = feindliche
+        Truppen in einer Kette von je hoechstens GRUPPE_R Feldern um das Ziel; dazu feindliche Schuetzen, deren Reichweite
+        den Kampfplatz erreicht (sie stehen und schiessen mit). Neu je WERTUNG_RUNDEN Runden oder bei neuem Ziel."""
+        self.runde_w = getattr(self, "runde_w", 0) + 1
+        alt = getattr(self, "_wertung", None)
+        if alt and alt[0] == self.ziel and self.runde_w - alt[1] < WERTUNG_RUNDEN:
+            return alt[2], alt[3], [n for n in alt[4] if n in verfuegbar]
+        feind = {n: e for n, e in L.items() if e["besitzer"] not in (0, self.sp) and e["typ"] in TRUPPE and e["typ"] != LORD}
+        gruppe, offen = {self.ziel}, [self.ziel]
+        while offen:
+            k = offen.pop()
+            for n, e in feind.items():
+                if n not in gruppe and schach((e["x"], e["y"]), (L[k]["x"], L[k]["y"])) <= GRUPPE_R:
+                    gruppe.add(n); offen.append(n)
+        mitte = (L[self.ziel]["x"], L[self.ziel]["y"])
+        helfer = {n for n, e in feind.items() if n not in gruppe and e["typ"] in gefecht.FERN_REICH
+                  and schach((e["x"], e["y"]), mitte) <= gefecht.FERN_REICH[e["typ"]]}
+        # die Feinde kaempfen dort, wo sie sind (sie zerstoeren unsere Gebaeude, laufen uns nicht entgegen) - unsere muessen hin
+        # (Pruefung 5: mit Entgegenlaufen traf sich der Sklave 130 Felder weit draussen auf halbem Weg mit uns)
+        sie = [dict(typ=L[n]["typ"], leben=L[n]["leben"], x=L[n]["x"], y=L[n]["y"], steht=True) for n in gruppe | helfer]
+        self._gruppe = gruppe
+        # zwei Moeglichkeiten: alle verfuegbaren, oder nur die Nahkaempfer (Schuetzen bleiben draussen) - die mit mehr Rest
+        nahk = [n for n in verfuegbar if eigene[n]["typ"] not in FERNKAMPF]
+        wahl = [("alle", list(verfuegbar))] + ([("nur Nahkampf", nahk)] if nahk and len(nahk) < len(verfuegbar) else [])
+        beste = None
+        for name, ns in wahl:
+            wir = [dict(typ=eigene[n]["typ"], leben=eigene[n]["leben"], x=eigene[n]["x"], y=eigene[n]["y"]) for n in ns]
+            try:
+                lohnt, text = gefecht.bewerte(wir, sie)
+                anteil = float(text.rsplit("bleiben ", 1)[1].split(" ")[0]) if "bleiben " in text else 0.0
+            except Exception as ex:              # ohne Messdaten nicht blockieren - dann wie bisher angreifen
+                lohnt, text, anteil = True, "Bewertung fehlgeschlagen (%s) - greift an" % ex, 0.0
+            if beste is None or (lohnt, anteil) > (beste[0], beste[3]):
+                beste = (lohnt, "%s: %s" % (name, text), ns, anteil)
+        lohnt, text, einsatz = beste[0], beste[1], beste[2]
+        text = "Gruppe %d + %d Schuetzen am Rand; %s" % (len(gruppe), len(helfer), text)
+        self._wertung = (self.ziel, self.runde_w, lohnt, text, einsatz)
+        return lohnt, text, einsatz
 
     def bericht(self):
         b = self.bilanz

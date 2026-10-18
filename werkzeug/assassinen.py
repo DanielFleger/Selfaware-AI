@@ -438,6 +438,7 @@ class Einzeln:
     RESERVE_LEBEN = 2000      # 86 raidete mit 50 Leben noch 7.600 Ticks und griff zuletzt einen Sklaven an: darunter daheim
     GEGEN_R, GEGEN_ANTEIL = 12, 0.9   # 34 floh vor einer gleich schnellen feindlichen Assassine und lief ihr in die Arme
     JAEGER_ZIEL_WEIT = 80     # Laufziel-Ausloeser nur fuer Trupps bis 80 Felder (1019a: Ausloeser bei 197 Feldern Abstand)
+    JAEGER_SICHT, JAEGER_NAEHER = 26, 5   # 19.10. (Daniel, Sichtfeld): Sicht 20 + Rand 6; "kommt naeher" = Laufziel 5 Felder naeher
     RUHE_FELDER = 40          # 19.10.: so viele Felder ohne waehlbaren Feind = voller Ruhe-Bonus (x2)
     FERTIG_TAKTE = 120        # 19.10. (1018x): Restarbeit, die er beim Entdecktwerden noch fertig macht (Erkennen->Treffer 64-170, L81)
     ARBEITER_ZEIT = 120       # 19.10. (1018x, 203 verfolgte einen Arbeiter 500 Takte): so lange darf "mitnehmen" dauern
@@ -1127,11 +1128,16 @@ class Einzeln:
         self._spur, self._jaeger = spur, jaeger
 
     def _jaeger_nah(self, ort, L):
-        """19.10.: wandernde Schuetzen nah an ort (Ort <= JAEGER_R oder Laufziel <= JAEGER_ZIEL_R) - ab JAEGER_MIN die Nummern."""
-        nah = [k for k in getattr(self, "_jaeger", ()) if k in L and (
-            schach(ort, (L[k]["x"], L[k]["y"])) <= self.JAEGER_R or (
-                schach(ort, (L[k]["laufx"], L[k]["laufy"])) <= self.JAEGER_ZIEL_R
-                and schach(ort, (L[k]["x"], L[k]["y"])) <= self.JAEGER_ZIEL_WEIT))]
+        """19.10.: wandernde Schuetzen, die ort bald SEHEN - ab JAEGER_MIN die Nummern. 19.10. (Daniel, 1019b: "der Assassine
+        rennt vor Fernkaempfern weg, die ihn eh nicht sehen koennten - das Sichtfeld ist das Wichtigste"): nicht mehr jeder
+        wandernde Schuetze bis JAEGER_R, sondern nur, wer auf ihn zukommt (Laufziel mindestens JAEGER_NAEHER Felder naeher an
+        ort als er selbst), wessen Laufziel bei ihm liegt oder wer schon am Rand der Sicht steht (JAEGER_SICHT).
+        Nachgerechnet 1018z/y/v, 1019a: Warnung vor 18 statt 21 von 30 schweren Treffern, ~30 % weniger Rueckzugsrunden."""
+        def kommt(k):
+            p, z = (L[k]["x"], L[k]["y"]), (L[k]["laufx"], L[k]["laufy"])
+            d_p, d_z = schach(ort, p), schach(ort, z)
+            return d_p <= self.JAEGER_SICHT or (d_p <= self.JAEGER_R and d_z < d_p - self.JAEGER_NAEHER)                 or (d_z <= self.JAEGER_ZIEL_R and d_p <= self.JAEGER_ZIEL_WEIT)
+        nah = [k for k in getattr(self, "_jaeger", ()) if k in L and kommt(k)]
         return nah if len(nah) >= self.JAEGER_MIN else []
 
     def _trupps(self, L):

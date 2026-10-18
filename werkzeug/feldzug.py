@@ -52,6 +52,7 @@ class Feldzug:
         self.verteidigt = {}
         self.wegplaner = None       # (L, G, start, ziel) -> [Wegpunkte, letzter = ziel]; setzt erstes_spiel
         self.weg, self.weg_i, self.weg_ziel = [], 0, None
+        self.verteidiger = set()    # 19.10.: Streitkolben, die der Waechter gerade zur Abwehr einsetzt - der Feldzug laesst sie
 
     def _lords(self, L):
         return {n: e for n, e in L.items() if e["typ"] == LORD and e["besitzer"] not in (0, self.sp) and e["leben"] > 0}
@@ -110,7 +111,7 @@ class Feldzug:
                     self.verteidigt[feind[1]] = self.runde
                     aus.append("FELDZUG: %d Streitkolben greifen Einheit %d (Typ %d) %d Felder vor dem Sammelpunkt an" % (
                         len(da), feind[1], L[feind[1]]["typ"], feind[0]))
-            hin = [n for n in kolben if n not in da and schach((L[n]["laufx"], L[n]["laufy"]), p) > 3]
+            hin = [n for n in kolben if n not in da and n not in self.verteidiger and schach((L[n]["laufx"], L[n]["laufy"]), p) > 3]
             if hin:
                 befehl({"angriff": {"einheiten": hin, "lauf": [p[0], p[1]]}}, 1.0, bis="ANGRIFF")
             if self.runde % 10 == 0:

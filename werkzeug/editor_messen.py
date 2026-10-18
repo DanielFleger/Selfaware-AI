@@ -12,6 +12,7 @@ Jede Zeile kommt nach daten/editor_messung_<stempel>.jsonl (eine Zeile je Versuc
 Aufruf:
   python editor_messen.py abstand [typen=22,23,70,72,74,76] [abstaende=30,25,22,20,18,15,12,10,8,6,4] [ticks=500] [wdh=1]
   python editor_messen.py auswerten <datei.jsonl>
+  python editor_messen.py duell [eigene=24,26,75,22,70,73] [feinde=22,23,70,71,72,73,75,76,24,26] [abstand=3] [ticks=1500] [wdh=1]
 """
 import io
 import json
@@ -314,6 +315,77 @@ def reihe_deckung(arg):
     return datei
 
 
+TYPNAME = {22: "Bogen", 23: "Armbrust", 24: "Speer", 25: "Pike", 26: "Streitkolben", 27: "Schwert", 28: "Ritter",
+           70: "arab. Bogen", 71: "Sklave", 72: "Schleuder", 73: "Assassine", 74: "Pferdebogen", 75: "arab. Schwert",
+           76: "Feuerwerfer"}
+
+
+def duell(a_typ, d_typ, abstand=3, ticks=1500, gegen=True):
+    """Reihe F (19.10.2026, Daniel: "die lassen sich einfach angreifen und koennen nicht evaluieren, wann ein Counter sich
+    lohnt - die Staerkewerte je Einheit vorher im Editor messen"): eine eigene Einheit a_typ (Spieler 1) und eine feindliche
+    d_typ (Spieler 2) im Abstand `abstand`, beide bekommen den Angriffsbefehl auf die andere (gegen=False: nur unsere).
+    Gemessen je Seite: volles Leben, erster eigener Treffer, Schaden je Takt solange beide leben, Sieger, Dauer, Restleben."""
+    leeren()
+    y = SCHUETZE[1] - 1
+    a = setze(1, a_typ, 200, y)
+    d = setze(2, d_typ, 200 + abstand, y)
+    sende([{"player": 1, "angriff": {"einheiten": [a], "ziel": d}}], bis="ANGRIFF")
+    befohlen_d = None
+    if gegen:
+        z = sende([{"player": 2, "angriff": {"einheiten": [d], "ziel": a}}], bis="ANGRIFF")
+        befohlen_d = any("ANGRIFF" in s for s in z)
+    t0, L = lage()
+    la0 = L[a]["leben"] if a in L else None
+    ld0 = L[d]["leben"] if d in L else None
+    reihe = []
+    t = t0
+    while t - t0 < ticks:
+        time.sleep(0.05)
+        t, L = lage()
+        ea, ed = L.get(a), L.get(d)
+        la = ea["leben"] if ea and ea["besitzer"] == 1 else 0
+        ld = ed["leben"] if ed and ed["besitzer"] == 2 else 0
+        abst = max(abs(ea["x"] - ed["x"]), abs(ea["y"] - ed["y"])) if la and ld else None
+        reihe.append((t - t0, la, ld, abst, ea and ea["zustand"], ed and ed["zustand"]))
+        if not la or not ld:
+            break
+
+    def seite(i, voll):
+        """Schaden an Seite i (1 = unsere, 2 = feindliche): erster Treffer und Rate bis zum Ende (oder Tod einer Seite)."""
+        erst = next((z[0] for z in reihe if z[i] < voll), None)
+        if erst is None:
+            return None, 0.0
+        ende = reihe[-1]
+        verlust = voll - ende[i]
+        return erst, verlust / float(max(1, ende[0] - erst))
+    erst_a, rate_an_a = seite(1, la0)
+    erst_d, rate_an_d = seite(2, ld0)
+    ende = reihe[-1]
+    sieger = "a" if ende[1] and not ende[2] else "d" if ende[2] and not ende[1] else "keiner"
+    return {"a_typ": a_typ, "d_typ": d_typ, "abstand": abstand, "gegenbefehl": befohlen_d, "leben_a": la0, "leben_d": ld0,
+            "a_trifft_ab": erst_d, "d_trifft_ab": erst_a, "schaden_a_an_d_je_takt": rate_an_d, "schaden_d_an_a_je_takt": rate_an_a,
+            "sieger": sieger, "dauer": ende[0], "rest_a": ende[1], "rest_d": ende[2], "reihe": reihe}
+
+
+def reihe_duell(arg):
+    eigene = [int(x) for x in arg.get("eigene", "24,26,75,22,70,73").split(",")]
+    feinde = [int(x) for x in arg.get("feinde", "22,23,70,71,72,73,75,76,24,26").split(",")]
+    datei = os.path.join(D, "editor_duell_%s.jsonl" % time.strftime("%Y%m%d_%H%M%S"))
+    print("Ergebnis ->", os.path.abspath(datei), flush=True)
+    for at in eigene:
+        for dt in feinde:
+            for w in range(int(arg.get("wdh", 1))):
+                r = duell(at, dt, int(arg.get("abstand", 3)), int(arg.get("ticks", 1500)), arg.get("gegen", "ja") == "ja")
+                r["wdh"] = w + 1
+                io.open(datei, "a", encoding="utf-8").write(json.dumps(r) + chr(10))
+                print("%-13s gegen %-13s: Leben %s/%s, trifft ab %s/%s, Schaden je Takt %.1f / %.1f, Sieger %s nach %d, Rest %s/%s%s" % (
+                    TYPNAME.get(at, at), TYPNAME.get(dt, dt), r["leben_a"], r["leben_d"], r["a_trifft_ab"], r["d_trifft_ab"],
+                    r["schaden_a_an_d_je_takt"], r["schaden_d_an_a_je_takt"], r["sieger"], r["dauer"], r["rest_a"], r["rest_d"],
+                    "" if r["gegenbefehl"] else " (Gegenbefehl ohne Quittung)"), flush=True)
+    leeren()
+    return datei
+
+
 def auswerten(datei):
     zeilen = [json.loads(z) for z in io.open(datei, encoding="utf-8")]
     for typ in sorted({z["typ"] for z in zeilen}):
@@ -339,6 +411,8 @@ def main():
         reihe_gebaeude(arg)
     elif was == "deckung":
         reihe_deckung(arg)
+    elif was == "duell":
+        reihe_duell(arg)
 
 
 if __name__ == "__main__":
