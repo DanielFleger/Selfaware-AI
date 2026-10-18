@@ -419,6 +419,10 @@ class Einzeln:
     FERTIG_TAKTE = 120        # 19.10. (1018x): Restarbeit, die er beim Entdecktwerden noch fertig macht (Erkennen->Treffer 64-170, L81)
     ARBEITER_ZEIT = 120       # 19.10. (1018x, 203 verfolgte einen Arbeiter 500 Takte): so lange darf "mitnehmen" dauern
     SPAEHER_MAX, SPAEHER_R, SPAEHER_ANTEIL = 3, 16, 0.3    # 19.10. (1018w; 1018y: 20 floh vor 2 Sklaven in 13 Feldern - Daniel: "merkt zu spaet, dass er sie besiegen kann")
+    # 19.10. (Daniel: "der Assassine geht auf die Kinder und Frauen am Haus - die sind literally nicht angreifbar, maximal auf
+    # Arbeiter"): nur echte Arbeiter (Typen aus ablaufanalyse.EINHEIT) - Bauer, Holzfaeller, Jaeger, Steinmetz, Steinbruch-
+    # arbeiter, Steinochse, Pechmann, Hofbauern, Apfelbauer, Milchbauer, Schmied, Gerber, Bergmann; NICHT 62-64 (Hausbewohner)
+    ARBEITER_TYPEN = {1, 3, 6, 7, 8, 9, 10, 11, 12, 13, 14, 19, 21, 31}
     ARBEITER_MIT = 2          # 19.10. (Daniel: "nie gesagt aktiv jagen - mitnehmen, wenn er will; zu viel Traffic -> auf ein Minimum"): nur direkt am Weg
     ARBEITER_FREI = 30        # 19.10. (1018v): ... nur, wenn kein waehlbarer Feind naeher als so viele Felder steht
     ARBEITER_SCHWACH = 25     # 19.10. (Daniel): Gewicht schlagender Arbeiter fuer Geschwaechte - ein Holzfaeller (0,08) wiegt dann 2 > die Assassine selbst
@@ -498,7 +502,7 @@ class Einzeln:
             if e["typ"] not in TRUPPE:
                 if e["typ"] in self.ARBEITER_GEFAHR:
                     self._arbeiter.append((nr, (e["x"], e["y"]), e["typ"]))
-                if e["typ"] not in sicht.TIERE:
+                if e["typ"] in self.ARBEITER_TYPEN:
                     self._alle_arbeiter.append((nr, (e["x"], e["y"]), e["typ"]))
                 continue
             (fern if e["typ"] in FERNKAMPF else nah).append((nr, (e["x"], e["y"]), e["typ"]))

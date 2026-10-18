@@ -372,7 +372,10 @@ def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
                                         "max": 12 if BUCH is not None else 1}}, 1.0, bis="PLATZSUCHE"))
     frei = [tuple(map(int, p)) for p in re.findall(r"\((\d+),(\d+)\)", z.split("geprueft:")[-1])]
     platz_frei = bool(frei)
-    if BUCH is not None and frei and not (zweck == "Steinpflicht" and typ == 4 and r == 0):
+    # 19.10. (1018x/y: kein einziger Kuhhof - auf 10x10 laeuft fast immer gerade jemand, platz_sauber meldete "schutz"):
+    # Felder (Weizen 30, Hopfen 31, Apfel 32, Kuhhof 33) sind begehbar (sicht.FLACH) - niemand wird eingesperrt, die
+    # Platzsuche des Spiels hat Belegung und Ueberlappung schon geprueft
+    if BUCH is not None and frei and not (zweck == "Steinpflicht" and typ == 4 and r == 0) and typ not in (30, 31, 32, 33):
         # Die vier exakten Jochplaetze sind als ganze, erreichbare Kette im Spiel bestaetigt. Der allgemeine Schutz vor
         # kuenftigen Laufspuren sperrte sie dauerhaft, weil Steinmetze genau dort vorbeilaufen; das Spiel selbst prueft
         # die aktuelle Belegung bereits und die Einheit berechnet ihren Weg nach dem Bau neu.
