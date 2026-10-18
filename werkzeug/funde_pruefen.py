@@ -67,6 +67,8 @@ Vorher festgelegt:
  36. (1018z, 222: "Fluchtweg toedlich", Modell 164 Schaden je Takt, echt ~1 je Takt fuer 377 Takte - er lief in die Burg)
      letzter Einsatz seit 200 Takten, echt nur 140 verloren -> abgebrochen, normal fliehen; Gegenprobe: 10.000 verloren -> bleibt
  37. (1018z) wandernder Trupp mitten auf dem Weg zum Ziel -> alle Wegpunkte mehr als 30 Felder vom Trupp
+ 42. (1019f, Assassine 330) feindliche Assassine mit 6.950 Leben 11 Felder weg, eine zweite mit 12.500 Leben 13 Felder weg
+     -> KEIN Gegenangriff (die Rechnung mit beiden verliert)
  28. (Daniel 19.10.: "wenn nicht ausweichbar, zerstoert er lieber noch moeglichst viel") 6.000 Leben, je zwei Armbrustschuetzen
      links und rechts in 10 Feldern, ein Speer sieht ihn: jeder Fluchtweg kostet mehr Leben, als er hat -> LETZTER EINSATZ auf
      einen der Armbrustschuetzen, die ihn treffen (Wert 60 x 2), nicht auf die Apfelplantage daneben (30)
@@ -644,20 +646,30 @@ def main():
         100 not in t.letzter and t.entdeckt.get(100, {}).get("punkt") is not None)
 
     # 40
-    def lage_gegner(leben):
+    def lage_gegner(leben, ihr_leben=12500):
         t = neu(); t._raid_plaetze = 99
         L = {100: einheit(73, 1, 100, 100, leben=leben), 500: einheit(55, 2, 390, 390, leben=30000),
-             800: einheit(73, 2, 110, 100, leben=12500, laufx=100, laufy=100, zustand=101)}
+             800: einheit(73, 2, 110, 100, leben=ihr_leben, laufx=100, laufy=100, zustand=101)}
         G = {900: {"besitzer": 2, "typ": 32, "x": 60, "y": 60, "leben": 100, "uid": 1, "erreichbar": 1}}
         t.aufnehmen([100])
         t.ziel[100] = 900; t.ziel_typ[900] = 32; t.befohlen[100] = 0
         L[100].update(laufx=60, laufy=60, zustand=101)
         erg, bef = t.schritt(L, G, sichere_orte=[(20, 300)], tick=10000)
         return t.jagd.get(100), [z[:70] for z in erg if "GEGEN-ASSASSINE" in z][:1]
-    j40, m40 = lage_gegner(12380)
-    j40s, _ = lage_gegner(6000)
-    pruefe(40, "feindliche Assassine 10 Felder, laeuft auf ihn zu: mit 12.380 Leben Jagd %s %s; mit 6.000 Jagd %s" % (j40, m40, j40s),
-           j40 == 800 and j40s != 800)
+    j40, m40 = lage_gegner(12500, 6000)
+    j40s, _ = lage_gegner(6000, 12500)
+    j40g, _ = lage_gegner(12500, 12500)
+    pruefe(40, "feindliche Assassine 10 Felder, laeuft auf ihn zu: 12.500 gegen 6.000 Jagd %s %s; 6.000 gegen 12.500 Jagd %s; "
+           "12.500 gegen 12.500 (Duell offen, 1019f) Jagd %s" % (j40, m40, j40s, j40g), j40 == 800 and j40s != 800 and j40g != 800)
+    # 42 (1019f, 330: die schwache Assassine 11 Felder weg, eine volle 13 Felder weg)
+    t = neu(); t._raid_plaetze = 99
+    L42 = {100: einheit(73, 1, 100, 100, leben=12500), 500: einheit(55, 2, 390, 390, leben=30000),
+           800: einheit(73, 2, 111, 100, leben=6950, laufx=100, laufy=100, zustand=101),
+           801: einheit(73, 2, 100, 113, leben=12500, laufx=100, laufy=100, zustand=101)}
+    t.aufnehmen([100])
+    erg42, _ = t.schritt(L42, {}, sichere_orte=[(20, 300)], tick=10000)
+    pruefe(42, "schwache feindliche Assassine 11 Felder, volle 13 Felder: Jagd %s %s" % (
+        t.jagd.get(100), [z[:80] for z in erg42 if "GEGEN" in z][:1]), t.jagd.get(100) not in (800, 801))
     # 41
     e41, z41, _, _, _ = lage_jaeger((100, 290), (100, 260), lauf=(100, 108))
     pruefe(41, "Trupp 160 Felder weg, Laufziel 8 Felder neben ihm: entdeckt %s, Ziel %s" % (e41, z41), not e41 and z41 == 900)

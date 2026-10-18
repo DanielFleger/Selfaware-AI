@@ -671,6 +671,9 @@ GUTE_DINGE = 0           # Lernkreis: so viele Gaerten (30 Gold, Liga-Furcht bis
 RATIONEN = "doppelt"     # Lernkreis: doppelte Rationen (+250 je Woche), sobald genug Nahrung da ist
 REGEL50 = False          # Aufgabe s25: faellt die Beliebtheit unter 50, bricht der Lauf ab (Regelbruch)
 STOPP_TOTE = 0           # 19.10. (Daniel: "wenn 5 gestorben sind dann sofort stoppen und verhindern"): 0 = aus
+MARKE_TOTE = 5           # 19.10. (Daniel: "nur markieren, nicht stoppen"): ohne stopp_tote eine Marke bei so vielen Toten
+HEIM_FERN, HEIM_NAH = 6, 4   # 19.10.: Heimwache (Schuetzen, Nahkaempfer) - der Rest ist das Heer des Feldzugs (Stellgroessen)
+NOT_R, NOT_JE_RUNDE = 12, 2  # 19.10.: Notwerbung nur gegen Feinde so nah an unseren Gebaeuden, hoechstens so viele je Runde
 PRODUKTION = False       # 19.10. (Daniel: eigene Waffenproduktion statt nur Markt) - produktion=ja, nur mit weg=feldzug
 PRODUKTION_FENSTER = 10000   # Ticks, in denen die Kette 30 Kaempfer liefern soll (bestimmt die Zahl der Betriebe)
 BIER = False             # 19.10. (Daniel: Bierbeliebtheit - Hopfen, Brauerei, Schenke) - bier=ja, nur mit weg=feldzug
@@ -685,6 +688,7 @@ SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # ge
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
 KAUSAL_HORIZONT = 16000  # 12.10.: Kausalmodell rechnet Ertraege bis jetzt + so viele Ticks (Schalter kausal_horizont)
+KAUSAL_RUNDEN = 3        # 19.10.: der Kausal-Planer entscheidet nur jede so vielte Runde (Rechenzeit, Bauen vertraegt 1 s)
 ZIEL_TICK = 9400         # Zieltick, bis zu dem das Kausalmodell Ertraege rechnet (unter 1 Jahr = 9.600, Endspiel davor)
                          # 07.10.: Lernkreis setzt ihn auf das gemessene Ende der besten Strategie; gilt auch fuer den Planer
                          # (vorher Planer bis bis_tick=13.000, Kausal bis 9.400 - zwei Zeitraeume fuer dieselbe Frage)
@@ -1261,6 +1265,23 @@ class Produktion:
         arbeiter = (2 * self.minen + self.schmieden + self.gerber + self.hoefe + self.holzfaeller + 16)
         self.bevoelkerung_ziel = max(70, arbeiter + 24)
 
+    def _plan_nebenher(self, name, holen, rechnen):
+        """19.10. (Daniel: "das Spiel stockt immer ein bisschen"): die Wegekarte im Hauptablauf holen (Spielbefehl, ~50 ms),
+        die Planung (aufbau_planer.plane, ~4-7 s reine Rechnung, kein Spielbefehl) in einem Hintergrund-Thread. None, solange
+        sie rechnet - der Aufrufer macht in dieser Runde einfach weiter; danach (plan, bericht)."""
+        lauf = getattr(self, "_planung", None)
+        if lauf is None or lauf[0] != name:
+            import concurrent.futures as CF
+            if getattr(self, "_pool", None) is None:
+                self._pool = CF.ThreadPoolExecutor(max_workers=1)
+            k = holen()
+            self._planung = (name, self._pool.submit(rechnen, k))
+            return None
+        if not lauf[1].done():
+            return None
+        self._planung = None
+        return lauf[1].result()
+
     def werkstaetten_sperren(self, ausbau):
         """19.10. (1018y: geplante Werkstattplaetze waren beim Bau Tausende Ticks spaeter belegt - "kein gueltiger Platz",
         Plan neu, wieder belegt): die Flaechen des Werkstattplans fuer andere Bauten sperren (ausbau.sperr, 1 Feld Rand)."""
@@ -1467,70 +1488,67 @@ class Produktion:
             fehlen_s = max(0, self.schmieden - len(schmieden))
             fehlen_g = max(0, self.gerber - len(gerber))
             vorhanden = [(g["typ"], (g["x"] + 2, g["y"] + 4)) for g in schmieden + gerber]
-            befehl({"pause": True}, 0.5)
-            try:
-                hof_orte = [(g["x"], g["y"]) for g in hoefe]
-                k = W.holen(*P.kartenrahmen(mitte, hof_orte))
-                eisen = next((n for n, g in eig.items() if g["typ"] == 10 and g.get("ware") == 6), None)
-                plan, bericht = P.plane(k, fehlen_s, fehlen_g, eisen,
-                                         hof_orte,
-                                         waffenlager_eingang=we, vorhandene_eingaenge=vorhanden,
-                                         ausgeschlossene_flaechen=self.werk_verworfen)
-            finally:
-                befehl({"pause": False}, 0.5)
-            hat_w = sum(1 for a, _x, _y, _r, _e in plan.bauten if a == 11)
-            hat_s = sum(1 for a, _x, _y, _r, _e in plan.bauten if a == 13)
-            hat_g = sum(1 for a, _x, _y, _r, _e in plan.bauten if a == 16)
-            soll_w = 0 if lager_g else 1
-            if hat_w < soll_w or hat_s < fehlen_s or hat_g < fehlen_g:
-                genug = hat_w >= soll_w and (hat_s or not fehlen_s) and (hat_g or not fehlen_g)
-                if not genug:
-                    self.werk_naechster = st["t"] + self.WERKPLAN_PAUSE
-                    aus.append("PRODUKTION Werkstattplan unvollstaendig: Waffenlager neu %d/%d, Schmieden neu %d/%d, Gerber neu "
-                               "%d/%d - naechster Versuch ab Tick %d; %s" % (hat_w, soll_w, hat_s, fehlen_s, hat_g, fehlen_g,
-                                                                           self.werk_naechster, bericht))
-                    return aus
-                self.schmieden = len(schmieden) + hat_s
-                self.gerber = len(gerber) + hat_g
-                aus.append("PRODUKTION Werkstattplan nur teilweise (die Karte erlaubt nicht mehr): Schmieden %d, Gerber %d - genommen" % (
-                    self.schmieden, self.gerber))
-            self.werk_plan, self.werk_abschnitt = list(plan.bauten), "gesamt"
-            self.werkstaetten_sperren(ausbau)
-            self.werk_index, self.werk_gebaut_ids, self.werk_versuche = 0, set(), 0
-            self.werkstatt_tick, self.stufe = st["t"], 1
-            aus.append("PRODUKTION abwechselnder Werkstattplan gespeichert: %s" % [
-                (NACH_TYP[a]["name"], x, y, r) for a, x, y, r, _e in self.werk_plan])
+            hof_orte = [(g["x"], g["y"]) for g in hoefe]
+            eisen = next((n for n, g in eig.items() if g["typ"] == 10 and g.get("ware") == 6), None)
+            verworfen = set(self.werk_verworfen)
+            # 19.10. (Daniel: "das Spiel stockt"; 1019f: jede Planung hielt das Spiel ~7 s an, fuenfmal): Wegekarte jetzt
+            # holen (~50 ms), die Planung rechnet nebenher - das Spiel laeuft weiter, der Lenker steuert weiter
+            erg = self._plan_nebenher("werk", lambda: W.holen(*P.kartenrahmen(mitte, hof_orte)),
+                                      lambda k: P.plane(k, fehlen_s, fehlen_g, eisen, hof_orte, waffenlager_eingang=we,
+                                                        vorhandene_eingaenge=vorhanden, ausgeschlossene_flaechen=verworfen))
+            if erg is not None:
+                plan, bericht = erg
+                hat_w = sum(1 for a, _x, _y, _r, _e in plan.bauten if a == 11)
+                hat_s = sum(1 for a, _x, _y, _r, _e in plan.bauten if a == 13)
+                hat_g = sum(1 for a, _x, _y, _r, _e in plan.bauten if a == 16)
+                soll_w = 0 if lager_g else 1
+                if hat_w < soll_w or hat_s < fehlen_s or hat_g < fehlen_g:
+                    genug = hat_w >= soll_w and (hat_s or not fehlen_s) and (hat_g or not fehlen_g)
+                    if not genug:
+                        self.werk_naechster = st["t"] + self.WERKPLAN_PAUSE
+                        aus.append("PRODUKTION Werkstattplan unvollstaendig: Waffenlager neu %d/%d, Schmieden neu %d/%d, Gerber neu "
+                                   "%d/%d - naechster Versuch ab Tick %d; %s" % (hat_w, soll_w, hat_s, fehlen_s, hat_g, fehlen_g,
+                                                                               self.werk_naechster, bericht))
+                        return aus
+                    self.schmieden = len(schmieden) + hat_s
+                    self.gerber = len(gerber) + hat_g
+                    aus.append("PRODUKTION Werkstattplan nur teilweise (die Karte erlaubt nicht mehr): Schmieden %d, Gerber %d - genommen" % (
+                        self.schmieden, self.gerber))
+                self.werk_plan, self.werk_abschnitt = list(plan.bauten), "gesamt"
+                self.werkstaetten_sperren(ausbau)
+                self.werk_index, self.werk_gebaut_ids, self.werk_versuche = 0, set(), 0
+                self.werkstatt_tick, self.stufe = st["t"], 1
+                aus.append("PRODUKTION abwechselnder Werkstattplan gespeichert: %s" % [
+                    (NACH_TYP[a]["name"], x, y, r) for a, x, y, r, _e in self.werk_plan])
 
         if self.stufe == 2 and not self.werk_plan and len(hoefe) >= self.hoefe and waffenlager                 and st["t"] >= getattr(self, "werk_naechster", 0):
             lager_g = waffenlager[0]
             we = (lager_g["x"] + 2, lager_g["y"] + 4)  # alle freigegebenen Produktionsbauten stehen in Richtung 0
-            befehl({"pause": True}, 0.5)
-            try:
-                hof_orte = [(g["x"], g["y"]) for g in hoefe]
-                k = W.holen(*P.kartenrahmen(we, hof_orte))
-                eisen = next((n for n, g in eig.items() if g["typ"] == 10 and g.get("ware") == 6), None)
-                fehlen_g = max(0, self.gerber - len(gerber))
-                vorhanden = [(g["typ"], (g["x"] + 2, g["y"] + 4)) for g in schmieden + gerber]
-                plan, bericht = P.plane(k, 0, fehlen_g, eisen, hof_orte,
-                                         waffenlager_eingang=we, vorhandene_eingaenge=vorhanden,
-                                         ausgeschlossene_flaechen=self.werk_verworfen)
-            finally:
-                befehl({"pause": False}, 0.5)
-            hat_g = sum(1 for a, _x, _y, _r, _e in plan.bauten if a == 16)
-            if hat_g < fehlen_g:
-                if not hat_g:
-                    self.werk_naechster = st["t"] + self.WERKPLAN_PAUSE
-                    aus.append("PRODUKTION Gerberplan unvollstaendig: Gerber neu %d/%d am vorhandenen Waffenlager - naechster "
-                               "Versuch ab Tick %d; %s" % (hat_g, fehlen_g, self.werk_naechster, bericht))
-                    return aus
-                self.gerber = len(gerber) + hat_g
-                aus.append("PRODUKTION Gerberplan nur teilweise (die Karte erlaubt nicht mehr): Gerber %d - genommen" % self.gerber)
-            self.werk_plan, self.werk_abschnitt = list(plan.bauten), "leder"
-            self.werkstaetten_sperren(ausbau)
-            self.werk_index, self.werk_gebaut_ids, self.werk_versuche = 0, set(), 0
-            self.werkstatt_tick, self.stufe = st["t"], 3
-            aus.append("PRODUKTION Gerberplan am vorhandenen Waffenlager gespeichert: %s" % [
-                (NACH_TYP[a]["name"], x, y, r) for a, x, y, r, _e in self.werk_plan])
+            hof_orte = [(g["x"], g["y"]) for g in hoefe]
+            eisen = next((n for n, g in eig.items() if g["typ"] == 10 and g.get("ware") == 6), None)
+            fehlen_g = max(0, self.gerber - len(gerber))
+            vorhanden = [(g["typ"], (g["x"] + 2, g["y"] + 4)) for g in schmieden + gerber]
+            verworfen = set(self.werk_verworfen)
+            erg = self._plan_nebenher("leder", lambda: W.holen(*P.kartenrahmen(we, hof_orte)),
+                                      lambda k: P.plane(k, 0, fehlen_g, eisen, hof_orte, waffenlager_eingang=we,
+                                                        vorhandene_eingaenge=vorhanden, ausgeschlossene_flaechen=verworfen))
+            if erg is not None:
+                plan, bericht = erg
+                hat_g = sum(1 for a, _x, _y, _r, _e in plan.bauten if a == 16)
+                if hat_g < fehlen_g:
+                    if not hat_g:
+                        self.werk_naechster = st["t"] + self.WERKPLAN_PAUSE
+                        aus.append("PRODUKTION Gerberplan unvollstaendig: Gerber neu %d/%d am vorhandenen Waffenlager - naechster "
+                                   "Versuch ab Tick %d; %s" % (hat_g, fehlen_g, self.werk_naechster, bericht))
+                        return aus
+                    self.gerber = len(gerber) + hat_g
+                    aus.append("PRODUKTION Gerberplan nur teilweise (die Karte erlaubt nicht mehr): Gerber %d - genommen" % self.gerber)
+                self.werk_plan, self.werk_abschnitt = list(plan.bauten), "leder"
+                self.werkstaetten_sperren(ausbau)
+                self.werk_index, self.werk_gebaut_ids, self.werk_versuche = 0, set(), 0
+                self.werkstatt_tick, self.stufe = st["t"], 3
+                aus.append("PRODUKTION Gerberplan am vorhandenen Waffenlager gespeichert: %s" % [
+                    (NACH_TYP[a]["name"], x, y, r) for a, x, y, r, _e in self.werk_plan])
 
         # Werkstaetten werden nacheinander gebaut und jede wird in der echten Gebaeudeliste bestaetigt. Die alte
         # Sammelbestellung verschluckte einzelne Auftraege; danach fehlten dauerhaft einzelne Gerber. Wiederholen ist
@@ -1979,6 +1997,20 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         # ausnehmen
         # 19.10. (Daniel, 1019b: "die lassen sich einfach angreifen ohne Grund"): solange der Feldzug sammelt, sind seine
         # Streitkolben Reserve des Waechters - nur bei einer Bedrohung und nur, wenn die Gefechtsbewertung den Angriff lohnt
+        if feldzug is not None:
+            # 19.10. (Daniel, 1019f: "nur zum Verteidigen ist das Overkill ... danach besser verteilen um auch zu raiden"):
+            # eine kleine Heimwache bleibt am Bergfried (zuerst Schuetzen, dann Nahkaempfer, die naechsten am Bergfried, nur
+            # wer hoechstens 40 Felder weg ist), alle anderen Truppen sind das Heer des Feldzugs
+            import feldzug as FZ
+            heer_alle = {n: e for n, e in L.items() if e["besitzer"] == SP and e["typ"] in FZ.HEER}
+            hw = {n for n in feldzug.heimwache if n in heer_alle}
+            nah_heim = lambda n: max(abs(heer_alle[n]["x"] - BERGFRIED[0]), abs(heer_alle[n]["y"] - BERGFRIED[1]))
+            for arten, soll in ((FZ.FERN_REICH, HEIM_FERN), (None, HEIM_NAH)):
+                drin = [n for n in hw if (heer_alle[n]["typ"] in FZ.FERN_REICH) == (arten is not None)]
+                frei = sorted((n for n in heer_alle if n not in hw and (heer_alle[n]["typ"] in FZ.FERN_REICH) == (arten is not None)
+                               and nah_heim(n) <= 40), key=nah_heim)
+                hw |= set(frei[:max(0, soll - len(drin))])
+            feldzug.heimwache = hw
         reserve_w = feldzug.einheiten(L) if feldzug is not None and feldzug.phase == "sammeln" else set()
         ausgenommen_w = set(trupp.mitglieder if trupp else ()) | ((feldzug.einheiten(L) - reserve_w) if feldzug is not None else set())
         ereignis = w.schritt(L, gebs, ausgenommen=ausgenommen_w, reserve=reserve_w) if w is not None else []
@@ -1997,12 +2029,32 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 fruehpruefung["posten_bestellt"] = st["t"]
                 ereignis.append("NOTWERBUNG Soeldnerposten bestellt: %s" % (baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25),))
             orte_n = gebs + [BERGFRIED]
+            # 19.10. (Daniel, 1019f: 53 Soeldner fuer gut 4.000 Gold - "nur zum Verteidigen ist das Overkill"): vorher je Feind
+            # bis 40 Felder von IRGENDEINEM unserer Gebaeude eine Einheit, ohne Obergrenze - auf Green Haven zaehlten die
+            # Truppen vor den feindlichen Burgen mit. Jetzt nur Feinde bis NOT_R Felder an unseren Gebaeuden, und nur wenn die
+            # Gefechtsrechnung sagt, dass unsere Truppen bis 60 Felder dort nicht gewinnen; hoechstens NOT_JE_RUNDE je Runde
             feinde_n = [e for e in L.values() if e["besitzer"] not in (0, SP) and e["typ"] in W_TRUPPE
-                        and min(max(abs(e["x"] - o[0]), abs(e["y"] - o[1])) for o in orte_n) <= 40]
+                        and min(max(abs(e["x"] - o[0]), abs(e["y"] - o[1])) for o in orte_n) <= NOT_R]
+            if feinde_n and posten_n is not None:
+                import gefecht as GF
+                mx = sorted(e["x"] for e in feinde_n)[len(feinde_n) // 2]
+                my = sorted(e["y"] for e in feinde_n)[len(feinde_n) // 2]
+                wir_n = [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"]) for e in L.values()
+                         if e["besitzer"] == SP and e["typ"] in W_TRUPPE and e["typ"] not in (73, 55)
+                         and max(abs(e["x"] - mx), abs(e["y"] - my)) <= 60]
+                sie_n = [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=True) for e in feinde_n]
+                try:
+                    reicht_n, text_n = GF.bewerte(wir_n, sie_n)
+                except Exception as ex:
+                    reicht_n, text_n = False, "Rechnung fehlgeschlagen (%s)" % ex
+                if reicht_n:
+                    feinde_n = []
             if feinde_n and posten_n is not None:
                 gold_n, feuer_n, n_n = st.get("gold", 0), st.get("feuer", 0), 0
-                for i in range(len(feinde_n)):
-                    typ_n = 75 if (fruehpruefung.get("werb_zaehler", 0) + i) % 2 == 0 else 70
+                for i in range(min(len(feinde_n), NOT_JE_RUNDE)):
+                    # zwei Schwertkaempfer je Bogen (Editor-Duelle: arab. Schwert 180 je Takt bei 28.000 Leben, arab. Bogen im
+                    # Nahkampf 16-27)
+                    typ_n = 70 if (fruehpruefung.get("werb_zaehler", 0) + i) % 3 == 2 else 75
                     if gold_n < SOELDNER_GOLD[typ_n] or feuer_n <= 0:
                         break
                     BA.werbe(typ_n, posten_n)
@@ -2011,8 +2063,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     n_n += 1
                 fruehpruefung["werb_zaehler"] = fruehpruefung.get("werb_zaehler", 0) + n_n
                 if n_n:
-                    ereignis.append("NOTWERBUNG %d Einheiten gegen %d Gegner in unserem Gebiet (%s), Gold danach %d" % (
-                        n_n, len(feinde_n), ",".join(sorted({str(e["typ"]) for e in feinde_n})), gold_n))
+                    ereignis.append("NOTWERBUNG %d Einheiten gegen %d Gegner an unseren Gebaeuden (%s), Gold danach %d - %s" % (
+                        n_n, len(feinde_n), ",".join(sorted({str(e["typ"]) for e in feinde_n})), gold_n, text_n))
         ereignis += still_w.schritt(st["t"], L, G, lager_stopp=getattr(wirt, "lager_stopp", False))
         rueck = {}
         if jagd_bau is not None:
@@ -2032,7 +2084,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 ausbau.fehlschlag[(typ_u, ort_u)] = ausbau.fehlschlag.get((typ_u, ort_u), 0) + 1
                 ausbau.unerreichbar.add(tuple(ort_u))       # auch der Wegtest-Speicher: nie wieder als erreichbar anbieten
                 ausbau.erreichbar_ok.discard(tuple(ort_u))
-            if ENTSCHEIDER == "kausal" and not endspiel["fertig"]:
+            tz = uhr("buch_abgleich", tz)
+            # 19.10. (1019e/f: Auftragsbuch-Abschnitt 0,26 s je Runde auf Green Haven gegen 0,04 auf The Killing Plains - auf
+            # der fruchtbaren Karte pruefte der Kausal-Planer jede Runde viel mehr Bauplaetze): nur jede KAUSAL_RUNDEN-te Runde
+            if ENTSCHEIDER == "kausal" and not endspiel["fertig"] and runde % KAUSAL_RUNDEN == 0:
                 # Kausalmodell (kausal.py): fuer jede Handlung die Wirkungskette bis ZIEL_TICK aus der aktuellen Lage
                 import kausal as KM
                 ausbau.kausal = True
@@ -2452,6 +2507,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         trainingsstand, len(angekommen), st["t"], pfad))
                     break
             tz = uhr("assassinen", tz)
+            # 19.10. (Daniel: "einen Run durchspielen, auch wenn 5 oder mehr Assassinen sterben - das soll nur markiert werden")
+            if not STOPP_TOTE and trupp.bilanz.get("tote", 0) >= MARKE_TOTE and not fruehpruefung.get("marke_tote"):
+                fruehpruefung["marke_tote"] = st["t"]
+                ereignis.append("MARKE: %d Assassinen tot bei Tick %d - Partie laeuft weiter (stopp_tote=0)" % (
+                    trupp.bilanz["tote"], st["t"]))
             if STOPP_TOTE and trupp.bilanz.get("tote", 0) >= STOPP_TOTE and not stopp_grund:
                 befehl({"pause": True}, 0.5)          # sofort anhalten, die Runde wird nur noch zu Ende geschrieben
                 stopp_grund = "STOPP: %d Assassinen tot bei Tick %d - Spiel angehalten (stopp_tote=%d)" % (

@@ -8,10 +8,15 @@ Vorher festgelegt, was gelten muss:
   3. dieselben 30 vor dem Lord-Schutz -> KEIN Angriff
   4. der Ziel-Lord ist tot -> naechstes Ziel ist der andere Lord, Phase sammeln (Ueberlebende sammeln neu)
   5. feindlicher Speer 12 Felder vor dem Sammelpunkt -> die dort stehenden Streitkolben greifen ihn an
-  6. 29 Streitkolben am Sammelpunkt -> kein Angriff (erst ab 30, Ueberlebende zaehlen mit)
+  6. (19.10., Gefechtsrechnung statt fester 30) 8 Streitkolben am Sammelpunkt, am Lord 20 arab. Schwertkaempfer -> kein
+     Angriff (die Rechnung verliert)
   7. (19.10.) im Angriff: 10 Streitkolben 3 Felder neben dem Lord -> Angriffsbefehl auf den Lord fuer genau diese 10
   8. (19.10., Daniel: "obenrum haetten die Bogenschuetzen sie erst am Ende erkannt") Wegplaner liefert einen Umweg ->
      der erste Laufbefehl geht an den ersten Wegpunkt, nicht an den Lord
+  9. (Daniel 19.10.: "danach besser verteilen um auch zu raiden"; 1019f: 26 arab. Schwertkaempfer standen am Bergfried) 12
+     arab. Schwertkaempfer am Sammelpunkt, der Lord mit 2 Schuetzen -> ANGRIFF (das Heer sind alle Truppen, nicht nur
+     Streitkolben; die Rechnung gewinnt)
+ 10. dieselben 12, davon 4 in der Heimwache -> das Heer hat 8, die 4 bekommen keinen Befehl
 Aufruf: python werkzeug/feldzug_pruefen.py   (Rueckgabe 0 = gruen)
 """
 import os
@@ -98,10 +103,12 @@ def main():
     # 6
     f6 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
     f6.schritt({"t": 12000}, *lage(10, heim), Befehle())
-    L, G = lage(29, f6.punkt)
+    L, G = lage(8, f6.punkt)
+    for i in range(20):
+        L[900 + i] = einheit(75, 2, 300 + i % 5, 102 + i // 5, 28000)
     b = Befehle()
     f6.schritt({"t": 12050}, L, G, b)
-    pruefe(6, "29 am Punkt: Phase %s" % f6.phase, f6.phase == "sammeln")
+    pruefe(6, "8 am Punkt, 20 arab. Schwertkaempfer am Lord: Phase %s" % f6.phase, f6.phase == "sammeln")
     # 7
     f7 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
     f7.schritt({"t": 12000}, *lage(10, heim), Befehle())
@@ -121,6 +128,22 @@ def main():
     f8.schritt({"t": 12050}, L, G, b)
     lauf8 = [x["angriff"]["lauf"] for x in b.liste if "lauf" in x.get("angriff", {})]
     pruefe(8, "Umweg (240,60) -> (290,80) -> Lord: Laufbefehle %s" % lauf8, lauf8 and lauf8[-1] == [240, 60])
+    # 9 / 10
+    def heer(heimwache):
+        f9 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+        f9.heimwache = set(heimwache)
+        f9.schritt({"t": 12000}, *lage(10, heim), Befehle())
+        L, G = lage(0, f9.punkt)
+        for i in range(12):
+            L[10 + i] = einheit(75, 1, f9.punkt[0] + i % 3, f9.punkt[1] + i // 3, 28000)
+        b = Befehle()
+        aus = f9.schritt({"t": 12050}, L, G, b)
+        befohlen = {n for x in b.liste for n in x.get("angriff", {}).get("einheiten", [])}
+        return f9.phase, befohlen, [a[:110] for a in aus if "ANGRIFF" in a][:1]
+    ph9, bef9, m9 = heer(())
+    pruefe(9, "12 arab. Schwertkaempfer am Punkt, Lord mit 2 Schuetzen: Phase %s %s" % (ph9, m9), ph9 == "angriff")
+    ph10, bef10, _ = heer((10, 11, 12, 13))
+    pruefe(10, "4 davon Heimwache: Befehle an %s" % sorted(bef10), not bef10 & {10, 11, 12, 13} and bef10)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

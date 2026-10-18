@@ -20,6 +20,11 @@ Anwerben/Kaufen macht erstes_spiel.ruestung_kaufen (Ziel N lebende Streitkolben,
 """
 
 STREITKOLBEN = 26
+# 19.10. (Daniel, 1019f: 26 arab. Schwertkaempfer und 25 arab. Bogen standen am Bergfried, kein Streitkolben - "nur zum
+# Verteidigen ist das Overkill ... danach besser verteilen um auch zu raiden"; "beim naechsten Run sollen beide Nomaden
+# sterben"): das Heer sind alle eigenen Truppen dieser Arten, ausser der Heimwache (setzt erstes_spiel)
+HEER = {24, 25, 26, 27, 28, 75, 22, 23, 70}
+FERN_REICH = {22: 44, 23: 44, 70: 44}
 LORD = 55
 FERN = {22, 23, 70, 72, 74, 76}
 TRUPPE = {22, 23, 24, 25, 26, 27, 28, 37, 55, 70, 71, 72, 73, 74, 75, 76}
@@ -38,6 +43,9 @@ class Feldzug:
     WIEDERHOLEN = 5           # Runden zwischen zwei Angriffsbefehlen
     ANGRIFF_NAH = 4           # so nah am Lord: Angriffsbefehl statt Laufbefehl
     WEGPUNKT_NAH = 4          # so nah am Wegpunkt (Mitte des Haufens): naechster Wegpunkt
+    MIN_ANGRIFF = 8           # 19.10.: so viele am Sammelpunkt mindestens, dann entscheidet die Gefechtsrechnung
+    LORD_UMKREIS = 25         # 19.10.: feindliche Truppen so nah am Lord kaempfen mit (Gefechtsrechnung)
+    RECHNEN_ALLE = 5          # 19.10.: Gefechtsrechnung beim Sammeln je so viele Runden
 
     def __init__(self, sp, heim, lord_schutz_bis=0, n=None):
         self.sp, self.heim, self.schutz_bis = sp, tuple(heim), lord_schutz_bis
@@ -53,6 +61,8 @@ class Feldzug:
         self.wegplaner = None       # (L, G, start, ziel) -> [Wegpunkte, letzter = ziel]; setzt erstes_spiel
         self.weg, self.weg_i, self.weg_ziel = [], 0, None
         self.verteidiger = set()    # 19.10.: Streitkolben, die der Waechter gerade zur Abwehr einsetzt - der Feldzug laesst sie
+        self.heimwache = set()      # 19.10.: bleiben zu Hause (Waechter) - gehoeren nicht zum Heer
+        self._rechnung = (-99, False, "")
 
     def _lords(self, L):
         return {n: e for n, e in L.items() if e["typ"] == LORD and e["besitzer"] not in (0, self.sp) and e["leben"] > 0}
@@ -76,7 +86,7 @@ class Feldzug:
         aus = []
         t = st.get("t", 0)
         lords = self._lords(L)
-        kolben = sorted(n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] == STREITKOLBEN)
+        kolben = sorted(self.einheiten(L))
         if self.ziel is not None and self.ziel not in lords:
             self.tote_lords.append((self.ziel, t))
             aus.append("FELDZUG: Lord %d tot bei Tick %d - %d Streitkolben ueberlebten, naechstes Ziel" % (self.ziel, t, len(kolben)))
@@ -118,12 +128,19 @@ class Feldzug:
                 aus.append("FELDZUG sammeln: %d von %d am Sammelpunkt %s, %d Streitkolben leben, Lord %d Leben %d%s" % (
                     len(da), self.N, p, len(kolben), self.ziel, lord["leben"],
                     "" if t >= self.schutz_bis else " (Lord-Schutz bis Tick %d)" % self.schutz_bis))
-            if len(da) >= self.N and t >= self.schutz_bis:
+            # 19.10.: angreifen, sobald N da sind - oder schon frueher, wenn die Gefechtsrechnung gegen den Lord und alles um ihn
+            # (Truppen bis LORD_UMKREIS, Schuetzen in Reichweite) einen Sieg mit genug Rest ergibt (gefecht.py, Editor-Duelle)
+            lohnt, text = False, ""
+            if t >= self.schutz_bis and self.MIN_ANGRIFF <= len(da) < self.N:
+                if self.runde - self._rechnung[0] >= self.RECHNEN_ALLE:
+                    self._rechnung = (self.runde,) + self._lohnt(L, da, lord)
+                lohnt, text = self._rechnung[1], self._rechnung[2]
+            if (len(da) >= self.N or lohnt) and t >= self.schutz_bis:
                 self.phase = "angriff"
                 self.letzter_befehl = -99
                 self.weg, self.weg_i, self.weg_ziel = [], 0, None
-                aus.append("FELDZUG ANGRIFF: %d Streitkolben gemeinsam auf Lord %d (Leben %d) bei Tick %d" % (
-                    len(kolben), self.ziel, lord["leben"], t))
+                aus.append("FELDZUG ANGRIFF: %d Truppen (%d am Sammelpunkt) gemeinsam auf Lord %d (Leben %d) bei Tick %d%s" % (
+                    len(kolben), len(da), self.ziel, lord["leben"], t, " - " + text if text else ""))
         if self.phase == "angriff":
             orte = sorted((L[n]["x"], L[n]["y"]) for n in kolben)
             mitte = (sorted(o[0] for o in orte)[len(orte) // 2], sorted(o[1] for o in orte)[len(orte) // 2])
@@ -137,7 +154,9 @@ class Feldzug:
             while self.weg_i < len(self.weg) - 1 and schach(mitte, self.weg[self.weg_i]) <= self.WEGPUNKT_NAH:
                 self.weg_i += 1
             p = self.weg[self.weg_i] if self.weg_i < len(self.weg) - 1 else lp
-            am_lord = [n for n in kolben if schach((L[n]["x"], L[n]["y"]), lp) <= self.ANGRIFF_NAH]
+            # Schuetzen greifen aus ihrer Reichweite an, Nahkaempfer erst am Lord
+            am_lord = [n for n in kolben if schach((L[n]["x"], L[n]["y"]), lp) <= (
+                FERN_REICH[L[n]["typ"]] - 4 if L[n]["typ"] in FERN_REICH else self.ANGRIFF_NAH)]
             if am_lord and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
                 befehl({"angriff": {"einheiten": am_lord, "ziel": self.ziel}}, 1.0, bis="ANGRIFF")
                 self.letzter_befehl = self.runde
@@ -152,5 +171,21 @@ class Feldzug:
         return aus
 
     def einheiten(self, L):
-        """19.10.: die Streitkolben des Feldzugs - der Waechter laesst sie in Ruhe (1018y: sein "Stapeln" holte sie heim)."""
-        return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] == STREITKOLBEN}
+        """19.10.: das Heer des Feldzugs - alle eigenen Truppen der Arten HEER ausser der Heimwache; der Waechter laesst sie in
+        Ruhe (1018y: sein "Stapeln" holte sie heim), ausser als Reserve beim Sammeln."""
+        return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] in HEER and n not in self.heimwache}
+
+    def _lohnt(self, L, da, lord):
+        """19.10.: (lohnt, Text) - unsere am Sammelpunkt gegen den Lord, feindliche Truppen bis LORD_UMKREIS Felder und
+        Schuetzen, deren Reichweite den Lord erreicht (alle stehen, wir laufen hin)."""
+        import gefecht
+        lp = (lord["x"], lord["y"])
+        sie = [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=True) for e in L.values()
+               if e["besitzer"] not in (0, self.sp) and e["typ"] in TRUPPE and (
+                   schach((e["x"], e["y"]), lp) <= self.LORD_UMKREIS
+                   or (e["typ"] in gefecht.FERN_REICH and schach((e["x"], e["y"]), lp) <= gefecht.FERN_REICH[e["typ"]]))]
+        wir = [dict(typ=L[n]["typ"], leben=L[n]["leben"], x=L[n]["x"], y=L[n]["y"]) for n in da]
+        try:
+            return gefecht.bewerte(wir, sie)
+        except Exception as ex:
+            return False, "Rechnung fehlgeschlagen (%s)" % ex

@@ -436,7 +436,14 @@ class Einzeln:
     LETZT_DPS_MIN = 40        # 185 und 308 gingen bei 9 Schaden je Takt in den letzten Einsatz (Fluchtweg "toedlich"), 185 lief
     #                           dabei in einen Trupp aus 14 Boegen; 311 (164 je Takt) war wirklich verloren - Stellgroesse
     RESERVE_LEBEN = 2000      # 86 raidete mit 50 Leben noch 7.600 Ticks und griff zuletzt einen Sklaven an: darunter daheim
-    GEGEN_R, GEGEN_ANTEIL = 12, 0.9   # 34 floh vor einer gleich schnellen feindlichen Assassine und lief ihr in die Arme
+    # 34 floh vor einer gleich schnellen feindlichen Assassine und lief ihr in die Arme. 19.10. (1019f, 301 griff mit 11.320
+    # gegen 12.500 an, dann kamen 2 weitere Nahkaempfer): Editor-Duell Assassine gegen Assassine 148 je Takt in beide
+    # Richtungen - das Leben entscheidet, also mindestens gleich viel
+    GEGEN_R, GEGEN_ANTEIL = 12, 1.0
+    # 19.10. (1019f, 330: 12.500 gegen die Assassine 179 mit 6.950 - aber 322 mit 12.500 stand 13 Felder weg und fing ihn
+    # ab; 330 starb): das Gefecht mit allen feindlichen Nahkaempfern bis GEGEN_UMKREIS und unseren Assassinen bis GEGEN_EIGEN
+    # Feldern durchrechnen (gefecht.py, Editor-Duelle) - nur bei Sieg mit mindestens GEGEN_BEHALTEN Rest
+    GEGEN_UMKREIS, GEGEN_EIGEN, GEGEN_BEHALTEN = 20, 6, 0.4
     JAEGER_ZIEL_WEIT = 80     # Laufziel-Ausloeser nur fuer Trupps bis 80 Felder (1019a: Ausloeser bei 197 Feldern Abstand)
     JAEGER_SICHT, JAEGER_NAEHER = 26, 5   # 19.10. (Daniel, Sichtfeld): Sicht 20 + Rand 6; "kommt naeher" = Laufziel 5 Felder naeher
     RUHE_FELDER = 40          # 19.10.: so viele Felder ohne waehlbaren Feind = voller Ruhe-Bonus (x2)
@@ -1328,16 +1335,23 @@ class Einzeln:
         Assassine der einzige feindliche Nahkaempfer bis GEGEN_R Felder, hat er mindestens GEGEN_ANTEIL ihres Lebens und
         schaffen die Schuetzen bis zu ihrem Tod hoechstens SPAEHER_ANTEIL seines Lebens -> zuerst zuschlagen."""
         j = self.jagd.get(n)
-        if j in L and L[j]["typ"] == ASSASSINE and L[j]["besitzer"] not in (0, self.sp) and schach(
-                ort, (L[j]["x"], L[j]["y"])) <= self.GEGEN_R:
-            return True                        # ist schon dran
-        nahk = [(schach(ort, (e["x"], e["y"])), k, e) for k, e in L.items() if e["besitzer"] not in (0, self.sp)
-                and e["typ"] in sicht.NAHKAMPF and schach(ort, (e["x"], e["y"])) <= self.GEGEN_R]
-        if len(nahk) != 1 or nahk[0][2]["typ"] != ASSASSINE:
+        nahk = sorted((schach(ort, (e["x"], e["y"])), k, e) for k, e in L.items() if e["besitzer"] not in (0, self.sp)
+                      and e["typ"] in sicht.NAHKAMPF and schach(ort, (e["x"], e["y"])) <= self.GEGEN_UMKREIS)
+        dran = j in L and L[j]["typ"] == ASSASSINE and L[j]["besitzer"] not in (0, self.sp) and schach(
+            ort, (L[j]["x"], L[j]["y"])) <= self.GEGEN_UMKREIS
+        if not dran and (not nahk or nahk[0][2]["typ"] != ASSASSINE or nahk[0][0] > self.GEGEN_R):
+            return False
+        lohnt, text = self._gegen_rechnung(n, ort, nahk, L)
+        if dran:
+            # ist schon dran - jede Runde neu rechnen (1019f: 301 blieb dran, als zwei weitere Nahkaempfer kamen)
+            if lohnt:
+                return True
+            del self.jagd[n]
+            ereignis.append("GEGEN-ASSASSINE abgebrochen %d: %s" % (n, text))
+            return False
+        if not lohnt:
             return False
         d, k, e = nahk[0]
-        if L[n]["leben"] < self.GEGEN_ANTEIL * e["leben"]:
-            return False
         zeit = d * TEMPO + e["leben"] / float(NAHKAMPF_RATE.get(ASSASSINE, 230))
         if self._feuer_von(ort, self._nahe_schuetzen(ort, L), L) * zeit > self.SPAEHER_ANTEIL * L[n]["leben"]:
             return False
@@ -1345,9 +1359,25 @@ class Einzeln:
         self.flucht.pop(n, None)
         self.jagd[n] = k
         jagen.append((n, k))
-        ereignis.append("GEGEN-ASSASSINE %d: feindliche Assassine %d in %d Feldern (Leben %d gegen %d) - schlaegt zuerst zu" % (
-            n, k, d, L[n]["leben"], e["leben"]))
+        ereignis.append("GEGEN-ASSASSINE %d: feindliche Assassine %d in %d Feldern (Leben %d gegen %d) - schlaegt zuerst zu - %s" % (
+            n, k, d, L[n]["leben"], e["leben"], text))
         return True
+
+    def _gegen_rechnung(self, n, ort, nahk, L):
+        """19.10.: (lohnt, Text) - wir (n und unsere Assassinen bis GEGEN_EIGEN Felder) gegen alle feindlichen Nahkaempfer bis
+        GEGEN_UMKREIS (sie laufen auf uns zu); lohnt = Sieg mit mindestens GEGEN_BEHALTEN unseres Lebens."""
+        import gefecht
+        wir = [dict(typ=ASSASSINE, leben=L[m]["leben"], x=L[m]["x"], y=L[m]["y"]) for m in self.mitglieder
+               if m in L and schach(ort, (L[m]["x"], L[m]["y"])) <= self.GEGEN_EIGEN and not self._im_lordangriff(m)]
+        sie = [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"]) for _, _, e in nahk]
+        try:
+            voll = sum(w["leben"] for w in wir)
+            r_wir, r_sie, t, sieg = gefecht.simuliere(wir, sie)
+        except Exception as ex:
+            return False, "Rechnung fehlgeschlagen (%s)" % ex
+        anteil = r_wir / float(max(1, voll))
+        return sieg and anteil >= self.GEGEN_BEHALTEN, "%d eigene gegen %d feindliche Nahkaempfer bis %d Felder: %s, uns bleiben %.0f %%" % (
+            len(wir), len(sie), self.GEGEN_UMKREIS, "Sieg" if sieg else "kein Sieg", 100 * anteil)
 
     def _spaeher_erledigen(self, n, ort, sehen, L, ereignis, jagen):
         """19.10. (1018w: alle 6 Entdeckungen durch Sklaven, oft mit nur 1 Schuetzen in Reichweite - die Assassine floh und
