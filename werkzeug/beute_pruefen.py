@@ -91,11 +91,11 @@ def main():
     jagd_c, _, _ = lauf(L10, G10)
     pruefe(10, "Sklave allein, Assassine mit 5.000 Leben: Jagd %s" % jagd_c, jagd_c != 600)
     # 11-13 (19.10., Daniel: "die koennen gerne Bauern mitnehmen, aber Holzfaeller machen gut Damage - mit wenig Leben lieber
-    # den Holzfaellern ausweichen"): Assassine auf dem Weg zu Gebaeude 900, feindlicher Arbeiter 4 Felder daneben
+    # den Holzfaellern ausweichen"): Assassine auf dem Weg zu Gebaeude 900, feindlicher Arbeiter 2 Felder daneben (ARBEITER_MIT)
     def arbeiter(typ, leben):
         t = neu()
         t._raid_plaetze = 99
-        L = {100: einheit(73, 1, 200, 270, leben=leben), 600: einheit(typ, 2, 204, 270, leben=800)}
+        L = {100: einheit(73, 1, 200, 270, leben=leben), 600: einheit(typ, 2, 202, 270, leben=800)}
         t.aufnehmen([100])
         t.ziel[100] = 900; t.ziel_typ[900] = 32; t.befohlen[100] = 0
         L[100].update(laufx=230, laufy=270, zustand=101)
@@ -105,7 +105,7 @@ def main():
             bef += t.schritt(L, dict(G0), sichere_orte=ORTE)[1]
         return t.jagd.get(100), 100 in t.flucht, t
     j11, _, _ = arbeiter(3, 12500)
-    pruefe(11, "gesund, mit Ziel, Holzfaeller 4 Felder daneben: Jagd %s" % j11, j11 == 600)
+    pruefe(11, "gesund, mit Ziel, Holzfaeller 2 Felder daneben: Jagd %s" % j11, j11 == 600)
     j12h, _, _ = arbeiter(3, 5000)
     j12b, _, _ = arbeiter(13, 5000)
     pruefe(12, "geschwaecht (5.000): Holzfaeller Jagd %s (soll nicht), Apfelbauer Jagd %s (soll)" % (j12h, j12b), j12h != 600 and j12b == 600)

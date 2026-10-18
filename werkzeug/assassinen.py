@@ -413,7 +413,8 @@ class Einzeln:
     GERADE_TEIL = 20          # lange Wege ohne Umweg trotzdem in Stuecken laufen (198 lief 222 Felder am Stueck)
     FLUCHT_MIN = 8            # 19.10. (1018s): Fluchtpunkte naeher als 8 Felder nur, wenn es weiter weg keinen gibt
     LOEWE_HEIM, LOEWE_GRUPPE, LOEWE_LEBEN = 25, 3, 9000      # 19.10. (1018t): Loewen am Heim gemeinsam erledigen
-    ARBEITER_MIT = 6          # 19.10. (Daniel): feindliche Arbeiter so nah am Weg nimmt er mit
+    ARBEITER_MIT = 2          # 19.10. (Daniel: "nie gesagt aktiv jagen - mitnehmen, wenn er will; zu viel Traffic -> auf ein Minimum"): nur direkt am Weg
+    ARBEITER_FREI = 30        # 19.10. (1018v): ... nur, wenn kein waehlbarer Feind naeher als so viele Felder steht
     ARBEITER_SCHWACH = 25     # 19.10. (Daniel): Gewicht schlagender Arbeiter fuer Geschwaechte - ein Holzfaeller (0,08) wiegt dann 2 > die Assassine selbst
     # 19.10. (Daniel: "weisst du, du verlierst den Assassinen eh, weil du Nahkaempfern, die schneller sind, nicht ausweichen
     # kannst - versteck dich, und wenn nicht ausweichbar, zerstoert er lieber noch moeglichst viel: Haeuser, Apfelplantagen,
@@ -1543,27 +1544,40 @@ class Einzeln:
         # Damage; das kann in Kauf genommen werden, aber mit wenig Leben lieber den Holzfaellern ausweichen"): feindliche Arbeiter
         # bis ARBEITER_MIT Felder, an deren Ort kein Schuetze trifft, nimmt jede Assassine unterwegs mit (auch mit Ziel);
         # schlagende Arbeiter (ARBEITER_GEFAHR) nur, wer gesund ist
-        arbeiter_b = [(k, p) for k, p, typ in getattr(self, "_alle_arbeiter", [])
-                      if all(schach(p, b) > self.LORD_ABSTAND for b in self._feindburg) and self._anzahl(p, nah, 5) == 0
-                      and self._sicht.beschuss(p, self._sicht.RAND) <= 0]
-        schlagend = {k for k, p, typ in getattr(self, "_alle_arbeiter", []) if typ in self.ARBEITER_GEFAHR}
+        # 19.10. (1018v: 55 Arbeiter-Jagden in 300 Runden, drei Assassinen starben an derselben Stelle bei der Jagd auf einen
+        # Bergmann - die KI schickt Verteidiger; dazu kostete jede Jagd die Wegrisiko-Rechnung, 0,7 s je Runde): nur Arbeiter
+        # bis ARBEITER_MIT Felder, kein waehlbarer Feind bis ARBEITER_FREI Felder (Sicht-Abstand), je Arbeiter EIN Jaeger;
+        # die Jagd ist kurz - ohne Gefahren-Gitter
+        jaeger = set(self.jagd.values())
+        alle_arb = getattr(self, "_alle_arbeiter", [])
+        nahe = [(k, p, typ) for k, p, typ in alle_arb
+                if any(schach(p, (L[m]["x"], L[m]["y"])) <= self.ARBEITER_MIT for m in self.mitglieder if m in L)] if alle_arb else []
+        arbeiter_b = [(k, p) for k, p, typ in nahe if k not in jaeger
+                      and all(schach(p, b) > self.LORD_ABSTAND for b in self._feindburg)
+                      and self._sicht.sicht_abstand(p) > self.ARBEITER_FREI * 8]
+        schlagend = {k for k, p, typ in alle_arb if typ in self.ARBEITER_GEFAHR}
         for n in sorted(self.mitglieder):
             if n in self.jagd or n in self.lordtrupp["mitglieder"] or n in self.stapel["mitglieder"] or n in self.flucht or n not in L \
                     or n in self.entdeckt:
                 continue
             ort = (L[n]["x"], L[n]["y"])
             schwach_n = L[n]["leben"] < self.EIN_TREFFER
-            mit = [b_ for b_ in arbeiter_b if schach(ort, b_[1]) <= self.ARBEITER_MIT and not (schwach_n and b_[0] in schlagend)]
+            mit = [b_ for b_ in arbeiter_b if schach(ort, b_[1]) <= self.ARBEITER_MIT and b_[0] not in jaeger
+                   and not (schwach_n and b_[0] in schlagend)]
+            if mit:
+                ziel_a = min(mit, key=lambda b_: schach(ort, b_[1]))
+                self.ziel.pop(n, None); self.route.pop(n, None); self.warte.pop(n, None)
+                self.jagd[n] = ziel_a[0]
+                jaeger.add(ziel_a[0])
+                jagen.append((n, ziel_a[0]))
+                ereignis.append("ARBEITER %d nimmt Arbeiter %d (Typ %d) %d Felder neben dem Weg mit" % (
+                    n, ziel_a[0], L[ziel_a[0]]["typ"], schach(ort, ziel_a[1])))
+                continue
             if n in self.ziel or n in self.route or (self._raid_plaetze or 0) > len(self.ziel):
-                if not mit:
-                    continue                   # 17.10.: Raiden geht vor (Daniel) - ausser ein Arbeiter liegt am Weg
-                nah_b = mit
-            elif schwach_n:
-                if not mit:
-                    continue                   # 19.10. (1018s, 262 jagte mit 1.460 Leben einen Sklaven und starb im Nahkampf)
-                nah_b = mit
-            else:
-                nah_b = [b_ for b_ in beute if schach(ort, b_[1]) <= self.BEUTE_R] + mit
+                continue                       # 17.10.: Raiden geht vor (Daniel)
+            if schwach_n:
+                continue                       # 19.10. (1018s, 262 jagte mit 1.460 Leben einen Sklaven und starb im Nahkampf)
+            nah_b = [b_ for b_ in beute if schach(ort, b_[1]) <= self.BEUTE_R]
             # 17.10. (Partie 1017a: Assassine 195 jagte eine Armbrust neben 21 Schuetzen und starb in ~80 Takten): Risiko gegen
             # Ertrag wie bei Gebaeuden - Beschuss am Beuteort (nachgebaute Zielwahl der Schuetzen, sicht.py) x (Weg + gemessene
             # Toetungszeit = Leben / Nahkampf-Rate) gegen Wert der Einheit (Anwerbepreis L63) und Preis einer Assassine
@@ -2202,6 +2216,15 @@ class Einzeln:
         # besetzt: dann zaehlen nur die vergebenen (sonst sperrte die Zahl Jagd und Lord, waehrend Assassinen standen)
         if ohne > 0:
             self._raid_plaetze = len(self.ziel)
+        elif self.lord_aus:
+            # 19.10. (1018v nachgespielt: 14,5 von 30 s hier - jedes Gebaeude, jedes Randfeld): ohne Lord-Angriff zaehlt nur noch
+            # "mehr Raid-Plaetze als vergebene Ziele?" (Beute-Schranke) - zaehlen, bis das feststeht
+            self._raid_plaetze, grenze = 0, len(self.ziel) + 1
+            for k in kand:
+                if k[3] and self._beschuss_angriff(k[0], G) <= 0:
+                    self._raid_plaetze += platz(k)
+                    if self._raid_plaetze >= grenze:
+                        break
         else:
             self._raid_plaetze = sum(platz(k) for k in kand if k[3] and self._beschuss_angriff(k[0], G) <= 0)
         if ohne != self.ohne_ziel_zuletzt:

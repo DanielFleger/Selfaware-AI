@@ -665,6 +665,9 @@ GUTE_DINGE = 0           # Lernkreis: so viele Gaerten (30 Gold, Liga-Furcht bis
 RATIONEN = "doppelt"     # Lernkreis: doppelte Rationen (+250 je Woche), sobald genug Nahrung da ist
 REGEL50 = False          # Aufgabe s25: faellt die Beliebtheit unter 50, bricht der Lauf ab (Regelbruch)
 STOPP_TOTE = 0           # 19.10. (Daniel: "wenn 5 gestorben sind dann sofort stoppen und verhindern"): 0 = aus
+PRODUKTION = False       # 19.10. (Daniel: eigene Waffenproduktion statt nur Markt) - produktion=ja, nur mit weg=feldzug
+PRODUKTION_FENSTER = 10000   # Ticks, in denen die Kette 30 Kaempfer liefern soll (bestimmt die Zahl der Betriebe)
+BIER = False             # 19.10. (Daniel: Bierbeliebtheit - Hopfen, Brauerei, Schenke) - bier=ja, nur mit weg=feldzug
 STUFEN = []              # streitkolben=50,100: gestufte Ziele in EINEM Lauf (Daniel 11.10. 14:28)
 ZWISCHENZIEL = False     # solange ein spaeteres Ziel folgt: im Endspiel nie abreissen
 ZUSCHAU_TEMPO = 0        # ab dem ersten Lord-Angriff dieses Spieltempo (0 = bleibt; Daniel 11.10. 15:46 "ich will zuschauen")
@@ -702,10 +705,37 @@ V14_PLAN = {"brueche": [(80, 265), (80, 271)], "joche": [(87, 263), (87, 275)],
 V14_GROESSE = {20: 6, 4: 2, 10: 5, 33: 10, 16: 4, 11: 4}
 V14_STEIN_BIS, V14_LAGER_BIS, V14_UMZUG_AB = 500, 800, 650   # Fruehabbruch-Marken; Startholz ist ab ~650 komplett da
 
+def hofplaetze_live(kern, r=45):
+    """19.10.: Kuhhof-Plaetze vom Spiel (plaetze_live fuer Typ 33) - ersetzt die feste Platzkarte der Grumpy-Karte."""
+    return plaetze_live(33, kern, r)
+
+
+def plaetze_live(typ, kern, r=45):
+    """19.10. (Daniel: "hartkodiert - die KI soll egal welche Map, egal welche Umgebung agieren koennen"): Bauplaetze fuer typ
+    vom Spiel selbst - Modulbefehl platzkarte (Bauregeln des Spiels je Feld) im Rechteck um kern, nicht ueberlappend, die
+    naechsten zuerst."""
+    g = NACH_TYP[typ]
+    x0, y0 = max(1, kern[0] - r), max(1, kern[1] - r)
+    x1, y1 = min(398, kern[0] + r), min(398, kern[1] + r)
+    befehl({"platzkarte": {"spieler": SP, "mapper": g["mapper"], "groesse": g["b"], "x0": x0, "y0": y0, "x1": x1, "y1": y1}},
+           120.0, bis="PLATZKARTE")
+    zeilen = open(os.path.join(ABZUG, "platzkarte.txt"), encoding="utf-8").read().splitlines()
+    gut = sorted(((x0 + i, y0 + j) for j, z in enumerate(zeilen[1:]) for i, c in enumerate(z) if c == "+"),
+                 key=lambda q: max(abs(q[0] + g["b"] // 2 - kern[0]), abs(q[1] + g["b"] // 2 - kern[1])))
+    aus = []
+    for q in gut:
+        if all(abs(q[0] - o[0]) >= g["b"] or abs(q[1] - o[1]) >= g["b"] for o in aus):
+            aus.append(q)
+    return aus
+
+
 def produktions_hofplaetze(anzahl=None, kern=None):
     """Beliebig viele nicht ueberlappende Kuhhof-Plaetze aus der echten Platzkarte, die kuerzesten zuerst.
     Die alte feste Liste begann 70+ Felder vom Eisenlager entfernt; mit dem einzigen erlaubten Waffenlager machte das
     entweder die Gerber- oder die Schmiedewege unbrauchbar. Der echte Bauversuch verwirft spaeter belegte Stellen."""
+    if not V14_PLAN:                     # 19.10.: jede andere Karte - Plaetze vom Spiel
+        aus = hofplaetze_live(kern or BERGFRIED)
+        return aus[:anzahl] if anzahl is not None else aus
     from farmen_mischen import lies_karte
     fest = list(V14_PLAN["hoefe"])
     karte = lies_karte(os.path.join(D, "platzkarte_kuehe_Basis_ganz.txt"))
@@ -1206,7 +1236,9 @@ class Produktion:
         hof_kern = ((self.plan_lager[0] + 3, self.plan_lager[1] + 3) if self.plan_lager else None)
         self.hof_orte = produktions_hofplaetze(None, hof_kern)
         if len(self.hof_orte) < self.hoefe:
-            raise RuntimeError("nur %d produktive Hofplaetze fuer %d benoetigte Hoefe" % (len(self.hof_orte), self.hoefe))
+            if V14_PLAN or not self.hof_orte:
+                raise RuntimeError("nur %d produktive Hofplaetze fuer %d benoetigte Hoefe" % (len(self.hof_orte), self.hoefe))
+            self.hoefe = len(self.hof_orte)          # 19.10.: fremde Karte - so viele Hoefe, wie das Spiel erlaubt
         self.hof_verworfen = set()
         # Gesamtes Bauholz der Zielkette plus Steinwirtschaft/Haeuser; ein frueher Holzfaeller traegt konservativ
         # rund 35 Holz bis zur Zielzeit bei. Das skaliert 25 -> ca. 14 und 50 -> ca. 20 statt einer offenen Spam-Schleife.
@@ -1376,8 +1408,14 @@ class Produktion:
                 and holz >= hof_holz * max(0, self.hoefe - len(hoefe))):
             hof_offen = self.hoefe_bauen(G, hoefe, gold, holz, feuer, aus)
             if hofvorrat_erschoepft(self.hoefe, len(hoefe), hof_offen, self.hof_orte, self.hof_verworfen):
-                raise RuntimeError("TECHNISCH UNGUELTIG: produktiver Hofplatzvorrat erschoepft (%d gebaut, %d benoetigt, %d verworfen)" % (
-                    len(hoefe), self.hoefe, len(self.hof_verworfen)))
+                # 19.10.: auf fremden Karten kein Abbruch des Lenkers - mit den Hoefen weiter, die stehen
+                if V14_PLAN:
+                    raise RuntimeError("TECHNISCH UNGUELTIG: produktiver Hofplatzvorrat erschoepft (%d gebaut, %d benoetigt, %d verworfen)" % (
+                        len(hoefe), self.hoefe, len(self.hof_verworfen)))
+                if hoefe and self.hoefe > len(hoefe):
+                    aus.append("PRODUKTION nur %d von %d Hoefen moeglich (keine Plaetze mehr) - weiter mit %d" % (
+                        len(hoefe), self.hoefe, len(hoefe)))
+                    self.hoefe = len(hoefe)
         # Eine gemeinsame, abwechselnde Werkstattfolge verhindert den alten Fehlstart mit vielen Schmieden und null
         # Gerbern. Leder braucht laenger; deshalb kommt je Paar der Gerber zuerst. Ein einziger bestaetigter Hof reicht
         # als Weganker, auf alle Hoefe oder auf die erste Kuh wird fuer die Planung nicht gewartet.
@@ -1736,10 +1774,34 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     # 18.10. (Daniel: "maximal 20 Assassinen, den Rest in Wirtschaft und Waffen; 30 Streitkolben pro Nomade, gestackt, eins
     # nach dem anderen"): weg=feldzug - kein Bilanz-Endspiel (die Wirtschaft bleibt), Ruestung laufend aus dem Gold ueber
     # der Ruecklage auf streitkolben lebende Kaempfer aufgefuellt, Angriff ueber feldzug.py; Assassinen ohne Lord-Angriff
-    feldzug = None
+    feldzug = bier = None
     if weg == "feldzug" and streitkolben:
         from feldzug import Feldzug
         feldzug = Feldzug(SP, BERGFRIED, LORD_SCHUTZ_BIS, n=streitkolben)
+        # 19.10. (Daniel: "warum wird keine Waffenproduktion gebaut? Wenn die Streitis es nicht schaffen, muesste teuer
+        # nachgebaut werden - longterm denken"): produktion=ja - eigene Kette (Minen, Schmieden, Kuhhoefe, Gerber), Groesse
+        # aus PRODUKTION_FENSTER (30 Kaempfer in so vielen Ticks); bis sie steht, nur bei grossem Ueberschuss Markt-Kauf
+        # 19.10. (Startkarte The Killing Plains: 59 Hofplaetze 10x10 auf unserer Seite, 7 davon bis 50 Felder - bis zur
+        # Spielmitte belegt der Planer alle mit Apfelplantagen): Kuhhof- und Hopfenplaetze gleich zu Beginn vom Spiel holen
+        # und fuer andere Bauten sperren (ausbau.sperr, 1 Feld Rand)
+        reserve = []
+        if PRODUKTION:
+            prod = Produktion(streitkolben, kaempfer_marken, plan.get("lager"), PRODUKTION_FENSTER + 5000)
+            reserve += [(33, q) for q in prod.hof_orte[:prod.hoefe]]
+            schreib("PRODUKTION fuer den Feldzug: %d Minen, %d Schmieden, %d Gerber, %d Hoefe (Plaetze %d, vom Spiel geprueft)" % (
+                prod.minen, prod.schmieden, prod.gerber, prod.hoefe, len(prod.hof_orte)))
+        if BIER:
+            from bierkette import Bierkette
+            bier = Bierkette(SP, lambda typ, x, y, r: baue_schnell(typ, x, y, r, zweck="Bierkette"), plaetze_live, preis)
+            belegt = [q for _t, q in reserve]
+            hopfen = [q for q in plaetze_live(31, BERGFRIED, 80)
+                      if all(abs(q[0] - o[0]) >= 10 or abs(q[1] - o[1]) >= 10 for o in belegt)][:bier.RESERVE]
+            bier.reserviert = list(hopfen)
+            reserve += [(31, q) for q in hopfen]
+        if reserve:
+            ausbau.sperr = list(getattr(ausbau, "sperr", None) or []) + [
+                (x - 1, y - 1, x + NACH_TYP[t_]["b"], y + NACH_TYP[t_]["b"]) for t_, (x, y) in reserve]
+            schreib("RESERVE fuer Hoefe/Hopfen (fuer Aepfel gesperrt): %s" % [(NACH_TYP[t_]["name"], q) for t_, q in reserve])
         if trupp is not None:
             trupp.lord_aus = True
     if prod:
@@ -2379,8 +2441,15 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     sum(1 for g in G.values() if g["besitzer"] == SP and g["typ"] == 3) < HOLZ_SPAM):
                 ereignis += leder.schritt(st, G, wirt)
             if feldzug is not None:
-                ereignis += ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
+                if prod is not None:
+                    ereignis += prod.schritt(st, L, G, wirt, ausbau)
+                    if prod.stufe < 4 and st["gold"] - wirt.ruecklage(G)["gold"] >= Produktion.UEBERSCHUSS:
+                        ereignis += ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
+                else:
+                    ereignis += ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
                 ereignis += feldzug.schritt(st, L, G, befehl)
+                if bier is not None and runde % 5 == 0:
+                    ereignis += bier.schritt(st, G, wirt.ruecklage(G))
             else:
                 ereignis += bilanz_schritt(st, L, G, ausbau, streitkolben, endspiel, runde, kaempfer_marken)
             if feldzug is None and not endspiel["fertig"] and weg != "bilanz":     # weg=bilanz: nur Wirtschaft + Bilanz-Endspiel (v5)
@@ -2554,7 +2623,7 @@ def main():
     PENNER = int(arg.get("penner", 20))
     KASSE_STUFE = int(arg.get("kasse_stufe", 11))
     SCHUB = False if arg.get("schub", "nein") == "nein" else arg["schub"]    # "ja" = ein Schub, "immer" = einer nach dem anderen
-    global HAUSHALT_RAND, WACHSTUM_BODEN, GUTE_DINGE, RATIONEN, REGEL50, NAHRUNG_AUSBAU, STOPP_TOTE
+    global HAUSHALT_RAND, WACHSTUM_BODEN, GUTE_DINGE, RATIONEN, REGEL50, NAHRUNG_AUSBAU, STOPP_TOTE, PRODUKTION, PRODUKTION_FENSTER, BIER
     global STUFEN, ZWISCHENZIEL, STUFE2_BELIEBT, ANGRIFF_AB, LIGA_GEFECHT, GEGNER_ERWARTET
     GEGNER_ERWARTET = arg.get("gegner_erwartet", "")
     global ZUSCHAU_TEMPO
@@ -2573,6 +2642,9 @@ def main():
     RATIONEN = arg.get("rationen", RATIONEN)
     REGEL50 = arg.get("regel50", "nein") == "ja"
     STOPP_TOTE = int(arg.get("stopp_tote", 0))
+    PRODUKTION = arg.get("produktion", "nein") == "ja"
+    BIER = arg.get("bier", "nein") == "ja"
+    PRODUKTION_FENSTER = int(arg.get("produktion_fenster", PRODUKTION_FENSTER))
     AUFLOESEN = arg.get("aufloesen", "nein")   # "ja" = nach Bedarf als Arbeiter, "ende" = als Rekruten im Endspiel
     EINZELKAUF = arg.get("einzelkauf", "nein") == "ja"
     ABRISS = arg.get("abriss", "ja") == "ja"
