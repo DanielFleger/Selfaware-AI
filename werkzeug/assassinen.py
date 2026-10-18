@@ -413,6 +413,7 @@ class Einzeln:
     GERADE_TEIL = 20          # lange Wege ohne Umweg trotzdem in Stuecken laufen (198 lief 222 Felder am Stueck)
     FLUCHT_MIN = 8            # 19.10. (1018s): Fluchtpunkte naeher als 8 Felder nur, wenn es weiter weg keinen gibt
     LOEWE_HEIM, LOEWE_GRUPPE, LOEWE_LEBEN = 25, 3, 9000      # 19.10. (1018t): Loewen am Heim gemeinsam erledigen
+    SPAEHER_MAX, SPAEHER_R, SPAEHER_ANTEIL = 2, 8, 0.3     # 19.10. (1018w): Sklaven als Spaeher erledigen statt fliehen
     ARBEITER_MIT = 2          # 19.10. (Daniel: "nie gesagt aktiv jagen - mitnehmen, wenn er will; zu viel Traffic -> auf ein Minimum"): nur direkt am Weg
     ARBEITER_FREI = 30        # 19.10. (1018v): ... nur, wenn kein waehlbarer Feind naeher als so viele Felder steht
     ARBEITER_SCHWACH = 25     # 19.10. (Daniel): Gewicht schlagender Arbeiter fuer Geschwaechte - ein Holzfaeller (0,08) wiegt dann 2 > die Assassine selbst
@@ -1082,6 +1083,8 @@ class Einzeln:
                          and (erh or s.linie_frei(p, steht, ort))]
                 if e is None and n in self.jagd and set(sehen) <= {self.jagd[n]}:
                     sehen = []                 # jagt den einzigen Schuetzen, der ihn erreicht (Beute, 3b): weiter jagen
+                if e is None and sehen and self._spaeher_erledigen(n, ort, sehen, L, ereignis, jagen if jagen is not None else []):
+                    continue                   # 19.10.: nur ein Sklave sieht ihn - erledigen statt fliehen
                 if sehen:
                     if e is not None and e.get("ziel_ok") is not None:
                         e["ziel_ok"], e["punkt"] = None, None      # beim Aussendienst wieder gesehen: wieder raus
@@ -1157,6 +1160,30 @@ class Einzeln:
                 self._fliehen(n, p, flieh)       # laeuft nicht dorthin (z.B. vom Spiel umgelenkt): Befehl erneuern
             else:
                 self.warte[n] = p
+
+    def _spaeher_erledigen(self, n, ort, sehen, L, ereignis, jagen):
+        """19.10. (1018w: alle 6 Entdeckungen durch Sklaven, oft mit nur 1 Schuetzen in Reichweite - die Assassine floh und
+        wartete, der Sklave blieb daneben; Daniel: "hier laeuft literally ein Assassine einem Sklaven weg", "hier pausieren sie
+        ohne Grund"): sehen ihn nur Sklaven (hoechstens SPAEHER_MAX, der naechste bis SPAEHER_R Felder) und schaffen die
+        Schuetzen mit Linie bis zu deren Tod (Weg + Toetungszeit) hoechstens SPAEHER_ANTEIL seines Lebens -> den naechsten
+        Sklaven angreifen statt fliehen; danach sieht ihn niemand mehr."""
+        if n in self.jagd and L.get(self.jagd[n], {}).get("typ") == 71:
+            return True                        # ist schon dran
+        sp = sorted((schach(ort, (e["x"], e["y"])), k, e) for k, e in L.items() if e["besitzer"] not in (0, self.sp)
+                    and e["typ"] in sicht.WAEHLBAR and sicht.abstand_fein(ort, (e["x"], e["y"])) <= sicht.SICHT)
+        if not sp or len(sp) > self.SPAEHER_MAX or any(e["typ"] != 71 for _, _, e in sp) or sp[0][0] > self.SPAEHER_R:
+            return False
+        zeit = sum(d * TEMPO + e["leben"] / float(NAHKAMPF_RATE.get(71, 230)) for d, _, e in sp)
+        schaden = self._feuer_von(ort, set(sehen), L) * zeit
+        if schaden > self.SPAEHER_ANTEIL * L[n]["leben"]:
+            return False
+        ziel = sp[0][1]
+        self._vergessen(n)
+        self.jagd[n] = ziel
+        jagen.append((n, ziel))
+        ereignis.append("SPAEHER WEG %d: nur Sklave %d (%d Felder) sieht ihn, %d Schuetzen mit Linie (~%d Schaden bis er tot ist) "
+                        "-> erledigt ihn statt zu fliehen" % (n, ziel, sp[0][0], len(sehen), schaden))
+        return True
 
     def _feuer_von(self, q, nrs, L):
         """19.10.: Leben je Takt an q von den Schuetzen nrs, die q erreichen (Linie frei)."""

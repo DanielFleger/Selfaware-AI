@@ -1810,7 +1810,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             prod.ziel, prod.minen, prod.schmieden, prod.gerber, prod.hoefe, prod.holzfaeller, BEV_ZIEL))
         # Die Zielkette baut exakt die fuer Ziel und Zeit berechneten Minen selbst; der allgemeine Gewinnplaner darf weder davor denselben
         # Platz doppelt bestellen noch danach ueber den gemessenen Bedarf hinaus weitere Minen setzen.
-        ausbau.ohne.update((3, 5, 7, 32))
+        # 19.10.: im Feldzug laeuft die normale Wirtschaft weiter (Nahrung, Holz, Verkauf) - die Waffenkette kommt nur dazu
+        if feldzug is None:
+            ausbau.ohne = set(getattr(ausbau, "ohne", set())) | {3, 5, 7, 32}
     endspiel = {"fertig": False, "tabelle": None}
     fruehpruefung = {}
     # Stillstand-Waechter (Daniel 17:22 "das Vorratslager ist voll - sollte direkt auffallen"; 22:37 "ja mach weiter"):

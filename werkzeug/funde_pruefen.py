@@ -47,6 +47,8 @@ Vorher festgelegt:
      gesunde Assassinen ohne Auftrag -> LOEWENJAGD: alle vier auf denselben Loewen, keiner weicht aus
  27. (Daniel 19.10.: "Aussendienst, so viel klatschen wie moeglich") entdeckt, jetzt ausser Sicht und Reichweite; Ziel A
      nahe der Armbrust, die ihn sah, Ziel B weit weg -> AUSSENDIENST auf B (nicht A, nicht warten)
+ 29. (1018w, Daniel: "hier laeuft ein Assassine einem Sklaven weg") ein Sklave 5 Felder neben ihm sieht ihn, eine Armbrust
+     30 Felder weg hat Linie -> er greift den Sklaven an (kein ENTDECKT); Gegenprobe: dazu 6 Armbrustschuetzen -> ENTDECKT
  28. (Daniel 19.10.: "wenn nicht ausweichbar, zerstoert er lieber noch moeglichst viel") 6.000 Leben, je zwei Armbrustschuetzen
      links und rechts in 10 Feldern, ein Speer sieht ihn: jeder Fluchtweg kostet mehr Leben, als er hat -> LETZTER EINSATZ auf
      einen der Armbrustschuetzen, die ihn treffen (Wert 60 x 2), nicht auf die Apfelplantage daneben (30)
@@ -468,6 +470,23 @@ def main():
     j28 = t.jagd.get(100)
     pruefe(28, "umstellt, Flucht toedlich: Jagd %s, Ziel %s, %s" % (j28, t.ziel.get(100), [z[:70] for z in erg if "LETZTER" in z][:1]),
            j28 in (610, 611, 612, 613))
+    # 29
+    def lage_sklave(viele):
+        t = neu(); t._raid_plaetze = 99
+        L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
+             700: einheit(71, 2, 105, 100, leben=2000), 610: einheit(23, 2, 130, 100, leben=17500)}
+        if viele:
+            for i in range(6):
+                L[620 + i] = einheit(23, 2, 128, 96 + i, leben=17500)
+        G = {900: {"besitzer": 2, "typ": 3, "x": 160, "y": 140, "leben": 100, "uid": 1, "erreichbar": 1}}
+        t.aufnehmen([100])
+        t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
+        erg, bef = t.schritt(L, G, sichere_orte=[(20, 300)], tick=10000)
+        return t.jagd.get(100), 100 in getattr(t, "entdeckt", {}), [z[:60] for z in erg if "SPAEHER WEG" in z][:1]
+    j29, e29, m29 = lage_sklave(False)
+    j29v, e29v, _ = lage_sklave(True)
+    pruefe(29, "nur Sklave sieht ihn: Jagd %s, entdeckt %s %s; mit 7 Armbrust: Jagd %s, entdeckt %s" % (j29, e29, m29, j29v, e29v),
+           j29 == 700 and not e29 and e29v)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

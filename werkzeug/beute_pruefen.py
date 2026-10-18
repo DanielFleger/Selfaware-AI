@@ -82,8 +82,10 @@ def main():
         L.update(extra or {})
         return L, dict(G0)
     jagd_a, bef_a, _ = lauf(*sklave())
-    jagd_b, _, _ = lauf(*sklave({640: einheit(23, 2, 222, 270, leben=17500)}))
-    pruefe(9, "Sklave allein: Jagd %s (Befehl %s); mit Armbrust dahinter: Jagd %s" % (jagd_a, bef_a, jagd_b),
+    # 19.10.: eine einzelne Armbrust reicht nicht mehr - ein Sklave, der ihn sieht, wird erledigt (funde 29, SPAEHER WEG);
+    # gegen vier Armbrustschuetzen dahinter weiter keine Jagd
+    jagd_b, _, _ = lauf(*sklave({640 + i: einheit(23, 2, 222, 268 + i, leben=17500) for i in range(4)}))
+    pruefe(9, "Sklave allein: Jagd %s (Befehl %s); mit 4 Armbrust dahinter: Jagd %s" % (jagd_a, bef_a, jagd_b),
            jagd_a == 600 and bef_a and jagd_b != 600)
     # 10 (19.10., 1018s: 262 jagte mit 1.460 Leben einen Sklaven und starb im Nahkampf): geschwaecht -> keine Jagd
     L10, G10 = sklave()

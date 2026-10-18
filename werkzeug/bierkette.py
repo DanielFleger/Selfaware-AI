@@ -76,8 +76,9 @@ class Bierkette:
                 aus.append("BIER: kein Platz fuer %s (vom Spiel geprueft)" % name)
                 continue
             ergebnis = self.baue(typ, p[0], p[1], 0)
-            if not ergebnis:
-                self.verworfen.add(p)
+            # 19.10. (1018w: der zweite Hopfenbau nahm denselben reservierten Platz noch einmal): gesetzt oder nicht - der
+            # Platz ist fuer den naechsten Bau verbraucht
+            self.verworfen.add(p)
             aus.append("BIER: %s %d/%d bei %s (Einwohner %d) -> %s" % (name, zahl[typ] + 1, n, p, st.get("leute", 0), ergebnis))
             return aus                       # hoechstens ein Bau je Runde
         return aus
