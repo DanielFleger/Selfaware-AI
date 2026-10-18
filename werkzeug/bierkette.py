@@ -8,10 +8,15 @@ diesen Rest -> hoehere Steuerstufe -> mehr Gold fuer Wirtschaft und Waffen.
 Kartenunabhaengig: jeder Platz kommt vom Spiel selbst (plaetze(typ, kern, r) = Modulbefehl platzkarte, Bauregeln des
 Spiels je Feld), nichts ist fuer eine Karte eingetragen. Ablauf je Runde (schritt):
   SOLL     eine Kette (Hopfenfarm + Brauerei + Schenke) je PRO_KETTE Einwohner, hoechstens HOECHSTENS; erst ab PRO_KETTE.
-  REIHE    Hopfenfarm zuerst (braucht am laengsten), dann Brauerei, dann Schenke - je Runde hoechstens ein Bau, nur mit
-           Holz und Gold ueber der Ruecklage der Wirtschaft (wirt.ruecklage) und einem Arbeiter am Feuer.
-  PLAETZE  Hopfen bis 45 Felder um das Lager, Brauerei 20 um das Lager, Schenke 20 um den Kornspeicher (sonst Lager);
-           je Art einmal geholt und nach Fehlschlag oder alle 3.000 Ticks neu.
+  REIHE    19.10. (Daniel, 1019a: "wir haben sogar schon Bier und noch keine Schenke - sobald das erste Bier geliefert ist,
+           soll der erste Wirt losgehen koennen"; 1019a: die zweite Hopfenfarm scheiterte 20-mal, die Schenke kam nie dran):
+           ENGPASS ZUERST - Schenke, solange es weniger Schenken als Brauereien gibt; Brauerei, solange weniger Brauereien
+           als Hopfenfarmen (Kette 1:1:1 - Annahme, das Verhaeltnis ist nicht gemessen); sonst Hopfenfarm. Scheitert ein
+           Bau, kommt in derselben Runde das naechste Glied dran. Je Runde hoechstens ein gesetzter Bau, nur mit Holz und
+           Gold ueber der Ruecklage der Wirtschaft (wirt.ruecklage) und einem Arbeiter am Feuer.
+  PLAETZE  Hopfen bis 45 Felder um das Lager (findet das Spiel dort nichts: 90, dann 150), Brauerei 20 um das Lager,
+           Schenke 20 um den Kornspeicher (sonst Lager); je Art geholt und nach Fehlschlag oder alle 3.000 Ticks neu;
+           abgelehnte Plaetze je Art; ein reservierter Hopfenplatz wird genau einmal versucht.
 """
 import math
 
@@ -23,6 +28,7 @@ class Bierkette:
     HOECHSTENS = 4
     NEU_PLAETZE = 3000        # Ticks, nach denen die Platzliste neu vom Spiel geholt wird
     RADIUS = {HOPFEN: 45, BRAUEREI: 20, SCHENKE: 20}
+    WEITER = (2, 10.0 / 3)    # 19.10. (1019a): findet das Spiel im Umkreis nichts, Umkreis x2, dann x3,3 (Hopfen 90, 150)
     RESERVE = 2               # Hopfenplaetze, die gleich beim Start fuer andere Bauten gesperrt werden (fruchtbarer Boden)
 
     def __init__(self, sp, baue, plaetze, preis):
@@ -30,7 +36,7 @@ class Bierkette:
         preis(typ, ware) -> Baukosten."""
         self.sp, self.baue, self.plaetze, self.preis = sp, baue, plaetze, preis
         self.merk = {}            # typ -> (Tick, [Plaetze])
-        self.verworfen = set()
+        self.verworfen = {}       # typ -> {Plaetze}
         self.reserviert = []      # beim Start gesperrte Hopfenplaetze (setzt erstes_spiel) - werden zuerst genommen
 
     def _kern(self, G, typ):
@@ -42,18 +48,22 @@ class Bierkette:
         return (sum(g["x"] for g in wahl) // len(wahl), sum(g["y"] for g in wahl) // len(wahl))
 
     def _platz(self, typ, G, t):
-        if typ == HOPFEN:
-            frei = [p for p in self.reserviert if p not in self.verworfen]
-            if frei:
-                return frei[0]
+        if typ == HOPFEN and self.reserviert:
+            return self.reserviert.pop(0)    # 19.10. (1019a: (52, 205) trug Hopfenfarm 1 und wurde 20-mal wieder versucht)
         kern = self._kern(G, typ)
         if kern is None:
             return None
+        weg = self.verworfen.setdefault(typ, set())
         m = self.merk.get(typ)
-        if m is None or t - m[0] >= self.NEU_PLAETZE or not [p for p in m[1] if p not in self.verworfen]:
-            self.merk[typ] = (t, self.plaetze(typ, kern, self.RADIUS[typ]))
-            self.verworfen.clear()       # 19.10.: neue Platzliste vom Spiel - frueher Abgelehntes darf wieder (Laufwege wandern)
-        frei = [p for p in self.merk[typ][1] if p not in self.verworfen]
+        if m is None or t - m[0] >= self.NEU_PLAETZE or not [p for p in m[1] if p not in weg]:
+            liste = []
+            for f in (1,) + self.WEITER:
+                liste = self.plaetze(typ, kern, int(self.RADIUS[typ] * f))
+                if liste:
+                    break
+            self.merk[typ] = (t, liste)
+            weg.clear()                  # 19.10.: neue Platzliste vom Spiel - frueher Abgelehntes darf wieder (Laufwege wandern)
+        frei = [p for p in self.merk[typ][1] if p not in weg]
         return frei[0] if frei else None
 
     def soll(self, leute):
@@ -66,12 +76,17 @@ class Bierkette:
             return aus
         zahl = {typ: sum(1 for g in G.values() if g["besitzer"] == self.sp and g["typ"] == typ)
                 for typ in (HOPFEN, BRAUEREI, SCHENKE)}
-        for typ, name in ((HOPFEN, "Hopfenfarm"), (BRAUEREI, "Brauerei"), (SCHENKE, "Schenke")):
-            if zahl[typ] >= n:
-                continue
+        reihe = []
+        if zahl[SCHENKE] < min(n, zahl[BRAUEREI]):
+            reihe.append((SCHENKE, "Schenke"))
+        if zahl[BRAUEREI] < min(n, zahl[HOPFEN]):
+            reihe.append((BRAUEREI, "Brauerei"))
+        if zahl[HOPFEN] < n:
+            reihe.append((HOPFEN, "Hopfenfarm"))
+        for typ, name in reihe:
             holz, gold = self.preis(typ, "holz"), self.preis(typ, "gold")
             if st.get("holz", 0) - ruecklage.get("holz", 0) < holz or st.get("gold", 0) - ruecklage.get("gold", 0) < gold:
-                return aus                   # die Reihe wartet: nicht die Brauerei vor der Hopfenfarm
+                return aus                   # die Reihe wartet auf das dringendste Glied
             p = self._platz(typ, G, st.get("t", 0))
             if p is None:
                 aus.append("BIER: kein Platz fuer %s (vom Spiel geprueft)" % name)
@@ -79,7 +94,8 @@ class Bierkette:
             ergebnis = self.baue(typ, p[0], p[1], 0)
             # 19.10. (1018w: der zweite Hopfenbau nahm denselben reservierten Platz noch einmal): gesetzt oder nicht - der
             # Platz ist fuer den naechsten Bau verbraucht
-            self.verworfen.add(p)
+            self.verworfen.setdefault(typ, set()).add(p)
             aus.append("BIER: %s %d/%d bei %s (Einwohner %d) -> %s" % (name, zahl[typ] + 1, n, p, st.get("leute", 0), ergebnis))
-            return aus                       # hoechstens ein Bau je Runde
+            if ergebnis:
+                return aus                   # hoechstens ein gesetzter Bau je Runde
         return aus

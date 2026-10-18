@@ -615,6 +615,47 @@ def main():
     z37, r37, w37 = lage_umweg((130, 140))
     pruefe(37, "wandernder Trupp mitten auf dem Weg: Ziel %s, Wegpunkte %s, alle > 30 Felder vom Trupp %s" % (z37, r37[:5], w37),
            z37 == 900 and w37)
+    # 38
+    t = neu(); t._raid_plaetze = 99
+    L = {100: einheit(73, 1, 100, 100, leben=50), 500: einheit(55, 2, 390, 390, leben=30000)}
+    G = {900: {"besitzer": 2, "typ": 32, "x": 130, "y": 100, "leben": 100, "uid": 1, "erreichbar": 1}}
+    t.aufnehmen([100])
+    erg, bef = t.schritt(L, G, sichere_orte=[(20, 300)], tick=10000)
+    heim38 = any(b.get("angriff", {}).get("lauf") == [20, 300] and 100 in b["angriff"].get("einheiten", []) for b in bef) \
+        or t.warte.get(100) == (20, 300)
+    pruefe(38, "50 Leben, unbewachte Apfelplantage 30 Felder weit: Ziel %s, heim %s %s" % (
+        t.ziel.get(100), heim38, [z[:60] for z in erg if "RESERVE" in z][:1]), t.ziel.get(100) is None and heim38)
+    # 39
+    t = neu(); t._raid_plaetze = 99
+    L = {100: einheit(73, 1, 100, 100, leben=4310), 500: einheit(55, 2, 390, 390, leben=30000),
+         700: einheit(24, 2, 112, 100, leben=10000)}
+    for i, (x, y) in enumerate(((140, 100), (100, 140), (60, 140), (140, 60), (60, 60))):
+        L[610 + i] = einheit(22, 2, x, y, leben=17500)
+    G = {900: {"besitzer": 2, "typ": 32, "x": 104, "y": 103, "leben": 100, "uid": 1, "erreichbar": 1}}
+    t.aufnehmen([100])
+    erg, bef = t.schritt(L, G, sichere_orte=[(20, 20)], tick=10000)
+    pruefe(39, "4.310 Leben, gesehen, 2 Boegen am Rand (19 je Takt): letzter Einsatz %s, Fluchtpunkt %s %s" % (
+        100 in t.letzter, t.entdeckt.get(100, {}).get("punkt"), [z[:70] for z in erg if "LETZTER" in z][:1]),
+        100 not in t.letzter and t.entdeckt.get(100, {}).get("punkt") is not None)
+
+    # 40
+    def lage_gegner(leben):
+        t = neu(); t._raid_plaetze = 99
+        L = {100: einheit(73, 1, 100, 100, leben=leben), 500: einheit(55, 2, 390, 390, leben=30000),
+             800: einheit(73, 2, 110, 100, leben=12500, laufx=100, laufy=100, zustand=101)}
+        G = {900: {"besitzer": 2, "typ": 32, "x": 60, "y": 60, "leben": 100, "uid": 1, "erreichbar": 1}}
+        t.aufnehmen([100])
+        t.ziel[100] = 900; t.ziel_typ[900] = 32; t.befohlen[100] = 0
+        L[100].update(laufx=60, laufy=60, zustand=101)
+        erg, bef = t.schritt(L, G, sichere_orte=[(20, 300)], tick=10000)
+        return t.jagd.get(100), [z[:70] for z in erg if "GEGEN-ASSASSINE" in z][:1]
+    j40, m40 = lage_gegner(12380)
+    j40s, _ = lage_gegner(6000)
+    pruefe(40, "feindliche Assassine 10 Felder, laeuft auf ihn zu: mit 12.380 Leben Jagd %s %s; mit 6.000 Jagd %s" % (j40, m40, j40s),
+           j40 == 800 and j40s != 800)
+    # 41
+    e41, z41, _, _, _ = lage_jaeger((100, 290), (100, 260), lauf=(100, 108))
+    pruefe(41, "Trupp 160 Felder weg, Laufziel 8 Felder neben ihm: entdeckt %s, Ziel %s" % (e41, z41), not e41 and z41 == 900)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

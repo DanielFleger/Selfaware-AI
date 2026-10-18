@@ -429,7 +429,15 @@ class Einzeln:
     # 19.10. (1018z, 222: "Fluchtweg toedlich" mit 164 Schaden je Takt im Modell, echt ~1 je Takt fuer 377 Takte - er lief in
     # die Burg und starb dort): nach LETZT_PRUEF Takten im letzten Einsatz mit weniger als LETZT_IRRTUM des Modell-Verlusts
     # -> abbrechen und fliehen; LETZT_SPERRE Takte kein neuer "Fluchtweg toedlich" (ausser unter EIN_TREFFER)
-    LETZT_PRUEF, LETZT_IRRTUM, LETZT_SPERRE = 80, 0.25, 400
+    # 19.10. (1019a, 311: nach 86 Takten ohne Treffer abgebrochen, 70 Takte spaeter 7.200 Schaden - Zielen dauert 64-170
+    # Takte, L81): erst nach 200 Takten urteilen
+    LETZT_PRUEF, LETZT_IRRTUM, LETZT_SPERRE = 200, 0.25, 400
+    # 19.10. (1019a, Tode erklaert, daten/tode_1019a.md):
+    LETZT_DPS_MIN = 40        # 185 und 308 gingen bei 9 Schaden je Takt in den letzten Einsatz (Fluchtweg "toedlich"), 185 lief
+    #                           dabei in einen Trupp aus 14 Boegen; 311 (164 je Takt) war wirklich verloren - Stellgroesse
+    RESERVE_LEBEN = 2000      # 86 raidete mit 50 Leben noch 7.600 Ticks und griff zuletzt einen Sklaven an: darunter daheim
+    GEGEN_R, GEGEN_ANTEIL = 12, 0.9   # 34 floh vor einer gleich schnellen feindlichen Assassine und lief ihr in die Arme
+    JAEGER_ZIEL_WEIT = 80     # Laufziel-Ausloeser nur fuer Trupps bis 80 Felder (1019a: Ausloeser bei 197 Feldern Abstand)
     RUHE_FELDER = 40          # 19.10.: so viele Felder ohne waehlbaren Feind = voller Ruhe-Bonus (x2)
     FERTIG_TAKTE = 120        # 19.10. (1018x): Restarbeit, die er beim Entdecktwerden noch fertig macht (Erkennen->Treffer 64-170, L81)
     ARBEITER_ZEIT = 120       # 19.10. (1018x, 203 verfolgte einen Arbeiter 500 Takte): so lange darf "mitnehmen" dauern
@@ -1121,7 +1129,9 @@ class Einzeln:
     def _jaeger_nah(self, ort, L):
         """19.10.: wandernde Schuetzen nah an ort (Ort <= JAEGER_R oder Laufziel <= JAEGER_ZIEL_R) - ab JAEGER_MIN die Nummern."""
         nah = [k for k in getattr(self, "_jaeger", ()) if k in L and (
-            schach(ort, (L[k]["x"], L[k]["y"])) <= self.JAEGER_R or schach(ort, (L[k]["laufx"], L[k]["laufy"])) <= self.JAEGER_ZIEL_R)]
+            schach(ort, (L[k]["x"], L[k]["y"])) <= self.JAEGER_R or (
+                schach(ort, (L[k]["laufx"], L[k]["laufy"])) <= self.JAEGER_ZIEL_R
+                and schach(ort, (L[k]["x"], L[k]["y"])) <= self.JAEGER_ZIEL_WEIT))]
         return nah if len(nah) >= self.JAEGER_MIN else []
 
     def _trupps(self, L):
@@ -1150,6 +1160,8 @@ class Einzeln:
                 continue
             ort = (L[n]["x"], L[n]["y"])
             e = self.entdeckt.get(n)
+            if n not in self.letzter and self._gegen_assassine(n, ort, L, ereignis, jagen if jagen is not None else []):
+                continue
             # 19.10. (1018s: 132 floh vor Nahkaempfern sichtbar durch 7 Boegen - die Flucht 4a kennt keine Schuetzen; 1018r
             # 233/142 genauso): auf der Flucht nur, wenn Schuetzen ihn sehen - dann uebernimmt ENTDECKT (Verfolger zaehlen
             # in der Fluchtpunkt-Wahl)
@@ -1255,6 +1267,7 @@ class Einzeln:
                 irrtum = self.jetzt - getattr(self, "_letzt_irrtum", {}).get(n, -10 ** 6) < self.LETZT_SPERRE \
                     and L[n]["leben"] >= self.EIN_TREFFER
                 if p is not None and e.get("gesehen", not e.get("jaeger")) and not irrtum and \
+                        self._feuer_von(ort, e["schuetzen"] | self._nahe_schuetzen(ort, L), L) >= self.LETZT_DPS_MIN and \
                         kalib * self._fluchtschaden(ort, p, e["schuetzen"] | self._nahe_schuetzen(ort, L), L) >= L[n]["leben"]:
                     if self._letzter_einsatz(n, L, G, "Fluchtweg toedlich", ereignis, angriffe if angriffe is not None else [],
                                              jagen if jagen is not None else []):
@@ -1303,6 +1316,33 @@ class Einzeln:
         self._fertig.add(n)
         return True
 
+    def _gegen_assassine(self, n, ort, L, ereignis, jagen):
+        """19.10. (1019a, 34: floh vor der feindlichen Assassine 210 und lief ihr in die Arme; 12.380 gegen 12.500 Leben, am Ende
+        80 gegen 200 - Weglaufen hilft gegen gleich Schnelle nicht, wer zuerst zuschlaegt, gewinnt): ist eine feindliche
+        Assassine der einzige feindliche Nahkaempfer bis GEGEN_R Felder, hat er mindestens GEGEN_ANTEIL ihres Lebens und
+        schaffen die Schuetzen bis zu ihrem Tod hoechstens SPAEHER_ANTEIL seines Lebens -> zuerst zuschlagen."""
+        j = self.jagd.get(n)
+        if j in L and L[j]["typ"] == ASSASSINE and L[j]["besitzer"] not in (0, self.sp) and schach(
+                ort, (L[j]["x"], L[j]["y"])) <= self.GEGEN_R:
+            return True                        # ist schon dran
+        nahk = [(schach(ort, (e["x"], e["y"])), k, e) for k, e in L.items() if e["besitzer"] not in (0, self.sp)
+                and e["typ"] in sicht.NAHKAMPF and schach(ort, (e["x"], e["y"])) <= self.GEGEN_R]
+        if len(nahk) != 1 or nahk[0][2]["typ"] != ASSASSINE:
+            return False
+        d, k, e = nahk[0]
+        if L[n]["leben"] < self.GEGEN_ANTEIL * e["leben"]:
+            return False
+        zeit = d * TEMPO + e["leben"] / float(NAHKAMPF_RATE.get(ASSASSINE, 230))
+        if self._feuer_von(ort, self._nahe_schuetzen(ort, L), L) * zeit > self.SPAEHER_ANTEIL * L[n]["leben"]:
+            return False
+        self._vergessen(n)
+        self.flucht.pop(n, None)
+        self.jagd[n] = k
+        jagen.append((n, k))
+        ereignis.append("GEGEN-ASSASSINE %d: feindliche Assassine %d in %d Feldern (Leben %d gegen %d) - schlaegt zuerst zu" % (
+            n, k, d, L[n]["leben"], e["leben"]))
+        return True
+
     def _spaeher_erledigen(self, n, ort, sehen, L, ereignis, jagen):
         """19.10. (1018w: alle 6 Entdeckungen durch Sklaven, oft mit nur 1 Schuetzen in Reichweite - die Assassine floh und
         wartete, der Sklave blieb daneben; Daniel: "hier laeuft literally ein Assassine einem Sklaven weg", "hier pausieren sie
@@ -1311,6 +1351,8 @@ class Einzeln:
         Sklaven angreifen statt fliehen; danach sieht ihn niemand mehr."""
         if n in self.jagd and L.get(self.jagd[n], {}).get("typ") == 71:
             return True                        # ist schon dran
+        if L[n]["leben"] < self.EIN_TREFFER:
+            return False                       # 19.10. (1019a, 86 griff mit 50 Leben einen Sklaven an): Sklaven schlagen zurueck
         sp = sorted((schach(ort, (e["x"], e["y"])), k, e) for k, e in L.items() if e["besitzer"] not in (0, self.sp)
                     and e["typ"] in sicht.WAEHLBAR and sicht.abstand_fein(ort, (e["x"], e["y"])) <= sicht.SICHT)
         if not sp or len(sp) > self.SPAEHER_MAX or any(e["typ"] != 71 for _, _, e in sp) or sp[0][0] > self.SPAEHER_R:
@@ -2279,8 +2321,26 @@ class Einzeln:
                         n, gn, b_k[0], wert(ort, b_k) / max(wert(ort, jetzt), 1e-9)))
         gruende = {"keins erreichbar": 0, "alle voll": 0, "alle gefaehrlich": 0}
         ohne = 0
+        # 19.10. (1019a, 86: mit 50 Leben 7.600 Ticks weiter geraidet, jeder Treffer toedlich, zuletzt einen Sklaven
+        # angegriffen; Einheiten heilen nie): unter RESERVE_LEBEN kein Auftrag mehr - daheim warten, das schont die Todesgrenze
+        heim = getattr(self, "_heim", [])
+        for n in sorted(self.mitglieder):
+            if L[n]["leben"] >= self.RESERVE_LEBEN or not heim or n in self.entdeckt or n in self.flucht \
+                    or self._im_lordangriff(n):
+                continue
+            h = min(heim, key=lambda q: schach((L[n]["x"], L[n]["y"]), q))
+            if self.warte.get(n) == h and n not in self.ziel and n not in self.jagd:
+                continue
+            for gz in [self.ziel.get(n)]:
+                if gz is not None:
+                    zahl[gz] = max(0, zahl.get(gz, 1) - 1)
+            self._vergessen(n)
+            self.stapel["mitglieder"].discard(n)
+            self._warten(n, h, halten)
+            ereignis.append("RESERVE %d: nur noch %d Leben - jeder Treffer toetet ihn, wartet daheim bei %s" % (n, L[n]["leben"], h))
         for n in sorted(self.mitglieder):
             if n in self.ziel or n in self.jagd or n in self.stapel["mitglieder"] or n in self.lordtrupp["mitglieder"] \
+                    or (L[n]["leben"] < self.RESERVE_LEBEN and getattr(self, "_heim", None)) \
                     or (n in self.entdeckt and not self._aussendienst_frei(n, L)) \
                     or (n in self.warte and n in verletzt) or n in self.flucht:
                 continue
