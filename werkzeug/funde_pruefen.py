@@ -28,6 +28,12 @@ Vorher festgelegt:
  17. (Tode 1018p, 198/215/265: gesehen, keine Reaktion bis zum Treffer) Assassine auf dem Weg zu Gebaeude 900, ein Speer
      sieht sie (12 Felder), eine Armbrust erreicht sie (30 Felder) -> ENTDECKT: Ziel ab und gesperrt, Laufbefehl an einen Ort,
      den die Armbrust nicht erreicht; Gegenprobe: ohne Speer (niemand sieht sie) -> Ziel bleibt
+ 18. (1018q, 86 stand 3 Runden still: Fluchtpunkt im Spiel nicht erreichbar) wie 17, aber der Wegfinder des Spiels meldet den
+     besten Fluchtpunkt als unerreichbar -> ein anderer, erreichbarer Punkt
+ 19. (1018q, 153 mit 1.960 und 86 mit 2.730 Leben starben am naechsten Treffer; Einheiten heilen nie) Ziel unbeobachtet,
+     aber ein Sklave 25 Felder daneben: mit 5.000 Leben KEIN Ziel, mit vollem Leben Ziel
+ 20. (1018q, 205 lief erst vom Fluchtpunkt weg) entdeckt, Laufbefehl gegeben, eine Runde spaeter (30 Takte) nicht naeher
+     am Punkt -> sofort ein neuer Punkt (vorher erst nach 60 Takten)
 Gegenprobe: python funde_pruefen.py <alte assassinen.py> [<alte sicht.py>] - die Faelle muessen dort rot sein.
 Aufruf: python werkzeug/funde_pruefen.py"""
 import importlib.util
@@ -281,10 +287,10 @@ def main():
             t._route_sperre[(100, 900)] = 10000 + 1500
         erg, bef = t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
         return t.ziel.get(100), [z[:90] for z in erg if z.startswith("ZIELWAHL")][:1]
-    z14, m14 = lage_risiko(12500, 82)
+    z14, m14 = lage_risiko(12500, 76)          # 19.10.: Spaeher 6 Felder weiter weg (Sicherheitsrand sicht.RAND 48)
     pruefe(14, "Weg mit ~17 %% Todesrisiko (Bogen + Spaeher am Durchgang): Ziel %s %s" % (z14, m14), z14 is None)
-    z15a, _ = lage_risiko(12500, 78)
-    z15, m15 = lage_risiko(7000, 78)
+    z15a, _ = lage_risiko(12500, 74)
+    z15, m15 = lage_risiko(7000, 74)
     pruefe(15, "Weg mit ~9 %%: volles Leben Ziel %s (soll 900); mit 7.000 Leben (schwach, ~16 %%): Ziel %s %s" % (z15a, z15, m15),
            z15a == 900 and z15 is None)
     z16, m16 = lage_risiko(12500, None, sperre=True)
@@ -308,6 +314,50 @@ def main():
     z17g, p17g, _, _, _ = lage_entdeckt(False)
     pruefe(17, "gesehen: Ziel %s, Punkt %s ausser Reichweite %s, gesperrt %s %s; ungesehen: Ziel %s Punkt %s" % (
         z17, p17, weit17, sp17, m17, z17g, p17g), z17 is None and weit17 and sp17 and z17g == 900 and p17g is None)
+    # 18
+    def lage_flucht(sperre_bester):
+        gesehen = []
+
+        def wt(n, punkte):
+            gesehen.append(list(punkte))
+            return [not (sperre_bester and i == 0) for i in range(len(punkte))]
+        t = A.Einzeln(1, pruefe_begehbar=lambda pkt: set(pkt), wegtest=wt); t._raid_plaetze = 99
+        L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
+             600: einheit(23, 2, 130, 100, leben=17500), 601: einheit(24, 2, 112, 100, leben=10000)}
+        G = {900: {"besitzer": 2, "typ": 3, "x": 160, "y": 140, "leben": 100, "uid": 1, "erreichbar": 1}}
+        t.aufnehmen([100])
+        t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
+        L[100].update(laufx=160, laufy=140, zustand=101)
+        t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
+        bester = next((pk[0] for pk in gesehen if len(pk) > 1), None)
+        return t.entdeckt.get(100, {}).get("punkt") if hasattr(t, "entdeckt") else None, bester
+    p18, bester18 = lage_flucht(True)
+    pruefe(18, "bester Punkt %s unerreichbar -> gewaehlt %s" % (bester18, p18), p18 is not None and bester18 is not None and p18 != bester18)
+    # 19
+    def lage_schwach(leben):
+        t = neu(); t._raid_plaetze = 99
+        L = {100: einheit(73, 1, 100, 100, leben=leben), 500: einheit(55, 2, 390, 390, leben=30000),
+             700: einheit(71, 2, 160, 125, leben=2000)}
+        G = {900: {"besitzer": 2, "typ": 3, "x": 160, "y": 100, "leben": 100, "uid": 1, "erreichbar": 1}}
+        t.aufnehmen([100])
+        t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
+        return t.ziel.get(100)
+    z19s, z19v = lage_schwach(5000), lage_schwach(12500)
+    pruefe(19, "Sklave 25 Felder neben dem Ziel: mit 5.000 Leben Ziel %s, mit 12.500 Ziel %s" % (z19s, z19v), z19s is None and z19v == 900)
+    # 20
+    t = neu(); t._raid_plaetze = 99
+    L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
+         600: einheit(23, 2, 130, 100, leben=17500), 601: einheit(24, 2, 112, 100, leben=10000)}
+    G = {900: {"besitzer": 2, "typ": 3, "x": 160, "y": 140, "leben": 100, "uid": 1, "erreichbar": 1}}
+    t.aufnehmen([100])
+    t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
+    L[100].update(laufx=160, laufy=140, zustand=101)
+    t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
+    p20a = t.entdeckt.get(100, {}).get("punkt") if hasattr(t, "entdeckt") else None
+    L[100].update(laufx=100, laufy=100, zustand=1)           # steht, kam nicht naeher
+    t.schritt(L, G, sichere_orte=[(50, 50)], tick=10030)
+    p20b = t.entdeckt.get(100, {}).get("punkt") if hasattr(t, "entdeckt") else None
+    pruefe(20, "Punkt nach Runde 1 %s, nach Runde 2 ohne Fortschritt %s" % (p20a, p20b), p20a is not None and p20b is not None and p20b != p20a)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

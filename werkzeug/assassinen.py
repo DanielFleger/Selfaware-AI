@@ -408,6 +408,11 @@ class Einzeln:
     ENTDECKT_TICKS = 400      # so lange gilt sie fuer jeden Schuetzen, der sie gesehen hat, als Ziel
     ENTDECKT_RAND = 4         # Felder ueber die Reichweite hinaus (Bolzen aus 42 Feldern, 1018p)
     GERADE_TEIL = 20          # lange Wege ohne Umweg trotzdem in Stuecken laufen (198 lief 222 Felder am Stueck)
+    # 19.10. (1018q: Einheiten heilen nie - in zwei Partien kein einziger Anstieg; 153 raidete mit 1.960 Leben, 86 mit 2.730,
+    # beide starben am naechsten Treffer): unter EIN_TREFFER (ein Armbrustbolzen 6.000 + Rand) nur Ziele, die kein waehlbarer
+    # Feind naeher als SICHT + RAND_SCHWACH Feinmass (32 Felder) sieht
+    EIN_TREFFER = 6500
+    RAND_SCHWACH = 96
     # 18.10. (Tode 1018n, tode_erklaeren.py: Zielwahl nahm 25/29/43 % Todesrisiko auf dem WEG zu unbeobachteten Zielen; das
     # Modell sah am Todesort 88-177 Beschuss je Takt): Risikogrenze auch fuer unbeobachtete Ziele; Schwache noch strenger
     ZIEL_RISIKO_WEG = 0.10
@@ -880,7 +885,7 @@ class Einzeln:
 
         def wert(q):
             if q not in self._ba_feld:
-                self._ba_feld[q] = self._sicht.beschuss(q, 16)
+                self._ba_feld[q] = self._sicht.beschuss(q, self._sicht.RAND)
             return self._ba_feld[q]
         if von is None:
             m = None
@@ -967,7 +972,39 @@ class Einzeln:
                 and q not in self.entdeckt.get(n, {}).get("gesperrt", ())]
         if not kand:
             return None
-        return min(kand, key=lambda q: (len(self._drohende(q, nrs, L)), s.sichtbar(q, 16), bool(s.verfolgt(q)), schach(ort, q)))
+
+        # 19.10. (1018q: 23 von 29 schweren Treffern kamen binnen 450 Takten NACH einer Entdeckung - der Fluchtweg blieb
+        # 300 Takte in Reichweite, 178 starb ausser Sicht): Bewertung nach der Zeit in Reichweite AUF DEM WEG (alle 2 Felder,
+        # Zahl der Schuetzen mit Linie), dann am Ziel, Sicht, Verfolger, Laenge - hinter Gebaeuden ist die Linie zu
+        merk = {}
+
+        def dro(q):                      # Zahl der Schuetzen, die q erreichen (je Aufruf gemerkt - Wege teilen Felder)
+            if q not in merk:
+                merk[q] = len(self._drohende(q, nrs, L))
+            return merk[q]
+
+        def weg(q):
+            k = max(1, schach(ort, q) // 2)
+            return sum(dro((ort[0] + (q[0] - ort[0]) * i // k, ort[1] + (q[1] - ort[1]) * i // k)) for i in range(1, k + 1))
+        # Rechenzeit (1018n nachgespielt: 0,09 -> 0,23 s je Runde, wenn jeder Kandidat den ganzen Weg rechnet): den Weg nur
+        # fuer die (hoechstens 24 naechsten) Punkte ausser Reichweite; gibt es keinen, die mit den wenigsten Schuetzen
+        frei = sorted((q for q in kand if dro(q) == 0), key=lambda q: schach(ort, q))[:24]
+        if frei:
+            kand = sorted(frei, key=lambda q: (weg(q), s.sichtbar(q, s.RAND), bool(s.verfolgt(q)), schach(ort, q)))
+        else:
+            kand.sort(key=lambda q: (dro(q), s.sichtbar(q, s.RAND), bool(s.verfolgt(q)), schach(ort, q)))
+        # 1018q (86 stand 3 Runden still: Fluchtpunkt laut Kartenabzug begehbar, im Spiel nicht erreichbar): die besten 8
+        # beim Wegfinder des Spiels pruefen, der erste erreichbare gilt
+        if self.wegtest:
+            try:
+                ok = self.wegtest(n, kand[:8])
+                for q, j in zip(kand[:8], ok):
+                    if j:
+                        return q
+                return None
+            except Exception:
+                pass
+        return kand[0]
 
     def _entdeckt_pruefen(self, L, G, ereignis, flieh, jagen=None):
         """19.10. (Daniel: "wenn 5 gestorben sind dann sofort stoppen und verhindern"; Partie 1018p): sichtbar (waehlbarer Feind
@@ -1024,8 +1061,11 @@ class Einzeln:
             if p is not None:
                 if e.get("letzt") != ort:
                     e["letzt"], e["feld_seit"] = ort, self.jetzt
-                if schach(ort, p) > 2 and self.jetzt - e.get("feld_seit", self.jetzt) >= max(
-                        60, 2 * getattr(self, "_runde_ticks", self.RUNDE_TICKS)):
+                d_jetzt, d_vor = schach(ort, p), e.get("abstand", 10 ** 6)
+                e["abstand"] = d_jetzt
+                # 19.10. (1018q: 86, 91, 205 liefen erst weg vom Punkt oder standen): naeher kommen MUSS er in jeder Runde
+                if d_jetzt > 2 and (d_jetzt >= d_vor or self.jetzt - e.get("feld_seit", self.jetzt) >= max(
+                        60, 2 * getattr(self, "_runde_ticks", self.RUNDE_TICKS))):
                     e.setdefault("gesperrt", []).append(p)
                     p = None
                 elif self._drohende(p, e["schuetzen"], L) or s.sichtbar(p, 16):
@@ -1034,7 +1074,7 @@ class Einzeln:
                 p = self._ausser_reichweite(n, ort, e["schuetzen"], L)
                 if p is None:
                     continue
-                e["punkt"], e["letzt"], e["feld_seit"] = p, ort, self.jetzt
+                e["punkt"], e["letzt"], e["feld_seit"], e["abstand"] = p, ort, self.jetzt, schach(ort, p)
                 self._fliehen(n, p, flieh)
                 ereignis.append("ENTDECKT %d: laeuft nach %s (%d Felder; dort erreichen ihn %d der %d Schuetzen)" % (
                     n, p, schach(ort, p), len(self._drohende(p, e["schuetzen"], L)), len(e["schuetzen"])))
@@ -1488,7 +1528,7 @@ class Einzeln:
                 for a_, b_ in zip(stueck, stueck[1:]):
                     k_ = max(1, schach(a_, b_) // 2)
                     probe += [(a_[0] + (b_[0] - a_[0]) * i // k_, a_[1] + (b_[1] - a_[1]) * i // k_) for i in range(k_ + 1)]
-                if any(self._sicht.beschuss(q, 16) > 0 for q in (probe or [ort])):
+                if any(self._sicht.beschuss(q, self._sicht.RAND) > 0 for q in (probe or [ort])):
                     ereignis.append("ROUTE GEFAEHRLICH %d bei %s: Ziel %s aufgegeben, neuer Weg" % (n, ort, self.ziel.get(n)))
                     # 18.10. (1017l: 86 pendelte 29 -> Route gefaehrlich -> anderes Ziel -> Zielwechsel zurueck auf 29, dreimal):
                     # der Zielwechsel prueft keinen Weg - dieses Ziel ist fuer ihn SPERRE_ROUTE Takte gesperrt
@@ -1861,6 +1901,8 @@ class Einzeln:
                 if self._route_sperre.get((n, k[0]), -1) >= self.jetzt:
                     continue                   # 18.10. (1018n, Assassine 17): nach ROUTE GEFAEHRLICH nicht gleich dasselbe Ziel
                 b_ziel = self._beschuss_angriff(k[0], G, ort)
+                if L[n]["leben"] < self.EIN_TREFFER and (b_ziel > 0 or self._sicht.sicht_abstand(k[1]) < sicht.SICHT + self.RAND_SCHWACH):
+                    continue                   # 19.10.: ein Bolzen toetet ihn - nur Ziele weit ab von jedem Spaeher
                 # 17.10.: Zeit am Ziel = gemessene Arbeit / Zahl der Angreifer (statt VERWEILEN 300 ungemessen); Beschuss am
                 # Ziel aus der Sicht (sichtbar nur bei waehlbarem Feind <= 20 Feldern, Schusslinie) statt Schadenssatz L73
                 verweilen = self._arbeit(k[2], zahl.get(k[0], 0) + 1)

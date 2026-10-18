@@ -120,6 +120,9 @@ class Lage:
     # zuteilte - die Schuetzen schossen trotzdem auf ihn): STRENG = jeder Schuetze mit Reichweite und freier Linie zaehlt fuer
     # eine sichtbare (oder noch nicht vergessene) Assassine, egal worauf er laut Zuteilung gerade zielt
     STRENG = True
+    # 19.10. (Partie 1018q: 44 Entdeckungen, fast alle bei 16-19 Feldern - Sklaven, Bogen und feindliche Assassinen liefen auf
+    # unsere zu): Sicherheitsrand in Feinmass fuer Planung (sicher, Gefahren-Gitter) - 48 = 6 Felder ueber die 20 hinaus
+    RAND = 48
 
     def __init__(self, L, G, sp=1, haltung=None, noch_sichtbar=()):
         """noch_sichtbar: eigene Assassinen, die in den letzten 128 Takten sichtbar waren - das Spiel setzt ihr Sicht-Feld
@@ -310,14 +313,14 @@ class Lage:
         """Hier trifft ihn gerade nichts: kein Beschuss (unsichtbar ODER kein Schuetze mit Linie) und kein Verfolger.
         17.10.: zuerst "unsichtbar" verlangt - dann wartete jede Assassine 20 Felder neben dem feindlichen Lord weg, obwohl
         dort kein Schuetze stand (lordanlauf_pruefen Fall 2). Gesehen werden allein schadet nicht."""
-        return self.beschuss(feld, 16, nur_ob=True) <= 0 and not self.verfolgt(feld)
+        return self.beschuss(feld, self.RAND, nur_ob=True) <= 0 and not self.verfolgt(feld)
 
     # --- Zellen fuer schussfeld.Gitter -----------------------------------------------------------------------------
     def zellsatz(self, zelle, n):
         """Beschuss je Takt je Zelle (Zellmitte, Rand 16 Feinmass fuer die Lage in der Zelle)."""
         satz = [[0.0] * n for _ in range(n)]
         mitte = lambda c: (c[0] * zelle + zelle // 2, c[1] * zelle + zelle // 2)
-        rand = 16 + zelle * 4
+        rand = self.RAND + zelle * 4
         sicht = set()
         rz = (21 + rand // 8) // zelle + 1
         for w in self.waehl:
