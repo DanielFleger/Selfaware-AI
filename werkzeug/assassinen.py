@@ -51,7 +51,11 @@ FERNKAMPF = {22, 23, 70, 72, 74, 76}
 WERT = {
     # Daniel 05.10. 19:05: Ausbildungslager, Steinbrueche, Haeuser usw. sind mehr wert als Apfelplantagen und, wenn
     # nicht allzu schwer bewacht, fast noch bessere Ziele. Kornspeicher-Bonus (04.10. 22:54). STARTWERTE, Rangfolge von Daniel.
-    9: 100, 8: 100,                     # Kaserne, Soeldnerlager (Ausbildungslager)
+    # 19.10. (Daniel nach 1019j: "Angriffe auf Markt und Ausbildungslager - der groesste Hebel"; gemessen im Lageprotokoll
+    # 1019j: mit Soeldnerposten UND Markt warben die Nomaden 2,5-2,9 Truppen je 1.000 Takte an, fehlte einer von beiden
+    # 0-0,7 (4 Ausfaelle, 1.300-3.600 Takte je Lage); wieder aufgebaut nach 1.300-4.400 Takten -> ein Ausfall kostet sie
+    # ~3-10 Truppen): Soeldnerposten 100 -> 300, Markt 150 -> 300
+    9: 100, 8: 300,                     # Kaserne, Soeldnerposten (Ausbildungslager)
     19: 100,                            # Kornspeicher
     # 17.10. (Daniel: "nie den unzerstoerbaren Abstellhaufen des Steinbruchs angreifen"): Steinhaufen Typ 21 (L8) raus -
     # in den 1017-Partien 89x Ziel, 6x "zerstoert" (vermutlich nur mit seinem Steinbruch)
@@ -66,8 +70,8 @@ WERT = {
     32: 70, 7: 30,                      # Apfelplantage, Jaegerhuette
     # 19.10. (Daniel: "auf dem Weg nimmt ein Assassine kein Markt mit, den ich als Mensch sofort mitgesnackt haette - die KI ist
     # ohne Markt komplett gelaehmt"): Markt hoechster Wert (vorher 20, unter der Apfelplantage) - der Zielwechsel unterwegs
-    # (WECHSEL 1,5 x Wert je Weg) nimmt ihn dann mit; ab TEUER zwei Plaetze
-    26: 150}
+    # (WECHSEL 1,5 x Wert je Weg) nimmt ihn dann mit; ab TEUER zwei Plaetze. 19.10.: 300 (siehe Soeldnerposten)
+    26: 300}
 # Liga-Balance (liga_ai.json ranges): alle Bogen/Armbrust 40 Felder - eine Zahl fuer "in Schussweite" (Daniel 23:18: Schuetzen-
 # Gefahr auf 40; live_6: Assassine starb bei Tick 8.527, naechster Bogenschuetze 26 Felder weg, gezaehlt wurde nur bis 16)
 SCHUSSWEITE = 40
@@ -443,7 +447,21 @@ class Einzeln:
     # 19.10. (1019f, 330: 12.500 gegen die Assassine 179 mit 6.950 - aber 322 mit 12.500 stand 13 Felder weg und fing ihn
     # ab; 330 starb): das Gefecht mit allen feindlichen Nahkaempfern bis GEGEN_UMKREIS und unseren Assassinen bis GEGEN_EIGEN
     # Feldern durchrechnen (gefecht.py, Editor-Duelle) - nur bei Sieg mit mindestens GEGEN_BEHALTEN Rest
-    GEGEN_UMKREIS, GEGEN_EIGEN, GEGEN_BEHALTEN = 20, 6, 0.4
+    # 19.10. (1019j, 300: mit 9.050 Leben 1 gegen 2 geflohen und eingeholt, 127 9 und 321 14 Felder daneben - zu dritt
+    # gegen die zwei ein Sieg): unsere Assassinen bis GEGEN_EIGEN Felder rechnen mit UND greifen gemeinsam an
+    GEGEN_UMKREIS, GEGEN_EIGEN, GEGEN_BEHALTEN = 20, 15, 0.4
+    # 19.10. (1019j, Daniel: "schlechte Trades - Assassine gegen 3 Assassinen des Gegners"; tode_1019j.md: alle 5 Nahkampf-
+    # Tode gegen feindliche Assassinen-Trupps. 307, 300, 127 gingen einzeln nacheinander gegen einen Trupp aus 3, der 1.200
+    # Takte lang auf die Gebaeude zumarschierte, die sie abrissen; 300 und 334 liefen auf Warte- und Fluchtwegen mitten durch
+    # einen Trupp aus 4). NAHTRUPP = feindliche Nahkaempfer aus NAHTRUPP_TYPEN, zusammen mindestens NAHTRUPP_MIN Gewicht
+    # (NAH_GEFAHR) in NAHTRUPP_DICHT Feldern. Zone um jedes Mitglied: Verfolgungs-Radius seiner Haltung (L77) + NAHTRUPP_RAND;
+    # um das Laufziel wandernder Mitglieder NAHTRUPP_ZIEL_R. Kommt ein Trupp auf eine Assassine zu (sie steht in der Zone, oder
+    # er laeuft auf sie zu): Gefechtsrechnung mit unseren Assassinen bis GEGEN_EIGEN Feldern - lohnt sie, greifen alle
+    # zugleich an, sobald er bis NAHTRUPP_SCHLAG heran ist; sonst raus wie bei JAEGER. Zielwahl, Wege, Warte- und Fluchtpunkte
+    # meiden die Zonen. STARTWERTE.
+    NAHTRUPP_TYPEN = {25, 26, 27, 28, 37, 73, 75}
+    NAHTRUPP_MIN, NAHTRUPP_DICHT, NAHTRUPP_RAND, NAHTRUPP_ZIEL_R = 2.0, 8, 8, 20
+    NAHTRUPP_SCHLAG, NAHTRUPP_TICKS, NAHTRUPP_WEG_SCHADEN = 15, 150, 80
     JAEGER_ZIEL_WEIT = 80     # Laufziel-Ausloeser nur fuer Trupps bis 80 Felder (1019a: Ausloeser bei 197 Feldern Abstand)
     JAEGER_SICHT, JAEGER_NAEHER = 26, 5   # 19.10. (Daniel, Sichtfeld): Sicht 20 + Rand 6; "kommt naeher" = Laufziel 5 Felder naeher
     RUHE_FELDER = 40          # 19.10.: so viele Felder ohne waehlbaren Feind = voller Ruhe-Bonus (x2)
@@ -515,6 +533,7 @@ class Einzeln:
         self._raid_plaetze = None            # 17.10.: lohnende Raid-Plaetze der letzten Runde (Raiden geht vor)
         self._steht = {}                     # 17.10.: n -> (Feld, seit Tick) - Stillstand ohne Spielziel
         self._route_sperre = {}              # 18.10.: (n, Gebaeude) -> bis Tick (Route war gefaehrlich)
+        self._gegenschlag = set()            # 19.10.: greifen diese Runde gemeinsam an (GEGEN-ASSASSINE, GEGENSCHLAG)
 
     def aufnehmen(self, nummern):
         self.mitglieder |= set(n for n in nummern if n not in self.bilanz["verluste"])
@@ -570,11 +589,12 @@ class Einzeln:
         if s is None:
             return max(kurz, key=lambda p: (self._naechster(p, fern)[0], -schach(ort, p))) if kurz else (orte[0] if orte else None)
         for liste in (kurz, orte):
-            gut = [p for p in liste if s.sicher(p)]
-            if gut:
-                return min(gut, key=lambda p: schach(ort, p))
+            # 19.10.: Nahkampf-Trupps - der Weg wird nur fuer die sicheren Orte gerechnet, vom naechsten an
+            for p in sorted((p for p in liste if self._sicher(p)), key=lambda p: schach(ort, p)):
+                if not self._weg_durch_nahzone(ort, p):
+                    return p
         alle = kurz + orte
-        return min(alle, key=lambda p: (s.beschuss(p), -s.sicht_abstand(p), schach(ort, p))) if alle else None
+        return min(alle, key=lambda p: (self._in_nahzone(p), s.beschuss(p), -s.sicht_abstand(p), schach(ort, p))) if alle else None
 
     def _fluchtpunkt(self, ort, nah, n, L=None, nicht_bei=None, mitte=None):
         """4a: wohin vor einer Nahkampf-Uebermacht? Unter den begehbaren Punkten weg vom Feind (_weg_vom_feind, 15-25 Felder,
@@ -586,6 +606,7 @@ class Einzeln:
         Ohne solchen Punkt: das naechste Heim selbst."""
         kurz = [p for p in self._kand.get(n, []) if p in self._begehbar and p not in self.schlechte_orte
                 and all(schach(p, b) > 6 for b in (nicht_bei or []))]
+        kurz = [p for p in kurz if not self._in_nahzone(p)] or kurz      # 19.10.: nicht in den naechsten Nahkampf-Trupp
         alle_heim = getattr(self, "_heim", [])
         # Daniel 22:37: nur nach Hause, wenn unsere Truppen dort die Verfolger schlagen koennen, sonst seitlich weg.
         # Gemessen raidzuerst_6: er zog 2-3 Assassinen bis an unsere Burg - 6 eigene Soldaten tot, kein Verfolger tot.
@@ -860,6 +881,19 @@ class Einzeln:
                                 zone.add((cx, cy))
             for cx, cy in zone:
                 g.satz[cy][cx] += self.JAEGER_WEG_SCHADEN
+            # 19.10. (1019j): Nahkampf-Trupps als Zone - um jedes Mitglied und um das Laufziel wandernder Mitglieder; Weg- und
+            # Zielwahl gehen nicht hinein (Gebaeude, zu denen ein Trupp marschiert, sind kein Ziel)
+            zone = set()
+            for t in self._nahtrupps(L):
+                for q, r in t["zone"] + t["ziele"]:
+                    c = g.zelle_von(q)
+                    rz = r // g.z + 1
+                    for cy in range(max(0, c[1] - rz), min(g.n, c[1] + rz + 1)):
+                        for cx in range(max(0, c[0] - rz), min(g.n, c[0] + rz + 1)):
+                            if (cx, cy) not in zone and schach(g.mitte((cx, cy)), q) <= r:
+                                zone.add((cx, cy))
+            for cx, cy in zone:
+                g.satz[cy][cx] += self.NAHTRUPP_WEG_SCHADEN
         self._gitter_runde = (self.runde, g)
         return g
 
@@ -1072,6 +1106,10 @@ class Einzeln:
                 and q not in self.entdeckt.get(n, {}).get("gesperrt", ())]
         # 19.10. (1018z, 16 und 230 flohen in die Richtung, in die der Trupp lief): nicht dorthin, wo ein Trupp hinlaeuft
         kand = [q for q in kand if not self._jaeger_nah(q, L)] or kand
+        # 19.10. (1019j, 334 floh zu (328,190), (338,174), (365,177) - mitten in einen Trupp aus 4 Assassinen): nicht in die
+        # Zone eines Nahkampf-Trupps und nicht auf dem Weg hindurch
+        if self._nahtrupps(L):
+            kand = [q for q in kand if not self._in_nahzone(q, L) and not self._weg_durch_nahzone(ort, q)] or kand
         if not kand:
             return None
 
@@ -1123,16 +1161,16 @@ class Einzeln:
         """19.10.: Orte jedes feindlichen Schuetzen der letzten JAEGER_ZEIT Takte; self._jaeger = die, die darin mindestens
         JAEGER_WEG Felder gelaufen sind."""
         alt = getattr(self, "_spur", {})
-        spur, jaeger = {}, set()
+        spur, jaeger, wandernd = {}, set(), set()
         for k, e in L.items():
-            if e["besitzer"] in (0, self.sp) or e["typ"] not in sicht.REICHWEITE:
+            if e["besitzer"] in (0, self.sp) or (e["typ"] not in sicht.REICHWEITE and e["typ"] not in self.NAHTRUPP_TYPEN):
                 continue
             p = (e["x"], e["y"])
             d = [x for x in alt.get(k, ()) if x[0] >= self.jetzt - self.JAEGER_ZEIT and x[1] != p] + [(self.jetzt, p)]
             spur[k] = d[-12:]
             if any(schach(p, q) >= self.JAEGER_WEG for _, q in d):
-                jaeger.add(k)
-        self._spur, self._jaeger = spur, jaeger
+                (jaeger if e["typ"] in sicht.REICHWEITE else wandernd).add(k)
+        self._spur, self._jaeger, self._nah_wandernd = spur, jaeger, wandernd   # 19.10.: auch wandernde Nahkaempfer (NAHTRUPP)
 
     def _jaeger_nah(self, ort, L):
         """19.10.: wandernde Schuetzen, die ort bald SEHEN - ab JAEGER_MIN die Nummern. 19.10. (Daniel, 1019b: "der Assassine
@@ -1146,6 +1184,147 @@ class Einzeln:
             return d_p <= self.JAEGER_SICHT or (d_p <= self.JAEGER_R and d_z < d_p - self.JAEGER_NAEHER)                 or (d_z <= self.JAEGER_ZIEL_R and d_p <= self.JAEGER_ZIEL_WEIT)
         nah = [k for k in getattr(self, "_jaeger", ()) if k in L and kommt(k)]
         return nah if len(nah) >= self.JAEGER_MIN else []
+
+    def _nahtrupps(self, L):
+        """19.10.: Trupps feindlicher Nahkaempfer (NAHTRUPP) dieser Runde - je Trupp {"mitglieder": [Nr], "gewicht",
+        "zone": [(Ort, Radius)], "ziele": [(Laufziel, Radius)]}. Zusammen gehoert, wer hoechstens NAHTRUPP_DICHT Felder von
+        einem anderen Mitglied steht (Kette); Radius = Verfolgungs-Radius der Haltung (sicht.HALTUNG_RADIUS, ohne Trupp 0) +
+        NAHTRUPP_RAND; Laufziel-Zone nur fuer wandernde Mitglieder, deren Laufziel mindestens JAEGER_WEG Felder weg ist."""
+        if getattr(self, "_nt_runde", None) == self.runde:
+            return self._nt
+        kand = [k for k, e in L.items() if e["besitzer"] not in (0, self.sp) and e["typ"] in self.NAHTRUPP_TYPEN]
+        pos = {k: (L[k]["x"], L[k]["y"]) for k in kand}
+        rest, trupps = set(kand), []
+        while rest:
+            k0 = rest.pop()
+            gruppe, offen = [k0], [k0]
+            while offen:
+                a = offen.pop()
+                nah_ = [b for b in rest if schach(pos[a], pos[b]) <= self.NAHTRUPP_DICHT]
+                for b in nah_:
+                    rest.discard(b)
+                gruppe += nah_
+                offen += nah_
+            gewicht = sum(self.NAH_GEFAHR.get(L[k]["typ"], 1.0) for k in gruppe)
+            if gewicht < self.NAHTRUPP_MIN:
+                continue
+            zone, ziele = [], []
+            for k in sorted(gruppe):
+                e = L[k]
+                g = e.get("gruppe") or 0
+                r = sicht.HALTUNG_RADIUS.get(self._haltung.get(g, 1), 5) if g else 0
+                zone.append((pos[k], r + self.NAHTRUPP_RAND))
+                lz = (e.get("laufx", e["x"]), e.get("laufy", e["y"]))
+                if k in getattr(self, "_nah_wandernd", ()) and schach(lz, pos[k]) >= self.JAEGER_WEG:
+                    ziele.append((lz, self.NAHTRUPP_ZIEL_R))
+            trupps.append({"mitglieder": sorted(gruppe), "gewicht": gewicht, "zone": zone, "ziele": ziele})
+        self._nt_runde, self._nt = self.runde, trupps
+        return trupps
+
+    def _in_nahzone(self, q, L=None):
+        """19.10.: liegt q in der Zone eines feindlichen Nahkampf-Trupps (um ein Mitglied oder um ein Laufziel)?"""
+        for t in (self._nahtrupps(L) if L is not None else getattr(self, "_nt", [])):
+            if any(schach(q, p) <= r for p, r in t["zone"]) or any(schach(q, z) <= r for z, r in t["ziele"]):
+                return True
+        return False
+
+    def _weg_durch_nahzone(self, von, nach):
+        """19.10. (1019j, 300 und 334 liefen auf dem Weg zum Warte-/Fluchtpunkt durch einen Trupp aus 4): fuehrt die Gerade
+        von -> nach (alle 2 Felder) durch die Zone eines Mitglieds? (Laufziel-Zonen zaehlen hier nicht - dort ist er noch nicht)"""
+        zonen = [(p, r) for t in getattr(self, "_nt", []) for p, r in t["zone"]
+                 if schach(p, von) <= schach(von, nach) + r]
+        if not zonen:
+            return False
+        k = max(1, schach(von, nach) // 2)
+        for i in range(1, k + 1):
+            q = (von[0] + (nach[0] - von[0]) * i // k, von[1] + (nach[1] - von[1]) * i // k)
+            if any(schach(q, p) <= r for p, r in zonen):
+                return True
+        return False
+
+    def _nahtrupp_droht(self, ort, L):
+        """19.10.: der naechste Nahkampf-Trupp, der zu ort kommt - ort liegt in seiner Zone (Mitglied oder Laufziel, solange
+        der Trupp hoechstens JAEGER_ZIEL_WEIT Felder weg ist), oder ein wanderndes Mitglied bis JAEGER_R kommt naeher
+        (Laufziel mindestens JAEGER_NAEHER Felder naeher an ort als es selbst). Gibt (Trupp, Abstand) oder None."""
+        best = None
+        for t in self._nahtrupps(L):
+            d = min(schach(ort, p) for p, _ in t["zone"])
+            kommt = any(schach(ort, p) <= r for p, r in t["zone"]) or (
+                d <= self.JAEGER_ZIEL_WEIT and any(schach(ort, z) <= r for z, r in t["ziele"]))
+            if not kommt:
+                for k in t["mitglieder"]:
+                    e = L[k]
+                    p, z = (e["x"], e["y"]), (e.get("laufx", e["x"]), e.get("laufy", e["y"]))
+                    if k in getattr(self, "_nah_wandernd", ()) and schach(ort, p) <= self.JAEGER_R \
+                            and schach(ort, z) < schach(ort, p) - self.JAEGER_NAEHER:
+                        kommt = True
+                        break
+            if kommt and (best is None or d < best[1]):
+                best = (t, d)
+        return best
+
+    def _sicher(self, q):
+        """19.10.: sicht.sicher (kein Beschuss, kein Verfolger) und keine Nahkampf-Trupp-Zone."""
+        return self._sicht.sicher(q) and not self._in_nahzone(q)
+
+    def _trupp_rechnung(self, n, ort, trupp, L):
+        """19.10.: (lohnt, Text, wir) - unsere Mitkaempfer (_mitkaempfer) gegen den Trupp, alle weiteren feindlichen
+        Nahkaempfer bis GEGEN_UMKREIS um seine Mitglieder und die feindlichen Schuetzen, die diese Stelle erreichen (stehen).
+        lohnt = Sieg mit mindestens GEGEN_BEHALTEN Rest."""
+        import gefecht
+        wir_nr = self._mitkaempfer(n, ort, L)
+        # Rechenzeit (Nachspiel 1019j: bis 0,5 s je Runde, jede Rechnung gegen 30+ Feinde im Feindgebiet): unser Leben in
+        # vollen Assassinen nicht ueber dem Gewicht des Trupps allein (je Mitglied NAH_GEFAHR x Lebensanteil) -> kein Sieg
+        # (Rechnung: 3 gegen 3 volle Assassinen verlieren); je Runde dieselbe Lage nur einmal
+        voll_t = gefecht.tabelle()[1]
+        w_wir = sum(L[m]["leben"] for m in wir_nr) / float(self.VOLL)
+        w_sie = sum(self.NAH_GEFAHR.get(L[k]["typ"], 1.0) * min(1.0, L[k]["leben"] / float(voll_t.get(L[k]["typ"]) or L[k]["leben"] or 1))
+                    for k in trupp["mitglieder"] if k in L)
+        if w_wir <= w_sie:
+            return False, "%d eigene (%.1f volle) gegen Trupp-Gewicht %.1f: zu wenige" % (len(wir_nr), w_wir, w_sie), wir_nr
+        schluessel = (self.runde, tuple(trupp["mitglieder"]), tuple(sorted(wir_nr)))
+        if getattr(self, "_tr_merk", (None,))[0] == schluessel:
+            return self._tr_merk[1]
+        orte_t = [(L[k]["x"], L[k]["y"]) for k in trupp["mitglieder"] if k in L]
+        sie = []
+        for k, e in L.items():
+            if e["besitzer"] in (0, self.sp):
+                continue
+            p = (e["x"], e["y"])
+            if e["typ"] in sicht.NAHKAMPF and (k in trupp["mitglieder"] or any(schach(p, q) <= self.GEGEN_UMKREIS for q in orte_t)):
+                sie.append(dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"]))
+            elif e["typ"] in sicht.REICHWEITE and any(schach(p, q) <= sicht.REICHWEITE[e["typ"]] for q in orte_t):
+                sie.append(dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=True))
+        wir = [dict(typ=ASSASSINE, leben=L[m]["leben"], x=L[m]["x"], y=L[m]["y"]) for m in wir_nr]
+        try:
+            voll = sum(w["leben"] for w in wir)
+            r_wir, r_sie, t_, sieg = gefecht.simuliere(wir, sie)
+        except Exception as ex:
+            return False, "Rechnung fehlgeschlagen (%s)" % ex, wir_nr
+        anteil = r_wir / float(max(1, voll))
+        erg = (sieg and anteil >= self.GEGEN_BEHALTEN, "%d eigene gegen %d feindliche (Trupp %d, Gewicht %.1f): %s, uns bleiben %.0f %%" % (
+            len(wir), len(sie), len(trupp["mitglieder"]), trupp["gewicht"], "Sieg" if sieg else "kein Sieg", 100 * anteil), wir_nr)
+        self._tr_merk = (schluessel, erg)
+        return erg
+
+    def _gemeinsam_angreifen(self, wir_nr, ziele, L, jagen):
+        """19.10.: alle aus wir_nr greifen zugleich an - jeder das naechste der Ziele (Nummern feindlicher Einheiten)."""
+        for m in wir_nr:
+            if m not in L:
+                continue
+            q = (L[m]["x"], L[m]["y"])
+            k = min((z for z in ziele if z in L), key=lambda z: (schach(q, (L[z]["x"], L[z]["y"])), z), default=None)
+            if k is None:
+                continue
+            if self.jagd.get(m) != k:
+                self._vergessen(m)
+                self.stapel["mitglieder"].discard(m)
+                self.jagd[m] = k
+                jagen[:] = [j for j in jagen if j[0] != m]
+                jagen.append((m, k))
+            self.flucht.pop(m, None)
+            self.entdeckt.pop(m, None)
+            self._gegenschlag.add(m)
 
     def _trupps(self, L):
         """19.10.: wandernde Schuetzen mit mindestens JAEGER_MIN wandernden (sich eingeschlossen) in 8 Feldern - ein Trupp."""
@@ -1175,6 +1354,31 @@ class Einzeln:
             e = self.entdeckt.get(n)
             if n not in self.letzter and self._gegen_assassine(n, ort, L, ereignis, jagen if jagen is not None else []):
                 continue
+            if n in self._gegenschlag:
+                continue                       # 19.10.: greift diese Runde mit den anderen zugleich an
+            # 19.10. (1019j): kommt ein feindlicher Nahkampf-Trupp - gemeinsam schlagen, wenn die Rechnung lohnt, sonst raus
+            nt = None if n in self.letzter else self._nahtrupp_droht(ort, L)
+            if nt is not None:
+                trupp, d_t = nt
+                lohnt, text, wir_nr = self._trupp_rechnung(n, ort, trupp, L)
+                if lohnt and d_t <= self.NAHTRUPP_SCHLAG:
+                    self._gemeinsam_angreifen(wir_nr, trupp["mitglieder"], L, jagen if jagen is not None else [])
+                    self.bilanz["gegenschlag"] = self.bilanz.get("gegenschlag", 0) + 1
+                    ereignis.append("GEGENSCHLAG %d: Trupp aus %d (%s) in %d Feldern - %s greifen zugleich an - %s" % (
+                        n, len(trupp["mitglieder"]), "/".join(str(L[k]["typ"]) for k in trupp["mitglieder"]), d_t,
+                        "/".join(map(str, sorted(wir_nr))), text))
+                    continue
+                # frueh raus; ist der Trupp schon bis UEBERMACHT_R heran, gilt die Flucht vor der Uebermacht (4a)
+                if not lohnt and n not in self.flucht and d_t > self.UEBERMACHT_R:
+                    if e is None:
+                        e = self.entdeckt[n] = {"schuetzen": set(), "seit": self.jetzt, "punkt": None, "nahtrupp": True,
+                                                "gesehen": False}
+                        self.bilanz["nahtrupp"] = self.bilanz.get("nahtrupp", 0) + 1
+                        ereignis.append("NAHTRUPP %d bei %s (Auftrag: %s): Trupp aus %d (%s) in %d Feldern - %s -> weicht aus" % (
+                            n, ort, self._taetigkeit(n, G), len(trupp["mitglieder"]),
+                            "/".join(str(L[k]["typ"]) for k in trupp["mitglieder"]), d_t, text))
+                    e["bis"] = max(e.get("bis", 0), self.jetzt + self.NAHTRUPP_TICKS)
+                    e["ziel_ok"] = None            # kein Aussendienst, solange der Trupp kommt
             # 19.10. (1018s: 132 floh vor Nahkaempfern sichtbar durch 7 Boegen - die Flucht 4a kennt keine Schuetzen; 1018r
             # 233/142 genauso): auf der Flucht nur, wenn Schuetzen ihn sehen - dann uebernimmt ENTDECKT (Verfolger zaehlen
             # in der Fluchtpunkt-Wahl)
@@ -1227,8 +1431,10 @@ class Einzeln:
             if self.jetzt >= e["bis"]:
                 del self.entdeckt[n]
                 self.warte.pop(n, None); self.warte_seit.pop(n, None)
-                ereignis.append("ENTDECKT vorbei %d: %d Takte nicht gesehen, Leben %d - raidet wieder" % (
-                    n, self.ENTDECKT_TICKS, L[n]["leben"]))
+                ereignis.append("ENTDECKT vorbei %d: %d Takte %s, Leben %d - raidet wieder" % (
+                    n, self.NAHTRUPP_TICKS if e.get("nahtrupp") and not e.get("gesehen") else self.ENTDECKT_TICKS,
+                    "kein Nahkampf-Trupp im Anmarsch" if e.get("nahtrupp") and not e.get("gesehen") else "nicht gesehen",
+                    L[n]["leben"]))
                 continue
             if e.get("ziel_ok") is not None and self.ziel.get(n) == e["ziel_ok"]:
                 continue                       # Aussendienst: Ziel weit weg von den Schuetzen, die ihn gesehen haben
@@ -1270,7 +1476,7 @@ class Einzeln:
                     e.setdefault("gesperrt", []).append(p)
                     p = None
                 elif self._drohende(p, e["schuetzen"] | self._nahe_schuetzen(p, L), L) or s.sichtbar(p, s.RAND) \
-                        or self._jaeger_nah(p, L):
+                        or self._jaeger_nah(p, L) or self._in_nahzone(p, L):
                     p = None
             if p is None:
                 p = self._ausser_reichweite(n, ort, e["schuetzen"] | self._nahe_schuetzen(ort, L), L)
@@ -1341,10 +1547,11 @@ class Einzeln:
             ort, (L[j]["x"], L[j]["y"])) <= self.GEGEN_UMKREIS
         if not dran and (not nahk or nahk[0][2]["typ"] != ASSASSINE or nahk[0][0] > self.GEGEN_R):
             return False
-        lohnt, text = self._gegen_rechnung(n, ort, nahk, L)
+        lohnt, text, wir_nr = self._gegen_rechnung(n, ort, nahk, L)
         if dran:
             # ist schon dran - jede Runde neu rechnen (1019f: 301 blieb dran, als zwei weitere Nahkaempfer kamen)
             if lohnt:
+                self._gegenschlag.add(n)
                 return True
             del self.jagd[n]
             ereignis.append("GEGEN-ASSASSINE abgebrochen %d: %s" % (n, text))
@@ -1355,29 +1562,34 @@ class Einzeln:
         zeit = d * TEMPO + e["leben"] / float(NAHKAMPF_RATE.get(ASSASSINE, 230))
         if self._feuer_von(ort, self._nahe_schuetzen(ort, L), L) * zeit > self.SPAEHER_ANTEIL * L[n]["leben"]:
             return False
-        self._vergessen(n)
-        self.flucht.pop(n, None)
-        self.jagd[n] = k
-        jagen.append((n, k))
-        ereignis.append("GEGEN-ASSASSINE %d: feindliche Assassine %d in %d Feldern (Leben %d gegen %d) - schlaegt zuerst zu - %s" % (
-            n, k, d, L[n]["leben"], e["leben"], text))
+        # 19.10.: alle, mit denen gerechnet wurde, greifen zugleich an (1019j: einzeln nacheinander verloren)
+        self._gemeinsam_angreifen(wir_nr, [x[1] for x in nahk], L, jagen)
+        ereignis.append("GEGEN-ASSASSINE %d: feindliche Assassine %d in %d Feldern (Leben %d gegen %d) - %s schlagen zuerst zu - %s" % (
+            n, k, d, L[n]["leben"], e["leben"], "/".join(map(str, sorted(wir_nr))), text))
         return True
 
+    def _mitkaempfer(self, n, ort, L):
+        """19.10.: wer mitrechnet und mitkaempft - n selbst, dazu unsere Assassinen bis GEGEN_EIGEN Felder mit mindestens
+        EIN_TREFFER Leben, nicht im Lord-Angriff, nicht im letzten Einsatz und nicht gerade von Schuetzen gesehen (ENTDECKT)."""
+        return [m for m in self.mitglieder if m in L and (m == n or (
+            L[m]["leben"] >= self.EIN_TREFFER and not self._im_lordangriff(m) and m not in self.letzter
+            and not self.entdeckt.get(m, {}).get("gesehen") and schach(ort, (L[m]["x"], L[m]["y"])) <= self.GEGEN_EIGEN))]
+
     def _gegen_rechnung(self, n, ort, nahk, L):
-        """19.10.: (lohnt, Text) - wir (n und unsere Assassinen bis GEGEN_EIGEN Felder) gegen alle feindlichen Nahkaempfer bis
-        GEGEN_UMKREIS (sie laufen auf uns zu); lohnt = Sieg mit mindestens GEGEN_BEHALTEN unseres Lebens."""
+        """19.10.: (lohnt, Text, wir) - wir (_mitkaempfer) gegen alle feindlichen Nahkaempfer bis GEGEN_UMKREIS (sie laufen auf
+        uns zu); lohnt = Sieg mit mindestens GEGEN_BEHALTEN unseres Lebens."""
         import gefecht
-        wir = [dict(typ=ASSASSINE, leben=L[m]["leben"], x=L[m]["x"], y=L[m]["y"]) for m in self.mitglieder
-               if m in L and schach(ort, (L[m]["x"], L[m]["y"])) <= self.GEGEN_EIGEN and not self._im_lordangriff(m)]
+        wir_nr = self._mitkaempfer(n, ort, L)
+        wir = [dict(typ=ASSASSINE, leben=L[m]["leben"], x=L[m]["x"], y=L[m]["y"]) for m in wir_nr]
         sie = [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"]) for _, _, e in nahk]
         try:
             voll = sum(w["leben"] for w in wir)
             r_wir, r_sie, t, sieg = gefecht.simuliere(wir, sie)
         except Exception as ex:
-            return False, "Rechnung fehlgeschlagen (%s)" % ex
+            return False, "Rechnung fehlgeschlagen (%s)" % ex, wir_nr
         anteil = r_wir / float(max(1, voll))
         return sieg and anteil >= self.GEGEN_BEHALTEN, "%d eigene gegen %d feindliche Nahkaempfer bis %d Felder: %s, uns bleiben %.0f %%" % (
-            len(wir), len(sie), self.GEGEN_UMKREIS, "Sieg" if sieg else "kein Sieg", 100 * anteil)
+            len(wir), len(sie), self.GEGEN_UMKREIS, "Sieg" if sieg else "kein Sieg", 100 * anteil), wir_nr
 
     def _spaeher_erledigen(self, n, ort, sehen, L, ereignis, jagen):
         """19.10. (1018w: alle 6 Entdeckungen durch Sklaven, oft mit nur 1 Schuetzen in Reichweite - die Assassine floh und
@@ -1474,7 +1686,7 @@ class Einzeln:
         """19.10.: entdeckt, aber gerade weder sichtbar noch in Reichweite eines Schuetzen, der ihn sah oder nah ist."""
         ort = (L[n]["x"], L[n]["y"])
         e = self.entdeckt.get(n, {})
-        return not self._sicht.sichtbar(ort, self._sicht.RAND) and not self._drohende(
+        return not self._sicht.sichtbar(ort, self._sicht.RAND) and not self._in_nahzone(ort, L) and not self._drohende(
             ort, e.get("schuetzen", set()) | self._nahe_schuetzen(ort, L), L)
 
     def _weit_von_gesehen(self, n, ort, ziel, L):
@@ -1611,7 +1823,7 @@ class Einzeln:
                         ring = [q for q in ring if q in gut]
                     cache[b] = ring
                 ring = cache[b]
-                self._front += [q for q in ring if self._sicht is None or self._sicht.sicher(q)]
+                self._front += [q for q in ring if self._sicht is None or self._sicher(q)]
         return min(self._front, key=lambda q: schach(ort, q)) if self._front else None
 
     def _bereit_zuweisen(self, n, L, G, plaetze, ereignis):
@@ -1657,6 +1869,8 @@ class Einzeln:
         fern, nah = self._feinde(L)
         self._lage(L, G)                     # 17.10.: Sicht dieser Runde (sicht.py) - vor allen Sicherheitsfragen
         self._spur_pflegen(L)                # 19.10.: wandernde feindliche Schuetzen (JAEGER)
+        self._nahtrupps(L)                   # 19.10.: feindliche Nahkampf-Trupps und ihre Zonen (NAHTRUPP)
+        self._gegenschlag = set()            # 19.10.: greifen diese Runde gemeinsam an - kein Ausweichen, kein Rueckzug
         self._fern = fern                    # 4a: Fluchtpunkte nicht unter feindliche Fernkaempfer
         # 4a: ihre Burg ist tabu (gewinn_1, Tick 4.312: Assassine 163 starb auf der Flucht an ihrer Aussenmauer, 13 Felder
         # neben ihrem Lord, 14 Fernkaempfer im Umkreis 40) - Fluchtpunkte und Kreismitte mind. SCHUSSWEITE von ihrem Lord
@@ -1717,7 +1931,11 @@ class Einzeln:
             z = self.ziel.get(n)
             reisst = z in G and schach(f, (G[z]["x"], G[z]["y"])) <= self.ZIEL_NAH and \
                 self.jetzt - self._gb_fort.get(z, -10 ** 9) < self.STEH_TICKS
-            if L[n]["zielart"] != 0 or self._steht.get(n, (None,))[0] != f or reisst:
+            # 19.10. (1019j, 245: 9.000 Takte mit Gebaeude-Ziel und Route auf (210,146) gestanden, Zustand 1, zielart 3, Laufziel =
+            # eigenes Feld - "zielart != 0" galt als Spielziel, die Uhr lief nie an; 22 % aller Assassinen-Takte standen gesunde
+            # so >= 200 Takte, und die STEHEN-Zeile kam nie): Spielziel = Laufziel mehr als 1 Feld weg oder im Kampf/Abriss
+            spielziel = schach((L[n].get("laufx", f[0]), L[n].get("laufy", f[1])), f) > 1 or L[n]["zustand"] in (106, 107)
+            if spielziel or self._steht.get(n, (None,))[0] != f or reisst:
                 self._steht[n] = (f, self.jetzt)
         verletzt = set()
         for n in self.mitglieder:
@@ -1873,8 +2091,8 @@ class Einzeln:
         self._loewenjagd(L, jagen, ereignis)
         # 4. Verletzt im Schussfeld: Rueckzug oder zuschlagen
         for n in verletzt:
-            if n in self.entdeckt or n in self._fertig:
-                continue                   # 19.10.: laeuft schon ausser Sicht und Reichweite / reisst erst fertig ab
+            if n in self.entdeckt or n in self._fertig or n in self._gegenschlag:
+                continue                  # 19.10.: laeuft schon ausser Sicht und Reichweite / reisst erst fertig ab
             ort = (L[n]["x"], L[n]["y"])
             nf = self._naechster(ort, fern)
             # 17.10. (L75/L78 statt RUECKZUG_FERN 40): nur wer gerade beschossen werden kann, zieht sich zurueck - und nur, wenn
@@ -1913,7 +2131,7 @@ class Einzeln:
         # Feind; kein neues Ziel, bis FLUCHT_RUHE Runden lang kein feindlicher Nahkaempfer im Umkreis SICHER_NAH stand.
         eigene_orte = [(L[m]["x"], L[m]["y"]) for m in self.mitglieder]
         for n in sorted(self.mitglieder):
-            if self._im_lordangriff(n) or n in self.entdeckt or n in getattr(self, "_loewen_jaeger", ()):
+            if self._im_lordangriff(n) or n in self.entdeckt or n in getattr(self, "_loewen_jaeger", ()) or n in self._gegenschlag:
                 continue                   # 19.10.: wer entdeckt ist, flieht nach ENTDECKT (Schuetzen UND Verfolger); Loewenjaeger bleiben                   # der Lord-Angriff bleibt dran (Daniel 21:47)
             ort = (L[n]["x"], L[n]["y"])
             feinde = self._bedrohung(ort, nah, L[n]["leben"] < self.EIN_TREFFER)
@@ -2451,7 +2669,7 @@ class Einzeln:
             gruende["keins erreichbar" if not erreichbar else "alle voll" if not frei else "alle gefaehrlich"] += 1
             # 17.10.: warten nur dort, wo ihn kein waehlbarer Feind sieht und kein Trupp ihm nachlaeuft (sicht.sicher) - statt
             # 40 Felder von jedem Schuetzen; so warten sie nah am Feind und sind schnell wieder am naechsten Ziel
-            if not self._sicht.sicher(ort):
+            if not self._sicher(ort):
                 sicher_ort = self._sicherer_ort(ort, orte, fern, nah, n)
                 if sicher_ort and self.warte.get(n) != sicher_ort:
                     self._warten(n, sicher_ort, halten)
@@ -2564,6 +2782,8 @@ class Einzeln:
                     b["rueckzug"], b.get("ausgewichen", 0), b["zuschlagen"], b.get("warten_neu", 0),
                     b.get("stapel_ziele", 0), len(self.schlechte_orte)) + ", Lord-Trupps %d" % b.get("lordtrupps", 0)
                 + ", Uebermacht ausgewichen %d" % b.get("uebermacht", 0)
+                + ", Nahkampf-Trupp ausgewichen %d, Gegenschlag %d, Stillstand geloest %d" % (
+                    b.get("nahtrupp", 0), b.get("gegenschlag", 0), b.get("stillstand", 0))
                 + ", Alle-auf-den-Lord [%s]" % "; ".join(
                     "Runde %d: %d Assassinen, Weg %d-%d, Fern %d / Nah %d am Lord, am Lord hoechstens %d (zuerst Runde %s), "
                     "abgelenkt durch Typ %s, ohne Ziel nah am Lord hoechstens %s, Lord %d -> %d, Verluste %d" % (

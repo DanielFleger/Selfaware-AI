@@ -69,6 +69,18 @@ Vorher festgelegt:
  37. (1018z) wandernder Trupp mitten auf dem Weg zum Ziel -> alle Wegpunkte mehr als 30 Felder vom Trupp
  42. (1019f, Assassine 330) feindliche Assassine mit 6.950 Leben 11 Felder weg, eine zweite mit 12.500 Leben 13 Felder weg
      -> KEIN Gegenangriff (die Rechnung mit beiden verliert)
+ 43. (1019j, 307/300/127: ein Trupp aus 3 feindlichen Assassinen marschierte 1.200 Takte auf ihre Gebaeude zu) Trupp 50 Felder
+     weg, sein Laufziel 6 Felder neben der Assassine, sie allein -> NAHTRUPP: Auftrag ab, Punkt ausserhalb der Zonen;
+     Gegenprobe: der Trupp marschiert weg -> Ziel bleibt
+ 44. (1019j, 300 floh 1 gegen 2, zwei eigene 9 und 14 Felder daneben) derselbe Trupp 12 Felder weg, wir zu fuenft beisammen
+     -> alle fuenf greifen zugleich an (Rechnung: Sieg, 59 % bleiben); Gegenprobe zu zweit -> ausweichen
+ 45. (1019j, 334 floh mitten in einen Trupp aus 4) entdeckt von einer Armbrust im Osten, im Westen ein Trupp aus 4 in
+     Angriffshaltung -> Fluchtpunkt und Weg ausserhalb seiner Zone
+ 46. (1019j, 245 stand 9.000 Takte mit Ziel und Route still: Zustand 1, zielart 3, Laufziel = eigenes Feld) nach 250 Takten
+     "STILLSTAND geloest" (vorher galt zielart 3 als Spielziel)
+ 47. (1019j) Apfelplantage A ist das Laufziel eines marschierenden Trupps -> Ziel ist der weitere Holzfaeller B; ohne Trupp A
+ 48. (Lageprotokoll 1019j: ohne Markt oder Soeldnerposten werben die Nomaden kaum an) Markt 60 Felder, Apfelplantage 25
+     Felder -> Markt (Wert 300); mit dem alten Wert 150 -> Apfelplantage
  28. (Daniel 19.10.: "wenn nicht ausweichbar, zerstoert er lieber noch moeglichst viel") 6.000 Leben, je zwei Armbrustschuetzen
      links und rechts in 10 Feldern, ein Speer sieht ihn: jeder Fluchtweg kostet mehr Leben, als er hat -> LETZTER EINSATZ auf
      einen der Armbrustschuetzen, die ihn treffen (Wert 60 x 2), nicht auf die Apfelplantage daneben (30)
@@ -673,6 +685,114 @@ def main():
     # 41
     e41, z41, _, _, _ = lage_jaeger((100, 290), (100, 260), lauf=(100, 108))
     pruefe(41, "Trupp 160 Felder weg, Laufziel 8 Felder neben ihm: entdeckt %s, Ziel %s" % (e41, z41), not e41 and z41 == 900)
+
+    # 43 (1019j, 307/300/127: ein Trupp aus 3 feindlichen Assassinen marschierte 1.200 Takte auf ihre Gebaeude zu)
+    def lage_nahtrupp(vorher, jetzt, lauf, eigene=()):
+        t = neu(); t._raid_plaetze = 99
+        G = {900: {"besitzer": 2, "typ": 3, "x": 60, "y": 60, "leben": 100, "uid": 1, "erreichbar": 1}}
+
+        def bei(p):
+            L = {100: einheit(73, 1, 100, 100, laufx=60, laufy=60, zustand=101), 500: einheit(55, 2, 390, 390, leben=30000)}
+            for i, q in enumerate(eigene):
+                L[110 + i] = einheit(73, 1, q[0], q[1])
+            for i in range(3):
+                L[820 + i] = einheit(73, 2, p[0] - 1 + i, p[1], laufx=lauf[0] - 1 + i, laufy=lauf[1], zustand=101)
+            return L
+        t.aufnehmen([100] + [110 + i for i in range(len(eigene))])
+        t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
+        t.schritt(bei(vorher), G, sichere_orte=[(20, 300)], tick=9700)
+        if 100 in t.entdeckt or t.jagd.get(100):
+            return "zu frueh", None, None, None, []
+        t.ziel[100] = 900; t.befohlen[100] = 0
+        erg, bef = t.schritt(bei(jetzt), G, sichere_orte=[(20, 300)], tick=10000)
+        p = t.entdeckt.get(100, {}).get("punkt")
+        return 100 in t.entdeckt, t.ziel.get(100), p, {n: t.jagd.get(n) for n in [100] + [110 + i for i in range(len(eigene))]}, \
+            [z[:90] for z in erg if "NAHTRUPP" in z or "GEGENSCHLAG" in z][:1]
+    e43, z43, p43, _, m43 = lage_nahtrupp((100, 190), (100, 150), (100, 106))
+    z43_ok = p43 is not None and max(abs(p43[0] - 100), abs(p43[1] - 106)) > 20 and max(abs(p43[0] - 100), abs(p43[1] - 150)) > 8
+    e43g, z43g, _, _, _ = lage_nahtrupp((100, 190), (100, 150), (100, 230))
+    pruefe(43, "Trupp aus 3 feindlichen Assassinen 50 Felder weg, marschiert zu einem Punkt 6 Felder neben ihm, er allein: "
+           "entdeckt %s, Ziel %s, Punkt %s ausserhalb der Zonen %s %s; Trupp marschiert weg: entdeckt %s, Ziel %s" % (
+               e43, z43, p43, z43_ok, m43, e43g, z43g), e43 is True and z43 is None and z43_ok and not e43g and z43g == 900)
+    # 44 (1019j: 300 floh 1 gegen 2, 127 und 321 standen 9 und 14 Felder daneben - gemeinsam ein Sieg)
+    e44, _, _, j44, m44 = lage_nahtrupp((100, 150), (100, 112), (100, 100), eigene=((99, 100), (101, 100), (99, 101), (100, 101)))
+    alle44 = all(v in (820, 821, 822) for v in j44.values())
+    e44g, _, _, j44g, m44g = lage_nahtrupp((100, 150), (100, 112), (100, 100), eigene=((106, 100),))
+    pruefe(44, "derselbe Trupp 12 Felder weg, wir zu fuenft beisammen: alle greifen an %s %s %s; wir zu zweit: Jagd %s, entdeckt %s %s" % (
+        alle44, j44, m44, j44g, e44g, m44g), alle44 and not any(v in (820, 821, 822) for v in j44g.values()) and e44g)
+    # 45 (1019j, 334 floh mitten in einen Trupp aus 4): entdeckt von einer Armbrust im Osten, im Westen steht ein Trupp aus 4
+    # feindlichen Assassinen in Angriffshaltung -> Fluchtpunkt und Weg dorthin ausserhalb seiner Zone (25 + 8 Felder)
+    def lage_flucht(mit_trupp):
+        t = neu(); t._raid_plaetze = 99
+        t._haltung = {7: 2}
+        L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
+             601: einheit(24, 2, 112, 100, leben=10000), 610: einheit(23, 2, 128, 100, leben=17500)}
+        if mit_trupp:
+            for i in range(4):
+                L[830 + i] = einheit(73, 2, 64, 98 + i, gruppe=7)
+        t.aufnehmen([100])
+        erg, bef = t.schritt(L, {}, sichere_orte=[(20, 300)], tick=10000)
+        p = t.entdeckt.get(100, {}).get("punkt")
+        weg_frei = p is not None and not t._weg_durch_nahzone((100, 100), p) and not t._in_nahzone(p)
+        return p, weg_frei
+    p45, w45 = lage_flucht(True)
+    p45g, _ = lage_flucht(False)
+    pruefe(45, "entdeckt, Trupp aus 4 in Angriffshaltung im Westen: Fluchtpunkt %s, Punkt und Weg ausserhalb der Zone %s; "
+           "ohne Trupp: Punkt %s" % (p45, w45, p45g), w45 and p45g is not None)
+    # 46 (1019j, 245: 9.000 Takte mit Ziel und Route still, Zustand 1, zielart 3, Laufziel = eigenes Feld)
+    t = neu(); t._raid_plaetze = 99
+    G46 = {900: {"besitzer": 2, "typ": 32, "x": 160, "y": 100, "leben": 100, "uid": 1, "erreichbar": 1}}
+    t.aufnehmen([100])
+    erg46 = []
+    for i, tk in enumerate((10000, 10100, 10250)):
+        L46 = {100: einheit(73, 1, 100, 100, zustand=1, zielart=3), 500: einheit(55, 2, 390, 390, leben=30000)}
+        t.ziel[100] = 900; t.ziel_typ[900] = 32; t.befohlen[100] = t.runde + 1
+        t.route[100] = {"punkte": [(130, 100)], "gebaeude": 900, "befohlen": t.runde + 1}
+        e_, _ = t.schritt(L46, G46, sichere_orte=[(20, 300)], tick=tk)
+        erg46 += e_
+    st46 = [z[:80] for z in erg46 if "STILLSTAND" in z]
+    pruefe(46, "250 Takte still mit Ziel und Route, zielart 3, Laufziel = eigenes Feld: %s" % st46, bool(st46))
+    # 47 (1019j: 127 riss die Gebaeude ab, zu denen der Trupp marschierte) Apfelplantage A 25 Felder weit ist das Laufziel
+    # eines marschierenden Trupps aus 3 feindlichen Assassinen, Holzfaeller B 45 Felder weit -> B; ohne Trupp -> A
+    def lage_ziel(mit_trupp):
+        t = neu(); t._raid_plaetze = 99
+        t.gelaende = ["G" * 400 for _ in range(400)]
+        G = {900: {"besitzer": 2, "typ": 32, "x": 125, "y": 100, "leben": 100, "uid": 1, "erreichbar": 1},
+             901: {"besitzer": 2, "typ": 3, "x": 100, "y": 55, "leben": 100, "uid": 2, "erreichbar": 1}}
+
+        def bei(y):
+            L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000)}
+            if mit_trupp:
+                for i in range(3):
+                    L[820 + i] = einheit(73, 2, 159 + i, y, laufx=125 + i, laufy=101, zustand=101)
+            return L
+        t.aufnehmen([100])
+        t.schritt(bei(200), {}, sichere_orte=[(20, 300)], tick=9700)
+        t.entdeckt.pop(100, None); t.flucht.pop(100, None)
+        erg, bef = t.schritt(bei(170), G, sichere_orte=[(20, 300)], tick=10000)
+        return t.ziel.get(100), 100 in t.entdeckt
+    z47, e47 = lage_ziel(True)
+    z47g, _ = lage_ziel(False)
+    pruefe(47, "Ziel A ist Laufziel eines Trupps: Ziel %s (entdeckt %s); ohne Trupp: Ziel %s" % (z47, e47, z47g),
+           z47 == 901 and z47g == 900)
+    # 48 (19.10., Lageprotokoll 1019j: ohne Markt oder Soeldnerposten werben die Nomaden kaum an) unbewachter Markt 60 Felder,
+    # Apfelplantage 25 Felder -> Markt; mit dem alten Wert 150 -> Apfelplantage
+    def lage_markt(wert):
+        t = neu(); t._raid_plaetze = 99
+        alt = A.WERT[26]
+        A.WERT[26] = wert
+        try:
+            L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000)}
+            G = {900: {"besitzer": 2, "typ": 32, "x": 125, "y": 100, "leben": 100, "uid": 1, "erreichbar": 1},
+                 901: {"besitzer": 2, "typ": 26, "x": 100, "y": 160, "leben": 100, "uid": 2, "erreichbar": 1}}
+            t.aufnehmen([100])
+            t.schritt(L, G, sichere_orte=[(20, 300)], tick=10000)
+            return t.ziel.get(100)
+        finally:
+            A.WERT[26] = alt
+    z48, z48g = lage_markt(A.WERT[26]), lage_markt(150)
+    pruefe(48, "Markt 60 Felder, Apfelplantage 25 Felder: Ziel %s (Wert %d); mit Wert 150: %s" % (z48, A.WERT[26], z48g),
+           z48 == 901 and z48g == 900)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

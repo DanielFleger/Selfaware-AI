@@ -12,7 +12,7 @@ Phase 2 (Echtzeit): Tempo 40, laeuft. Alle paar Sekunden: Lage mitschreiben und 
 Fehlerkontrolle (Daniel): vorab Gefecht/Mensch/gameOver; laufend: steht die Spielzeit oder ist gameOver 1 -> Abbruch.
 
 Waechter (M15, Daniel 22:42): mit waechter=ja liest jede Runde das Lagebild und schickt Verteidiger (waechter.py).
-Aufruf:  python erstes_spiel.py [minuten=10] [tempo=40] [nur_phase2=nein] [waechter=nein] [start=<Spielstand>] [bis_tick=N] [assassinen=N; -1 = ohne Grenze] [trainingsstand=<Name>] [trainingsstand_ab=40]
+Aufruf:  python erstes_spiel.py [minuten=10] [tempo=40] [nur_phase2=nein] [waechter=nein] [start=<Spielstand>] [bis_tick=N] [assassinen=N lebende, Tote werden ersetzt; -1 = ohne Grenze] [trainingsstand=<Name>] [trainingsstand_ab=40]
          Tests mit Hoechstgeschwindigkeit (Daniel 22:55): tempo=1000 bis_tick=...
 Stop von aussen: Datei werkzeug/STOP anlegen.
 """
@@ -676,6 +676,11 @@ HEIM_FERN, HEIM_NAH = 6, 4   # 19.10.: Heimwache (Schuetzen, Nahkaempfer) - der 
 NOT_R, NOT_JE_RUNDE = 12, 2  # 19.10.: Notwerbung nur gegen Feinde so nah an unseren Gebaeuden, hoechstens so viele je Runde
 # 19.10. (1019g): Soeldner fuers Heer nur mit so viel Gold ueber der Ruecklage, hoechstens so viele (1019h: bei 60 lagen 3.400 Gold)
 HEER_GOLD_RAND, HEER_MAX = 150, 100
+# 19.10. (1019j: assassinen=20 zaehlte ALLE Anwerbungen - nach der 20. kam keine mehr, 15 starben, zuletzt 6 Raider bei
+# 2.700-6.000 Gold; Daniel: "die Raids aussenrum waren am effektivsten, wurden aber zu wenig eingesetzt"): assassinen= gilt
+# fuer LEBENDE (Tote werden ersetzt); dazu bis ASSASSINEN_EXTRA mehr, solange jede ein Ziel hat, es weitere lohnende
+# Raid-Plaetze gibt und das Gold ueber Ruecklage + HEER_GOLD_RAND liegt. Hoechstens eine je WERB_ABSTAND Takte.
+ASSASSINEN_EXTRA, WERB_ABSTAND = 10, 60
 STEIN_LOS_GOLD = 120     # 19.10. (1019g): ab so viel freiem Gold Stein fuer die Kaserne kaufen (5er-Los, Kauf ~14 je Stein, L65)
 PRODUKTION = False       # 19.10. (Daniel: eigene Waffenproduktion statt nur Markt) - produktion=ja, nur mit weg=feldzug
 PRODUKTION_FENSTER = 10000   # Ticks, in denen die Kette 30 Kaempfer liefern soll (bestimmt die Zahl der Betriebe)
@@ -1755,7 +1760,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             return True
         if streitkolben and st.get("T26", 0) < streitkolben and st.get("gold", 0) < KAEMPFER_GOLD + wirt.ruecklage(G)["gold"]:
             return True
-        return bool(assassinen) and (assassinen < 0 or geworben < assassinen) and st.get("gold", 0) < 70 + wirt.ruecklage(G)["gold"]
+        return bool(assassinen) and (assassinen < 0 or a_stand["lebend"] < assassinen) and st.get("gold", 0) < 70 + wirt.ruecklage(G)["gold"]
 
     def holz_verwerten(st, L, G):
         """Altes Lager: Holz verkaufen, solange Gold das Anwerben bremst (Daniel 06.10. 19:33, vorerst); sonst Holzfaeller."""
@@ -1857,6 +1862,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     schreib("Ertrags-Planer: " + ausbau.startwerte)
     schreib("Wirtschaft: Apfel A %s, B %s; alte Lagerteile %s" % (wirt.A, wirt.B, sorted(wirt.alt)))
     soeldner, geworben = None, 0
+    a_stand = {"lebend": 0, "zuletzt": -10 ** 6}    # 19.10.: lebende Assassinen, Tick der letzten Anwerbung
     befehl({"kamera": list(plan["lager_mitte"])}, 0.8)
     befehl({"tempo": tempo}, 0.5)
     befehl({"pause": False}, 0.5)
@@ -2495,17 +2501,26 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         if trupp is not None:
             # Soeldnerlager (120 Gold) einmal bauen, dann Assassinen (Typ 73) anwerben bis zur Zahl; Mitglieder = alle eigenen 73er
             posten = [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 8]
+            # 19.10.: Zahl der LEBENDEN (ASSASSINEN_EXTRA); mehr, solange jede ein Ziel hat und es weitere Raid-Plaetze gibt
+            a_stand["lebend"] = sum(1 for e in L.values() if e["besitzer"] == SP and e["typ"] == 73)
+            ueber_a = getattr(trupp, "ohne_ziel_zuletzt", None) == 0 and (getattr(trupp, "_raid_plaetze", 0) or 0) > len(trupp.ziel) \
+                and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] + HEER_GOLD_RAND
+            ziel_a = assassinen + (ASSASSINEN_EXTRA if ueber_a and assassinen > 0 else 0)
             if not posten and (soeldner is None or runde % 10 == 0) and not ausbau.braucht_gold:
                 # nicht am Lagerplatz (9i: Markt/Soeldnerlager belegten ihn - 14 Holzfaeller warteten Tick 4500-9035)
                 soeldner = baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25)
                 ereignis.append("Soeldnerlager gesetzt %s (Gold %d)" % (soeldner, st["gold"]))
-            elif posten and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] and st["feuer"] >= 1 and (assassinen < 0 or geworben < assassinen) and not ausbau.braucht_gold \
+            elif posten and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] and st["feuer"] >= 1 \
+                    and (assassinen < 0 or a_stand["lebend"] < ziel_a) and st["t"] - a_stand["zuletzt"] >= WERB_ABSTAND \
+                    and not ausbau.braucht_gold \
                     and not loewen_am_posten(L, G, posten[0]) \
                     and not wirt.a_offen(G):   # Daniel 23:09: Farmen nicht vergessen - erst die fehlenden A-Plantagen (45 Gold)   # erst rollen (Daniel 18:51/19:05)
                 befehl({"werbe": {"typ": 73, "gebaeude": posten[0]}}, 1.0, bis="WERBE")
                 geworben += 1
+                a_stand["zuletzt"] = st["t"]
                 if geworben == 1 or geworben % 5 == 0:     # der erste zaehlt einzeln (gewinn_5: Zeitpunkt fehlte)
-                    ereignis.append("%d Assassinen angeworben (Gold jetzt %d)" % (geworben, st["gold"]))
+                    ereignis.append("%d Assassinen angeworben (Gold jetzt %d, %d leben, Soll %d%s)" % (
+                        geworben, st["gold"], a_stand["lebend"] + 1, ziel_a, " mit Raid-Ueberschuss" if ziel_a > assassinen else ""))
             if posten and runde % 50 == 0:     # ganz_1: in 28.700 Ticks nur 1 Assassine - welche Bedingung bremst?
                 ereignis.append("ANWERBEN-BREMSE: Gold %d (braucht %d), Feuer %d, Planer braucht Gold %s, A-Farmen offen %d" % (
                     st["gold"], 70 + wirt.ruecklage(G)["gold"], st["feuer"], bool(ausbau.braucht_gold), len(wirt.a_offen(G))))
