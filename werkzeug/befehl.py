@@ -103,6 +103,8 @@ def _kanal_frei():
         alter = time.time() - os.path.getmtime(LAUF)
     except OSError:
         return
+    if not pid.split():
+        return                                 # 18.10. (1v1-Lauf 1018c): der andere Lenker schreibt die Meldung gerade neu (leer) - IndexError
     if PARTNER and pid.endswith(" partner"):
         return                                 # 19.10.: zwei Lenker im 1v1 - die Sperre je Befehl regelt den Zugriff
     if pid.split()[0] != str(os.getpid()) and alter < 15:
