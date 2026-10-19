@@ -460,6 +460,7 @@ class Einzeln:
     # sonst nehmen sie wieder Ziele - die Regel EIN_TREFFER laesst ihnen nur Ziele ohne Beschuss, weit ab von jedem Spaeher
     # (Daniel 17:14: "wenn jemand sieht, dass er jemanden eindeutig killen oder snipen kann, sollte er angreifen")
     RESERVE_PARKEN = True
+    LORD_WACHE_R = 25         # 19.10.: so weit vom Lord zaehlt eine feindliche Truppe als Wache (wie feldzug.LORD_UMKREIS)
     # 34 floh vor einer gleich schnellen feindlichen Assassine und lief ihr in die Arme. 19.10. (1019f, 301 griff mit 11.320
     # gegen 12.500 an, dann kamen 2 weitere Nahkaempfer): Editor-Duell Assassine gegen Assassine 148 je Takt in beide
     # Richtungen - das Leben entscheidet, also mindestens gleich viel
@@ -2368,6 +2369,17 @@ class Einzeln:
             satz_lord = self._sicht.feuer_gesamt(lp) / max(1, n_l)
             machbar, t_l, rest_l = lord_machbar(n_l, le["leben"], satz_lord,
                                                 leben=self._anlauf_leben(self._anlauf_von(L, lp), lp, n_l))
+            # 19.10. (Daniel 17:43, Bild 1018n: Lord fast allein, unsere Assassinen ringsum, "LORD WARTET: Raiden geht vor"):
+            # "in so einem Fall koennen die Assassinen bestimmen - wir haben genug Staerke, keine Bedrohung, so eine Lord-
+            # Lebensstaerke - wir gehen alle gleichzeitig mit aller Macht auf den Lord und gewinnen, anstatt es rauszuzoegern":
+            # EINDEUTIG = die Rechnung reicht und keine feindliche Truppe steht bis LORD_WACHE_R Felder am Lord -> alle, auch im
+            # Feldzug-Modus (lord_aus) und vor dem Raiden
+            wachen_l = sum(1 for e in L.values() if e.get("besitzer") == le.get("besitzer") and e["typ"] in TRUPPE
+                           and e["typ"] != 55 and e.get("leben", 1) > 0 and schach((e["x"], e["y"]), lp) <= self.LORD_WACHE_R)
+            # nur dort, wo die Assassinen den Lord sonst NIE angreifen (Feldzug-Modus, lord_aus - das 1v1): gegen Nomaden gilt
+            # weiter Daniels Regel vom 17.10. "erst die Wirtschaft entmannen" (lordanlauf_pruefen 3/4 - mit dieser Regel ueberall
+            # fielen dort 4 von 10 Faellen)
+            eindeutig = self.lord_aus and machbar and wachen_l == 0 and lt["phase"] is None
             if lt["phase"] == "bereit" and not machbar:
                 ereignis.append("LORD-BEREITSTELLUNG ABGEBROCHEN: reicht nicht mehr (Lord %d Leben, Beschuss am Lord %.1f je Tick) - alle raiden" % (
                     le["leben"], satz_lord))
@@ -2389,16 +2401,20 @@ class Einzeln:
             ueber = len(self.mitglieder) - plaetze_r
             spaet = self.LORD_SPAETESTENS is not None and self.jetzt >= lordschutz.BIS + self.LORD_SPAETESTENS
             if not self.angriff_aus and lt["phase"] is None and len(self.mitglieder) >= n_bedarf and self.jetzt >= lordschutz.BIS \
-                    and machbar and ueber < n_bedarf and not spaet and self.runde % 20 == 0:
+                    and machbar and ueber < n_bedarf and not spaet and not eindeutig and self.runde % 20 == 0:
                 ereignis.append("LORD WARTET: Raiden geht vor - %d Assassinen, %d lohnende Raid-Plaetze (Lord-Gruppe %d erst ab Ueberschuss)" % (
                     len(self.mitglieder), plaetze_r, n_bedarf))
-            if not self.angriff_aus and not self.lord_aus and lt["phase"] is None and len(self.mitglieder) >= n_bedarf \
-                    and self.jetzt >= lordschutz.BIS and machbar and (ueber >= n_bedarf or spaet) and self.jetzt >= lt.get("pause_bis", 0):
+            if not self.angriff_aus and (not self.lord_aus or eindeutig) and lt["phase"] is None and len(self.mitglieder) >= n_bedarf \
+                    and self.jetzt >= lordschutz.BIS and machbar and (ueber >= n_bedarf or spaet or eindeutig) and self.jetzt >= lt.get("pause_bis", 0):
+                if eindeutig:
+                    ereignis.append("LORD EINDEUTIG: Lord %d mit %d Leben ohne Wachen bis %d Felder, Rechnung reicht - alle %d Assassinen auf ihn" % (
+                        ln, le["leben"], self.LORD_WACHE_R, len(self.mitglieder)))
                 plaetze = self._bereit_plaetze(lp)
                 if plaetze:
                     # zuerst, wer kein Raid-Ziel hat, dann die naechsten am Lord (1017d: nie die weitesten)
                     gruppe = sorted((k for k in self.mitglieder if k not in self.flucht),
-                                    key=lambda k: (k in self.ziel or k in self.jagd, schach(pos(k), lp), -L[k]["leben"], k))[:n_bedarf]
+                                    key=lambda k: (k in self.ziel or k in self.jagd, schach(pos(k), lp), -L[k]["leben"], k))[
+                        :len(self.mitglieder) if eindeutig else n_bedarf]
                     lt.update(mitglieder=set(gruppe), warte=set(), lord=ln, phase="bereit", seit=self.runde, seit_tick=self.jetzt,
                               sammelpunkt=None, platz={}, weg={}, neu={}, befohlen={}, bereit=set(), plaetze=plaetze, raus=set())
                     for k in gruppe:
