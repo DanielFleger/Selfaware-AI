@@ -927,6 +927,7 @@ RAIDS = True             # 19.10. (Daniel 16:49/16:57): raids.py - Sklaven-Brand
 NEUBAU_SICHER = True     # 19.10. (Punkt 4, Daniel 16:57): gefahrenzone.py - Betriebe nur ausserhalb frischer Verluste, neubau_sicher=nein
 HUNGER_BELIEBT = 9500    # 19.10.: unter 95,00 Beliebtheit bei Nahrung 0 kauft der Hunger-Notkauf (1018l: 100 -> 92,5 in 1.500 Ticks ohne Nahrung)
 APFEL_LOS_GOLD = 40      # 5 Aepfel kaufen (L65: Kauf 8 Gold je Apfel)
+HUNGER_LOSE = 3          # 19.10.: hoechstens so viele 5er-Lose je Runde (Startwert; 30 Leute bei doppelten Rationen essen ~6 je 1.000 Ticks)
 from gefahrenzone import R as GZ_R, TICKS as GZ_TICKS
 from endspurt import HOLZ_BLEIBT as ES_HOLZ_BLEIBT, schwertkaempfer as es_schwertkaempfer, SCHWERT as ES_SCHWERT,     NICHT_NAHRUNG as ES_NICHT_NAHRUNG
 SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # gemessen 12.10. 00:04 (L63, Ascension)
@@ -2226,6 +2227,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             tz = time.time()
             befehlskanal.belege()
             st, L, G = runde_lesen()
+            hunger_r = False
             if st:
                 roh_l = lage.schreibe(st)
                 if GZ is not None:
@@ -2237,10 +2239,16 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 # Beliebtheit unter HUNGER_BELIEBT -> ZUERST in der Runde ein 5er-Los Aepfel, sobald das Gold dafuer reicht (L65: 8 je
                 # Stueck), vor allen anderen Ausgaben
                 nahrung_n = sum(st.get(w_n, 0) for w_n in ("apfel", "brot", "kaese", "fleisch"))
-                if nahrung_n <= 0 and st.get("beliebt", 10000) < HUNGER_BELIEBT and st.get("gold", 0) >= APFEL_LOS_GOLD:
+                # 19.10. 17:51 (Rang 1, Daniel "ja mach Rang 1"; 1018n: der Notkauf bei Nahrung 0 kaufte je Runde ein Los, dazwischen
+                # 3.000 Ticks ohne Essen, Beliebtheit 88,75 -> 48,25): HUNGER schon am Puffer, so viele Lose wie das Gold hergibt
+                # (hoechstens HUNGER_LOSE je Runde), und solange Hunger herrscht, wirbt niemand an (Assassinen, Notwerbung, Raids)
+                hunger_r = nahrung_n <= nahrung_puffer(st.get("leute", 0)) and st.get("beliebt", 10000) < HUNGER_BELIEBT
+                lose_h = min(st.get("gold", 0) // APFEL_LOS_GOLD, HUNGER_LOSE) if hunger_r else 0
+                for _ in range(lose_h):
                     befehl({"spielbefehl": {"nr": 38, "werte": [0, WAREN_NR["apfel"]]}}, 1.0, bis="SPIELBEFEHL")
-                    schreib("HUNGER-NOTKAUF bei Tick %s: 5 Aepfel (Nahrung 0, Beliebtheit %.2f, Gold %d)" % (
-                        st.get("t"), st.get("beliebt", 0) / 100.0, st.get("gold", 0)))
+                if lose_h:
+                    schreib("HUNGER-NOTKAUF bei Tick %s: %d x 5 Aepfel (Nahrung %d, Beliebtheit %.2f, Gold %d) - Werbung ruht" % (
+                        st.get("t"), lose_h, nahrung_n, st.get("beliebt", 0) / 100.0, st.get("gold", 0)))
                 if es is not None and roh_l:
                     try:
                         es.runde(st.get("t"), st, *roh_l)
@@ -2367,7 +2375,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             if feldzug is not None and w is not None:
                 feldzug.verteidiger = {n for n in w.auftrag if n in reserve_w}
             tz = uhr("waechter", tz)
-            if NOTWERBUNG and st.get("t", 0) > 0:
+            if NOTWERBUNG and st.get("t", 0) > 0 and not hunger_r:     # 19.10.: bei Hunger geht das Gold in Nahrung
                 # 12.10. (Daniel 11.10. 23:40 "du siehst doch, dass du angegriffen wirst und nicht ausbildest"; 23:45 "arabische
                 # Einheiten"): Soeldnerposten frueh bauen; stehen Gegnertruppen in unserem Gebiet, sofort nachwerben - je Gegner
                 # eine Einheit, abwechselnd Schwertkaempfer (75) und Bogenschuetzen (70), bis Gold oder Bauern am Feuer fehlen.
@@ -2874,7 +2882,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # nicht am Lagerplatz (9i: Markt/Soeldnerlager belegten ihn - 14 Holzfaeller warteten Tick 4500-9035)
                     soeldner = baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25)
                     ereignis.append("Soeldnerlager gesetzt %s (Gold %d)" % (soeldner, st["gold"]))
-                elif posten and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] and st["feuer"] >= 1 \
+                elif posten and not hunger_r and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] and st["feuer"] >= 1 \
                         and (assassinen < 0 or a_stand["lebend"] < ziel_a) and st["t"] - a_stand["zuletzt"] >= WERB_ABSTAND \
                         and (getattr(trupp, "ohne_ziel_zuletzt", None) or 0) < A_OHNE_ZIEL_MAX \
                         and not ausbau.braucht_gold \
@@ -3067,7 +3075,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         try:
                             ereignis += brand.schritt(L, G, befehl)
                             ereignis += reiter.schritt(L, G, befehl)
-                            if posten_h is not None and not es_an and runde % 2 == 1:
+                            if posten_h is not None and not es_an and not hunger_r and runde % 2 == 1:
                                 import bauen as BA_r
                                 for typ_r, n_r in RA.werbung(st["gold"] - wirt.ruecklage(G)["gold"], st.get("feuer", 0),
                                                              len(brand.einheiten(L)), len(reiter.einheiten(L))):
