@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sharky-Abgleich SamurAI</title>
+<style>
+  :root { --bg:#f6f5f2; --karte:#ffffff; --text:#222; --leise:#666; --rand:#ddd; --gruen:#2e8b57; --gelb:#d4a017; --rot:#c0392b; --akzent:#3a5a8c; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#1e1f22; --karte:#2a2c30; --text:#e6e6e6; --leise:#aaa; --rand:#444; --akzent:#8fb0e0; } }
+  body { background:var(--bg); color:var(--text); font:16px/1.5 system-ui, sans-serif; margin:0; padding:16px; }
+  main { max-width:920px; margin:0 auto; }
+  h1 { font-size:1.6em; margin:0 0 4px; } .timestamps { color:var(--leise); font-size:.9em; margin-bottom:12px; }
+  .punkt { background:var(--karte); border:1px solid var(--rand); border-radius:10px; padding:14px 16px; margin:12px 0; }
+  .punkt h2 { font-size:1.15em; margin:0 0 8px; } .rat { border-left:4px solid var(--akzent); padding:6px 10px; margin:10px 0; }
+  .zeile { display:flex; gap:10px; align-items:flex-start; flex-wrap:wrap; }
+  select, textarea { font:inherit; color:var(--text); background:var(--bg); border:1px solid var(--rand); border-radius:6px; padding:4px 6px; }
+  textarea { width:100%; min-height:48px; box-sizing:border-box; }
+  table { border-collapse:collapse; width:100%; font-size:.94em; } td, th { border:1px solid var(--rand); padding:4px 6px; text-align:left; vertical-align:top; }
+  .tabelle { overflow-x:auto; }
+  .knoepfe { position:sticky; top:0; background:var(--bg); padding:8px 0; display:flex; gap:8px; z-index:2; }
+  button { font:inherit; padding:6px 12px; border-radius:6px; border:1px solid var(--akzent); background:var(--karte); color:var(--text); cursor:pointer; }
+  .gruen { border-left:6px solid var(--gruen); } .gelb { border-left:6px solid var(--gelb); } .rot { border-left:6px solid var(--rot); }
+  .marke { font-size:.8em; padding:1px 6px; border-radius:8px; border:1px solid var(--rand); color:var(--leise); }
+  .urteil { font-weight:600; } .urteil.r { color:var(--rot); } .urteil.y { color:var(--gelb); } .urteil.g { color:var(--gruen); }
+  code { font-size:.92em; word-break:break-word; }
+</style>
+</head>
+<body>
+<main>
+<h1>SamurAI gegen Sharky: Prüfung der Ordnung</h1>
+<div class="timestamps">Erstellt: 19.10.2026, 21:40 · Anlass: Daniel 21:28 „hier von Krari die Referenz Sharky, damit du siehst, welche Ordnung es haben soll – bitte durchlesen und Audit“ · Selfaware-AI</div>
+<div class="knoepfe"><button onclick="kopieren()">Kopieren</button><button onclick="herunterladen()">Herunterladen</button></div>
+
+<div class="punkt" data-id="kurz"><h2>0. Ergebnis in Kürze</h2>
+<p>SamurAI hat die richtigen Teile, aber nicht Sharkys Ordnung. Bei Sharky ist der Bot eine <b>Liste gleich gebauter Manager</b>, die jede Runde in fester Reihenfolge laufen. <b>Jede Einheit gehört genau einer Aufgabe</b>, und gebaut wird an <b>einer</b> Stelle nach Soll und Ist. Bei SamurAI ist die Spielrunde eine einzige Funktion mit 1.416 Zeilen. Fünf Teile geben Einheiten Befehle, und an 24 Stellen wird gebaut. Vorrang regeln Schalter wie „Feldzug ruht“.</p>
+<p>Drei von zehn Prüfpunkten sind rot. Sie erklären Fehler, die wir in echten Partien gesehen haben: das ganze Heer jagt einen Assassinen, der Feldzug steht komplett, weil die Lordwache einen Mann braucht, und Holz bleibt bei 0, weil vier Bauwünsche gleichzeitig warten.</p>
+<div class="rat">Mein Rat: Schritt 1 aus Punkt 3 bauen. Das ist das Gerüst, also die Manager-Liste in Sharkys Reihenfolge, mit unverändertem Verhalten. Geprüft wird es, indem eine Partie mit fester Saat Tick für Tick dasselbe ergibt wie vorher. Erst danach kommen die Aufgaben mit Einheiten-Anspruch.</div>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+
+<div class="punkt" data-id="sharky"><h2>1. Wie Sharky gebaut ist (gelesen)</h2>
+<p>Gelesen am 19.10.2026 um 21:30 im Repo <a href="https://github.com/sharknice/Sharky">github.com/sharknice/Sharky</a> (Stand vom 16.10.2026, 666 Dateien). Grundlage sind die Kerndateien, nicht die Volk-Einzelheiten: <code>SharkyBot.cs</code>, <code>Managers/IManager.cs</code>, <code>DefaultBot/DefaultSharkyBot.cs</code>, <code>Managers/MicroManager.cs</code>, <code>MicroTasks/IMicroTask.cs</code>, <code>Unit/UnitCommander.cs</code>, <code>Managers/BuildManager.cs</code>, <code>Builds/MacroBalancer.cs</code>, <code>Managers/MacroManager.cs</code>, <code>EnemyStrategies/EnemyStrategy.cs</code>, <code>Managers/AttackDataManager.cs</code>, <code>Builds/BuildChoosing/*</code>.</p>
+<ul>
+<li><b>Hauptschleife:</b> eine Liste von Managern mit derselben Form: <code>OnStart</code>, <code>OnFrame</code> (gibt Befehle zurück), <code>OnEnd</code>. Jeder Manager misst seine Zeit, ein Fehler in einem Manager hält die anderen nicht auf. <span class="marke">gelesen, SharkyBot.cs</span></li>
+<li><b>Feste Reihenfolge je Runde</b> (DefaultSharkyBot.cs, Zeilen 187–728): erst die Daten (Einheiten, gegnerisches Volk, Karte, Basen, Ziele), dann Mikro (Einheiten), Angriffsentscheidung, Makro (Bauen), Gegnerstrategie, Bauphase. <span class="marke">gelesen</span></li>
+<li><b>Mikro-Aufgaben</b> (MicroTasks) mit Vorrang-Zahl: Die Verteidigung hat 0, die Wirtschaft 1, der Angriff 2. Jede Aufgabe <i>beansprucht</i> freie Einheiten (<code>Claimed</code> + <code>UnitRole</code>), die mit der kleinsten Zahl zuerst. Braucht die Verteidigung Leute, nimmt sie sie dem Angriff mit <code>StealUnit</code> weg. Der Angriff läuft mit dem Rest weiter. <span class="marke">gelesen, MicroManager.cs, DefenseSquadTask.cs</span></li>
+<li><b>Einheiten-Befehler</b> (UnitCommander): Jede Einheit bekommt höchstens einen Befehl je Runde. Derselbe Befehl an dasselbe Ziel wird 100 Takte lang nicht wiederholt (<code>SpamFrames = 100</code>). <span class="marke">gelesen</span></li>
+<li><b>Bauen nach Soll und Ist:</b> Die Bauphase (Build) setzt nur Soll-Zahlen (<code>MacroData.Desired…</code>). Der MacroBalancer vergleicht sie mit dem, was steht oder in Arbeit ist. Erst der MacroManager baut, in fester Reihenfolge. <span class="marke">gelesen</span></li>
+<li><b>Bauphasen mit Übergang:</b> Eine Folge von Bauphasen, jede mit <code>Transition</code> (wann geht es zur nächsten) und <code>CounterTransition</code> (Gegenzug, wenn eine Gegnerstrategie erkannt ist). <span class="marke">gelesen, BuildManager.cs</span></li>
+<li><b>Gegnerstrategien</b> als eigene Klassen, die erkennen und mit Takt in einen Verlauf schreiben, zum Beispiel WorkerRush, Proxy, InvisibleAttacks. <span class="marke">gelesen</span></li>
+<li><b>Angriff ja oder nein</b> entscheidet eine einzige Stelle (AttackDataManager), nach der Gewinnaussicht des Kampfes. <span class="marke">gelesen</span></li>
+<li><b>Lernen aus Partien:</b> Die Bauwahl richtet sich nach der Bilanz aus Siegen und Niederlagen gegen denselben Gegner auf derselben Karte. Neuere Partien zählen mehr. <span class="marke">gelesen, BuildDecisionService.cs</span></li>
+</ul>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+
+<div class="punkt" data-id="pruefpunkte"><h2>2. Die zehn Prüfpunkte</h2>
+<p>Die Zahlen sind gezählt am Stand 813a98b. Wo nur ein Suchmuster zählt, steht das dabei.</p>
+<div class="tabelle"><table>
+<tr><th>#</th><th>Sharky</th><th>SamurAI heute</th><th>Folge, in Partien gesehen</th><th>Urteil</th></tr>
+<tr><td>A</td><td>Manager-Liste, gleiche Form, feste Reihenfolge</td><td><code>erstes_spiel.py</code> 3.651 Zeilen; die Spielrunde <code>phase2</code> ist eine Funktion mit 1.416 Zeilen (1970–3385). Messungen stehen mitten in der Runde, zum Beispiel die Lord-Feuer-Probe in Zeilen 3093–3159. 109 globale Schalter, 81 Startschalter.</td><td>Jede Änderung trifft die eine große Funktion. Was in welcher Reihenfolge läuft, steht nirgends gesammelt.</td><td class="urteil r">rot</td></tr>
+<tr><td>B</td><td>Gemeinsame Daten je Runde (ActiveUnitData, EnemyData, MapData, MacroData, AttackData)</td><td>Lagebild <code>L</code>/<code>G</code>/<code>st</code> und seit heute <code>uebersicht.py</code> (Makro). Daneben ein Sammel-Wörterbuch <code>fruehpruefung</code> für alles Mögliche.</td><td>Mehrere Teile lesen dasselbe Lagebild schon, aber jeder auf seine Art.</td><td class="urteil y">gelb</td></tr>
+<tr><td>C</td><td>Jede Einheit gehört <b>einer</b> Aufgabe; Vorrang über Anspruch, die Verteidigung nimmt sich einzelne Leute</td><td>Fünf Teile geben Einheiten Befehle (Suchmuster: erstes_spiel 8, assassinen 20, waechter 12, feldzug 6, raids 3). Den Vorrang regelt ein Schalter: <code>feldzug_ruht</code> hält den <b>ganzen</b> Feldzug an, sobald die Lordwache einen seiner Männer braucht (<code>erstes_spiel.py:3167/3176</code>).</td><td>1018o: Das ganze Heer jagte Assassinen, 195-mal ausgelöst. Heute: Der Feldzug steht, solange die Lordwache arbeitet.</td><td class="urteil r">rot</td></tr>
+<tr><td>D</td><td>Ein Einheiten-Befehler, kein doppelter Befehl</td><td>Jeder Teil drosselt selbst, etwa die Lordwache „höchstens alle 5 Runden“ und das Stillstand-Lösen im Assassinen-Teil.</td><td>Ein Grundgedanke, aber fünfmal verschieden gebaut.</td><td class="urteil y">gelb</td></tr>
+<tr><td>E</td><td>Bauen: Soll setzen → Abgleich → <b>eine</b> Stelle baut, in fester Reihenfolge</td><td>24 verschiedene Bau-Zwecke rufen selbst den Bau auf (gezählt an <code>zweck="…"</code>), darunter Plan, Seasoning (B), Produktion, Kornspeicher im Ring, Brot, Jagd, Bierkette, Holz-Spam und Stillstand. Gebremst wird über Schalter wie „ANWERBEN-BREMSE“, „Planer braucht Gold“ und Rücklagen.</td><td>Partie 21:16: Holz 0 von Tick 1.173 bis 3.996 bei 16 besetzten Holzfällern. Gleichzeitig warteten der Planer (Eisenmine, fehlt Holz 40), Seasoning (4 B-Plantagen, Holz 0) und das Anwerben (Gold 40 statt 70).</td><td class="urteil r">rot</td></tr>
+<tr><td>F</td><td>Bauphasen mit Übergang und Gegenzug</td><td><code>phase1</code> (Eröffnung) und <code>phase2</code> (alles danach). Feste Tick-Grenzen wie „Lord-Schutz bis Tick 9600“ und „Endspurt“.</td><td>Daniels vier Phasen (Raid-Start → Wirtschaft → Armee → Lord-Angriff) sind nicht als Phasen mit Übergangsbedingung gebaut.</td><td class="urteil y">gelb</td></tr>
+<tr><td>G</td><td>Gegnerstrategien erkennen, mit Verlauf</td><td><code>uebersicht.py</code> kennt Bedrohungen je Ort. Benannte Muster wie „Großangriff“, „Assassinen-Wache“ oder „Söldner-Rush“ gibt es nicht, auch keinen Verlauf.</td><td>SamurAI kann nicht gezielt umschalten, wenn du zum Beispiel früh arabische Bogenschützen holst.</td><td class="urteil r">fehlt</td></tr>
+<tr><td>H</td><td>Angriff ja oder nein an einer Stelle, nach Gewinnaussicht</td><td><code>zuweisung.kleinste_gruppe</code> und <code>gefecht.simuliere</code> rechnen mit gemessenen Werten, eine gute Grundlage. Aber der Feldzug entscheidet selbst („8 von 30 am Sammelpunkt“).</td><td>Zwei Stellen beantworten die Frage „sind wir stärker?“.</td><td class="urteil y">gelb</td></tr>
+<tr><td>I</td><td>Bauwahl nach Bilanz (Gegner, Karte, neuere Partien zählen mehr)</td><td>Partien werden gesammelt (<code>serie.py</code>, <code>wissen_ablauf.jsonl</code>, Wissensregister). Gewählt wird von Hand.</td><td>Passt zu deinem Endziel „KI lernt selbst“, ist aber noch nicht angeschlossen.</td><td class="urteil y">gelb</td></tr>
+<tr><td>J</td><td>Zeit je Teil messen, Fehler je Teil abfangen</td><td>„ZEITEN nach N Runden“ je Teil; jeder Block steht in einem try, mit „Partie läuft weiter“.</td><td>Funktioniert und deckt Fehler auf.</td><td class="urteil g">grün</td></tr>
+</table></div>
+<p>Dazu ein Punkt zur Ordnung der Dateien: Sharky trennt das Gerüst (<code>Sharky/</code>) von den Bots (<code>SharkyExampleBot/</code>). Bei SamurAI liegen 177 Python-Dateien in einem Ordner. Davon sind 48 Prüfer und 22 Mess- oder Probe-Skripte. Im Spiel laufen 48 Dateien (CODE-KENNUNG). <span class="urteil y">gelb</span></p>
+<div class="rat">Mein Rat: A, C und E zuerst, denn sie erklären die Fehler aus echten Partien. G kommt danach, weil es auf dem Gerüst aufsetzt.</div>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+
+<div class="punkt" data-id="schritte"><h2>3. Umbau in Schritten (Vorschlag, nichts davon gebaut)</h2>
+<p>Das ist der Plan vom 05.10. (<code>Plan_Architektur.md</code>), jetzt geordnet nach dem gelesenen Sharky-Code. Jeder Schritt wird einzeln geprüft, bevor der nächste beginnt.</p>
+<ol>
+<li><b>Gerüst.</b> Eine Manager-Form <code>start()</code>, <code>runde(lage)</code> → Befehle, <code>ende()</code>. Die Reihenfolge wie bei Sharky: Lagebild → Übersicht → Mikro-Aufgaben → Angriffsentscheidung → Makro → Gegnerstrategie → Bauphase. Die bestehenden Teile werden <b>unverändert</b> hineingehängt, die Messungen kommen aus der Runde in eigene Manager. <i>Prüfung:</i> Eine Partie mit fester Saat liefert dieselbe Mitschrift wie vorher (Stand 813a98b). Gegenprobe: Zwei Manager tauschen die Reihenfolge, dann muss die Mitschrift abweichen.</li>
+<li><b>Aufgaben mit Anspruch.</b> Verteidigung (Lordwache) 0, Wächter 1, Raid (Assassinen) 2, Feldzug 3. Jede Einheit hat genau eine Rolle. Die Verteidigung nimmt sich nur die kleinste Gruppe, der Feldzug läuft mit dem Rest weiter. <code>feldzug_ruht</code> fällt weg. <i>Prüfung ohne Spiel:</i> Keine Einheit steht in zwei Aufgaben. <i>Im Spiel:</i> Der Feldzug bewegt sich weiter, während die Lordwache abwehrt.</li>
+<li><b>Soll und Ist beim Bauen.</b> Jeder Teil meldet nur noch Soll-Zahlen mit Ertrag. Eine Stelle gleicht ab und baut in fester Reihenfolge. Holz und Gold verteilt sie nach erwartetem Ertrag (der „Haushalt“ aus dem Plan vom 05.10.). Die Bremsschalter fallen weg. <i>Prüfung:</i> Wartezeiten, in denen Holz bei 0 steht, obwohl gebaut werden soll, vorher und nachher gemessen.</li>
+<li><b>Gegnerstrategien und Bauwahl nach Bilanz.</b> Benannte Muster mit Verlauf, Gegenzug je Muster, Wahl der Eröffnung nach Bilanz je Karte und Gegner.</li>
+</ol>
+<div class="rat">Mein Rat: Schritt 1 jetzt, denn er ändert nichts am Spiel und macht die anderen erst möglich. Schritt 2 danach, weil er deinen ursprünglichen Fall „40 Schwertkämpfer gegen einen Assassinen“ an der Wurzel löst.</div>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+
+<div class="punkt" data-id="belege"><h2>4. Was belegt ist, was vermutet, was offen</h2>
+<ul>
+<li><b>Belegt (gelesen oder gezählt):</b> Sharkys Aufbau aus den genannten Dateien, alle Zahlen in Punkt 2 und der Holz-Stillstand der Partie 21:16 (Mitschrift <code>daten/samurai_20261019_211644_sp2_konsole.txt</code>).</li>
+<li><b>Vermutet:</b> Dass der Holz-Stillstand an der Konkurrenz der Bauwünsche liegt. Die Mitschrift zeigt vier gleichzeitige Wartende, aber nicht, wohin jedes Holz ging.</li>
+<li><b>Offen:</b> Sharkys Mikro-Steuerung je Einheitentyp (MicroControllers) und seine Wegfindung habe ich nicht im Einzelnen gelesen. Für die Ordnung braucht es sie nicht, für Schritt 2 lese ich sie nach.</li>
+<li><b>Gezählt mit Suchmuster, nicht vollständig:</b> „5 Teile geben Befehle“ und „24 Bau-Zwecke“ zählen nur Stellen, die dem Muster folgen. Es können mehr sein, aber nicht weniger.</li>
+</ul>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+
+<div class="punkt" data-id="nebenbei"><h2>5. Nebenbei heute Abend</h2>
+<ul>
+<li><b>Markt und Söldnerposten:</b> In den Partien 21:14 und 21:16 bekam jeder Spieler genau die Söldner, die er selbst geworben hat. Eine Verwechslung war in diesen zwei Partien nicht zu sehen. Ein Assassinen-Auftrag (Tick 3298) ging trotzdem verloren, ohne bekannte Ursache. Der Mod schaltet für SamurAIs Befehle einen Takt lang „ich“ auf Spieler 2. Laut seinem eigenen Kommentar können deine Klicks in diesem Takt an SamurAI gehen. Gemessen ist das noch nicht.</li>
+<li><b>Eröffnung in rund 1 s statt 6 bis 23 s</b> (L143) und <b>Nahrung ohne Mindestzahl Äpfel</b> (L142) sind gesichert.</li>
+</ul>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+
+</main>
+<script>
+function zustand() {
+  return [...document.querySelectorAll('.punkt')].map(p => ({ id: p.dataset.id, titel: p.querySelector('h2').textContent,
+    ampel: p.querySelector('.ampel').value, notiz: p.querySelector('textarea').value }));
+}
+document.querySelectorAll('.ampel').forEach(s => s.addEventListener('change', () => {
+  const p = s.closest('.punkt'); p.classList.remove('gruen', 'gelb', 'rot'); if (['gruen','gelb','rot'].includes(s.value)) p.classList.add(s.value);
+}));
+function kopieren() {
+  const t = zustand().map(z => z.titel + ' [' + z.ampel + ']' + (z.notiz ? ': ' + z.notiz : '')).join('\n');
+  navigator.clipboard.writeText('Sharky-Abgleich SamurAI\n' + t);
+}
+function herunterladen() {
+  document.querySelectorAll('textarea').forEach(t => t.textContent = t.value);
+  document.querySelectorAll('select').forEach(s => [...s.options].forEach(o => o.toggleAttribute('selected', o.value === s.value)));
+  const b = new Blob(['<!doctype html>\n' + document.documentElement.outerHTML], { type: 'text/html' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'Audit_Sharky_Notizen.html'; a.click();
+}
+</script>
+</body>
+</html>
