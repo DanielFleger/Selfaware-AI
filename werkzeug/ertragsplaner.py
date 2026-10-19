@@ -374,7 +374,8 @@ class Ertragsplaner:
         """Kandidaten-Orte ohne gesperrte Flaechen (v14: Steinbrueche, Joche, Lager + Erweiterung, Hoefe, Gerberei,
         Waffenlager haben feste Plaetze - v12/v13 setzte der Planer einen Steinbruch auf (81,268) und nahm beiden den Platz)."""
         orte = self._orte_roh(typ, L, G)
-        sperr = getattr(self, "sperr", None)
+        # 19.10. (gefahrenzone.py): frische eigene Verluste sperren ihren Umkreis fuer neue Betriebe mit
+        sperr = list(getattr(self, "sperr", None) or []) + list(getattr(self, "gefahr", None) or [])
         if not sperr:
             return orte
         b = self.groesse.get(typ, 3)

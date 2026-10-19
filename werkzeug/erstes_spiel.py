@@ -443,6 +443,7 @@ def haus_noetig(l, b):
 
 RESERVIERT = []      # 07.10. (Lauf 29): B-Plantagen-Flaechen (x0, y0, x1, y1 einschliesslich, Anker) - kein anderer Bau darf hinein
 BUCH = None          # Auftragsbuch (phase2): jeder Bau wird vorher gegen den Bestand geprueft und danach bestaetigt
+GZ = None            # 19.10. Gefahrenzonen (gefahrenzone.py, phase2): kein neuer Betrieb, wo gerade ein eigenes Gebaeude fiel
 _KOSTEN_SPIEL = {}
 
 def kosten_spiel(typ):
@@ -527,6 +528,12 @@ def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
     "Ersatzplatz Steinbruch (80,271)" bei 8 Holz). Jetzt: reicht der Bestand nicht, wird gar nicht gesendet."""
     g = NACH_TYP[typ]
     rueckgabe = lambda ort, grund: (ort, grund) if mit_grund else ort
+    if GZ is not None and not GZ.erlaubt(typ, x, y):
+        # 19.10. (gefahrenzone.py, gemessen: in frischen Verlustzonen lieferten 15-33 % der Huetten, sonst 72 %)
+        if BUCH is not None:
+            BUCH.ablehnen(typ, (x, y), "Gefahrenzone (eigener Verlust im Umkreis %d in den letzten %d Ticks)" % (
+                GZ_R, GZ_TICKS))
+        return rueckgabe(None, "schutz")
     if BUCH is not None:
         k, v = kosten_spiel(typ), vorrat(SP)
         # SAI 11.10.: unter Ascension kostet die Schmiede auch 2 Eisen - Eisen und Pech mitpruefen
@@ -917,6 +924,8 @@ GRABEN = True            # 19.10. (Daniel 10:31 "gerne"): Burggraben 1 Feld Abst
 FALLEN = True            # 19.10. (Daniel 11:00 "Holzfalle dahin, wo etwas ein Angriffsziel bekommt"): fallenwache.py, fallen=nein
 ENDSPURT = True          # 19.10. (Daniel 16:49/16:51/16:57): endspurt.py - Wirtschaft verloren -> alles auf den Lord, endspurt=nein
 RAIDS = True             # 19.10. (Daniel 16:49/16:57): raids.py - Sklaven-Brandtrupp und Reiterjagd, raids=nein
+NEUBAU_SICHER = True     # 19.10. (Punkt 4, Daniel 16:57): gefahrenzone.py - Betriebe nur ausserhalb frischer Verluste, neubau_sicher=nein
+from gefahrenzone import R as GZ_R, TICKS as GZ_TICKS
 from endspurt import HOLZ_BLEIBT as ES_HOLZ_BLEIBT, schwertkaempfer as es_schwertkaempfer, SCHWERT as ES_SCHWERT,     NICHT_NAHRUNG as ES_NICHT_NAHRUNG
 SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # gemessen 12.10. 00:04 (L63, Ascension)
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
@@ -1930,7 +1939,7 @@ class Produktion:
 
 def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0, trainingsstand=None, trainingsstand_ab=40,
            gold_ziel=None, streitkolben=0, weg="kauf"):
-    global BEV_ZIEL
+    global BEV_ZIEL, GZ
     schreib("== Phase 2: Echtzeit, Tempo %d, %d Minuten, Waechter %s" % (tempo, minuten, "an" if mit_waechter else "aus"))
     partie_pruefen()
     # Halte-Liste des Moduls ueberlebt das Laden einer Partie (04.10.: alte Eintraege zogen neue Assassinen mit
@@ -1977,6 +1986,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     from lageprotokoll import Lageprotokoll
     lage = Lageprotokoll(os.path.join(D, "lage_%s%s.jsonl.gz" % (time.strftime("%Y%m%d_%H%M%S"), LAUF_ENDUNG)))
     schreib("Lageprotokoll (jede Runde komplett): %s" % lage.pfad)
+    if NEUBAU_SICHER:
+        import gefahrenzone
+        GZ = gefahrenzone.Gefahrenzonen(SP)
     es = None
     if ENDSPURT:
         # 19.10. (Daniel 16:51 "er koennte jetzt einsehen, ok ich bin schon verloren, lass versuchen den Gegner zu rushen"):
@@ -2212,6 +2224,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             st, L, G = runde_lesen()
             if st:
                 roh_l = lage.schreibe(st)
+                if GZ is not None:
+                    GZ.runde(st.get("t"), G)
+                    ausbau.gefahr = GZ.rechtecke()
                 if es is not None and roh_l:
                     try:
                         es.runde(st.get("t"), st, *roh_l)
@@ -3163,6 +3178,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     schreib(serie.bericht())
     if brand is not None:
         schreib("RAIDS: %s; %s" % (brand.bericht(), reiter.bericht()))
+    if GZ is not None:
+        schreib(GZ.bericht())
     st, L, G = runde_lesen()
     schreib("Ende Phase 2 bei Tick %s nach %d Runden (%.1f s je Runde); Kornspeicher %d, Holzfaeller %d, Apfelplantagen %d%s" % (
         st.get("t"), runde, (time.time() - t0) / max(runde, 1), st.get("G19", 0), st.get("G3", 0), st.get("G32", 0),
@@ -3316,11 +3333,12 @@ def main():
     global NOTWERBUNG, KORNRING, GRUBEN
     KORNRING = arg.get("kornring", "ja") == "ja"
     GRUBEN = arg.get("gruben", "ja") == "ja"
-    global GRABEN, FALLEN, ENDSPURT, RAIDS
+    global GRABEN, FALLEN, ENDSPURT, RAIDS, NEUBAU_SICHER
     GRABEN = arg.get("graben", "ja") == "ja"
     FALLEN = arg.get("fallen", "ja") == "ja"
     ENDSPURT = arg.get("endspurt", "ja") == "ja"
     RAIDS = arg.get("raids", "ja") == "ja"
+    NEUBAU_SICHER = arg.get("neubau_sicher", "ja") == "ja"
     NOTWERBUNG = arg.get("notwerbung", "nein") == "ja"
     STUFE2_BELIEBT = arg.get("stufe2_beliebt", "halten")
     ANGRIFF_AB = int(arg.get("angriff_ab", 0))
