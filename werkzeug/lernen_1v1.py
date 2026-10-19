@@ -43,14 +43,15 @@ sys.path.insert(0, HIER)
 POSITIONEN = [("Green Haven", "4,3"), ("Close Encounters", "2,3"), ("Green Haven", "3,4"), ("Close Encounters", "3,2"),
               ("The Killing Plains", "0,1"), ("The Killing Plains", "1,0")]
 KNOEPFE = {
+    # 20.10. 00:13: Daniels Siegerweg zuerst pruefen (B-128 Verkauf + Soeldner, B-129 Deckung) - Reihenfolge = Testfolge
+    "produktion": ["ja", "nein"],              # B-128: eigene Waffenkette ODER (Daniels Weg) Stein/Eisen verkaufen + Soeldner
+    "deckung_soll": [0, 4, 8],                 # B-129: Schleuderer decken die Brand-Sklaven
     "lager_max": [45, 60, 75],                 # B-124
     "steinbrueche_frueh": [2, 0, 3],           # B-125
     "kausal_sparen": ["ja", "nein"],           # B-122
     "kausal_horizont": [16000, 10000, 24000],  # B-123
     "holzfaeller_je_baum": [4, 2, 1],
     "holz_spam": [20, 10, 0],
-    "produktion": ["ja", "nein"],              # B-128: eigene Waffenkette ODER (Daniels Weg) Stein/Eisen verkaufen + Soeldner
-    "deckung_soll": [0, 4, 8],                 # B-129: Schleuderer decken die Brand-Sklaven
 }
 METRIK = 3     # 3 = Einnahmen + Lagerwert + Truppenwert + Feindschaden (ab 20.10. 00:15); andere Metriken zaehlen nicht
 # Feindschaden: feindliche Gebaeude, die im Lauf verschwunden sind (uid gesehen, am Ende weg; Lagerplatz/Steinhaufen nicht),
