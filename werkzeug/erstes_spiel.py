@@ -56,6 +56,7 @@ START_FERTIG = False      # 1v1: Startsignal ausgetauscht - erst danach laeuft e
 FEHLERPROBE, PAUSEPROBE = None, None   # Pruefschalter (Tick): einmal einen Rundenfehler werfen / das Spiel anhalten
 
 
+MENSCH, MENSCH_GEGNER = False, False   # 19.10. 19:30: mensch=ja (Starter fuer Spieler 1), mensch_gegner=ja (KI gegen einen Menschen)
 EINS_GEGEN_EINS, ANHAENGEN, ANGLEICH_TICK = False, False, 150   # 150: beide Lords stehen (mit zwei Menschen ist der Start gleich)
 BARRIERE_START = os.path.join(HIER, ".eins_gegen_eins_start%s.json" % ("" if INSTANZ == 1 else INSTANZ))
 BARRIERE_BEREIT = os.path.join(HIER, ".eins_gegen_eins_bereit%s.json" % ("" if INSTANZ == 1 else INSTANZ))
@@ -184,6 +185,13 @@ def gefecht_starten(tempo):
         schreib("STARTGUETER nicht gelesen: %s" % ex)
     if EINS_GEGEN_EINS:
         t_lords = eins_gegen_eins_start()
+        if MENSCH:
+            # 19.10. 19:30 (Daniel: "ich will jetzt gegen die KI spielen"): Spieler 1 spielt der Mensch - dieser Lenker hat nur
+            # das Gefecht gestartet und angeglichen; er gibt den Kanal frei und hoert auf, ohne Ende-Meldung und ohne Pause
+            import befehl as kanal_m
+            schreib("MENSCH spielt Spieler 1 - Starter beendet bei Tick %d, die KI (Spieler 2) laeuft weiter" % tick())
+            kanal_m.freigeben()
+            os._exit(0)
     return t_lords
 
 
@@ -2340,6 +2348,12 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 stand, fortgesetzt = 0, 0
             elif not stand:
                 stand = time.time()
+            elif time.time() - stand >= 30 and MENSCH_GEGNER:
+                # 19.10. 19:30: gegen einen Menschen - er darf pausieren, so lange er will; die KI setzt nie fort und bricht nie ab
+                if not fruehpruefung.get("mensch_pause"):
+                    schreib("SPIELZEIT steht bei Tick %d - der Mensch hat pausiert, die KI wartet" % st["t"])
+                fruehpruefung["mensch_pause"] = True
+                stand = time.time()
             elif time.time() - stand >= 30:
                 # 18.10. (1018b/c/d: der Partner hielt das Spiel an, dieser Lenker brach nach 30 s ab): mit Partner das Spiel
                 # fortsetzen (hoechstens partner.FORTSETZEN_MAX Mal in Folge), ohne Partner wie bisher abbrechen
@@ -3350,7 +3364,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
 
 def main():
     global EINS_GEGEN_EINS, ANHAENGEN, ANGLEICH_TICK      # 19.10. (1v1) - vor jeder Verwendung in main
+    global MENSCH, MENSCH_GEGNER
     arg = dict(a.split("=") for a in sys.argv[1:])
+    MENSCH = arg.get("mensch", "nein") == "ja"
+    MENSCH_GEGNER = arg.get("mensch_gegner", "nein") == "ja"
     EINS_GEGEN_EINS = arg.get("eins_gegen_eins", "nein") == "ja"
     ANHAENGEN = arg.get("anhaengen", "nein") == "ja"
     ANGLEICH_TICK = int(arg.get("angleich_tick", ANGLEICH_TICK))
