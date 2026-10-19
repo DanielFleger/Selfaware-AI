@@ -34,6 +34,7 @@ class Lageprotokoll:
         with gzip.open(self.pfad, "at", encoding="utf-8") as f:
             f.write(json.dumps(zeile, ensure_ascii=False) + "\n")
         self.runden += 1
+        return zeile["einheiten"], zeile["gebaeude"]      # 19.10.: fuer den Endspurt (endspurt.py), ohne zweites Lesen
 
 
 # ---- lesen --------------------------------------------------------------------------------------------------------

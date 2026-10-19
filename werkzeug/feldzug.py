@@ -74,6 +74,7 @@ class Feldzug:
         self.verteidiger = set()    # 19.10.: Streitkolben, die der Waechter gerade zur Abwehr einsetzt - der Feldzug laesst sie
         self.heimwache = set()      # 19.10.: bleiben zu Hause (Waechter) - gehoeren nicht zum Heer
         self._rechnung = (-99, False, "")
+        self.endspurt = False       # 19.10. (endspurt.py): Wirtschaft verloren - angreifen, sobald die Haelfte da ist
 
     def _lords(self, L):
         return {n: e for n, e in L.items() if e["typ"] == LORD and e["besitzer"] not in (0, self.sp) and e["leben"] > 0}
@@ -151,6 +152,10 @@ class Feldzug:
                 if self.runde - self._rechnung[0] >= self.RECHNEN_ALLE:
                     self._rechnung = (self.runde,) + self._lohnt(L, da, lord)
                 lohnt, text = self._rechnung[1], self._rechnung[2]
+            # 19.10. (Endspurt, Daniel 16:51 "lass versuchen den Gegner zu rushen"): die Wirtschaft ist verloren - angreifen,
+            # sobald die Haelfte des Heeres (mindestens MIN_ANGRIFF) am Sammelpunkt steht, ohne auf die Gefechtsrechnung zu warten
+            if self.endspurt and len(da) >= self.MIN_ANGRIFF and 2 * len(da) >= len(kolben):
+                lohnt, text = True, "ENDSPURT: %d von %d am Sammelpunkt" % (len(da), len(kolben))
             if (len(da) >= self.N or lohnt) and t >= self.schutz_bis:
                 self.phase = "angriff"
                 self.letzter_befehl = -99

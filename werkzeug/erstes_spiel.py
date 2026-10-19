@@ -915,6 +915,8 @@ KORNRING = True          # 18.10. (Daniel: "bau den Kornspeicher ein bis auf die
 GRUBEN = True            # 18.10. (Daniel 23:07 "4 Holz ist sehr wenig, wenn es einem Assassinen das Leben nimmt"): Schalter gruben=nein
 GRABEN = True            # 19.10. (Daniel 10:31 "gerne"): Burggraben 1 Feld Abstand um den Kornspeicher, Schalter graben=nein
 FALLEN = True            # 19.10. (Daniel 11:00 "Holzfalle dahin, wo etwas ein Angriffsziel bekommt"): fallenwache.py, fallen=nein
+ENDSPURT = True          # 19.10. (Daniel 16:49/16:51/16:57): endspurt.py - Wirtschaft verloren -> alles auf den Lord, endspurt=nein
+from endspurt import HOLZ_BLEIBT as ES_HOLZ_BLEIBT, schwertkaempfer as es_schwertkaempfer, SCHWERT as ES_SCHWERT
 SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # gemessen 12.10. 00:04 (L63, Ascension)
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
@@ -1974,6 +1976,12 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     from lageprotokoll import Lageprotokoll
     lage = Lageprotokoll(os.path.join(D, "lage_%s%s.jsonl.gz" % (time.strftime("%Y%m%d_%H%M%S"), LAUF_ENDUNG)))
     schreib("Lageprotokoll (jede Runde komplett): %s" % lage.pfad)
+    es = None
+    if ENDSPURT:
+        # 19.10. (Daniel 16:51 "er koennte jetzt einsehen, ok ich bin schon verloren, lass versuchen den Gegner zu rushen"):
+        # der Partievergleich laeuft mit; bricht unsere Wirtschaft ein, geht alles auf den Lord (endspurt.py)
+        from endspurt import Endspurt
+        es = Endspurt(SP, lernlog)
     ausbau = Ertragsplaner(plan, SP, baue_schnell, wirt, s32(peek(PD + 0x2188)[0]), ende=ZIEL_TICK, protokoll=lernlog, wegtest=wegtest)   # lernt im Spiel (Daniel 19:44)
 
     def gold_bremst(st, G):
@@ -2195,7 +2203,13 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             befehlskanal.belege()
             st, L, G = runde_lesen()
             if st:
-                lage.schreibe(st)
+                roh_l = lage.schreibe(st)
+                if es is not None and roh_l:
+                    try:
+                        es.runde(st.get("t"), st, *roh_l)
+                    except Exception as ex_e:            # ein Fehler im Endspurt beendet nie die Partie
+                        schreib("ENDSPURT FEHLER %r - Endspurt aus, Partie laeuft weiter" % (ex_e,))
+                        es = None
             tz = uhr("lesen", tz)
             if PARTNER:
                 # 18.10.: der andere Lenker hat aufgehoert - Regelbruch/Niederlage entscheidet die Partie fuer uns, ein Absturz
@@ -2291,7 +2305,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             # ausnehmen
             # 19.10. (Daniel, 1019b: "die lassen sich einfach angreifen ohne Grund"): solange der Feldzug sammelt, sind seine
             # Streitkolben Reserve des Waechters - nur bei einer Bedrohung und nur, wenn die Gefechtsbewertung den Angriff lohnt
-            if feldzug is not None:
+            if feldzug is not None and es is not None and es.aktiv:
+                feldzug.heimwache = set()          # 19.10. Endspurt: die Heimwache zieht mit
+            elif feldzug is not None:
                 # 19.10. (Daniel, 1019f: "nur zum Verteidigen ist das Overkill ... danach besser verteilen um auch zu raiden"):
                 # eine kleine Heimwache bleibt am Bergfried (zuerst Schuetzen, dann Nahkaempfer, die naechsten am Bergfried, nur
                 # wer hoechstens 40 Felder weg ist), alle anderen Truppen sind das Heer des Feldzugs
@@ -2785,11 +2801,15 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 # Totalverbot liess im 18-Monats-Lauf 133 Stein ungenutzt liegen, obwohl 500 Gold zum Anwerben gebraucht werden.
                 stein_reserve = (prod.stein_bedarf(G) if prod else ausbau.reserve()["stein"] + (12 if kas_fehlt else 0))
                 stein_reserve += korn.stein_bedarf() if korn is not None else 0     # 18.10.: Stein fuer den Kornring
+                es_an = es is not None and es.aktiv
+                if es_an:
+                    stein_reserve, bremst = 0, False     # 19.10. Endspurt: alle Waren ausser Nahrung werden Gold
                 v = verkaufen(st, stein_reserve,
-                              ausbau.messer, holz_verkaufen=bremst, eisen_reserve=10 if prod else 0,
+                              ausbau.messer, holz_verkaufen=bremst, eisen_reserve=0 if es_an else (10 if prod else 0),
                               # Haushalt: Nahrung fuer doppelte Rationen behalten (2 x 0,1 je Kopf und 1.000 Ticks, gemessen 05.10.)
                               nahrung_puffer_h=(3 + st.get("leute", 0) // 3) if haus else None,
-                              obergrenzen={"holz": 150, "stein": 50, "eisen": 10} if prod else
+                              obergrenzen={"holz": ES_HOLZ_BLEIBT, "stein": 0, "eisen": 0} if es_an else
+                              {"holz": 150, "stein": 50, "eisen": 10} if prod else
                               # 12.10. (L66: Holz wurde im Kausal-Zweig nie verkauft): Holz ueber Baureserve + 40 ist Ware
                               ({"holz": max(60, wirt.ruecklage(G)["holz"] + 40)} if ENTSCHEIDER == "kausal" else None))
                 if v:
@@ -2936,7 +2956,21 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         sum(1 for g in G.values() if g["besitzer"] == SP and g["typ"] == 3) < HOLZ_SPAM):
                     ereignis += leder.schritt(st, G, wirt)
                 if feldzug is not None:
-                    if prod is not None:
+                    if es is not None and not es.aktiv:
+                        try:
+                            neu_es = es.pruefen(st.get("t"))
+                        except Exception as ex_e:            # ein Fehler im Endspurt beendet nie die Partie
+                            neu_es, es = ["ENDSPURT FEHLER %r - Endspurt aus, Partie laeuft weiter" % (ex_e,)], None
+                        ereignis += neu_es
+                        if es is not None and es.aktiv:
+                            feldzug.endspurt = True
+                            if trupp is not None:            # Assassinen: auch sie auf den Lord, sobald es machbar ist
+                                trupp.lord_aus = False
+                                trupp.LORD_SPAETESTENS = 0
+                    es_an = es is not None and es.aktiv
+                    if es_an:
+                        pass                                 # 19.10. Endspurt: kein Waffenkauf, keine Produktion - Gold geht in Soeldner
+                    elif prod is not None:
                         prod.stein_extra = bier.stein_bedarf() if bier is not None else 0
                         # 18.10. (1018f): auch der Stein-gegen-Holz-Tausch laesst den Stein fuer den Kornring liegen
                         prod.stein_extra += korn.stein_bedarf() if korn is not None else 0
@@ -2959,7 +2993,16 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # Schwertkaempfer (Editor-Duelle: 28.000 Leben, ~180 je Takt), jeder vierte ein arab. Bogen; hoechstens 2 je
                     # Runde und bis HEER_MAX im Heer
                     posten_h = next((n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 8), None)
-                    if posten_h is not None and runde % 2 == 0:
+                    if posten_h is not None and es_an:
+                        # 19.10. Endspurt (Daniel: "all mein Gold in Schwertkaempfer"): alles Gold, so viele wie Bauern am Feuer
+                        import bauen as BA_h
+                        n_h = es_schwertkaempfer(st["gold"], st.get("feuer", 0))
+                        for _ in range(n_h):
+                            BA_h.werbe(ES_SCHWERT, posten_h)
+                        if n_h:
+                            ereignis.append("ENDSPURT-WERBUNG: %d arab. Schwertkaempfer (Gold %d, Feuer %d, Heer jetzt %d)" % (
+                                n_h, st["gold"], st.get("feuer", 0), len(feldzug.einheiten(L)) + n_h))
+                    elif posten_h is not None and runde % 2 == 0:
                         import bauen as BA_h
                         frei_h = st["gold"] - wirt.ruecklage(G)["gold"] - HEER_GOLD_RAND
                         heer_n, n_h, feuer_h = len(feldzug.einheiten(L)), 0, st.get("feuer", 0)
@@ -2975,7 +3018,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             if fruehpruefung["heer_zaehler"] % 10 < n_h or fruehpruefung["heer_zaehler"] <= 2:
                                 ereignis.append("HEER-WERBUNG: %d Soeldner fuers Heer angeworben (zusammen %d, Heer jetzt %d), Gold %d" % (
                                     n_h, fruehpruefung["heer_zaehler"], heer_n + n_h, st["gold"]))
-                    if bier is not None and runde % 5 == 0:
+                    if bier is not None and not es_an and runde % 5 == 0:     # Endspurt: keine neuen Betriebe
                         try:
                             ereignis += bier.schritt(st, G, wirt.ruecklage(G))
                         except Exception as ex_z:
@@ -3045,7 +3088,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             tz = time.time()
             if not (streitkolben and endspiel["fertig"]):    # nach dem Endspiel ruht die Wirtschaft (v6: baute A-Plantagen nach)
                 ereignis += wirt.schritt(st, L, G)
-                ereignis += ausbau.schritt(st, L, G, runde)
+                if not (es is not None and es.aktiv):      # 19.10. Endspurt: keine neuen Betriebe mehr
+                    ereignis += ausbau.schritt(st, L, G, runde)
             tz = uhr("wirtschaft", tz)
             bedarf = sum(ARBEITER_JE[t] * st.get("G%d" % t, 0) for t in ARBEITER_JE)
             puffer = streitkolben and not endspiel["fertig"] and ENTSCHEIDER != "kausal" and wohnraum_fehlt(st, G)[0]   # Huetten vorab, aber nur mit Arbeit (23:21)
@@ -3108,6 +3152,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         schreib("Wissen angehaengt: %s" % AA.wissen_anhaengen(erg))
     except Exception as ex:
         schreib("ABLAUFANALYSE fehlgeschlagen: %r" % ex)
+    schreib("ENDSPURT: %s" % (("aktiv ab Tick %d - %s" % (es.aktiv_seit, es.grund)) if es is not None and es.aktiv
+                              else "nicht ausgeloest" if es is not None else "aus"))
     try:
         # Daniel 19.10. 16:11: "baue solche Analysetools fuer jede zukuenftige Partie ein, damit man immer nachvollziehen
         # kann warum und dann auch ab wann jemand im Nachteil ist" - partie_vergleich.py. Im 1v1 kommen die Dateien des
@@ -3240,9 +3286,10 @@ def main():
     global NOTWERBUNG, KORNRING, GRUBEN
     KORNRING = arg.get("kornring", "ja") == "ja"
     GRUBEN = arg.get("gruben", "ja") == "ja"
-    global GRABEN, FALLEN
+    global GRABEN, FALLEN, ENDSPURT
     GRABEN = arg.get("graben", "ja") == "ja"
     FALLEN = arg.get("fallen", "ja") == "ja"
+    ENDSPURT = arg.get("endspurt", "ja") == "ja"
     NOTWERBUNG = arg.get("notwerbung", "nein") == "ja"
     STUFE2_BELIEBT = arg.get("stufe2_beliebt", "halten")
     ANGRIFF_AB = int(arg.get("angriff_ab", 0))
