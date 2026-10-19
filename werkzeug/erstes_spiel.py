@@ -2239,7 +2239,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 # Verbaende + Bewegung je Einheit; alle ZEILE_RUNDEN Runden eine LAGE-Zeile in die Mitschrift
                 if UB is not None and L:
                     try:
-                        UB.runde(st.get("t"), L)
+                        UB.runde(st.get("t"), L, G)
                         if UB.runden % UB_m.ZEILE_RUNDEN == 1:
                             print(UB.zeile([(g["x"], g["y"]) for g in G.values() if g["besitzer"] == SP]), flush=True)
                     except Exception as ex_u:

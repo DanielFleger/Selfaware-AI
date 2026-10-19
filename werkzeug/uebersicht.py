@@ -18,6 +18,9 @@ VERBAND_R = 8
 ARBEITER_BIS = 40         # Arten 1-32 ohne Truppen = Bauern und Arbeiter (1, 3, 7, 12, 13, 14, 17, 21, 31, 32 gesehen)
 STEHT_FELDER = 1          # weniger oder gleich so viele Felder seit der Vorrunde = steht
 ZEILE_RUNDEN = 10
+# 19.10. 18:40 (Plan Schritt 3; Daniel 17:51 "die groessten Hebel sind Ausbildungen/Markt, Kornspeicher/Waffenkammer"):
+# Schluesselgebaeude je Spieler mit Ort und Leben - Grundlage fuer Raid-Ziele und Endspurt aus derselben Quelle
+SCHLUESSEL = {19: "Kornspeicher", 11: "Waffenlager", 26: "Markt", 9: "Kaserne", 8: "Soeldnerposten"}
 NAME = {22: "Bogen", 23: "Armbrust", 24: "Speer", 25: "Pike", 26: "Streitkolben", 27: "Schwert", 28: "Ritter", 55: "Lord",
         70: "arab.Bogen", 71: "Sklave", 72: "Schleuder", 73: "Assassine", 74: "Pferdebogen", 75: "arab.Schwert",
         76: "Feuerwerfer"}
@@ -37,7 +40,7 @@ class Uebersicht:
         self.t = None
         self.runden = 0
 
-    def runde(self, t, L):
+    def runde(self, t, L, G=None):
         self.t, self.runden = t, self.runden + 1
         self.weg = {}
         for n, e in L.items():
@@ -62,7 +65,19 @@ class Uebersicht:
                 # (51, 57, 62, 63, 64 gesehen) sind keine Arbeiter; was sie sind, ist nicht nachgesehen
                 s["sonstige"] += 1
         self.verbaende = self._verbaende(L)
+        for n, g in (G or {}).items():
+            b = g.get("besitzer", 0)
+            if b == 0:
+                continue
+            s = self.spieler.setdefault(b, {"truppen": Counter(), "arbeiter": 0, "sonstige": 0, "lord": None})
+            s["gebaeude"] = s.get("gebaeude", 0) + 1
+            if g["typ"] in SCHLUESSEL:
+                s.setdefault("schluessel", []).append((g["typ"], n, g["x"], g["y"], g.get("leben", 0)))
         return self
+
+    def schluessel(self, b):
+        """[(typ, nr, x, y, leben)] der Schluesselgebaeude von Spieler b."""
+        return list(self.spieler.get(b, {}).get("schluessel", []))
 
     def steht(self, nr, L=None):
         """True = hoechstens STEHT_FELDER Felder seit der Vorrunde, False = laeuft, None = keine Vorrunde."""
@@ -117,8 +132,10 @@ class Uebersicht:
             vt = "; ".join("%d bei %s%s" % (len(v["mitglieder"]), v["mitte"],
                                              (" -> %s" % (v["laufziel"],)) if v["laufziel"] and v["laeuft"] else "")
                            for v in vb)
-            teile.append("SP%d%s: %s | Arbeiter %d (+%d sonstige) | %s | Verbaende: %s" % (
-                b, "(wir)" if b == self.sp else "", arten or "keine Truppen", s["arbeiter"], s["sonstige"], lord, vt or "-"))
+            sl = ", ".join("%s %s" % (SCHLUESSEL[k[0]], (k[2], k[3])) for k in sorted(s.get("schluessel", [])))
+            teile.append("SP%d%s: %s | Arbeiter %d (+%d sonstige) | %s | Gebaeude %d, Schluessel: %s | Verbaende: %s" % (
+                b, "(wir)" if b == self.sp else "", arten or "keine Truppen", s["arbeiter"], s["sonstige"], lord,
+                s.get("gebaeude", 0), sl or "-", vt or "-"))
         bd = self.bedrohungen(orte) if orte else []
         if bd:
             teile.append("BEDROHT von %d Verbaenden (naechster %d Mann, %d Felder)" % (

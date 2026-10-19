@@ -15,6 +15,8 @@ Vorher festgelegt:
      dann Schwert, Bogen zuletzt (meister Schaden je Leben)
   8. dieselbe Assassine LAEUFT -> sie faellt heraus (keiner holt sie ein), Schwert zuerst
   9. Waechter mit ZIELWAHL "schaden": Bogen naeher an unseren Gebaeuden als die stehende Assassine -> Ziel ist die Assassine
+  10. Uebersicht mit Gebaeuden: Spieler 2 hat Kornspeicher (19) bei (40, 40) und Markt (26) -> schluessel(2) nennt beide,
+      die LAGE-Zeile nennt "Kornspeicher (40, 40)"; Spieler 1 ohne Schluesselgebaeude -> leer
 Gegenprobe: python werkzeug/zuweisung_pruefen.py alt  (einholbar immer ja = alter Stand) -> 1, 2, 5 und 8 rot;
 python werkzeug/zuweisung_pruefen.py abstand  (Zielwahl wie bis 18:35) -> 9 rot."""
 import os
@@ -118,6 +120,13 @@ def main():
     u9.runde(1060, dict(L9))
     w9.schritt(L9, [(110, 110)])
     pruefe(9, "Waechter Zielwahl %s: Ziel %s" % (W.Waechter.ZIELWAHL, w9.ziel), w9.ziel == 601)
+    u10 = UB.Uebersicht(1)
+    G10 = {1: {"besitzer": 2, "typ": 19, "x": 40, "y": 40, "leben": 1000}, 2: {"besitzer": 2, "typ": 26, "x": 50, "y": 40, "leben": 900},
+           3: {"besitzer": 1, "typ": 3, "x": 10, "y": 10, "leben": 300}, 4: {"besitzer": 0, "typ": 19, "x": 1, "y": 1, "leben": 1}}
+    u10.runde(1000, {1: e(55, 1, 10, 10, 150000, 1)}, G10)
+    z10 = u10.zeile()
+    pruefe(10, "Schluessel SP2 %s, SP1 %s | %s" % (sorted(k[0] for k in u10.schluessel(2)), u10.schluessel(1), z10[:140]),
+           sorted(k[0] for k in u10.schluessel(2)) == [19, 26] and u10.schluessel(1) == [] and "Kornspeicher (40, 40)" in z10)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
