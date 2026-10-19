@@ -57,6 +57,8 @@ FEHLERPROBE, PAUSEPROBE = None, None   # Pruefschalter (Tick): einmal einen Rund
 
 
 MENSCH, MENSCH_GEGNER = False, False   # 19.10. 19:30: mensch=ja (Starter fuer Spieler 1), mensch_gegner=ja (KI gegen einen Menschen)
+UEBERNEHMEN = False  # 19.10. 20:05 uebernehmen=ja: der Mensch hat das Gefecht in der Lobby gestartet, wir spielen den Platz der Ratte
+                     # (samurai_wache.py) - nie pausieren, nie Tempo oder Kamera aendern (es ist SEIN Spiel)
 EINS_GEGEN_EINS, ANHAENGEN, ANGLEICH_TICK = False, False, 150   # 150: beide Lords stehen (mit zwei Menschen ist der Start gleich)
 BARRIERE_START = os.path.join(HIER, ".eins_gegen_eins_start%s.json" % ("" if INSTANZ == 1 else INSTANZ))
 BARRIERE_BEREIT = os.path.join(HIER, ".eins_gegen_eins_bereit%s.json" % ("" if INSTANZ == 1 else INSTANZ))
@@ -303,6 +305,17 @@ def anhaengen():
     START_FERTIG = True
     return tick()
 
+def uebernehmen_start():
+    """19.10. 20:05 (Daniel: "wenn ich die KI in der Lobby haette und selbst das Spiel starten kann"; Platzhalter Ratte):
+    das Gefecht hat der Mensch gestartet - die eingebaute KI unseres Platzes aus (dieselben drei Stellen wie ki_aus im 1v1:
+    currentAIArray, PlayerData.aiType, Mensch-Eintrag), ohne Pause, dann spielt der Lenker diesen Platz."""
+    for adr, wert in ((0x0191DE7C + SP * 4, 0), (0x0115BDF8 + SP * 0x39F4 + 0x2300, 0), (0x0191DE10 + SP * 4, 1)):
+        befehl({"poke": adr, "wert": wert}, 1.0, bis="POKE")
+    schreib("UEBERNEHMEN: KI von Spieler %d bei Tick %d aus - SamurAI spielt" % (SP, tick()))
+    global START_FERTIG
+    START_FERTIG = True
+    return tick()
+
 def freier_platz(typ, mitte, r, frei_von=()):
     """Erster freier Bauplatz laut Platzsuche des Spiels, der keines der Rechtecke in frei_von [(Ort, Groesse)]
     ueberdeckt (SAI 11.10.: Markt/Posten waren fest (145,269)/(145,274) - auf jeder anderen Karte ein beliebiger Ort)."""
@@ -323,6 +336,9 @@ def phase1(plan, tempo, mit_posten=True):
     # 11.10. (Nomade, Instanz 4): manche Starts ohne Gegner-Lord (Burgvariante) oder auf dem anderen Startplatz - dann
     # neu wuerfeln statt den Lauf zu verlieren; andere Fehler bleiben harte Abbrueche
     for versuch in range(1, 6):
+        if UEBERNEHMEN:
+            uebernehmen_start()
+            break
         if ANHAENGEN:
             anhaengen()
             break
@@ -2127,9 +2143,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     schreib("Wirtschaft: Apfel A %s, B %s; alte Lagerteile %s" % (wirt.A, wirt.B, sorted(wirt.alt)))
     soeldner, geworben = None, 0
     a_stand = {"lebend": 0, "zuletzt": -10 ** 6}    # 19.10.: lebende Assassinen, Tick der letzten Anwerbung
-    befehl({"kamera": list(plan["lager_mitte"])}, 0.8)
-    befehl({"tempo": tempo}, 0.5)
-    befehl({"pause": False}, 0.5)
+    if not (UEBERNEHMEN or MENSCH_GEGNER):      # 20:05: im Spiel eines Menschen weder Kamera noch Tempo noch Pause anfassen
+        befehl({"kamera": list(plan["lager_mitte"])}, 0.8)
+        befehl({"tempo": tempo}, 0.5)
+        befehl({"pause": False}, 0.5)
     ende, letzter_tick, stand, runde, t0 = time.time() + 60 * minuten, None, 0, 0, time.time()
     schreib("Tick | Holz Stein Eisen | Aepfel Brot | Beliebt | Leute/Platz (Feuer) | Holzf. Apfelb. | Ereignis")
     zeiten, diese_runde, feindlord = {}, {}, {}
@@ -3230,7 +3247,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             ereignis.append("ANGRIFF auf den feindlichen Lord Nr %d mit %d Streitkolbenkaempfern ab Tick %d (Lord-Leben %d)" % (
                                 feind, len(kolben), st["t"], L[feind]["leben"]))
                             if ZUSCHAU_TEMPO:
-                                befehl({"tempo": ZUSCHAU_TEMPO}, 1.0, bis="TEMPO")
+                                if not (UEBERNEHMEN or MENSCH_GEGNER):
+                                    befehl({"tempo": ZUSCHAU_TEMPO}, 1.0, bis="TEMPO")
                                 ereignis.append("TEMPO %d ab dem ersten Angriff (zum Zuschauen)" % ZUSCHAU_TEMPO)
                         # Beleg, dass der Befehl wirkt: Abstand der Kaempfer zum Lord und dessen Leben je Angriffsrunde
                         lx, ly = L[feind]["x"], L[feind]["y"]
@@ -3313,7 +3331,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         ENDE.melde(ende_art, ende_text, letzter_tick, lage=lage.pfad, ertrag=lernlog)   # Dateien fuer den Partievergleich
     # 18.10.: im 1v1 haelt nur an, wer als Letzter aufhoert (oder wenn die Partie vorbei ist) - sonst stand das Spiel fuer den
     # Partner still und er brach nach 30 s ab (1018b, 1018d)
-    if not PARTNER or ENDE.anhalten_erlaubt(vorbei=ende_art in ("sieg", "niederlage")):
+    if UEBERNEHMEN or MENSCH_GEGNER:
+        schreib("Ende: das Spiel gehoert dem Menschen - kein Anhalten")
+    elif not PARTNER or ENDE.anhalten_erlaubt(vorbei=ende_art in ("sieg", "niederlage")):
         befehl({"pause": True}, 0.5)
     else:
         schreib("1v1: Spiel bleibt fuer den anderen Lenker laufen (%s: %s)" % (ende_art, ende_text))
@@ -3364,10 +3384,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
 
 def main():
     global EINS_GEGEN_EINS, ANHAENGEN, ANGLEICH_TICK      # 19.10. (1v1) - vor jeder Verwendung in main
-    global MENSCH, MENSCH_GEGNER
-    arg = dict(a.split("=") for a in sys.argv[1:])
+    global MENSCH, MENSCH_GEGNER, UEBERNEHMEN
+    arg = dict(a.split("=", 1) for a in sys.argv[1:])
     MENSCH = arg.get("mensch", "nein") == "ja"
-    MENSCH_GEGNER = arg.get("mensch_gegner", "nein") == "ja"
+    UEBERNEHMEN = arg.get("uebernehmen", "nein") == "ja"
+    MENSCH_GEGNER = arg.get("mensch_gegner", "nein") == "ja" or UEBERNEHMEN
     EINS_GEGEN_EINS = arg.get("eins_gegen_eins", "nein") == "ja"
     ANHAENGEN = arg.get("anhaengen", "nein") == "ja"
     ANGLEICH_TICK = int(arg.get("angleich_tick", ANGLEICH_TICK))
@@ -3426,6 +3447,16 @@ def main():
             time.sleep(0.5)
         if not os.path.exists(os.path.join(D, "start_%s.json" % kurz)):
             schreib("1v1: vermesse den Platz von Spieler %d live -> start_%s.json" % (SP, kurz))
+            KH.vermessen_live(kurz, SP)
+    if UEBERNEHMEN:
+        # 19.10. 20:05: Karte und Platz kommen aus der Lobby des Menschen - Kurzname aus dem Ort unseres Lords, den Platz in
+        # der laufenden Partie vermessen (wie Spieler 2 im 1v1; die KI-Burg steht anders als die eines Menschen, L-Fund 19.10.)
+        eig_l = [(x, y) for sp_, x, y in lords() if sp_ == SP]
+        if not eig_l:
+            raise SystemExit("UEBERNEHMEN: kein Lord von Spieler %d" % SP)
+        kurz, karte = "Lobby_sp%d_%d_%d" % (SP, eig_l[0][0], eig_l[0][1]), "Lobby"
+        if not os.path.exists(os.path.join(D, "start_%s.json" % kurz)):
+            schreib("UEBERNEHMEN: vermesse den Platz von Spieler %d live -> start_%s.json" % (SP, kurz))
             KH.vermessen_live(kurz, SP)
     if not os.path.exists(os.path.join(D, "start_%s.json" % kurz)):
         schreib("KARTE %s unbekannt - einmalige Vermessung in eigenem Gefecht (vor der Partie)" % karte)
@@ -3569,7 +3600,7 @@ def main():
         import befehl as befehlskanal
         befehlskanal.STRENG = False
         # 18.10. (1v1): der Partner spielt weiter - anhalten nur, wenn er schon aufgehoert hat
-        halt = not PARTNER or ENDE.anhalten_erlaubt()
+        halt = (not PARTNER or ENDE.anhalten_erlaubt()) and not (UEBERNEHMEN or MENSCH_GEGNER)
         if PARTNER:
             ENDE.melde("absturz", repr(e)[:300])
         if halt:
