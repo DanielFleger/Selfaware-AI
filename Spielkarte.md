@@ -42,9 +42,95 @@ Belege: `daten/dekomp_queuecommand.c`, `daten/dekomp_befehl_ausfuehren.c` (alle 
 die drei Setzer), `daten/dekomp_absender.c` (Übersetzung, Ausführer Anwerben, Platzvergabe). Skripte:
 `werkzeug/ghidra/DumpBefehlAusfuehren.java`, `werkzeug/ghidra/DumpFunktionen.java`.
 
+## 2. Was das Lagebild liest - jedes Feld mit seinem Namen im Spiel (B-95, 19.10.2026)
+
+Marke: **abgelesen** (OpenSHC-Strukturen, `werkzeug/ghidra/DumpStrukturen.java` -> `daten/strukturen_kern.txt`,
+`daten/strukturen_global.txt`), abgeglichen mit jedem Abstand, den logik.lua liest (`werkzeug/spielkarte_felder.py` ->
+`daten/spielkarte_felder.txt`). Ergebnis: **jede Spalte des Lagebilds und alle 21 festen Adressen unserer Werkzeuge
+treffen ein benanntes Feld, jede Bedeutung stimmt, keine einzige Lesebreite weicht ab.** Die Strukturgroessen sind genau
+die Schrittweiten, mit denen der Mod rechnet: Einheit 1.168, Gebaeude 812 (`0x32C`), Spielerdaten 14.836 (`0x39F4`),
+Truppe 820 (`0x334`).
+
+Wo die Daten liegen: `DAT_UnitsState` `0x01387F38` (Einheiten ab `+0x614`, 2.500 Plaetze), `DAT_BuildingsState`
+`0x00F98520` (Gebaeude ab `+0x14`, 2.000 Plaetze), `DAT_GameState` `0x0112B0B8` (Spielerdaten ab `+0x30D40`, 9 Plaetze;
+Zeit und Partieende in `mapAndTime` ab `+0x516D4`), `DAT_GameCore` `0x01FE7D10` (Ansicht, Pause, Takt),
+`DAT_TileMapState` `0x01A93208` (Karte, Bauplatzpruefung), `DAT_GameSynchronyState` `0x0191D768` (Befehle, Spieler).
+
+Nebenbei geklaert: der Filter "Abstand 672 == 0" in logik.lua ist `dying` - er heisst "lebt noch". Es gibt zwei
+Takt-Zaehler: `mapAndTime.totalGameTicksUnk` (liest der Lenker) und `GameCore.mapTimeInTicks` (nimmt queueCommand).
+
+### Einheit (Unit, 1.168 Byte, Array 0x0138854C)
+| Spalte | logik.lua | Feld im Spiel (OpenSHC) | Typ | Breite | Bemerkung |
+|---|---|---|---|---|---|
+| besitzer | +0x96 | `owner` (+0x96) | short | 2 | Real value |
+| typ | +0x8E | `unitType` (+0x8E) | UnitTypeShort | 2 |  |
+| x (Feinposition/8) | +0xB6 | `microXPosition` (+0xB6) | short | 2 |  |
+| y (Feinposition/8) | +0xB8 | `microYPosition` (+0xB8) | short | 2 |  |
+| leben | +0x3C8 | `health` (+0x3C8) | int | 4 |  |
+| zustand | +0x2C0 | `state` (+0x2C0) | UnitStateUnion | 2 |  |
+| zielart | +0x39C | `targetingType` (+0x39C) | UnitInstructionTypeShort | 2 | 3 if automatic, 4 if user selected attack (explicit) |
+| zieleinheit | +0x39E | `targetedUnitID__OR__engineerMannedSiegeEngineRef` (+0x39E) | short | 2 |  |
+| zieluid | +0x3A0 | `targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID` (+0x3A0) | int | 4 |  |
+| zielgebaeude | +0x336 | `targetID_OR_targetBuildingID` (+0x336) | short | 2 |  |
+| ziel | +0x30E | `target` (+0x30E) | short | 2 |  |
+| zielx | +0x310 | `targetX` (+0x310) | short | 2 |  |
+| ziely | +0x312 | `targetY` (+0x312) | short | 2 |  |
+| laufx | +0xC8 | `destinationXPosition` (+0xC8) | short | 2 | j |
+| laufy | +0xCA | `destinationYPosition` (+0xCA) | short | 2 | i |
+| auswahlvon | +0xB2 | `ifSelectedThenPlayerID` (+0xB2) | short | 2 |  |
+| auswahlmarke | +0xB4 | `selectionRelatedFlag` (+0xB4) | short | 2 |  |
+| gruppe | +0x2D8 | `tribeID` (+0x2D8) | short | 2 |  |
+| gruppenuid | +0x2E4 | `tribeUID` (+0x2E4) | int | 4 |  |
+| ladung | +0x388 | `resourceToDeposit` (+0x388) | short | 2 |  |
+| arbeitsplatz | +0x338 | `workplaceBuildingID_1` (+0x338) | short | 2 |  |
+| nahziel | +0x33E | `attackedUnitID` (+0x33E) | short | 2 |  |
+| nahangreifer | +0x3AE | `attackedBy` (+0x3AE) | short | 2 |  |
+| Filter 'lebt' (672 == 0) | +0x2A0 | `dying` (+0x2A0) | short | 2 |  |
+| Zustand-Existenz (0x8C) | +0x8C | `logicalState` (+0x8C) | UnitLogicStateShort | 2 | 1 moves to 2 (appearing), 3 means removal: dying |
+| uid | +0x98 | `uid` (+0x98) | int | 4 |  |
+
+### Gebaeude (Building, 812 Byte, Array BuildingsState+0x14 = 0xF98534)
+| Spalte | logik.lua | Feld im Spiel (OpenSHC) | Typ | Breite | Bemerkung |
+|---|---|---|---|---|---|
+| zustand (G_ZUSTAND) | +0xE4 | `logicalState` (+0xD0) | BuildingLogicalStateShort | 2 |  |
+| typ (G_TYP) | +0xE6 | `buildingType` (+0xD2) | BuildingTypeShort | 2 |  |
+| besitzer (G_BESITZER) | +0xEA | `owner` (+0xD6) | short | 2 |  |
+| leben (G_LEBEN) | +0x120 | `currentHealth` (+0x10C) | short | 2 |  |
+| maxleben (G_MAXLEBEN) | +0x122 | `maxHealth` (+0x10E) | short | 2 |  |
+| x | +0x102 | `x` (+0xEE) | ushort | 2 | most north-west tile |
+| y | +0x104 | `y` (+0xF0) | ushort | 2 |  |
+| groesse | +0x10C | `widthOrHeight` (+0xF8) | uint | 4 |  |
+| Feld 0x1A0 | +0x1A0 | `currentStoredResourceType` (+0x18C) | short | 2 |  |
+| uid (Angriff 0xEC) | +0xEC | `uid` (+0xD8) | int | 4 |  |
+| Brandzeit (0x14+702) | +0x2D2 | `fireDuration` (+0x2BE) | short | 2 | goes up until overflows |
+
+### Feste Adressen unserer Werkzeuge
+| Bedeutung bei uns | Adresse | Feld im Spiel (OpenSHC) |
+|---|---|---|
+| Ansicht (Menue/Gefecht) | `0x01FE7D1C` | `DAT_GameCore.currentMenuViewType` |
+| Pause | `0x01FEA054` | `DAT_GameCore.gamePausedLogical` |
+| Spielzeit in Takten (Lenker) | `0x0117CADC` | `DAT_GameState.mapAndTime.totalGameTicksUnk` |
+| Spielzeit in Takten (queueCommand) | `0x01FE7DA8` | `DAT_GameCore.mapTimeInTicks` |
+| Partie vorbei | `0x0117D500` | `DAT_GameState.mapAndTime.gameOver` |
+| 'ich' | `0x01A275DC` | `DAT_GameSynchronyState.currentPlayerSlotID` |
+| Ausloeser | `0x01A275D8` | `DAT_GameSynchronyState.protocolInvokerPlayerID` |
+| Spielart | `0x0191DD80` | `DAT_GameSynchronyState.currentGameMode` |
+| Mensch-Eintrag Spieler 2 | `0x0191DE18` | `DAT_GameSynchronyState.currentPlayerFullIDArray[2]` |
+| KI-Nummer Spieler 2 | `0x0191DE84` | `DAT_GameSynchronyState.currentAIArray[2]` |
+| Bauplatz-Pruefung Ergebnis | `0x01FE7B3C` | `DAT_TileMapState.buildingPlacementFail` |
+| Bauplatz-Pruefung Grund | `0x01FE7B40` | `DAT_TileMapState.buildingPlacementFailReason` |
+| Bau-Drehung | `0x01FE7BBC` | `DAT_TileMapState.DAT_TempBuildingRotation` |
+| Spieler 2: Beliebtheit | `0x01163240` | `DAT_GameState.playerDataArray[2].popularity` |
+| Spieler 2: Platz | `0x01163254` | `DAT_GameState.playerDataArray[2].populationCap` |
+| Spieler 2: Feuer | `0x01163268` | `DAT_GameState.playerDataArray[2].availablePeasantsAtFire` |
+| Spieler 2: Leute | `0x01165360` | `DAT_GameState.playerDataArray[2].currentPopulation` |
+| Spieler 2: Essen (Beliebtheit) | `0x01165340` | `DAT_GameState.playerDataArray[2].popularityChangeBasedOnFood` |
+| Spieler 2: KI-Art | `0x011654E0` | `DAT_GameState.playerDataArray[2].aiType` |
+| Spieler 2: Holz | `0x011636B8` | `DAT_GameState.playerDataArray[2].currentResources[2]` |
+| Spieler 2: Gold | `0x011636EC` | `DAT_GameState.playerDataArray[2].currentResources[15]` |
+
 ## Offen (nächste Abschnitte, B-95)
 
-- Spielerdaten (`PlayerData` `0x0115BDF8 + 0x39F4·Platz`): welche Felder das Framework braucht.
-- Einheiten und Gebäude: Arrays, Felder für Besitzer, Typ, Ort, Leben, Ziel - Grundlage für das Lagebild je Takt.
+- ~~Spielerdaten~~, ~~Einheiten und Gebaeude~~ - Abschnitt 2 (die Felder, die wir lesen; weitere Felder stehen in den Strukturdateien).
 - Karte: Gelände, Begehbarkeit, Bauplatzprüfung.
 - Takt: wo `processWaitingCommands` im Spieltakt sitzt und wo ein Modul sicher einhängen kann.
