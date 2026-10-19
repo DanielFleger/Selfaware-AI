@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -70,6 +71,16 @@ def test_relocation_manifest_preserves_research_and_removes_old_paths():
     if not (ROOT / "data/research").is_dir() and not (ROOT / ".git").exists():
         pytest.skip("The source distribution excludes the 578 MiB historical corpus")
     manifest = json.loads((ROOT / "docs/relocations.json").read_text(encoding="utf-8"))
+    immutable = [entry["new"] for entry in manifest["files"] if not entry["content_changed"]]
+    attributes = subprocess.run(
+        ["git", "check-attr", "text", "--stdin"],
+        cwd=ROOT,
+        input="\n".join(immutable) + "\n",
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    assert all(line.endswith(": unset") for line in attributes.stdout.splitlines())
     destinations = set()
     for entry in manifest["files"]:
         old, new = ROOT / entry["old"], ROOT / entry["new"]
