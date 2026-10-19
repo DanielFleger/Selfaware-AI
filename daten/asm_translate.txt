@@ -1,0 +1,85 @@
+### _HoldStrong::Synchrony::GameSynchronyState::translateMultiplayerIDsIntoPlayerIDs @ 0047eaf0  Aufrufart: unknown  Stapelbereinigung: 4
+   0047eaf0  8B 91 18 06 00 00        MOV EDX,dword ptr [ECX + 0x618]
+   0047eaf6  33 C0                    XOR EAX,EAX
+   0047eaf8  85 D2                    TEST EDX,EDX
+   0047eafa  75 09                    JNZ 0x0047eb05
+   0047eafc  8B 81 74 9E 10 00        MOV EAX,dword ptr [ECX + 0x109e74]
+   0047eb02  C2 04 00                 RET 0x4
+   0047eb05  83 FA 63                 CMP EDX,0x63
+   0047eb08  74 F2                    JZ 0x0047eafc
+   0047eb0a  8B 54 24 04              MOV EDX,dword ptr [ESP + 0x4]
+   0047eb0e  39 91 AC 06 00 00        CMP dword ptr [ECX + 0x6ac],EDX
+   0047eb14  75 05                    JNZ 0x0047eb1b
+   0047eb16  B8 01 00 00 00           MOV EAX,0x1
+   0047eb1b  39 91 B0 06 00 00        CMP dword ptr [ECX + 0x6b0],EDX
+   0047eb21  75 05                    JNZ 0x0047eb28
+   0047eb23  B8 02 00 00 00           MOV EAX,0x2
+   0047eb28  39 91 B4 06 00 00        CMP dword ptr [ECX + 0x6b4],EDX
+   0047eb2e  75 05                    JNZ 0x0047eb35
+   0047eb30  B8 03 00 00 00           MOV EAX,0x3
+   0047eb35  39 91 B8 06 00 00        CMP dword ptr [ECX + 0x6b8],EDX
+   0047eb3b  75 05                    JNZ 0x0047eb42
+   0047eb3d  B8 04 00 00 00           MOV EAX,0x4
+   0047eb42  39 91 BC 06 00 00        CMP dword ptr [ECX + 0x6bc],EDX
+   0047eb48  75 05                    JNZ 0x0047eb4f
+   0047eb4a  B8 05 00 00 00           MOV EAX,0x5
+   0047eb4f  39 91 C0 06 00 00        CMP dword ptr [ECX + 0x6c0],EDX
+   0047eb55  75 05                    JNZ 0x0047eb5c
+   0047eb57  B8 06 00 00 00           MOV EAX,0x6
+   0047eb5c  39 91 C4 06 00 00        CMP dword ptr [ECX + 0x6c4],EDX
+   0047eb62  75 05                    JNZ 0x0047eb69
+   0047eb64  B8 07 00 00 00           MOV EAX,0x7
+   0047eb69  39 91 C8 06 00 00        CMP dword ptr [ECX + 0x6c8],EDX
+   0047eb6f  75 05                    JNZ 0x0047eb76
+   0047eb71  B8 08 00 00 00           MOV EAX,0x8
+   0047eb76  C2 04 00                 RET 0x4
+   -- Aufrufer:
+   00489338 in _HoldStrong::Synchrony::GameSynchronyState::processWaitingCommands
+        0048932e  8B 84 30 80 C6 03 00     MOV EAX,dword ptr [EAX + ESI*0x1 + 0x3c680]
+        00489335  50                       PUSH EAX
+        00489336  8B CE                    MOV ECX,ESI
+        00489338  E8 B3 57 FF FF           CALL 0x0047eaf0
+        0048933d  8B 8E 24 D8 02 00        MOV ECX,dword ptr [ESI + 0x2d824]
+   004804a0 in _HoldStrong::Synchrony::GameSynchronyState::getCommandIDFromCommandSelectionStuff
+        0048049a  8B 43 FB                 MOV EAX,dword ptr [EBX + -0x5]
+        0048049d  50                       PUSH EAX
+        0048049e  8B CE                    MOV ECX,ESI
+        004804a0  E8 4B E6 FF FF           CALL 0x0047eaf0
+        004804a5  8B 8E 0C A2 10 00        MOV ECX,dword ptr [ESI + 0x10a20c]
+   00487ed3 in _HoldStrong::Synchrony::GameSynchronyState::sendSomeMultiplayerSyncMessageWithType
+        00487eca  8B 96 A4 06 00 00        MOV EDX,dword ptr [ESI + 0x6a4]
+        00487ed0  52                       PUSH EDX
+        00487ed1  8B CE                    MOV ECX,ESI
+        00487ed3  E8 18 6C FF FF           CALL 0x0047eaf0
+        00487ed8  8B 0D A8 7D FE 01        MOV ECX,dword ptr [0x01fe7da8]
+   00490755 in _HoldStrong::Synchrony::GameSynchronyState::receiveAllTransmittedCommands
+        0049074f  8B 57 08                 MOV EDX,dword ptr [EDI + 0x8]
+        00490752  52                       PUSH EDX
+        00490753  8B CE                    MOV ECX,ESI
+        00490755  E8 96 E3 FE FF           CALL 0x0047eaf0
+        0049075a  50                       PUSH EAX
+   00480236 in _HoldStrong::Synchrony::GameSynchronyState::scheduleReceivedCommand
+        0048022a  8B 44 24 0C              MOV EAX,dword ptr [ESP + 0xc]
+        0048022e  83 05 C8 69 A2 01 28     ADD dword ptr [0x01a269c8],0x28
+        00480235  50                       PUSH EAX
+        00480236  E8 B5 E8 FF FF           CALL 0x0047eaf0
+        0048023b  3B 05 DC 75 A2 01        CMP EAX,dword ptr [0x01a275dc]
+   004803dc in _HoldStrong::Synchrony::GameSynchronyState::scheduleReceivedCommand
+        004803d6  8D 3C 31                 LEA EDI,[ECX + ESI*0x1]
+        004803d9  52                       PUSH EDX
+        004803da  8B CE                    MOV ECX,ESI
+        004803dc  E8 0F E7 FF FF           CALL 0x0047eaf0
+        004803e1  89 86 70 9E 10 00        MOV dword ptr [ESI + 0x109e70],EAX
+   00488019 in _HoldStrong::Synchrony::GameSynchronyState::processSyncPacket
+        00488016  56                       PUSH ESI
+        00488017  57                       PUSH EDI
+        00488018  50                       PUSH EAX
+        00488019  E8 D2 6A FF FF           CALL 0x0047eaf0
+        0048801e  8B B1 C4 9E 10 00        MOV ESI,dword ptr [ECX + 0x109ec4]
+   00488322 in _HoldStrong::Synchrony::GameSynchronyState::computeAndSetLatencyInformation
+        0048831f  55                       PUSH EBP
+        00488320  57                       PUSH EDI
+        00488321  52                       PUSH EDX
+        00488322  E8 C9 67 FF FF           CALL 0x0047eaf0
+        00488327  8B 2D 28 E2 59 00        MOV EBP,dword ptr [0x0059e228]
+

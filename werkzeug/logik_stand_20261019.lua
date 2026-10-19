@@ -742,6 +742,95 @@ local heimPlatz = nil          -- Platz des Menschen/Hauptspielers (Wert vor jed
 local laufDirekt = false       -- {"laufDirekt": true}: Laufbefehle anderer Spieler je Einheit direkt (ohne Kletterweg) - aus,
                                -- seit der Gruppenweg im sauberen Gefecht auch fuer Spieler 2 belegt ist (siehe unten)
 
+-- 19.10.2026 22:40 ABSENDER JE BEFEHL statt "ich" umzuschalten (Selfaware-AI B-94; Daniel 21:52: "SamurAIs Befehle sollen
+-- niemals einen anderen Spieler beeinflussen - er ist komplett separat von anderen Inputs und beeinflusst sie auch nicht").
+-- Spielkarte Abschnitt 1 (Selfaware-AI/Spielkarte.md, abgelesen): im Einzelspieler gilt jeder Befehl fuer den, der beim
+-- AUSFUEHREN "ich" ist (translateMultiplayerIDsIntoPlayerIDs gibt dort immer currentPlayerSlotID zurueck). Das alte
+-- Umschalten oben hielt "ich" einen Takt lang auf dem Platz des Lenkers - in diesem Takt gingen Klicks des Menschen an ihn,
+-- und jeder Angriff loeschte die Auswahl des Menschen (UnitsState+116).
+-- Jetzt: (1) Spielbefehle eines Lenkers bekommen im Eintrag (GameCommandArray +4 playerUnk) die Kennung 0x53414D00 + Platz;
+-- "ich" steht nur WAEHREND des Einreihens auf dem Lenker (ein Lua-Aufruf - kein Klick kann dazwischen). (2) In
+-- processWaitingCommands (0x00489387, 9 Bytes: Ausfuehrer aus der Tabelle holen + aufrufen) springt das Spiel in ein kleines
+-- Stueck eigenen Code: traegt der Eintrag die Kennung, gelten Ausloeser (0x01A275D8) und "ich" (0x01A275DC) fuer GENAU
+-- diesen einen Aufruf als Platz des Lenkers, die Auswahl-Leiste (400 Byte) wird davor gesichert und danach zurueckgelegt.
+-- Jeder andere Befehl laeuft unveraendert. Rueckweg: {"absender": "aus"} schreibt die 9 Original-Bytes zurueck - dann gilt
+-- wieder das Umschalten mit platzFest. {"absender": "an"} baut wieder ein, {"absender": "status"} meldet den Zustand.
+local ABSENDER_STELLE = 0x00489387
+local ABSENDER_ORIGINAL = { 0x8B, 0x04, 0x95, 0x10, 0x8E, 0xB3, 0x00, 0xFF, 0xD0 }
+local ABSENDER_KENNUNG = 0x53414D00
+local AUSWAHL_BITS = 0x01387F38 + 116        -- DAT_SelectedUnitsBitFlags, 400 Byte (100 x 4)
+local stempel = nil                          -- Platz des Lenkers, waehrend er einen Befehl einreiht
+-- global (ohne "local"): ueberlebt das Neuladen von logik.lua - der eingebaute Code bleibt im Speicher und wird wiederverwendet
+if type(ABSENDER_ZUSTAND) ~= "table" then ABSENDER_ZUSTAND = { gestempelt = 0 } end
+
+local function le32(x)
+  x = x % 0x100000000
+  return { x & 0xFF, (x >> 8) & 0xFF, (x >> 16) & 0xFF, (x >> 24) & 0xFF }
+end
+
+local function absenderAktiv()
+  return core.readByte(ABSENDER_STELLE) == 0xE8
+end
+
+local function absenderEinbauen()
+  if absenderAktiv() then return true, "schon eingebaut" end
+  for i, v in ipairs(ABSENDER_ORIGINAL) do
+    if core.readByte(ABSENDER_STELLE + i - 1) ~= v then
+      return false, string.format("unerwartetes Byte bei 0x%X - nichts geaendert", ABSENDER_STELLE + i - 1)
+    end
+  end
+  local z = ABSENDER_ZUSTAND
+  if z.code == nil then
+    z.sicher = core.allocate(400)
+    local c = {}
+    local function b(...) for _, v in ipairs({ ... }) do c[#c + 1] = v end end
+    local function d(x) for _, v in ipairs(le32(x)) do c[#c + 1] = v end end
+    b(0x8B, 0x04, 0x95, 0x10, 0x8E, 0xB3, 0x00)   -- mov eax,[edx*4+0xB38E10]    Ausfuehrer holen (Original)
+    b(0x53)                                       -- push ebx
+    b(0x8B, 0x9C, 0x31, 0x80, 0xC6, 0x03, 0x00)   -- mov ebx,[ecx+esi+0x3C680]   Absender des Eintrags
+    b(0x53)                                       -- push ebx
+    b(0x81, 0xE3) d(0xFFFFFF00)                   -- and ebx,0xFFFFFF00
+    b(0x81, 0xFB) d(ABSENDER_KENNUNG)             -- cmp ebx,0x53414D00
+    b(0x5B)                                       -- pop ebx (Flags bleiben; EDX = Befehlsart bleibt wie im Original)
+    local sprung = #c                             -- Lage des jne (0-basiert)
+    b(0x0F, 0x85, 0, 0, 0, 0)                     -- jne normal
+    b(0x0F, 0xB6, 0xDB)                           -- movzx ebx,bl                 Platz des Lenkers
+    b(0x56, 0x57, 0x50, 0x51)                     -- push esi; push edi; push eax; push ecx
+    b(0xBE) d(AUSWAHL_BITS)                       -- mov esi,Auswahl
+    b(0xBF) d(z.sicher)                           -- mov edi,Sicherung
+    b(0xB9) d(100)                                -- mov ecx,100
+    b(0xF3, 0xA5)                                 -- rep movsd                    Auswahl sichern
+    b(0x59, 0x58, 0x5F, 0x5E)                     -- pop ecx; pop eax; pop edi; pop esi (Register wie im Original)
+    b(0x89, 0x9E) d(0x109E70)                     -- mov [esi+0x109E70],ebx       Ausloeser = Lenker
+    b(0xFF, 0xB6) d(0x109E74)                     -- push dword [esi+0x109E74]   "ich" merken
+    b(0x89, 0x9E) d(0x109E74)                     -- mov [esi+0x109E74],ebx       "ich" = Lenker
+    b(0xFF, 0xD0)                                 -- call eax                     Ausfuehrer
+    b(0x8F, 0x86) d(0x109E74)                     -- pop dword [esi+0x109E74]    "ich" zurueck
+    b(0x56, 0x57)                                 -- push esi; push edi
+    b(0xBE) d(z.sicher)                           -- mov esi,Sicherung
+    b(0xBF) d(AUSWAHL_BITS)                       -- mov edi,Auswahl
+    b(0xB9) d(100)                                -- mov ecx,100
+    b(0xF3, 0xA5)                                 -- rep movsd                    Auswahl zurueck
+    b(0x5F, 0x5E)                                 -- pop edi; pop esi
+    b(0x5B, 0xC3)                                 -- pop ebx; ret
+    local weit = le32(#c - (sprung + 6))          -- normal beginnt hier
+    for i = 1, 4 do c[sprung + 2 + i] = weit[i] end
+    b(0x5B, 0xFF, 0xD0, 0xC3)                     -- normal: pop ebx; call eax; ret
+    z.code = core.allocateCode(c)
+    z.laenge = #c
+  end
+  local r = le32(z.code - (ABSENDER_STELLE + 5))
+  core.writeCode(ABSENDER_STELLE, { 0xE8, r[1], r[2], r[3], r[4], 0x90, 0x90, 0x90, 0x90 })
+  return absenderAktiv(), string.format("eingebaut: Sprung bei 0x%X -> Code 0x%X (%d Bytes), Auswahl-Sicherung 0x%X",
+    ABSENDER_STELLE, z.code, z.laenge, z.sicher)
+end
+
+local function absenderAusbauen()
+  if not absenderAktiv() then return true, "war nicht eingebaut" end
+  core.writeCode(ABSENDER_STELLE, ABSENDER_ORIGINAL)
+  return not absenderAktiv(), "ausgebaut: 9 Original-Bytes zurueck, es gilt wieder das Umschalten von 'ich'"
+end
+
 -- 19.10.: Abzuege je Spieler - Spieler 1 wie bisher abzug/, jeder andere abzug_sp<N>/ (legt befehl.py an), damit zwei
 -- Lenker sich Lagebild, Gebaeude und Karten nicht gegenseitig ueberschreiben. Spieler = Platz waehrend des Befehls.
 local function abzugPfad(name)
@@ -758,6 +847,18 @@ end
 local function alsSpieler(sp, f, arg)
   sp = tonumber(sp)
   if sp == nil or sp < 1 or sp > 8 then return f(arg) end
+  if platzFest == nil and absenderAktiv() then
+    -- 19.10. 22:40 (B-94): "ich" nur fuer die Dauer dieses Aufrufs; Spielbefehle bekommen den Absender-Stempel
+    local alt = core.readInteger(SLOT_ICH)
+    heimPlatz = alt
+    if sp ~= alt then core.writeInteger(SLOT_ICH, sp) end
+    stempel = sp
+    local gut, erg = pcall(f, arg)
+    stempel = nil
+    if sp ~= alt then core.writeInteger(SLOT_ICH, alt) end
+    if not gut then error(erg, 0) end
+    return erg
+  end
   local alt = core.readInteger(SLOT_ICH)
   if platzFest == nil then heimPlatz = alt end
   if sp ~= alt then core.writeInteger(SLOT_ICH, sp) end
@@ -776,6 +877,17 @@ end
 local function einzelbefehl(cmd)
   if type(cmd) ~= "table" then return false end
   local spieler = cmd.player
+
+  -- { "absender": "an" | "aus" | "status" }  (19.10.2026, B-94) Absender je Befehl ein-/ausbauen, siehe oben bei SLOT_ICH
+  if cmd.absender ~= nil then
+    local was, ok, text = tostring(cmd.absender), true, ""
+    if was == "aus" then ok, text = absenderAusbauen()
+    elseif was == "an" then ok, text = absenderEinbauen()
+    else text = absenderAktiv() and "eingebaut" or "nicht eingebaut" end
+    log(INFO, string.format("ABSENDER %s: %s - %s; gestempelt bisher %d, ich %s, Ausloeser %s", was, ok and "ok" or "FEHLER",
+      text, ABSENDER_ZUSTAND.gestempelt or 0, tostring(core.readInteger(SLOT_ICH)), tostring(core.readInteger(0x01A275D8))))
+    return true
+  end
 
   -- { "tickpause": { "bei": 1, "alle": 100, "bis": 5000 } }  oder  { "tickpause": "aus" }
   -- Haelt das Spiel an, sobald der Tickzaehler "bei" erreicht; mit "alle" danach
@@ -1637,7 +1749,20 @@ local function einzelbefehl(cmd)
   local function befehlAbsetzen(nr, werte)
     for i = 0, 5 do core.writeInteger(PARAM + i * 4, tonumber(werte[i + 1]) or 0) end
     local ok, err = pcall(function() core.exposeCode(0x00489100, 2, 1)(0x0191D768, nr) end)
-    if ok then abgesetzt = true end            -- 19.10.: Platz bis zum naechsten Takt halten (alsSpieler)
+    if ok then abgesetzt = true end            -- 19.10.: Platz bis zum naechsten Takt halten (alsSpieler, alter Weg)
+    -- 19.10. 22:40 (B-94): Absender-Stempel in den eben eingereihten Eintrag (DAT_CurrentGameCommandID +0x2D824;
+    -- Eintrag = GSS+0x3C67C + Nr*0x4F8: +4 Absender, +8 Befehlsart, +9 Zustand 1 = noch nicht ausgefuehrt)
+    if ok and stempel ~= nil and absenderAktiv() then
+      local idx = core.readInteger(0x0191D768 + 0x2D824) or -1
+      local e = 0x0191D768 + 0x3C67C + idx * 0x4F8
+      if idx >= 0 and idx < 200 and core.readByte(e + 8) == (nr & 0xFF) and core.readByte(e + 9) == 1 then
+        core.writeInteger(e + 4, ABSENDER_KENNUNG + stempel)
+        ABSENDER_ZUSTAND.gestempelt = (ABSENDER_ZUSTAND.gestempelt or 0) + 1
+      else
+        log(WARNING, string.format("ABSENDER: Eintrag %d passt nicht (Art %s, Zustand %s) - Befehl %d nicht gestempelt",
+          idx, tostring(core.readByte(e + 8)), tostring(core.readByte(e + 9)), nr))
+      end
+    end
     return ok, err
   end
 
@@ -2090,6 +2215,12 @@ local function einzelbefehl(cmd)
     end
     local ich = core.readInteger(0x01A275DC) or -1
     local BITS = 0x01387F38 + 116
+    -- 19.10. 22:40 (B-94): die Auswahl-Leiste gehoert dem Menschen am Bildschirm. Befehl 16 kopiert sie beim EINREIHEN in
+    -- den Eintrag (MakeUnitSelection, GCS_SCHEDULE_AND_SEND, abgelesen daten/dekomp_befehl_16.c) - also vorher sichern
+    -- und gleich nach dem Einreihen zuruecklegen; vorher loeschte jeder Angriff die Auswahl des Menschen.
+    local alteAuswahl = {}
+    for k = 0, 99 do alteAuswahl[k] = core.readInteger(BITS + k * 4) or 0 end
+    local function auswahlZurueck() for k = 0, 99 do core.writeInteger(BITS + k * 4, alteAuswahl[k]) end end
     -- Auswahlmarken aller eigenen Einheiten loeschen (gemessen 04.10. 23:58): playerMakeUnitSelection setzt bei jeder
     -- ausgewaehlten Einheit ifSelectedThenPlayerID (+178) und selectionRelatedFlag (+180), und diese Marken blieben
     -- stehen. Jede Einheit, die je einen Befehl bekam, rutschte in jede neue Gruppe - am Ende steckten 78 Assassinen,
@@ -2129,6 +2260,7 @@ local function einzelbefehl(cmd)
       end
       log(INFO, string.format("ANGRIFF Tick %d: %d Einheiten von Spieler %d laufen direkt nach (%d,%d), %d angenommen",
         tick(), n, ich, lx, ly, gut))
+      auswahlZurueck()
       return true
     end
     local TR = 0x01667F78 + 40
@@ -2143,6 +2275,7 @@ local function einzelbefehl(cmd)
     if gruppe then angriffReserve.vergeben[gruppe] = true end
     if n == 0 or gruppe == nil then
       log(INFO, string.format("ANGRIFF abgelehnt: %d eigene Einheiten, Gruppe %s", n, tostring(gruppe)))
+      auswahlZurueck()
       return true
     end
     local art, zielNr, zielUid = 31, 0, 0
@@ -2159,6 +2292,7 @@ local function einzelbefehl(cmd)
       art, zielNr, zielUid = 6, tonumber(a.graben[1]) or 0, tonumber(a.graben[2]) or 0
     end
     local ok1 = befehlAbsetzen(16, { gruppe })
+    auswahlZurueck()                            -- B-94: die Auswahl steckt jetzt im Eintrag; dem Menschen seine zurueck
     local ok2
     if type(a.lauf) == "table" then
       art, zielNr, zielUid = 17, tonumber(a.lauf[1]) or 0, tonumber(a.lauf[2]) or 0   -- im Log: Art 17, Ziel = x, uid = y
@@ -3705,6 +3839,11 @@ local function everyTick()
 end
 
 log(INFO, "logik.lua (31.08.2026): + Bauwacht, + Durchreichen an init.lua.")
+-- 19.10.2026 (B-94): Absender je Befehl beim Laden einbauen (Rueckweg {"absender": "aus"})
+do
+  local okA, gutA, textA = pcall(absenderEinbauen)
+  log(okA and gutA and INFO or WARNING, "ABSENDER beim Laden: " .. tostring(okA and textA or gutA))
+end
 
 -- Im Hauptmenue laeuft processGameTick nicht, also auch everyTick nicht.
 -- Kette und Fenster-Wacht muessen dort trotzdem arbeiten - beide fassen nur
