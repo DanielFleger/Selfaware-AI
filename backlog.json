@@ -2894,16 +2894,16 @@
    "nr": "B-120",
    "titel": "Gold-Einnahme fuer Truppen: SamurAI hatte die ganze Partie kein Gold zum Anwerben (L144)",
    "bereich": "Wirtschaft",
-   "status": "in_arbeit",
+   "status": "gebaut",
    "seit": "2026-10-19 22:52",
    "herkunft": "Partie Daniel gegen SamurAI 19.10. 22:40, Auswertung B-119",
-   "gebaut": null,
+   "gebaut": "2026-10-19 23:26",
    "commits": [],
    "wo": [],
    "belege": [
     "L144"
    ],
-   "notiz": "erst messen, wohin sein Gold ging (Plantagen, Seasoning, Planer) und woher Daniels Gold kam; dann Steuern/Verkauf fuer ein stehendes Heer",
+   "notiz": "erst messen, wohin sein Gold ging (Plantagen, Seasoning, Planer) und woher Daniels Gold kam; dann Steuern/Verkauf fuer ein stehendes Heer | Messung fertig (L145): 0 Steuer, kaum Verkaeufliches, Eisenmine verhungert; Daniel: Stein/Eisen horten und verkaufen. Folgen B-121 (gebaut), B-122/123 (gebaut, Lobby-Pruefung offen), B-124, B-125",
    "verlauf": [
     {
      "zeit": "2026-10-19 22:52",
@@ -2920,6 +2920,10 @@
     {
      "zeit": "2026-10-19 23:01",
      "was": "offen -> in Arbeit"
+    },
+    {
+     "zeit": "2026-10-19 23:26",
+     "was": "in Arbeit -> gebaut: Messung fertig (L145): 0 Steuer, kaum Verkaeufliches, Eisenmine verhungert; Daniel: Stein/Eisen horten und verkaufen. Folgen B-121 (gebaut), B-122/123 (gebaut, Lobby-Pruefung offen), B-124, B-125"
     }
    ],
    "rang": 1
@@ -2955,10 +2959,10 @@
    "nr": "B-122",
    "titel": "Bau-Haushalt: Planers bester Bau (Eisenmine, ~14.000) wartete 27.000 Ticks auf 40 Holz - Kausalmodell verbaute jedes Holz in Apfelplantagen",
    "bereich": "Wirtschaft",
-   "status": "in_arbeit",
+   "status": "gebaut",
    "seit": "2026-10-19 23:15",
    "herkunft": "Gold-Bilanz B-120, Partie 19.10. 22:40 (L145)",
-   "gebaut": null,
+   "gebaut": "2026-10-19 23:26",
    "commits": [],
    "wo": [
     "werkzeug/kausal.py"
@@ -2966,7 +2970,7 @@
    "belege": [
     "L145"
    ],
-   "notiz": "eine Stelle baut, Ruecklage fuer den wertvollsten Bau - gehoert zu B-99 (Sharky MacroManager) | kausal.entscheide spart fuer den besten Betrieb (Test 6 gruen, altes Modell rot); Schalter kausal_sparen; Live-Vergleich alt/neu folgt",
+   "notiz": "eine Stelle baut, Ruecklage fuer den wertvollsten Bau - gehoert zu B-99 (Sharky MacroManager) | kausal.entscheide spart fuer den besten Betrieb (Test 6 gruen, altes Modell rot); Schalter kausal_sparen; Live-Vergleich alt/neu folgt | offline Test 6 gruen (alt rot). Live Green Haven bis Tick 12.000, je 1 Lauf: neu 823 Gold Einnahmen / 29 Stein / 0 Eisen / 17 Hopfen- statt 16 Apfelplantagen, alt 862 / 29 / 0 - KEIN messbarer Gewinn; dort war Holz nie knapp. Pruefung auf der Lobby-Karte (wo die Eisenmine verhungerte) offen - Kartenname unbekannt (B-127)",
    "verlauf": [
     {
      "zeit": "2026-10-19 23:15",
@@ -2975,6 +2979,10 @@
     {
      "zeit": "2026-10-19 23:20",
      "was": "offen -> in Arbeit: kausal.entscheide spart fuer den besten Betrieb (Test 6 gruen, altes Modell rot); Schalter kausal_sparen; Live-Vergleich alt/neu folgt"
+    },
+    {
+     "zeit": "2026-10-19 23:26",
+     "was": "in Arbeit -> gebaut: offline Test 6 gruen (alt rot). Live Green Haven bis Tick 12.000, je 1 Lauf: neu 823 Gold Einnahmen / 29 Stein / 0 Eisen / 17 Hopfen- statt 16 Apfelplantagen, alt 862 / 29 / 0 - KEIN messbarer Gewinn; dort war Holz nie knapp. Pruefung auf der Lobby-Karte (wo die Eisenmine verhungerte) offen - Kartenname unbekannt (B-127)"
     }
    ]
   },
@@ -2982,10 +2990,10 @@
    "nr": "B-123",
    "titel": "Rechenhorizont des Kausalmodells = Tick 900.000 in der 1v1-Wache (L19: muss das echte Ende sein)",
    "bereich": "Wirtschaft",
-   "status": "in_arbeit",
+   "status": "gebaut",
    "seit": "2026-10-19 23:15",
    "herkunft": "Gold-Bilanz B-120, Partie 19.10. 22:40 (L145)",
-   "gebaut": null,
+   "gebaut": "2026-10-19 23:26",
    "commits": [],
    "wo": [
     "werkzeug/erstes_spiel.py"
@@ -2994,7 +3002,7 @@
     "L145",
     "L19"
    ],
-   "notiz": "ziel_tick=900000 haelt die Partie offen, ist aber zugleich der Horizont: jede Apfelplantage 'wert' Tausende (erste Lieferung oft 5.000 Ticks spaeter) | ziel_tick=offen: Kausalmodell mitlaufend jetzt + 16.000; Wache auf ziel_tick=offen umgestellt (greift nach Neustart der Wache)",
+   "notiz": "ziel_tick=900000 haelt die Partie offen, ist aber zugleich der Horizont: jede Apfelplantage 'wert' Tausende (erste Lieferung oft 5.000 Ticks spaeter) | ziel_tick=offen: Kausalmodell mitlaufend jetzt + 16.000; Wache auf ziel_tick=offen umgestellt (greift nach Neustart der Wache) | Wache neu gestartet mit ziel_tick=offen (23:21); live Green Haven siehe B-122",
    "verlauf": [
     {
      "zeit": "2026-10-19 23:15",
@@ -3003,6 +3011,10 @@
     {
      "zeit": "2026-10-19 23:20",
      "was": "offen -> in Arbeit: ziel_tick=offen: Kausalmodell mitlaufend jetzt + 16.000; Wache auf ziel_tick=offen umgestellt (greift nach Neustart der Wache)"
+    },
+    {
+     "zeit": "2026-10-19 23:26",
+     "was": "in Arbeit -> gebaut: Wache neu gestartet mit ziel_tick=offen (23:21); live Green Haven siehe B-122"
     }
    ]
   },
@@ -3020,11 +3032,15 @@
     "L145",
     "L3"
    ],
-   "notiz": "",
+   "notiz": "gemessen 19.10. 23:24 (Lage 2240): Abstand Holzfaellerhuette -> naechstes Lager (Schach) Median SamurAI 44-45 Felder (bis 186, 4 Lagerteile), Daniel 17-25 (8 Lagerteile). Bei ~26 Ticks je Feld (L1) ist allein der Weg 2,5x laenger. Naechster Schritt: Holzfaeller nur nah am Lager oder Lager zu den Holzfaellern",
    "verlauf": [
     {
      "zeit": "2026-10-19 23:15",
      "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-19 23:22",
+     "was": "offen -> offen: gemessen 19.10. 23:24 (Lage 2240): Abstand Holzfaellerhuette -> naechstes Lager (Schach) Median SamurAI 44-45 Felder (bis 186, 4 Lagerteile), Daniel 17-25 (8 Lagerteile). Bei ~26 Ticks je Feld (L1) ist allein der Weg 2,5x laenger. Naechster Schritt: Holzfaeller nur nah am Lager oder Lager zu den Holzfaellern"
     }
    ]
   },
@@ -3041,11 +3057,15 @@
    "belege": [
     "L145"
    ],
-   "notiz": "",
+   "notiz": "gemessen 19.10. 23:26 (Konsole 2240): der Eroeffnungsplan hatte einen Steinbruch bei (145,88) - 'nicht gebaut' bei Tick 242 (16 von 20 Holzbauten, 14 Holzfaeller zuerst), Ersatzplatz = derselbe Platz, danach kein neuer Versuch; Planer wartete auf die Eisenmine (Steinbruch nur Platz 2), Kausalmodell waehlte Art 20 nie",
    "verlauf": [
     {
      "zeit": "2026-10-19 23:15",
      "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-19 23:22",
+     "was": "offen -> offen: gemessen 19.10. 23:26 (Konsole 2240): der Eroeffnungsplan hatte einen Steinbruch bei (145,88) - 'nicht gebaut' bei Tick 242 (16 von 20 Holzbauten, 14 Holzfaeller zuerst), Ersatzplatz = derselbe Platz, danach kein neuer Versuch; Planer wartete auf die Eisenmine (Steinbruch nur Platz 2), Kausalmodell waehlte Art 20 nie"
     }
    ]
   },
@@ -3067,6 +3087,25 @@
     {
      "zeit": "2026-10-19 23:15",
      "was": "angelegt (gebaut)"
+    }
+   ]
+  },
+  {
+   "nr": "B-127",
+   "titel": "Lobby-Partie: Kartenname mitschreiben, damit eine Partie gegen Daniel nachgespielt werden kann",
+   "bereich": "Werkzeug",
+   "status": "offen",
+   "seit": "2026-10-19 23:26",
+   "herkunft": "B-122 Live-Pruefung 19.10. 23:28",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [],
+   "notiz": "Startdateien heissen nur Lobby_sp2_bf_212_85, spielstand 'live' - die Karte von 22:40 ist nicht bekannt",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 23:26",
+     "was": "angelegt (offen)"
     }
    ]
   }
