@@ -7,7 +7,12 @@
 module entry file; its location is deliberately not guessed. Environment
 settings take precedence.
 
-Legacy scripts retain their existing `SHC_INSTANZ`, `SHC_SPIELER` and
-`SHC_PARTNER` behavior and hard-coded/sibling paths. The new configuration does
-not silently retarget those scripts. Porting that behavior is tracked in the
-[handoff](../docs/HANDOFF.md).
+Current-bot modules retain `SHC_INSTANZ`, `SHC_SPIELER`, `SHC_PARTNER` and the
+existing Steam installation default. Their external catalogue/helpers now honor
+`SELFAWARE_VILLAGE_STUDIO_PATH`, with the previous sibling `VillageStudio/`
+location as the default. `SELFAWARE_WORKSPACE` selects the checkout containing
+research data/assets. `SELFAWARE_STATE_DIR` overrides `var/legacy/` for process
+state; every process controlling the same game must use the same directory.
+
+TOML diagnostic settings do not retarget the existing sender. See the
+[repository map](../docs/ORGANIZATION.md) for launches and state migration.

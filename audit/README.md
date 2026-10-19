@@ -23,3 +23,8 @@ work is migrated; diagnose changes rather than treating them as approvals.
 `audit/lint.json` is also generated and ignored. Historical machine paths and
 tool versions in the baseline reports are provenance, not installation settings.
 Current integration status lives in [docs/BACKLOG.md](../docs/BACKLOG.md).
+
+The runner now resolves relocated modules through `selfaware.module_registry`
+and Lua snapshots through `bridge/snapshots/`. Written baseline findings remain
+unchanged historical evidence. The isolated run after relocation retained the
+same 20 passing / 17 metadata-blocked / 1 metadata-dependent failing suites.

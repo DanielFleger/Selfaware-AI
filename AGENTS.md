@@ -7,12 +7,16 @@ Einzelheiten: README.md, Abschnitt "Pflicht nach jeder Partie" (Daniel 17.10.202
 ## Development and agent handoff
 
 Read `docs/HANDOFF.md`, `docs/ARCHITECTURE.md` and `docs/BACKLOG.md` before new
-implementation. The new package is `src/selfaware/`; `werkzeug/` and `daten/`
-retain the existing live bot and research evidence. Preserve that provenance.
+implementation, then consult `docs/ORGANIZATION.md`. The current bot is sorted
+into `src/selfaware/` by responsibility; `runtime/live/erstes_spiel.py` remains
+its live entry point. Research evidence is in `data/research/`, archived
+knowledge/plans in `docs/research/` and `docs/plans/`, Lua copies in
+`bridge/snapshots/`, and AI assets in `assets/ai/`. `docs/relocations.json` maps
+every old path and records original content hashes. Preserve that provenance.
 
 Use `uv sync --locked --extra dev`, `uv run pytest`, `uv run ruff check .`,
-and `uv run ruff format --check .`. The `tests/` suite is offline. Some old
-`*_pruefen.py` tools start or modify a real game; inspect them before execution.
+and `uv run ruff format --check .`. The `tests/` suite is offline. Some existing
+`selfaware.tools` modules start or modify a real game; inspect them before execution.
 
 Policies receive immutable snapshots and return proposals. Keep game I/O and
 native addresses in the adapter/execution boundary. Instance/player/game epoch

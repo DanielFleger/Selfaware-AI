@@ -22,9 +22,18 @@ import types
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-CODE = ROOT / "werkzeug"
 sys.dont_write_bytecode = True
-sys.path.insert(0, str(CODE))
+sys.path.insert(0, str(ROOT / "src"))
+from selfaware.module_registry import MODULES
+import selfaware.game.ucp
+
+LEGACY_FILES = {name + ".py": ROOT / "src" / (module.replace(".", "/") + ".py")
+                for name, module in MODULES.items()}
+
+
+def source(name):
+    return LEGACY_FILES[name]
+
 
 
 def offline_child(name):
@@ -41,7 +50,7 @@ def offline_child(name):
             raise RuntimeError("AUDIT: live connector disabled")
         k.sende = disconnected
         k.neue_id = lambda: 1
-        sys.modules["befehl"] = k
+        sys.modules["selfaware.game.ucp.befehl"] = k
         original_open, original_io_open = open, io.open
         def guarded(opener):
             def guard(file, mode="r", *args, **kwargs):
@@ -51,13 +60,13 @@ def offline_child(name):
                         raise RuntimeError("AUDIT: write outside temporary directory blocked: " + str(resolved))
                 return opener(file, mode, *args, **kwargs)
             return guard
-        sys.argv = [str(CODE / name)]
+        sys.argv = [str(source(name))]
         with patch("builtins.open", guarded(original_open)), patch("io.open", guarded(original_io_open)):
-            runpy.run_path(str(CODE / name), run_name="__main__")
+            runpy.run_path(str(source(name)), run_name="__main__")
 
 
 def load_connector(tmp):
-    spec = importlib.util.spec_from_file_location("audit_real_befehl", CODE / "befehl.py")
+    spec = importlib.util.spec_from_file_location("audit_real_befehl", source("befehl.py"))
     k = importlib.util.module_from_spec(spec)
     # Only bypass the machine-specific install-directory check during import.
     env = {"SHC_INSTANZ": "1", "SHC_SPIELER": "1", "SHC_PARTNER": ""}
@@ -96,7 +105,7 @@ def connector_probes():
         findings.append({"id": "C03", "reproduced": Path(k.LAUF).exists(),
                          "partner_owner_file_survives_release": Path(k.LAUF).exists()})
 
-        import lordschutz as guard
+        import selfaware.execution.lordschutz as guard
         guard.aktualisieren(5000, {5: {"typ": 55, "besitzer": 1}, 9: {"typ": 55, "besitzer": 2}})
         attack = {"player": 1, "angriff": {"einheiten": [5], "ziel": 9}}
         single, _ = guard.filtern(attack)
@@ -154,7 +163,7 @@ def connector_probes():
               return function(...) table.insert(calls,{address=a,count=n,convention=c}); return 1 end
             end
         """)
-        module = lua.execute((CODE / "logik_stand_20261019.lua").read_text(encoding="utf-8"))
+        module = lua.execute((ROOT / "bridge/snapshots/logik_stand_20261019.lua").read_text(encoding="utf-8"))
         lua.globals().bridge = module
         lua.execute("logs={}; bridge.handleCommand({id=101,player=1,unknownAuditCommand=true})")
         response = list(lua.globals().logs.values())
@@ -194,7 +203,7 @@ def connector_probes():
 
 def main():
     results = {"revision": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()}
-    files = list(CODE.glob("*.py"))
+    files = list(LEGACY_FILES.values())
     syntax = []
     for p in files:
         try:
@@ -203,7 +212,7 @@ def main():
             syntax.append({"file": p.name, "error": str(ex)})
     results["python_syntax"] = {"files": len(files), "failures": syntax}
     data_failures = []
-    data_files = list((ROOT / "daten").glob("*.json"))
+    data_files = list((ROOT / "data/research").glob("*.json"))
     for p in data_files:
         try:
             json.loads(p.read_text(encoding="utf-8-sig"))
@@ -214,7 +223,7 @@ def main():
         from lupa import LuaRuntime
         lua = LuaRuntime()
         lua_checks = []
-        for p in CODE.glob("*.lua"):
+        for p in (ROOT / "bridge/snapshots").glob("*.lua"):
             try:
                 lua.compile(p.read_text(encoding="utf-8"))
                 lua_checks.append({"file": p.name, "status": "passed"})
@@ -225,7 +234,7 @@ def main():
         results["lua_syntax"] = {"skipped": "lupa unavailable"}
     results["connector_probes"] = connector_probes()
     tests = []
-    for p in sorted(CODE.glob("*_pruefen.py")):
+    for p in sorted(p for p in LEGACY_FILES.values() if p.name.endswith("_pruefen.py")):
         doc = (ast.get_docstring(ast.parse(p.read_bytes())) or "").lower()
         if any(marker in doc for marker in ("ohne spiel", "ohne ein spiel", "ohne laufendes spiel")):
             tests.append(p.name)

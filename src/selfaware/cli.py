@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import runpy
+import sys
 from pathlib import Path
 
 from selfaware import __version__
@@ -9,6 +11,7 @@ from selfaware.config import load_live_paths
 from selfaware.diagnostics import report
 from selfaware.domain import Session
 from selfaware.game.replay import ReplayPort, read_legacy_trace
+from selfaware.module_registry import MODULES
 from selfaware.runtime import BotRuntime
 
 
@@ -31,8 +34,27 @@ def main(argv: list[str] | None = None) -> int:
     )
     replay.add_argument("--epoch", default="offline-replay")
     replay.add_argument("--limit", type=int, default=0, help="0 reads the complete trace")
+    commands.add_parser(
+        "modules", help="list the relocated current-bot modules without importing them"
+    )
+    run = commands.add_parser(
+        "run", help="execute an existing bot/tool module with its original arguments"
+    )
+    run.add_argument("name", choices=sorted(MODULES))
+    run.add_argument("arguments", nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)
     try:
+        if args.command == "modules":
+            print(json.dumps(MODULES, indent=2))
+            return 0
+        if args.command == "run":
+            previous = sys.argv
+            sys.argv = [MODULES[args.name], *args.arguments]
+            try:
+                runpy.run_module(MODULES[args.name], run_name="__main__", alter_sys=True)
+            finally:
+                sys.argv = previous
+            return 0
         if args.command == "doctor":
             result = report(load_live_paths(args.config), offline=args.offline)
             print(json.dumps(result, indent=2))

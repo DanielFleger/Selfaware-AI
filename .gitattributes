@@ -1,0 +1,16 @@
+*.py text eol=lf
+*.md text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.js text eol=lf
+*.ps1 text eol=crlf
+
+# Match evidence and archived sources retain their repository bytes on every OS.
+# Do not let a Windows checkout rewrite these historical files' line endings.
+/data/research/** -text
+/research/native/** -text
+/bridge/snapshots/** -text
+/assets/ai/** -text
+/docs/research/** -text
+/docs/plans/** -text
+/docs/history/** -text

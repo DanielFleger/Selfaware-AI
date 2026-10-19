@@ -2,7 +2,7 @@
 
 This file separates implemented framework contracts from unresolved live work.
 The source audit is [audit/AUDIT.txt](../audit/AUDIT.txt), against `7b994b7`.
-The old `Backlog.md` remains the historical gameplay/research backlog.
+The old [Backlog.md](research/Backlog.md) remains the historical gameplay/research backlog.
 
 ## Implemented here
 
@@ -11,7 +11,9 @@ The old `Backlog.md` remains the historical gameplay/research backlog.
 - Priority selection, whole-resource reservations and pending-action claims.
 - Action receipt/outcome separation, ambiguous-delivery reservation retention.
 - Replay of existing JSONL/gzip records; read-only live dependency diagnostics.
-- Failure-path tests and agent onboarding. Legacy scripts/evidence are preserved.
+- Failure-path tests and agent onboarding. All 176 current-bot modules are relocated by responsibility; evidence hashes
+  and the old/new path manifest are checked. Selected current offline checks
+  run through the new launcher from an unrelated working directory.
 
 ## LIVE-01 — Reliable single-owner UCP adapter (first)
 
@@ -91,13 +93,13 @@ not a counterfactual simulator or a win-rate benchmark.
 
 ## DATA-01 — Incoherent recorded observation (confirmed during setup)
 
-Reading `daten/lage_20261018_162313_i1.jsonl.gz` succeeds for its first three
+Reading `data/research/lage_20261018_162313_i1.jsonl.gz` succeeds for its first three
 samples, then rejects line 37: record/status tick is 2208, but the embedded unit
 table says `tick 2147`. That is an existing capture inconsistency, not a parser
 syntax failure. Reproduce with:
 
 ```sh
-uv run selfaware replay daten/lage_20261018_162313_i1.jsonl.gz --player 1 --limit 37
+uv run selfaware replay data/research/lage_20261018_162313_i1.jsonl.gz --player 1 --limit 37
 ```
 
 Investigate stale/failed command responses and how `runde_lesen` and

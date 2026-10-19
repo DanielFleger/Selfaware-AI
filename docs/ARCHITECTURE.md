@@ -1,13 +1,15 @@
 # Architecture and migration boundaries
 
-This branch introduces an installable **offline framework**. The working
-historical bot remains in `werkzeug/`. The new runtime has a real replay port,
-not a live UCP implementation. Integration work is listed in [BACKLOG.md](BACKLOG.md).
+This branch introduces an installable **offline framework** and relocates the
+current bot into the same responsibility-based package tree. Its active entry
+point is `selfaware.runtime.live.erstes_spiel`; native access is under
+`selfaware.game.ucp`. The new `BotRuntime` has a real replay port; connecting
+the existing policies to its typed execution contracts remains implementation work. Integration work is listed in [BACKLOG.md](BACKLOG.md).
 
 The design is informed by Sharky at
 [`2628ba1`](https://github.com/sharknice/Sharky/tree/2628ba1c5c2083aeeddf9f13c25bf6f218820a05),
 particularly its manager lifecycle, prioritized micro tasks, build/macro split,
-and unit order tracking. The existing [Plan_Architektur.md](../Plan_Architektur.md)
+and unit order tracking. The existing [Plan_Architektur.md](plans/Plan_Architektur.md)
 and [source review](../audit/SHARKY_ARCHITECTURE.txt) explain the domain mapping.
 
 ## Implemented package
@@ -80,14 +82,25 @@ this can temporarily under-allocate. Budget optimization is a later step.
 - IDs/records are retained for the runtime's game epoch. Long-running sessions
   will need measured retention/trace policies without forgetting pending work.
 
-## Next package boundaries
+## Current implementation and next boundaries
 
-Add `strategy`, `macro`, `micro/tasks`, `micro/controllers`, `services`,
-`learning` and `telemetry` when the first real components migrate. Keep
-`Haushalt` as fiscal/popularity policy; a resource allocator is a separate
-responsibility. Reuse `Auftragsbuch` for observed building effects,
-`Uebersicht` for derived state, `zuweisung` for combat assignment, and the
-existing measured economy/visibility/combat models.
+The existing `macro`, `micro/tasks`, `micro`, `strategy`, `services`, `learning`
+and `telemetry` packages contain the actual current implementation. Files were
+moved, imports qualified, and shared data/process paths updated. The original
+flat `werkzeug/` tree is retired. [ORGANIZATION.md](ORGANIZATION.md) maps key
+classes to their destinations; the complete manifest is [relocations.json](relocations.json).
+
+The current `Wirtschaft`, `Waechter`, `Angriffstrupp`/`Einzeln`, `Feldzug` and
+`Raids` still have their existing interfaces and game I/O. They are not yet
+`runtime.Engine` implementations. The active live runner still owns its
+existing loop. Package location is not evidence that typed arbitration,
+reservations or observed outcomes govern those old command paths.
+
+Keep `Haushalt` as fiscal/popularity policy; the resource allocator is a
+separate responsibility. Reuse `execution.auftragsbuch` for observed building
+effects, `services.uebersicht` for derived state, `micro.zuweisung` for combat
+assignment, and the measured economy/visibility/combat models. Extract
+controllers and long-lived tasks as those implementations migrate to `Engine`.
 
 Keep lifecycle/configuration code in the runtime, protocol/native details in
 the game adapter, decisions in policies, and experiments in explicit profiles.

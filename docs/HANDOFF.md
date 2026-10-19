@@ -2,19 +2,28 @@
 
 ## Start here
 
-This repository contains two clearly separated working areas:
+The current implementation has been moved into the package structure, not left
+in a parallel flat source tree. See [ORGANIZATION.md](ORGANIZATION.md) for the
+full repository map and [relocations.json](relocations.json) for every old/new
+path and original content hash.
 
-- `src/selfaware/`: the new, installable offline framework and its tests.
-- `werkzeug/` + `daten/` + root research documents: the existing live bot,
-  measurement tools and evidence. Their behavior and paths remain unchanged.
+- `src/selfaware/runtime/live/`: current live runner and orchestration.
+- `src/selfaware/{macro,micro,strategy,services,learning,telemetry}/`: existing
+  policies, models, queries and analysis, sorted by responsibility.
+- `src/selfaware/game/ucp/`: existing native/file-channel helpers.
+- `src/selfaware/{domain,coordination,runtime,game,execution}/`: typed offline
+  framework contracts alongside explicitly named current implementation modules.
+- `src/selfaware/tools/`: setup, analysis, checks and live experiments.
+- `data/research/`, `docs/research/`, `docs/plans/`, `research/native/`,
+  `bridge/snapshots/`, `assets/ai/`: evidence, knowledge, plans and assets.
 
 The framework does not yet drive the real game. A green CI run proves the
-offline contracts and legacy Python syntax; it does not prove live matches or
+offline contracts, relocation integrity, selected existing checks and Python syntax; it does not prove live matches or
 fix the original connector. Read [BACKLOG.md](BACKLOG.md) before live work.
 
 This organization work starts from upstream `58a0d50`, which already includes
 the opening optimization (`813a98b`) and the separate
-[Audit_Sharky.html](../Audit_Sharky.html). Those upstream changes are preserved.
+[Audit_Sharky.html](research/Audit_Sharky.html). Those upstream changes are preserved.
 The earlier source audit in `audit/` remains pinned to its `7b994b7` baseline.
 
 ## Fresh checkout
@@ -48,7 +57,7 @@ separate read-only diagnostic described in [audit/README.md](../audit/README.md)
 ## Inspect real recorded state
 
 ```sh
-uv run selfaware replay daten/lage_20261018_162313_i1.jsonl.gz --player 1 --limit 3
+uv run selfaware replay data/research/lage_20261018_162313_i1.jsonl.gz --player 1 --limit 3
 ```
 
 Specify the actual player whose `st` values the trace records. A trace does not
@@ -62,7 +71,7 @@ check, not an assertion that the entire archive is clean.
 ## Before actual-game debugging
 
 1. Obtain the real VillageStudio project/module, its building catalogue and
-   `werkzeug/instanz.py`. They are not contained in this repository. Capture
+   `VillageStudio/werkzeug/instanz.py`. They are not contained in this repository. Capture
    their authoritative source/revision and hashes; do not fabricate replacements.
 2. Copy `configs/local.example.toml` to `configs/local.toml` and fill actual
    paths and installed module SHA256. Run:
@@ -74,10 +83,12 @@ check, not an assertion that the entire archive is clean.
    Exit code 2 means live setup remains blocked/unverified. The doctor only
    reads files and reports hashes; even matching files are not native API tests.
 3. Read `bridge/README.md`, `audit/AUDIT.txt`, `README.md`'s match-record rule,
-   and the map/opponent/environment entries in `Wissensregister.md`.
-4. Legacy scripts still use the original Steam/sibling paths and `SHC_*`
-   variables. New `SELFAWARE_*` settings configure diagnostics only. Explicitly
-   check those old assumptions before invoking any live tool.
+   and the map/opponent/environment entries in `docs/research/Wissensregister.md`.
+4. Existing scripts retain their Steam installation default and `SHC_*` instance/
+   player settings. `SELFAWARE_VILLAGE_STUDIO_PATH` now also selects the external
+   catalogue/helper folder used by the relocated tools. Read the path and
+   runtime-state migration notes in [ORGANIZATION.md](ORGANIZATION.md) before
+   invoking a live tool. TOML diagnostics do not reconfigure the old sender.
 5. Resolve the connector blockers with isolated failure tests, then validate
    one controlled native operation at a time using the actual module.
 
