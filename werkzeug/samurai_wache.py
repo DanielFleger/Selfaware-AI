@@ -103,6 +103,25 @@ def spiel_ueber_taskleiste():
         u.SetWindowPos(h, wintypes.HWND(-1), 0, 0, 0, 0, 0x13)      # HWND_TOPMOST, NOMOVE|NOSIZE|NOACTIVATE
 
 
+def lernen_starten(log, sp):
+    """19.10. 22:55 (Daniel 22:48: "in Zukunft kann so eine Partie gerne fuer mehr Trainingsdaten genutzt werden", B-119):
+    nach jeder Partie partie_lernen.py im Hintergrund - Mitschrift + das Lageprotokoll dieses Spielers aus dieser Partie."""
+    import glob
+    if not log or not os.path.exists(log) or not sp:
+        schreib("LERNEN: keine Mitschrift (%s) - nichts ausgewertet" % log)
+        return
+    seit = os.path.getmtime(log) - 3600      # Lageprotokoll dieser Partie: zuletzt geschrieben nach Start der Mitschrift
+    lagen = [p for p in glob.glob(os.path.join(D, "lage_*_sp%d.jsonl.gz" % sp)) if os.path.getmtime(p) >= seit]
+    if not lagen:
+        schreib("LERNEN: kein Lageprotokoll fuer Spieler %s - nichts ausgewertet" % sp)
+        return
+    lage = max(lagen, key=os.path.getmtime)
+    ziel = os.path.join(D, "lernen_%s.txt" % os.path.basename(log).replace("_konsole.txt", ""))
+    subprocess.Popen([sys.executable, "-P", os.path.join(HIER, "partie_lernen.py"), log, lage, "gegner=Mensch"],
+                     cwd=HIER, stdout=open(ziel, "w", encoding="utf-8"), stderr=subprocess.STDOUT)
+    schreib("LERNEN: Auswertung gestartet (%s + %s -> %s)" % (os.path.basename(log), os.path.basename(lage), os.path.basename(ziel)))
+
+
 def schreib(text):
     zeile = time.strftime("%H:%M:%S ") + text
     print(zeile, flush=True)
@@ -197,8 +216,12 @@ def main():
             schreib("Ratte auf Spieler %d gefunden - KI aus, SamurAI uebernimmt (Prozess %d, Mitschrift %s)" % (sp, lenker.pid, log))
         elif tat == "beenden":
             lenker.terminate()
-            schreib("Partie verlassen (Ansicht %s) - Lenker beendet" % ansicht)
+            schreib("Partie verlassen (Ansicht %s, Partie vorbei %s) - Lenker beendet" % (ansicht, gameover))
             lenker = None
+            try:
+                lernen_starten(log, sp_aktiv)
+            except Exception as ex_l:
+                schreib("LERNEN fehlgeschlagen: %r" % (ex_l,))
         elif tat == "neue_partie_frei":
             bedient, sp_aktiv = False, None
         elif tat == "warten" and im_spiel(ansicht, gameover) and not bedient and not laeuft and RATTE not in (ai or {}).values():
