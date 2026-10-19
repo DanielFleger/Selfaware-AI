@@ -2451,7 +2451,7 @@
     "werkzeug/samurai_wache.py"
    ],
    "belege": [],
-   "notiz": "",
+   "notiz": "22:40: Uebernahme bei Tick 0 - mit Neustart ueber das Menue klappt es; schneller Neustart aus der Partie noch ungeprueft",
    "verlauf": [
     {
      "zeit": "2026-10-19 21:58",
@@ -2460,6 +2460,10 @@
     {
      "zeit": "2026-10-19 22:03",
      "was": "Rang - -> 10"
+    },
+    {
+     "zeit": "2026-10-19 22:48",
+     "was": "offen -> offen: 22:40: Uebernahme bei Tick 0 - mit Neustart ueber das Menue klappt es; schneller Neustart aus der Partie noch ungeprueft"
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
@@ -2796,7 +2800,8 @@
    "herkunft": "Daniel 19.10. 22:33 'das Spiel haengt'; 21:25 'wenn ich Markt oder Soeldnerposten benutze, haengt er'",
    "gebaut": "2026-10-19",
    "commits": [
-    "4e8812d"
+    "4e8812d",
+    "612421c"
    ],
    "wo": [
     "werkzeug/samurai_wache.py",
@@ -2804,11 +2809,34 @@
     "daten/enum_ansicht.txt"
    ],
    "belege": [],
-   "notiz": "Ansicht 16 = MVT_BUILDING_AND_STATUS_MENU; Waechter beendete SamurAI und stellte die Tick-Pause scharf; jetzt im Spiel = 14 oder 16; im Spiel noch nicht gesehen",
+   "notiz": "Ansicht 16 = MVT_BUILDING_AND_STATUS_MENU; Waechter beendete SamurAI und stellte die Tick-Pause scharf; jetzt im Spiel = 14 oder 16; im Spiel noch nicht gesehen | im Spiel bestaetigt: Partie 22:40 lief bis Tick 27.785 ohne Abbruch, Daniel nutzte Gebaeude (Sieg Daniel)",
    "verlauf": [
     {
      "zeit": "2026-10-19 22:36",
      "was": "angelegt (gebaut)"
+    },
+    {
+     "zeit": "2026-10-19 22:48",
+     "was": "gebaut -> gebaut (Commit 612421c): im Spiel bestaetigt: Partie 22:40 lief bis Tick 27.785 ohne Abbruch, Daniel nutzte Gebaeude (Sieg Daniel)"
+    }
+   ]
+  },
+  {
+   "nr": "B-118",
+   "titel": "SamurAI gegen Menschen: zu wenig Druck - Daniel gewann, weil er mehr Druck machte",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-19 22:48",
+   "herkunft": "Daniel 19.10. 22:47: 'hab ihn besiegt, weil er nicht genug gepressured hat wie ich - aber stark gespielt von ihm'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [],
+   "notiz": "Partie 22:40 (Instanz 4, Lobby): Ende Tick 27.785 SamurAI 4 Leute, 1/18 Holzfaeller besetzt, Beliebtheit 50, Gold 30; Daten daten/samurai_20261019_224026_sp2_konsole.txt + lage_20261019_224031_i4_sp2.jsonl.gz - auswerten mit partie_vergleich.py",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 22:48",
+     "was": "angelegt (offen)"
     }
    ]
   }
