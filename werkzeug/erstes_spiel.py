@@ -3477,9 +3477,15 @@ def main():
         schreib("KARTE %s unbekannt - einmalige Vermessung in eigenem Gefecht (vor der Partie)" % karte)
         KH.vermessen("gefecht:" + karte, kurz)
     datei = os.path.join(D, arg.get("plan", "eroeffnung_plan_%s.json" % kurz))
+    selbst = arg.get("eroeffnung", "fest" if arg.get("v14", "nein") == "ja" else "selbst") == "selbst"
     if not os.path.exists(datei):
         import eroeffnung
-        p_neu = eroeffnung.plane(K=14, A=6, start=kurz)      # K/A wie der M19-Plan (14 Holzfaeller, 6 Plantagen)
+        # 19.10. 21:08 (Daniel: "die Selfaware soll es berechnen, egal welche Map, egal welche Position, und auf andere Nahrung
+        # umschalten je nachdem, was es gibt - Brot und/oder Jagd und/oder Apfel"). Anlass: Lobby, Spieler 2 bei (188,326) -
+        # dort passen nur 2 Apfelplantagen, die Mindestzahl 4 hat SamurAI in der Eroeffnung beendet. Mit eroeffnung=selbst
+        # plant die Eroeffnung nur Holz, Huetten, Stein (A=0); die Nahrung (Jaeger x Brotketten x Aepfel, auch ganz ohne
+        # Aepfel) waehlt allein nahrungswahl.py weiter unten
+        p_neu = eroeffnung.plane(K=14, A=0 if selbst else 6, start=kurz)      # K wie der M19-Plan (14 Holzfaeller)
         if "fehler" in p_neu and "Apfelplantagen" in str(p_neu["fehler"]):
             # 19.10. (1v1, Green Haven Platz 3: "keine 6 Apfelplantagen") - mit 4 Plantagen statt Abbruch
             schreib("Eroeffnungsplan %s: %s - neu mit 4 Apfelplantagen" % (kurz, p_neu["fehler"]))
@@ -3582,8 +3588,8 @@ def main():
         w_n = nahrungswahl.waehle(kurz, plan, bev_ziel=BEV_ZIEL or 90,
                                   ration=RATIONEN if RATIONEN in nahrungswahl.VERBRAUCH else "doppelt",
                                   horizont=int(arg.get("bis_tick", 16000)))
-        if w_n["aepfel"]:
-            plan["aepfel"], plan["kornspeicher"] = w_n["aepfel"], w_n["kornspeicher"]
+        # 19.10. 21:08: IMMER uebernehmen, auch ohne Aepfel - sonst blieben die Aepfel eines alten Plans neben Jaegern/Brot stehen
+        plan["aepfel"], plan["kornspeicher"] = w_n["aepfel"], w_n["kornspeicher"]
         plan["brot"] = w_n["brot"]
         plan["jaeger"] = w_n["jaeger"]          # Daniel 23:20 "hybrid, z.B. Rehe": Jaeger an den gezaehlten Herden
         b_n = w_n["begruendung"]

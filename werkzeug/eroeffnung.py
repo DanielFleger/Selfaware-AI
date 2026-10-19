@@ -181,11 +181,19 @@ def plane(K=8, A=6, holz=150, bevoelkerung_platz=10, steinbruch=True, huetten_mi
     gesamt, lager, huetten, belegt = h
     rate = sum(k["rate"] for k in huetten)
     lm = (lager[0] + 3, lager[1] + 3)
-    es = plane_essen(karten["apfel"], karten["speicher"], set(belegt), A, lm)
+    if A == 0:
+        # 19.10. 21:08 (Daniel: "egal welche Map, egal welche Position - auf andere Nahrung umschalten, je nachdem was es gibt"):
+        # A=0 = hier KEINE Nahrung planen; Kornspeicher, Aepfel, Jaeger, Brot setzt nahrungswahl.py (erstes_spiel.py)
+        speicher, farmen = None, {"farmen": [], "status": "Nahrung aus nahrungswahl.py", "weg_summe": 0}
+        es = (speicher, farmen)
+    else:
+        es = plane_essen(karten["apfel"], karten["speicher"], set(belegt), A, lm)
     if es is None:
         return {"fehler": "keine %d Apfelplantagen" % A}
     speicher, farmen = es
-    belegt = set(belegt) | felder(speicher[0], speicher[1], 4) | {(speicher[0] + 2, speicher[1] + 4)}
+    belegt = set(belegt)
+    if speicher is not None:
+        belegt |= felder(speicher[0], speicher[1], 4) | {(speicher[0] + 2, speicher[1] + 4)}
     for f in farmen["farmen"]:
         belegt |= felder(f["x"], f["y"], 10)
     K = len(huetten)

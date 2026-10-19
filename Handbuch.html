@@ -134,6 +134,10 @@ td.z { text-align: right; white-space: nowrap; }
     <tr><td>Andere Saat</td><td>Lord startet an anderem Feld, eine ihrer Apfelplantagen an anderer Stelle</td></tr>
   </table></div>
   <p>Restunterschiede entstehen durch unseren Lenker, der in Echtzeit reagiert. <span class="status offen">offen</span> Befehle auf einen genauen Tick planen (0x00480210 scheduleCommand, aus ucp_recorder) wuerde auch das angleichen.</p>
+  <h3>Selbst spielen: zuerst die Fenster-Wacht aus <span class="status gemessen">gemessen</span></h3>
+  <p><b>Das Modul schiebt das Spielfenster in jeder Partie alle 300 Bilder ganz nach hinten</b> (init.lua, <code>pcall(fensterNachHinten)</code> &rarr; SetWindowPos HWND_BOTTOM) - gebaut fuer Testlaeufe im Hintergrund. Spielt Daniel selbst, springen Taskleiste, Browser und Discord alle paar Sekunden ueber das Spiel, obwohl es das aktive Fenster bleibt. Der Kommentar „ABGESCHALTET 01.09.2026“ in init.lua ist ueberholt - der Aufruf ist scharf, in allen fuenf Instanzen (gemessen 19.10.).</p>
+  <p><b>Abschalten:</b> <code>ucp/villagestudio/vorn.txt</code> im Ordner der Instanz anlegen, dann die Instanz neu starten (<code>werkzeug/spiel_starten.ps1 -Instanz 4</code>). Die Datei wird nur beim ersten Bild gelesen; im laufenden Spiel gibt es keinen Schalter. Beleg im ucp3.log: <code>FENSTER: vorn.txt gefunden - das Fenster bleibt, wo es ist.</code> Instanz 4 hat sie seit 19.10. 21:05.</p>
+  <p>Gefunden mit <code>werkzeug/fenster_ereignisse.ps1</code> (Windows meldet jeden Vordergrundwechsel samt Ausloeser, dazu alle 50 ms die Lage des Spielfensters): Spiel 21:03:21.091 vorn mit 4 Fenstern darueber, 21:03:21.797 weiter vorn mit 15 darueber - ohne Klick (<code>daten/fenster_ereignisse_20261019_210128.txt</code>). Die Pflaster davor (start_hinten.ps1, spielen_vorne.ps1, Taskleisten-Wacht in samurai_wache.py) sind abgeschaltet - sie kaempften gegen die Wacht, statt sie abzuschalten. Wissensregister L141.</p>
 </section>
 
 <section id="balance">
