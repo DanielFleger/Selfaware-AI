@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan Einheitenlenker</title>
+<style>
+  :root { --bg:#f6f5f2; --karte:#ffffff; --text:#222; --leise:#666; --rand:#ddd; --gruen:#2e8b57; --gelb:#d4a017; --rot:#c0392b; --akzent:#3a5a8c; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#1e1f22; --karte:#2a2c30; --text:#e6e6e6; --leise:#aaa; --rand:#444; --akzent:#8fb0e0; } }
+  body { background:var(--bg); color:var(--text); font:16px/1.5 system-ui, sans-serif; margin:0; padding:16px; }
+  main { max-width:900px; margin:0 auto; }
+  h1 { font-size:1.6em; margin:0 0 4px; } .timestamps { color:var(--leise); font-size:.9em; margin-bottom:12px; }
+  .punkt { background:var(--karte); border:1px solid var(--rand); border-radius:10px; padding:14px 16px; margin:12px 0; }
+  .punkt h2 { font-size:1.15em; margin:0 0 8px; } .rat { border-left:4px solid var(--akzent); padding:6px 10px; margin:10px 0; }
+  .zeile { display:flex; gap:10px; align-items:flex-start; flex-wrap:wrap; }
+  select, textarea { font:inherit; color:var(--text); background:var(--bg); border:1px solid var(--rand); border-radius:6px; padding:4px 6px; }
+  textarea { width:100%; min-height:48px; box-sizing:border-box; }
+  table { border-collapse:collapse; width:100%; font-size:.95em; } td, th { border:1px solid var(--rand); padding:4px 6px; text-align:left; vertical-align:top; }
+  .knoepfe { position:sticky; top:0; background:var(--bg); padding:8px 0; display:flex; gap:8px; z-index:2; }
+  button { font:inherit; padding:6px 12px; border-radius:6px; border:1px solid var(--akzent); background:var(--karte); color:var(--text); cursor:pointer; }
+  .gruen { border-left:6px solid var(--gruen); } .gelb { border-left:6px solid var(--gelb); } .rot { border-left:6px solid var(--rot); }
+  code { font-size:.92em; }
+</style>
+</head>
+<body>
+<main>
+<h1>Umbau: ein Lenker für alle Einheiten</h1>
+<div class="timestamps">Erstellt: 19.10.2026, 18:05 · Selfaware-AI · Plan, noch nichts gebaut</div>
+<div class="knoepfe"><button onclick="kopieren()">Kopieren</button><button onclick="herunterladen()">Herunterladen</button></div>
+
+<div class="punkt" data-id="ziel"><h2>1. Ziel</h2>
+<p>Daniel 19.10. 18:03: Module, die man je nach Bedarf umschaltet, egal welche Einheit. Die meisten Einheiten sind gleich aufgebaut: <b>verteidigen</b>, <b>angreifen</b> oder <b>warten/sammeln</b>. Danach geht es nur noch um die Bewertung: welche Einheit zuerst töten, um den meisten Schaden zu vermeiden (Abwehr) oder anzurichten (Angriff), und wie.</p>
+<div class="rat">Mein Rat: Rollen und Bewertung an EINER Stelle; die heutigen Module werden zu Bausteinen, die der Lenker je Einheitenart zuschaltet.</div>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+
+<div class="punkt" data-id="bestand"><h2>2. Bestand heute (Zeilen gezählt 19.10. 18:04)</h2>
+<table><tr><th>Modul</th><th>Zeilen</th><th>Was darin steckt</th></tr>
+<tr><td><code>assassinen.py</code></td><td>2.875</td><td>Gefahrenkarte (Entdeckung + Beschuss, gemessen L73/L75/L81), Flucht, Wege mit wenig Beschuss, Zielwahl Wert × Überleben je Zeit, Lord-Gruppe, Reserve, Stapeln</td></tr>
+<tr><td><code>waechter.py</code></td><td>353</td><td>Abwehr gebündelt mit Gefechtsrechnung, Stellung, Stapeln von Nahkämpfern auf Schützen</td></tr>
+<tr><td><code>feldzug.py</code></td><td>276</td><td>Sammeln, Angriff auf den Lord, Wegplaner mit wenig Beschuss, Stau-Erkennung</td></tr>
+<tr><td><code>raids.py</code></td><td>230</td><td>Brandtrupp (Sklaven, Feuer lesbar), Reiterjagd (Ausweichen vor Nahkämpfern)</td></tr>
+<tr><td><code>gefecht.py</code></td><td>150</td><td>Schaden je Takt aus Editor-Duellen (<code>daten/editor_duell_*.jsonl</code>), <code>simuliere</code>, <code>bewerte</code></td></tr>
+<tr><td><code>endspurt.py</code> · <code>fallenwache.py</code> · <code>lordwache.py</code></td><td>103 · 75 · 50</td><td>Wann alles auf den Lord; Fallen auf Laufziele; Lord-Schutz mit Rechnung</td></tr></table>
+<div class="rat">Mein Rat: Gefahrenkarte und Flucht aus dem Assassinen-Modul herauslösen, sie sind das Wertvollste und gelten für alle.</div>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+
+<div class="punkt" data-id="kern"><h2>3. Der Kern (neu: <code>einheitenlenker.py</code>)</h2>
+<p>Jede eigene Einheit hat genau eine Rolle (Verteidigen / Angreifen / Warten-Sammeln) und einen Auftrag. Die Rollen verteilt eine Stelle nach der Lage: Lord-Rechnung (Gefahr?), Endspurt, Raid-Ziele, Heer-Stärke. Heute verteilen Wächter, Feldzug, Raids und Assassinen jeder für sich und nehmen sich gegenseitig Einheiten weg (Ausnahme-Listen).</p>
+<div class="rat">Mein Rat: Der Kern ersetzt die Ausnahme-Listen; jede Einheit gehört zu jeder Zeit genau einer Rolle.</div>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+
+<div class="punkt" data-id="module"><h2>4. Module zum Umschalten je Einheitenart</h2>
+<table><tr><th>Modul</th><th>Für</th><th>Stand</th></tr>
+<tr><td>Hit and Run (schießen, Abstand zu Nahkämpfern)</td><td>Bogen, Armbrust, arab. Bogen, Schleuder, Pferdebogen, Feuerwerfer</td><td>Ansatz in der Reiterjagd</td></tr>
+<tr><td>Unsichtbar bleiben (Entdeckung meiden)</td><td>Assassinen</td><td>im Assassinen-Modul</td></tr>
+<tr><td>Flucht vor Übermacht</td><td>alle</td><td>im Assassinen-Modul</td></tr>
+<tr><td>Pfeilen ausweichen</td><td>alle, besonders Nahkämpfer im Anmarsch</td><td>neu – Messung nötig</td></tr>
+<tr><td>Feuer legen</td><td>Sklaven</td><td>Brandtrupp</td></tr>
+<tr><td>Graben ausheben</td><td>Speer, Pike, Streitkolben, Sklave, Ingenieur, Bogen</td><td>Kornring/Graben</td></tr></table>
+<div class="rat">Mein Rat: Die Zuordnung steht in einer Tabelle, damit du sie umschalten kannst, ohne Code anzufassen.</div>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+
+<div class="punkt" data-id="bewertung"><h2>5. Eine Bewertung für alle</h2>
+<p><b>Abwehr:</b> zuerst der Feind mit dem meisten Schaden je Takt gegen das, was er gerade angreifen kann, geteilt durch die Zeit, bis wir ihn getötet haben (sein Leben / unser Schaden je Takt auf ihn). <b>Angriff:</b> Wert des Ziels (Wert-Tabellen) × Überleben / (Weg + Arbeit), Risiko aus der Gefahrenkarte. Eindeutige Kills und Snipes gehen vor (Daniel 17:14). Grundlage: Schaden je Takt aus den Editor-Duellen (<code>gefecht.py</code>), Leben je Art (L63, L109).</p>
+<div class="rat">Mein Rat: Die Bewertung zuerst bauen und ohne Spiel prüfen (Totschlagtests mit Extremfällen), dann erst die Rollen darauf stellen.</div>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+
+<div class="punkt" data-id="schritte"><h2>6. Schritte</h2>
+<ol><li>Bewertung als eigener Baustein + Prüfskript.</li>
+<li>Kern mit Rollen; die <b>Heimwache</b> als erste Gruppe darauf.</li>
+<li>1v1 messen gegen heute: verlorene Gebäude und Arbeiter je 1.000 Ticks, getötete Angreifer, Lord-Leben.</li>
+<li>Feldzug, Reiter, Sklaven umstellen.</li>
+<li>Assassinen-Teile herauslösen (Gefahrenkarte, Flucht, Unsichtbar).</li></ol>
+<div class="rat">Mein Rat: Nach jedem Schritt eine 1v1-Partie mit Partievergleich – so sieht man sofort, ob es besser oder schlechter wurde.</div>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+
+<div class="punkt" data-id="messen"><h2>7. Vorher messen</h2>
+<ul><li>Pfeilen ausweichen: Geschosse stehen im Speicher (<code>DAT_EntityState</code>, Pfeil = Typ 1, Ziel x/y – VillageStudio-Wissensstand); wie weit muss eine Einheit seitlich gehen, damit ein Pfeil sie verfehlt?</li>
+<li>Schießt der Pferdebogen im Reiten? (Karteneditor, der Versuch im Spielstand mit Burg war unbrauchbar)</li>
+<li>Lauftempo je Art liegt vor (L80) – für Flucht- und Abfangrechnung.</li></ul>
+<div class="rat">Mein Rat: Pfeil-Ausweichen erst bauen, wenn die Messung zeigt, dass es geht – sonst ist es Raten.</div>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+
+<div class="punkt" data-id="risiken"><h2>8. Risiken</h2>
+<p>Großer Umbau über ~4.100 Zeilen Bestand. Drei Assassinen-Prüfungen waren schon vor heute rot (lordtrupp 3/10, tausch 2/3, wege 3/4). Rechenzeit je Runde (heute ~0,3–0,4 s). Schritt für Schritt umstellen, alter Weg per Schalter zurück.</p>
+<div class="rat">Mein Rat: Jeder Schritt bekommt einen Schalter (<code>lenker=neu|alt</code>), damit der Rückweg ein Startwert ist.</div>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+
+<div class="punkt" data-id="zurueck"><h2>9. Zurückgestellt bis nach dem Umbau</h2>
+<p>Lord-Ring (Mauer + Graben, nur wenn die Lord-Rechnung Schutz verlangt), Pennerhof-Belagerung mit Assassinen, Schützen-Wache an der Wirtschaft, kein Bauen neben dem eigenen Pennerlager. Gebaut ist heute: Partievergleich, Endspurt, Kornring-Umbau, Raids, Gefahrenzonen, Hunger-Notkauf, Lord-Wache, Lord-Kill wenn eindeutig, Reiter jagen Bauern.</p>
+<div class="rat">Mein Rat: Diese Punkte gehen im neuen Lenker als Rollen-Regeln auf, statt einzeln angebaut zu werden.</div>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+</main>
+<script>
+function zustand() {
+  return [...document.querySelectorAll('.punkt')].map(p => ({ id: p.dataset.id, titel: p.querySelector('h2').textContent,
+    ampel: p.querySelector('.ampel').value, notiz: p.querySelector('textarea').value }));
+}
+document.querySelectorAll('.ampel').forEach(s => s.addEventListener('change', () => {
+  const p = s.closest('.punkt'); p.classList.remove('gruen', 'gelb', 'rot'); if (['gruen','gelb','rot'].includes(s.value)) p.classList.add(s.value);
+}));
+function kopieren() {
+  const t = zustand().map(z => z.titel + ' [' + z.ampel + ']' + (z.notiz ? ': ' + z.notiz : '')).join('\n');
+  navigator.clipboard.writeText('Plan Einheitenlenker\n' + t);
+}
+function herunterladen() {
+  document.querySelectorAll('textarea').forEach(t => t.textContent = t.value);
+  document.querySelectorAll('select').forEach(s => [...s.options].forEach(o => o.toggleAttribute('selected', o.value === s.value)));
+  const b = new Blob(['<!doctype html>\n' + document.documentElement.outerHTML], { type: 'text/html' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'Plan_Einheitenlenker_Notizen.html'; a.click();
+}
+</script>
+</body>
+</html>
