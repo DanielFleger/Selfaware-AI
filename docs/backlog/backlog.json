@@ -2212,13 +2212,13 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 1
+   "rang": 2
   },
   {
    "nr": "B-95",
    "titel": "Grundverstaendnis des Spiels per Reverse Engineering (Ghidra), bevor gebaut wird",
    "bereich": "Framework",
-   "status": "in_arbeit",
+   "status": "offen",
    "seit": "2026-10-19",
    "herkunft": "Krari ueber Daniel 19.10. 21:52",
    "gebaut": null,
@@ -2233,7 +2233,7 @@
     "docs/BACKLOG.md"
    ],
    "belege": [],
-   "notiz": "Vorhanden: Ghidra-Projekt OpenSHC-ref (4.765 benannte Funktionen), VillageStudio doku/ghidra | Spielkarte.md angelegt, Abschnitt 1 (Befehle) fertig; offen: Spielerdaten, Einheiten/Gebaeude, Karte, Takt | Abschnitt 2 fertig: Einheiten, Gebaeude, Spielerdaten, Zeit - alle gelesenen Felder benannt und bestaetigt; offen: Karte, Takt | DATA-01: preserve and investigate the mixed-tick sample at data/research/lage_20261018_162313_i1.jsonl.gz:37; docs/BACKLOG.md.",
+   "notiz": "Vorhanden: Ghidra-Projekt OpenSHC-ref (4.765 benannte Funktionen), VillageStudio doku/ghidra | Spielkarte.md angelegt, Abschnitt 1 (Befehle) fertig; offen: Spielerdaten, Einheiten/Gebaeude, Karte, Takt | Abschnitt 2 fertig: Einheiten, Gebaeude, Spielerdaten, Zeit - alle gelesenen Felder benannt und bestaetigt; offen: Karte, Takt | Abschnitt 1+2 fertig; Karte und Takt folgen beim Rust-Grundmodul | DATA-01: preserve and investigate the mixed-tick sample at data/research/lage_20261018_162313_i1.jsonl.gz:37; docs/BACKLOG.md.",
    "verlauf": [
     {
      "zeit": "2026-10-19 21:58",
@@ -2252,25 +2252,29 @@
      "was": "in Arbeit -> in Arbeit (Commit 240bc46): Abschnitt 2 fertig: Einheiten, Gebaeude, Spielerdaten, Zeit - alle gelesenen Felder benannt und bestaetigt; offen: Karte, Takt"
     },
     {
+     "zeit": "2026-10-19 22:36",
+     "was": "in Arbeit -> offen: Abschnitt 1+2 fertig; Karte und Takt folgen beim Rust-Grundmodul"
+    },
+    {
      "zeit": "2026-10-19 22:27",
      "was": "Engineering acceptance details linked during repository organization (B-102); gameplay status unchanged."
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 3
+   "rang": 4
   },
   {
    "nr": "B-96",
    "titel": "Sprache fuer Framework/Kern: Rust? (Daniels Frage)",
    "bereich": "Framework",
-   "status": "offen",
+   "status": "gebaut",
    "seit": "2026-10-19",
    "herkunft": "Daniel 19.10. 21:52 (Krari: alles in Rust)",
-   "gebaut": null,
+   "gebaut": "2026-10-19 22:36",
    "commits": [],
    "wo": [],
    "belege": [],
-   "notiz": "Entscheidung bei Daniel | 19.10. 22:10 gemessen: UCP3 laedt Module mit eigener DLL (graphicsApiReplacer.dll, cffi.dll in den Modul-Zips, geladen ueber init.lua); Spiel ist 32 Bit (PE32) - ein Rust-Modul im Spiel (32-Bit-DLL mit C-Schnittstelle) ist technisch moeglich. Rat: Kern ins Spiel (Rust), Python fuer Messen/Auswerten/Lernen; Reihenfolge RE -> Rust-Geruest nach Sharky -> Teile einzeln umziehen",
+   "notiz": "Entscheidung bei Daniel | 19.10. 22:10 gemessen: UCP3 laedt Module mit eigener DLL (graphicsApiReplacer.dll, cffi.dll in den Modul-Zips, geladen ueber init.lua); Spiel ist 32 Bit (PE32) - ein Rust-Modul im Spiel (32-Bit-DLL mit C-Schnittstelle) ist technisch moeglich. Rat: Kern ins Spiel (Rust), Python fuer Messen/Auswerten/Lernen; Reihenfolge RE -> Rust-Geruest nach Sharky -> Teile einzeln umziehen | Daniel 22:33: 'ja bau es in Rust'",
    "verlauf": [
     {
      "zeit": "2026-10-19 21:58",
@@ -2283,10 +2287,14 @@
     {
      "zeit": "2026-10-19 22:03",
      "was": "Rang - -> 4"
+    },
+    {
+     "zeit": "2026-10-19 22:36",
+     "was": "offen -> gebaut: Daniel 22:33: 'ja bau es in Rust'"
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 4
+   "rang": 5
   },
   {
    "nr": "B-97",
@@ -2799,13 +2807,13 @@
      "was": "in Arbeit -> gebaut (Commit 47dc5b6): Ursache belegt (abgelesen): im Einzelspieler gilt jeder Befehl fuer 'ich' bei der Ausfuehrung; VillageStudio Wissensstand 13i-2 (aff005f)"
     }
    ],
-   "rang": 2
+   "rang": 3
   },
   {
    "nr": "B-115",
    "titel": "Rust-Grundmodul im Spiel: laedt als UCP3-Modul, liest jeden Takt die eigenen Einheiten, schreibt ein Protokoll",
    "bereich": "Framework",
-   "status": "offen",
+   "status": "in_arbeit",
    "seit": "2026-10-19 22:03",
    "herkunft": "Vorschlag 19.10. 22:00 (nach B-96)",
    "gebaut": null,
@@ -2821,9 +2829,17 @@
     {
      "zeit": "2026-10-19 22:03",
      "was": "Rang - -> 5"
+    },
+    {
+     "zeit": "2026-10-19 22:36",
+     "was": "offen -> in Arbeit"
+    },
+    {
+     "zeit": "2026-10-19 22:36",
+     "was": "Rang 5 -> 1"
     }
    ],
-   "rang": 5
+   "rang": 1
   },
   {
    "nr": "B-116",
@@ -2842,6 +2858,31 @@
    "verlauf": [
     {
      "zeit": "2026-10-19 22:32",
+     "was": "angelegt (gebaut)"
+    }
+   ]
+  },
+  {
+   "nr": "B-117",
+   "titel": "Spiel haengt beim Klick auf ein Gebaeude: Waechter hielt Ansicht 16 fuer 'Partie verlassen'",
+   "bereich": "SamurAI",
+   "status": "gebaut",
+   "seit": "2026-10-19",
+   "herkunft": "Daniel 19.10. 22:33 'das Spiel haengt'; 21:25 'wenn ich Markt oder Soeldnerposten benutze, haengt er'",
+   "gebaut": "2026-10-19",
+   "commits": [
+    "4e8812d"
+   ],
+   "wo": [
+    "src/selfaware/runtime/live/samurai_wache.py",
+    "src/selfaware/tools/checks/samurai_wache_pruefen.py",
+    "data/research/enum_ansicht.txt"
+   ],
+   "belege": [],
+   "notiz": "Ansicht 16 = MVT_BUILDING_AND_STATUS_MENU; Waechter beendete SamurAI und stellte die Tick-Pause scharf; jetzt im Spiel = 14 oder 16; im Spiel noch nicht gesehen",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 22:36",
      "was": "angelegt (gebaut)"
     }
    ]

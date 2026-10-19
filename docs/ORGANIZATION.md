@@ -102,7 +102,7 @@ the evidence and commit/push rule in [README.md](../README.md).
 
 ## Preservation and cleanup
 
-[relocations.json](relocations.json) records all 1,191 moves from upstream `f8c3232`,
+[relocations.json](relocations.json) records all 1,193 moves from upstream `ea306c2`,
 with each original SHA256 and whether its content needed path/import changes.
 Research evidence, AI assets and Lua snapshots are verified byte for byte by
 the relocation tests. Historical filenames and match identifiers remain intact.
@@ -121,5 +121,6 @@ fingerprint now walks qualified package imports and records relative paths,
 so a change in a relocated policy still changes the match's code identity.
 
 Latest upstream task B-102 tracks this organization. Existing B-94/B-95 and
-Sharky implementation points retain their gameplay status. The Python offline
-foundation does not settle the open Rust/native-module research in B-96/B-115.
+Sharky implementation points retain their gameplay status. Upstream B-96 now selects Rust for the native core; B-115 is in progress. The
+Python package remains the offline contract harness and current policy baseline,
+not a decision to replace that approved native-core direction.

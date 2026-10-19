@@ -28,7 +28,7 @@ fix the original connector. Read [BACKLOG.md](BACKLOG.md) before live work.
 This organization work starts from upstream `58a0d50`, which already includes
 the opening optimization (`813a98b`) and the separate
 [Audit_Sharky.html](research/Audit_Sharky.html). Those upstream changes are preserved.
-Latest upstream through `f8c3232` is merged, including the active backlog tool,
+Latest upstream through `ea306c2` is merged, including the active backlog tool,
 B-114 command/player research in [Spielkarte.md](research/Spielkarte.md), and
 Ghidra captures. The path manifest uses that updated source baseline. The earlier
 source audit in `audit/` remains pinned to its `7b994b7` baseline.
@@ -99,10 +99,14 @@ check, not an assertion that the entire archive is clean.
 5. Resolve the connector blockers with isolated failure tests, then validate
    one controlled native operation at a time using the actual module.
 
-## First implementation task
+## Next implementation boundaries
 
-Pick `LIVE-01` from the backlog: implement and validate a single-owner UCP
+Follow the authoritative backlog focus. B-96 selects Rust for the native core,
+and B-115 is in progress. Keep the Python offline harness/current policies as
+a baseline while that core is developed. `LIVE-01` describes acceptance for
+a reliable single-owner UCP
 GamePort with typed request/results and observation-based effect confirmation.
+Apply the GamePort ownership/evidence contracts across that native boundary.
 Use the existing channel as a starting transport. Its wire contract must be
 verified against the missing init.lua before making it the new executor.
 
