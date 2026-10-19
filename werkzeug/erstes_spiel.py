@@ -3067,6 +3067,21 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             fruehpruefung["lord_leben"] = le_m["leben"]
                             angreifer_m = [n for n, e in L.items() if e["besitzer"] not in (0, SP)
                                            and (e.get("nahziel") == ln_m or e.get("zieleinheit") == ln_m)]
+                            # 18:52 GEGENPROBE (1018r: 22 von 22 Verlusten ohne Angreifer mit Brand bis 6 Felder - aber brennt
+                            # dort auch etwas, wenn er NICHTS verliert?): alle 3 Runden Leben, Verlust seit der letzten Probe,
+                            # Angreifer und Brandwerte bis 6 Felder - Auswertung als Vierfeldertafel Brand x Verlust
+                            if runde % 3 == 0:
+                                p_alt = fruehpruefung.get("lord_probe")
+                                fruehpruefung["lord_probe"] = le_m["leben"]
+                                brand_p = []
+                                for n, g in G.items():
+                                    if max(abs(g["x"] - le_m["x"]), abs(g["y"] - le_m["y"])) <= 6 and len(brand_p) < 12:
+                                        f_p = peek(0xF98520 + n * 0x32C + 0x14 + 702)[0] & 0xFFFF
+                                        if f_p:
+                                            brand_p.append("%d/%d/%d" % (n, g["typ"], f_p))
+                                print("LORD-FEUER-PROBE Tick %s: Leben %d, Verlust seit Probe %d, Angreifer %d, Brand (nr/typ/wert): %s" % (
+                                    st.get("t"), le_m["leben"], (p_alt - le_m["leben"]) if p_alt else 0, len(angreifer_m),
+                                    " ".join(brand_p) or "-"), flush=True)
                             if vorher_m and le_m["leben"] < vorher_m and not angreifer_m:
                                 nah_m = [(n, g["typ"], g["x"], g["y"]) for n, g in G.items()
                                          if max(abs(g["x"] - le_m["x"]), abs(g["y"] - le_m["y"])) <= 6]
