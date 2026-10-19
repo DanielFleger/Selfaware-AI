@@ -37,7 +37,8 @@
 <li><b>Warum:</b> Der Lord (Typ 55) fehlt in den Editor-Duellen; die Gefechtsrechnung nahm für ihn den Ersatzwert 20 Schaden je Takt. <span class="marke">belegt, gefecht.dps</span></li>
 <li><b>Gemessen statt geschätzt:</b> Die Lord-Kampfwerte stammen jetzt aus 271 gespeicherten Partien (<code>werkzeug/lord_messen.py</code> → <code>daten/lord_kampfwerte.json</code>). Der Lord macht 150 je Takt an Assassinen (175 Proben), 225 an arab. Schwertkämpfern (27 Proben), 150 an Speerträgern (610 Proben). Eine Assassine macht 100 je Takt am Lord (50 Proben). Zwei Assassinen sind damit für den vollen Lord harmlos, wie Daniel sagte. <span class="marke">gemessen, Auflösung grob (eine Runde ≈ 42 Takte)</span></li>
 <li><b>Gebaut (Commit 4cb3536):</b> Makro <code>uebersicht.py</code>, Mikro <code>zuweisung.py</code>, die neue Lordwache und die Jagd-Sperre im Wächter. Prüfungen: lordwache 9/9, zuweisung 6/6; jede Gegenprobe war rot. Die Prüfung waechter 8/8 läuft weiter grün.</li>
-<li><b>Partie 1018p läuft seit 18:18</b>, unter denselben Bedingungen wie 1018o. Vorher festgelegt, was als Widerlegung gilt: Die Lordwache löst weiter oft aus, das Heer jagt mit 10+ Mann Assassinen, oder ein Lord stirbt, obwohl nur eine kleine Gruppe geschickt wurde.</li>
+<li><b>Partie 1018p (18:18–18:25):</b> Die vorher festgelegte Widerlegung ist nicht eingetreten, Ergebnis in Punkt 9.</li>
+<li><b>Danach gebaut:</b> Schritt 2, die Zielwahl nach Schaden je Leben (Commit 7c2d4e8), und Schritt 3 Teil 1, die Schlüsselgebäude beider Seiten in der Übersicht (efee0ed). Dazu kommt der Lord-Schaden aus gemischten Gruppen (L138). <b>Partie 1018q läuft seit 18:27.</b></li>
 </ul>
 <div class="rat">Mein Rat: Ergebnis von 1018p abwarten (Punkt 9), dann Schritt 2 der Reihenfolge unten.</div>
 <div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
@@ -106,8 +107,8 @@
 <div class="punkt" data-id="schritte"><h2>6. Reihenfolge ab jetzt</h2>
 <ol>
 <li>✔ Lord messen, Übersicht, Zuweisung, Lordwache, Jagd-Sperre – Partie 1018p.</li>
-<li>Zielwahl nach Schaden je Takt geteilt durch die Zeit bis zum Tod. Sie bekommt einen eigenen Baustein mit Prüfung und ersetzt im Wächter „wer unseren Gebäuden am nächsten ist".</li>
-<li>Die Wirtschaft beider Seiten in die Übersicht. Endspurt und Raid-Ziele lesen von dort.</li>
+<li>✔ Zielwahl nach Schaden je Takt geteilt durch das Leben, nur einholbare Ziele (<code>zuweisung.abwehr_rang</code>, Schalter <code>Waechter.ZIELWAHL</code>) – Partie 1018q.</li>
+<li>Halb: Die Schlüsselgebäude beider Seiten stehen in der Übersicht (Kornspeicher, Waffenlager, Markt, Kaserne, Söldnerposten mit Ort). Offen ist noch: Endspurt und Raid-Ziele lesen von dort.</li>
 <li>Den Feldzug auf Zuweisung umstellen (wer greift an, wer wartet); dann Reiter und Sklaven.</li>
 <li>Gefahrenkarte und Flucht aus dem Assassinen-Modul herauslösen.</li>
 </ol>
@@ -124,11 +125,13 @@
 <div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
 
 <div class="punkt" data-id="zurueck"><h2>8. Zurückgestellt bis nach dem Umbau</h2>
-<p>Lord-Ring (Mauer und Graben, nur wenn die Lord-Rechnung Schutz verlangt), Belagerung des Pennerhofs, Schützen-Wache an der Wirtschaft, kein Bau neben dem eigenen Pennerlager. Mit der Zuweisung werden das Rollen-Regeln: Der Pennerhof ist ein Ziel mit hohem Wert, der Lord-Ring die Antwort, wenn <code>kleinste_gruppe</code> sagt „reicht nicht".</p>
+<p><b>Lord-Ring – was ich dazu gefunden habe:</b> Der Auslöser ist jetzt da und gemessen: In 1018p sagte die Lordwache 1.460 Takte vor dem Tod des Lords „reicht nicht". Eine Spielregel steht aber dagegen, aus dem Spielcode abgelesen (validateWallBuildPath, siehe <code>kornring.py</code>): <b>Eine Mauerstrecke scheitert ganz, wenn ein Feind näher als 15 Felder steht.</b> Der Ring muss also vorbeugend kommen, wenn ein Heer, das den Lord töten würde, noch über 15 Felder weg ist – nicht erst beim Alarm am Lord. Vorher zu messen: Wie lange braucht ein arab. Schwertkämpfer für eine Kachel hohe Mauer? Und Assassinen klettern über Mauern (belegt), also braucht der Ring Gruben wie beim Kornring.</p>
+<div class="rat">Mein Rat: Für die Vorwarnung rechnet die Lordwache das ganze feindliche Heer bis 60 Felder, und zwar nur, wenn es auf uns zuläuft. Der Ring nutzt den Kornring-Baustein mit dem Lord als Mitte; der Lord wird vorher an einen festen Platz gestellt. Erst messen, dann bauen.</div>
+<p>Ebenfalls zurückgestellt:  Belagerung des Pennerhofs, Schützen-Wache an der Wirtschaft, kein Bau neben dem eigenen Pennerlager. Mit der Zuweisung werden das Rollen-Regeln: Der Pennerhof ist ein Ziel mit hohem Wert, der Lord-Ring die Antwort, wenn <code>kleinste_gruppe</code> sagt „reicht nicht".</p>
 <div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
 
 <div class="punkt" data-id="ergebnis"><h2>9. Ergebnis 1018p</h2>
-<p id="ergebnis-text">läuft noch (Start 18:18)</p>
+<p id="ergebnis-text"><b>Spieler 2 siegt bei Tick 38.668, der Lord von Spieler 1 fiel.</b> Die Lordwache löste bei Spieler 1 nur noch 4-mal aus (1018o: 195), bei Spieler 2 nie (1018o: 130). Alle 4 kamen erst ab Tick 37.202, als 7 bis 45 arab. Schwertkämpfer anrückten; die Rechnung sagte „reicht nicht", geschickt wurden alle 13 verfügbaren. Spieler 1 hatte 8 Schwertkämpfer, Spieler 2 hatte 55. Gegen Assassinen ging nie ein Trupp von 10 oder mehr (0 von 58). Die Jagd-Sperre griff 12-mal; „KEINE JAGD" kam nicht vor, dieser Weg ist im Spiel also noch nicht gelaufen. Spieler 1 lag schon ab Tick 0 hinten (Gebäude 34 zu 37), lange vor jedem Lordwache-Ereignis. Das spricht dafür, dass die Niederlage aus der Wirtschaft kam und nicht von der Änderung (Spieler 2: 27 Feuer und 12 tote Arbeiter durch Raids, Spieler 1: 4 und 0); bewiesen ist das mit einer Partie nicht. <span class="marke">gemessen, 1 Partie</span></p>
 <div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
 </main>
 <script>
