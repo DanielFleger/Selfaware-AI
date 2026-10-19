@@ -495,6 +495,16 @@ td.z { text-align: right; white-space: nowrap; }
     <tr><td>BuildDecisionService + Ergebnis-JSON</td><td>Serien-Auswertung, gelernte Ertraege</td><td>Eroeffnung nach Gewinnquote waehlen, mit fester Saat vergleichbar</td></tr>
   </table></div>
   <p><span class="status offen">offen</span> Vorschlag, noch nicht gebaut. Umbau Schritt fuer Schritt: zuerst die gemeinsame Manager-Form und das Lagebild-Objekt, dann die Aufgaben mit Prioritaet.</p>
+  <p><b>Stand 19.10.2026 (Daniel 18:07 "Makro und Mikro"; Plan: <code>Plan_Einheitenlenker.html</code>):</b> erste Teile gebaut.
+  MAKRO <code>werkzeug/uebersicht.py</code> = das Lagebild-Objekt: je Spieler Truppen nach Art, Arbeiter, Lord, Schluesselgebaeude
+  (Kornspeicher, Waffenlager, Markt, Kaserne, Soeldnerposten mit Ort), Verbaende (Kette 8 Felder) mit Laufziel, je Einheit steht/laeuft;
+  alle 10 Runden eine LAGE-Zeile in der Mitschrift. MIKRO <code>werkzeug/zuweisung.py</code> = "wer ist staerker hier", aus gemessenen
+  Werten: <i>einholbar</i> (Schuetze immer, Nahkaempfer nur gegen stehendes oder langsameres Ziel, L80), <i>kleinste_gruppe</i> (kleinste
+  Zahl, mit der gefecht.simuliere gewinnt und der Lord lebt), <i>abwehr_rang</i> (zuerst das einholbare Ziel mit dem meisten Schaden je
+  Takt je Lebenspunkt). Jede Rechnung nennt ihre UNGEMESSENEN Paare. Angeschlossen: Lordwache (kleinste Gruppe, Heimwache zuerst),
+  Waechter (keine Jagd auf Uneinholbares, Zielwahl nach Schaden je Leben). Lord-Kampfwerte aus 271 Partien (L138, <code>lord_messen.py</code>).
+  Pruefung ohne Spiel: <code>werkzeug/zuweisung_pruefen.py</code> (10), <code>lordwache_pruefen.py</code> (9). Belegt in 1018p: Lordwache 4
+  statt 195 Ausloesungen, 0 von 58 Abwehren gegen Assassinen mit 10+ Mann.</p>
 </section>
 
 <section id="offen">
@@ -508,7 +518,7 @@ td.z { text-align: right; white-space: nowrap; }
     <li>Mehr Lagen messen: holz_partie_3 sammelte ab 22.702 und griff erst bei 27.160 mit der vorlaeufigen 40 an, weil ein vierter Speertraeger am Lord stand (gemessen: hoechstens 3).</li>
     <li><b>Aktuell nur 50/100 Streitkolbenkaempfer:</b> den neuen gemeinsamen Produktionsplan erst fuer 50, danach fuer 100 pruefen. Kein echter Lauf ohne Daniels Startsignal; 25 bleibt zurueckgestellt.</li>
     <li><b>Als Naechstes:</b> erster Assassine frueher (gewinn_6: 3.778, Trainingslauf: 3.207); Holz: zusaetzliche Holzfaeller nur, wenn sie den Ausbau beschleunigen, sonst verkaufen.</li>
-    <li>Eigenen Lord schuetzen: der Waechter schickt heute den Lord mit in den Kampf gegen Assassinen.</li>
+    <li>Eigenen Lord schuetzen: der Waechter schickt heute den Lord mit in den Kampf gegen Assassinen. <b>19.10.:</b> Lordwache rechnet jetzt mit gemessenen Lord-Werten (L138); Lord-Ring (Daniel: einmauern + eingraben, wenn er Schutz braucht) offen - Mauern scheitern, wenn ein Feind naeher als 15 Felder ist (validateWallBuildPath), also vorbeugend bauen; vorher messen, wie lange arab. Schwertkaempfer fuer eine Mauerkachel brauchen.</li>
     <li>Beliebtheit faellt auch mit Seasoning noch (93 &rarr; 80 bis Tick 20.000): Essen wird bis auf einen kleinen Puffer verkauft. Mehr Plantagen-Paare oder weniger verkaufen - erst messen.</li>
     <li>Befehle auf einen genauen Tick planen (scheduleCommand), damit gleiche Saat ganz gleiche Partien ergibt.</li>
   </ul>
