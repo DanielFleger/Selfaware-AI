@@ -381,9 +381,12 @@ def phase1(plan, tempo, mit_posten=True):
         # Abriss vermessen; (78,256) "kein Platz im Umkreis 10", solange das Startlager steht) - darum den Lagerplatz (5x5 + 1)
         # fuer den fruehen Umzug FREI halten, kein Holzfaeller darauf
         lp_ = tuple(plan["lager"])
-        holz_bauten = [(19, tuple(plan["kornspeicher"])), (26, MARKT)] +                       [(3, tuple(p)) for p in plan["holzfaeller"] if not (lp_[0] - 3 <= p[0] <= lp_[0] + 6 and lp_[1] - 3 <= p[1] <= lp_[1] + 6)]
-    if plan.get("stein") and not V14:
-        holz_bauten += [(20, tuple(plan["stein"]["steinbruch"])), (4, tuple(plan["stein"]["ochsen"]))]
+        # B-125 (19.10., Partie 20261019_2240): der Steinbruch stand HINTER 14 Holzfaellern und bekam kein Startholz mehr ("nicht
+        # gebaut"), danach versuchte es niemand mehr - die ganze Partie kein Stein. Daniels Siegerweg (L147): 8 Holzfaeller und
+        # 2 Steinbrueche bei Tick 639. Jetzt Steinbruch + Joch direkt nach Kornspeicher und Markt, die Holzfaeller danach
+        stein_ = [(20, tuple(plan["stein"]["steinbruch"])), (4, tuple(plan["stein"]["ochsen"]))] if plan.get("stein") else []
+        holz_bauten = [(19, tuple(plan["kornspeicher"])), (26, MARKT)] + stein_ + [
+                      (3, tuple(p)) for p in plan["holzfaeller"] if not (lp_[0] - 3 <= p[0] <= lp_[0] + 6 and lp_[1] - 3 <= p[1] <= lp_[1] + 6)]
     holz_bauten += [(1, tuple(p)) for p in plan["huetten"]]
     # 19.10. (Kartenwechsel, Pruefung der festen Kartenannahmen): findet freier_platz keinen Markt, stand hier (26, None) -
     # TypeError beim Entpacken; dann ohne festen Platz und gleich danach live suchen
@@ -896,6 +899,8 @@ HUETTEN_JE_BAUM = None   # v17: bis zu so viele Holzfaeller je Baum (Daniel 22:5
 HOLZ_KAUFEN = False      # v17: Holz kaufen, wenn >= 4 Bauern untaetig sind und Holz fehlt
 HOLZ_SPAM = 0            # E3: erst so viele Holzfaeller rund ums Lager, dann Steinbrueche und Leder
 STEIN_MAX = False        # E4: Steinbrueche erst nach der ersten Holzlieferung, dann alle (2 am Lager + 3 am zweiten Steinfeld)
+STEIN_FRUEH = 2          # B-125: so viele Steinbrueche am Steinplatz des Plans sind Pflicht (Daniel 19.10.: "zwei Steinbrueche"), 0 = aus
+STEIN_UMKREIS = 10       # B-125: Suchumkreis um den Steinplatz des Plans
 JOCH_NACH_STEIN = False  # v18: Joch erst, wenn der Steinhaufen seines Steinbruchs Stein hat (Daniel 23:10, Punkte 4+5)
 STEIN_PARALLEL = False   # v18: Steinbrueche sofort (vor allem), Holzfaeller-Spam mit dem Rest - nicht erst nach dem Spam
 HUETTEN_VORAUS = False   # v18: Huetten vor dem Bedarf (Daniel 23:10 Punkt 3: Bauern brauchen Spawnzeit)
@@ -1127,6 +1132,39 @@ def v14_steinpflicht(st, G, wirt, mehr_stein=True):
                 holz -= k
                 continue
         offen += k
+    wirt.extra = {"holz": offen, "gold": 0}
+    return ev
+
+def stein_pflicht(st, G, wirt, plan, anzahl):
+    """B-125 (Daniel 19.10. 23:32 "am Anfang noch zwei Steinbrueche"; L147): ohne v14 baute nur die Eroeffnung einen
+    Steinbruch - scheiterte er, nie wieder. Jetzt jede Runde: bis `anzahl` Steinbrueche am Steinplatz des Plans stehen (Umkreis
+    STEIN_UMKREIS), wird der naechste gesendet, sobald das Holz reicht; bis dahin liegt sein Holz als Ruecklage in wirt.extra
+    (Kausalmodell, Planer und Huetten halten es frei). Je stehendem Steinbruch ein Joch daneben; mehr Ochsen ruestet
+    "OCHSE NACHGERUESTET" nach, sobald der Steinhaufen waechst."""
+    ev, holz, offen = [], st.get("holz", 0), 0
+    q = tuple(plan["stein"]["steinbruch"])
+    brueche = steht_bei(G, 20, q, STEIN_UMKREIS)
+    bestellt = sum(1 for a in BUCH.offen if a["typ"] == 20 and max(abs(a["ort"][0] - q[0]), abs(a["ort"][1] - q[1])) <= STEIN_UMKREIS)
+    if len(brueche) + bestellt < anzahl:
+        k = kosten_spiel(20)["holz"]
+        if holz >= k:
+            o = baue_schnell(20, q[0], q[1], STEIN_UMKREIS, zweck="Steinpflicht")
+            ev.append("STEINPFLICHT Steinbruch %d von %d bei %s gesendet: %s (Holz %d)" % (len(brueche) + bestellt + 1, anzahl, q, o, holz))
+            holz -= k if o else 0
+        else:
+            offen += k
+    for n in brueche:
+        g = G[n]
+        if steht_bei(G, 4, (g["x"], g["y"]), 12) or BUCH.offen_bei(4, (g["x"], g["y"]), 12):
+            continue
+        k = kosten_spiel(4)["holz"]
+        if holz >= k:
+            o = baue_schnell(4, g["x"] + 3, g["y"] - 4, 8, zweck="Steinpflicht Joch")
+            ev.append("STEINPFLICHT Joch am Steinbruch Nr %s gesendet: %s (Holz %d)" % (n, o, holz))
+            holz -= k if o else 0
+        else:
+            offen += k
+        break                                  # je Runde hoechstens ein Joch
     wirt.extra = {"holz": offen, "gold": 0}
     return ev
 
@@ -2877,6 +2915,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         hf_jetzt += 1
                 # E4 (Daniel 23:03: "wenn die ersten 20 Holzfaeller Holz geladen haben, direkt Steinbrueche, so viele wie geht")
                 stein_frei = STEIN_PARALLEL or not spam_offen
+                if not V14 and STEIN_FRUEH and plan.get("stein") and not endspiel["fertig"]:
+                    ereignis += stein_pflicht(st, G, wirt, plan, STEIN_FRUEH)
                 if V14 and not endspiel["fertig"] and stein_frei:
                     # Die zwei Lager-Brueche sind immer Pflicht. Nur die drei zusaetzlichen Brueche am zweiten Feld warten
                     # auf die erste Holzlieferung; vorher blockierte STEIN_MAX versehentlich sogar den fehlenden Pflichtbruch.
@@ -3486,7 +3526,10 @@ def main():
     if not os.path.exists(os.path.join(D, "start_%s.json" % kurz)):
         schreib("KARTE %s unbekannt - einmalige Vermessung in eigenem Gefecht (vor der Partie)" % karte)
         KH.vermessen("gefecht:" + karte, kurz)
-    datei = os.path.join(D, arg.get("plan", "eroeffnung_plan_%s.json" % kurz))
+    # B-124: lager_max (Lager hoechstens so viele Felder vom Bergfried-Eingang) ist ein Knopf; andere Werte als 45 bekommen
+    # eine eigene Plandatei, damit kein alter Plan mit anderem Lager gelesen wird
+    lager_max = int(arg.get("lager_max", 45))
+    datei = os.path.join(D, arg.get("plan", "eroeffnung_plan_%s%s.json" % (kurz, "" if lager_max == 45 else "_lm%d" % lager_max)))
     selbst = arg.get("eroeffnung", "fest" if arg.get("v14", "nein") == "ja" else "selbst") == "selbst"
     if not os.path.exists(datei):
         import eroeffnung
@@ -3495,11 +3538,11 @@ def main():
         # dort passen nur 2 Apfelplantagen, die Mindestzahl 4 hat SamurAI in der Eroeffnung beendet. Mit eroeffnung=selbst
         # plant die Eroeffnung nur Holz, Huetten, Stein (A=0); die Nahrung (Jaeger x Brotketten x Aepfel, auch ganz ohne
         # Aepfel) waehlt allein nahrungswahl.py weiter unten
-        p_neu = eroeffnung.plane(K=14, A=0 if selbst else 6, start=kurz)      # K wie der M19-Plan (14 Holzfaeller)
+        p_neu = eroeffnung.plane(K=14, A=0 if selbst else 6, start=kurz, lager_max=lager_max)      # K wie der M19-Plan (14 Holzfaeller)
         if "fehler" in p_neu and "Apfelplantagen" in str(p_neu["fehler"]):
             # 19.10. (1v1, Green Haven Platz 3: "keine 6 Apfelplantagen") - mit 4 Plantagen statt Abbruch
             schreib("Eroeffnungsplan %s: %s - neu mit 4 Apfelplantagen" % (kurz, p_neu["fehler"]))
-            p_neu = eroeffnung.plane(K=14, A=4, start=kurz)
+            p_neu = eroeffnung.plane(K=14, A=4, start=kurz, lager_max=lager_max)
         if "fehler" in p_neu:
             raise SystemExit("EROEFFNUNGSPLAN %s: %s" % (kurz, p_neu["fehler"]))
         p_neu["karte"] = karte
@@ -3575,6 +3618,8 @@ def main():
     # der Rechenhorizont des Kausalmodells (jede Apfelplantage "wert" Tausende, Partie 20261019_2240). Offen: Kausalmodell mit
     # mitlaufendem Fenster (jetzt + kausal_horizont); alles andere (Planer, Produktion) rechnet wie bisher mit bis_tick
     global OFFENES_ENDE, KAUSAL_SPAREN
+    global STEIN_FRUEH
+    STEIN_FRUEH = int(arg.get("steinbrueche_frueh", STEIN_FRUEH))
     KAUSAL_SPAREN = arg.get("kausal_sparen", "ja") == "ja"
     OFFENES_ENDE = arg.get("ziel_tick") == "offen"
     ZIEL_TICK = int(arg.get("bis_tick", 900000)) if OFFENES_ENDE else int(arg.get("ziel_tick", 9400))
