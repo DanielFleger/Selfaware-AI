@@ -2749,7 +2749,7 @@
    "commits": [],
    "wo": [],
    "belege": [],
-   "notiz": "",
+   "notiz": "19.10. 22:58: Rust installiert (rustc 1.99.1, Host i686-pc-windows-gnu, ~/.cargo/bin, PATH unveraendert; rustup-init sha256 gegen static.rust-lang.org geprueft). Probe-DLL gebaut: PE32 i386, Exporte samurai_version/samurai_lies_int, nur System-Importe. PLAN: (1) Cargo-Projekt Selfaware-AI/samurai_kern (cdylib, edition 2024: #[unsafe(no_mangle)], panic=abort); (2) Exporte samurai_version, samurai_takt(tick, spieler) -> liest Einheiten aus 0x0138854C+i*1168 (Felder Spielkarte 2: owner +0x96, unitType +0x8E, x/y +0xB6/+0xB8 /8, health +0x3C8, dying +0x2A0) und schreibt alle N Takte eine Protokollzeile; (3) Laden aus logik.lua mit core.openLibraryHandle + Funktionsadresse + core.exposeCode (cdecl), Aufruf in everyTick; (4) Pruefung: Zahl eigener Einheiten aus der DLL = Zahl im Lagebild, Gegenprobe falscher Spieler",
    "verlauf": [
     {
      "zeit": "2026-10-19 22:03",
@@ -2766,6 +2766,10 @@
     {
      "zeit": "2026-10-19 22:36",
      "was": "Rang 5 -> 1"
+    },
+    {
+     "zeit": "2026-10-19 22:56",
+     "was": "in Arbeit -> in Arbeit: 19.10. 22:58: Rust installiert (rustc 1.99.1, Host i686-pc-windows-gnu, ~/.cargo/bin, PATH unveraendert; rustup-init sha256 gegen static.rust-lang.org geprueft). Probe-DLL gebaut: PE32 i386, Exporte samurai_version/samurai_lies_int, nur System-Importe. PLAN: (1) Cargo-Projekt Selfaware-AI/samurai_kern (cdylib, edition 2024: #[unsafe(no_mangle)], panic=abort); (2) Exporte samurai_version, samurai_takt(tick, spieler) -> liest Einheiten aus 0x0138854C+i*1168 (Felder Spielkarte 2: owner +0x96, unitType +0x8E, x/y +0xB6/+0xB8 /8, health +0x3C8, dying +0x2A0) und schreibt alle N Takte eine Protokollzeile; (3) Laden aus logik.lua mit core.openLibraryHandle + Funktionsadresse + core.exposeCode (cdecl), Aufruf in everyTick; (4) Pruefung: Zahl eigener Einheiten aus der DLL = Zahl im Lagebild, Gegenprobe falscher Spieler"
     }
    ],
    "rang": 3
