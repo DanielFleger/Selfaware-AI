@@ -16,7 +16,10 @@ Pruefung ohne Spiel: werkzeug/gefahrenzone_pruefen.py."""
 from collections import Counter
 
 R, TICKS = 20, 3000
-ARTEN = {3, 5, 7, 20, 31, 32, 33}        # Holzfaeller, Eisenmine, Jaeger, Steinbruch, Hopfen, Apfel, Milch
+# KORREKTUR 19.10. 17:47 (1018n: Spieler 1 - 121 Apfelplantagen von der Gefahrenzone verhindert, ab ~47.000 keine Nahrung,
+# Regelbruch bei 55.409; gemessen war die Zone nur an Holzfaellerhuetten): Nahrung (Apfel 32, Milch 33, Jaeger 7) wird IMMER
+# nachgebaut - Regel 50 geht vor
+ARTEN = {3, 5, 20, 31}                   # Holzfaeller, Eisenmine, Steinbruch, Hopfen
 GRUBE = 67
 # eigene, gewollte Abrisse sind keine Verluste: Fallgruben (Kornring-Umbau reisst sie ab, L131) und Lagerplaetze (Lager-
 # Umzug in der Eroeffnung reisst das Startlager ab - sonst laege gleich zu Beginn eine Zone am Bergfried)
