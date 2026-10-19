@@ -916,7 +916,7 @@ GRUBEN = True            # 18.10. (Daniel 23:07 "4 Holz ist sehr wenig, wenn es 
 GRABEN = True            # 19.10. (Daniel 10:31 "gerne"): Burggraben 1 Feld Abstand um den Kornspeicher, Schalter graben=nein
 FALLEN = True            # 19.10. (Daniel 11:00 "Holzfalle dahin, wo etwas ein Angriffsziel bekommt"): fallenwache.py, fallen=nein
 ENDSPURT = True          # 19.10. (Daniel 16:49/16:51/16:57): endspurt.py - Wirtschaft verloren -> alles auf den Lord, endspurt=nein
-from endspurt import HOLZ_BLEIBT as ES_HOLZ_BLEIBT, schwertkaempfer as es_schwertkaempfer, SCHWERT as ES_SCHWERT
+from endspurt import HOLZ_BLEIBT as ES_HOLZ_BLEIBT, schwertkaempfer as es_schwertkaempfer, SCHWERT as ES_SCHWERT,     NICHT_NAHRUNG as ES_NICHT_NAHRUNG
 SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # gemessen 12.10. 00:04 (L63, Ascension)
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
@@ -2969,6 +2969,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             if trupp is not None:            # Assassinen: auch sie auf den Lord, sobald es machbar ist
                                 trupp.lord_aus = False
                                 trupp.LORD_SPAETESTENS = 0
+                            # der Planer baut nur noch Nahrung (KORREKTUR 1018l: ganz aus -> Apfelplantagen kamen nicht wieder)
+                            ausbau.ohne = set(getattr(ausbau, "ohne", None) or ()) | ES_NICHT_NAHRUNG
                     es_an = es is not None and es.aktiv
                     if es_an:
                         pass                                 # 19.10. Endspurt: kein Waffenkauf, keine Produktion - Gold geht in Soeldner
@@ -2998,7 +3000,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     if posten_h is not None and es_an:
                         # 19.10. Endspurt (Daniel: "all mein Gold in Schwertkaempfer"): alles Gold, so viele wie Bauern am Feuer
                         import bauen as BA_h
-                        n_h = es_schwertkaempfer(st["gold"], st.get("feuer", 0))
+                        nahrung_h = sum(st.get(k_, 0) for k_ in NAHRUNG_PREIS)
+                        n_h = es_schwertkaempfer(st["gold"], st.get("feuer", 0), nahrung_h, nahrung_puffer(st.get("leute", 0)))
                         for _ in range(n_h):
                             BA_h.werbe(ES_SCHWERT, posten_h)
                         if n_h:
@@ -3090,8 +3093,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             tz = time.time()
             if not (streitkolben and endspiel["fertig"]):    # nach dem Endspiel ruht die Wirtschaft (v6: baute A-Plantagen nach)
                 ereignis += wirt.schritt(st, L, G)
-                if not (es is not None and es.aktiv):      # 19.10. Endspurt: keine neuen Betriebe mehr
-                    ereignis += ausbau.schritt(st, L, G, runde)
+                ereignis += ausbau.schritt(st, L, G, runde)    # im Endspurt nur Nahrung (ausbau.ohne, endspurt.NICHT_NAHRUNG)
             tz = uhr("wirtschaft", tz)
             bedarf = sum(ARBEITER_JE[t] * st.get("G%d" % t, 0) for t in ARBEITER_JE)
             puffer = streitkolben and not endspiel["fertig"] and ENTSCHEIDER != "kausal" and wohnraum_fehlt(st, G)[0]   # Huetten vorab, aber nur mit Arbeit (23:21)

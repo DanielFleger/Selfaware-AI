@@ -16,10 +16,15 @@ Betriebe dort 7,7 zu 18,7 / 2,3 zu 14,0 / 14,2 zu 23,3.
 
 Was der Lenker im Endspurt tut (erstes_spiel.py): alle Waren ausser Nahrung verkaufen (5 Holz bleiben fuer einen
 Kornspeicher-Nachbau), alles Gold in arab. Schwertkaempfer (Typ 75, 100 Gold, L63) - so viele, wie Bauern am Feuer stehen,
+aber nur, solange die Nahrung ueber dem Puffer liegt (KORREKTUR 1018l, siehe schwertkaempfer); der Bauplaner baut nur
+noch Nahrung (KORREKTUR 1018l: vorher ruhte er ganz, zerstoerte Apfelplantagen kamen nicht wieder),
 die Heimwache zieht mit, der Feldzug greift an, sobald die Haelfte des Heeres (mindestens Feldzug.MIN_ANGRIFF) am
 Sammelpunkt steht, ohne auf die Gefechtsrechnung zu warten, die Assassinen gehen auf den Lord; keine neuen Betriebe, keine
 Waffenproduktion.
+NICHT_NAHRUNG: diese Betriebe baut der Planer im Endspurt nicht mehr (Holzfaeller, Ochsenkarren, Eisenmine, Pechgraeber,
+Werkstaetten, Brauerei, Steinbruch, Hopfen).
 Pruefung ohne Spiel: werkzeug/endspurt_pruefen.py."""
+
 import os
 import sys
 
@@ -34,6 +39,7 @@ PRUEF_TICKS = 1000
 SCHWERT = 75
 SCHWERT_GOLD = 100                        # L63, gemessen 12.10. (erstes_spiel.SOELDNER_GOLD)
 HOLZ_BLEIBT = 5                           # ein Kornspeicher-Nachbau (kosten(19) = 5 Holz)
+NICHT_NAHRUNG = {3, 4, 5, 6, 12, 13, 14, 15, 16, 18, 20, 28, 31}
 
 
 class Endspurt:
@@ -87,6 +93,11 @@ class Endspurt:
                 "auf den Lord, keine neuen Betriebe" % (t, self.grund)]
 
 
-def schwertkaempfer(gold, feuer):
-    """So viele arab. Schwertkaempfer jetzt anwerben: alles Gold, aber nur so viele, wie Bauern am Feuer stehen."""
+def schwertkaempfer(gold, feuer, nahrung=None, puffer=None):
+    """So viele arab. Schwertkaempfer jetzt anwerben: alles Gold, aber nur so viele, wie Bauern am Feuer stehen.
+    19.10. KORREKTUR (1018l: Endspurt ab Tick 36.873, ab ~42.000 keine Aepfel mehr, Beliebtheit 100 -> 48,5, Regelbruch bei
+    50.209 - Gold war da (87, 107, 174), ging aber jede Runde in Schwertkaempfer; der Notkauf braucht 150 freies Gold):
+    liegt die Nahrung auf oder unter dem Puffer, wird NICHT angeworben - das Gold bleibt fuer den Notkauf (Regel 50)."""
+    if nahrung is not None and puffer is not None and nahrung <= puffer:
+        return 0
     return max(0, min(int(gold) // SCHWERT_GOLD, int(feuer)))

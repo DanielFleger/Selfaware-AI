@@ -5,7 +5,8 @@
      (UEBERSPRUNGEN, wenn die Dateien fehlen)
   2. Feldzug, 20 Schwertkaempfer, 10 am Sammelpunkt, Gefechtsrechnung sagt "lohnt nicht": ohne Endspurt bleibt er beim
      Sammeln; mit Endspurt greift er an; mit Endspurt und nur 9 von 20 am Punkt bleibt er beim Sammeln
-  3. Werbung: 1.050 Gold / 20 am Feuer -> 10; 1.050 / 4 -> 4; 99 / 20 -> 0
+  3. Werbung: 1.050 Gold / 20 am Feuer -> 10; 1.050 / 4 -> 4; 99 / 20 -> 0; (KORREKTUR 1018l) 1.050 / 20, Nahrung 5 bei
+     Puffer 10 -> 0 (Gold bleibt fuer den Notkauf); Nahrung 30 bei Puffer 10 -> 10
   4. Lageprotokoll.schreibe gibt die beiden Rohtabellen zurueck, die es schreibt
 Gegenprobe: mit "alt" ist die Schwelle 0, der Feldzug kennt keinen Endspurt, die Werbung zaehlt das Feuer nicht und
 schreibe gibt nichts zurueck -> Faelle 1, 2, 3 und 4 rot.
@@ -23,7 +24,7 @@ import lageprotokoll as LP
 ALT = len(sys.argv) > 1 and sys.argv[1] == "alt"
 if ALT:
     ES.SCHWELLE = 0.0
-    ES.schwertkaempfer = lambda gold, feuer: max(0, int(gold) // ES.SCHWERT_GOLD)
+    ES.schwertkaempfer = lambda gold, feuer, nahrung=None, puffer=None: max(0, int(gold) // ES.SCHWERT_GOLD)
     _sammeln = FZ.Feldzug.schritt
 
     def _ohne_endspurt(self, *a, **k):
@@ -86,8 +87,9 @@ def main():
     pruefe(2, "Feldzug: ohne Endspurt %s, mit Endspurt %s, mit Endspurt und 9 von 20 %s" % (a, b, c),
            a == "sammeln" and b == "angriff" and c == "sammeln")
 
-    w = (ES.schwertkaempfer(1050, 20), ES.schwertkaempfer(1050, 4), ES.schwertkaempfer(99, 20))
-    pruefe(3, "Werbung 1050/20, 1050/4, 99/20: %s" % (w,), w == (10, 4, 0))
+    w = (ES.schwertkaempfer(1050, 20), ES.schwertkaempfer(1050, 4), ES.schwertkaempfer(99, 20),
+         ES.schwertkaempfer(1050, 20, 5, 10), ES.schwertkaempfer(1050, 20, 30, 10))
+    pruefe(3, "Werbung 1050/20, 1050/4, 99/20, Nahrung 5 von 10, Nahrung 30 von 10: %s" % (w,), w == (10, 4, 0, 0, 10))
 
     import waechter
     tmp = tempfile.mkdtemp()

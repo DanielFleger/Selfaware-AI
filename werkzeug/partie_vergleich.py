@@ -10,8 +10,8 @@ Liest nach der Partie
   - das Lageprotokoll (lageprotokoll.py; enthaelt Gebaeude und Einheiten ALLER Spieler) - Pflicht,
   - je eigenem Lenker die Statuszeile (st im eigenen Lageprotokoll) und die Ertragsdatei (ertrag_live_*.jsonl) - wenn da,
 und rechnet je Spieler und je FENSTER Ticks Kennzahlen, alle "mehr ist besser":
-  Leute (st), liefernde Betriebe (Gebaeude, in denen schon einmal Ware lag - GEMESSEN je Gebaeude, keine feste
-  Anlaufzeit: 1018j Bau -> erstes Holz Median 3.402 bzw. 2.294 Ticks, 111 Huetten wurden zerstoert, bevor sie je
+  Leute (st), liefernde Betriebe (Holzfaeller, Eisenminen, Schmiede, Gerberei, Brauerei, in denen schon einmal Ware lag -
+  Farmen zeigen nie Ware im Gebaeude, siehe MIT_VORRAT; GEMESSEN je Gebaeude, keine feste Anlaufzeit: 1018j Bau -> erstes Holz Median 3.402 bzw. 2.294 Ticks, 111 Huetten wurden zerstoert, bevor sie je
   lieferten), Holz-Einnahmen (Ertragsdatei), Gebaeude, Assassinen, Truppen.
   Keine Kennzahl "Arbeiter": die Lagebild-Spalte arbeitsplatz ist auch bei Bauern am Feuer und Truppen gesetzt (gemessen
   1018j Tick 60.073: 324 Einheiten mit Wert bei 110 Leuten).
@@ -24,7 +24,8 @@ AB WANN, zwei Antworten:
                dem der Spieler hinten liegt. Gezeigt werden die Mittel der UMFELD Fenster davor und danach.
 Ausgewertet wird nur, solange alle Bergfriede stehen (danach ist die Partie entschieden).
 GESCHEHEN (das Warum, gemessen, als Ursache nicht bewiesen): in den UMFELD Fenstern vor und nach dem Einbruch je Spieler:
-verlorene liefernde Betriebe und verlorene Betriebe, in denen nie Ware gesehen wurde (je Art; Aufloesung = eine Runde), wo die liefernden verloren gingen, Neubauten, Holz rein/verbaut, Vorrat, Gold,
+verlorene liefernde Betriebe und verlorene Betriebe, in denen nie Ware gesehen wurde (nur Arten aus MIT_VORRAT; je Art;
+Aufloesung = eine Runde), wo die liefernden verloren gingen, Neubauten, Holz rein/verbaut, Vorrat, Gold,
 Assassinen; dazu L27 ab "hinten ab" (Feuer voll bei freien Plaetzen = es fehlen Arbeitsplaetze, nicht Wohnplaetze).
 
 Pruefung ohne Spiel: werkzeug/partie_vergleich_pruefen.py.
@@ -46,6 +47,13 @@ MIN_STRECKE = 3         # kuerzere Fuehrungen zaehlen nicht als Aufholen; kuerze
 UMFELD = 3              # Fenster vor und nach einem Einbruch (Mittel und Suche nach dem Warum)
 FEUER_VOLL = 24         # L27 (Daniel 07.10.; gemessen 19.10.: ab 27 Wartenden kam in 586 Schritten niemand mehr)
 BETRIEBE = {3, 4, 5, 6, 7, 12, 13, 14, 15, 16, 17, 18, 20, 28, 30, 31, 32, 33, 34}
+# 19.10. 17:15 KORREKTUR (gemessen 1018k, Lagebild-Spalte vorrat): Ware IM Gebaeude zeigen nur Holzfaeller (79 von 267),
+# Eisenmine (11/13), Schmiede (3/4), Gerberei (3/3), Brauerei (6/6) - NIE Apfelplantage (0/135), Hopfenfarm (0/46),
+# Milchviehhof (0/3), Steinbruch (0/4), Ochsenkarren (0/6): dort traegt der Bauer die Ware direkt weg. Vorher zaehlten
+# verlorene Farmen als "ohne je gesehene Ware", obwohl sie geliefert haben konnten. "liefernd" und "ohne Ware" gelten nur hier;
+# Werkstaetten, die in 1018k nicht gebaut wurden (Bogen-, Lanzen-, Ruestungsmacher, Muehle, Baecker, Pechgraeber, Jaeger), sind
+# ungemessen und zaehlen vorerst nicht
+MIT_VORRAT = {3, 5, 13, 16, 18}
 TRUPPEN = {22, 23, 24, 25, 26, 27, 28, 70, 71, 72, 73, 74, 75, 76}
 ASSASSINE = 73
 BERGFRIED = 41
@@ -115,7 +123,7 @@ class Lauf:
                 b = self.gebaeude[(p, g["uid"])] = {"typ": g["typ"], "x": g["x"], "y": g["y"], "erst": t, "zuletzt": t,
                                                      "liefer": None}
             b["zuletzt"] = t
-            if b["liefer"] is None and g.get("vorrat", 0) > 0 and g["typ"] in BETRIEBE:
+            if b["liefer"] is None and g.get("vorrat", 0) > 0 and g["typ"] in MIT_VORRAT:
                 b["liefer"] = t
             anzahl[p] += 1
             if b["liefer"] is not None:
@@ -245,7 +253,7 @@ def verluste(lauf, sp, w0, w1):
         if b["liefer"] is not None:
             lief[b["typ"]] += 1
             orte[(b["x"] // 20 * 20, b["y"] // 20 * 20)] += 1
-        elif b["typ"] in BETRIEBE:
+        elif b["typ"] in MIT_VORRAT:
             nie[b["typ"]] += 1
     return lief, nie, orte
 

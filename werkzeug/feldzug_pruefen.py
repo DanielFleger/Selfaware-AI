@@ -189,6 +189,25 @@ def main():
     lauf1 = [x for x in b1.liste if "lauf" in x.get("angriff", {})]
     lauf2 = [x for x in b2.liste if "lauf" in x.get("angriff", {})]
     pruefe(13, "Laufbefehle Runde 1: %d, Runde 2: %d" % (len(lauf1), len(lauf2)), lauf1 and not lauf2)
+    # 14 (19.10., 1018l: Endspurt-Angriff 10.000 Ticks bei "Wegpunkt 2/20", Spitze immer 157 Felder vor dem Lord): im Angriff
+    # bewegt sich niemand -> nach 1.500 Ticks Wegpunkt uebersprungen, nach weiteren 1.500 alle mit Angriffsbefehl auf den Lord
+    f14 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f14.wegplaner = lambda L_, G_, s, z: [(150, 200), (200, 150), (250, 120), z]
+    f14.schritt({"t": 12000}, *lage(10, heim), Befehle())
+    f14.schritt({"t": 12050}, *lage(30, f14.punkt), Befehle())
+    L14, G14 = lage(0, heim)
+    for i in range(20):
+        L14[10 + i] = einheit(75, 1, 100 + i % 5, 240 + i // 5, 28000)
+    meld, lord14 = [], []
+    for t in range(12100, 15400, 100):
+        b14 = Befehle()
+        meld += [m for m in f14.schritt({"t": t}, L14, G14, b14) if "STAU" in m]
+        if len(meld) == 2:            # ab dem zweiten Stau: Angriffsbefehle auf den Lord (alle 5 Runden neu)
+            lord14 += [x for x in b14.liste if x.get("angriff", {}).get("ziel") == 500]
+    pruefe(14, "Stau: Meldungen %s; am Ende Angriff auf den Lord fuer %d" % (
+        [m[:60] for m in meld], len(lord14[0]["angriff"]["einheiten"]) if lord14 else 0),
+           len(meld) == 2 and "uebersprungen" in meld[0] and "direkt" in meld[1] and lord14
+           and len(lord14[0]["angriff"]["einheiten"]) == 20)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

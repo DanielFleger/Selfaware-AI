@@ -57,6 +57,11 @@ class Feldzug:
     # eher schiessen, wenn sie koennen"): Schuetzen des Heeres nehmen im Angriff den naechsten Feind in Reichweite (zuerst
     # Schuetzen), statt im Haufen zu laufen
     SCHUETZEN_ZIEL_R = 40
+    # 19.10. (1018l: der Endspurt-Angriff hing ab Tick 39.464 ueber 10.000 Ticks bei "Wegpunkt 2/20", der vorderste immer 157
+    # Felder vor dem Lord; 1018k Spieler 2 ebenso bei Wegpunkt 2/12): kommt die Spitze STAU_TICKS lang keinen Schritt naeher,
+    # wird der Wegpunkt uebersprungen, beim zweiten Stau greifen alle direkt den Lord an (das Spiel sucht den Weg).
+    # 1.500 Ticks: ein arab. Schwertkaempfer laeuft darin ~77 Felder (L80: 19,5 Takte je Feld)
+    STAU_TICKS = 1500
 
     def __init__(self, sp, heim, lord_schutz_bis=0, n=None):
         self.sp, self.heim, self.schutz_bis = sp, tuple(heim), lord_schutz_bis
@@ -75,6 +80,9 @@ class Feldzug:
         self.heimwache = set()      # 19.10.: bleiben zu Hause (Waechter) - gehoeren nicht zum Heer
         self._rechnung = (-99, False, "")
         self.endspurt = False       # 19.10. (endspurt.py): Wirtschaft verloren - angreifen, sobald die Haelfte da ist
+        self._stau = (None, 0)      # 19.10.: (bester Abstand der Spitze zum Lord, seit Tick)
+        self.staus = 0
+        self.direkt = False         # 19.10.: nach zwei Staus alle direkt auf den Lord
 
     def _lords(self, L):
         return {n: e for n, e in L.items() if e["typ"] == LORD and e["besitzer"] not in (0, self.sp) and e["leben"] > 0}
@@ -103,6 +111,7 @@ class Feldzug:
             self.tote_lords.append((self.ziel, t))
             aus.append("FELDZUG: Lord %d tot bei Tick %d - %d Streitkolben ueberlebten, naechstes Ziel" % (self.ziel, t, len(kolben)))
             self.ziel, self.phase, self.punkt = None, "sammeln", None
+            self._stau, self.staus, self.direkt = (None, 0), 0, False
         if not lords:
             return aus
         if self.ziel is None:
@@ -159,6 +168,7 @@ class Feldzug:
             if (len(da) >= self.N or lohnt) and t >= self.schutz_bis:
                 self.phase = "angriff"
                 self.letzter_befehl = -99
+                self._stau, self.staus, self.direkt = (None, 0), 0, False
                 self.weg, self.weg_i, self.weg_ziel = [], 0, None
                 aus.append("FELDZUG ANGRIFF: %d Truppen (%d am Sammelpunkt) gemeinsam auf Lord %d (Leben %d) bei Tick %d%s" % (
                     len(kolben), len(da), self.ziel, lord["leben"], t, " - " + text if text else ""))
@@ -173,6 +183,19 @@ class Feldzug:
                 self.weg, self.weg_i, self.weg_ziel = [tuple(p) for p in wp], 0, lp
                 aus.append("FELDZUG Weg zum Lord %d: %d Wegpunkte %s" % (self.ziel, len(self.weg), self.weg[:6]))
             spitze = min(schach(o, lp) for o in orte)
+            if self._stau[0] is None or spitze < self._stau[0]:
+                self._stau = (spitze, t)
+            elif t - self._stau[1] >= self.STAU_TICKS:
+                self.staus += 1
+                if self.staus == 1 and self.weg_i < len(self.weg) - 1:
+                    self.weg_i += 1
+                    aus.append("FELDZUG STAU: Spitze %d Ticks bei %d Feldern vor dem Lord - Wegpunkt uebersprungen, jetzt %d/%d" % (
+                        t - self._stau[1], spitze, self.weg_i + 1, len(self.weg)))
+                else:
+                    self.direkt = True
+                    aus.append("FELDZUG STAU %d: Spitze %d Ticks bei %d Feldern vor dem Lord - alle direkt auf den Lord" % (
+                        self.staus, t - self._stau[1], spitze))
+                self._stau = (spitze, t)
             # 19.10. (1019i: die Spitze stand 2.000 Takte 37 Felder vor dem Lord, die Mitte wanderte von 55 auf 80 Felder
             # zurueck - neu angeworbene Soeldner kamen von zu Hause nach): ueber den Wegpunkt entscheidet nur die Spitzengruppe
             # (hoechstens SPITZE_TIEFE Felder weiter vom Lord als der vorderste)
@@ -187,7 +210,7 @@ class Feldzug:
                 else:
                     break
             p = self.weg[self.weg_i] if self.weg_i < len(self.weg) - 1 else lp
-            schluss = spitze <= self.SCHLUSS_R
+            schluss = spitze <= self.SCHLUSS_R or self.direkt
             nah_kampf = [n for n in kolben if L[n]["typ"] not in FERN_REICH]
             fern = [n for n in kolben if L[n]["typ"] in FERN_REICH]
             # Schuetzen: naechster Feind in Reichweite (zuerst Schuetzen) - sonst mit dem Haufen
