@@ -110,6 +110,7 @@ class Waechter:
         """gebaeude: Liste (x, y) unserer Gebaeude; ausgenommen: Einheiten, die der Waechter nicht anfasst
         (z. B. der Angriffstrupp). Gibt Liste von Ereignis-Texten."""
         ereignis = []
+        self._schritte = getattr(self, "_schritte", 0) + 1     # 19.10.: Uhr fuer gesperrte Ziele (keine Jagd)
         if not self.besetzt:
             t = self.stellung(L)
             if t:
@@ -210,9 +211,13 @@ class Waechter:
             bezug = fern or list(eigene.values())
             self.ziel = min(angreifer, key=lambda n: min(schach((L[n]["x"], L[n]["y"]), (e["x"], e["y"])) for e in bezug))
             self.lauert = False
-        elif self.ziel not in feinde:
-            # naechstes Ziel: wer unseren Gebaeuden am naechsten ist (Laufziel oder Standort)
-            self.ziel = min(feinde, key=lambda n: feinde[n][0])
+        elif self.ziel not in feinde or self.ziel in self._gesperrt_jetzt():
+            # naechstes Ziel: wer unseren Gebaeuden am naechsten ist (Laufziel oder Standort); 19.10. 18:25 ohne die, die
+            # gerade keiner einholt (gesperrt fuer 3 Waechter-Runden)
+            frei = [n for n in feinde if n not in self._gesperrt_jetzt()]
+            if not frei:
+                return ereignis
+            self.ziel = min(frei, key=lambda n: feinde[n][0])
             self.lauert = False
         fe = feinde[self.ziel][1]
         ort = (fe["x"], fe["y"])
@@ -245,6 +250,11 @@ class Waechter:
         # sich lohnt - jede Sekunde Zoegerung kostet Leben"): Gefecht vorher durchrechnen (gefecht.py, Editor-Duelle) - nur
         # angreifen, wenn die Gruppe faellt und genug von uns bleibt; sonst Schuetzen zu den Nahkaempfern an den Bergfried
         lohnt, text, einsatz = self._bewerten(L, eigene, verfuegbar)
+        if not lohnt and "keine Jagd" in text:
+            if self.verzicht != self.ziel:
+                self.verzicht = self.ziel
+                ereignis.append("KEINE JAGD auf Feind %d Typ %d bei (%d,%d): %s" % (self.ziel, fe["typ"], fe["x"], fe["y"], text))
+            return ereignis
         if not lohnt:
             if self.verzicht != self.ziel:
                 self.verzicht = self.ziel
@@ -288,6 +298,10 @@ class Waechter:
                 text))
         return ereignis
 
+    def _gesperrt_jetzt(self):
+        g = getattr(self, "gesperrt", {})
+        return {n for n, bis in g.items() if bis > getattr(self, "_schritte", 0)}
+
     def _bewerten(self, L, eigene, verfuegbar):
         """19.10.: (lohnt, Text) fuer den Angriff aller verfuegbaren auf die Gruppe um self.ziel - die Gruppe = feindliche
         Truppen in einer Kette von je hoechstens GRUPPE_R Feldern um das Ziel; dazu feindliche Schuetzen, deren Reichweite
@@ -327,6 +341,31 @@ class Waechter:
         # 19.10. (1019h: der Waechter jagte mit dem ganzen Heer - 38 bis 51 Mann als Reserve - einzelne feindliche Assassinen
         # durch unser Gebiet, 16-mal seit Tick 20.000; das Heer kam nie am Sammelpunkt zusammen): die KLEINSTE Gruppe, mit der
         # die Rechnung noch lohnt - zuerst Truppen, die nicht zur Reserve gehoeren, dann die naechsten
+        # 19.10. 18:25 (Daniel 18:07, Bild 1018o: "40 Schwertkaempfer, die einfach nur einen Assassinen abwehren wollen"):
+        # LAEUFT das Ziel (Uebersicht: mehr als 1 Feld seit der Vorrunde) und kaempft nicht, zaehlen nur Einheiten, die es
+        # einholen (Schuetzen; Nahkaempfer nur, wenn sie schneller laufen - L80, zuweisung.einholbar). Holt es keiner ein:
+        # keine Jagd
+        ub = getattr(self, "uebersicht", None)
+        zt = L[self.ziel]
+        steht_z = (ub.steht(self.ziel) is not False) if ub is not None else True
+        if not steht_z and zt.get("nahziel", -1) <= 0:
+            import zuweisung as ZW
+            fangen = [n for n in einsatz if ZW.einholbar(eigene[n]["typ"], zt["typ"], False)]
+            if not fangen:
+                text = "Gruppe %d - Ziel Typ %d laeuft, keiner der %d holt es ein (L80) - keine Jagd" % (
+                    len(gruppe), zt["typ"], len(einsatz))
+                self._wertung = (self.ziel, self.runde_w, False, text, [])
+                self.gesperrt = getattr(self, "gesperrt", {})
+                self.gesperrt[self.ziel] = getattr(self, "_schritte", 0) + 3
+                return False, text, []
+            if len(fangen) < len(einsatz):
+                wir_f = [dict(typ=eigene[n]["typ"], leben=eigene[n]["leben"], x=eigene[n]["x"], y=eigene[n]["y"]) for n in fangen]
+                try:
+                    lohnt, t_f = gefecht.bewerte(wir_f, sie)
+                except Exception:
+                    t_f = "Bewertung fehlgeschlagen"
+                text = "nur %d von %d holen das laufende Ziel ein: %s" % (len(fangen), len(einsatz), t_f)
+                einsatz = fangen
         if lohnt and len(einsatz) > 2:
             tz = (L[self.ziel]["x"], L[self.ziel]["y"])
             reserve_s = getattr(self, "_reserve", set())

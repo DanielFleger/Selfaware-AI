@@ -1994,6 +1994,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     if NEUBAU_SICHER:
         import gefahrenzone
         GZ = gefahrenzone.Gefahrenzonen(SP)
+    # 19.10. 18:25 Makro-Uebersicht (uebersicht.py) - der Waechter liest daraus, ob ein Feind steht oder laeuft
+    import uebersicht as UB_m
+    UB = UB_m.Uebersicht(SP)
+    if w is not None:
+        w.uebersicht = UB
     es = None
     if ENDSPURT:
         # 19.10. (Daniel 16:51 "er koennte jetzt einsehen, ok ich bin schon verloren, lass versuchen den Gegner zu rushen"):
@@ -2230,6 +2235,15 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             hunger_r = False
             if st:
                 roh_l = lage.schreibe(st)
+                # 19.10. 18:25 MAKRO (uebersicht.py, Daniel 18:07 "was habe ich, was haben die Gegner, wer davon was und wo"):
+                # Verbaende + Bewegung je Einheit; alle ZEILE_RUNDEN Runden eine LAGE-Zeile in die Mitschrift
+                if UB is not None and L:
+                    try:
+                        UB.runde(st.get("t"), L)
+                        if UB.runden % UB_m.ZEILE_RUNDEN == 1:
+                            print(UB.zeile([(g["x"], g["y"]) for g in G.values() if g["besitzer"] == SP]), flush=True)
+                    except Exception as ex_u:
+                        print("UEBERSICHT FEHLER %r" % (ex_u,), flush=True)
                 if GZ is not None:
                     GZ.runde(st.get("t"), G)
                     ausbau.gefahr = GZ.rechtecke()
@@ -3038,20 +3052,27 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # 19.10. Rang 3 (lordwache.py, Daniel 17:51 "berechnen, ob es reicht, deinen Lord zu killen"): faellt unser Lord
                     # in der Rechnung gegen den Anmarsch, greift das ganze Heer (mit Heimwache) den naechsten Feind am Lord an, der
                     # Feldzug ruht so lange; reicht es fuer den Gegner nicht, passiert nichts
-                    gefahr_l = False
+                    # 19.10. 18:20 NEU nach 1018o (195-mal ausgeloest, das ganze Heer jagte Assassinen - Lord war nie gemessen): nur
+                    # die KLEINSTE Gruppe, mit der der Lord die Rechnung ueberlebt, Heimwache zuerst (lordwache.abwehr); der
+                    # Feldzug ruht nur, wenn er Leute dafuer abgeben muss
+                    gefahr_l, feldzug_ruht = False, False
                     try:
                         import lordwache as LW_m
                         gefahr_l, text_l, feinde_l, ln_l = LW_m.bedrohung(L, SP)
                         if gefahr_l and feinde_l:
-                            heer_l = sorted(feldzug.einheiten(L) | set(feldzug.heimwache))
-                            if heer_l and runde - fruehpruefung.get("lordwache_befehl", -99) >= 5:
-                                befehl({"angriff": {"einheiten": heer_l, "ziel": feinde_l[0]}}, 1.0, bis="ANGRIFF")
+                            fz_l = set(feldzug.einheiten(L))
+                            heer_l = sorted(fz_l | set(feldzug.heimwache))
+                            wahl_l, reicht_l, wtext_l = LW_m.abwehr(L, SP, feinde_l, heer_l, vorrang=feldzug.heimwache)
+                            feldzug_ruht = bool(set(wahl_l) & fz_l)
+                            if wahl_l and runde - fruehpruefung.get("lordwache_befehl", -99) >= 5:
+                                befehl({"angriff": {"einheiten": sorted(wahl_l), "ziel": feinde_l[0]}}, 1.0, bis="ANGRIFF")
                                 fruehpruefung["lordwache_befehl"] = runde
-                                ereignis.append("LORDWACHE: %s - %d aus dem Heer greifen Feind %d an" % (text_l, len(heer_l), feinde_l[0]))
+                                ereignis.append("LORDWACHE: %s - %s: %d von %d greifen Feind %d an%s" % (
+                                    text_l, wtext_l, len(wahl_l), len(heer_l), feinde_l[0], " (Feldzug ruht)" if feldzug_ruht else ""))
                     except Exception as ex_l:
                         ereignis.append("LORDWACHE FEHLER %r - Partie laeuft weiter" % (ex_l,))
                     try:
-                        if not gefahr_l:
+                        if not feldzug_ruht:
                             ereignis += feldzug.schritt(st, L, G, befehl)
                     except Exception as ex_z:
                         ereignis.append("FELDZUG FEHLER %r - Partie laeuft weiter" % (ex_z,))   # 19.10. (1019i): nie den Lauf beenden

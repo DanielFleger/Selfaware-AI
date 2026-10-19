@@ -29,6 +29,12 @@ SCHRITT = 10              # Takte je Simulationsschritt
 TEMPO = 15.0              # Takte je Feld (L68: 16 fuer die meisten, Assassine 14,6 - L80)
 BIS = 1500                # laengstens so viele Takte rechnen
 BEHALTEN = 0.4            # Anteil unseres eingesetzten Lebens, der nach dem Sieg mindestens bleiben muss (Stellgroesse)
+LORD = 55
+LORD_LEBEN = 150000       # 1018o: "Lord 26 mit 149750 Leben" (voll; Mitschrift LORD EINDEUTIG)
+LORD_PROBEN = 5           # Lord-Werte aus Partien erst ab so vielen Proben (lord_messen.py)
+# Lauftempo, Takte je Feld (L80, Median aus 11 Mitschriften, 17.10.); fehlt eine Art, ist ihr Tempo unbekannt (None)
+TEMPO_ART = {22: 11.5, 71: 12.0, 70: 12.2, 24: 13.5, 73: 14.6, 72: 15.0, 55: 19.0, 75: 19.5, 23: 21.0, 76: 21.5,
+             25: 24.0}
 
 _TABELLE = None
 
@@ -82,8 +88,28 @@ def tabelle(dateien=None):
                 s[1] += 1
     schaden = {x: {y: s / n for y, (s, n) in ys.items()} for x, ys in summen.items()}
     fern = {x: {y: s / n for y, (s, n) in ys.items()} for x, ys in fsum.items()}
+    # 19.10. 18:15: der Lord fehlt in den Editor-Duellen - seine Werte kommen aus echten Partien (lord_messen.py,
+    # daten/lord_kampfwerte.json); vorher Ersatzwert 20 je Takt -> die Lordwache hielt 2 Assassinen fuer toedlich (1018o)
+    lw = os.path.join(D, "lord_kampfwerte.json")
+    if os.path.exists(lw):
+        k = json.load(io.open(lw, encoding="utf-8"))
+        for y, v in k.get("lord_an", {}).items():
+            if v["proben"] >= LORD_PROBEN:
+                schaden.setdefault(LORD, {})[int(y)] = v["je_takt"]
+        for x, v in k.get("an_lord", {}).items():
+            if v["proben"] >= LORD_PROBEN:
+                schaden.setdefault(int(x), {})[LORD] = v["je_takt"]
+        leben.setdefault(LORD, LORD_LEBEN)
     _TABELLE = (schaden, leben, fern)
     return _TABELLE
+
+
+def gemessen(x, y, d=1):
+    """19.10.: ist der Schaden von Art x an Art y gemessen (Duell oder Partie) - oder nur Ersatz (Mittel/20)?"""
+    tb = tabelle()
+    if d > 1 and len(tb) > 2 and y in tb[2].get(x, {}):
+        return True
+    return y in tb[0].get(x, {})
 
 
 def dps(x, y, schaden, fern=None, d=1):
@@ -100,7 +126,7 @@ def dps(x, y, schaden, fern=None, d=1):
     return sum(zeile.values()) / len(zeile)
 
 
-def simuliere(wir, sie, schaden=None, bis=BIS):
+def simuliere(wir, sie, schaden=None, bis=BIS, rest_aus=None):
     """wir/sie: Listen von dict(typ, leben, x, y, steht=False). Gibt (wir_leben_rest, sie_leben_rest, takte, sieg) -
     sieg = True, wenn alle von "sie" tot sind und von "wir" noch jemand lebt."""
     fern = None
@@ -134,6 +160,8 @@ def simuliere(wir, sie, schaden=None, bis=BIS):
                 e["leben"] -= treffer[i].get(id(e), 0.0)
         t += SCHRITT
     rest = [sum(max(0.0, e["leben"]) for e in s) for s in seiten]
+    if rest_aus is not None:                 # 19.10.: Rest je Einheit von "wir" (lebt der Lord?) - zuweisung.py
+        rest_aus.extend(max(0.0, e["leben"]) for e in seiten[0])
     return rest[0], rest[1], t, rest[1] <= 0 and rest[0] > 0
 
 
