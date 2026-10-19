@@ -24,6 +24,7 @@ AI_ARRAY, AI_TYP, MENSCH = 0x0191DE7C, 0x0115BDF8 + 0x2300, 0x0191DE10
 PD_SCHRITT = 0x39F4
 SPIELER = range(1, 9)
 PAUSE_S = 2.0                # waehrend unser Lenker spielt
+NEUSTARTS_MAX = 5            # so oft startet die Wache SamurAI je Partie neu, wenn er aussteigt (20:42)
 SCHNELL_S = 0.25             # vor der Partie: so oft nachsehen, ob ein Gefecht begonnen hat
 STOP = os.path.join(HIER, "STOP_SAMURAI")
 # 20:31: regel50=nein - gegen einen Menschen hoert SamurAI bei Beliebtheit unter 50 NICHT auf (Testlauf 20:28: Regelbruch bei
@@ -87,6 +88,7 @@ def main():
         os.remove(STOP)
     schreib("SamurAI-Wache an (Instanz %s) - wartet auf eine Partie mit der Ratte" % os.environ.get("SHC_INSTANZ", "1"))
     lenker, bedient, log, scharf = None, False, None, False
+    sp_aktiv, neustarts = None, 0
     from laden import befehl as befehl_w
     while not os.path.exists(STOP):
         try:
@@ -109,6 +111,17 @@ def main():
         if lenker is not None and not laeuft and bedient and log:
             schreib("Lenker beendet (Rueckgabe %s) - Mitschrift %s" % (lenker.returncode, log))
             lenker = None
+            # 20:42 (Daniel: "bitte schaue, dass es wirklich dauerhaft durchlaeuft fuer das ganze Spiel"): laeuft die Partie
+            # weiter, SamurAI sofort neu starten (hoechstens NEUSTARTS_MAX je Partie) - er vermisst nichts doppelt (Plan liegt)
+            if ansicht == 14 and gameover == 0 and sp_aktiv and neustarts < NEUSTARTS_MAX:
+                neustarts += 1
+                log = os.path.join(D, "samurai_%s_sp%d_konsole.txt" % (time.strftime("%Y%m%d_%H%M%S"), sp_aktiv))
+                umgebung = dict(os.environ, SHC_SPIELER=str(sp_aktiv), SHC_PARTNER="ja")
+                lenker = subprocess.Popen([sys.executable, "-u", os.path.join(HIER, "erstes_spiel.py")] + LENKER_ARGS,
+                                          cwd=HIER, env=umgebung, stdout=open(log, "w", encoding="utf-8"), stderr=subprocess.STDOUT)
+                laeuft = True
+                schreib("NEUSTART %d von %d: SamurAI fuer Spieler %d wieder gestartet (Prozess %d, Mitschrift %s)" % (
+                    neustarts, NEUSTARTS_MAX, sp_aktiv, lenker.pid, log))
         tat, sp = entscheide(ansicht, gameover, ai, laeuft, bedient)
         # einmal je Partie die KI-Nummern aller Plaetze mitschreiben (Gegenprobe der Annahme "Ratte = 1")
         gesehen = (ansicht == 14 and gameover == 0)
@@ -129,14 +142,14 @@ def main():
             umgebung = dict(os.environ, SHC_SPIELER=str(sp), SHC_PARTNER="ja")
             lenker = subprocess.Popen([sys.executable, "-u", os.path.join(HIER, "erstes_spiel.py")] + LENKER_ARGS,
                                       cwd=HIER, env=umgebung, stdout=open(log, "w", encoding="utf-8"), stderr=subprocess.STDOUT)
-            bedient = True
+            bedient, sp_aktiv, neustarts = True, sp, 0
             schreib("Ratte auf Spieler %d gefunden - KI aus, SamurAI uebernimmt (Prozess %d, Mitschrift %s)" % (sp, lenker.pid, log))
         elif tat == "beenden":
             lenker.terminate()
             schreib("Partie verlassen (Ansicht %s) - Lenker beendet" % ansicht)
             lenker = None
         elif tat == "neue_partie_frei":
-            bedient = False
+            bedient, sp_aktiv = False, None
         elif tat == "warten" and ansicht == 14 and gameover == 0 and not bedient and not laeuft and ai and RATTE not in ai.values():
             # Partie ohne Ratte: die Tick-Pause wieder aufheben (sonst stuende Daniels Spiel bei Tick 1)
             from steuerkarte import tick as tick_w

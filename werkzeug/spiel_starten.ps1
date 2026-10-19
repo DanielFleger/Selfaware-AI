@@ -15,7 +15,12 @@ Write-Output ("Instanz {0} gestartet: Prozess {1} (ohne Fensterschieben)" -f $In
 $log = Join-Path $ordner "ucp3.log"
 $ende = (Get-Date).AddSeconds(60)
 while ((Get-Date) -lt $ende) {
-    if ((Test-Path $log) -and (Select-String -Path $log -Pattern "villagestudio aktiv" -Quiet)) { Write-Output "villagestudio aktiv"; exit 0 }
+    if ((Test-Path $log) -and (Select-String -Path $log -Pattern "villagestudio aktiv" -Quiet)) {
+        Write-Output "villagestudio aktiv"
+        Start-Sleep -Seconds 2
+        & "$PSScriptRoot\spielen_vorne.ps1" -Instanz $Instanz      # 20:43: Spiel ueber die Taskleiste (Daniel: "so kann ich nicht spielen")
+        exit 0
+    }
     Start-Sleep -Milliseconds 500
 }
 Write-Output "villagestudio nach 60 s nicht aktiv - ucp3.log ansehen"

@@ -33,8 +33,10 @@ public class SpielVollbild {
 $h = Get-InstanzFenster $Instanz
 if (-not $h) { Write-Output "kein Spielfenster fuer Instanz $Instanz"; exit 1 }
 $h = [IntPtr]([long]($h | Select-Object -First 1))
-# "immer im Vordergrund" aus dem ersten Versuch zuruecknehmen (HWND_NOTOPMOST, ohne Bewegen/Groesse)
-[SpielVollbild]::SetWindowPos($h, [IntPtr](-2), 0, 0, 0, 0, 0x13) | Out-Null
+# 20:43 GEMESSEN: wirkt, sobald das Spiel NICHT mit Administratorrechten laeuft (mit spiel_starten.ps1 gestartet) - die zwei
+# Versuche um 19:31/19:32 scheiterten nur, weil das Spiel damals erhoeht lief (SetWindowPos gesperrt). Bildschirmfoto 20:43:
+# untere Spielleiste ganz sichtbar, keine Taskleiste. Also: immer im Vordergrund an (-Aus: wieder aus)
+[SpielVollbild]::SetWindowPos($h, [IntPtr]$(if ($Aus) { -2 } else { -1 }), 0, 0, 0, 0, 0x13) | Out-Null
 [SpielVollbild]::Markiere($h, -not $Aus)
 if (-not $Aus) { [SpielVollbild]::SetForegroundWindow($h) | Out-Null }
 Write-Output ("Instanz {0}: fuer die Taskleiste Vollbild = {1}" -f $Instanz, (-not $Aus))
