@@ -3035,8 +3035,24 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             ereignis += ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
                     else:
                         ereignis += ruestung_kaufen(st, G, wirt, ausbau, streitkolben, kaempfer_marken)
+                    # 19.10. Rang 3 (lordwache.py, Daniel 17:51 "berechnen, ob es reicht, deinen Lord zu killen"): faellt unser Lord
+                    # in der Rechnung gegen den Anmarsch, greift das ganze Heer (mit Heimwache) den naechsten Feind am Lord an, der
+                    # Feldzug ruht so lange; reicht es fuer den Gegner nicht, passiert nichts
+                    gefahr_l = False
                     try:
-                        ereignis += feldzug.schritt(st, L, G, befehl)
+                        import lordwache as LW_m
+                        gefahr_l, text_l, feinde_l, ln_l = LW_m.bedrohung(L, SP)
+                        if gefahr_l and feinde_l:
+                            heer_l = sorted(feldzug.einheiten(L) | set(feldzug.heimwache))
+                            if heer_l and runde - fruehpruefung.get("lordwache_befehl", -99) >= 5:
+                                befehl({"angriff": {"einheiten": heer_l, "ziel": feinde_l[0]}}, 1.0, bis="ANGRIFF")
+                                fruehpruefung["lordwache_befehl"] = runde
+                                ereignis.append("LORDWACHE: %s - %d aus dem Heer greifen Feind %d an" % (text_l, len(heer_l), feinde_l[0]))
+                    except Exception as ex_l:
+                        ereignis.append("LORDWACHE FEHLER %r - Partie laeuft weiter" % (ex_l,))
+                    try:
+                        if not gefahr_l:
+                            ereignis += feldzug.schritt(st, L, G, befehl)
                     except Exception as ex_z:
                         ereignis.append("FELDZUG FEHLER %r - Partie laeuft weiter" % (ex_z,))   # 19.10. (1019i): nie den Lauf beenden
                     # 19.10. (1019g: das Heer blieb bei 5 Mann, Gold 1.163 lag brach; Daniel: "beim naechsten Run sollen beide
