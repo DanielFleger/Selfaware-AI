@@ -201,6 +201,19 @@ def connector_probes():
     return findings
 
 
+def selected_suites():
+    """Only inspect the checks category; live probes can say 'ohne Spieler'."""
+    tests = []
+    for p in sorted(LEGACY_FILES.values()):
+        if p.parent.name != "checks" or not p.name.endswith("_pruefen.py"):
+            continue
+        doc = (ast.get_docstring(ast.parse(p.read_bytes())) or "").lower()
+        if any(marker in doc for marker in ("ohne spiel", "ohne ein spiel", "ohne laufendes spiel")):
+            tests.append(p.name)
+    tests += ["lordschutz_trocken.py", "brotbau_trocken.py", "sturm_trocken.py", "stillstand_trocken.py"]
+    return tests
+
+
 def main():
     results = {"revision": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()}
     files = list(LEGACY_FILES.values())
@@ -233,12 +246,7 @@ def main():
     except ImportError:
         results["lua_syntax"] = {"skipped": "lupa unavailable"}
     results["connector_probes"] = connector_probes()
-    tests = []
-    for p in sorted(p for p in LEGACY_FILES.values() if p.name.endswith("_pruefen.py")):
-        doc = (ast.get_docstring(ast.parse(p.read_bytes())) or "").lower()
-        if any(marker in doc for marker in ("ohne spiel", "ohne ein spiel", "ohne laufendes spiel")):
-            tests.append(p.name)
-    tests += ["lordschutz_trocken.py", "brotbau_trocken.py", "sturm_trocken.py", "stillstand_trocken.py"]
+    tests = selected_suites()
     suites = []
     for name in tests:
         try:
@@ -268,7 +276,9 @@ def main():
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 3 and sys.argv[1] == "--suite":
+    if sys.argv[1:] == ["--list-suites"]:
+        print(json.dumps(selected_suites()))
+    elif len(sys.argv) == 3 and sys.argv[1] == "--suite":
         offline_child(sys.argv[2])
     else:
         main()

@@ -34,3 +34,10 @@ validator (`uv run --extra audit selfaware run absender_pruefen`). The original
 Lua audit mock does not activate that machine-code patch; its deferred-command
 probe therefore exercises the fallback path. It does not refute the separate
 upstream B-94 evidence or validate the patched native execution path.
+
+Suite discovery is limited to the relocated `checks` category;
+`--list-suites` reports the selected files without running them. It excludes
+`absender_live_pruefen`, whose description contains the phrase "ohne Spieler"
+but which is explicitly a real-game probe. With the new offline sender test,
+the current selection is 39 suites: 21 pass, 17 lack external metadata, and
+one retains its existing metadata-dependent assertion failure.

@@ -109,3 +109,19 @@ def test_relocated_backlog_reads_its_authoritative_source_from_foreign_cwd(tmp_p
         ]
     }
     assert not {path for point in backlog.lade()["punkte"] for path in point["wo"]} & retired
+
+
+def test_audit_suite_discovery_excludes_real_game_probes(tmp_path):
+    script = Path(workspace.ROOT) / "audit/run_checks.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "--list-suites"],
+        cwd=tmp_path,
+        text=True,
+        capture_output=True,
+        timeout=20,
+    )
+    assert result.returncode == 0, result.stderr
+    suites = json.loads(result.stdout)
+    assert "absender_pruefen.py" in suites
+    assert "absender_live_pruefen.py" not in suites
+    assert "spieler2_pruefen.py" not in suites
