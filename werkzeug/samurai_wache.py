@@ -63,6 +63,14 @@ def spiel_ueber_taskleiste():
     import ctypes
     from ctypes import wintypes
     u, k = ctypes.windll.user32, ctypes.windll.kernel32
+    # 20:50: Typen setzen - ohne sie gingen HWND_TOPMOST (-1) und das Fenster-Handle als 32-Bit-Zahl durch (64-Bit-Python),
+    # SetWindowPos wirkte nicht (Vordergrund-Protokoll 20:48: Spiel 35 s vorn, Taskleiste trotzdem davor)
+    u.GetForegroundWindow.restype = wintypes.HWND
+    u.SetWindowPos.argtypes = [wintypes.HWND, wintypes.HWND, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint]
+    u.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+    k.OpenProcess.restype = wintypes.HANDLE
+    k.QueryFullProcessImageNameW.argtypes = [wintypes.HANDLE, wintypes.DWORD, wintypes.LPWSTR, ctypes.POINTER(wintypes.DWORD)]
+    k.CloseHandle.argtypes = [wintypes.HANDLE]
     h = u.GetForegroundWindow()
     if not h:
         return
@@ -81,7 +89,7 @@ def spiel_ueber_taskleiste():
         k.CloseHandle(hp)
     inst = os.environ.get("SHC_INSTANZ", "1")
     if "stronghold crusader.exe" in pfad and (("instanz%s" % inst) in pfad if inst != "1" else "instanz" not in pfad):
-        u.SetWindowPos(h, -1, 0, 0, 0, 0, 0x13)      # HWND_TOPMOST, NOMOVE|NOSIZE|NOACTIVATE
+        u.SetWindowPos(h, wintypes.HWND(-1), 0, 0, 0, 0, 0x13)      # HWND_TOPMOST, NOMOVE|NOSIZE|NOACTIVATE
 
 
 def schreib(text):
