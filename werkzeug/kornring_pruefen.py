@@ -27,9 +27,15 @@ Burggraben (19.10., Gegner links bei (60, 52), Speicher (100, 50)):
  16. Grubenplaetze: erst die 4 Ecken, dann die 3 Eingangsfelder
  17. bleiben nach dem Planen dieselben Felder unplanbar (bebaut), plant der Graben nicht alle 1.000 Ticks neu, sondern nach
      dem zweiten Versuch (Zahl gleich) erst nach 5.000 Ticks: Planen bei Tick 1.000, 2.000, 7.000
-Gegenprobe: mit "alt" sendet der Baustein ohne Steinpruefung, die Platzwahl ohne Ringabstand, die Gruben ohne Holzreserve
-und der Graben ohne Loeschbloecke -> Faelle 2, 3, 7, 8 und 14 rot.
-Aufruf: python werkzeug/kornring_pruefen.py [alt]"""
+Umbau Behelfsgruben -> Mauer (19.10., Daniel 16:50 "sobald Stein drinnen ist, der Aufbau wie bei der Nomade"; Gegner oben links):
+ 18. alle Seiten nur Gruben, 0 Stein: KEINE "steht"-Meldung, nichts abgerissen, Steinbedarf > 0 (der Stein bleibt liegen)
+ 19. dieselben Gruben, 20 Stein: zuerst die 16 Seitengruben abgerissen (die erste auf der Seite oben/links), keine Mauer;
+     100 Ticks spaeter (Gruben weg) 4 Mauerbefehle; keine Eckgrube abgerissen
+ 20. nach der ersten Mauer, 0 Stein, die 4 Eckgruben stehen: keine neue Grube (vorher kamen Seitengruben)
+Gegenprobe: mit "alt" sendet der Baustein ohne Steinpruefung, die Platzwahl ohne Ringabstand, die Gruben ohne Holzreserve,
+der Graben ohne Loeschbloecke und der Ring ohne Umbau -> Faelle 2, 3, 7, 8, 9, 14 und 19 rot (die fehlende Steinpruefung
+verdeckt Fall 20); mit "umbau_alt" nur der Ring ohne Umbau -> Faelle 19 und 20 rot.
+Aufruf: python werkzeug/kornring_pruefen.py [alt|umbau_alt]"""
 import json
 import os
 import sys
@@ -45,6 +51,14 @@ if len(sys.argv) > 1 and sys.argv[1] == "alt":
     KR.HOLZ_RESERVE = 0
     _alt_plan = KR.plan_befehle
     KR.plan_befehle = lambda gx, gy, feind: [b for b in _alt_plan(gx, gy, feind) if b[2] == 0]
+if len(sys.argv) > 1 and sys.argv[1] in ("alt", "umbau_alt"):
+    # 19.10.: ohne Umbau - nie abreissen, Behelfsgruben immer erlaubt
+    KR.Kornring.stein_kam = property(lambda s: False, lambda s, v: None)
+    _alt_init = KR.Kornring.__init__
+    def _ohne_abriss(self, *a, **k):
+        k["abreisse"] = None
+        _alt_init(self, *a, **k)
+    KR.Kornring.__init__ = _ohne_abriss
 
 
 def neu(stehen=()):
@@ -191,6 +205,40 @@ def main():
     k16.tor = list(tor)
     pl = k16.grubenplaetze(20, set(), {})
     pruefe(16, "Grubenreihenfolge %s" % pl[:7], pl[:4] == KR.ecken(100, 50) and pl[4:7] == tor)
+    # 19.10. (Daniel 16:50 "sobald Stein drinnen ist, der Aufbau wie bei der Nomade"): Behelfsgruben weichen der Mauer
+    seiten_k = [k for _, _, _, ks in KR.seiten(100, 50) for k in ks]
+    nummern = {k: 500 + i for i, k in enumerate(seiten_k + sorted(eck))}
+    def umbau(stein, gruben, stehen=()):
+        mauer, abriss = [], []
+        stehen = set(stehen)
+        r = KR.Kornring((100, 50), lambda ks: {k: k in stehen for k in ks},
+                        lambda x1, y1, x2, y2, n: mauer.append((x1, y1, x2, y2, n)), setze_grube=lambda x, y: True,
+                        feind=(60, 10), abreisse=abriss.append)
+        return r, mauer, abriss
+    r, m, a = umbau(0, nummern)
+    ev18 = r.schritt(1000, 0, holz=0, gruben=dict(nummern))
+    pruefe(18, "nur Gruben, 0 Stein: steht gemeldet %s, Abrisse %d, Mauern %d, Steinbedarf %d" % (
+        any("steht" in e for e in ev18), len(a), len(m), r.stein_bedarf()),
+           not any("steht" in e for e in ev18) and not a and not m and r.stein_bedarf() > 0)
+    r, m, a = umbau(20, nummern)
+    r.schritt(1000, 20, holz=0, gruben=dict(nummern))
+    erst_abriss, erst_mauer = list(a), list(m)
+    nur_ecken = {k: n for k, n in nummern.items() if k in eck}
+    r.schritt(1100, 20, holz=0, gruben=nur_ecken)
+    erste_seite = [k for k, n in nummern.items() if n == erst_abriss[0]] if erst_abriss else []
+    pruefe(19, "20 Stein: zuerst %d Abrisse (erste Grube %s), %d Mauern; danach %d Mauerbefehle, Ecken abgerissen %s" % (
+        len(erst_abriss), erste_seite, len(erst_mauer), len(m), any(nummern[k] in a for k in eck)),
+           len(erst_abriss) == 16 and not erst_mauer and len(m) == 4 and erste_seite and
+           (erste_seite[0][1] == 49 or erste_seite[0][0] == 99) and not any(nummern[k] in a for k in eck))
+    r, m, a = umbau(20, {})
+    gesetzt = []
+    r.setze_grube = lambda x, y: gesetzt.append((x, y)) or True
+    r.schritt(1000, 20, holz=100)                           # Mauern gesendet -> der Stein ist gekommen
+    del gesetzt[:]
+    # Mauer stand nicht, 0 Stein, die 4 Eckgruben stehen schon: keine Seitengruben mehr (KORREKTUR 19.10. 17:15: zuerst ohne
+    # die Eckgruben geprueft - dann waren die Ecken wieder dran, 4 je Schritt, und verdeckten die Seiten auch ohne Umbau)
+    r.schritt(1100, 0, holz=100, gruben={k: nummern[k] for k in eck})
+    pruefe(20, "nach der ersten Mauer, 0 Stein, Ecken stehen: neue Gruben %s" % gesetzt, gesetzt == [])
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

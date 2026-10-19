@@ -30,6 +30,14 @@ die eigene Assassine blieb heil; Preis im Spiel kosten(67) = 4 Holz (Ascension);
 (Platzsuche Spieler 2: (208,75) und (190,110) ja, (211,150) und (211,196) nein).
 Gruben kommen zuerst auf die 4 offenen Ecken (wie der Nomade), solange die Mauer einer Seite fehlt und kein Stein fuer sie da
 ist auch auf diese Seite (die dem Gegner naechsten Felder zuerst); ausgeloeste/verschwundene werden nachgebaut.
+19.10. (Daniel 16:50 "immer noch sehr leicht zu zerstoeren - besser, sobald Stein drinnen ist, der Aufbau wie bei der Nomade";
+1018j/k: beide Ringe "steht: 0 Mauerkacheln, 23-24 Gruben", der spaeter kommende Stein wurde verkauft): Gruben auf den Seiten
+sind nur BEHELF - die Seite gilt erst mit Mauer als fertig (der Stein dafuer bleibt beim Verkauf liegen); bezahlt der Stein
+die offenen Kacheln einer Seite, werden ihre Behelfsgruben abgerissen (Modulbefehl abreissen, die Haelfte des Holzes kommt
+zurueck, Abreissen.md A1) und die Mauer folgt bei der naechsten Pruefung - die dem Gegner naechste Seite zuerst; nach der
+ersten Mauer keine neuen Behelfsgruben mehr. Ecken und Grabeneingang behalten ihre Gruben (wie der Nomade).
+Hinweis: Assassinen klettern ueber Mauern (Handbuch S. 21 "Kletterhaken", Daniel 05.10. 22:09 "ja koennen sie") - gegen sie
+helfen nur die Gruben; die Mauer haelt alle anderen ab (Sklaven, Fusstruppen) und lenkt Laeufer ueber die Eckgruben.
 Pruefung ohne Spiel: werkzeug/kornring_pruefen.py."""
 
 MAUER = 25              # M_MAPPER_WALL (hohe Steinmauer)
@@ -70,10 +78,14 @@ class Kornring:
     """ort: linke obere Ecke des Kornspeichers, um den der Ring entsteht. lies_mauer(kacheln) -> {kachel: True/False};
     setze(x1, y1, x2, y2, n) sendet Spielbefehl 25."""
 
-    def __init__(self, ort, lies_mauer, setze, abstand=ABSTAND, setze_grube=None, feind=None):
+    def __init__(self, ort, lies_mauer, setze, abstand=ABSTAND, setze_grube=None, feind=None, abreisse=None):
         self.ort = tuple(ort)
         self.lies_mauer, self.setze, self.abstand = lies_mauer, setze, abstand
         self.setze_grube = setze_grube          # (x, y) -> True, wenn gesendet (das Spiel nahm den Platz an)
+        self.abreisse = abreisse                # Gebaeudenummer -> Abriss (Modulbefehl "abreissen", Spielbefehl 29)
+        # 19.10. (Daniel 16:50 "immer noch sehr leicht zu zerstoeren - besser, sobald Stein drin ist, der Aufbau wie bei der
+        # Nomade"): nach der ersten Mauer keine Behelfsgruben mehr auf den Seiten (sonst bauen und reissen wir im Wechsel)
+        self.stein_kam = False
         self.feind = tuple(feind) if feind else None
         self.gesperrt = {}                       # Grubenfeld -> Tick der Ablehnung
         self.tor = []                            # Eingang im Burggraben (Graben.tor) - Gruben dort gleich nach den Ecken
@@ -90,16 +102,19 @@ class Kornring:
         return 0 if self.fehlt == 0 else (self.fehlt * VIERTEL_JE_KACHEL + 3) // 4 + 1
 
     def schritt(self, t, stein, holz=0, gruben=()):
-        """Je Runde aufrufen. gruben: Felder mit einer eigenen Fallgrube. Gibt Ereignistexte."""
+        """Je Runde aufrufen. gruben: Felder mit einer eigenen Fallgrube - als {Feld: Gebaeudenummer} (dann koennen
+        Behelfsgruben auf den Seiten abgerissen werden) oder als Liste. Gibt Ereignistexte."""
         if t - self.zuletzt < self.abstand:
             return []
         self.zuletzt = t
-        gruben = set(gruben)
+        nummer = dict(gruben) if isinstance(gruben, dict) else {k: None for k in gruben}
+        gruben = set(nummer)
         s = seiten(*self.ort)
         alle = [k for _, _, _, ks in s for k in ks]
         steht = self.lies_mauer(alle)
-        # ein Feld mit Grube bekommt (vorerst) keine Mauer - das Spiel lehnt Mauern auf Gebaeuden ab
-        fehlen = {name: [k for k in ks if not steht.get(k) and k not in gruben] for name, _, _, ks in s}
+        # 19.10. (Daniel 16:50, 1018j/k: "steht: 0 Mauerkacheln, 23-24 Gruben" - der Stein kam spaeter, die Seiten blieben
+        # Gruben): eine Grube auf einer Seite ist nur Behelf - die Seite fehlt, bis ihre Mauer steht
+        fehlen = {name: [k for k in ks if not steht.get(k)] for name, _, _, ks in s}
         self.fehlt = sum(len(v) for v in fehlen.values())
         ev = self._gruben(t, stein, holz, gruben, steht) if self.setze_grube else []
         if self.fehlt == 0:
@@ -110,10 +125,28 @@ class Kornring:
             return ev
         self.fertig_gemeldet = False
         rest, warten = stein, []
+        # die dem Gegner naechste Seite zuerst (dort kommen die Angreifer her)
+        if self.feind:
+            s = sorted(s, key=lambda sd: min(max(abs(k[0] - self.feind[0]), abs(k[1] - self.feind[1])) for k in sd[3]))
         for name, a, b, ks in s:
             offen = fehlen[name]
             if not offen:
                 self.versucht.pop(name, None)
+                continue
+            belegt = [k for k in offen if k in gruben]
+            if belegt:
+                # das Spiel lehnt Mauern auf Gebaeuden ab: erst die Behelfsgruben dieser Seite abreissen, sobald der Stein
+                # die ganzen offenen Kacheln der Seite bezahlt - die Mauer folgt bei der naechsten Pruefung
+                if self.abreisse is None or not bezahlbar(rest, len(offen)):
+                    warten.append(name)
+                    continue
+                for k in belegt:
+                    if nummer.get(k) is not None:
+                        self.abreisse(nummer[k])
+                self.stein_kam = True
+                rest -= (len(offen) * VIERTEL_JE_KACHEL + 3) // 4       # dieser Stein gehoert jetzt der Seite
+                ev.append("KORNRING Seite %s: %d Behelfsgruben abgerissen %s, Mauer folgt (%d Stein da)" % (
+                    name, len(belegt), belegt, stein))
                 continue
             if self.versucht.get(name, 0) == 0 and len(offen) == len(ks):
                 # ganze Seite in einem Befehl (wie ein Mensch zieht)
@@ -123,6 +156,7 @@ class Kornring:
                 self.setze(a[0], a[1], b[0], b[1], len(ks))
                 self.versucht[name] = 1
                 self.gesendet += 1
+                self.stein_kam = True
                 rest -= (len(ks) * VIERTEL_JE_KACHEL + 3) // 4
                 ev.append("KORNRING Seite %s gesendet (%d Kacheln, %s-%s)" % (name, len(ks), a, b))
             else:
@@ -147,7 +181,7 @@ class Kornring:
         """Reihenfolge der Felder, die eine Grube bekommen sollen: die 4 Ecken, der Eingang im Burggraben, dann - nur wenn der Stein nicht einmal
         fuer eine Mauerkachel reicht - die freien Seitenfelder, die dem Gegner naechsten zuerst."""
         ziele = list(ecken(*self.ort)) + [k for k in self.tor if k not in ecken(*self.ort)]
-        if not bezahlbar(stein, 1):
+        if not bezahlbar(stein, 1) and not self.stein_kam:
             seite = [k for _, _, _, ks in seiten(*self.ort) for k in ks if not steht.get(k)]
             if self.feind:
                 seite.sort(key=lambda k: max(abs(k[0] - self.feind[0]), abs(k[1] - self.feind[1])))

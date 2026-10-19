@@ -2385,7 +2385,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     import kornring as KR
                     feind_k = next(((e["x"], e["y"]) for e in L.values() if e["typ"] == 55 and e["besitzer"] not in (0, SP)), None)
                     korn = KR.Kornring(min(eig_k, key=lambda q: abs(q[0] - plan["kornspeicher"][0]) + abs(q[1] - plan["kornspeicher"][1])),
-                                       lies_mauer, setze_mauer, setze_grube=setze_grube if GRUBEN else None, feind=feind_k)
+                                       lies_mauer, setze_mauer, setze_grube=setze_grube if GRUBEN else None, feind=feind_k,
+                                       # 19.10. (Daniel 16:50): Behelfsgruben auf den Seiten weichen der Mauer, sobald Stein da ist
+                                       abreisse=lambda nr: befehl({"abreissen": {"nr": nr}}, 0.8, bis="ABREISSEN"))
                     box_k = KR.kasten(*korn.ort)
                     if GRABEN:
                         graben = KR.Graben(korn.ort, feind_k, lies_logik, plane_graben, schicke_graeber)
@@ -2397,7 +2399,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         korn.ort, box_k, ("; Burggraben %d Felder, Eingang %s" % (len(graben.soll), graben.tor)) if graben else ""))
             if korn is not None:
                 ereignis += korn.schritt(st["t"], st.get("stein", 0), holz=st.get("holz", 0),
-                                         gruben=[(g["x"], g["y"]) for g in G.values() if g["besitzer"] == SP and g["typ"] == 67])
+                                         gruben={(g["x"], g["y"]): n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 67})
             if graben is not None:
                 ereignis += graben.schritt(st["t"], L, SP, ausgenommen=ausgenommen_w | reserve_w)
             if FALLEN:

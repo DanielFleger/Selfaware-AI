@@ -11,7 +11,7 @@ Vorher festgelegt (Totschlagtest):
   3. Mit Grube: dieselbe Strecke in der Reihe von P -> gemessen: Leben vorher/nachher, tot ja/nein, steht die Grube danach noch
   4. Eine eigene Assassine des Besitzers laeuft ueber dieselbe Grube (falls sie noch steht, sonst eine zweite) -> Leben gleich
 Widerlegt ist "Grube toetet Assassinen", wenn in 3 das Leben nicht sinkt oder sie mit mehr als der Haelfte durchkommt.
-Aufruf (Spiel laeuft, Lenker aus): SHC_INSTANZ=4 python werkzeug/grube_pruefen.py [besitzer=2] [grube=x,y]"""
+Aufruf (Spiel laeuft, Lenker aus): SHC_INSTANZ=4 python werkzeug/grube_pruefen.py [besitzer=2] [grube=x,y] [abriss=ja]"""
 import os
 import sys
 import time
@@ -113,6 +113,25 @@ def main():
     if not gr:
         K.sende({"befehle": [{"player": 1, "id": K.neue_id(), "pause": True}]}, 1.0)
         return 1
+    if arg.get("abriss") == "ja":
+        # 19.10. (Kornring-Umbau, Daniel 16:50): eine Behelfsgrube abreissen, damit die Mauer kommt. Vorher festgelegt:
+        # 5. Modulbefehl abreissen (Spielbefehl 29) auf die Grube -> 200 Ticks spaeter steht dort keine Grube, Holz +2
+        #    (die Haelfte von 4, abgerundet - Abreissen.md A1/A2). Widerlegt, wenn die Grube danach noch steht.
+        from steuerkarte import tick
+        h1 = holz(besitzer)
+        z = K.sende({"befehle": [{"player": besitzer, "id": K.neue_id(), "abreissen": {"nr": gr[0]}}]}, 2.0, bis="ABREISSEN")
+        t0 = tick() or 0
+        ende = time.time() + 20
+        while time.time() < ende and (tick() or 0) < t0 + 200:
+            time.sleep(0.5)
+        G = gebaeude()
+        noch = [n for n, g in G.items() if g["typ"] == GRUBE_TYP and (g["x"], g["y"]) == p]
+        pruefe(5, "abgerissen: Grube danach %s, Holz %d -> %d (erwartet +2), Modul: %s" % (
+            "steht" if noch else "weg", h1, holz(besitzer), [l for l in z if "ABREISSEN" in l][-1:]),
+               not noch and holz(besitzer) - h1 == 2)
+        K.sende({"befehle": [{"player": 1, "id": K.neue_id(), "pause": True}]}, 1.0)
+        print("%d von %d gruen" % (sum(ok), len(ok)))
+        return 0 if all(ok) else 1
     # 3 feindliche Assassine ueber die Grube
     a1 = setze(feind, ASSASSINE, x0, y)
     time.sleep(0.5)
