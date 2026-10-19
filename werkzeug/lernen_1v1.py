@@ -8,10 +8,12 @@ Position, bis alle durch sind, dann andere Map"):
   1. Position = naechste aus POSITIONEN (reihum).
   2. Ein Knopf anders als in der besten Strategie (der Knopfwert mit den wenigsten Vergleichen zuerst).
   3. Zwei Laeufe auf DERSELBEN Position bis BIS_TICK: A = beste Strategie, B = mit dem geaenderten Knopf.
-  4. Wert je Lauf (GEMESSEN aus dem Lageprotokoll): Gold-Einnahmen der ganzen Partie (Summe aller Gold-Zuwaechse
+  4. Wert je Lauf (GEMESSEN aus dem Lageprotokoll; Metrik 2 ab 20.10. 00:05 mit Truppenwert): Gold-Einnahmen der ganzen
+     Partie (Summe aller Gold-Zuwaechse
      zwischen zwei Lagezeilen) + Verkaufswert des Lagers am Ende (Preise aus der Balance-Datei der Instanz, je Stueck =
      Los-Preis / 5; Holz 0,25 je Stueck - gemessen 19.10., 400 Holz brachten ~80-100 Gold). Das ist das Gold, das fuer
-     Truppen da war oder da waere (B-120).
+     Truppen da war oder da waere (B-120) + Truppenwert der lebenden eigenen Kampfeinheiten am Ende (Anwerbegold + Waffen
+     zum Verkaufspreis) - sonst waere eigene Waffenproduktion gegen Verkauf + Soeldner (B-128) nicht vergleichbar.
   5. Unterschied B gegen A in Prozent je Knopfwert sammeln. Uebernommen wird ein Knopfwert, sobald er in mindestens
      UEBERNAHME_N Vergleichen IMMER besser war (keine Niederlage) - dann ist er Teil der besten Strategie.
 Alles nach daten/lernen_1v1.jsonl (je Lauf) und daten/lernen_1v1_wissen.json (beste Strategie, Wirkung je Knopfwert).
@@ -47,7 +49,18 @@ KNOEPFE = {
     "kausal_horizont": [16000, 10000, 24000],  # B-123
     "holzfaeller_je_baum": [4, 2, 1],
     "holz_spam": [20, 10, 0],
+    "produktion": ["ja", "nein"],              # B-128: eigene Waffenkette ODER (Daniels Weg) Stein/Eisen verkaufen + Soeldner
 }
+METRIK = 2     # 2 = Einnahmen + Lagerwert + Truppenwert (ab 20.10. 00:05); Vergleiche anderer Metrik zaehlen nicht
+# Truppenwert je lebender eigener Kampfeinheit am Ende: Anwerbegold (Balance units.goldCost) + Waffen zum Verkaufspreis
+# (Balance resources sell / 5 je Stueck); fuer Einheiten ohne goldCost der Spielwert (Sklave 5 gemessen, Schleuder 12 Vanilla)
+EINHEIT = {22: ("European archer", ["Bow"]), 23: ("European crossbowman", ["Xbow", "Leather"]),
+           24: ("European spearman", ["Spear"]), 25: ("European pikeman", ["Armor"]),
+           26: ("European maceman", ["Mace", "Leather"]), 27: ("European swordsman", ["Sword", "Armor"]),
+           28: ("European knight", ["Sword", "Armor"]), 70: ("Arabian archer", []), 71: ("Arabian slave", []),
+           72: ("Arabian slinger", []), 73: ("Arabian assassin", []), 74: ("Arabian horse archer", []),
+           75: ("Arabian swordsman", []), 76: ("Arabian firethrower", [])}
+OHNE_GOLDCOST = {71: 5, 72: 12}
 UEBERNAHME_N = 2
 BIS_TICK = 15000
 TEMPO = 100
@@ -73,19 +86,36 @@ def preise():
         if sell:
             p[ware] = float(sell) / 5.0
     p["holz"] = HOLZ_JE_STUECK
+    tw = {}
+    for typ, (name, waffen) in EINHEIT.items():
+        g = (B["units"].get(name) or {}).get("goldCost", OHNE_GOLDCOST.get(typ, 0))
+        for w in waffen:
+            r = B["resources"].get(w) or {}
+            g += float(r.get("sell", r.get("buy", 0) / 2.0)) / 5.0
+        tw[typ] = round(g, 1)
+    p["_truppen"] = tw
     return p
 
 
-def wert(lage, P):
-    einnahmen, letzte, vor = 0, None, None
+def wert(lage, P, sp=1):
+    einnahmen, letzte, vor, zeile = 0, None, None, None
     for z in gzip.open(lage, "rt", encoding="utf-8"):
-        st = json.loads(z)["st"]
+        zeile = json.loads(z)
+        st = zeile["st"]
         if vor is not None and st.get("gold", 0) > vor:
             einnahmen += st["gold"] - vor
         vor, letzte = st.get("gold", 0), st
-    lager = sum(letzte.get(w, 0) * p for w, p in P.items())
-    return {"einnahmen": einnahmen, "lager_wert": round(lager, 1), "wert": round(einnahmen + lager, 1), "tick": letzte.get("t"),
-            "leute": letzte.get("leute"), "lager": {w: letzte.get(w, 0) for w in P if letzte.get(w, 0)}}
+    waren = {w: p for w, p in P.items() if not w.startswith("_")}
+    lager = sum(letzte.get(w, 0) * p for w, p in waren.items())
+    truppen = {}
+    for e in zeile["einheiten"].split("\n")[2:]:
+        w = e.split()
+        if len(w) >= 6 and int(w[1]) == sp and int(w[2]) in P["_truppen"] and int(w[5]) > 0:
+            truppen[int(w[2])] = truppen.get(int(w[2]), 0) + 1
+    tw = sum(P["_truppen"][k] * n for k, n in truppen.items())
+    return {"metrik": METRIK, "einnahmen": einnahmen, "lager_wert": round(lager, 1), "truppen_wert": round(tw, 1),
+            "wert": round(einnahmen + lager + tw, 1), "tick": letzte.get("t"), "leute": letzte.get("leute"),
+            "lager": {w: letzte.get(w, 0) for w in waren if letzte.get(w, 0)}, "truppen": truppen}
 
 
 def lauf(strategie, pos, nr, rolle, P):
@@ -135,7 +165,8 @@ def naechster_knopf(beste, vergleiche):
         jetzt = beste.get(k, werte[0])
         for v in werte:
             if v != jetzt:
-                kand.append((len(vergleiche.get("%s=%s" % (k, v), [])), list(KNOEPFE).index(k), k, v))
+                n = sum(1 for x in vergleiche.get("%s=%s" % (k, v), []) if x.get("metrik") == METRIK)
+                kand.append((n, list(KNOEPFE).index(k), k, v))
     kand.sort()
     return (kand[0][2], kand[0][3]) if kand else (None, None)
 
@@ -183,11 +214,11 @@ def main():
             continue
         diff = 100.0 * (b["wert"] - a["wert"]) / max(1.0, a["wert"])
         schl = "%s=%s" % (k, v)
-        vergleiche.setdefault(schl, []).append({"nr": nr, "position": "%s %s" % pos, "a": a["wert"], "b": b["wert"],
+        vergleiche.setdefault(schl, []).append({"nr": nr, "metrik": METRIK, "position": "%s %s" % pos, "a": a["wert"], "b": b["wert"],
                                                 "diff_prozent": round(diff, 1)})
-        print("  A %.0f (Einnahmen %d, Lager %s) | B %.0f (Einnahmen %d, Lager %s) -> %+.1f %%" % (
-            a["wert"], a["einnahmen"], a["lager"], b["wert"], b["einnahmen"], b["lager"], diff), flush=True)
-        vg = vergleiche[schl]
+        print("  A %.0f (Einnahmen %d, Lager %s, Truppen %s) | B %.0f (Einnahmen %d, Lager %s, Truppen %s) -> %+.1f %%" % (
+            a["wert"], a["einnahmen"], a["lager"], a["truppen"], b["wert"], b["einnahmen"], b["lager"], b["truppen"], diff), flush=True)
+        vg = [x for x in vergleiche[schl] if x.get("metrik") == METRIK]
         if len(vg) >= UEBERNAHME_N and all(x["diff_prozent"] > 0 for x in vg):
             beste = variante
             print("  UEBERNOMMEN: %s - in %d Vergleichen immer besser (%s)" % (schl, len(vg), [x["diff_prozent"] for x in vg]), flush=True)
