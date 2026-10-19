@@ -90,3 +90,33 @@ def abwehr(L, sp, feinde, kandidaten, vorrang=()):
     sie = [einheit(L[n], nr=n) for n in feinde if n in L]
     # sie kommen zum Lord - einholen muss sie niemand (ziel_steht)
     return zuweisung.kleinste_gruppe(kand, sie, fest=fest, ziel_steht=True, vorrang=set(vorrang))
+
+
+# 19.10. 19:02 FEUER (1018q/r/s gemessen: Feuer neben dem Lord kostete ihn 20.750-51.000 Leben; Gegenprobe 1018s: ohne Brand bis
+# 6 Felder 0 von 290 Proben mit Verlust, mit Brand 5 von 11): verliert der Lord Leben ohne Angreifer und brennt ein Gebaeude bis
+# BRAND_R Felder, geht er FLUCHT_FELDER weg - in die Richtung (8 Richtungen), die am weitesten von jedem Brand ist und auf
+# keinem Gebaeudefeld endet; ist BRAND_FREI_RUNDEN Runden kein Brand mehr bis BRAND_R um seinen alten Platz, geht er zurueck.
+# Daniels Regel "der Lord weicht nicht vor einem Heer" (12.10.) bleibt unberuehrt - das hier ist nur Feuer.
+BRAND_R = 6
+FLUCHT_FELDER = 8
+BRAND_FREI_RUNDEN = 10
+
+
+def fluchtpunkt(lord, braende, belegt=()):
+    """lord (x, y); braende [(x, y)] brennender Gebaeude; belegt: Felder mit Gebaeuden. Gibt den Punkt FLUCHT_FELDER weit
+    (8 Richtungen), dessen naechster Brand am weitesten weg ist; None ohne Brand."""
+    if not braende:
+        return None
+    belegt = set(belegt)
+    beste = None
+    for dx in (-1, 0, 1):
+        for dy in (-1, 0, 1):
+            if dx == 0 and dy == 0:
+                continue
+            p = (lord[0] + dx * FLUCHT_FELDER, lord[1] + dy * FLUCHT_FELDER)
+            if p in belegt or p[0] < 1 or p[1] < 1:
+                continue
+            d = min(schach(p, b) for b in braende)
+            if beste is None or d > beste[0]:
+                beste = (d, p)
+    return beste[1] if beste else None

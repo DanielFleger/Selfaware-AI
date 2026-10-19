@@ -443,6 +443,7 @@ def haus_noetig(l, b):
 
 RESERVIERT = []      # 07.10. (Lauf 29): B-Plantagen-Flaechen (x0, y0, x1, y1 einschliesslich, Anker) - kein anderer Bau darf hinein
 BUCH = None          # Auftragsbuch (phase2): jeder Bau wird vorher gegen den Bestand geprueft und danach bestaetigt
+LORD_FEUER = True    # 19.10. 19:05 Lord geht dem Feuer aus dem Weg (lordwache.fluchtpunkt); Schalter lord_feuer=nein = alter Stand
 GZ = None            # 19.10. Gefahrenzonen (gefahrenzone.py, phase2): kein neuer Betrieb, wo gerade ein eigenes Gebaeude fiel
 _KOSTEN_SPIEL = {}
 
@@ -3085,13 +3086,38 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             if vorher_m and le_m["leben"] < vorher_m and not angreifer_m:
                                 nah_m = [(n, g["typ"], g["x"], g["y"]) for n, g in G.items()
                                          if max(abs(g["x"] - le_m["x"]), abs(g["y"] - le_m["y"])) <= 6]
-                                brand_m = []
+                                brand_m, brand_orte = [], []
                                 for n, typ_m, gx_m, gy_m in nah_m[:12]:
                                     f_m = peek(0xF98520 + n * 0x32C + 0x14 + 702)[0] & 0xFFFF
                                     if f_m:
                                         brand_m.append("%d Typ %d (%d,%d) Brand %d" % (n, typ_m, gx_m, gy_m, f_m))
+                                        brand_orte.append((gx_m, gy_m))
                                 ereignis.append("LORD-VERLUST ohne Angreifer: %d -> %d bei (%d,%d); Gebaeude bis 6 Felder %d, brennend: %s" % (
                                     vorher_m, le_m["leben"], le_m["x"], le_m["y"], len(nah_m), "; ".join(brand_m) or "keines"))
+                                # 19.10. 19:05 FEUER-FLUCHT (lordwache.fluchtpunkt; 1018q/r/s gemessen, Gegenprobe 1018s): weg vom Brand
+                                if brand_orte and LORD_FEUER:
+                                    import lordwache as LWf
+                                    ziel_f = LWf.fluchtpunkt((le_m["x"], le_m["y"]), brand_orte,
+                                                             belegt=[(g["x"], g["y"]) for g in G.values()])
+                                    if ziel_f:
+                                        befehl({"halten": {"nr": [ln_m], "x": ziel_f[0], "y": ziel_f[1]}}, 1.0, bis="HALTEN")
+                                        fruehpruefung.setdefault("lord_feuer", ((le_m["x"], le_m["y"]), runde))
+                                        fruehpruefung["lord_feuer_frei"] = runde
+                                        ereignis.append("LORD-FEUER-FLUCHT nach %s (Braende %s)" % (ziel_f, brand_orte))
+                            # zurueck an den alten Platz, wenn dort BRAND_FREI_RUNDEN Runden lang (Probe alle 3) nichts mehr brennt
+                            lf = fruehpruefung.get("lord_feuer")
+                            if lf and LORD_FEUER and runde % 3 == 0:
+                                import lordwache as LWf
+                                brennt_f = any((peek(0xF98520 + n * 0x32C + 0x14 + 702)[0] & 0xFFFF)
+                                               for n, g in G.items()
+                                               if max(abs(g["x"] - lf[0][0]), abs(g["y"] - lf[0][1])) <= LWf.BRAND_R)
+                                if brennt_f:
+                                    fruehpruefung["lord_feuer_frei"] = runde
+                                elif runde - fruehpruefung.get("lord_feuer_frei", runde) >= LWf.BRAND_FREI_RUNDEN:
+                                    befehl({"halten": {"los": [ln_m]}}, 1.0, bis="HALTEN")
+                                    ereignis.append("LORD-FEUER vorbei: Lord frei (alter Platz %s seit %d Runden ohne Brand)" % (
+                                        lf[0], runde - fruehpruefung["lord_feuer_frei"]))
+                                    fruehpruefung.pop("lord_feuer", None)
                     except Exception as ex_m:
                         ereignis.append("LORD-VERLUST-MESSUNG FEHLER %r" % (ex_m,))
                     try:
@@ -3422,6 +3448,7 @@ def main():
     PENNER = int(arg.get("penner", 20))
     KASSE_STUFE = int(arg.get("kasse_stufe", 11))
     SCHUB = False if arg.get("schub", "nein") == "nein" else arg["schub"]    # "ja" = ein Schub, "immer" = einer nach dem anderen
+    global LORD_FEUER
     global HAUSHALT_RAND, WACHSTUM_BODEN, GUTE_DINGE, RATIONEN, REGEL50, NAHRUNG_AUSBAU, STOPP_TOTE, PRODUKTION, PRODUKTION_FENSTER, BIER
     global STUFEN, ZWISCHENZIEL, STUFE2_BELIEBT, ANGRIFF_AB, LIGA_GEFECHT, GEGNER_ERWARTET
     GEGNER_ERWARTET = arg.get("gegner_erwartet", "")
@@ -3449,6 +3476,7 @@ def main():
     RATIONEN = arg.get("rationen", RATIONEN)
     REGEL50 = arg.get("regel50", "nein") == "ja"
     STOPP_TOTE = int(arg.get("stopp_tote", 0))
+    LORD_FEUER = arg.get("lord_feuer", "ja") != "nein"     # 19.10. 19:05 Feuer-Flucht des Lords
     PRODUKTION = arg.get("produktion", "nein") == "ja"
     BIER = arg.get("bier", "nein") == "ja"
     PRODUKTION_FENSTER = int(arg.get("produktion_fenster", PRODUKTION_FENSTER))
