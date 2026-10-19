@@ -28,7 +28,7 @@ fix the original connector. Read [BACKLOG.md](BACKLOG.md) before live work.
 This organization work starts from upstream `58a0d50`, which already includes
 the opening optimization (`813a98b`) and the separate
 [Audit_Sharky.html](research/Audit_Sharky.html). Those upstream changes are preserved.
-Latest upstream through `9a9ed54` is merged, including the active backlog tool,
+Latest upstream through `f8c3232` is merged, including the active backlog tool,
 B-114 command/player research in [Spielkarte.md](research/Spielkarte.md), and
 Ghidra captures. The path manifest uses that updated source baseline. The earlier
 source audit in `audit/` remains pinned to its `7b994b7` baseline.

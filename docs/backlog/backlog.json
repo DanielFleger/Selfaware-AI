@@ -2222,14 +2222,18 @@
    "seit": "2026-10-19",
    "herkunft": "Krari ueber Daniel 19.10. 21:52",
    "gebaut": null,
-   "commits": [],
+   "commits": [
+    "240bc46"
+   ],
    "wo": [
     "docs/research/Spielkarte.md",
+    "src/selfaware/tools/analysis/spielkarte_felder.py",
+    "data/research/spielkarte_felder.txt",
     "docs/research/Spielkarte.md",
     "docs/BACKLOG.md"
    ],
    "belege": [],
-   "notiz": "Vorhanden: Ghidra-Projekt OpenSHC-ref (4.765 benannte Funktionen), VillageStudio doku/ghidra | Spielkarte.md angelegt, Abschnitt 1 (Befehle) fertig; offen: Spielerdaten, Einheiten/Gebaeude, Karte, Takt | DATA-01: preserve and investigate the mixed-tick sample at data/research/lage_20261018_162313_i1.jsonl.gz:37; docs/BACKLOG.md.",
+   "notiz": "Vorhanden: Ghidra-Projekt OpenSHC-ref (4.765 benannte Funktionen), VillageStudio doku/ghidra | Spielkarte.md angelegt, Abschnitt 1 (Befehle) fertig; offen: Spielerdaten, Einheiten/Gebaeude, Karte, Takt | Abschnitt 2 fertig: Einheiten, Gebaeude, Spielerdaten, Zeit - alle gelesenen Felder benannt und bestaetigt; offen: Karte, Takt | DATA-01: preserve and investigate the mixed-tick sample at data/research/lage_20261018_162313_i1.jsonl.gz:37; docs/BACKLOG.md.",
    "verlauf": [
     {
      "zeit": "2026-10-19 21:58",
@@ -2242,6 +2246,10 @@
     {
      "zeit": "2026-10-19 22:07",
      "was": "offen -> in Arbeit: Spielkarte.md angelegt, Abschnitt 1 (Befehle) fertig; offen: Spielerdaten, Einheiten/Gebaeude, Karte, Takt"
+    },
+    {
+     "zeit": "2026-10-19 22:29",
+     "was": "in Arbeit -> in Arbeit (Commit 240bc46): Abschnitt 2 fertig: Einheiten, Gebaeude, Spielerdaten, Zeit - alle gelesenen Felder benannt und bestaetigt; offen: Karte, Takt"
     },
     {
      "zeit": "2026-10-19 22:27",
@@ -2417,7 +2425,7 @@
     "docs/BACKLOG.md"
    ],
    "belege": [],
-   "notiz": "heute: A, C, E rot; G fehlt; B, D, F, H, I gelb; J gruen | SCALE-01: scheduling, telemetry and learning validation criteria; docs/BACKLOG.md. | LIVE-01/LIVE-02: remaining audited transport/guard criteria in docs/BACKLOG.md. B-94 native player isolation is now implemented upstream and remains built.",
+   "notiz": "heute: A, C, E rot; G fehlt; B, D, F, H, I gelb; J gruen | LIVE-01/LIVE-02: remaining audited transport/guard criteria in docs/BACKLOG.md. B-94 native player isolation is now implemented upstream and remains built.",
    "verlauf": [
     {
      "zeit": "2026-10-19 21:58",
@@ -2816,6 +2824,27 @@
     }
    ],
    "rang": 5
+  },
+  {
+   "nr": "B-116",
+   "titel": "Selbst starten: Desktop-Verknuepfung 'Stronghold SamurAI (Instanz 4)' mit --ucp-no-security",
+   "bereich": "SamurAI",
+   "status": "gebaut",
+   "seit": "2026-10-19",
+   "herkunft": "Daniel 19.10. 22:31 (FATAL: villagestudio-0.1.0 ist ein Ordner, kein Zip - sicherer Modus)",
+   "gebaut": "2026-10-19",
+   "commits": [],
+   "wo": [
+    "C:/Users/danie/Desktop/Stronghold SamurAI (Instanz 4).lnk"
+   ],
+   "belege": [],
+   "notiz": "Ohne --ucp-no-security laedt UCP3 nur signierte Zip-Module; unser Modul ist ein Ordner. spiel_starten.ps1 gibt den Schalter mit, ein Start ueber Steam/exe nicht.",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 22:32",
+     "was": "angelegt (gebaut)"
+    }
+   ]
   }
  ]
 }

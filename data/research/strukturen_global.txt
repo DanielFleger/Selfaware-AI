@@ -1,0 +1,1293 @@
+### GameCore  Groesse 9088  /_HoldStrong/Game
+   +0x00000      4  DirectDrawStatusInt                directDrawStatus                         
+   +0x00004      4  int                                menuSwitchDelay                          Unsigned Double-Word (ddw, 4-bytes)
+   +0x00008      4  dword                              menuRenderMoment                         Unsigned Double-Word (ddw, 4-bytes)
+   +0x0000C      4  MenuViewTypeInt                    currentMenuViewType                      Unsigned Double-Word (ddw, 4-bytes)
+   +0x00010      4  ActiveMenuTab                      activeMenuTab                            Unsigned Double-Word (ddw, 4-bytes)
+   +0x00014      4  dword                              unknownAlwaysZero01                      
+   +0x00018      4  MenuViewTypeInt                    menuViewToSwitchTo                       Unsigned Double-Word (ddw, 4-bytes)
+   +0x0001C      4  ActiveMenuTab                      menuTabToSwitchTo                        Unsigned Double-Word (ddw, 4-bytes)
+   +0x00020      4  dword                              field8_0x20                              
+   +0x00024      4  ActiveMenuTab                      buildmenuMenuTabToSwitchTo               Unsigned Double-Word (ddw, 4-bytes)
+   +0x00028      4  dword                              buildingandstatusmenuMenuTabToSwitchTo   Unsigned Double-Word (ddw, 4-bytes)
+   +0x0002C      4  dword                              landscapingmenuMenuTabToSwitchTo         Unsigned Double-Word (ddw, 4-bytes)
+   +0x00030      4  dword                              field12_0x30                             
+   +0x00034      4  ActiveMenuTab                      secondaryActiveMenuTabToSwitchTo         Unsigned Double-Word (ddw, 4-bytes)
+   +0x00038      4  BuildMenuTabTypeShort              tabTypeSiegeSubset                       
+   +0x0003C      4  dword                              historicCampaignNumber                   Unsigned Double-Word (ddw, 4-bytes)
+   +0x00040      4  int                                missionNumber1to20                       Unsigned Double-Word (ddw, 4-bytes)
+   +0x00044      4  int                                progressCallToArms                       
+   +0x00048      4  int                                progressSaladinsConquest                 Unsigned Double-Word (ddw, 4-bytes)
+   +0x0004C      4  int                                progressTheKingsCrusade                  Unsigned Double-Word (ddw, 4-bytes)
+   +0x00050      4  int                                progressCrusaderStates                   Unsigned Double-Word (ddw, 4-bytes)
+   +0x00054      4  dword                              furthestMission                          Unsigned Double-Word (ddw, 4-bytes)
+   +0x00058      4  dword                              unlockAllHistoricalCampaigns             Unsigned Double-Word (ddw, 4-bytes)
+   +0x0005C      4  dword                              unused1                                  
+   +0x00060      4  dword                              section1066                              
+   +0x00064      4  dword                              field25_0x64                             
+   +0x00068      4  GameMode2Int                       gameMode_2                               Unsigned Double-Word (ddw, 4-bytes)
+   +0x0006C      4  int                                field27_0x6c                             
+   +0x00070      4  dword                              specialMultiplayerState                  
+   +0x00074      4  dword                              field29_0x74                             
+   +0x00078      4  int                                mapU4Int1                                
+   +0x0007C      4  int                                mapU4Int1_2                              
+   +0x00080      4  dword                              field32_0x80                             
+   +0x00084      4  int                                battleLevel                              
+   +0x00088      4  dword                              cowPoisonTrackerUnk                      
+   +0x0008C      4  int                                someSoundMatchTime_1                     
+   +0x00090      4  dword                              field36_0x90                             
+   +0x00094      4  int                                battleLevel2                             
+   +0x00098      4  dword                              mapTimeInTicks                           
+   +0x0009C      4  dword                              section1127                              
+   +0x000A0      4  dword                              field40_0xa0                             
+   +0x000A4      4  BOOLEnum                           currentlyInGameUnk_0xa4                  
+   +0x000A8      4  dword                              gameSpeedMultiplicator                   
+   +0x000AC      4  dword                              performedGameTicksThisLoop               
+   +0x000B0      4  dword                              gameTicksThisLoop                        
+   +0x000B4      4  dword                              gameTicksLastLoop                        
+   +0x000B8      4  dword                              averageTimePerGameTick                   
+   +0x000BC      4  dword                              timeBeforeRunningGameTicksThisLoop       
+   +0x000C0      4  int                                countdown                                Unsigned Double-Word (ddw, 4-bytes)
+   +0x000C4      4  int                                uniqueGameObjectTracker                  
+   +0x000C8      4  dword                              gameSpeedLevel                           
+   +0x000CC      4  dword                              settingBubbleHelp                        
+   +0x000D0      4  BOOLEnum                           isTimeHalted                             
+   +0x000D4      4  dword                              section1076                              
+   +0x000D8      4  dword                              isTimeHalted2                            
+   +0x000DC      4  dword                              field55_0xdc                             
+   +0x000E0      4  int                                missionDifficulty                        
+   +0x000E4      4  int                                missionDifficulty2                       
+   +0x000E8      4  int                                missionDifficulty_2                      
+   +0x000EC      4  int                                missionDifficulty_3                      
+   +0x000F0      4  int                                missionDifficulty_1                      
+   +0x000F4      4  int                                missionDifficulty_0                      
+   +0x000F8      4  dword                              field62_0xf8                             
+   +0x000FC      4  BOOLEnum                           solitaryAllBuildingsAreFree              
+   +0x00100      4  int                                field64_0x100                            
+   +0x00104      4  dword                              field65_0x104                            
+   +0x00108      4  dword                              field66_0x108                            
+   +0x0010C      4  dword                              unknownAlwaysZero                        
+   +0x00110      4  dword                              unknownAlwaysZero02                      
+   +0x00114      4  int                                unknownAlwaysZero03                      
+   +0x00118      4  BOOLEnum                           unknownFlag_0x118                        
+   +0x0011C      4  DWORD                              unknownTime_0x11c                        
+   +0x00120      8  byte[8]                            unused_0x120                             
+   +0x00128      4  int                                scribeAnimationFrameCopy                 
+   +0x0012C      4  int                                taxesSettingUnk                          
+   +0x00130      4  BOOLEnum                           unknownScribeRelatedFlag_0x130           
+   +0x00134      4  int                                scribeAnimationFrame                     
+   +0x00138      4  int                                scribeAnimationFrame2                    
+   +0x0013C      4  int                                taxestimeUnk                             
+   +0x00140      4  byte[4]                            unused_0x140                             
+   +0x00144      4  int                                field80_0x144                            
+   +0x00148      4  int                                field81_0x148                            
+   +0x0014C      4  dword                              isBinkVideoPlaying                       
+   +0x00150      4  dword                              section1095                              
+   +0x00154      4  dword                              newPlayerID                              Unsigned Double-Word (ddw, 4-bytes)
+   +0x00158      4  dword                              hasMenuRenderedUnk                       
+   +0x0015C      4  dword                              field86_0x15c                            
+   +0x00160      4  int                                xbowProducible_logic                     Triggers UI element visibility
+   +0x00164      4  int                                pikeProducible_logic                     Triggers UI element visibility
+   +0x00168      4  int                                swordProducible_logic                    Triggers UI element visibility
+   +0x0016C      4  int                                bowProducible_logic                      Triggers UI element visibility
+   +0x00170      4  int                                spearProducible_logic                    Triggers UI element visibility
+   +0x00174      4  int                                maceProducible_logic                     Triggers UI element visibility
+   +0x00178   2024  byte[2024]                         unused_0x178                             
+   +0x00960      4  BOOLEnum                           cheatModeFlag                            
+   +0x00964      4  BOOLEnum                           solitaryAltUDungeon                      
+   +0x00968      4  dword                              descriptionUseStringTable                
+   +0x0096C      4  dword                              descriptionStringTableIndex              
+   +0x00970   1000  char[1000]                         temporaryTextBufferOfSize1000            
+   +0x00D58   1001  char[1001]                         standaloneFilename                       
+   +0x01141   1003  byte[1003]                         unused_0x1141                            
+   +0x0152C      4  int                                mapU4Int0                                
+   +0x01530      4  int                                mapU4Int0_2                              
+   +0x01534      4  dword                              U2_mapType_singleOrMulti                 
+   +0x01538      4  dword                              mapU2MiddleBytes                         
+   +0x0153C      4  dword                              field105_0x153c                          
+   +0x01540      4  dword                              field106_0x1540                          
+   +0x01544      4  dword                              field107_0x1544                          
+   +0x01548      4  dword                              field108_0x1548                          
+   +0x0154C      4  int                                mapU2PlayersCount                        
+   +0x01550      4  int                                mapU4Int3_balanced                       
+   +0x01554      4  int                                mapDescUseStringTable                    
+   +0x01558      4  int                                mapDescUseStringTableIndex               
+   +0x0155C   1000  char[1000]                         mapDescription                           
+   +0x01944   1004  byte[1004]                         unused_0x1944                            
+   +0x01D30      4  int                                mapType                                  
+   +0x01D34     20  int[5]                             sh1MapKeeps                              
+   +0x01D48      4  int                                mapPlayerCount                           
+   +0x01D4C     64  XYPair[8]                          keepPositions                            
+   +0x01D8C      4  int                                savedMapBalance                          
+   +0x01D90      4  MapLockStateInt                    U3_mapLockedState                        
+   +0x01D94      4  MapLockStateInt                    savedMapLocked                           
+   +0x01D98      4  dword                              field122_0x1d98                          
+   +0x01D9C      4  int                                mapU3EndInt                              
+   +0x01DA0      4  int                                savedMapEndInt2                          
+   +0x01DA4      4  int                                canBeginMainLoop                         
+   +0x01DA8      4  int                                twohundred                               
+   +0x01DAC      4  byte[4]                            unused_0x1dac                            
+   +0x01DB0      4  MenuItemActionHandler *            menuType7_MenuItemClickHandlerUnk        Unsigned Double-Word (ddw, 4-bytes)
+   +0x01DB4      4  int                                numOfAIsWithCastleUnk                    
+   +0x01DB8     64  int[16]                            arrayOfLordIdsWithAIVsUnk                
+   +0x01DF8      4  int                                furthestSkirmishTrailMission             
+   +0x01DFC    200  int[50]                            skirmishTrailMonthsTakenOrChicken        
+   +0x01EC4    200  int[50]                            skirmishTrailStartDateInMonths           Unsigned Double-Word (ddw, 4-bytes)
+   +0x01F8C      4  dword                              skirmishTrailYearReached                 Unsigned Double-Word (ddw, 4-bytes)
+   +0x01F90      4  dword                              skirmishTrailStartDateMonths             
+   +0x01F94      4  BOOLEnum                           isSkirmishTrail                          
+   +0x01F98      4  dword                              skirmishTrailProgress                    
+   +0x01F9C      4  TrailTypeInt                       currentTrailType                         
+   +0x01FA0      4  int                                furthestWarchestTrailMission             
+   +0x01FA4    200  int[50]                            warchestTrailMonthsTakenOrChicken        
+   +0x0206C    200  int[50]                            warchestTrailStartDatesInMonths          
+   +0x02134      4  dword                              warchestTrailYearReached                 Unsigned Double-Word (ddw, 4-bytes)
+   +0x02138      4  dword                              warchestTrailStartDateMonths             
+   +0x0213C      4  dword                              field144_0x213c                          
+   +0x02140      4  dword                              warchestTrailProgress                    
+   +0x02144      4  int                                furthestExtremeTrailMission              
+   +0x02148    200  int[50]                            extremeTrailMonthsTakenOrChicken         
+   +0x02210    200  int[50]                            extremeTrailStartDatesInMonths           
+   +0x022D8      4  dword                              extremeTrailYearReached                  Unsigned Double-Word (ddw, 4-bytes)
+   +0x022DC      4  dword                              extremeTrailStartDateMonths              
+   +0x022E0      4  dword                              field151_0x22e0                          
+   +0x022E4      4  int                                extremeTrailProgress                     
+   +0x022E8      4  int                                lordIconUnk                              
+   +0x022EC     36  int[9]                             lordIcons                                
+   +0x02310      4  byte[4]                            unused_0x2310                            
+   +0x02314      4  int                                selectedLordTypeUnk                      
+   +0x02318      4  int                                selectedLordType_2Unk                    
+   +0x0231C     36  int[9]                             selectedLordTypes                        
+   +0x02340      4  dword                              field159_0x2340                          
+   +0x02344      4  dword                              gamePausedLogical                        
+   +0x02348      4  int                                viewportFocusBeforeBarracksHotkey        
+   +0x0234C      4  int                                viewportFocusBeforeMercenaryHotkey       
+   +0x02350      4  int                                viewportFocusBeforeGranaryHotkey         
+   +0x02354      4  int                                viewportFocusBeforeMarketHotkey          
+   +0x02358      4  int                                viewportFocusBeforeKeepHotkey            
+   +0x0235C      4  int                                viewportFocusBeforeArmoryHotkey          
+   +0x02360      4  int                                viewportFocusBeforeEngineersGuildHotkey  
+   +0x02364      4  int                                field168_0x2364                          
+   +0x02368      4  BOOLEnum                           genieVoiceActive                         
+   +0x0236C      4  uint                               timeSum_2                                
+   +0x02370      4  dword                              gameDuration                             
+   +0x02374      1  byte                               tacticalPowersDisplayFlag                
+   +0x02375      1  byte                               unusedOption1                            
+   +0x02376      1  byte                               isVictoryOrDefeatUnk                     
+   +0x02377      1  byte                               skipStoreSKMasters                       
+   +0x02378      1  byte                               altRToggleMinimapHideWildlife            
+   +0x02379      3  byte[3]                            unused_0x2379                            
+   +0x0237C      4  dword                              forty                                    Unsigned Double-Word (ddw, 4-bytes)
+   -- globale Variablen dieses Typs:
+   01fe7d10  GameCore  DAT_GameCore
+
+### PlayerData  Groesse 14836  /_HoldStrong/Game/Player
+   +0x00004      4  int                                openOrCloseGateClick                     
+   +0x00010      4  ResourceTypeInt                    weaponRelated                            
+   +0x00014      4  int                                taxesSliderUI                            
+   +0x00018      4  int                                rationsSetting3                          
+   +0x0001C      4  int                                gateOpenOrCloseClick                     
+   +0x00020      4  int                                taxesSetting2                            
+   +0x00024      4  int                                rationsSetting2                          
+   +0x00028      4  ResourceTypeInt                    marketSelectedResourceType               
+   +0x0002C      4  int                                storageMarketFailState                   
+   +0x00030      4  int                                timeStorageMarketFailState               
+   +0x00034      4  int                                someCount47                              
+   +0x00038      4  int                                someCount45                              
+   +0x0003C      4  int                                textYOffset                              Created by retype action
+   +0x00040      2  short                              field25_0x40                             
+   +0x00042      2  short                              field26_0x42                             
+   +0x00044      4  int                                timeTaxesOrRationsChange                 
+   +0x00048      2  short                              releaseDogsFlag                          
+   +0x0004A      2  undefined2                         someCount32                              
+   +0x0004C      2  undefined2                         someCount33                              
+   +0x00050      4  dword                              lastTimeSFXNoPlaceInStockpile            
+   +0x00054      4  int                                marketGold                               Created by retype action
+   +0x00060      4  int                                popularity                               expressed in 100's
+   +0x00068      4  int                                countEconomyBuilding_fixme               confirm all buildings counted
+   +0x0006C      4  int                                vclock                                   peasantSpawnClock
+   +0x00070      4  int                                vclockIncrement                          
+   +0x00074      4  int                                populationCap                            
+   +0x00078      4  int                                currentPopulation_2                      
+   +0x00080      4  int                                crowding                                 if population cap is 0: 150, else (population*100)/cap
+   +0x00084      4  int                                countEntities                            
+   +0x00088      4  int                                availablePeasantsAtFire                  
+   +0x0008C      4  int                                availablePeasantsOrHousedPeasants        
+   +0x00090      4  int                                count                                    
+   +0x00094     40  BuildingEntryInfo                  keep                                     
+   +0x000BC     40  BuildingEntryInfo                  stockpile                                
+   +0x000E4     40  BuildingEntryInfo                  granary                                  
+   +0x0010C     40  BuildingEntryInfo                  armory                                   
+   +0x00134     40  BuildingEntryInfo                  unknown4                                 
+   +0x0015C     40  BuildingEntryInfo                  barracks                                 
+   +0x00184     40  BuildingEntryInfo                  unknown6                                 
+   +0x001AC     40  BuildingEntryInfo                  marketplace                              
+   +0x001D4     40  BuildingEntryInfo                  campground                               
+   +0x001FC     40  BuildingEntryInfo                  engineersGuild                           
+   +0x00224     40  BuildingEntryInfo                  tunnelersGuild                           
+   +0x0024C     40  BuildingEntryInfo                  mercenaryPost                            
+   +0x00274     40  BuildingEntryInfo                  oilSmelter                               
+   +0x003B4      4  int                                storedPopularityPercent                  popularity as percent * 100 to two decimals. increments of 25 possible
+   +0x003B8      4  int                                previousArmySize                         
+   +0x003BC      4  int                                currentSiegeWeaponCount                  most likely int. is likely used as accumulator - can oscillate 0 to x
+   +0x003C0      4  int                                previousSiegeWeaponsCount                most likely int. is stable total
+   +0x00444      4  int                                popularityAtWeekTick100                  range 0 - 100, delayed update potentially month end only
+   +0x00448      4  int                                currentGoldDelayed                       
+   +0x0044C      4  int                                counterTrackingPopGoldPopup              
+   +0x00450      4  int                                field490_0x450                           
+   +0x00454      4  int                                hasInitialResourceRecievingStarted       
+   +0x0045C      4  int                                unkWheatFarmOrientation                  
+   +0x00460      1  undefined1                         unkHopFarmVariation                      Created by retype action
+   +0x00468      4  int                                dairyFarmVariationMod4                   
+   +0x0046C    100  int[25]                            startResources                           
+   +0x004D0    100  int[25]                            currentResources                         
+   +0x00538      4  int                                someCount04                              
+   +0x0053C      4  int                                armySize                                 
+   +0x00558   1728  XYPairShort[6][72]                 barracksParadegroundLocations            
+   +0x00C18      4  int                                barracksParadegroundLocationsTotal       
+   +0x00C20    100  XYPairShort[25]                    engineersParadegroundLocations           Created by retype action
+   +0x00C84      4  int                                engineersParadegroundLocationsTotal      
+   +0x00C8C      4  undefined4                         someCount27                              
+   +0x00C90    100  XYPairShort[25]                    tunnelersGuildParadegroundLocations      
+   +0x00CF4      4  int                                tunnelersGuildParadegroundLocationsTotal 
+   +0x00CFC      4  undefined4                         someCount29                              
+   +0x00D00   5000  short[2500]                        enemyIDArray                             Created by retype action
+   +0x02088      4  int                                enemies                                  
+   +0x0208C      4  int                                breadCount                               
+   +0x02090      4  int                                cheeseCount                              
+   +0x02094      4  int                                meatCount                                
+   +0x02098      4  int                                appleCount                               
+   +0x0209C      4  int                                totalFood                                Created by retype action
+   +0x020A0      4  int                                foodTypesInStock                         Created by retype action
+   +0x020A4      4  int                                weeksWithoutFood                         Created by retype action
+   +0x020A8      4  int                                foodTypesCurrentlyEaten                  Created by retype action
+   +0x020AC      4  int                                foodTypeToBeEatenNext                    
+   +0x020B0      4  int                                foodClockSpeed                           
+   +0x020B4      4  int                                foodClock                                
+   +0x020B8      4  int                                currentArchers                           
+   +0x020BC      4  int                                currentCrossbowmen                       
+   +0x020C0      4  int                                currentSpearmen                          
+   +0x020C4      4  int                                currentPikemen                           
+   +0x020C8      4  int                                currentMacemen                           
+   +0x020CC      4  int                                currentSwordsmen                         
+   +0x020D0      4  int                                currentKnights                           
+   +0x020D4      4  int                                currentLaddermen                         
+   +0x020D8      4  int                                currentEngineers                         
+   +0x020DC      4  int                                currentTunnelers                         
+   +0x020E0      4  int                                countArabianArcher                       
+   +0x020E4      4  int                                countSlaves2                             
+   +0x020E8      4  int                                countSlingers2                           
+   +0x020EC      4  int                                countAssassins                           Created by retype action
+   +0x020F0      4  int                                countHorseArchers                        Created by retype action
+   +0x020F4      4  int                                countArabSwordsman                       
+   +0x020F8      4  int                                countFirethrowers                        Created by retype action
+   +0x02110      4  int                                popularityChangeAleBased                 Created by retype action
+   +0x02114      4  int                                popularityChangeBasedOnReligion          Created by retype action
+   +0x02118      4  int                                popularityChangeFearFactorBased          Created by retype action
+   +0x0211C      4  int                                fearFactorProductivityUnk                Created by retype action
+   +0x02124      4  int                                workingInnsCount                         Created by retype action
+   +0x02128      4  int                                aleRate                                  Created by retype action
+   +0x0212C      4  int                                badStuffCount                            
+   +0x02130      4  int                                goodStuffCount                           
+   +0x02134      4  int                                fearFactorLevel                          positive values are +1 bonuses, negative values are caused by bad things
+   +0x02138      4  int                                objectsLeftUntilNextLevel                
+   +0x02140      4  int                                lastMonthsBribeTax                       
+   +0x02144      4  int                                taxBribeMonthlyAccumulator               
+   +0x02148      4  int                                totalEnemyUnitsCount                     
+   +0x0214C      1  byte                               partialWoodCounter                       
+   +0x02150      1  byte                               partialStoneCounter                      Created by retype action
+   +0x02154      4  int                                lastMonthsIncomeTax                      
+   +0x02158      4  int                                taxIncomeMonthlyAccumulator              
+   +0x0215C      4  int                                popularityChangeBasedOnTax               Created by retype action
+   +0x02160      4  uint                               popularityChangeBasedOnFood              
+   +0x02164      4  int                                popularityChangeBasedOnCrowding          Created by retype action
+   +0x02168      4  int                                field642_0x2168                          
+   +0x0216C      4  uint                               someCount40                              
+   +0x02170      4  int                                someCount43                              
+   +0x02174      4  int                                field645_0x2174                          
+   +0x02178      4  int                                field646_0x2178                          
+   +0x0217C      4  int                                nonInteractiveCitizenCountUnk            
+   +0x02180      4  int                                currentPopulation                        
+   +0x02184      4  int                                populationRelatedCrowdingCountUnk        
+   +0x02188      4  int                                taxesSetting                             
+   +0x0218C      4  int                                rationsSetting                           range (0 = no rations to 4 = double rations)
+   +0x02190      4  int                                foodStorageLevel                         How many months of food are in the supply
+   +0x02194    100  bool[100]                          snoozedBuildings                         
+   +0x021F8      4  int                                lordID                                   
+   +0x021FC      4  int                                lordUID                                  
+   +0x02200      4  int                                ladyIDUnk                                
+   +0x02204      4  int                                someUnitIDSelfRef                        
+   +0x02208      4  int                                jesterIDUnk                              
+   +0x0220C      4  int                                someUnitIDSelfRef_2                      
+   +0x02210      4  int                                lordKilledByPlayerID                     
+   +0x02214      4  int                                playerRelatedFlag                        
+   +0x02218      2  short                              stoneGainedFraction                      
+   +0x0221A      2  short                              woodGainedFraction                       
+   +0x0221C      4  int                                chickenCount2                            
+   +0x02220      4  int                                childTargetIDUnk                         
+   +0x02224      4  int                                childUID                                 
+   +0x02228      4  BOOLEnum                           areCarnivalUnitsPresent                  
+   +0x0222C      4  int                                popularityChangeBasedOnFair              
+   +0x02230      4  int                                troopsLost                               
+   +0x02234      4  int                                troopsKilled                             
+   +0x02238      4  int                                blessedPeopleCountUnk                    
+   +0x0223C      4  int                                unblessedPeopleCountUnk                  
+   +0x02240      4  int                                blessedPeoplePercentage                  
+   +0x02244      4  int                                playerDeathRelated                       
+   +0x02248      2  short                              lastMonthsGold                           
+   +0x0224A      2  short                              beforeLastMonthsGold                     
+   +0x0224C      2  short                              foodStorageLevelLastMonth                
+   +0x0224E      2  short                              foodStorageLevelLastLastMonth            
+   +0x02250      2  short                              someCount44                              
+   +0x02252      2  short                              availableHorses                          
+   +0x02254      4  int                                someCount02                              
+   +0x02258      4  int                                someCount03                              
+   +0x0225C      8  short[4]                           freshUnitTribeIDs                        
+   +0x02264     16  int[4]                             freshUnitTribeUIDs                       
+   +0x02274      4  int                                aiControlStatusRelated                   
+   +0x02278      4  int                                counter                                  
+   +0x0227C      2  short                              pitchDitchCounterTo4                     
+   +0x0227E      2  short                              previousBlessedPeoplePercentage          
+   +0x02280      8  short[4]                           isFoodTypeBanned                         0 -> bread, 1 -> cheese, 2 -> meat, 3 -> apple; used as boolean, 0 = not banned
+   +0x02288      4  int                                religionVar1                             
+   +0x0228C      4  int                                ownsChurchUnk                            
+   +0x02290      4  int                                ownsCathedralUnk                         
+   +0x02294      4  int                                popularityReligionBasedDiv25             Created by retype action
+   +0x02298      4  int                                priestCountUnk                           
+   +0x0229C      4  int                                field695_0x229c                          
+   +0x022A0      4  int                                weightedLosses                           sum of (losses per unit type * unit weight)
+   +0x022A4      4  uint                               beerPercentage                           
+   +0x022A8      2  short                              pitchDitchTileCount                      
+   +0x022AA      2  short                              moatTileCount                            
+   +0x022AC      2  short                              someCount48                              
+   +0x022AE      2  short                              someCount49                              
+   +0x022B0      2  short                              someCount50                              
+   +0x022B2      2  short                              someCount51                              
+   +0x022B4      2  short                              someCount52                              
+   +0x022B6      2  short                              someCount53                              
+   +0x022B8      2  short                              someCount54                              
+   +0x022BA      2  short                              someCount55                              
+   +0x022BC      2  short                              someCount56                              
+   +0x022BE      2  short                              someCount57                              
+   +0x022C0      2  short                              someCount58                              
+   +0x022C2      2  short                              someCount59                              
+   +0x022C4      4  int                                someCount60                              
+   +0x022C8      4  int                                someUnitID01                             
+   +0x022CC      4  int                                field714_0x22cc                          
+   +0x022D0      4  int                                countInns                                
+   +0x022D4      4  int                                lastlastEncounteredEnemyPlayerID         
+   +0x022DC      4  int                                sumOfTotalEnemyUnitsCount                
+   +0x022E0     28  XYPairShort[7]                     barracksAssemblyPoints                   
+   +0x022FC      4  int                                aivID                                    
+   +0x02300      4  AITypeInt                          aiType                                   rat = 2, human = 0,  ? = 1
+   +0x02338   1728  UnknownPlayerDataStructure         structure                                
+   +0x029F8      4  int                                structureRelated1                        
+   +0x02A00     24  undefined4[6]                      rallySearchOffsetsUnk                    
+   +0x02A18      4  undefined4                         rallySearchOffset                        
+   +0x02A1C      4  undefined4                         someCount20                              
+   +0x02A20      4  undefined4                         someCount21                              
+   +0x02A24      4  undefined4                         someCount22                              
+   +0x02A28      4  int                                countArabianArchersRelated               
+   +0x02A2C      4  int                                countRelatedToHorseArchers               
+   +0x02A30      4  int                                countSlaves                              
+   +0x02A34      4  int                                countAssassinsAndArabianSwordsman        
+   +0x02A38      4  int                                countSlingers                            
+   +0x02A3C      4  int                                countFireThrowers                        
+   +0x02A40      4  undefined4                         someCount23                              
+   +0x02A44      4  undefined4                         someCount24                              
+   +0x02A48      4  undefined4                         someCount25                              
+   +0x02A4C      4  undefined4                         someCount26                              
+   +0x02A50      4  int                                hovelCountUpToEight                      
+   +0x02A54      4  int                                aiFarmIndex                              Created by retype action
+   +0x02A68      4  int                                hasMarketUnk                             
+   +0x02A6C      4  BOOLEnum                           willBuy                                  
+   +0x02A70     96  int[24]                            resourcesToAcquireArray                  actually this index is -1 if you compare it to ResourceType enum. So it should maybe start +4 later in the struct?
+   +0x02AD4      4  int                                highestLoadedQuarryUnk                   Created by retype action
+   +0x02AD8      4  BOOLEnum                           granaryIsAlmostFilledUp                  
+   +0x02ADC      4  undefined4                         isArmouryAlmostFilledUp                  
+   +0x02AE0      4  int                                resourceRebuildDelay                     Set to 1 if a building was destroyed for this player
+   +0x02AE4      4  int                                populationGrowthStatisticCounter         
+   +0x02AE8     32  int[8]                             populationGrowth                         
+   +0x02B08      4  int                                averagePopulationGrowthUnk               
+   +0x02B0C      4  int                                previousAvailablePeasants                
+   +0x02B14      4  int                                farmsWithoutWorkers                      
+   +0x02B18      4  int                                countWoodcutters                         
+   +0x02B1C      4  int                                noLabourerBuildingCount                  
+   +0x02B20      4  int                                someCount10                              
+   +0x02B24      4  int                                someCount11                              
+   +0x02B28      4  int                                noWoodTracker                            Created by retype action
+   +0x02B2C      4  int                                noIronTracker                            Created by retype action
+   +0x02B30      4  int                                noFlourTracker                           Created by retype action
+   +0x02B34      4  int                                noHopsTracker                            Created by retype action
+   +0x02B38      4  int                                someResourceCounter                      
+   +0x02B3C      4  int                                noBeerCounterUnk                         Created by retype action
+   +0x02B40      4  undefined4                         someCount12                              
+   +0x02B44      4  undefined4                         someCount13                              
+   +0x02B48      4  int                                aivNegativeFearFactorDelay               
+   +0x02B4C      4  int                                aivPositiveFearFactorDelay               
+   +0x02B50      4  int                                defWallPatrolRallyTimeWaitCounter        
+   +0x02B54      4  int                                defWallPatrolRallyTimeHits               
+   +0x02B58      4  int                                field852_0x2b58                          
+   +0x02B5C      4  int                                engineerCountRelated                     
+   +0x02B60      4  BOOLEnum                           isEngineerRequired                       
+   +0x02B64      4  int                                closestEnemyDistanceToTheLord            
+   +0x02B6C      4  int                                idlePeasantsCount                        
+   +0x02B70      4  int                                outerPatrolRallyDelayTracker             
+   +0x02B74      4  int                                aiStrengthState                          source: np123
+   +0x02B78      4  int                                raidRetargetDelayCounter                 Created by retype action
+   +0x02B7C      4  int                                someTile                                 
+   +0x02B80      4  int                                someX                                    Created by retype action
+   +0x02B84      4  int                                someY                                    Created by retype action
+   +0x02B88      4  int                                countFletchersPoleturners                Created by retype action
+   +0x02B8C      4  int                                countArmorersAndBlacksmiths              Created by retype action
+   +0x02B90      4  int                                countBakers                              Created by retype action
+   +0x02B94      4  int                                countBrewers                             Created by retype action
+   +0x02B98      4  int                                shortestDistanceTile                     
+   +0x02B9C      4  int                                shortestDistanceY                        
+   +0x02BA0      4  int                                shortestDistanceX                        
+   +0x02BA4      4  int                                aiPlayerState                            Created by retype action
+   +0x02BA8      4  int                                totalAttackingEngineerTroops             
+   +0x02BAC      4  int                                totalDiggingUnitTroops                   Created by retype action
+   +0x02BB0      4  int                                totalAssassinTroops                      Created by retype action
+   +0x02BB4      4  int                                totalUnit2Troops                         Created by retype action
+   +0x02BB8      4  int                                totalLaddermenTroops                     Created by retype action
+   +0x02BBC      4  int                                totalTunnelerTroops                      Created by retype action
+   +0x02BC0      4  int                                totalUnitPatrolTroops                    Created by retype action
+   +0x02BC4      4  int                                totalUnitBackupTroops                    Created by retype action
+   +0x02BC8      4  int                                totalUnitEngageTroops                    Created by retype action
+   +0x02BCC      4  int                                totalUnitSiegeDefTroops                  Created by retype action
+   +0x02BD0      4  int                                totalMaxDefaultTroops                    Created by retype action
+   +0x02BD4      4  int                                attackedPlayerID_2Unk                    
+   +0x02BD8      4  int                                attackedPlayerID                         
+   +0x02BDC      4  int                                attackedByPlayerArrayUnk                 
+   +0x02BE0      4  int                                field889_0x2be0                          
+   +0x02BE8    288  int[9][8]                          unusedEnemyAttackTracker                 
+   +0x02D1C    880  int[22][10]                        aivUnitLocationSlots                     
+   +0x0308C     88  int[22]                            aivUnitLocationSlotLocationCount         
+   +0x030E4      4  int                                totalTroopsType0                         Created by retype action
+   +0x030E8      4  int                                totalDefensiveTroopsUnk                  Created by retype action
+   +0x030EC      4  int                                totalRaidingTroopsUnk                    Created by retype action
+   +0x030F0      4  int                                totalAttackTroops                        Created by retype action
+   +0x030F4      4  AIStrengthTypeInt                  aiStrengthFeeling                        Created by retype action
+   +0x030F8      4  AIRecruitUnitChoiceInt             aiRecruitUnitChoiceState                 
+   +0x030FC      4  int                                aiRecruitIntervalTracker                 
+   +0x03100      4  int                                aiDefUnitChoiceIndex                     
+   +0x03104      4  int                                aiRaidUnitChoiceIndex                    
+   +0x03108      4  int                                aiAttUnitMainChoiceIndex                 
+   +0x0310C    400  short[200]                         aiTribeIDs                               
+   +0x0329C    800  int[200]                           aiTribeUIDs                              
+   +0x035BC    200  short[100]                         top100TargetableBuildings                
+   +0x03684      4  int                                top100TargetableBuildingsTracker         Created by retype action
+   +0x03688      4  int                                someCounter2                             
+   +0x0368C    400  AISiegeUnitCreation[4][5]          aiSiegeCreationInformation               
+   +0x0381C      4  int                                attackAssaultDelayRelatedValue           
+   +0x03820      4  int                                isNotNervousByEnemyTroopValue            
+   +0x03824     20  short[10]                          requestedGoodsArray1Unk                  
+   +0x03838     20  short[10]                          requestedGoodsArray2Unk                  
+   +0x0384C      4  int                                requestStateUnk                          
+   +0x03850      4  int                                requestedAttackTargetUnk                 
+   +0x03854      4  int                                unitPatrolRecommandRelatedDelayValue     
+   +0x03858      4  int                                aiCowThrowCounter                        Created by retype action
+   +0x0385C      4  int                                aiPopularityDecisionValue                
+   +0x03860      4  int                                aiResourceBuildingFocusIndicator         
+   +0x03864      4  int                                aivCurrentPauseIndex                     Created by retype action
+   +0x03868      4  int                                aivCurrentPause                          
+   +0x0386C     40  short[20]                          aivPauses                                
+   +0x03894      4  int                                aivPauseDelay                            
+   +0x03898      4  int                                aiRequestDelay                           
+   +0x0389C      4  int                                nervousBikCountdown                      
+   +0x038A0      4  int                                currentWaveRandomAttackingStrength       Created by retype action
+   +0x038A4      4  int                                someAiCountdown3                         
+   +0x038A8      4  int                                someAiCountdown4                         
+   +0x038AC      4  int                                someAiCountdown5                         
+   +0x038B0      4  int                                someAiCountdown6                         
+   +0x038B8     36  int[9]                             totalEnemyTroopValueByPlayerID           
+   +0x038E0      4  int                                totalEnemyTroopValue                     
+   +0x038E4      4  int                                playerID_askerUnk                        Created by retype action
+   +0x038E8      4  int                                totalTroopValue                          
+   +0x038EC      4  int                                aiBuildingDestroyChoiceTracker           
+   +0x038F0      4  int                                aiNervousActionsTracker                  
+   +0x038F4      4  int                                currentAttackRaidParameter               Created by retype action
+   +0x038F8      4  int                                monkTribeIDUnk                           
+   +0x038FC      4  int                                monkTribeUIDUnk                          
+   +0x03900      4  int                                healerCount                              
+   +0x03904      4  int                                count_2                                  
+   +0x03908      4  int                                aiAttackCoordinationLevel                Represents the number of prepared AI team members the AI is willing to wait for until attacking
+   +0x0390C      4  int                                someTotalDefenseTroopsRelatedCountdown   Created by retype action
+   +0x03910      4  int                                totalEnemyRangedTroopValue               
+   +0x03914      4  int                                harrassingSiegeEnginesIndex              Created by retype action
+   +0x03918      4  int                                harrasingEngineRecruitTimeout            
+   +0x0391C      4  int                                harassingSiegeEnginesCountUnk            
+   +0x03920      4  int                                totalTeamTroopValue                      
+   +0x03924      4  int                                currentAttackWave                        Created by retype action
+   +0x03928      4  int                                countFarms                               
+   +0x0392C      4  int                                someCountdown01                          
+   +0x03930      4  int                                aiCoordinatedAttackPatience              
+   +0x03934      4  int                                someXPosition                            
+   +0x03938      4  int                                someYPosition                            
+   +0x0393C      4  int                                totalTroopsType6                         
+   +0x03940      4  int                                unknownCounter_01                        
+   +0x03944      4  int                                totalTroopsType7                         
+   +0x03948      4  int                                lastEncounteredTroopUnitID               
+   +0x0394C      4  int                                lastEncounteredTroopUnitUID              
+   +0x03950     28  short[7][2]                        mercenaryAssemblyPoints                  
+   +0x0396C      4  int                                moatsOwned                               
+   +0x03970      4  int                                attackTicker                             
+   +0x03974      4  int                                canStartSpending                         
+   +0x03978      2  short                              algoTreeCooldownUnk                      
+   +0x0397A      2  short                              algoOasisCooldownUnk                     
+   +0x0397C      2  short                              algoBoulderCooldown                      
+   +0x0397E      2  short                              algoIronCooldown                         
+   +0x03980      2  short                              algoOilCooldown                          
+   +0x03982      2  short                              availableTreeGridTiles                   
+   +0x03984      2  short                              availableOasisGridTiles                  
+   +0x03986      2  short                              availableBoulderGridTiles                
+   +0x03988      2  short                              availableIronGridTiles                   
+   +0x0398A      2  short                              availableOilGridTiles                    
+   +0x0398C      4  int                                countIronMines                           
+   +0x03990      4  int                                countPitchRigs                           
+   +0x03994      4  int                                countStoneQuarries                       
+   +0x03998      4  int                                unknownPathBorderDistanceRelated         
+   +0x0399C      4  int                                someCount46                              
+   +0x039A0      2  short                              keepEnclosementRelatedCountdown          
+   +0x039A2      2  short                              defensesDamagedByPlayer                  
+   +0x039A4      8  XYPairShort[2]                     engineersAssemblyPoints                  
+   +0x039AC      2  short                              tunnelersGuildAssemblyPointX             
+   +0x039AE      2  short                              tunnelersGuildAssemblyPointY             
+   +0x039B0      2  short                              cathedralAssemblyPointX                  
+   +0x039B2      2  short                              cathedralAssemblyPointY                  
+   +0x039B8      2  undefined2                         someCount28                              
+   +0x039BA      2  undefined2                         someCount30                              
+   +0x039BC      2  short                              unknownCounter01                         
+   +0x039BE      2  undefined2                         someCount31                              
+   +0x039C0      2  short                              relativeStrengthOfTeamComparedToEnemy    
+   +0x039C2      2  short                              aiStateCounter                           
+   +0x039C4      2  short                              commemorationShrinePlacementCountdown    
+   +0x039C6      2  short                              someKeepRelatedX2                        
+   +0x039C8      2  short                              someKeepRelatedY2                        
+   +0x039CA      2  short                              dogCageCount                             
+   +0x039CC      4  int                                unknownHarrassingSiegeRelated            
+   +0x039D0      4  int                                ignitionTime                             
+   +0x039D4      4  int                                tacticalPowersBarLevel                   
+   +0x039D8      4  int                                goldDonation                             
+   -- globale Variablen dieses Typs:
+
+### MapAndTimeState  Groesse 262608  /_HoldStrong/Game/State
+   +0x00000      4  int                                field0_0x0                               
+   +0x00004      4  BOOLEnum                           singlePlayerHasKeepAndGranary            
+   +0x00008      4  int                                field2_0x8                               
+   +0x0000C      4  int                                field3_0xc                               
+   +0x00010      4  int                                field4_0x10                              
+   +0x00014      4  int                                field5_0x14                              
+   +0x00018      4  int                                field6_0x18                              
+   +0x0001C      4  int                                field7_0x1c                              
+   +0x00020      4  int                                field8_0x20                              
+   +0x00024      4  int                                field9_0x24                              
+   +0x00028      4  int                                field10_0x28                             
+   +0x0002C      4  int                                field11_0x2c                             
+   +0x00030      4  int                                field12_0x30                             
+   +0x00034      4  int                                field13_0x34                             
+   +0x00038      4  int                                field14_0x38                             
+   +0x0003C      4  int                                field15_0x3c                             
+   +0x00040      4  int                                field16_0x40                             
+   +0x00044      4  int                                field17_0x44                             
+   +0x00048      4  int                                field18_0x48                             
+   +0x0004C      4  int                                field19_0x4c                             
+   +0x00050      4  int                                field20_0x50                             
+   +0x00054      4  int                                field21_0x54                             
+   +0x00058     40  int[2][5]                          field22_0x58                             
+   +0x00080      4  int                                field23_0x80                             
+   +0x00084      4  int                                field24_0x84                             
+   +0x00088      4  int                                field25_0x88                             
+   +0x0008C      4  int                                field26_0x8c                             
+   +0x00090      4  int                                field27_0x90                             
+   +0x00094      4  int                                field28_0x94                             
+   +0x00098      4  int                                field29_0x98                             
+   +0x0009C      4  int                                field30_0x9c                             
+   +0x000A0      4  int                                field31_0xa0                             
+   +0x000A4      4  int                                field32_0xa4                             
+   +0x000A8      4  int                                field33_0xa8                             
+   +0x000AC      4  int                                field34_0xac                             
+   +0x000B0      4  int                                field35_0xb0                             
+   +0x000B4      4  int                                field36_0xb4                             
+   +0x000B8      4  int                                field37_0xb8                             
+   +0x000BC      4  int                                field38_0xbc                             
+   +0x000C0      4  int                                field39_0xc0                             
+   +0x000C4      4  int                                field40_0xc4                             
+   +0x000C8      4  int                                field41_0xc8                             
+   +0x000CC     36  int[9]                             emenyHitArray                            
+   +0x000F0      4  int                                field43_0xf0                             
+   +0x000F4      4  int                                field44_0xf4                             
+   +0x000F8      4  int                                field45_0xf8                             
+   +0x000FC      4  DWORD                              gameOverTime                             
+   +0x00100      4  int                                drunkenManStatus                         
+   +0x00194      4  int                                field192_0x194                           
+   +0x00198      4  int                                field193_0x198                           
+   +0x00318      4  int                                cathedralRelated1                        
+   +0x00324      4  int                                week                                     
+   +0x00328      4  int                                month                                    
+   +0x0032C      4  int                                year                                     
+   +0x00338      4  int                                monthChanged                             
+   +0x0033C      4  int                                yearChanged                              
+   +0x00340      4  int                                weekChanged                              
+   +0x00344      4  int                                strongWalls2                             
+   +0x00348      4  int                                field598_0x348                           
+   +0x0034C      4  int                                counterForUpdatingSeparateAreaTileMaps   
+   +0x00350      4  int                                totalGameTicksUnk                        
+   +0x00354      4  int                                treeSpreadCounter                        
+   +0x00358      4  int                                newOrganisms                             
+   +0x0035C      4  int                                treeSpreadInterval                       
+   +0x00360      4  int                                newOrganismsValue2                       
+   +0x00364      4  BOOLEnum                           startOfDay                               
+   +0x00368      4  int                                skirmishFogOfWar                         
+   +0x00520      8  XYPair                             somePairArray                            
+   +0x00660    100  int[25]                            startGoods                               
+   +0x006C4     80  SiegeUnitCounts                    siegeInformation                         
+   +0x00714      4  int                                startingPopularity                       
+   +0x0071C      4  int                                field1363_0x71c                          
+   +0x00720      4  int                                field1364_0x720                          
+   +0x00724      4  int                                traderRelated1                           
+   +0x00728      4  int                                traderRelatedCounter2                    
+   +0x0072C      4  int                                traderRelatedCounter1                    
+   +0x00730      4  int                                traderRelated2                           
+   +0x00734      4  int                                field1369_0x734                          
+   +0x00780    200  BuySellPair[25]                    copyOfBuyAndSalesPrice                   
+   +0x00848    200  BuySellPair[25]                    buyAndSalesPriceArray                    
+   +0x00910    100  int[25]                            unknownResouceFlagArray1                 
+   +0x00974    100  int[25]                            unknownResourceFlagArray2                
+   +0x009D8    100  int[25]                            isResourceTradeable                      
+   +0x00A3C      4  int                                field1447_0xa3c                          
+   +0x00A40     16  short[4][2]                        deerSpawnLocationsXY                     
+   +0x00A50      4  int                                countUpTo201                             
+   +0x00D74      4  BOOLEnum                           gameOver                                 
+   +0x00D78      4  int                                unknownCountdown01                       
+   +0x00D7C     28  int[7]                             euroRecruitable                          
+   +0x00D98      4  int                                euroRecruitableCopy_index_0              
+   +0x00D9C      4  int                                euroRecruitableCopy_index_1_b            
+   +0x00DA0      4  int                                euroRecruitableCopy_index_2              
+   +0x00DA4      4  int                                euroRecruitableCopy_index_3_b            
+   +0x00DA8      4  int                                field2257_0xda8                          
+   +0x00DAC      4  int                                euroRecruitableCopy_index_6_a            
+   +0x00DB0      4  int                                euroRecruitableCopy_index_1_a            
+   +0x00DB4      4  int                                euroRecruitableCopy_index_3_a_and_6_b    
+   +0x00DB8      4  int                                euroRecruitableCopy_index_6_c            
+   +0x00DBC     36  int[9]                             playerTeams                              
+   +0x00DE0      4  int                                difficulty                               
+   +0x00DE4      2  short                              scenarioRationsSetting                   
+   +0x00DE6      2  short                              scenarioTaxesSetting                     
+   +0x00DE8      2  short                              scenarioGold                             
+   +0x00DEA      2  short                              editScenarioExtraOptions                 
+   +0x00DEC      2  short                              field2268_0xdec                          
+   +0x00DEE      2  short                              field2269_0xdee                          
+   +0x00DF0     16  short[4][2]                        field2270_0xdf0                          
+   +0x00E00      2  short                              field2271_0xe00                          
+   +0x00E02      2  short                              field2272_0xe02                          
+   +0x00E04   5400  short[9][300]                      playerPopulationStatistics               
+   +0x0231C      4  int                                populationIndex                          
+   +0x02650      4  int                                signpostsMapEdgeDataCounter              
+   +0x02654      4  int                                field3092_0x2654                         
+   +0x02658      4  int                                field3093_0x2658                         
+   +0x0265C      4  int                                field3094_0x265c                         
+   +0x02660      4  int                                field3095_0x2660                         
+   +0x02664      4  int                                field3096_0x2664                         
+   +0x02668      4  int                                field3097_0x2668                         
+   +0x0266C      4  int                                field3098_0x266c                         
+   +0x02670      4  int                                field3099_0x2670                         
+   +0x02674      4  int                                field3100_0x2674                         
+   +0x02678      4  int                                field3101_0x2678                         
+   +0x0267C      4  int                                field3102_0x267c                         
+   +0x02680      4  int                                field3103_0x2680                         
+   +0x02684      4  int                                field3104_0x2684                         
+   +0x02688      4  int                                field3105_0x2688                         
+   +0x0268C      4  int                                field3106_0x268c                         
+   +0x02690      4  int                                field3107_0x2690                         
+   +0x02694      4  int                                field3108_0x2694                         
+   +0x02698      4  int                                field3109_0x2698                         
+   +0x0269C      4  int                                field3110_0x269c                         
+   +0x026A0      4  int                                field3111_0x26a0                         
+   +0x026A4      4  int                                field3112_0x26a4                         
+   +0x026A8      4  int                                field3113_0x26a8                         
+   +0x026AC      4  int                                field3114_0x26ac                         
+   +0x026B0      4  int                                field3115_0x26b0                         
+   +0x026B4      4  int                                field3116_0x26b4                         
+   +0x026B8      4  int                                field3117_0x26b8                         
+   +0x026BC      4  int                                field3118_0x26bc                         
+   +0x026C0      4  int                                field3119_0x26c0                         
+   +0x026C4      4  int                                field3120_0x26c4                         
+   +0x026C8      4  int                                field3121_0x26c8                         
+   +0x026CC      4  int                                field3122_0x26cc                         
+   +0x026D0      4  int                                field3123_0x26d0                         
+   +0x026D4      4  int                                field3124_0x26d4                         
+   +0x026D8      4  int                                field3125_0x26d8                         
+   +0x026DC      4  int                                field3126_0x26dc                         
+   +0x026E0      4  int                                field3127_0x26e0                         
+   +0x026E4      4  int                                field3128_0x26e4                         
+   +0x026E8      4  int                                field3129_0x26e8                         
+   +0x026EC      4  int                                field3130_0x26ec                         
+   +0x026F0      4  int                                field3131_0x26f0                         
+   +0x026F4      4  int                                field3132_0x26f4                         
+   +0x026F8      4  int                                field3133_0x26f8                         
+   +0x026FC      4  int                                field3134_0x26fc                         
+   +0x02700      4  int                                field3135_0x2700                         
+   +0x02704      4  int                                field3136_0x2704                         
+   +0x02708      4  int                                field3137_0x2708                         
+   +0x0270C      4  int                                field3138_0x270c                         
+   +0x02710      4  int                                field3139_0x2710                         
+   +0x02714      4  int                                field3140_0x2714                         
+   +0x02718      4  int                                field3141_0x2718                         
+   +0x0271C      4  int                                field3142_0x271c                         
+   +0x02720      4  int                                field3143_0x2720                         
+   +0x02724      4  int                                field3144_0x2724                         
+   +0x02728      4  int                                field3145_0x2728                         
+   +0x0272C      4  int                                field3146_0x272c                         
+   +0x02730      4  int                                field3147_0x2730                         
+   +0x02734      4  int                                field3148_0x2734                         
+   +0x02738      4  int                                field3149_0x2738                         
+   +0x0273C      4  int                                field3150_0x273c                         
+   +0x02740      4  int                                field3151_0x2740                         
+   +0x02744      4  int                                field3152_0x2744                         
+   +0x02748      4  int                                field3153_0x2748                         
+   +0x0274C      4  int                                field3154_0x274c                         
+   +0x02750      4  int                                field3155_0x2750                         
+   +0x02754      4  int                                field3156_0x2754                         
+   +0x02758      4  int                                field3157_0x2758                         
+   +0x0275C      4  int                                field3158_0x275c                         
+   +0x02760      4  int                                field3159_0x2760                         
+   +0x02764      4  int                                field3160_0x2764                         
+   +0x02768      4  int                                field3161_0x2768                         
+   +0x0276C      4  int                                field3162_0x276c                         
+   +0x02770      4  int                                field3163_0x2770                         
+   +0x02774      4  int                                gameEventRelatedCountdown                
+   +0x02778      4  int                                unk_signpostDistance                     
+   +0x0277C      4  int                                field3166_0x277c                         
+   +0x02780     16  short[4][2]                        rabbitSpawnXY                            
+   +0x02790      4  int                                field3168_0x2790                         
+   +0x02794     16  short[4][2]                        camelSpawnXY                             
+   +0x027A4      4  int                                field3170_0x27a4                         
+   +0x027A8      4  int                                field3171_0x27a8                         
+   +0x027AC      4  int                                field3172_0x27ac                         
+   +0x027B0      4  int                                somePlayerID                             
+   +0x027B4     18  short[9]                           playerIsAlive                            
+   +0x027C6      2  short                              field3175_0x27c6                         
+   +0x027C8      4  int                                field3176_0x27c8                         
+   +0x027CC      4  int                                deerCount                                
+   +0x027D0      4  int                                armySizeLimit                            
+   +0x027D4      2  short                              field3179_0x27d4                         
+   +0x027D6      2  short                              field3180_0x27d6                         
+   +0x027D8      2  short                              yearCopy                                 
+   +0x027DA      2  short                              monthCopy                                
+   +0x027DC      2  short                              field3183_0x27dc                         
+   +0x027DE      2  short                              field3184_0x27de                         
+   +0x027E0      4  int                                noDogs                                   
+   +0x027E4      4  int                                field3186_0x27e4                         
+   +0x027E8      4  int                                field3187_0x27e8                         
+   +0x027EC      4  int                                noCowThrowing                            
+   +0x027F0      4  int                                totalNoRushTicks                         
+   +0x027F4      4  int                                noRushTicksLeftUnk                       
+   +0x027F8      4  int                                rawDeerCount                             
+   +0x028F8     28  int[7]                             mercRecruitable                          
+   +0x02918     32  int[8]                             signpostIDs                              
+   +0x02958    128  SignpostLocation[8]                signpostEntryData                        
+   +0x02A54      4  int                                strongWalls                              
+   +0x02A58   5600  XYTileObject[7][50]                signpostsMapEdge                         
+   +0x04218    320  Point8IntXY[5][8]                  aiTribeMoveDestinationXYPairArray1       
+   +0x04358   2560  XYPair[8][40]                      unitMoveDestinationXYPairs               
+   +0x04D58   7200  AttackVector[9][50]                attackVectors                            
+   +0x06C98     36  int[9]                             playerGroupArray                         
+   +0x06CC0     36  int[9]                             playerBuildingInfoIndex                  
+   +0x06CE4  72000  int[9][2000]                       playerEnemyBuildingIDs                   
+   +0x18624  72000  int[9][2000]                       playerEnemyBuildingUID                   
+   +0x29F64  90000  int[9][2500]                       playerEnemenyUnitUIDShortList            
+   +0x3FEF4      4  int                                dayTicks                                 
+   +0x3FEF8      4  int                                weekTicks                                
+   +0x3FEFC      4  int                                monthTicks                               
+   +0x3FF00     80  byte[80]                           unused_0x3ff00                           
+   +0x3FF50    640  int[8][20]                         startingTroops                           
+   -- globale Variablen dieses Typs:
+
+### TileMapState  Groesse 5589640  /_HoldStrong/Map
+   +0x00000  12800  int[400][8]                        directionTranslationMatrix               
+   +0x03200   1600  int[400]                           yArray1                                  
+   +0x03840   1024  int[256]                           heightBasedScreenYOffset                 
+   +0x03C40 321600  int[80400]                         unusedTileMap                            
+   +0x52480 160800  ushort[80400]                      GfxLayer                                 
+   +0x798A0 160800  ushort[80400]                      AlphaGFXLayer                            
+   +0xA0CC0 160800  ushort[80400]                      ConstructionGFXLayer                     
+   +0xC80E0 160800  ushort[80400]                      PillarGFXLayer                           
+   +0xEF500 160800  ushort[80400]                      WallGFXLayer                             
+   +0x116920 160800  ushort[80400]                      FloatingLayer                            
+   +0x13DD40 160800  ushort[80400]                      RandomLayer                              
+   +0x165160 321600  int[80400]                         LogicLayer                               
+   +0x1B39A0   1600  byte[1600]                         unknownData1                             
+   +0x1B3FE0  80400  byte[80400]                        Logic2Layer                              
+   +0x1C79F0    400  byte[400]                          unknownData2                             
+   +0x1C7B80  80400  byte[80400]                        ChangedLayer                             
+   +0x1DB590 160800  ushort[80400]                      OrganismLayer                            
+   +0x2029B0 160800  ushort[80400]                      BuildingLayer                            
+   +0x229DD0  80400  uchar[80400]                       BuildingWasLayer                         
+   +0x23D7E0 160800  ushort[80400]                      UnitLayer                                
+   +0x264C00 160800  short[80400]                       EntityLayer                              
+   +0x28C020  80400  char[80400]                        EntityLayerLT25                          
+   +0x29FA30  80400  byte[80400]                        HeightLayer                              
+   +0x2B3440  80400  byte[80400]                        DefaultHeightLayer                       
+   +0x2C6E50  80400  byte[80400]                        WallOwnerLayer                           
+   +0x2DA860  80400  uchar[80400]                       LuminesenceLayer                         
+   +0x2EE270  80400  uchar[80400]                       ShowHiLayer                              
+   +0x301C80 160800  ushort[80400]                      MiscDisplayLayer                         
+   +0x3290A0  80400  byte[80400]                        DamageLayer                              
+   +0x33CAB0 160800  ushort[80400]                      MacroLayer                               
+   +0x363ED0 160800  ushort[80400]                      PathConnectionLayer                      
+   +0x38B2F0  80400  uchar[80400]                       PathLinkageLayer                         
+   +0x39ED00  80400  uchar[80400]                       OccupancyLayer                           
+   +0x3B2710 160800  short[80400]                       CertainPathLayer                         
+   +0x3D9B30 160800  short[80400]                       WalkLayer                                
+   +0x400F50  80400  byte[80400]                        AIZoneLayer                              
+   +0x414960  80400  uchar[80400]                       AIInfoLayer                              
+   +0x428370  80400  uchar[80400]                       unitDeathHeatMap                         
+   +0x43BD80  80400  uchar[80400]                       SEC_TileMap1104                          
+   +0x44F790 723600  uchar[9][80400]                    SEC_PathfindingCostTileMap1105           
+   +0x500220      4  undefined4                         someIndex                                
+   +0x500224      4  undefined4                         someLimit                                
+   +0x500228      4  undefined4                         someYLike                                
+   +0x50022C      4  undefined4                         someYLikeLimit                           
+   +0x500230   1600  byte[40][40]                       mapping40x40                             
+   +0x500870 256000  Moat[16000]                        moats                                    
+   +0x53F070      4  undefined4                         currentMoatCount                         
+   +0x53F074      4  undefined4                         moatTileCount                            
+   +0x53F078      4  undefined4                         ALG_MoatXResult                          
+   +0x53F07C      4  undefined4                         ALG_MoatYResult                          
+   +0x53F080      4  int                                someMoatTile                             
+   +0x53F084  80000  PitchDitch[4000]                   pitchDitches                             
+   +0x552904      4  undefined4                         maxPitchDitchCount                       
+   +0x55290C     16  short[8]                           specialAreasArray                        
+   +0x55291C      4  undefined4                         temporaryTerrainTypeIndex                
+   +0x552920      4  undefined4                         SEC_Section1052                          
+   +0x552924      4  undefined4                         SEC_Section1053                          
+   +0x552928      4  undefined4                         SEC_Section1054                          
+   +0x55292C   4000  int[1000]                          temporaryTerrainTypeArray                
+   +0x5538CC   4000  int[1000]                          temporaryTerrainTypeBinaryArray          
+   +0x55486C      4  undefined4                         forceUpdateLogicalAndMiscDisplayLayers   
+   +0x554870      4  undefined4                         forceUpdateTextureTilemap                
+   +0x554874      4  undefined4                         forceUpdateGFXLayers                     
+   +0x554878      4  undefined4                         forceUpdateMacroLayerFlag                
+   +0x55487C      4  undefined4                         field68_0x55487c                         
+   +0x554888      4  undefined4                         placedBuildingID                         
+   +0x55488C      4  undefined4                         field78_0x55488c                         
+   +0x554890      4  undefined4                         rockOrientation                          
+   +0x554894      4  undefined4                         field80_0x554894                         
+   +0x554898      4  undefined4                         lastTime                                 
+   +0x55489C      4  int                                mapOrientation                           
+   +0x5548A0      4  undefined4                         DAT_FutureMapOrientation                 
+   +0x5548A4      4  int                                field84_0x5548a4                         
+   +0x5548A8      4  int                                field85_0x5548a8                         
+   +0x5548AC      4  int                                field86_0x5548ac                         
+   +0x5548B0      4  int                                field87_0x5548b0                         
+   +0x5548B4      4  int                                field88_0x5548b4                         
+   +0x5548B8      4  undefined4                         refreshCertainTileMap                    
+   +0x5548BC      4  undefined4                         refreshCertainTileMap_old                
+   +0x5548C0      4  undefined4                         counter1                                 
+   +0x5548C4      4  undefined4                         refreshRelatedOne                        
+   +0x5548C8      4  undefined4                         field93_0x5548c8                         
+   +0x5548CC      4  undefined4                         flatViewToggleValue1                     
+   +0x5548D4      4  undefined4                         flatViewToggleValue2                     
+   +0x5548D8      4  undefined4                         refreshRelatedTwo                        
+   +0x5548DC      4  undefined4                         field101_0x5548dc                        
+   +0x5548E0      4  undefined4                         editorActiveBrush                        
+   +0x5548E4      4  MappersEnum                        currentMapperCommand                     
+   +0x5548E8      4  undefined4                         DAT_BuildingSize                         
+   +0x5548EC      4  undefined4                         field105_0x5548ec                        
+   +0x5548F0      4  BOOLEnum                           mapperMax                                
+   +0x5548F4      4  undefined4                         rockFlagStartNumber                      
+   +0x5548F8      4  undefined4                         unknownBrushRelated                      
+   +0x5548FC      4  undefined4                         unknownZero_0x5548fc                     
+   +0x554900      4  undefined4                         unknownZero_0x554900                     
+   +0x554904      4  undefined4                         unknownZero_0x554904                     
+   +0x554908      4  undefined4                         field112_0x554908                        
+   +0x55490C      4  undefined4                         dragStartX                               
+   +0x554910      4  undefined4                         dragStartY                               
+   +0x554914      4  undefined4                         dragEndX                                 
+   +0x554918      4  undefined4                         dragEndY                                 
+   +0x55491C      4  BOOLEnum                           illegalBuild                             
+   +0x554920      4  undefined4                         field118_0x554920                        
+   +0x554924      4  undefined4                         field119_0x554924                        
+   +0x554928      4  undefined4                         DAT_ClickedTileX                         
+   +0x55492C      4  undefined4                         DAT_ClickedTileY                         
+   +0x554930      4  undefined4                         field122_0x554930                        
+   +0x554934      4  BOOLEnum                           buildingPlacementFail                    
+   +0x554938      4  BuildingFailReasonEnumInt          buildingPlacementFailReason              
+   +0x55493C      4  undefined4                         placementWarning                         
+   +0x554940      4  undefined4                         uiBuildingRotation                       
+   +0x554944      4  undefined4                         field127_0x554944                        
+   +0x554948      4  undefined4                         buildingSpriteSheetID_1                  
+   +0x55494C      4  undefined4                         buildingSpriteID1                        
+   +0x554950      4  undefined4                         buildingSpriteID2                        
+   +0x554954      4  undefined4                         field131_0x554954                        
+   +0x554958      4  undefined4                         buildingHeightLimit                      
+   +0x55495C      4  undefined4                         buildingMinHeight                        
+   +0x554960      4  undefined4                         buildingMaxHeight                        
+   +0x554964      4  undefined4                         buildingMaxHeightDifference              
+   +0x554968      4  undefined4                         buildingPlacementProperty_3              
+   +0x55496C      4  undefined4                         buildingPlacementProperty_4              
+   +0x554970      4  undefined4                         buildingPlacementProperty_5              
+   +0x554974      4  undefined4                         buildingPlacementProperty_6              
+   +0x554978      4  undefined4                         buildingPlacementProperty_7              
+   +0x554980      4  undefined4                         field145_0x554980                        
+   +0x554984      4  int                                constructionTileCount                    
+   +0x554988      4  int                                DAT_WallTileCountCurrentDrag             
+   +0x55498C      4  undefined4                         buildingX                                
+   +0x554990      4  undefined4                         buildingY                                
+   +0x554994      4  undefined4                         buildingRotationRelatedValue             
+   +0x554998      4  undefined4                         field151_0x554998                        
+   +0x55499C      4  undefined4                         field152_0x55499c                        
+   +0x5549A0      4  undefined4                         field153_0x5549a0                        
+   +0x5549A4      4  int                                showNoRubbleWhenDestroyingBuilding       
+   +0x5549A8      4  undefined4                         field155_0x5549a8                        
+   +0x5549AC      4  undefined4                         field156_0x5549ac                        
+   +0x5549B0      4  undefined4                         wallPlacementCost                        
+   +0x5549B4      4  undefined4                         DAT_TempBuildingRotation                 
+   +0x5549B8      4  int                                field159_0x5549b8                        
+   +0x5549BC      4  undefined4                         unknownTime_0x5549bc                     
+   +0x5549C0      4  undefined4                         field161_0x5549c0                        
+   +0x5549C4      4  undefined4                         field162_0x5549c4                        
+   +0x5549C8      4  undefined4                         field163_0x5549c8                        
+   +0x5549CC      4  undefined4                         field164_0x5549cc                        
+   +0x5549D0      4  undefined4                         field165_0x5549d0                        
+   +0x5549D4      4  undefined4                         DAT_SelectionIconType                    
+   +0x5549D8      4  undefined4                         field167_0x5549d8                        
+   +0x5549E4      4  int                                shiftRelated0or3                         
+   +0x5549E8      4  undefined4                         field177_0x5549e8                        
+   +0x5549EC      4  undefined4                         field178_0x5549ec                        
+   +0x5549F0      4  undefined4                         field179_0x5549f0                        
+   +0x5549F4      4  undefined4                         field180_0x5549f4                        
+   +0x5549F8      4  undefined4                         uiSelectedUnitIDUnk                      
+   +0x5549FC      4  undefined4                         DAT_SomeUNitUIDUIRelated                 
+   +0x554A00      4  undefined4                         field183_0x554a00                        
+   +0x554A04      4  undefined4                         field184_0x554a04                        
+   +0x554A08      4  undefined4                         field185_0x554a08                        
+   +0x554A0C      4  undefined4                         mapSize                                  
+   +0x554A10      4  undefined4                         field187_0x554a10                        
+   +0x554A14      4  undefined4                         field188_0x554a14                        
+   +0x554A1C      4  undefined4                         field193_0x554a1c                        
+   +0x554A20      4  undefined4                         field194_0x554a20                        
+   +0x554A24      4  undefined4                         field195_0x554a24                        
+   +0x554A30      4  int                                field204_0x554a30                        
+   +0x554A34      4  undefined4                         DAT_SomeX                                
+   +0x554A38      4  undefined4                         DAT_SomeY                                
+   +0x554A3C      4  undefined4                         DAT_SomeTile                             
+   +0x554A40      1  undefined1                         bitFlag                                  
+   +0x554A44      4  undefined4                         DAT_CardinalTilesAroundTile              
+   +0x554A48      4  undefined4                         field213_0x554a48                        
+   +0x554A50      2  undefined2                         field218_0x554a50                        
+   +0x554A58      4  pointer                            ptr_LogicLayer                           
+   +0x554A5C      4  pointer                            ptr_TerrainTypeTileMap                   
+   +0x554A60      4  pointer                            ptr_TerrainHeightTileMap                 
+   +0x554A64      4  pointer                            ptr_ChangedLayer                         
+   +0x554A68      4  pointer                            ptr_MovementDirectionTranslationMatrix   
+   +0x554A6C      4  pointer                            ptr_OccupancyLayer                       
+   +0x554A70      4  pointer                            ptr_DamageLayer                          
+   +0x554A74      4  pointer                            ptr_PathConnectionLayer                  
+   +0x554A78      4  pointer                            ptr_AIZoneLayer                          
+   +0x554A7C      4  pointer                            ptr_SpecialAreasArray                    
+   +0x554A80      4  pointer                            ptr_MiscDisplayLayer                     
+   -- globale Variablen dieses Typs:
+   01a93208  TileMapState  DAT_TileMapState
+
+### GameStateStructures  Groesse 605172  /_HoldStrong/Game
+   +0x00000 200000  UnitSelectionHotKeyEntry[10]       hotkeyTribes                             
+   +0x30D40 133524  PlayerData[9]                      playerDataArray                          
+   +0x516D4 262608  MapAndTimeState                    mapAndTime                               
+   +0x918A4      4  int                                gameTicksLoadBalancer                    number that goes up to 200 that determines what game information has to recomputed
+   +0x918A8   9000  short[9][500]                      first500BuildingsPerPlayer               
+   +0x93BD0     36  int[9]                             first500BuildingsCurrentIndexCounter     
+   -- globale Variablen dieses Typs:
+   0112b0b8  GameStateStructures  DAT_GameState
+
+### GameSynchronyState  Groesse 1090072  /_HoldStrong/Synchrony
+   +0x00000      4  undefined4                         scrollBarItemCount                       
+   +0x00004      4  undefined4                         scrollBarItemOffset                      
+   +0x00008      4  undefined4                         selectedProviderIndex                    
+   +0x0000C     40  GUID *[10]                         guids                                    
+   +0x00034     40  LPCWSTR[10]                        providerNames                            
+   +0x0005C      4  undefined4                         modemScrollbarCount                      
+   +0x00060      4  undefined4                         modemScrollBarOffset                     
+   +0x00064      4  undefined4                         modemScrollbarIndex                      
+   +0x00068    116  char *[29]                         stringPointerArray                       
+   +0x000E0      4  undefined4                         DPLAY_SessionsCount                      
+   +0x000E4      4  int                                scrollBarIndex                           
+   +0x000E8    200  GUID *[50]                         DPLAY_SessionGUIDs                       
+   +0x001B0    200  WCHAR *[50]                        DPLAY_SessionNames                       
+   +0x00278      1  bool                               unkEnumerationRelatedBool                
+   +0x0027C      4  IDirectPlay4A * *                  DPLAYX_4A                                
+   +0x00280      4  IDirectPlayLobby3 * *              DPLAYX_LOBBY                             
+   +0x00284      4  MenuModalTypeInt                   nextModalDialog                          
+   +0x00288      4  int                                multiplayerJoinStep                      
+   +0x0028C      4  BOOLEnum                           useTCPIP                                 
+   +0x00290     30  char[30]                           connectTarget                            
+   +0x002B0      4  undefined4                         connectPort                              
+   +0x002B4      4  undefined4                         willHost                                 
+   +0x002B8    600  char[600]                          shellExecuteTarget                       
+   +0x00510      4  int                                field32_0x510                            
+   +0x00514      4  BOOLEnum                           openOnClose                              
+   +0x00518    256  byte[256]                          connectName                              
+   +0x00618      4  GameModeInt                        currentGameMode                          
+   +0x0061C      4  GameModeInt                        currentGameModeCopy_SEC_Section1106      
+   +0x00620    104  byte[104]                          unused02                                 
+   +0x00688     16  DPNAME                             DPLAY_PlayerNameStructure                
+   +0x00698      4  undefined4                         DPLAYX_Connection                        
+   +0x0069C      4  undefined4                         DPLAYX_ReceivedPlayerID                  
+   +0x006A0      4  dword                              DPLAY_ToID                               
+   +0x006A4      4  undefined4                         DPLAYX_PlayerHandle                      
+   +0x006A8     36  int[9]                             currentPlayerFullIDArray                 
+   +0x006CC     36  int[9]                             DAT_CurrentPlayerFullIDArray2            
+   +0x006F0     36  int[9]                             somePlayerRelatedArray                   
+   +0x00714     36  int[9]                             currentAIArray                           
+   +0x00738     36  int[9]                             SEC_AIVariationArray                     
+   +0x0075C      9  byte[9]                            field48_0x75c                            
+   +0x00765     27  byte[3][9]                         field49_0x765                            
+   +0x00780      4  BOOLEnum                           displayYourIP                            
+   +0x00784      4  BOOLEnum                           lanOrWan                                 
+   +0x00788      4  IN_ADDR                            lanIP                                    
+   +0x0078C      4  IN_ADDR                            wanIP                                    
+   +0x00790      4  BOOLEnum                           isHost                                   
+   +0x00794      4  undefined4                         DAT_HostPlayerSlotID                     
+   +0x00798      4  undefined4                         DAT_HostAnnounced                        
+   +0x0079C    254  byte[254]                          field57_0x79c                            
+   +0x0089A    500  WCHAR[250]                         DPLAYX_SessionName                       
+   +0x00A8E    250  WCHAR[125]                         DPLAY_PlayerShortName                    
+   +0x00B88      4  int                                packetsReceived                          
+   +0x00B8C      4  undefined4                         transmissionCounterUnk                   
+   +0x00B90      4  undefined4                         field62_0xb90                            
+   +0x00B94      4  undefined4                         DAT_GameHalted                           
+   +0x00B98      4  undefined4                         syncStatus                               
+   +0x00B9C      4  undefined4                         field65_0xb9c                            
+   +0x00BA0      4  undefined4                         field66_0xba0                            
+   +0x00BA4      4  undefined4                         field67_0xba4                            
+   +0x00BA8      4  undefined4                         field68_0xba8                            
+   +0x00BAC      4  undefined4                         somePacketSubTypeUnk                     
+   +0x00BB0      4  undefined4                         field70_0xbb0                            
+   +0x00BB4      4  undefined4                         field71_0xbb4                            
+   +0x00BB8     36  int[9]                             syncRelatedStatusArray                   
+   +0x00BDC      4  undefined4                         field73_0xbdc                            
+   +0x00BE0      4  undefined4                         currentPacketTotalSize                   
+   +0x00BE4      4  undefined4                         field75_0xbe4                            
+   +0x00BE8      4  undefined4                         field76_0xbe8                            
+   +0x00BEC      4  undefined4                         flag_0xbec                               
+   +0x00BF0      4  undefined4                         field78_0xbf0                            
+   +0x00BF4      4  undefined4                         splinterType                             
+   +0x00BF8      4  undefined4                         totalSplitDataItems                      
+   +0x00BFC      4  undefined4                         totalSplitChimps                         
+   +0x00C00      4  undefined4                         totalSplitStructures                     
+   +0x00C04      4  undefined4                         totalSplitVeg                            
+   +0x00C08      4  undefined4                         totalSplitTribes                         
+   +0x00C0C      4  undefined4                         totalSplitPlayers                        
+   +0x00C10      4  undefined4                         totalSplitElements                       
+   +0x00C14      4  undefined4                         totalSplitLayers                         
+   +0x00C18      4  undefined4                         totalSplitFlies                          
+   +0x00C1C      4  undefined4                         totalSplitMoats                          
+   +0x00C20      4  undefined4                         totalSplitTeleports                      
+   +0x00C24      4  undefined4                         totalSplitPitchDitches                   
+   +0x00C28      4  undefined4                         totalSplitZones                          
+   +0x00C34      4  undefined4                         firstSplitChimps                         
+   +0x00C38      4  undefined4                         firstSplitStructures                     
+   +0x00C3C      4  undefined4                         firstSplitVeg                            
+   +0x00C40      4  undefined4                         firstSplitTribe                          
+   +0x00C44      4  undefined4                         firstSplitPlayer                         
+   +0x00C48      4  undefined4                         firstSplitElement                        
+   +0x00C4C      4  undefined4                         firstSplitLayer                          
+   +0x00C50      4  undefined4                         firstSplitFly                            
+   +0x00C54      4  undefined4                         firstSplitMoat                           
+   +0x00C58      4  undefined4                         firstSplitTeleports                      
+   +0x00C5C      4  undefined4                         firstSplitPitchDitch                     
+   +0x00C60      4  undefined4                         firstSplitZone                           
+   +0x00C6C      4  undefined4                         quitGameVoteRelated                      
+   +0x00C70     36  int[9]                             field122_0xc70                           
+   +0x00C94      4  int                                quitGameVoteRequestTime                  
+   +0x00C98     36  int[9]                             announcementReceivedByPlayer             
+   +0x00CBC      4  undefined4                         saveRelated                              
+   +0x00CC0      4  undefined4                         shouldSendAnnouncementUnk                
+   +0x00CC4      4  BOOLEnum                           announcementReceivedBool                 
+   +0x00CC8      4  undefined4                         announcementReceiveTime                  
+   +0x00CCC      4  undefined4                         laggingPlayerIDUnk                       
+   +0x00CD0      4  undefined4                         DAT_SomeTime                             
+   +0x00CD4      4  undefined4                         field131_0xcd4                           
+   +0x00CD8  61000  PacketUnion                        DPLAY_ReceiveData                        
+   +0x0FB20  61100  byte[61100]                        DAT_PacketDecodingDestination            
+   +0x1E9CC  61000  PacketUnion                        DAT_Packet                               
+   +0x2D814      1  undefined1                         syncPacket2Type                          
+   +0x2D815      3  undefined3                         mapTimeInTicksLower3Bytes                
+   +0x2D818      1  undefined1                         syncParamTimeDiff                        
+   +0x2D81C      4  undefined4                         DPLAY_ReceiveDataSize                    
+   +0x2D820      4  undefined4                         DAT_CurrentTransmitCommandPacketSize     
+   +0x2D824      4  undefined4                         DAT_CurrentGameCommandID                 
+   +0x2D828      4  GameCommandSchedulingInt           DAT_CommandActionPlan                    
+   +0x2D82C      4  undefined4                         DAT_PlayerIDReceiver                     
+   +0x2D830      4  undefined4                         DAT_CommandSize                          
+   +0x2D834  61000  byte[61000]                        DAT_GameCommandFixedParameterLocation    
+   +0x3C67C 254400  GameCommand[200]                   DAT_GameCommandArray                     
+   +0x7A83C     18  short[9]                           DAT_LagIndicatorPerPlayer                
+   +0x7A850      4  undefined4                         DAT_GameCommandParam0                    
+   +0x7A854      4  undefined4                         DAT_GameCommandParam1                    
+   +0x7A858      4  undefined4                         DAT_GameCommandParam2                    
+   +0x7A85C      4  undefined4                         DAT_GameCommandParam3                    
+   +0x7A860      4  undefined4                         DAT_GameCommandParam4                    
+   +0x7A864      4  undefined4                         DAT_GameCommandParam5                    
+   +0x7A868      4  int                                receivedMatchTimesTrackerUnk             
+   +0x7A86C      4  int                                clTimeDiff                               
+   +0x7A870      4  int                                syncRelatedCountdown                     
+   +0x7A874      4  int                                matchTime                                
+   +0x7A878     32  int[8]                             matchTimesArray                          
+   +0x7A898     36  int[9]                             HASH_HashTotal                           
+   +0x7A8BC     36  int[9]                             DAT_PlayerMatchTimes                     
+   +0x7A8E0    432  HashContainer                      HASH_PartialHashPerPlayer                
+   +0x7AA90     36  int[9]                             DAT_MultiplayerGameVersions              
+   +0x7AAB4     36  BOOLEnum[9]                        isIncludedPlayer                         
+   +0x7AAD8      4  BOOLEnum                           flag_0x7aad8                             
+   +0x7AADC     14  byte[14]                           sharedDesyncFlags                        
+   +0x7AAEC    324  ConnectionLagInfo[9]               connectionLagInfoArray                   
+   +0x7AC30      1  undefined1                         syncPacketType                           
+   +0x7AC31      1  undefined1                         syncRelatedCounter                       
+   +0x7AC32      1  undefined1                         syncRelated2                             
+   +0x7AC34   7200  int[9][100][2]                     historicalLagInfoPerPlayer               
+   +0x7C854      4  undefined4                         counter                                  
+   +0x7C858      4  undefined4                         limit                                    
+   +0x7C85C  90000  int[9][2500]                       HASH_Units                               
+   +0x927EC  72000  int[9][2000]                       HASH_Buildings                           
+   +0xA412C  72000  int[9][2000]                       HASH_Trees                               
+   +0xB5A6C  45000  int[9][1250]                       HASH_Tribes                              
+   +0xC0A34    324  int[9][9]                          HASH_PlayerDatas                         
+   +0xC0B78    720  int[9][20]                         HASH_Section1023                         
+   +0xC0E48 108000  int[9][3000]                       HASH_Entities                            
+   +0xDB428 138240  HashDataContainer[9]               HASH_LogicalTileMap                      
+   +0xFD028   5760  int[9][160]                        HASH_Moats                               
+   +0xFE6A8   7200  int[9][200]                        HASH_LaddermanWalledData                 
+   +0x1002C8   1440  int[9][40]                         HASH_PitchDitches                        
+   +0x100868   1440  int[9][40]                         HASH_Unknown2                            
+   +0x100E08    324  int[9][9]                          HASH_AIVS                                
+   +0x100F4C   2880  int[9][80]                         HASH_HeatMaps                            
+   +0x101A8C     36  int[9]                             receivedSyncStatusByPlayerUnk            
+   +0x101AB0     36  int[9]                             syncStatus10Related                      
+   +0x101AD4      4  undefined4                         field196_0x101ad4                        
+   +0x101AD8    250  char[250]                          receivedChatMessage                      
+   +0x101BD2   5000  char[20][250]                      DAT_ChatMessageArray                     
+   +0x102F5A   5000  char[20][250]                      DAT_ChatMessageSubjectPlayerNameArray    
+   +0x1042E2   5000  char[20][250]                      DAT_ChatMessageObjectPlayerNameArray     
+   +0x10566C      4  undefined4                         DAT_ChatMessageArrayIndex                
+   +0x105670      4  undefined4                         field204_0x105670                        
+   +0x105674      4  undefined4                         DAT_InsultTextIndex                      
+   +0x105678    320  ChatEvent[20]                      DAT_ChatEventArray                       
+   +0x1057B8    120  char[120]                          shortMapName                             
+   +0x105830      4  int                                skirmishRelated1                         
+   +0x105834   1000  char[1000]                         mapName                                  
+   +0x105C1C   2250  char[9][250]                       DAT_PlayerNames                          
+   +0x1064E6   2250  char[9][250]                       playerNames2                             
+   +0x106DB0     36  int[9]                             DAT_PlayerSlotArraySomeValue             
+   +0x106DD4     36  int[9]                             unknownPlayerInfo_01                     
+   +0x106DF8     36  int[9]                             unknownPlayerInfo_03                     
+   +0x106E1C      4  int                                field215_0x106e1c                        
+   +0x106E20     16  int[4]                             skirmishUnknownSetting1                  
+   +0x106E30      4  int                                skirmishStartGold                        
+   +0x106E34      4  int                                skirmishDefaultPopularity                
+   +0x106E38      4  int                                skirmishGameSpeedLevel                   
+   +0x106E3C      4  int                                skirmishGameIntensityType                
+   +0x106E40     80  int[20]                            skirmishIntensityRelatedArray            
+   +0x106E90      4  undefined4                         skirmishGameIntensityType2               
+   +0x106E94     40  int[10]                            skirmishBalanceRelatedArrayUnk1          
+   +0x106EBC     40  byte[40]                           unused03                                 
+   +0x106EE4      4  int                                field225_0x106ee4                        
+   +0x106EE8      4  undefined4                         skirmishTechLevel                        
+   +0x106EF0      4  undefined4                         skirmishWinCondition                     
+   +0x106EF4      4  undefined4                         skirmishTroopsCostGold                   
+   +0x106EF8   1004  char[1004]                         unknownMapName_01                        
+   +0x1072E4      4  undefined4                         skirmishCurrentAdvantageBalance          
+   +0x1072E8      4  int                                field235_0x1072e8                        
+   +0x1072EC      4  int                                field236_0x1072ec                        
+   +0x1072F0      4  undefined4                         field237_0x1072f0                        
+   +0x1072F4      4  BOOLEnum                           reparseMaps                              
+   +0x1072F8      4  int                                field239_0x1072f8                        
+   +0x1072FC      4  undefined4                         DAT_MapSelectionScrollOffset             
+   +0x107300      4  undefined4                         DAT_MapSelectionTotalNumber              
+   +0x107304      4  int                                DAT_MapSelectionRelativeSelected         
+   +0x107308      8  byte[8]                            unused04                                 
+   +0x107310   2000  int[500]                           unknownMapRelatedReceivedDataArray       
+   +0x107AE0   2000  int[500]                           mapPlayerCountArray                      
+   +0x1082B0   2000  int[500]                           mapBalanceArray                          
+   +0x108A80   2000  int[500]                           mapU4Int0_2Array                         
+   +0x109250      4  undefined4                         field248_0x109250                        
+   +0x109254      4  undefined4                         savedMapTimeInTicks                      
+   +0x109258      4  undefined4                         savedUnitsCRC32Hash                      
+   +0x109260      4  undefined4                         unknownIncrementBy40_01                  
+   +0x109264     36  int[9]                             DAT_ChatMessageReceiverArray             
+   +0x109288      4  undefined4                         DAT_ChatTauntOrMessage                   
+   +0x10928C      4  undefined4                         skirmishPoints                           
+   +0x109290      4  dword                              field259_0x109290                        
+   +0x109294      4  int                                kickedAtTime                             
+   +0x109298      4  undefined4                         field261_0x109298                        
+   +0x10929C      4  undefined4                         kickDueToLagStatusUnk                    
+   +0x1092A0      4  int                                skirmishAutoSaveEveryMinutes             
+   +0x1092A4      4  undefined4                         DAT_TimeRelated1                         
+   +0x1092A8      4  int                                DAT_MapU4Int2_2                          
+   +0x1092AC      4  undefined4                         DAT_HashCountdown                        
+   +0x1092B0      4  undefined4                         field267_0x1092b0                        
+   +0x1092B4      4  undefined4                         skirmishStrongWalls                      
+   +0x1092B8      4  undefined4                         skirmishAlliances                        
+   +0x1092BC      4  undefined4                         skirmishNoCowThrowing                    
+   +0x1092C0      4  undefined4                         skirmishNoDogs                           
+   +0x1092C4      4  undefined4                         skirmishNoRushSetting                    
+   +0x1092C8      4  undefined4                         skirmishExtremeMode                      
+   +0x1092CC      4  undefined4                         skirmishExtremeMode2                     
+   +0x1092D0     36  int[9]                             unknownPlayerInfoArray_01                
+   +0x1092F4    720  int[9][20]                         DAT_ReceivedAIVFileAvailabilityPerAIArray 
+   +0x1095C4   1912  SkirmishStatistics                 finalResults                             
+   +0x109D3C     20  char[20]                           ipRelatedArray                           
+   +0x109D50     20  char[20]                           ipRelatedArray2                          
+   +0x109D64     20  char[20]                           ipRelatedArray3                          
+   +0x109D78     20  char[20]                           ipRelatedArray4                          
+   +0x109D8C      4  int                                ipArrayIndex                             
+   +0x109D90      4  undefined4                         DAT_TwoIfNotHost                         
+   +0x109D94      4  undefined4                         DAT_MapFileReceivingState                
+   +0x109D98     18  short[9]                           field285_0x109d98                        
+   +0x109DAC      4  int                                mapSendingFileSize                       
+   +0x109DB0     36  int[9]                             mapSendingByteBufferAddress              
+   +0x109DD4     36  FILE *[9]                          mapSendingFileHandles                    
+   +0x109DF8      4  FILE *                             FILEPTR_ReceivedMapFile                  
+   +0x109DFC     36  int[9]                             field292_0x109dfc                        
+   +0x109E20     36  int[9]                             field293_0x109e20                        
+   +0x109E44      9  byte[9]                            DAT_RoundTableOrderArray                 
+   +0x109E4D      9  byte[9]                            DAT_PlayerGroupArray                     
+   +0x109E56      9  byte[9]                            playerGroupArray2Unk                     
+   +0x109E5F      9  byte[9]                            field297_0x109e5f                        
+   +0x109E68      8  byte[8]                            playerPositionsArray                     
+   +0x109E70      4  undefined4                         protocolInvokerPlayerID                  
+   +0x109E74      4  undefined4                         currentPlayerSlotID                      
+   +0x109E78      4  undefined4                         DAT_SomePlayerID                         
+   +0x109E7C      4  undefined4                         field302_0x109e7c                        
+   +0x109E80      9  byte[9]                            field303_0x109e80                        
+   +0x109E8C      4  int                                field307_0x109e8c                        
+   +0x109E94      4  undefined4                         field312_0x109e94                        
+   +0x109E98      4  undefined4                         field313_0x109e98                        
+   +0x109E9C      4  undefined4                         mapTimeInTicksSinglePlayer               
+   +0x109EA0      4  undefined4                         field315_0x109ea0                        
+   +0x109EA4      4  undefined4                         field316_0x109ea4                        
+   +0x109EA8      4  undefined4                         field317_0x109ea8                        
+   +0x109EAC      4  undefined4                         field318_0x109eac                        
+   +0x109EB0      4  undefined4                         field319_0x109eb0                        
+   +0x109EB4      4  undefined4                         field320_0x109eb4                        
+   +0x109EB8      4  undefined4                         field321_0x109eb8                        
+   +0x109EBC      4  int                                field322_0x109ebc                        
+   +0x109EC0      4  int                                field323_0x109ec0                        
+   +0x109EC4      4  undefined4                         receivedCommandMapTimeInTicks            
+   +0x109ECC      4  int                                field329_0x109ecc                        
+   +0x109ED0      4  undefined4                         otherTime1                               
+   +0x109ED4      4  undefined4                         now2                                     
+   +0x109ED8      4  dword                              field332_0x109ed8                        
+   +0x109EDC      4  undefined4                         MBR_GameCommandID                        
+   +0x109EE0      4  undefined4                         DAT_GameCommandArrayIndex                
+   +0x109EE4      4  undefined4                         DAT_CommandParameterOffset               
+   +0x109EE8      4  undefined4                         commandDelay                             
+   +0x109EEC    800  int[100][2]                        MBR_SelectedGameCommands                 
+   +0x10A20C      4  undefined4                         MBR_someIndex                            
+   +0x10A210      4  int                                DPLAYX_SendAndReceiveREsult              
+   +0x10A214      4  undefined4                         DAT_TickCount                            
+   -- globale Variablen dieses Typs:
+   0191d768  GameSynchronyState  DAT_GameSynchronyState
+

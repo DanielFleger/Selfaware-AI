@@ -1,6 +1,6 @@
 # Current implementation and repository layout
 
-All 179 Python files formerly in `werkzeug/` are now installed modules under
+All 180 Python files formerly in `werkzeug/` are now installed modules under
 `src/selfaware/`, sorted by responsibility. The existing implementation is the
 current bot; the typed runtime is the foundation for migrating its interfaces.
 The same policy classes and live loop remain active. No match-strength or
@@ -102,7 +102,7 @@ the evidence and commit/push rule in [README.md](../README.md).
 
 ## Preservation and cleanup
 
-[relocations.json](relocations.json) records all 1,185 moves from upstream `9a9ed54`,
+[relocations.json](relocations.json) records all 1,191 moves from upstream `f8c3232`,
 with each original SHA256 and whether its content needed path/import changes.
 Research evidence, AI assets and Lua snapshots are verified byte for byte by
 the relocation tests. Historical filenames and match identifiers remain intact.
