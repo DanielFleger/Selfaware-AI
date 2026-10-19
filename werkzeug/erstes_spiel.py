@@ -309,7 +309,8 @@ def uebernehmen_start():
     """19.10. 20:05 (Daniel: "wenn ich die KI in der Lobby haette und selbst das Spiel starten kann"; Platzhalter Ratte):
     das Gefecht hat der Mensch gestartet - die eingebaute KI unseres Platzes aus (dieselben drei Stellen wie ki_aus im 1v1:
     currentAIArray, PlayerData.aiType, Mensch-Eintrag), ohne Pause, dann spielt der Lenker diesen Platz."""
-    for adr, wert in ((0x0191DE7C + SP * 4, 0), (0x0115BDF8 + SP * 0x39F4 + 0x2300, 0), (0x0191DE10 + SP * 4, 1)):
+    # 20:22: Mensch-Eintrag ZUERST (gemessen: KI-Feld zuerst auf 0 beendet die Partie nach 3 Takten - samurai_wache.ki_aus)
+    for adr, wert in ((0x0191DE10 + SP * 4, 1), (0x0115BDF8 + SP * 0x39F4 + 0x2300, 0), (0x0191DE7C + SP * 4, 0)):
         befehl({"poke": adr, "wert": wert}, 1.0, bis="POKE")
     schreib("UEBERNEHMEN: KI von Spieler %d bei Tick %d aus - SamurAI spielt" % (SP, tick()))
     global START_FERTIG

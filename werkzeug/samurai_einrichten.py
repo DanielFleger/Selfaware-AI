@@ -36,6 +36,12 @@ BLOCK = """{anfang}
                   name: SamurAI
                   root: ucp/resources/ai/SamurAI/
                   active: true
+            aiv:
+              contents:
+                value:
+                  name: SamurAI
+                  root: ucp/resources/ai/SamurAI/
+                  active: true
 {ende}
 """.format(anfang=ANFANG, ende=ENDE)
 
@@ -103,12 +109,20 @@ def main():
         ziel = os.path.join(ordner, "ucp", "resources", "ai", "SamurAI")
         os.makedirs(ziel, exist_ok=True)
         for name in os.listdir(PAKET):
-            shutil.copy2(os.path.join(PAKET, name), os.path.join(ziel, name))
+            q = os.path.join(PAKET, name)
+            if os.path.isdir(q):                    # 20:26: aiv/ (leere Burgvorlage)
+                shutil.copytree(q, os.path.join(ziel, name), dirs_exist_ok=True)
+            else:
+                shutil.copy2(q, os.path.join(ziel, name))
         fehlt = [n for n in ("meta.json", "lines.json", "portrait.png", "portrait_small.png") if not os.path.exists(os.path.join(ziel, n))]
         print("Paket nach %s kopiert%s" % (ziel, (" - FEHLT: %s (dann bleibt das Bild der Ratte)" % fehlt) if fehlt else ""))
         if ANFANG in text:
-            print("SamurAI-Block steht schon in ucp-config.yml - nur das Paket aktualisiert")
-            return
+            # 20:26: steht ein aelterer Block, wird er ersetzt (nicht doppelt) - sonst nur das Paket
+            alt = text[text.index(ANFANG):text.index(ENDE) + len(ENDE) + len(nl)]
+            if alt == BLOCK.replace("\n", nl):
+                print("SamurAI-Block steht schon so in ucp-config.yml - nur das Paket aktualisiert")
+                return
+            text = text.replace(alt, "")
         kopf = text.index("    aiSwapper:")
         marke = nl + "        ai:" + nl
         ai = text.index(marke, kopf) + len(marke)

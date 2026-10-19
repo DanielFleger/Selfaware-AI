@@ -23,7 +23,8 @@ ANSICHT, GAMEOVER = 0x01FE7D1C, 0x0117D500
 AI_ARRAY, AI_TYP, MENSCH = 0x0191DE7C, 0x0115BDF8 + 0x2300, 0x0191DE10
 PD_SCHRITT = 0x39F4
 SPIELER = range(1, 9)
-PAUSE_S = 2.0
+PAUSE_S = 2.0                # waehrend unser Lenker spielt
+SCHNELL_S = 0.25             # vor der Partie: so oft nachsehen, ob ein Gefecht begonnen hat
 STOP = os.path.join(HIER, "STOP_SAMURAI")
 LENKER_ARGS = ("leere_ki=nein experiment=ja regel50=ja minuten=600 tempo=40 bis_tick=900000 ziel_tick=900000 streitkolben=30 "
                "weg=feldzug produktion=ja bier=ja abriss=nein assassinen=20 aufloesen=ende b_versatz=600 bevoelkerung_ziel=90 "
@@ -59,15 +60,21 @@ def schreib(text):
         f.write(zeile + "\n")
 
 
-def lies():
+def lies(mit_ai=True):
+    """20:25 (Daniel: "du muesstest es literally Tick 1 machen, sonst baut sich die KI auf"): vor der Partie nur Ansicht und
+    gameOver lesen (2 Abfragen, alle SCHNELL_S) - die 9 KI-Felder erst, wenn ein Gefecht laeuft."""
     from laden import peek
-    ai = {sp: peek(AI_ARRAY + sp * 4)[0] for sp in SPIELER}
+    ai = {sp: peek(AI_ARRAY + sp * 4)[0] for sp in SPIELER} if mit_ai else {}
     return peek(ANSICHT)[0], peek(GAMEOVER)[0], ai
 
 
 def ki_aus(sp):
     from laden import befehl
-    for adr, wert in ((AI_ARRAY + sp * 4, 0), (AI_TYP + sp * PD_SCHRITT, 0), (MENSCH + sp * 4, 1)):
+    # 20:22 REIHENFOLGE gemessen (uebernahme_probe.py, daten/uebernahme_probe_20261019_2020*.json/_202135.json): zuerst
+    # Mensch-Eintrag 1, DANN KI aus - currentAIArray = 0 allein beendet die Partie nach 3 Takten (der Platz hat weder KI
+    # noch Menschen -> ausgeschieden; Daniels Partie 20:16 "Samurai gewinnt"). Mensch zuerst: gameOver 0, die Ratte baut
+    # in 3.000 Takten nichts mehr (15 -> 15; ohne Eingriff 15 -> 24)
+    for adr, wert in ((MENSCH + sp * 4, 1), (AI_TYP + sp * PD_SCHRITT, 0), (AI_ARRAY + sp * 4, 0)):
         befehl({"poke": adr, "wert": wert}, 1.0, bis="POKE")
 
 
@@ -80,7 +87,9 @@ def main():
     lenker, bedient, log = None, False, None
     while not os.path.exists(STOP):
         try:
-            ansicht, gameover, ai = lies()
+            ansicht, gameover, ai = lies(mit_ai=False)
+            if ansicht == 14 and gameover == 0 and not bedient:
+                ai = lies()[2]
         except Exception as ex:
             schreib("Lesen fehlgeschlagen: %r" % (ex,))
             time.sleep(5)
@@ -98,7 +107,13 @@ def main():
         elif not gesehen:
             main.gemeldet = False
         if tat == "starten":
+            from laden import befehl
+            from steuerkarte import tick
+            t_vor = tick()
+            befehl({"pause": True}, 0.5)          # kurz anhalten: umschalten, bevor die KI baut (Daniel 20:21)
             ki_aus(sp)
+            befehl({"pause": False}, 0.5)
+            schreib("Umschaltung bei Tick %s (Spiel waehrenddessen angehalten)" % t_vor)
             log = os.path.join(D, "samurai_%s_sp%d_konsole.txt" % (time.strftime("%Y%m%d_%H%M%S"), sp))
             umgebung = dict(os.environ, SHC_SPIELER=str(sp), SHC_PARTNER="ja")
             lenker = subprocess.Popen([sys.executable, "-u", os.path.join(HIER, "erstes_spiel.py")] + LENKER_ARGS,
@@ -111,7 +126,7 @@ def main():
             lenker = None
         elif tat == "neue_partie_frei":
             bedient = False
-        time.sleep(PAUSE_S)
+        time.sleep(PAUSE_S if bedient else SCHNELL_S)
     if lenker is not None and lenker.poll() is None:
         lenker.terminate()
     schreib("SamurAI-Wache aus (STOP_SAMURAI)")
