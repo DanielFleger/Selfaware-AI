@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Selfaware-AI architecture proposal</title>
+<style>
+*{box-sizing:border-box}body{margin:0;color:var(--foreground,#17202e);font-family:var(--font-sans,system-ui);font-size:14px;line-height:1.5}
+p{margin:0 0 12px}.lead{font-size:19px;font-weight:650;line-height:1.3}.muted{color:var(--muted-foreground,#64748b);font-size:12px}
+nav{display:flex;gap:7px;flex-wrap:wrap;margin:16px 0}
+nav button{border:1px solid var(--border,#cbd5e1);border-radius:8px;background:transparent;color:inherit;padding:8px 12px;font:inherit;cursor:pointer}
+nav button[aria-selected=true]{background:var(--accent-surface,#e8efff);color:var(--accent-surface-foreground,#224b9b);border-color:var(--accent,#6483c8)}
+[hidden]{display:none!important}.flow{display:grid;gap:7px}.node{width:100%;border:1px solid var(--border,#cbd5e1);border-left:4px solid var(--chart-1,#527ac1);border-radius:var(--radius,10px);padding:16px;background:var(--card,#f7f9fc);color:inherit;text-align:left;font:inherit;cursor:pointer}
+.node:hover,.node:focus-visible{outline:2px solid var(--ring,#7e9ed8);outline-offset:2px}.node strong{display:block;font-size:15px}.node span{display:block;color:var(--muted-foreground,#64748b);font-size:12px;margin-top:3px}
+.down{text-align:center;color:var(--muted-foreground,#64748b);font-size:12px}.policies{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.policies .node{border-left-color:var(--chart-2,#258b86)}.coord{border-left-color:var(--chart-3,#b38631)}.exec{border-left-color:var(--chart-4,#8e6ab5)}
+.detail{margin-top:14px;padding:16px;background:var(--secondary,#f0f3f8);border-radius:var(--radius,10px);min-height:104px}.detail p{margin:5px 0 0}
+.rule{margin-top:14px;padding-top:13px;border-top:1px solid var(--border,#cbd5e1)}
+.rule strong{font-weight:650}.maprow{display:grid;grid-template-columns:1fr 1.2fr 1.2fr;gap:16px;padding:14px 0;border-bottom:1px solid var(--border,#cbd5e1)}.maprow.head{font-weight:650;font-size:12px;color:var(--muted-foreground,#64748b);padding-top:0}.maprow code{font:12px var(--font-mono,monospace);overflow-wrap:anywhere}
+.maprow small{display:block;color:var(--muted-foreground,#64748b);margin-top:4px}.maprow a,a{color:var(--foreground,#17202e);text-decoration-color:var(--chart-1,#527ac1);text-underline-offset:3px}
+.sources{margin-top:18px;font-size:12px;color:var(--muted-foreground,#64748b)}.sources a{display:inline-block;margin-right:14px;margin-top:5px}
+@media(max-width:520px){.policies{grid-template-columns:1fr}.maprow{grid-template-columns:1fr;gap:8px}.maprow.head{display:none}.maprow div:first-child{font-weight:650}.node{padding:16px}.lead{font-size:18px}}
+</style></head><body>
+<p class="lead">Proposed boundaries for Selfaware-AI</p>
+<p class="muted">Sharky reference: 2628ba1 · Keep the measured Stronghold logic in Python and expose the game through a versioned UCP adapter.</p>
+<nav role="tablist" aria-label="Architecture views">
+<button role="tab" aria-selected="true" aria-controls="architecture" id="tab-architecture" data-pane="architecture">Control loop</button>
+<button role="tab" aria-selected="false" aria-controls="mapping" id="tab-mapping" data-pane="mapping">Reuse existing code</button>
+</nav>
+<section id="architecture" role="tabpanel" aria-labelledby="tab-architecture">
+<div class="flow">
+<button class="node" data-node="adapter"><strong>1 · Game adapter &amp; sessions</strong><span>One command-channel owner per game instance; explicit contexts for each player.</span></button>
+<div class="down">↓ one coherent sample</div>
+<button class="node" data-node="world"><strong>2 · World snapshot &amp; derived services</strong><span>Entities + UIDs, stocks, orders, tick, freshness · threats, combat estimates, logistics, paths.</span></button>
+<div class="down">↓ the same read-only view for every decision</div>
+<div class="policies">
+<button class="node" data-node="strategy"><strong>Strategy</strong><span>Goals, build phases, opponent response.</span></button>
+<button class="node" data-node="macro"><strong>Macro</strong><span>Economy, food, popularity, production chains.</span></button>
+<button class="node" data-node="micro"><strong>Micro tasks</strong><span>Defense, raids, assault; specialized controllers.</span></button>
+</div>
+<div class="down">↓ proposals and requests</div>
+<button class="node coord" data-node="coord"><strong>3 · Coordinator</strong><span>Grant unit claims + resource bundles; apply priorities and experiment constraints.</span></button>
+<div class="down">↓ compatible plans only</div>
+<button class="node exec" data-node="exec"><strong>4 · Commanders &amp; action ledger</strong><span>Resolve conflicting orders, suppress duplicates, dispatch through the adapter, reconcile observed effects.</span></button>
+<div class="down">↻ next sample confirms effects and releases reservations</div>
+</div>
+<div class="detail" aria-live="polite"><strong id="detail-title">Select a component to inspect its responsibility</strong><p id="detail-body">The diagram shows decision stages. Initial execution can remain sequential, with shared services and a single writer.</p></div>
+<p class="rule"><strong>Key adaptation for UCP:</strong> distinguish a command being received, queued, dispatched, and confirmed by observation. A log acknowledgement cannot establish that a building or unit exists.</p>
+</section>
+<section id="mapping" role="tabpanel" aria-labelledby="tab-mapping" hidden>
+<p>Keep working domain logic and give it a consistent contract. The new ownership boundaries make additional policies easier to integrate.</p>
+<div class="maprow head"><div>Sharky pattern</div><div>Current Stronghold code</div><div>Proposed home</div></div>
+<div class="maprow"><div>GameConnection<small>Game API boundary</small></div><div><code>befehl, laden, logik.lua</code></div><div>GamePort + channel executor<small>Own player switching, IDs, results and pending actions.</small></div></div>
+<div class="maprow"><div>UnitManager + shared data</div><div><code>runde_lesen, Uebersicht, waechter parsers</code></div><div>World state + services<small>One snapshot and reusable derived calculations.</small></div></div>
+<div class="maprow"><div>BuildManager</div><div><code>eroeffnung, phase1/phase2 goals</code></div><div>Strategy profiles<small>State-based goals and transitions.</small></div></div>
+<div class="maprow"><div>MacroManager</div><div><code>wirtschaft, ertragsplaner, Produktion, Haushalt</code></div><div>Macro planners + budget allocator<small>Haushalt remains tax/popularity policy; allocation is a separate responsibility.</small></div></div>
+<div class="maprow"><div>Prioritized MicroTasks</div><div><code>waechter, assassinen, feldzug, raids, zuweisung</code></div><div>Tasks + unit claims<small>Persistent ownership, explicit preemption and release.</small></div></div>
+<div class="maprow"><div>UnitCommander</div><div><code>distributed order tracking, stillstand, Auftragsbuch</code></div><div>Commanders + action ledger<small>Extend existing confirmation logic to recruitment, trade and movement.</small></div></div>
+<div class="maprow"><div>Map/combat services</div><div><code>sicht, schussfeld, wegkarte, gefecht, bedrohung</code></div><div>Shared query services<small>Cache geometry; preserve measured versus estimated knowledge.</small></div></div>
+<div class="maprow"><div>Result-based build selection</div><div><code>lernen, partie_vergleich, lageprotokoll, kennung</code></div><div>Learning + evaluation + telemetry<small>Version policies and keep tuning separate from evaluation.</small></div></div>
+<p class="rule"><strong>Dependency rule:</strong> strategy, macro and micro produce proposals. Only the game/execution boundary may perform game I/O.</p>
+</section>
+<div class="sources">Inspected Sharky source:
+<a href="https://github.com/sharknice/Sharky/blob/2628ba1c5c2083aeeddf9f13c25bf6f218820a05/Sharky/SharkyBot.cs">Manager lifecycle</a>
+<a href="https://github.com/sharknice/Sharky/blob/2628ba1c5c2083aeeddf9f13c25bf6f218820a05/Sharky/Managers/MicroManager.cs">Task priorities</a>
+<a href="https://github.com/sharknice/Sharky/blob/2628ba1c5c2083aeeddf9f13c25bf6f218820a05/Sharky/Unit/UnitCommander.cs">Order tracking</a>
+<a href="https://github.com/sharknice/Sharky/blob/2628ba1c5c2083aeeddf9f13c25bf6f218820a05/Sharky/Managers/BuildManager.cs">Build management</a>
+</div>
+<script>
+const details={
+adapter:["Game adapter & sessions","Wrap the existing file bridge first. Resolve executable/module/catalogue versions at startup. One channel owner serializes player switching and native queue operations; each player has its own policy state."],
+world:["World snapshot & derived services","Reuse runde_lesen and Uebersicht. Expose actual entity UIDs, tick and data age. Compute shared threat, formation and logistics information once, then give all policies a read-only view."],
+strategy:["Strategy","Turn opening and phase flags into explicit goals and transitions. For example: sustain food and popularity, then expand production or respond to a raid. Profiles can later be selected from match results."],
+macro:["Macro","Reuse measured yields and the existing economy code. Propose complete investments with resource, worker, space and prerequisite requirements. Food/popularity constraints and existing commitments take precedence over optional return on investment."],
+micro:["Micro tasks","Wrap defense, raiding and assault as tasks. Request the smallest sufficient force using existing combat estimates. Explicit ownership and preemption replace growing sets of manual exclusions."],
+coord:["Coordinator","Reserve resource bundles and grant unit ownership before dispatch. Reject double spending and incompatible orders. Record why a proposal was granted, delayed or denied so behavior can be explained and learned from."],
+exec:["Commanders & action ledger","Track logical unit/group orders and their actual outcomes. Deduplicate pending orders, detect stuck units, reject stale entity IDs, and confirm effects from the next observations. Extend Auftragsbuch rather than losing its verification logic."]
+};
+document.querySelectorAll('nav button').forEach(button=>button.addEventListener('click',()=>{
+document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-selected',String(b===button)));
+document.querySelectorAll('[role=tabpanel]').forEach(panel=>panel.hidden=panel.id!==button.dataset.pane);
+}));
+document.querySelectorAll('[data-node]').forEach(button=>button.addEventListener('click',()=>{
+const item=details[button.dataset.node];
+document.getElementById('detail-title').textContent=item[0];
+document.getElementById('detail-body').textContent=item[1];
+}));
+console.assert(document.querySelectorAll('[data-node]').length===7,'Seven architecture components');
+console.assert(document.querySelectorAll('[role=tabpanel]').length===2,'Both views are present');
+requestAnimationFrame(()=>console.assert(document.documentElement.scrollWidth<=innerWidth,'No horizontal overflow'));
+</script></body></html>

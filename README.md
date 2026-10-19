@@ -3,6 +3,34 @@
 Research toward Stronghold Crusader AIs that adapt on their own - reacting to the
 live game state instead of following a fixed build plan.
 
+The repository now has an installable offline framework in `src/selfaware/`
+alongside the existing bot and research tools in `werkzeug/`. Start with the
+[agent handoff](docs/HANDOFF.md), [architecture](docs/ARCHITECTURE.md), and
+[implementation backlog](docs/BACKLOG.md).
+
+## Development quick start
+
+With uv 0.12.9 installed, run from a fresh checkout:
+
+```sh
+uv sync --locked --extra dev
+uv run pytest
+uv run ruff check .
+uv run ruff format --check .
+uv run selfaware doctor --offline
+uv run selfaware replay tests/fixtures/legacy_sample.jsonl
+```
+
+The package supports Python 3.11+; CI covers Windows/Linux with Python 3.11 and
+3.14. Offline checks require no game installation. `uv build` builds the package.
+Use `--extra legacy` for the old tools' Python libraries and `--extra audit` for
+Lua audit probes. Dependency resolution is recorded in `uv.lock`.
+
+The new runtime currently operates on recorded observations. The existing live
+bot still runs through its original scripts and environment. Missing external
+VillageStudio files and known connector defects are documented in the backlog;
+a green offline check does not establish live-game readiness.
+
 This repository collects the reverse-engineering handbook behind that goal:
 memory addresses, data structures and measured in-game behaviour for
 Stronghold Crusader / Crusader Extreme under UCP3.
