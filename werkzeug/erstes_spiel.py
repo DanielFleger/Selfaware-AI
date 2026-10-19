@@ -966,6 +966,7 @@ SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # ge
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
 KAUSAL_HORIZONT = 16000  # 12.10.: Kausalmodell rechnet Ertraege bis jetzt + so viele Ticks (Schalter kausal_horizont)
+HEER_ANTEIL = 0.0        # B-132: Anteil jedes Gold-Zuwachses fuer die Heereskasse (Schalter heer_anteil, 0 = aus)
 DECKUNG_SOLL = 0         # B-129: so viele Schleuderer decken die Brand-Sklaven (Schalter deckung_soll, 0 = aus)
 KAUSAL_SPAREN = True     # B-122: Kausalmodell spart fuer seinen besten Betrieb (Schalter kausal_sparen=nein = altes Verhalten)
 OFFENES_ENDE = False     # B-123: ziel_tick=offen (Partie gegen einen Menschen) - Kausalmodell rechnet mitlaufend
@@ -2306,6 +2307,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             befehlskanal.belege()
             st, L, G = runde_lesen()
             hunger_r = False
+            if st and HEER_ANTEIL > 0 and wirt is not None:
+                wirt.heer_einnahme(st.get("gold", 0), HEER_ANTEIL)     # B-132 Heereskasse
             if st:
                 roh_l = lage.schreibe(st)
                 # 19.10. 18:25 MAKRO (uebersicht.py, Daniel 18:07 "was habe ich, was haben die Gegner, wer davon was und wo"):
@@ -3249,7 +3252,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                                 n_h, st["gold"], st.get("feuer", 0), len(feldzug.einheiten(L)) + n_h))
                     elif posten_h is not None and runde % 2 == 0:
                         import bauen as BA_h
-                        frei_h = st["gold"] - wirt.ruecklage(G)["gold"] - HEER_GOLD_RAND
+                        if HEER_ANTEIL > 0:      # B-132: die Heereskasse zahlt (ohne Rand - sie ist der Rand)
+                            frei_h = min(getattr(wirt, "heer_kasse", 0.0), st["gold"] - wirt.ruecklage(G, ohne_heer=True)["gold"])
+                        else:
+                            frei_h = st["gold"] - wirt.ruecklage(G)["gold"] - HEER_GOLD_RAND
                         heer_n, n_h, feuer_h = len(feldzug.einheiten(L)), 0, st.get("feuer", 0)
                         while n_h < 2 and heer_n + n_h < HEER_MAX and feuer_h - n_h >= 1:
                             typ_h = 70 if (fruehpruefung.get("heer_zaehler", 0) + n_h) % 4 == 3 else 75
@@ -3257,6 +3263,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                                 break
                             BA_h.werbe(typ_h, posten_h)
                             frei_h -= SOELDNER_GOLD[typ_h]
+                            if HEER_ANTEIL > 0:
+                                wirt.heer_ausgabe(SOELDNER_GOLD[typ_h])
                             n_h += 1
                         if n_h:
                             fruehpruefung["heer_zaehler"] = fruehpruefung.get("heer_zaehler", 0) + n_h
@@ -3272,10 +3280,12 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             ereignis += reiter.schritt(L, G, befehl)
                             if posten_h is not None and not es_an and not hunger_r and runde % 2 == 1:
                                 import bauen as BA_r
-                                for typ_r, n_r in RA.werbung(st["gold"] - wirt.ruecklage(G)["gold"], st.get("feuer", 0),
+                                for typ_r, n_r in RA.werbung(st["gold"] - wirt.ruecklage(G, ohne_heer=HEER_ANTEIL > 0)["gold"], st.get("feuer", 0),
                                                              len(brand.einheiten(L)), len(reiter.einheiten(L)), len(deckung.einheiten(L))):
                                     for _ in range(n_r):
                                         BA_r.werbe(typ_r, posten_h)
+                                    if HEER_ANTEIL > 0:
+                                        wirt.heer_ausgabe(n_r * {RA.SKLAVE: RA.SKLAVE_GOLD, RA.SCHLEUDER: RA.SCHLEUDER_GOLD}.get(typ_r, RA.PFERD_GOLD))
                                     ereignis.append("RAID-WERBUNG: %d %s" % (n_r, {RA.SKLAVE: "Sklaven", RA.SCHLEUDER: "Schleuderer (Deckung)"}.get(typ_r, "Pferdebogen")))
                         except Exception as ex_r:
                             ereignis.append("RAIDS FEHLER %r - Partie laeuft weiter" % (ex_r,))
@@ -3625,7 +3635,8 @@ def main():
     # der Rechenhorizont des Kausalmodells (jede Apfelplantage "wert" Tausende, Partie 20261019_2240). Offen: Kausalmodell mit
     # mitlaufendem Fenster (jetzt + kausal_horizont); alles andere (Planer, Produktion) rechnet wie bisher mit bis_tick
     global OFFENES_ENDE, KAUSAL_SPAREN
-    global STEIN_FRUEH, DECKUNG_SOLL
+    global STEIN_FRUEH, DECKUNG_SOLL, HEER_ANTEIL
+    HEER_ANTEIL = float(arg.get("heer_anteil", HEER_ANTEIL))
     DECKUNG_SOLL = int(arg.get("deckung_soll", DECKUNG_SOLL))
     STEIN_FRUEH = int(arg.get("steinbrueche_frueh", STEIN_FRUEH))
     KAUSAL_SPAREN = arg.get("kausal_sparen", "ja") == "ja"

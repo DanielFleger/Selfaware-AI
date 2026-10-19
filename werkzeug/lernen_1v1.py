@@ -44,6 +44,7 @@ POSITIONEN = [("Green Haven", "4,3"), ("Close Encounters", "2,3"), ("Green Haven
               ("The Killing Plains", "0,1"), ("The Killing Plains", "1,0")]
 KNOEPFE = {
     # 20.10. 00:13: Daniels Siegerweg zuerst pruefen (B-128 Verkauf + Soeldner, B-129 Deckung) - Reihenfolge = Testfolge
+    "heer_anteil": [0.0, 0.3, 0.6],            # B-132: Anteil jedes Gold-Zuwachses fuer die Heereskasse
     "produktion": ["ja", "nein"],              # B-128: eigene Waffenkette ODER (Daniels Weg) Stein/Eisen verkaufen + Soeldner
     "deckung_soll": [0, 4, 8],                 # B-129: Schleuderer decken die Brand-Sklaven
     "lager_max": [45, 60, 75],                 # B-124
@@ -72,7 +73,7 @@ EINHEIT = {22: ("European archer", ["Bow"]), 23: ("European crossbowman", ["Xbow
            75: ("Arabian swordsman", []), 76: ("Arabian firethrower", [])}
 OHNE_GOLDCOST = {71: 5, 72: 12}
 UEBERNAHME_N = 2
-BIS_TICK = 15000
+BIS_TICK = 24000        # 20.10. 00:30: Daniels Partie entschied sich zwischen Tick 19.000 und 24.000
 TEMPO = 100
 HOLZ_JE_STUECK = 0.25
 

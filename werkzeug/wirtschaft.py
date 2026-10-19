@@ -114,7 +114,28 @@ class Wirtschaft:
         return peek(BAUM_BASIS + self.apfelbaum * BAUM_SCHRITT + BAUM_STUFE)[0]
 
     # ---- eine Runde -----------------------------------------------------------------------------------------------
-    def ruecklage(self, G):
+    def heer_einnahme(self, gold_jetzt, anteil):
+        """B-132 Heereskasse (Daniel 19.10. 23:32: "alles verkauft, um Einheiten auszubilden"; Lernkreis 20.10.: Gold stand die
+        ganze Partie bei 10-30, die Soeldner-Werbung kam nie zum Zug): jeder Gold-Zuwachs seit der letzten Runde geht zum
+        Anteil `anteil` in die Kasse. Die Kasse liegt in der Ruecklage - Bauten geben sie nicht aus, nur das Anwerben."""
+        vor = getattr(self, "_gold_vor", None)
+        if vor is not None and gold_jetzt > vor and anteil > 0:
+            self.heer_kasse = getattr(self, "heer_kasse", 0.0) + anteil * (gold_jetzt - vor)
+        self.heer_kasse = min(getattr(self, "heer_kasse", 0.0), max(0, gold_jetzt))
+        self._gold_vor = gold_jetzt
+
+    def heer_ausgabe(self, gold):
+        self.heer_kasse = max(0.0, getattr(self, "heer_kasse", 0.0) - gold)
+        self._gold_vor = getattr(self, "_gold_vor", 0) - gold
+
+    def ruecklage(self, G, ohne_heer=False):
+        """ohne_heer=True (B-132): fuer das Anwerben - die Heereskasse ist dann NICHT zurueckgelegt, sondern zu verwenden."""
+        r = self._ruecklage(G)
+        if not ohne_heer:
+            r["gold"] += int(getattr(self, "heer_kasse", 0.0))
+        return r
+
+    def _ruecklage(self, G):
         """Was fuer die offenen B-Plantagen zurueckliegt, sobald alle A stehen (B ist dann spaetestens ~1.000 Ticks
         spaeter dran: Stufen 500 + 300 + 200). Jeder Ausgeber (Anwerben, Planer, Huetten) zieht das ab.
         gewinn_5 (Daniel 23:41 "Seasoning am Anfang"): A stand bei 534, reif bei 1.500, die letzte B-Plantage wartete

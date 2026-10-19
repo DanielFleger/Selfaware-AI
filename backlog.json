@@ -3160,7 +3160,7 @@
    "belege": [
     "L147"
    ],
-   "notiz": "nicht als fester Plan (Endziel: KI waehlt selbst), sondern als Vorlage aus einer echten Partie, die der Entscheider vergleicht (Sharky BuildDecisionService); haengt an B-124 (Lager nah an Holzfaellern), B-125 (Steinbruch frueh) | Knopf produktion ja/nein im 1v1-Lernkreis: nein = Stein/Eisen werden verkauft (keine Waffenkette), Soeldner ueber HEER-WERBUNG; Metrik 2 zaehlt den Truppenwert mit, damit beide Wege vergleichbar sind",
+   "notiz": "nicht als fester Plan (Endziel: KI waehlt selbst), sondern als Vorlage aus einer echten Partie, die der Entscheider vergleicht (Sharky BuildDecisionService); haengt an B-124 (Lager nah an Holzfaellern), B-125 (Steinbruch frueh) | Knopf produktion ja/nein im 1v1-Lernkreis: nein = Stein/Eisen werden verkauft (keine Waffenkette), Soeldner ueber HEER-WERBUNG; Metrik 2 zaehlt den Truppenwert mit, damit beide Wege vergleichbar sind | Lernkreis Schritt 4 (Close Encounters 3,2, 20.10. 00:23): produktion=nein -22,7 % - aber in BEIDEN Laeufen 0 HEER-WERBUNG (Gold nie ueber Ruecklage + 150) und nie Eisen verkauft trotz 10-12 Eisenminen. Der Vergleich misst noch nicht Daniels Rezept; zuerst: warum kommt kein Eisen ins Lager/zum Verkauf, und Soeldner auch unterhalb von 150 Rand",
    "verlauf": [
     {
      "zeit": "2026-10-19 23:32",
@@ -3173,6 +3173,10 @@
     {
      "zeit": "2026-10-19 23:57",
      "was": "offen -> in Arbeit: Knopf produktion ja/nein im 1v1-Lernkreis: nein = Stein/Eisen werden verkauft (keine Waffenkette), Soeldner ueber HEER-WERBUNG; Metrik 2 zaehlt den Truppenwert mit, damit beide Wege vergleichbar sind"
+    },
+    {
+     "zeit": "2026-10-20 00:23",
+     "was": "in Arbeit -> in Arbeit: Lernkreis Schritt 4 (Close Encounters 3,2, 20.10. 00:23): produktion=nein -22,7 % - aber in BEIDEN Laeufen 0 HEER-WERBUNG (Gold nie ueber Ruecklage + 150) und nie Eisen verkauft trotz 10-12 Eisenminen. Der Vergleich misst noch nicht Daniels Rezept; zuerst: warum kommt kein Eisen ins Lager/zum Verkauf, und Soeldner auch unterhalb von 150 Rand"
     }
    ],
    "rang": 3
@@ -3246,6 +3250,27 @@
     {
      "zeit": "2026-10-20 00:10",
      "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-132",
+   "titel": "Heereskasse: ein Anteil jeder Gold-Einnahme liegt fuer Truppen zurueck, Bauten geben ihn nicht aus",
+   "bereich": "Wirtschaft",
+   "status": "gebaut",
+   "seit": "2026-10-20 00:25",
+   "herkunft": "Lernkreis 20.10. 00:23: Gold 10-30 die ganze Partie, 0 Soeldner trotz HEER-WERBUNG; Daniel: 'alles verkauft, um Einheiten auszubilden'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "werkzeug/wirtschaft.py"
+   ],
+   "belege": [],
+   "notiz": "Knopf heer_anteil (0 = aus = altes Verhalten), offline 5/5; Lernkreis prueft 0/0,3/0,6 bis Tick 24.000",
+   "verlauf": [
+    {
+     "zeit": "2026-10-20 00:25",
+     "was": "angelegt (gebaut)"
     }
    ]
   }
