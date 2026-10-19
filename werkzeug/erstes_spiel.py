@@ -3463,7 +3463,13 @@ def main():
         if not eig_l:
             raise SystemExit("UEBERNEHMEN: kein Lord von Spieler %d nach 180 s" % SP)
         schreib("UEBERNEHMEN: Lord von Spieler %d bei %s (Tick %s)" % (SP, eig_l[0], tick()))
-        kurz, karte = "Lobby_sp%d_%d_%d" % (SP, eig_l[0][0], eig_l[0][1]), "Lobby"
+        # 20:45: Name nach dem BERGFRIED, nicht nach dem Lord (der laeuft - ein Neustart rechnete sonst mitten in der Partie
+        # einen neuen Plan: "keine 4 Apfelplantagen"); kurz= erlaubt, einen vorhandenen Plan ausdruecklich zu nehmen
+        try:
+            anker = KH.bergfriede()[SP]["anker"]
+        except Exception:
+            anker = eig_l[0]
+        kurz, karte = arg.get("kurz") or "Lobby_sp%d_bf_%d_%d" % (SP, anker[0], anker[1]), "Lobby"
         if not os.path.exists(os.path.join(D, "start_%s.json" % kurz)):
             schreib("UEBERNEHMEN: vermesse den Platz von Spieler %d live -> start_%s.json" % (SP, kurz))
             KH.vermessen_live(kurz, SP)

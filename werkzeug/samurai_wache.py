@@ -23,7 +23,7 @@ ANSICHT, GAMEOVER = 0x01FE7D1C, 0x0117D500
 AI_ARRAY, AI_TYP, MENSCH = 0x0191DE7C, 0x0115BDF8 + 0x2300, 0x0191DE10
 PD_SCHRITT = 0x39F4
 SPIELER = range(1, 9)
-PAUSE_S = 2.0                # waehrend unser Lenker spielt
+PAUSE_S = 0.5                # waehrend unser Lenker spielt (20:46: 0,5 s - Taskleiste schnell wieder verdecken)
 NEUSTARTS_MAX = 5            # so oft startet die Wache SamurAI je Partie neu, wenn er aussteigt (20:42)
 SCHNELL_S = 0.25             # vor der Partie: so oft nachsehen, ob ein Gefecht begonnen hat
 STOP = os.path.join(HIER, "STOP_SAMURAI")
@@ -54,6 +54,34 @@ def entscheide(ansicht, gameover, ai, lenker_laeuft, partie_bedient):
     if ratten:
         return ("starten", ratten[0])
     return ("warten", None)
+
+
+def spiel_ueber_taskleiste():
+    """20:46 (Daniel: "immer noch die Leiste"): ist das Spielfenster DIESER Instanz das aktive Fenster, wird es wieder ueber die
+    Taskleiste gelegt (HWND_TOPMOST, ohne Fokus/Groesse/Ort zu aendern). Gemessen 20:43: wirkt, solange das Spiel nicht
+    erhoeht laeuft; die Taskleiste schob sich aber wieder davor - darum in jeder Runde. Andere Programme bleiben unberuehrt."""
+    import ctypes
+    from ctypes import wintypes
+    u, k = ctypes.windll.user32, ctypes.windll.kernel32
+    h = u.GetForegroundWindow()
+    if not h:
+        return
+    pid = wintypes.DWORD()
+    u.GetWindowThreadProcessId(h, ctypes.byref(pid))
+    hp = k.OpenProcess(0x1000, False, pid.value)
+    if not hp:
+        return
+    try:
+        buf = ctypes.create_unicode_buffer(1024)
+        n = wintypes.DWORD(1024)
+        if not k.QueryFullProcessImageNameW(hp, 0, buf, ctypes.byref(n)):
+            return
+        pfad = buf.value.lower()
+    finally:
+        k.CloseHandle(hp)
+    inst = os.environ.get("SHC_INSTANZ", "1")
+    if "stronghold crusader.exe" in pfad and (("instanz%s" % inst) in pfad if inst != "1" else "instanz" not in pfad):
+        u.SetWindowPos(h, -1, 0, 0, 0, 0, 0x13)      # HWND_TOPMOST, NOMOVE|NOSIZE|NOACTIVATE
 
 
 def schreib(text):
@@ -156,10 +184,14 @@ def main():
             if (tick_w() or 0) <= 2:
                 befehl_w({"pause": False}, 0.5)
             bedient = True
+        try:
+            spiel_ueber_taskleiste()
+        except Exception:
+            pass
         time.sleep(PAUSE_S if bedient else SCHNELL_S)
-    if lenker is not None and lenker.poll() is None:
-        lenker.terminate()
-    schreib("SamurAI-Wache aus (STOP_SAMURAI)")
+    # 20:44: beim Aufhoeren der Wache spielt SamurAI weiter (vorher beendete ein Neustart der Wache die laufende KI mit)
+    schreib("SamurAI-Wache aus (STOP_SAMURAI) - SamurAI spielt weiter" if lenker is not None and lenker.poll() is None
+            else "SamurAI-Wache aus (STOP_SAMURAI)")
 
 
 if __name__ == "__main__":
