@@ -118,7 +118,7 @@ def bauer_ab(jetzt, feuer, frei_wohn, rang):
     return None
 
 
-def entscheide(jetzt, ziel, st, kandidaten, feuer_ort, abgabe_orte, huette_kosten, offene_stellen=0):
+def entscheide(jetzt, ziel, st, kandidaten, feuer_ort, abgabe_orte, huette_kosten, offene_stellen=0, sparen=True):
     """kandidaten: [(typ, ort, kosten, arbeiter)] - die besten Plaetze je Art (vom Planer). Gibt eine Liste von Handlungen
     [(wert, art, ort, text)] in Wertfolge, nur mit positivem Wert und im Rahmen von Holz/Gold.
 
@@ -160,6 +160,11 @@ def entscheide(jetzt, ziel, st, kandidaten, feuer_ort, abgabe_orte, huette_koste
     # 12.10. (Daniel 01:09/01:26, "Gold je Arbeiter"): Bauern sind knapp - Reihenfolge nach Wert JE ARBEITER, nicht je Gebaeude
     # (sonst gewinnt ein Steinbruch-Paket mit 5 Arbeitern gegen einen Hopfenhof mit einem)
     vorab.sort(key=lambda x: -x[0] / float(x[4]))
+    # B-122 (19.10., Partie 20261019_2240): ein unbezahlbarer Betrieb wurde uebersprungen und der naechstbilligere nahm das
+    # Holz - die Eisenmine (40 Holz, bester Wert) wartete 27.000 Ticks, 35 Apfelplantagen zu 8 Holz kamen. Jetzt wird fuer
+    # den BESTEN Betrieb gespart, dem nur Holz/Gold/Stein fehlt: was danach kommt, darf nichts davon verbrauchen. Ausnahme
+    # Holzfaeller, wenn Holz fehlt (Daniel 01:39: "wenn du Holz brauchst, mach mehr Holzfaeller") - sie beheben den Mangel.
+    gespart = None
     for _, typ, ort, kosten, arbeiter in vorab:
         ab = bauer_ab(jetzt, feuer, frei_wohn, rang + arbeiter - 1)     # der letzte Arbeiter dieses Betriebs
         if ab is None:
@@ -169,7 +174,12 @@ def entscheide(jetzt, ziel, st, kandidaten, feuer_ort, abgabe_orte, huette_koste
                              wert=knapp_holz if (typ == 3 and knapp_holz and knapp_holz > MODELL[3]["wert"]) else None)
         if w <= 0:
             continue
-        if holz < kosten.get("holz", 0) or gold < kosten.get("gold", 0) or stein < kosten.get("stein", 0):
+        fehlt = {r: kosten.get(r, 0) - v for r, v in (("holz", holz), ("gold", gold), ("stein", stein)) if kosten.get(r, 0) > v}
+        if fehlt:
+            if gespart is None and sparen:          # sparen=False: altes Verhalten (Schalter kausal_sparen=nein)
+                gespart = {"typ": typ, "ort": ort, "fehlt": fehlt, "kosten": dict(kosten), "wert": w}
+            continue
+        if gespart and any(kosten.get(r, 0) > 0 for r in gespart["fehlt"]) and not (typ == 3 and "holz" in gespart["fehlt"]):
             continue
         holz -= kosten.get("holz", 0)
         gold -= kosten.get("gold", 0)

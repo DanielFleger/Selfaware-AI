@@ -961,6 +961,8 @@ SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # ge
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
 KAUSAL_HORIZONT = 16000  # 12.10.: Kausalmodell rechnet Ertraege bis jetzt + so viele Ticks (Schalter kausal_horizont)
+KAUSAL_SPAREN = True     # B-122: Kausalmodell spart fuer seinen besten Betrieb (Schalter kausal_sparen=nein = altes Verhalten)
+OFFENES_ENDE = False     # B-123: ziel_tick=offen (Partie gegen einen Menschen) - Kausalmodell rechnet mitlaufend
 KAUSAL_RUNDEN = 3        # 19.10.: der Kausal-Planer entscheidet nur jede so vielte Runde (Rechenzeit, Bauen vertraegt 1 s)
 ZIEL_TICK = 9400         # Zieltick, bis zu dem das Kausalmodell Ertraege rechnet (unter 1 Jahr = 9.600, Endspiel davor)
                          # 07.10.: Lernkreis setzt ihn auf das gemessene Ende der besten Strategie; gilt auch fuer den Planer
@@ -2568,10 +2570,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # 12.10. 01:36 (1012h: bis Tick 11.000 nur 23 Apfelplantagen, kein Hopfen/Eisen - der feste ZIEL_TICK 16.753 liess
                     # Ketten mit langem Anlauf (Hopfen ~8.000, Eisen ~6.600) nie lohnen): mitlaufendes Fenster - eine Investition muss
                     # sich in den naechsten KAUSAL_HORIZONT Ticks lohnen, egal wann sie faellt
-                    ziel_k = max(ZIEL_TICK, st["t"] + KAUSAL_HORIZONT)
+                    ziel_k = st["t"] + KAUSAL_HORIZONT if OFFENES_ENDE else max(ZIEL_TICK, st["t"] + KAUSAL_HORIZONT)
                     for w_k, typ_k, ort_k, text_k in KM.entscheide(st["t"], ziel_k, st_k, kand_k, feuer_g,
                                                                     {3: lager_m, 32: speicher_m, 7: speicher_m}, kosten_spiel(1)["holz"],
-                                                                    offene_stellen=offen_k):
+                                                                    offene_stellen=offen_k, sparen=KAUSAL_SPAREN):
                         if typ_k == 1:
                             o_k = baue_haus()
                         else:
@@ -2674,6 +2676,14 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 if st.get("leute", 0) > kasse.get("leute_max", -1):
                     kasse["leute_max"], kasse["wuchs_tick"] = st.get("leute", 0), st["t"]
                 stillstand = st["t"] - kasse.get("wuchs_tick", st["t"]) >= 800
+                # B-120 (19.10.): ohne Kasse endete das Wachstum nie - "bis zur Ziel-Bevoelkerung keine Steuer" (Daniel 00:38)
+                # galt so die ganze Partie (Partie 20261019_2240: Stufe 2 = 0 Gold je Kopf, kein Goldsprung an 34 Monatswechseln).
+                # Ab der Ziel-Bevoelkerung gilt die Beliebtheitsregel des Planers (hoch ab steuer_runter + 2, runter darunter)
+                if KASSE == "nein" and ausbau.wachstum and BEV_ZIEL and st.get("leute", 0) >= BEV_ZIEL:
+                    ausbau.wachstum = False
+                    ereignis.append("STEUER FREI ab Tick %d: Ziel-Bevoelkerung %d erreicht (Leute %d, Beliebtheit %.2f) - Steuer "
+                                    "nach Beliebtheit (unter %d senken)" % (st["t"], BEV_ZIEL, st.get("leute", 0),
+                                                                          st.get("beliebt", 0) / 100.0, STEUER_RUNTER))
                 if KASSE != "nein" and not kasse["an"] and not endspiel["fertig"] and (
                         (BEV_ZIEL and st.get("leute", 0) >= BEV_ZIEL)
                         or (fruehpruefung.get("holz_ueberfluessig") and (not BEV_ZIEL or stillstand))):
@@ -3561,7 +3571,13 @@ def main():
     STEUER_ENDE = arg.get("steuer_ende", "nein")
     B_VERSATZ = None if arg.get("b_versatz", "reif") == "reif" else int(arg["b_versatz"])
     ENTSCHEIDER = arg.get("entscheider", "regeln")
-    ZIEL_TICK = int(arg.get("ziel_tick", 9400))
+    # B-123 (19.10.): ziel_tick=offen - gegen einen Menschen ist das Ende unbekannt. Vorher stand dort 900000; das war zugleich
+    # der Rechenhorizont des Kausalmodells (jede Apfelplantage "wert" Tausende, Partie 20261019_2240). Offen: Kausalmodell mit
+    # mitlaufendem Fenster (jetzt + kausal_horizont); alles andere (Planer, Produktion) rechnet wie bisher mit bis_tick
+    global OFFENES_ENDE, KAUSAL_SPAREN
+    KAUSAL_SPAREN = arg.get("kausal_sparen", "ja") == "ja"
+    OFFENES_ENDE = arg.get("ziel_tick") == "offen"
+    ZIEL_TICK = int(arg.get("bis_tick", 900000)) if OFFENES_ENDE else int(arg.get("ziel_tick", 9400))
     global KAUSAL_HORIZONT
     KAUSAL_HORIZONT = int(arg.get("kausal_horizont", KAUSAL_HORIZONT))
     HOLZ_SPAM = int(arg.get("holz_spam", 0))
