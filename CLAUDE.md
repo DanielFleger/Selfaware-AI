@@ -8,3 +8,6 @@ Backlog (Daniel 19.10.2026: nichts vergessen, wissen was gebaut ist und wo es st
 Ansicht `Backlog.html`. Neue Arbeit zuerst als Punkt anlegen (`python werkzeug/backlog.py neu ...`), jeder Commit nennt
 seinen Punkt (B-Nummer) in der Nachricht, danach Stand setzen (`stand B-n gebaut --commit ...`) und `backlog.py bauen`.
 Nie loeschen, nur den Stand aendern. "Commits ohne Punkt" in Backlog.html muss 0 sein.
+Reihenfolge (Daniel 19.10. 22:02): das Wichtigste - das, woran gerade gearbeitet wird - steht oben (`backlog.py rang B-n 1`,
+Stand `in_arbeit`). Vor jedem Schritt und jedem Bericht `python werkzeug/backlog.py fokus`: passt die eigene Arbeit nicht
+zum obersten Punkt, zurueck dorthin. Was dabei erledigt wird, sofort im Backlog abhaken.

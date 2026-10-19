@@ -15,6 +15,8 @@ Aufruf (aus Selfaware-AI):
                                  [--wo datei1,datei2] [--belege L142,L143] [--notiz "..."]
   python werkzeug/backlog.py stand B-61 gebaut [--commit abc1234] [--wo ...] [--belege ...] [--notiz "..."]
   python werkzeug/backlog.py zuordnen B-61 abc1234,def5678   (Commit ohne B-Nummer einem Punkt zuordnen)
+  python werkzeug/backlog.py rang B-114 1     (Rang 1 = ganz oben; Daniel 22:02: das Wichtigste, was ich jetzt mache, oben)
+  python werkzeug/backlog.py fokus           (was jetzt dran ist - vor jedem Schritt und jedem Bericht nachsehen)
   python werkzeug/backlog.py liste [offen|gebaut|...]
   python werkzeug/backlog.py bauen          -> Backlog.html (prueft dabei "wo" und die Commits)
 """
@@ -97,6 +99,32 @@ def stand(b, nr, status, commit=None, wo=(), belege=(), notiz=""):
     return p
 
 
+def rang(b, nr, platz):
+    """19.10. 22:02 (Daniel: "das Wichtigste, also das, was du jetzt machst, ganz oben"): Rang 1 = ganz oben. Der Punkt
+    wird an `platz` eingeschoben, alle mit gleichem oder hoeherem Rang ruecken eins nach unten."""
+    p = finde(b, nr)
+    alt = p.get("rang")
+    andere = sorted((q for q in b["punkte"] if q.get("rang") and q is not p), key=lambda q: q["rang"])
+    andere.insert(max(0, min(platz - 1, len(andere))), p)
+    for i, q in enumerate(andere, 1):
+        q["rang"] = i
+    p["verlauf"].append({"zeit": jetzt(), "was": "Rang %s -> %d" % (alt if alt else "-", p["rang"])})
+    return p
+
+
+def fokus(b, n=5):
+    """Was jetzt dran ist: Punkte in Arbeit, dann die naechsten nach Rang."""
+    arbeit = sorted((p for p in b["punkte"] if p["status"] == "in_arbeit"), key=lambda p: p.get("rang") or 999)
+    weiter = sorted((p for p in b["punkte"] if p["status"] == "offen" and p.get("rang")), key=lambda p: p["rang"])[:n]
+    return arbeit, weiter
+
+
+def ordnung(p):
+    """Reihenfolge der Ansicht: in Arbeit, dann offene nach Rang, offene ohne Rang, gebaut (neueste zuerst), Rest."""
+    gruppe = {"in_arbeit": 0, "offen": 1 if p.get("rang") else 2, "gebaut": 3, "zurueckgestellt": 4, "verworfen": 5}[p["status"]]
+    return (gruppe, p.get("rang") or 9999, -int(p["nr"][2:]))
+
+
 def zuordnen(b, nr, commits):
     """Commits einem Punkt zuordnen, ohne seinen Stand zu aendern (fuer Commits, deren Nachricht keine B-Nummer nennt)."""
     p = finde(b, nr)
@@ -158,7 +186,7 @@ def bauen(b):
             and not re.search(r"\bB-\d+", s) and h not in bekannte]
     fehlt_wo = []
     karten = []
-    for p in sorted(punkte, key=lambda p: (STAENDE.index(p["status"]), -int(p["nr"][2:]))):
+    for p in sorted(punkte, key=ordnung):
         wo_html = []
         for w in p["wo"]:
             da = os.path.exists(os.path.join(WURZEL, w)) or os.path.exists(w)
@@ -168,13 +196,15 @@ def bauen(b):
         verlauf = "".join("<li>%s - %s</li>" % (e(v["zeit"]), e(v["was"])) for v in p["verlauf"])
         karten.append(
             '<div class="punkt %s" data-id="%s" data-stand="%s" data-bereich="%s">'
-            '<h2><span class="nr">%s</span> %s <span class="stand %s">%s</span></h2>'
+            '<h2><span class="nr">%s</span>%s %s <span class="stand %s">%s</span></h2>'
             '<div class="meta"><b>Bereich:</b> %s · <b>seit:</b> %s · <b>wer/warum:</b> %s</div>'
             '%s%s%s%s%s'
             '<details><summary>Verlauf (%d)</summary><ul>%s</ul></details>'
             '<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option>'
             '<option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>' % (
-                p["status"], e(p["nr"]), p["status"], e(p["bereich"]), e(p["nr"]), e(p["titel"]), p["status"],
+                p["status"], e(p["nr"]), p["status"], e(p["bereich"]), e(p["nr"]),
+                (' <span class="rang">Rang %d</span>' % p["rang"]) if p.get("rang") and p["status"] in ("offen", "in_arbeit") else "",
+                e(p["titel"]), p["status"],
                 STAND_TEXT[p["status"]], e(p["bereich"]), e(p["seit"]), e(p["herkunft"]),
                 ('<div><b>gebaut:</b> %s</div>' % e(p["gebaut"])) if p.get("gebaut") else "",
                 ('<div><b>Commits:</b> %s</div>' % ", ".join("<code>%s</code>" % e(c) for c in p["commits"])) if p["commits"] else "",
@@ -182,6 +212,10 @@ def bauen(b):
                 ('<div><b>Belege:</b> %s</div>' % e(", ".join(p["belege"]))) if p["belege"] else "",
                 ('<div class="notiz">%s</div>' % e(p["notiz"])) if p["notiz"] else "",
                 len(p["verlauf"]), verlauf))
+    arbeit, weiter = fokus(b)
+    jetzt_html = ("<b>Jetzt dran:</b> " + "; ".join("%s %s" % (e(p["nr"]), e(p["titel"])) for p in arbeit)
+                  if arbeit else "<b>Jetzt dran:</b> nichts in Arbeit") + \
+        ("<br><b>Danach:</b> " + " → ".join("%s %s" % (e(p["nr"]), e(p["titel"][:60])) for p in weiter) if weiter else "")
     zaehl = {s: sum(1 for p in punkte if p["status"] == s) for s in STAENDE}
     bereiche = sorted({p["bereich"] for p in punkte})
     tage = {}
@@ -196,7 +230,7 @@ def bauen(b):
         erzeugt=time.strftime("%d.%m.%Y, %H:%M"), anzahl=len(punkte),
         zaehlung=" · ".join("%s %d" % (STAND_TEXT[s], zaehl[s]) for s in STAENDE),
         bereiche="".join('<option>%s</option>' % e(x) for x in bereiche), karten="".join(karten),
-        chronik=chronik, commits=len(log), ohne=ohne_html, n_ohne=len(ohne), fehlt=fehlt_html, n_fehlt=len(fehlt_wo),
+        chronik=chronik, commits=len(log), ohne=ohne_html, jetzt=jetzt_html, n_ohne=len(ohne), fehlt=fehlt_html, n_fehlt=len(fehlt_wo),
         ab=AB_ZUORDNUNG)
     open(ANSICHT, "w", encoding="utf-8").write(seite)
     return len(punkte), len(log), len(ohne), len(fehlt_wo)
@@ -228,6 +262,7 @@ VORLAGE = """<!doctype html>
   button {{ font:inherit; padding:6px 12px; border-radius:6px; border:1px solid var(--akzent); background:var(--karte); color:var(--text); cursor:pointer; }}
   .kasten {{ background:var(--karte); border:1px solid var(--rand); border-radius:10px; padding:10px 14px; margin:14px 0; }}
   details summary {{ cursor:pointer; }}
+  .kasten.jetzt {{ border-left:6px solid var(--blau); }} .rang {{ font-size:.75em; padding:1px 8px; border-radius:8px; background:var(--blau); color:#fff; margin-left:6px; font-weight:400; }}
 </style>
 </head>
 <body>
@@ -241,6 +276,7 @@ VORLAGE = """<!doctype html>
   <select id="bereich" onchange="filtern()"><option value="">alle Bereiche</option>{bereiche}</select>
   <button onclick="kopieren()">Kopieren</button><button onclick="herunterladen()">Herunterladen</button>
 </div>
+<div class="kasten jetzt">{jetzt}</div>
 <div class="kasten"><b>Zur Kontrolle:</b> Commits ab {ab} ohne Punkt-Nummer: {n_ohne} · Dateien unter „wo“, die fehlen: {n_fehlt}
 <details><summary>Commits ohne Punkt</summary><ul>{ohne}</ul></details>
 <details><summary>Fehlende Dateien</summary><ul>{fehlt}</ul></details></div>
@@ -286,6 +322,8 @@ def main():
     s.add_argument("nr"); s.add_argument("status"); s.add_argument("--commit"); s.add_argument("--wo", default="")
     s.add_argument("--belege", default=""); s.add_argument("--notiz", default="")
     z = sub.add_parser("zuordnen"); z.add_argument("nr"); z.add_argument("commits")
+    r = sub.add_parser("rang"); r.add_argument("nr"); r.add_argument("platz", type=int)
+    sub.add_parser("fokus")
     l = sub.add_parser("liste"); l.add_argument("status", nargs="?")
     sub.add_parser("bauen")
     sub.add_parser("import_alt")
@@ -304,6 +342,15 @@ def main():
         p, neu_c = zuordnen(b, a.nr, liste(a.commits))
         speichere(b)
         print("%s: %d Commits zugeordnet" % (p["nr"], len(neu_c)))
+    elif a.was == "rang":
+        p = rang(b, a.nr, a.platz)
+        speichere(b)
+        print("%s jetzt Rang %d" % (p["nr"], p["rang"]))
+    elif a.was == "fokus":
+        arbeit, weiter = fokus(b)
+        print("JETZT DRAN: " + ("; ".join("%s %s" % (p["nr"], p["titel"]) for p in arbeit) or "nichts in Arbeit"))
+        for p in weiter:
+            print("  danach Rang %d: %s %s" % (p["rang"], p["nr"], p["titel"]))
     elif a.was == "liste":
         for p in b["punkte"]:
             if not a.status or p["status"] == a.status:
