@@ -1,0 +1,1437 @@
+### _HoldStrong::Synchrony::GameSynchronyState::queueCommand @ 00489100  Aufrufart: __thiscall  Stapelbereinigung: 4
+   00489100  53                       PUSH EBX
+   00489101  56                       PUSH ESI
+   00489102  8B F1                    MOV ESI,ECX
+   00489104  8B 86 E0 9E 10 00        MOV EAX,dword ptr [ESI + 0x109ee0]
+   0048910a  89 86 24 D8 02 00        MOV dword ptr [ESI + 0x2d824],EAX
+   00489110  69 C0 F8 04 00 00        IMUL EAX,EAX,0x4f8
+   00489116  57                       PUSH EDI
+   00489117  8D 84 30 86 C6 03 00     LEA EAX,[EAX + ESI*0x1 + 0x3c686]
+   0048911e  50                       PUSH EAX
+   0048911f  33 FF                    XOR EDI,EDI
+   00489121  57                       PUSH EDI
+   00489122  68 EC 04 00 00           PUSH 0x4ec
+   00489127  B9 2C 27 65 01           MOV ECX,0x165272c
+   0048912c  E8 8F 87 FE FF           CALL 0x004718c0
+   00489131  8B 8E 24 D8 02 00        MOV ECX,dword ptr [ESI + 0x2d824]
+   00489137  69 C9 F8 04 00 00        IMUL ECX,ECX,0x4f8
+   0048913d  C6 84 31 85 C6 03 00 01  MOV byte ptr [ECX + ESI*0x1 + 0x3c685],0x1
+   00489145  8B 96 24 D8 02 00        MOV EDX,dword ptr [ESI + 0x2d824]
+   0048914b  8B 86 A4 06 00 00        MOV EAX,dword ptr [ESI + 0x6a4]
+   00489151  69 D2 F8 04 00 00        IMUL EDX,EDX,0x4f8
+   00489157  8B 5C 24 10              MOV EBX,dword ptr [ESP + 0x10]
+   0048915b  89 84 32 80 C6 03 00     MOV dword ptr [EDX + ESI*0x1 + 0x3c680],EAX
+   00489162  8B 8E 24 D8 02 00        MOV ECX,dword ptr [ESI + 0x2d824]
+   00489168  69 C9 F8 04 00 00        IMUL ECX,ECX,0x4f8
+   0048916e  88 9C 31 84 C6 03 00     MOV byte ptr [ECX + ESI*0x1 + 0x3c684],BL
+   00489175  8B 86 9C 9E 10 00        MOV EAX,dword ptr [ESI + 0x109e9c]
+   0048917b  8B 0D A8 7D FE 01        MOV ECX,dword ptr [0x01fe7da8]
+   00489181  3B C8                    CMP ECX,EAX
+   00489183  7E 1D                    JLE 0x004891a2
+   00489185  8B 96 E8 9E 10 00        MOV EDX,dword ptr [ESI + 0x109ee8]
+   0048918b  8B 86 24 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d824]
+   00489191  03 D1                    ADD EDX,ECX
+   00489193  69 C0 F8 04 00 00        IMUL EAX,EAX,0x4f8
+   00489199  89 94 30 7C C6 03 00     MOV dword ptr [EAX + ESI*0x1 + 0x3c67c],EDX
+   004891a0  EB 1B                    JMP 0x004891bd
+   004891a2  8B 8E E8 9E 10 00        MOV ECX,dword ptr [ESI + 0x109ee8]
+   004891a8  8B 96 24 D8 02 00        MOV EDX,dword ptr [ESI + 0x2d824]
+   004891ae  03 C8                    ADD ECX,EAX
+   004891b0  69 D2 F8 04 00 00        IMUL EDX,EDX,0x4f8
+   004891b6  89 8C 32 7C C6 03 00     MOV dword ptr [EDX + ESI*0x1 + 0x3c67c],ECX
+   004891bd  8B 86 24 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d824]
+   004891c3  69 C0 F8 04 00 00        IMUL EAX,EAX,0x4f8
+   004891c9  C7 86 28 D8 02 00 01 00 00 00  MOV dword ptr [ESI + 0x2d828],0x1
+   004891d3  89 BE 2C D8 02 00        MOV dword ptr [ESI + 0x2d82c],EDI
+   004891d9  89 BE E4 9E 10 00        MOV dword ptr [ESI + 0x109ee4],EDI
+   004891df  0F BE 8C 30 84 C6 03 00  MOVSX ECX,byte ptr [EAX + ESI*0x1 + 0x3c684]
+   004891e7  8B 14 8D 10 8E B3 00     MOV EDX,dword ptr [ECX*0x4 + 0xb38e10]
+   004891ee  FF D2                    CALL EDX
+   004891f0  8B 86 24 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d824]
+   004891f6  69 C0 F8 04 00 00        IMUL EAX,EAX,0x4f8
+   004891fc  8D 0C 30                 LEA ECX,[EAX + ESI*0x1]
+   004891ff  89 BE E4 9E 10 00        MOV dword ptr [ESI + 0x109ee4],EDI
+   00489205  8B 81 7C C6 03 00        MOV EAX,dword ptr [ECX + 0x3c67c]
+   0048920b  3B C7                    CMP EAX,EDI
+   0048920d  7E 41                    JLE 0x00489250
+   0048920f  8B 96 2C D8 02 00        MOV EDX,dword ptr [ESI + 0x2d82c]
+   00489215  52                       PUSH EDX
+   00489216  8B 96 30 D8 02 00        MOV EDX,dword ptr [ESI + 0x2d830]
+   0048921c  52                       PUSH EDX
+   0048921d  81 C1 86 C6 03 00        ADD ECX,0x3c686
+   00489223  51                       PUSH ECX
+   00489224  50                       PUSH EAX
+   00489225  53                       PUSH EBX
+   00489226  8B CE                    MOV ECX,ESI
+   00489228  E8 23 EA FF FF           CALL 0x00487c50
+   0048922d  83 86 E0 9E 10 00 01     ADD dword ptr [ESI + 0x109ee0],0x1
+   00489234  81 BE E0 9E 10 00 C8 00 00 00  CMP dword ptr [ESI + 0x109ee0],0xc8
+   0048923e  0F 8C 99 00 00 00        JL 0x004892dd
+   00489244  89 BE E0 9E 10 00        MOV dword ptr [ESI + 0x109ee0],EDI
+   0048924a  5F                       POP EDI
+   0048924b  5E                       POP ESI
+   0048924c  5B                       POP EBX
+   0048924d  C2 04 00                 RET 0x4
+   00489250  8B 8E 2C D8 02 00        MOV ECX,dword ptr [ESI + 0x2d82c]
+   00489256  8B 96 30 D8 02 00        MOV EDX,dword ptr [ESI + 0x2d830]
+   0048925c  51                       PUSH ECX
+   0048925d  52                       PUSH EDX
+   0048925e  8D 8E 34 D8 02 00        LEA ECX,[ESI + 0x2d834]
+   00489264  51                       PUSH ECX
+   00489265  50                       PUSH EAX
+   00489266  53                       PUSH EBX
+   00489267  8B CE                    MOV ECX,ESI
+   00489269  E8 E2 E9 FF FF           CALL 0x00487c50
+   0048926e  39 BE 28 D8 02 00        CMP dword ptr [ESI + 0x2d828],EDI
+   00489274  75 59                    JNZ 0x004892cf
+   00489276  8B 8E 24 D8 02 00        MOV ECX,dword ptr [ESI + 0x2d824]
+   0048927c  8B 96 A4 06 00 00        MOV EDX,dword ptr [ESI + 0x6a4]
+   00489282  69 C9 F8 04 00 00        IMUL ECX,ECX,0x4f8
+   00489288  8B 86 74 9E 10 00        MOV EAX,dword ptr [ESI + 0x109e74]
+   0048928e  89 BE 64 A8 07 00        MOV dword ptr [ESI + 0x7a864],EDI
+   00489294  89 BE 60 A8 07 00        MOV dword ptr [ESI + 0x7a860],EDI
+   0048929a  89 BE 5C A8 07 00        MOV dword ptr [ESI + 0x7a85c],EDI
+   004892a0  89 BE 58 A8 07 00        MOV dword ptr [ESI + 0x7a858],EDI
+   004892a6  89 BE 54 A8 07 00        MOV dword ptr [ESI + 0x7a854],EDI
+   004892ac  89 BE 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EDI
+   004892b2  89 96 9C 06 00 00        MOV dword ptr [ESI + 0x69c],EDX
+   004892b8  89 86 70 9E 10 00        MOV dword ptr [ESI + 0x109e70],EAX
+   004892be  0F BE 94 31 84 C6 03 00  MOVSX EDX,byte ptr [ECX + ESI*0x1 + 0x3c684]
+   004892c6  8B 04 95 10 8E B3 00     MOV EAX,dword ptr [EDX*0x4 + 0xb38e10]
+   004892cd  FF D0                    CALL EAX
+   004892cf  8B 8E 24 D8 02 00        MOV ECX,dword ptr [ESI + 0x2d824]
+   004892d5  51                       PUSH ECX
+   004892d6  8B CE                    MOV ECX,ESI
+   004892d8  E8 D3 6D FF FF           CALL 0x004800b0
+   004892dd  5F                       POP EDI
+   004892de  5E                       POP ESI
+   004892df  5B                       POP EBX
+   004892e0  C2 04 00                 RET 0x4
+   -- Aufrufer:
+   0045cda3 in _HoldStrong::Game::GameStateStructures::processGameTick
+        0045cd92  6A 64                    PUSH 0x64
+        0045cd94  B9 68 D7 91 01           MOV ECX,0x191d768
+        0045cd99  C7 05 00 E3 91 01 0B 00 00 00  MOV dword ptr [0x0191e300],0xb
+        0045cda3  E8 58 C3 02 00           CALL 0x00489100
+        0045cda8  5E                       POP ESI
+   0045cdc0 in _HoldStrong::Game::GameStateStructures::processGameTick
+        0045cdaf  6A 2E                    PUSH 0x2e
+        0045cdb1  B9 68 D7 91 01           MOV ECX,0x191d768
+        0045cdb6  C7 05 00 E3 91 01 02 00 00 00  MOV dword ptr [0x0191e300],0x2
+        0045cdc0  E8 3B C3 02 00           CALL 0x00489100
+        0045cdc5  5E                       POP ESI
+   0045cddd in _HoldStrong::Game::GameStateStructures::processGameTick
+        0045cdcc  6A 42                    PUSH 0x42
+        0045cdce  B9 68 D7 91 01           MOV ECX,0x191d768
+        0045cdd3  C7 05 00 E3 91 01 04 00 00 00  MOV dword ptr [0x0191e300],0x4
+        0045cddd  E8 1E C3 02 00           CALL 0x00489100
+        0045cde2  5E                       POP ESI
+   0045ce11 in _HoldStrong::Game::GameStateStructures::processGameTick
+        0045ce00  6A 5C                    PUSH 0x5c
+        0045ce02  B9 68 D7 91 01           MOV ECX,0x191d768
+        0045ce07  C7 05 B8 7F 99 01 02 00 00 00  MOV dword ptr [0x01997fb8],0x2
+        0045ce11  E8 EA C2 02 00           CALL 0x00489100
+        0045ce16  B9 10 7D FE 01           MOV ECX,0x1fe7d10
+   0048db41 in _HoldStrong::Synchrony::GameSynchronyState::checkLagAndSyncStatus
+        0048db30  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048db35  89 3D B8 7F 99 01        MOV dword ptr [0x01997fb8],EDI
+        0048db3b  89 1D BC 7F 99 01        MOV dword ptr [0x01997fbc],EBX
+        0048db41  E8 BA B5 FF FF           CALL 0x00489100
+        0048db46  C7 06 01 00 00 00        MOV dword ptr [ESI],0x1
+   0048db84 in _HoldStrong::Synchrony::GameSynchronyState::checkLagAndSyncStatus
+        0048db73  6A 59                    PUSH 0x59
+        0048db75  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048db7a  C7 05 B8 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fb8],0x0
+        0048db84  E8 77 B5 FF FF           CALL 0x00489100
+        0048db89  5F                       POP EDI
+   0048dc45 in _HoldStrong::Synchrony::GameSynchronyState::checkLagAndSyncStatus
+        0048dc38  0F 8C 92 FE FF FF        JL 0x0048dad0
+        0048dc3e  6A 65                    PUSH 0x65
+        0048dc40  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048dc45  E8 B6 B4 FF FF           CALL 0x00489100
+        0048dc4a  5F                       POP EDI
+   0048dd64 in _HoldStrong::Synchrony::GameSynchronyState::broadcastDesyncResyncCommands
+        0048dd4f  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048dd54  89 1D B8 7F 99 01        MOV dword ptr [0x01997fb8],EBX
+        0048dd5a  C7 05 BC 7F 99 01 3F 00 00 00  MOV dword ptr [0x01997fbc],0x3f
+        0048dd64  E8 97 B3 FF FF           CALL 0x00489100
+        0048dd69  C7 07 02 00 00 00        MOV dword ptr [EDI],0x2
+   0048dda7 in _HoldStrong::Synchrony::GameSynchronyState::broadcastDesyncResyncCommands
+        0048dd96  6A 59                    PUSH 0x59
+        0048dd98  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048dd9d  C7 05 B8 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fb8],0x0
+        0048dda7  E8 54 B3 FF FF           CALL 0x00489100
+        0048ddac  5F                       POP EDI
+   0048e66e in _HoldStrong::Synchrony::GameSynchronyState::broadcastDesyncResyncCommands
+        0048e65c  8B CE                    MOV ECX,ESI
+        0048e65e  89 BE E0 0B 00 00        MOV dword ptr [ESI + 0xbe0],EDI
+        0048e664  C7 86 98 0B 00 00 02 00 00 00  MOV dword ptr [ESI + 0xb98],0x2
+        0048e66e  E8 8D AA FF FF           CALL 0x00489100
+        0048e673  5F                       POP EDI
+   0048e70c in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048e6f7  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048e6fc  89 1D B8 7F 99 01        MOV dword ptr [0x01997fb8],EBX
+        0048e702  C7 05 BC 7F 99 01 3F 00 00 00  MOV dword ptr [0x01997fbc],0x3f
+        0048e70c  E8 EF A9 FF FF           CALL 0x00489100
+        0048e711  8B 44 24 14              MOV EAX,dword ptr [ESP + 0x14]
+   0048e7ab in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048e7a1  6A 38                    PUSH 0x38
+        0048e7a3  8B CE                    MOV ECX,ESI
+        0048e7a5  89 BE 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EDI
+        0048e7ab  E8 50 A9 FF FF           CALL 0x00489100
+        0048e7b0  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048e858 in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048e84e  6A 57                    PUSH 0x57
+        0048e850  8B CE                    MOV ECX,ESI
+        0048e852  89 BE B0 0B 00 00        MOV dword ptr [ESI + 0xbb0],EDI
+        0048e858  E8 A3 A8 FF FF           CALL 0x00489100
+        0048e85d  5F                       POP EDI
+   0048e86f in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048e865  6A 39                    PUSH 0x39
+        0048e867  8B CE                    MOV ECX,ESI
+        0048e869  89 BE 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EDI
+        0048e86f  E8 8C A8 FF FF           CALL 0x00489100
+        0048e874  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048e92a in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048e920  6A 3A                    PUSH 0x3a
+        0048e922  8B CE                    MOV ECX,ESI
+        0048e924  89 BE 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EDI
+        0048e92a  E8 D1 A7 FF FF           CALL 0x00489100
+        0048e92f  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048e9da in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048e9d0  6A 3B                    PUSH 0x3b
+        0048e9d2  8B CE                    MOV ECX,ESI
+        0048e9d4  89 BE 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EDI
+        0048e9da  E8 21 A7 FF FF           CALL 0x00489100
+        0048e9df  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048ea88 in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048ea7e  6A 3C                    PUSH 0x3c
+        0048ea80  8B CE                    MOV ECX,ESI
+        0048ea82  89 BE 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EDI
+        0048ea88  E8 73 A6 FF FF           CALL 0x00489100
+        0048ea8d  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048eb38 in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048eb2e  6A 3D                    PUSH 0x3d
+        0048eb30  8B CE                    MOV ECX,ESI
+        0048eb32  89 BE 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EDI
+        0048eb38  E8 C3 A5 FF FF           CALL 0x00489100
+        0048eb3d  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048ebea in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048ebe0  6A 3E                    PUSH 0x3e
+        0048ebe2  8B CE                    MOV ECX,ESI
+        0048ebe4  89 BE 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EDI
+        0048ebea  E8 11 A5 FF FF           CALL 0x00489100
+        0048ebef  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048ecaa in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048eca0  6A 50                    PUSH 0x50
+        0048eca2  8B CE                    MOV ECX,ESI
+        0048eca4  89 BE 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EDI
+        0048ecaa  E8 51 A4 FF FF           CALL 0x00489100
+        0048ecaf  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048ed6a in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048ed60  6A 51                    PUSH 0x51
+        0048ed62  8B CE                    MOV ECX,ESI
+        0048ed64  89 BE 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EDI
+        0048ed6a  E8 91 A3 FF FF           CALL 0x00489100
+        0048ed6f  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048ee1b in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048ee11  6A 52                    PUSH 0x52
+        0048ee13  8B CE                    MOV ECX,ESI
+        0048ee15  89 BE 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EDI
+        0048ee1b  E8 E0 A2 FF FF           CALL 0x00489100
+        0048ee20  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048eecb in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048eec1  6A 54                    PUSH 0x54
+        0048eec3  8B CE                    MOV ECX,ESI
+        0048eec5  89 BE 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EDI
+        0048eecb  E8 30 A2 FF FF           CALL 0x00489100
+        0048eed0  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048ef84 in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048ef72  8B CE                    MOV ECX,ESI
+        0048ef74  C7 86 50 A8 07 00 00 00 00 00  MOV dword ptr [ESI + 0x7a850],0x0
+        0048ef7e  89 BE 54 A8 07 00        MOV dword ptr [ESI + 0x7a854],EDI
+        0048ef84  E8 77 A1 FF FF           CALL 0x00489100
+        0048ef89  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048f071 in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048f063  8B CE                    MOV ECX,ESI
+        0048f065  89 9E 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EBX
+        0048f06b  89 AE 54 A8 07 00        MOV dword ptr [ESI + 0x7a854],EBP
+        0048f071  E8 8A A0 FF FF           CALL 0x00489100
+        0048f076  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048f170 in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048f15a  C7 86 AC 0B 00 00 0C 00 00 00  MOV dword ptr [ESI + 0xbac],0xc
+        0048f164  89 9E B0 0B 00 00        MOV dword ptr [ESI + 0xbb0],EBX
+        0048f16a  89 AE B4 0B 00 00        MOV dword ptr [ESI + 0xbb4],EBP
+        0048f170  E8 8B 9F FF FF           CALL 0x00489100
+        0048f175  5F                       POP EDI
+   0048f18d in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048f17f  8B CE                    MOV ECX,ESI
+        0048f181  89 9E 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EBX
+        0048f187  89 AE 54 A8 07 00        MOV dword ptr [ESI + 0x7a854],EBP
+        0048f18d  E8 6E 9F FF FF           CALL 0x00489100
+        0048f192  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048f26c in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048f256  C7 86 AC 0B 00 00 0D 00 00 00  MOV dword ptr [ESI + 0xbac],0xd
+        0048f260  89 9E B0 0B 00 00        MOV dword ptr [ESI + 0xbb0],EBX
+        0048f266  89 AE B4 0B 00 00        MOV dword ptr [ESI + 0xbb4],EBP
+        0048f26c  E8 8F 9E FF FF           CALL 0x00489100
+        0048f271  5F                       POP EDI
+   0048f283 in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048f279  6A 72                    PUSH 0x72
+        0048f27b  8B CE                    MOV ECX,ESI
+        0048f27d  89 BE 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EDI
+        0048f283  E8 78 9E FF FF           CALL 0x00489100
+        0048f288  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048f331 in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048f327  6A 73                    PUSH 0x73
+        0048f329  8B CE                    MOV ECX,ESI
+        0048f32b  89 BE 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EDI
+        0048f331  E8 CA 9D FF FF           CALL 0x00489100
+        0048f336  8B 86 20 D8 02 00        MOV EAX,dword ptr [ESI + 0x2d820]
+   0048f367 in _HoldStrong::Synchrony::GameSynchronyState::sendPendingResyncCommandsInBudget
+        0048f35d  0F 8C 71 FF FF FF        JL 0x0048f2d4
+        0048f363  6A 37                    PUSH 0x37
+        0048f365  8B CE                    MOV ECX,ESI
+        0048f367  E8 94 9D FF FF           CALL 0x00489100
+        0048f36c  C7 05 00 E3 91 01 03 00 00 00  MOV dword ptr [0x0191e300],0x3
+   0048f40e in _HoldStrong::Synchrony::GameSynchronyState::advanceSyncStatusAndKickLaggers
+        0048f408  7C E7                    JL 0x0048f3f1
+        0048f40a  6A 43                    PUSH 0x43
+        0048f40c  8B CD                    MOV ECX,EBP
+        0048f40e  E8 ED 9C FF FF           CALL 0x00489100
+        0048f413  5E                       POP ESI
+   0048f465 in _HoldStrong::Synchrony::GameSynchronyState::advanceSyncStatusAndKickLaggers
+        0048f450  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048f455  89 3D B8 7F 99 01        MOV dword ptr [0x01997fb8],EDI
+        0048f45b  C7 05 BC 7F 99 01 3F 00 00 00  MOV dword ptr [0x01997fbc],0x3f
+        0048f465  E8 96 9C FF FF           CALL 0x00489100
+        0048f46a  C7 06 02 00 00 00        MOV dword ptr [ESI],0x2
+   0048f480 in _HoldStrong::Synchrony::GameSynchronyState::advanceSyncStatusAndKickLaggers
+        0048f47b  5F                       POP EDI
+        0048f47c  6A 43                    PUSH 0x43
+        0048f47e  8B CD                    MOV ECX,EBP
+        0048f480  E8 7B 9C FF FF           CALL 0x00489100
+        0048f485  5E                       POP ESI
+   0048f4b0 in _HoldStrong::Synchrony::GameSynchronyState::advanceSyncStatusAndKickLaggers
+        0048f49f  6A 59                    PUSH 0x59
+        0048f4a1  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048f4a6  C7 05 B8 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fb8],0x0
+        0048f4b0  E8 4B 9C FF FF           CALL 0x00489100
+        0048f4b5  5E                       POP ESI
+   0048f4de in _HoldStrong::Synchrony::GameSynchronyState::checkGameLagStatusAndKickAccordingly
+        0048f4d5  7C F1                    JL 0x0048f4c8
+        0048f4d7  6A 5E                    PUSH 0x5e
+        0048f4d9  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048f4de  E8 1D 9C FF FF           CALL 0x00489100
+        0048f4e3  5F                       POP EDI
+   0048f531 in _HoldStrong::Synchrony::GameSynchronyState::checkGameLagStatusAndKickAccordingly
+        0048f51c  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048f521  89 35 B8 7F 99 01        MOV dword ptr [0x01997fb8],ESI
+        0048f527  C7 05 BC 7F 99 01 3F 00 00 00  MOV dword ptr [0x01997fbc],0x3f
+        0048f531  E8 CA 9B FF FF           CALL 0x00489100
+        0048f536  C7 07 02 00 00 00        MOV dword ptr [EDI],0x2
+   0048f54f in _HoldStrong::Synchrony::GameSynchronyState::checkGameLagStatusAndKickAccordingly
+        0048f547  5E                       POP ESI
+        0048f548  6A 5E                    PUSH 0x5e
+        0048f54a  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048f54f  E8 AC 9B FF FF           CALL 0x00489100
+        0048f554  5F                       POP EDI
+   0048f57e in _HoldStrong::Synchrony::GameSynchronyState::checkGameLagStatusAndKickAccordingly
+        0048f56d  6A 59                    PUSH 0x59
+        0048f56f  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048f574  C7 05 B8 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fb8],0x0
+        0048f57e  E8 7D 9B FF FF           CALL 0x00489100
+        0048f583  5F                       POP EDI
+   0048c73f in _HoldStrong::Synchrony::GameSynchronyState::queueSynchronizedAutosaveProtocol
+        0048c72b  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048c730  A3 BC 7F 99 01           MOV [0x01997fbc],EAX
+        0048c735  C7 05 C0 7F 99 01 01 00 00 00  MOV dword ptr [0x01997fc0],0x1
+        0048c73f  E8 BC C9 FF FF           CALL 0x00489100
+        0048c744  5E                       POP ESI
+   0048cc16 in _HoldStrong::Synchrony::GameSynchronyState::checkGameSync
+        0048cc05  C7 86 E8 9E 10 00 1E 00 00 00  MOV dword ptr [ESI + 0x109ee8],0x1e
+        0048cc0f  6A 36                    PUSH 0x36
+        0048cc11  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048cc16  E8 E5 C4 FF FF           CALL 0x00489100
+        0048cc1b  C7 86 EC 0B 00 00 01 00 00 00  MOV dword ptr [ESI + 0xbec],0x1
+   004904ae in _HoldStrong::Synchrony::GameSynchronyState::checkMultiplayerLaggingPlayers
+        004904a4  39 9E C0 0C 00 00        CMP dword ptr [ESI + 0xcc0],EBX
+        004904aa  74 0D                    JZ 0x004904b9
+        004904ac  6A 5D                    PUSH 0x5d
+        004904ae  E8 4D 8C FF FF           CALL 0x00489100
+        004904b3  89 9E C0 0C 00 00        MOV dword ptr [ESI + 0xcc0],EBX
+   004905b5 in _HoldStrong::Synchrony::GameSynchronyState::checkMultiplayerLaggingPlayers
+        004905a7  8B CE                    MOV ECX,ESI
+        004905a9  89 BE 50 A8 07 00        MOV dword ptr [ESI + 0x7a850],EDI
+        004905af  89 BE CC 0C 00 00        MOV dword ptr [ESI + 0xccc],EDI
+        004905b5  E8 46 8B FF FF           CALL 0x00489100
+        004905ba  8B 54 24 10              MOV EDX,dword ptr [ESP + 0x10]
+   004903d8 in _HoldStrong::Synchrony::GameSynchronyState::removePlayerFromLobby
+        004903cf  EB 02                    JMP 0x004903d3
+        004903d1  6A 5F                    PUSH 0x5f
+        004903d3  B9 68 D7 91 01           MOV ECX,0x191d768
+        004903d8  E8 23 8D FF FF           CALL 0x00489100
+        004903dd  83 86 60 92 10 00 28     ADD dword ptr [ESI + 0x109260],0x28
+   0048cae6 in _HoldStrong::Synchrony::GameSynchronyState::reorderTeamsAndPositions
+        0048cadd  74 18                    JZ 0x0048caf7
+        0048cadf  6A 6E                    PUSH 0x6e
+        0048cae1  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048cae6  E8 15 C6 FF FF           CALL 0x00489100
+        0048caeb  6A 0D                    PUSH 0xd
+   0048caf2 in _HoldStrong::Synchrony::GameSynchronyState::reorderTeamsAndPositions
+        0048cae6  E8 15 C6 FF FF           CALL 0x00489100
+        0048caeb  6A 0D                    PUSH 0xd
+        0048caed  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048caf2  E8 09 C6 FF FF           CALL 0x00489100
+        0048caf7  B8 01 00 00 00           MOV EAX,0x1
+   004913cd in _HoldStrong::Synchrony::GameSynchronyState::handleCommandLineArguments
+        004913c1  E8 7A 82 FC FF           CALL 0x00459640
+        004913c6  6A 04                    PUSH 0x4
+        004913c8  B9 68 D7 91 01           MOV ECX,0x191d768
+        004913cd  E8 2E 7D FF FF           CALL 0x00489100
+        004913d2  E9 D0 00 00 00           JMP 0x004914a7
+   00490960 in _HoldStrong::Synchrony::GameSynchronyState::waitForMultiplayerHost
+        00490953  57                       PUSH EDI
+        00490954  6A 02                    PUSH 0x2
+        00490956  C7 86 98 07 00 00 00 00 00 00  MOV dword ptr [ESI + 0x798],0x0
+        00490960  E8 9B 87 FF FF           CALL 0x00489100
+        00490965  8B 3D 84 E0 59 00        MOV EDI,dword ptr [0x0059e084]
+   00494982 in _HoldStrong::UI::MenuItemActionHandler_General_LaunchOrQuitMultiplayerGameUnk
+        00494975  6A 68                    PUSH 0x68
+        00494977  B9 68 D7 91 01           MOV ECX,0x191d768
+        0049497c  89 3D B8 7F 99 01        MOV dword ptr [0x01997fb8],EDI
+        00494982  E8 79 47 FF FF           CALL 0x00489100
+        00494987  83 3D 00 66 12 01 2F     CMP dword ptr [0x01126600],0x2f
+   0048c63e in _HoldStrong::Synchrony::GameSynchronyState::initMultiplayerLobbyState
+        0048c632  E8 69 18 FF FF           CALL 0x0047dea0
+        0048c637  6A 04                    PUSH 0x4
+        0048c639  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048c63e  E8 BD CA FF FF           CALL 0x00489100
+        0048c643  53                       PUSH EBX
+   00494de9 in _HoldStrong::UI::MenuItemActionHandler_General_LaunchOrQuitMultiplayerGameUnk
+        00494ddc  6A 68                    PUSH 0x68
+        00494dde  B9 68 D7 91 01           MOV ECX,0x191d768
+        00494de3  89 1D B8 7F 99 01        MOV dword ptr [0x01997fb8],EBX
+        00494de9  E8 12 43 FF FF           CALL 0x00489100
+        00494dee  B9 A8 65 12 01           MOV ECX,0x11265a8
+   0042c650 in _HoldStrong::Global::LaunchSinglePlayerGameUnk
+        0042c643  6A 04                    PUSH 0x4
+        0042c645  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042c64a  89 3D 70 7D FE 01        MOV dword ptr [0x01fe7d70],EDI
+        0042c650  E8 AB CA 05 00           CALL 0x00489100
+        0042c655  89 35 DC 75 A2 01        MOV dword ptr [0x01a275dc],ESI
+   004c698a in _HoldStrong::Global::SetupSkirmishMode
+        004c6981  75 F4                    JNZ 0x004c6977
+        004c6983  6A 04                    PUSH 0x4
+        004c6985  B9 68 D7 91 01           MOV ECX,0x191d768
+        004c698a  E8 71 27 FC FF           CALL 0x00489100
+        004c698f  39 7E 0C                 CMP dword ptr [ESI + 0xc],EDI
+   004d127f in _HoldStrong::AI::AICState::someChatMessageSelection
+        004d126e  89 2D E8 69 A2 01        MOV dword ptr [0x01a269e8],EBP
+        004d1274  89 2D EC 69 A2 01        MOV dword ptr [0x01a269ec],EBP
+        004d127a  A3 F0 69 A2 01           MOV [0x01a269f0],EAX
+        004d127f  E8 7C 7E FB FF           CALL 0x00489100
+        004d1284  8B 5C 24 10              MOV EBX,dword ptr [ESP + 0x10]
+   004eccd2 in _HoldStrong::AI::AIVState::hostChecksLobbyAIVAvailability
+        004eccc2  B9 68 D7 91 01           MOV ECX,0x191d768
+        004eccc7  BF 01 00 00 00           MOV EDI,0x1
+        004ecccc  89 35 B8 7F 99 01        MOV dword ptr [0x01997fb8],ESI
+        004eccd2  E8 29 C4 F9 FF           CALL 0x00489100
+        004eccd7  83 C6 01                 ADD ESI,0x1
+   00536c81 in _HoldStrong::Map::Units::UnitsState::queueStopCommand
+        00536c70  6A 0F                    PUSH 0xf
+        00536c72  B9 68 D7 91 01           MOV ECX,0x191d768
+        00536c77  C7 05 B8 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fb8],0x0
+        00536c81  E8 7A 24 F5 FF           CALL 0x00489100
+        00536c86  C3                       RET
+   0053718d in _HoldStrong::Map::Units::UnitsState::queueDisbandAndAttackCommand4Params
+        0053717d  B9 68 D7 91 01           MOV ECX,0x191d768
+        00537182  89 15 C0 7F 99 01        MOV dword ptr [0x01997fc0],EDX
+        00537188  A3 C4 7F 99 01           MOV [0x01997fc4],EAX
+        0053718d  E8 6E 1F F5 FF           CALL 0x00489100
+        00537192  C2 10 00                 RET 0x10
+   0048da53 in _HoldStrong::Synchrony::GameSynchronyState::recomputeHashesAndSendResync
+        0048da43  83 C4 40                 ADD ESP,0x40
+        0048da46  C7 44 24 04 0C 00 00 00  MOV dword ptr [ESP + 0x4],0xc
+        0048da4e  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048da53  E9 A8 B6 FF FF           JMP 0x00489100
+        0048da60  A1 DC 75 A2 01           MOV EAX,[0x01a275dc]
+   0052f708 in _HoldStrong::Map::Units::UnitsState::triggerDesyncIfTileUnitLinkageInvalid
+        0052f6f1  C7 05 84 C8 17 01 01 00 00 00  MOV dword ptr [0x0117c884],0x1
+        0052f6fb  C7 44 24 04 4F 00 00 00  MOV dword ptr [ESP + 0x4],0x4f
+        0052f703  B9 68 D7 91 01           MOV ECX,0x191d768
+        0052f708  E9 F3 99 F5 FF           JMP 0x00489100
+        0052f70d  C7 05 84 C8 17 01 01 00 00 00  MOV dword ptr [0x0117c884],0x1
+   0052f724 in _HoldStrong::Map::Units::UnitsState::triggerDesyncIfTileUnitLinkageInvalid
+        0052f70d  C7 05 84 C8 17 01 01 00 00 00  MOV dword ptr [0x0117c884],0x1
+        0052f717  C7 44 24 04 4F 00 00 00  MOV dword ptr [ESP + 0x4],0x4f
+        0052f71f  B9 68 D7 91 01           MOV ECX,0x191d768
+        0052f724  E9 D7 99 F5 FF           JMP 0x00489100
+        0052f730  A1 84 C8 17 01           MOV EAX,[0x0117c884]
+   00494af1 in _HoldStrong::UI::MenuItemActionHandler_General_LaunchOrQuitMultiplayerGameUnk
+        00494ae1  B9 68 D7 91 01           MOV ECX,0x191d768
+        00494ae6  A3 BC 7F 99 01           MOV [0x01997fbc],EAX
+        00494aeb  89 1D C0 7F 99 01        MOV dword ptr [0x01997fc0],EBX
+        00494af1  E8 0A 46 FF FF           CALL 0x00489100
+        00494af6  B9 A8 65 12 01           MOV ECX,0x11265a8
+   0042546e in _HoldStrong::UI::MenuItemActionHandler_MainMenu_Main
+        0042545d  6A 04                    PUSH 0x4
+        0042545f  B9 68 D7 91 01           MOV ECX,0x191d768
+        00425464  C7 05 DC 75 A2 01 00 00 00 00  MOV dword ptr [0x01a275dc],0x0
+        0042546e  E8 8D 3C 06 00           CALL 0x00489100
+        00425473  6A 2C                    PUSH 0x2c
+   0042bae9 in _HoldStrong::UI::MenuItemActionHandler_UnusedSelectRandomNumberOfEnemies_Main
+        0042badc  6A 04                    PUSH 0x4
+        0042bade  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042bae3  89 1D DC 75 A2 01        MOV dword ptr [0x01a275dc],EBX
+        0042bae9  E8 12 D6 05 00           CALL 0x00489100
+        0042baee  8B 6C 24 14              MOV EBP,dword ptr [ESP + 0x14]
+   00434fa0 in _HoldStrong::UI::MenuItemActionHandler_InGameMenu_UnitSelectionAndControlsUnk
+        00434f8f  89 1D B8 7F 99 01        MOV dword ptr [0x01997fb8],EBX
+        00434f95  89 3D BC 7F 99 01        MOV dword ptr [0x01997fbc],EDI
+        00434f9b  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        00434fa0  E8 5B 41 05 00           CALL 0x00489100
+        00434fa5  C7 05 EC 7B FE 01 00 00 00 00  MOV dword ptr [0x01fe7bec],0x0
+   00435435 in _HoldStrong::UI::MenuItemActionHandler_InGameMenu_UnitSelectionAndControlsUnk
+        00435428  6A 4E                    PUSH 0x4e
+        0043542a  B9 68 D7 91 01           MOV ECX,0x191d768
+        0043542f  89 35 B8 7F 99 01        MOV dword ptr [0x01997fb8],ESI
+        00435435  E8 C6 3C 05 00           CALL 0x00489100
+        0043543a  B9 B0 C9 F2 00           MOV ECX,0xf2c9b0
+   00535af4 in _HoldStrong::Map::Units::UnitsState::createUnitSelection
+        00535ae5  B9 68 D7 91 01           MOV ECX,0x191d768
+        00535aea  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        00535aef  A3 78 7F 66 01           MOV [0x01667f78],EAX
+        00535af4  E8 07 36 F5 FF           CALL 0x00489100
+        00535af9  8B C7                    MOV EAX,EDI
+   00535bb4 in _HoldStrong::Map::Units::UnitsState::createTribeFromSelectedUnits
+        00535ba5  B9 68 D7 91 01           MOV ECX,0x191d768
+        00535baa  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        00535baf  A3 78 7F 66 01           MOV [0x01667f78],EAX
+        00535bb4  E8 47 35 F5 FF           CALL 0x00489100
+        00535bb9  8B C7                    MOV EAX,EDI
+   00495732 in _HoldStrong::UI::MenuItemActionHandler_ProgressBarBox_LoadAndSaveGameButtonLogic
+        00495725  0F 8C A7 00 00 00        JL 0x004957d2
+        0049572b  6A 74                    PUSH 0x74
+        0049572d  B9 68 D7 91 01           MOV ECX,0x191d768
+        00495732  E8 C9 39 FF FF           CALL 0x00489100
+        00495737  E9 96 00 00 00           JMP 0x004957d2
+   00489c61 in _HoldStrong::Commands::SetPlayerNameUnk
+        00489c50  6A 35                    PUSH 0x35
+        00489c52  B9 68 D7 91 01           MOV ECX,0x191d768
+        00489c57  C7 05 84 45 A2 01 00 00 00 00  MOV dword ptr [0x01a24584],0x0
+        00489c61  E8 9A F4 FF FF           CALL 0x00489100
+        00489c66  5F                       POP EDI
+   0048a0c3 in _HoldStrong::Commands::SubmitMSVMapIndexAndProperties
+        0048a0b3  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048a0b8  89 1D B8 7F 99 01        MOV dword ptr [0x01997fb8],EBX
+        0048a0be  A3 BC 7F 99 01           MOV [0x01997fbc],EAX
+        0048a0c3  E8 38 F0 FF FF           CALL 0x00489100
+        0048a0c8  8B 8C 24 A0 17 00 00     MOV ECX,dword ptr [ESP + 0x17a0]
+   00490efb in _HoldStrong::UI::MenuItemActionHandler_FindingNetworkSessions_Buttons
+        00490eef  E8 2C FA FF FF           CALL 0x00490920
+        00490ef4  6A 04                    PUSH 0x4
+        00490ef6  B9 68 D7 91 01           MOV ECX,0x191d768
+        00490efb  E8 00 82 FF FF           CALL 0x00489100
+        00490f00  B9 B0 C9 F2 00           MOV ECX,0xf2c9b0
+   00491639 in _HoldStrong::UI::MenuItemActionHandler_WaitingForHost_ConnectToLobby
+        0049162d  E8 EE F2 FF FF           CALL 0x00490920
+        00491632  6A 04                    PUSH 0x4
+        00491634  B9 68 D7 91 01           MOV ECX,0x191d768
+        00491639  E8 C2 7A FF FF           CALL 0x00489100
+        0049163e  53                       PUSH EBX
+   004969c1 in _HoldStrong::UI::MenuTextInputState::loadOrSaveGame
+        004969b4  6A 32                    PUSH 0x32
+        004969b6  B9 68 D7 91 01           MOV ECX,0x191d768
+        004969bb  89 3D B8 7F 99 01        MOV dword ptr [0x01997fb8],EDI
+        004969c1  E8 3A 27 FF FF           CALL 0x00489100
+        004969c6  83 C7 01                 ADD EDI,0x1
+   00535e12 in _HoldStrong::Map::Units::UnitsState::getFirstSelectedUnitID
+        00535e00  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        00535e05  C7 44 24 04 48 00 00 00  MOV dword ptr [ESP + 0x4],0x48
+        00535e0d  B9 68 D7 91 01           MOV ECX,0x191d768
+        00535e12  E9 E9 32 F5 FF           JMP 0x00489100
+        00535e20  53                       PUSH EBX
+   0051198d in _HoldStrong::Map::WallAndPitchState::confirmAndQueueDestructionCommand
+        00511981  6A 4C                    PUSH 0x4c
+        00511983  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        00511988  B9 68 D7 91 01           MOV ECX,0x191d768
+        0051198d  E8 6E 77 F7 FF           CALL 0x00489100
+        00511992  C7 06 00 00 00 00        MOV dword ptr [ESI],0x0
+   00536e70 in _HoldStrong::Map::Units::UnitsState::giveMoveCommand
+        00536e5f  89 2D B8 7F 99 01        MOV dword ptr [0x01997fb8],EBP
+        00536e65  89 15 C4 7F 99 01        MOV dword ptr [0x01997fc4],EDX
+        00536e6b  A3 C8 7F 99 01           MOV [0x01997fc8],EAX
+        00536e70  E8 8B 22 F5 FF           CALL 0x00489100
+        00536e75  6A 00                    PUSH 0x0
+   005370ed in _HoldStrong::Map::Units::UnitsState::extendRallyPoint
+        005370dd  B9 68 D7 91 01           MOV ECX,0x191d768
+        005370e2  89 15 C0 7F 99 01        MOV dword ptr [0x01997fc0],EDX
+        005370e8  A3 C4 7F 99 01           MOV [0x01997fc4],EAX
+        005370ed  E8 0E 20 F5 FF           CALL 0x00489100
+        005370f2  C2 10 00                 RET 0x10
+   00537154 in _HoldStrong::Map::Units::UnitsState::queueDisbandAndAttackCommand3Params
+        00537144  B9 68 D7 91 01           MOV ECX,0x191d768
+        00537149  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        0053714e  89 15 C0 7F 99 01        MOV dword ptr [0x01997fc0],EDX
+        00537154  E8 A7 1F F5 FF           CALL 0x00489100
+        00537159  C2 0C 00                 RET 0xc
+   005371d7 in _HoldStrong::Map::Units::UnitsState::queueDisbandAndAttackCommand5Params
+        005371c7  B9 68 D7 91 01           MOV ECX,0x191d768
+        005371cc  89 15 C0 7F 99 01        MOV dword ptr [0x01997fc0],EDX
+        005371d2  A3 C4 7F 99 01           MOV [0x01997fc4],EAX
+        005371d7  E8 24 1F F5 FF           CALL 0x00489100
+        005371dc  C2 14 00                 RET 0x14
+   004b3142 in _HoldStrong::Global::WindowMsgProcessingFunc
+        004b3135  6A 0E                    PUSH 0xe
+        004b3137  B9 68 D7 91 01           MOV ECX,0x191d768
+        004b313c  89 1D F0 69 A2 01        MOV dword ptr [0x01a269f0],EBX
+        004b3142  E8 B9 5F FD FF           CALL 0x00489100
+        004b3147  B9 40 27 65 01           MOV ECX,0x1652740
+   00493d71 in _HoldStrong::UI::MenuItemActionHandler_IdentityOptions_Confirm
+        00493d68  74 0C                    JZ 0x00493d76
+        00493d6a  6A 60                    PUSH 0x60
+        00493d6c  B9 68 D7 91 01           MOV ECX,0x191d768
+        00493d71  E8 8A 53 FF FF           CALL 0x00489100
+        00493d76  C3                       RET
+   004b4c0f in _HoldStrong::Global::WindowMsgProcessingFunc
+        004b4c02  6A 0E                    PUSH 0xe
+        004b4c04  B9 68 D7 91 01           MOV ECX,0x191d768
+        004b4c09  89 35 F0 69 A2 01        MOV dword ptr [0x01a269f0],ESI
+        004b4c0f  E8 EC 44 FD FF           CALL 0x00489100
+        004b4c14  83 3D 80 DD 91 01 63     CMP dword ptr [0x0191dd80],0x63
+   004b33a3 in _HoldStrong::Global::WindowMsgProcessingFunc
+        004b3396  6A 5C                    PUSH 0x5c
+        004b3398  B9 68 D7 91 01           MOV ECX,0x191d768
+        004b339d  89 2D B8 7F 99 01        MOV dword ptr [0x01997fb8],EBP
+        004b33a3  E8 58 5D FD FF           CALL 0x00489100
+        004b33a8  53                       PUSH EBX
+   004b341e in _HoldStrong::Global::WindowMsgProcessingFunc
+        004b3411  6A 68                    PUSH 0x68
+        004b3413  B9 68 D7 91 01           MOV ECX,0x191d768
+        004b3418  89 2D B8 7F 99 01        MOV dword ptr [0x01997fb8],EBP
+        004b341e  E8 DD 5C FD FF           CALL 0x00489100
+        004b3423  B9 A8 65 12 01           MOV ECX,0x11265a8
+   00522c0a in _HoldStrong::Map::Units::TribesState::queueUnitStance
+        00522bfe  6A 46                    PUSH 0x46
+        00522c00  B9 68 D7 91 01           MOV ECX,0x191d768
+        00522c05  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        00522c0a  E8 F1 64 F6 FF           CALL 0x00489100
+        00522c0f  C2 08 00                 RET 0x8
+   004449c4 in _HoldStrong::UI::MenuItemActionHandler_General_ToolbarButtonPressed
+        004449b3  B9 68 D7 91 01           MOV ECX,0x191d768
+        004449b8  89 15 B8 7F 99 01        MOV dword ptr [0x01997fb8],EDX
+        004449be  89 1D BC 7F 99 01        MOV dword ptr [0x01997fbc],EBX
+        004449c4  E8 37 47 04 00           CALL 0x00489100
+        004449c9  5D                       POP EBP
+   004449ea in _HoldStrong::UI::MenuItemActionHandler_General_ToolbarButtonPressed
+        004449da  B9 68 D7 91 01           MOV ECX,0x191d768
+        004449df  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        004449e4  89 3D BC 7F 99 01        MOV dword ptr [0x01997fbc],EDI
+        004449ea  E8 11 47 04 00           CALL 0x00489100
+        004449ef  5D                       POP EBP
+   0044124b in _HoldStrong::Global::DisplayMapDescriptionAndAllocatePlayersToSlots
+        00441242  7C DC                    JL 0x00441220
+        00441244  6A 0D                    PUSH 0xd
+        00441246  B9 68 D7 91 01           MOV ECX,0x191d768
+        0044124b  E8 B0 7E 04 00           CALL 0x00489100
+        00441250  5E                       POP ESI
+   004893fd in _HoldStrong::Commands::InitialAnnounceToHost
+        004893f4  74 0C                    JZ 0x00489402
+        004893f6  6A 03                    PUSH 0x3
+        004893f8  B9 68 D7 91 01           MOV ECX,0x191d768
+        004893fd  E8 FE FC FF FF           CALL 0x00489100
+        00489402  C3                       RET
+   00489499 in _HoldStrong::Commands::AssignPlayerIDToPlayerSlot
+        00489490  7C 0C                    JL 0x0048949e
+        00489492  6A 74                    PUSH 0x74
+        00489494  B9 68 D7 91 01           MOV ECX,0x191d768
+        00489499  E8 62 FC FF FF           CALL 0x00489100
+        0048949e  8B 0D F8 9F FE 01        MOV ECX,dword ptr [0x01fe9ff8]
+   004895a8 in _HoldStrong::Commands::TriggerLobbyPlayerInformationRefresh
+        0048959b  89 0D FC DE 91 01        MOV dword ptr [0x0191defc],ECX
+        004895a1  6A 07                    PUSH 0x7
+        004895a3  B9 68 D7 91 01           MOV ECX,0x191d768
+        004895a8  E8 53 FB FF FF           CALL 0x00489100
+        004895ad  6A 0A                    PUSH 0xa
+   004895b4 in _HoldStrong::Commands::TriggerLobbyPlayerInformationRefresh
+        004895a8  E8 53 FB FF FF           CALL 0x00489100
+        004895ad  6A 0A                    PUSH 0xa
+        004895af  B9 68 D7 91 01           MOV ECX,0x191d768
+        004895b4  E8 47 FB FF FF           CALL 0x00489100
+        004895b9  83 7C 24 04 01           CMP dword ptr [ESP + 0x4],0x1
+   004895d0 in _HoldStrong::Commands::TriggerLobbyPlayerInformationRefresh
+        004895c7  7C 0C                    JL 0x004895d5
+        004895c9  6A 74                    PUSH 0x74
+        004895cb  B9 68 D7 91 01           MOV ECX,0x191d768
+        004895d0  E8 2B FB FF FF           CALL 0x00489100
+        004895d5  83 C4 08                 ADD ESP,0x8
+   00489e07 in _HoldStrong::Commands::CommandLoadMapHeader
+        00489df3  B9 68 D7 91 01           MOV ECX,0x191d768
+        00489df8  C7 05 B8 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fb8],0x0
+        00489e02  A3 BC 7F 99 01           MOV [0x01997fbc],EAX
+        00489e07  E8 F4 F2 FF FF           CALL 0x00489100
+        00489e0c  8B 8C 24 C4 0F 00 00     MOV ECX,dword ptr [ESP + 0xfc4]
+   0048b23b in _HoldStrong::Commands::SyncRelatedSomething
+        0048b232  75 3F                    JNZ 0x0048b273
+        0048b234  6A 58                    PUSH 0x58
+        0048b236  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048b23b  E8 C0 DE FF FF           CALL 0x00489100
+        0048b240  83 3D F8 DE 91 01 00     CMP dword ptr [0x0191def8],0x0
+   0048b443 in _HoldStrong::Commands::ShareQuitGameVote
+        0048b432  6A 59                    PUSH 0x59
+        0048b434  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048b439  C7 05 B8 7F 99 01 01 00 00 00  MOV dword ptr [0x01997fb8],0x1
+        0048b443  E8 B8 DC FF FF           CALL 0x00489100
+        0048b448  EB 58                    JMP 0x0048b4a2
+   0048b8c9 in _HoldStrong::Commands::ShareMapHashForMapName
+        0048b8b8  6A 68                    PUSH 0x68
+        0048b8ba  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048b8bf  C7 05 B8 7F 99 01 01 00 00 00  MOV dword ptr [0x01997fb8],0x1
+        0048b8c9  E8 32 D8 FF FF           CALL 0x00489100
+        0048b8ce  8B 8C 24 F8 03 00 00     MOV ECX,dword ptr [ESP + 0x3f8]
+   0048bbbc in _HoldStrong::Commands::ShareMapPart
+        0048bbaf  6A 6B                    PUSH 0x6b
+        0048bbb1  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048bbb6  89 1D B8 7F 99 01        MOV dword ptr [0x01997fb8],EBX
+        0048bbbc  E8 3F D5 FF FF           CALL 0x00489100
+        0048bbc1  8B 8C 24 0C 04 00 00     MOV ECX,dword ptr [ESP + 0x40c]
+   0048f9da in -
+        0048f9d1  7C 0C                    JL 0x0048f9df
+        0048f9d3  6A 74                    PUSH 0x74
+        0048f9d5  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048f9da  E8 21 97 FF FF           CALL 0x00489100
+        0048f9df  A1 F8 9F FE 01           MOV EAX,[0x01fe9ff8]
+   0048fa2d in -
+        0048fa24  EB 0C                    JMP 0x0048fa32
+        0048fa26  6A 05                    PUSH 0x5
+        0048fa28  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048fa2d  E8 CE 96 FF FF           CALL 0x00489100
+        0048fa32  6A 06                    PUSH 0x6
+   0048fa44 in -
+        0048fa32  6A 06                    PUSH 0x6
+        0048fa34  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048fa39  C7 04 B5 18 45 A2 01 00 00 00 00  MOV dword ptr [ESI*0x4 + 0x1a24518],0x0
+        0048fa44  E8 B7 96 FF FF           CALL 0x00489100
+        0048fa49  6A 09                    PUSH 0x9
+   0048fa56 in -
+        0048fa49  6A 09                    PUSH 0x9
+        0048fa4b  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048fa50  89 3D B8 7F 99 01        MOV dword ptr [0x01997fb8],EDI
+        0048fa56  E8 A5 96 FF FF           CALL 0x00489100
+        0048fa5b  83 3D 1C 7D FE 01 38     CMP dword ptr [0x01fe7d1c],0x38
+   0048fa75 in -
+        0048fa6c  7E 0C                    JLE 0x0048fa7a
+        0048fa6e  6A 2F                    PUSH 0x2f
+        0048fa70  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048fa75  E8 86 96 FF FF           CALL 0x00489100
+        0048fa7a  6A 34                    PUSH 0x34
+   0048fa81 in -
+        0048fa75  E8 86 96 FF FF           CALL 0x00489100
+        0048fa7a  6A 34                    PUSH 0x34
+        0048fa7c  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048fa81  E8 7A 96 FF FF           CALL 0x00489100
+        0048fa86  B9 68 D7 91 01           MOV ECX,0x191d768
+   0042c0b5 in _HoldStrong::UI::MenuView_Unknown33_DoEveryFrame
+        0042c0ac  74 1E                    JZ 0x0042c0cc
+        0042c0ae  6A 06                    PUSH 0x6
+        0042c0b0  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042c0b5  E8 46 D0 05 00           CALL 0x00489100
+        0042c0ba  6A 09                    PUSH 0x9
+   0042c0c7 in _HoldStrong::UI::MenuView_Unknown33_DoEveryFrame
+        0042c0ba  6A 09                    PUSH 0x9
+        0042c0bc  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042c0c1  89 3D B8 7F 99 01        MOV dword ptr [0x01997fb8],EDI
+        0042c0c7  E8 34 D0 05 00           CALL 0x00489100
+        0042c0cc  BE 01 00 00 00           MOV ESI,0x1
+   0042bfd9 in _HoldStrong::UI::MenuItemActionHandler_SelectCrusade_Main
+        0042bfcc  6A 04                    PUSH 0x4
+        0042bfce  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042bfd3  89 1D DC 75 A2 01        MOV dword ptr [0x01a275dc],EBX
+        0042bfd9  E8 22 D1 05 00           CALL 0x00489100
+        0042bfde  89 35 18 45 A2 01        MOV dword ptr [0x01a24518],ESI
+   0044864f in _HoldStrong::UI::MenuView_LobbyMenu_DoEveryFrame
+        00448642  6A 6A                    PUSH 0x6a
+        00448644  B9 68 D7 91 01           MOV ECX,0x191d768
+        00448649  89 35 BC 7F 99 01        MOV dword ptr [0x01997fbc],ESI
+        0044864f  E8 AC 0A 04 00           CALL 0x00489100
+        00448654  03 F5                    ADD ESI,EBP
+   00448739 in _HoldStrong::UI::MenuView_LobbyMenu_DoEveryFrame
+        00448728  89 3D F0 60 B9 00        MOV dword ptr [0x00b960f0],EDI
+        0044872e  89 15 B8 7F 99 01        MOV dword ptr [0x01997fb8],EDX
+        00448734  A3 BC 7F 99 01           MOV [0x01997fbc],EAX
+        00448739  E8 C2 09 04 00           CALL 0x00489100
+        0044873e  A1 F8 60 B9 00           MOV EAX,[0x00b960f8]
+   0044878c in _HoldStrong::UI::MenuView_LobbyMenu_DoEveryFrame
+        0044877f  6A 09                    PUSH 0x9
+        00448781  B9 68 D7 91 01           MOV ECX,0x191d768
+        00448786  89 1D B8 7F 99 01        MOV dword ptr [0x01997fb8],EBX
+        0044878c  E8 6F 09 04 00           CALL 0x00489100
+        00448791  EB 0D                    JMP 0x004487a0
+   00448903 in _HoldStrong::UI::MenuView_LobbyMenu_DoEveryFrame
+        004488fa  74 0C                    JZ 0x00448908
+        004488fc  6A 30                    PUSH 0x30
+        004488fe  B9 68 D7 91 01           MOV ECX,0x191d768
+        00448903  E8 F8 07 04 00           CALL 0x00489100
+        00448908  03 FD                    ADD EDI,EBP
+   0042b4ad in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_MapSelectTable
+        0042b4a1  6A 2F                    PUSH 0x2f
+        0042b4a3  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042b4a8  A3 6C 4A A2 01           MOV [0x01a24a6c],EAX
+        0042b4ad  E8 4E DC 05 00           CALL 0x00489100
+        0042b4b2  C3                       RET
+   0048beb7 in _HoldStrong::Synchrony::GameSynchronyState::compareGameVersions
+        0048beab  E8 50 D9 FD FF           CALL 0x00469800
+        0048beb0  6A 0E                    PUSH 0xe
+        0048beb2  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048beb7  E8 44 D2 FF FF           CALL 0x00489100
+        0048bebc  8D 44 24 34              LEA EAX,[ESP + 0x34]
+   0048bf44 in _HoldStrong::Synchrony::GameSynchronyState::compareGameVersions
+        0048bf32  6A 0D                    PUSH 0xd
+        0048bf34  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048bf39  C7 04 85 18 45 A2 01 00 00 00 00  MOV dword ptr [EAX*0x4 + 0x1a24518],0x0
+        0048bf44  E8 B7 D1 FF FF           CALL 0x00489100
+        0048bf49  8B 8C 24 98 00 00 00     MOV ECX,dword ptr [ESP + 0x98]
+   004b023e in _HoldStrong::UI::Rendering::RenderSomeMultiplayerInfoUnkDisplayElement19
+        004b0231  6A 59                    PUSH 0x59
+        004b0233  B9 68 D7 91 01           MOV ECX,0x191d768
+        004b0238  89 2D B8 7F 99 01        MOV dword ptr [0x01997fb8],EBP
+        004b023e  E8 BD 8E FD FF           CALL 0x00489100
+        004b0243  EB 3F                    JMP 0x004b0284
+   004b258e in _HoldStrong::UI::Rendering::RenderSomeMultiplayerInfoUnkDisplayElement28
+        004b257d  C7 05 3C E4 91 01 41 00 00 00  MOV dword ptr [0x0191e43c],0x41
+        004b2587  6A 63                    PUSH 0x63
+        004b2589  B9 68 D7 91 01           MOV ECX,0x191d768
+        004b258e  E8 6D 6B FD FF           CALL 0x00489100
+        004b2593  55                       PUSH EBP
+   004b2797 in _HoldStrong::UI::Rendering::RenderSomeMultiplayerInfoUnkDisplayElement28
+        004b2783  B9 68 D7 91 01           MOV ECX,0x191d768
+        004b2788  A3 38 E4 91 01           MOV [0x0191e438],EAX
+        004b278d  C7 05 3C E4 91 01 42 00 00 00  MOV dword ptr [0x0191e43c],0x42
+        004b2797  E8 64 69 FD FF           CALL 0x00489100
+        004b279c  5F                       POP EDI
+   004dc8e9 in _HoldStrong::UI::MenuView_MissionFinishedTransition_DoEveryFrame
+        004dc8dd  E8 7E 37 FB FF           CALL 0x00490060
+        004dc8e2  6A 06                    PUSH 0x6
+        004dc8e4  B9 68 D7 91 01           MOV ECX,0x191d768
+        004dc8e9  E8 12 C8 FA FF           CALL 0x00489100
+        004dc8ee  5B                       POP EBX
+   004dcbe6 in _HoldStrong::UI::MenuView_GameLost_DoEveryFrame
+        004dcbda  E8 81 34 FB FF           CALL 0x00490060
+        004dcbdf  6A 06                    PUSH 0x6
+        004dcbe1  B9 68 D7 91 01           MOV ECX,0x191d768
+        004dcbe6  E8 15 C5 FA FF           CALL 0x00489100
+        004dcbeb  C6 05 87 A0 FE 01 00     MOV byte ptr [0x01fea087],0x0
+   004c6bda in _HoldStrong::Global::LoadSkirmishCampaignData
+        004c6bc5  B9 68 D7 91 01           MOV ECX,0x191d768
+        004c6bca  89 35 F8 DE 91 01        MOV dword ptr [0x0191def8],ESI
+        004c6bd0  C7 05 80 DD 91 01 63 00 00 00  MOV dword ptr [0x0191dd80],0x63
+        004c6bda  E8 21 25 FC FF           CALL 0x00489100
+        004c6bdf  39 75 0C                 CMP dword ptr [EBP + 0xc],ESI
+   004657a6 in _HoldStrong::Commands::QueueChangeTaxes
+        00465799  6A 22                    PUSH 0x22
+        0046579b  B9 68 D7 91 01           MOV ECX,0x191d768
+        004657a0  89 15 B8 7F 99 01        MOV dword ptr [0x01997fb8],EDX
+        004657a6  E8 55 39 02 00           CALL 0x00489100
+        004657ab  5E                       POP ESI
+   00429a06 in _HoldStrong::Global::SetupSkirmishBalanceAndOrIntensity
+        004299f9  89 15 20 46 A2 01        MOV dword ptr [0x01a24620],EDX
+        004299ff  6A 34                    PUSH 0x34
+        00429a01  B9 68 D7 91 01           MOV ECX,0x191d768
+        00429a06  E8 F5 F6 05 00           CALL 0x00489100
+        00429a0b  83 C8 FF                 OR EAX,0xffffffff
+   0042a411 in _HoldStrong::UI::MenuItemActionHandler_General_AdvancedGameOptions
+        0042a400  6A 0E                    PUSH 0xe
+        0042a402  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042a407  C7 05 F0 69 A2 01 10 27 00 00  MOV dword ptr [0x01a269f0],0x2710
+        0042a411  E8 EA EC 05 00           CALL 0x00489100
+        0042a416  8B 0D 40 27 65 01        MOV ECX,dword ptr [0x01652740]
+   0042b82e in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_MapSelectScrollbar
+        0042b821  0F 84 9E 00 00 00        JZ 0x0042b8c5
+        0042b827  6A 2F                    PUSH 0x2f
+        0042b829  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042b82e  E8 CD D8 05 00           CALL 0x00489100
+        0042b833  C3                       RET
+   0042b86c in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_MapSelectScrollbar
+        0042b863  74 60                    JZ 0x0042b8c5
+        0042b865  6A 2F                    PUSH 0x2f
+        0042b867  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042b86c  E8 8F D8 05 00           CALL 0x00489100
+        0042b871  C3                       RET
+   0042b8b4 in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_MapSelectScrollbar
+        0042b8ab  74 0C                    JZ 0x0042b8b9
+        0042b8ad  6A 2F                    PUSH 0x2f
+        0042b8af  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042b8b4  E8 47 D8 05 00           CALL 0x00489100
+        0042b8b9  8B 4C 24 14              MOV ECX,dword ptr [ESP + 0x14]
+   004427d8 in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_LobbyscreenStartButtonClick
+        004427c9  83 34 85 18 45 A2 01 01  XOR dword ptr [EAX*0x4 + 0x1a24518],0x1
+        004427d1  6A 0D                    PUSH 0xd
+        004427d3  B9 68 D7 91 01           MOV ECX,0x191d768
+        004427d8  E8 23 69 04 00           CALL 0x00489100
+        004427dd  39 3D F8 DE 91 01        CMP dword ptr [0x0191def8],EDI
+   00442803 in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_LobbyscreenStartButtonClick
+        004427f6  0F 84 97 FE FF FF        JZ 0x00442693
+        004427fc  6A 34                    PUSH 0x34
+        004427fe  B9 68 D7 91 01           MOV ECX,0x191d768
+        00442803  E8 F8 68 04 00           CALL 0x00489100
+        00442808  5E                       POP ESI
+   0044289a in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_LobbyscreenStartButtonClick
+        0044288d  6A 09                    PUSH 0x9
+        0044288f  B9 68 D7 91 01           MOV ECX,0x191d768
+        00442894  89 3D B8 7F 99 01        MOV dword ptr [0x01997fb8],EDI
+        0044289a  E8 61 68 04 00           CALL 0x00489100
+        0044289f  6A 34                    PUSH 0x34
+   004428a6 in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_LobbyscreenStartButtonClick
+        0044289a  E8 61 68 04 00           CALL 0x00489100
+        0044289f  6A 34                    PUSH 0x34
+        004428a1  B9 68 D7 91 01           MOV ECX,0x191d768
+        004428a6  E8 55 68 04 00           CALL 0x00489100
+        004428ab  83 3D 80 DD 91 01 63     CMP dword ptr [0x0191dd80],0x63
+   004428d9 in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_LobbyscreenStartButtonClick
+        004428d1  C3                       RET
+        004428d2  6A 0B                    PUSH 0xb
+        004428d4  B9 68 D7 91 01           MOV ECX,0x191d768
+        004428d9  E8 22 68 04 00           CALL 0x00489100
+        004428de  5E                       POP ESI
+   00442931 in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_LobbyscreenStartButtonClick
+        00442924  0F 84 69 FD FF FF        JZ 0x00442693
+        0044292a  6A 2F                    PUSH 0x2f
+        0044292c  B9 68 D7 91 01           MOV ECX,0x191d768
+        00442931  E8 CA 67 04 00           CALL 0x00489100
+        00442936  5E                       POP ESI
+   00442ac4 in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_LobbyscreenStartButtonClick
+        00442ab7  88 91 D0 75 A2 01        MOV byte ptr [ECX + 0x1a275d0],DL
+        00442abd  6A 0D                    PUSH 0xd
+        00442abf  B9 68 D7 91 01           MOV ECX,0x191d768
+        00442ac4  E8 37 66 04 00           CALL 0x00489100
+        00442ac9  5E                       POP ESI
+   00443d10 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        00443d04  6A 12                    PUSH 0x12
+        00443d06  B9 68 D7 91 01           MOV ECX,0x191d768
+        00443d0b  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        00443d10  E8 EB 53 04 00           CALL 0x00489100
+        00443d15  5F                       POP EDI
+   00443d41 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        00443d2d  B9 68 D7 91 01           MOV ECX,0x191d768
+        00443d32  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        00443d37  C7 05 C4 7F 99 01 01 00 00 00  MOV dword ptr [0x01997fc4],0x1
+        00443d41  E8 BA 53 04 00           CALL 0x00489100
+        00443d46  5F                       POP EDI
+   00444298 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        00444288  89 0D BC 7F 99 01        MOV dword ptr [0x01997fbc],ECX
+        0044428e  B9 68 D7 91 01           MOV ECX,0x191d768
+        00444293  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        00444298  E8 63 4E 04 00           CALL 0x00489100
+        0044429d  5F                       POP EDI
+   00443d99 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        00443d8d  6A 13                    PUSH 0x13
+        00443d8f  B9 68 D7 91 01           MOV ECX,0x191d768
+        00443d94  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        00443d99  E8 62 53 04 00           CALL 0x00489100
+        00443d9e  5F                       POP EDI
+   00443dd4 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        00443dbb  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        00443dc0  C7 05 C4 7F 99 01 01 00 00 00  MOV dword ptr [0x01997fc4],0x1
+        00443dca  C7 05 C8 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fc8],0x0
+        00443dd4  E8 27 53 04 00           CALL 0x00489100
+        00443dd9  5F                       POP EDI
+   00443e12 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        00443dfe  B9 68 D7 91 01           MOV ECX,0x191d768
+        00443e03  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        00443e08  C7 05 C4 7F 99 01 01 00 00 00  MOV dword ptr [0x01997fc4],0x1
+        00443e12  E8 E9 52 04 00           CALL 0x00489100
+        00443e17  5F                       POP EDI
+   00443e43 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        00443e2f  B9 68 D7 91 01           MOV ECX,0x191d768
+        00443e34  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        00443e39  C7 05 C4 7F 99 01 04 00 00 00  MOV dword ptr [0x01997fc4],0x4
+        00443e43  E8 B8 52 04 00           CALL 0x00489100
+        00443e48  5F                       POP EDI
+   00443e85 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        00443e79  6A 17                    PUSH 0x17
+        00443e7b  B9 68 D7 91 01           MOV ECX,0x191d768
+        00443e80  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        00443e85  E8 76 52 04 00           CALL 0x00489100
+        00443e8a  5F                       POP EDI
+   00443ebe in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        00443ead  6A 1A                    PUSH 0x1a
+        00443eaf  B9 68 D7 91 01           MOV ECX,0x191d768
+        00443eb4  C7 05 C0 7F 99 01 14 00 00 00  MOV dword ptr [0x01997fc0],0x14
+        00443ebe  E8 3D 52 04 00           CALL 0x00489100
+        00443ec3  A1 FC 7A FE 01           MOV EAX,[0x01fe7afc]
+   00443f30 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        00443f17  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        00443f1c  C7 05 C4 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fc4],0x0
+        00443f26  C7 05 C8 7F 99 01 40 00 00 00  MOV dword ptr [0x01997fc8],0x40
+        00443f30  E8 CB 51 04 00           CALL 0x00489100
+        00443f35  5F                       POP EDI
+   00443f7d in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        00443f6c  6A 15                    PUSH 0x15
+        00443f6e  B9 68 D7 91 01           MOV ECX,0x191d768
+        00443f73  C7 05 C8 7F 99 01 10 00 00 00  MOV dword ptr [0x01997fc8],0x10
+        00443f7d  E8 7E 51 04 00           CALL 0x00489100
+        00443f82  5F                       POP EDI
+   00443fa9 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        00443f98  C7 05 C0 7F 99 01 01 00 00 00  MOV dword ptr [0x01997fc0],0x1
+        00443fa2  6A 15                    PUSH 0x15
+        00443fa4  B9 68 D7 91 01           MOV ECX,0x191d768
+        00443fa9  E8 52 51 04 00           CALL 0x00489100
+        00443fae  5F                       POP EDI
+   00443ffb in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        00443fe2  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        00443fe7  C7 05 C4 7F 99 01 00 00 02 00  MOV dword ptr [0x01997fc4],0x20000
+        00443ff1  C7 05 C8 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fc8],0x0
+        00443ffb  E8 00 51 04 00           CALL 0x00489100
+        00444000  5F                       POP EDI
+   00444036 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        0044401d  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        00444022  C7 05 C4 7F 99 01 00 00 04 00  MOV dword ptr [0x01997fc4],0x40000
+        0044402c  C7 05 C8 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fc8],0x0
+        00444036  E8 C5 50 04 00           CALL 0x00489100
+        0044403b  5F                       POP EDI
+   00444088 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        0044406f  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        00444074  C7 05 C4 7F 99 01 00 00 00 80  MOV dword ptr [0x01997fc4],0x80000000
+        0044407e  C7 05 C8 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fc8],0x0
+        00444088  E8 73 50 04 00           CALL 0x00489100
+        0044408d  5F                       POP EDI
+   004440c3 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        004440aa  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        004440af  C7 05 C4 7F 99 01 00 00 00 20  MOV dword ptr [0x01997fc4],0x20000000
+        004440b9  C7 05 C8 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fc8],0x0
+        004440c3  E8 38 50 04 00           CALL 0x00489100
+        004440c8  5F                       POP EDI
+   00444111 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        004440f8  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        004440fd  C7 05 C4 7F 99 01 00 00 00 40  MOV dword ptr [0x01997fc4],0x40000000
+        00444107  C7 05 C8 7F 99 01 03 00 00 00  MOV dword ptr [0x01997fc8],0x3
+        00444111  E8 EA 4F 04 00           CALL 0x00489100
+        00444116  5F                       POP EDI
+   00444148 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        00444133  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        00444138  C7 05 C4 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fc4],0x0
+        00444142  89 3D C8 7F 99 01        MOV dword ptr [0x01997fc8],EDI
+        00444148  E8 B3 4F 04 00           CALL 0x00489100
+        0044414d  5F                       POP EDI
+   00444190 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        00444177  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        0044417c  C7 05 C4 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fc4],0x0
+        00444186  C7 05 C8 7F 99 01 01 00 00 00  MOV dword ptr [0x01997fc8],0x1
+        00444190  E8 6B 4F 04 00           CALL 0x00489100
+        00444195  5F                       POP EDI
+   004467bc in _HoldStrong::UI::MenuItemActionHandler_InGameMenu_TriggerPlaceBuildingCommand
+        004467ab  B9 68 D7 91 01           MOV ECX,0x191d768
+        004467b0  89 2D C0 7F 99 01        MOV dword ptr [0x01997fc0],EBP
+        004467b6  89 3D BC 7F 99 01        MOV dword ptr [0x01997fbc],EDI
+        004467bc  E8 3F 29 04 00           CALL 0x00489100
+        004467c1  5E                       POP ESI
+   0053711a in _HoldStrong::Map::Units::UnitsState::queueDisbandAndAttackCommand2Params
+        0053710e  6A 24                    PUSH 0x24
+        00537110  B9 68 D7 91 01           MOV ECX,0x191d768
+        00537115  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        0053711a  E8 E1 1F F5 FF           CALL 0x00489100
+        0053711f  C2 08 00                 RET 0x8
+   0048f7aa in _HoldStrong::UI::MenuItemActionHandler_Chat_MostButtons
+        0048f79d  6A 0E                    PUSH 0xe
+        0048f79f  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048f7a4  89 1D F0 69 A2 01        MOV dword ptr [0x01a269f0],EBX
+        0048f7aa  E8 51 99 FF FF           CALL 0x00489100
+        0048f7af  53                       PUSH EBX
+   004945d5 in _HoldStrong::UI::MenuItemActionHandler_SaveLoadMap_Buttons
+        004945cc  75 F2                    JNZ 0x004945c0
+        004945ce  6A 28                    PUSH 0x28
+        004945d0  B9 68 D7 91 01           MOV ECX,0x191d768
+        004945d5  E8 26 4B FF FF           CALL 0x00489100
+        004945da  5E                       POP ESI
+   0049480c in _HoldStrong::UI::MenuItemActionHandler_SaveLoadMap_Buttons
+        004947f8  B9 68 D7 91 01           MOV ECX,0x191d768
+        004947fd  A3 BC 7F 99 01           MOV [0x01997fbc],EAX
+        00494802  C7 05 C0 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fc0],0x0
+        0049480c  E8 EF 48 FF FF           CALL 0x00489100
+        00494811  EB 16                    JMP 0x00494829
+   0049591b in _HoldStrong::UI::MenuItemActionHandler_OnlineVoteQuitAndQuitGame_Main
+        0049590f  E8 BC 45 01 00           CALL 0x004a9ed0
+        00495914  6A 5B                    PUSH 0x5b
+        00495916  B9 68 D7 91 01           MOV ECX,0x191d768
+        0049591b  E8 E0 37 FF FF           CALL 0x00489100
+        00495920  33 C0                    XOR EAX,EAX
+   004959f3 in _HoldStrong::UI::MenuItemActionHandler_OnlineVoteQuitAndQuitGame_Main
+        004959e2  C7 05 B8 7F 99 01 01 00 00 00  MOV dword ptr [0x01997fb8],0x1
+        004959ec  6A 5C                    PUSH 0x5c
+        004959ee  B9 68 D7 91 01           MOV ECX,0x191d768
+        004959f3  E8 08 37 FF FF           CALL 0x00489100
+        004959f8  6A 00                    PUSH 0x0
+   004d861a in _HoldStrong::UI::MenuItemActionHandler_ScenarioDescription_Main
+        004d860e  E8 6D E2 FE FF           CALL 0x004c6880
+        004d8613  6A 04                    PUSH 0x4
+        004d8615  B9 68 D7 91 01           MOV ECX,0x191d768
+        004d861a  E8 E1 0A FB FF           CALL 0x00489100
+        004d861f  E8 BC 22 F5 FF           CALL 0x0042a8e0
+   0044543e in -
+        0044542a  B9 68 D7 91 01           MOV ECX,0x191d768
+        0044542f  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        00445434  C7 05 C4 7F 99 01 29 00 00 00  MOV dword ptr [0x01997fc4],0x29
+        0044543e  E8 BD 3C 04 00           CALL 0x00489100
+        00445443  5E                       POP ESI
+   004270fb in _HoldStrong::UI::MenuItemActionHandler_UnusedSomeMissionStartUnk_General
+        004270ef  E8 3C A6 06 00           CALL 0x00491730
+        004270f4  6A 04                    PUSH 0x4
+        004270f6  B9 68 D7 91 01           MOV ECX,0x191d768
+        004270fb  E8 00 20 06 00           CALL 0x00489100
+        00427100  C3                       RET
+   00429637 in _HoldStrong::Commands::QueueChangeGameIntensityOrBalance
+        0042962e  C3                       RET
+        00429630  6A 34                    PUSH 0x34
+        00429632  B9 68 D7 91 01           MOV ECX,0x191d768
+        00429637  E8 C4 FA 05 00           CALL 0x00489100
+        0042963c  83 C8 FF                 OR EAX,0xffffffff
+   00429657 in _HoldStrong::Global::CallbackSetMultiplayerSpeedLevel
+        00429649  C3                       RET
+        00429650  6A 34                    PUSH 0x34
+        00429652  B9 68 D7 91 01           MOV ECX,0x191d768
+        00429657  E8 A4 FA 05 00           CALL 0x00489100
+        0042965c  83 C8 FF                 OR EAX,0xffffffff
+   004296f3 in _HoldStrong::Global::CallbackSetMultiplayerSpeedLevel
+        004296e2  6A 0E                    PUSH 0xe
+        004296e4  B9 68 D7 91 01           MOV ECX,0x191d768
+        004296e9  C7 05 F0 69 A2 01 10 27 00 00  MOV dword ptr [0x01a269f0],0x2710
+        004296f3  E8 08 FA 05 00           CALL 0x00489100
+        004296f8  8B 15 40 27 65 01        MOV EDX,dword ptr [0x01652740]
+   00429c84 in _HoldStrong::UI::MenuItemActionHandler_General_AdvancedGameOptions
+        00429c77  31 35 5C 46 A2 01        XOR dword ptr [0x01a2465c],ESI
+        00429c7d  6A 34                    PUSH 0x34
+        00429c7f  B9 68 D7 91 01           MOV ECX,0x191d768
+        00429c84  E8 77 F4 05 00           CALL 0x00489100
+        00429c89  E9 99 07 00 00           JMP 0x0042a427
+   00429cb1 in _HoldStrong::UI::MenuItemActionHandler_General_AdvancedGameOptions
+        00429ca4  89 3D F4 CA 17 01        MOV dword ptr [0x0117caf4],EDI
+        00429caa  6A 34                    PUSH 0x34
+        00429cac  B9 68 D7 91 01           MOV ECX,0x191d768
+        00429cb1  E8 4A F4 05 00           CALL 0x00489100
+        00429cb6  E9 6C 07 00 00           JMP 0x0042a427
+   00429d3b in _HoldStrong::UI::MenuItemActionHandler_General_AdvancedGameOptions
+        00429d2e  89 3D 08 6A A2 01        MOV dword ptr [0x01a26a08],EDI
+        00429d34  6A 34                    PUSH 0x34
+        00429d36  B9 68 D7 91 01           MOV ECX,0x191d768
+        00429d3b  E8 C0 F3 05 00           CALL 0x00489100
+        00429d40  39 3D 08 6A A2 01        CMP dword ptr [0x01a26a08],EDI
+   00429e25 in _HoldStrong::UI::MenuItemActionHandler_General_AdvancedGameOptions
+        00429e18  31 35 1C 6A A2 01        XOR dword ptr [0x01a26a1c],ESI
+        00429e1e  6A 34                    PUSH 0x34
+        00429e20  B9 68 D7 91 01           MOV ECX,0x191d768
+        00429e25  E8 D6 F2 05 00           CALL 0x00489100
+        00429e2a  39 3D 1C 6A A2 01        CMP dword ptr [0x01a26a1c],EDI
+   00429ecb in _HoldStrong::UI::MenuItemActionHandler_General_AdvancedGameOptions
+        00429eba  6A 0E                    PUSH 0xe
+        00429ebc  B9 68 D7 91 01           MOV ECX,0x191d768
+        00429ec1  C7 05 F0 69 A2 01 10 27 00 00  MOV dword ptr [0x01a269f0],0x2710
+        00429ecb  E8 30 F2 05 00           CALL 0x00489100
+        00429ed0  A1 40 27 65 01           MOV EAX,[0x01652740]
+   00429eed in _HoldStrong::UI::MenuItemActionHandler_General_AdvancedGameOptions
+        00429ee0  31 35 20 6A A2 01        XOR dword ptr [0x01a26a20],ESI
+        00429ee6  6A 34                    PUSH 0x34
+        00429ee8  B9 68 D7 91 01           MOV ECX,0x191d768
+        00429eed  E8 0E F2 05 00           CALL 0x00489100
+        00429ef2  E9 30 05 00 00           JMP 0x0042a427
+   00429f88 in _HoldStrong::UI::MenuItemActionHandler_General_AdvancedGameOptions
+        00429f7b  31 35 24 6A A2 01        XOR dword ptr [0x01a26a24],ESI
+        00429f81  6A 34                    PUSH 0x34
+        00429f83  B9 68 D7 91 01           MOV ECX,0x191d768
+        00429f88  E8 73 F1 05 00           CALL 0x00489100
+        00429f8d  39 3D 24 6A A2 01        CMP dword ptr [0x01a26a24],EDI
+   0042a031 in _HoldStrong::UI::MenuItemActionHandler_General_AdvancedGameOptions
+        0042a020  6A 0E                    PUSH 0xe
+        0042a022  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042a027  C7 05 F0 69 A2 01 10 27 00 00  MOV dword ptr [0x01a269f0],0x2710
+        0042a031  E8 CA F0 05 00           CALL 0x00489100
+        0042a036  8B 15 40 27 65 01        MOV EDX,dword ptr [0x01652740]
+   0042a054 in _HoldStrong::UI::MenuItemActionHandler_General_AdvancedGameOptions
+        0042a047  31 35 28 6A A2 01        XOR dword ptr [0x01a26a28],ESI
+        0042a04d  6A 34                    PUSH 0x34
+        0042a04f  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042a054  E8 A7 F0 05 00           CALL 0x00489100
+        0042a059  39 3D 28 6A A2 01        CMP dword ptr [0x01a26a28],EDI
+   0042a09a in _HoldStrong::UI::MenuItemActionHandler_General_AdvancedGameOptions
+        0042a08d  31 35 30 6A A2 01        XOR dword ptr [0x01a26a30],ESI
+        0042a093  6A 34                    PUSH 0x34
+        0042a095  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042a09a  E8 61 F0 05 00           CALL 0x00489100
+        0042a09f  39 3D 30 6A A2 01        CMP dword ptr [0x01a26a30],EDI
+   0042a0ea in _HoldStrong::UI::MenuItemActionHandler_General_AdvancedGameOptions
+        0042a0dd  31 35 34 6A A2 01        XOR dword ptr [0x01a26a34],ESI
+        0042a0e3  6A 34                    PUSH 0x34
+        0042a0e5  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042a0ea  E8 11 F0 05 00           CALL 0x00489100
+        0042a0ef  39 3D 30 6A A2 01        CMP dword ptr [0x01a26a30],EDI
+   0042a145 in _HoldStrong::UI::MenuItemActionHandler_General_AdvancedGameOptions
+        0042a138  89 3D 2C 6A A2 01        MOV dword ptr [0x01a26a2c],EDI
+        0042a13e  6A 34                    PUSH 0x34
+        0042a140  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042a145  E8 B6 EF 05 00           CALL 0x00489100
+        0042a14a  A1 2C 6A A2 01           MOV EAX,[0x01a26a2c]
+   0042a8cb in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_SkirmishTypeAndBalance
+        0042a8bf  E8 7C F3 01 00           CALL 0x00449c40
+        0042a8c4  6A 34                    PUSH 0x34
+        0042a8c6  B9 68 D7 91 01           MOV ECX,0x191d768
+        0042a8cb  E8 30 E8 05 00           CALL 0x00489100
+        0042a8d0  5E                       POP ESI
+   004343d8 in _HoldStrong::UI::MenuItemActionHandler_InGameMenu_PeasantBuildAndRightClickMenuSelection
+        004343c8  B9 68 D7 91 01           MOV ECX,0x191d768
+        004343cd  89 15 B8 7F 99 01        MOV dword ptr [0x01997fb8],EDX
+        004343d3  A3 BC 7F 99 01           MOV [0x01997fbc],EAX
+        004343d8  E8 23 4D 05 00           CALL 0x00489100
+        004343dd  01 3D F8 60 B9 00        ADD dword ptr [0x00b960f8],EDI
+   00437ebb in _HoldStrong::UI::HandleWallTerrainMouseDrag
+        00437e9d  C7 05 C0 7F 99 01 01 00 00 00  MOV dword ptr [0x01997fc0],0x1
+        00437ea7  C7 05 C4 7F 99 01 00 00 10 00  MOV dword ptr [0x01997fc4],0x100000
+        00437eb1  C7 05 C8 7F 99 01 20 00 00 00  MOV dword ptr [0x01997fc8],0x20
+        00437ebb  E8 40 12 05 00           CALL 0x00489100
+        00437ec0  5F                       POP EDI
+   004380d5 in _HoldStrong::UI::MenuItemActionHandler_InGameMenu_TriggerPlaceWallCommand
+        004380c5  B9 68 D7 91 01           MOV ECX,0x191d768
+        004380ca  A3 C4 7F 99 01           MOV [0x01997fc4],EAX
+        004380cf  89 15 CC 7F 99 01        MOV dword ptr [0x01997fcc],EDX
+        004380d5  E8 26 10 05 00           CALL 0x00489100
+        004380da  C3                       RET
+   00438a3f in _HoldStrong::UI::MenuItemActionHandler_BuildMenu_DeleteAction
+        00438a2e  89 3D D0 19 EE 00        MOV dword ptr [0x00ee19d0],EDI
+        00438a34  89 15 B8 7F 99 01        MOV dword ptr [0x01997fb8],EDX
+        00438a3a  A3 BC 7F 99 01           MOV [0x01997fbc],EAX
+        00438a3f  E8 BC 06 05 00           CALL 0x00489100
+        00438a44  5E                       POP ESI
+   00438b0f in _HoldStrong::UI::MenuItemActionHandler_BuildMenu_DeleteAction
+        00438b03  6A 1D                    PUSH 0x1d
+        00438b05  B9 68 D7 91 01           MOV ECX,0x191d768
+        00438b0a  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        00438b0f  E8 EC 05 05 00           CALL 0x00489100
+        00438b14  5E                       POP ESI
+   00438b31 in _HoldStrong::UI::MenuItemActionHandler_BuildMenu_DeleteAction
+        00438b24  89 0D C0 7F 99 01        MOV dword ptr [0x01997fc0],ECX
+        00438b2a  6A 1D                    PUSH 0x1d
+        00438b2c  B9 68 D7 91 01           MOV ECX,0x191d768
+        00438b31  E8 CA 05 05 00           CALL 0x00489100
+        00438b36  5E                       POP ESI
+   00438b55 in _HoldStrong::UI::MenuItemActionHandler_BuildMenu_DeleteAction
+        00438b49  6A 29                    PUSH 0x29
+        00438b4b  B9 68 D7 91 01           MOV ECX,0x191d768
+        00438b50  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        00438b55  E8 A6 05 05 00           CALL 0x00489100
+        00438b5a  5E                       POP ESI
+   00440ebc in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_PlayerListAndNpcButtons
+        00440ead  83 34 85 18 45 A2 01 01  XOR dword ptr [EAX*0x4 + 0x1a24518],0x1
+        00440eb5  6A 0D                    PUSH 0xd
+        00440eb7  B9 68 D7 91 01           MOV ECX,0x191d768
+        00440ebc  E8 3F 82 04 00           CALL 0x00489100
+        00440ec1  C3                       RET
+   00441057 in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_PlayerListAndNpcButtons
+        0044104a  6A 55                    PUSH 0x55
+        0044104c  B9 68 D7 91 01           MOV ECX,0x191d768
+        00441051  89 35 B8 7F 99 01        MOV dword ptr [0x01997fb8],ESI
+        00441057  E8 A4 80 04 00           CALL 0x00489100
+        0044105c  6A 02                    PUSH 0x2
+   004410c4 in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_PlayerListAndNpcButtons
+        004410b7  6A 76                    PUSH 0x76
+        004410b9  B9 68 D7 91 01           MOV ECX,0x191d768
+        004410be  89 35 B8 7F 99 01        MOV dword ptr [0x01997fb8],ESI
+        004410c4  E8 37 80 04 00           CALL 0x00489100
+        004410c9  5E                       POP ESI
+   00442af9 in _HoldStrong::UI::MenuItemActionHandler_LobbyMenu_LobbyscreenStartButtonClick
+        00442aed  6A 67                    PUSH 0x67
+        00442aef  B9 68 D7 91 01           MOV ECX,0x191d768
+        00442af4  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        00442af9  E8 02 66 04 00           CALL 0x00489100
+        00442afe  5F                       POP EDI
+   00444255 in _HoldStrong::UI::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback
+        0044423c  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        00444241  C7 05 C4 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fc4],0x0
+        0044424b  C7 05 C8 7F 99 01 40 00 00 00  MOV dword ptr [0x01997fc8],0x40
+        00444255  E8 A6 4E 04 00           CALL 0x00489100
+        0044425a  5F                       POP EDI
+   00445601 in _HoldStrong::UI::MenuItemActionHandler_InGameMenu_TriggerPlaceBuildingCommand
+        004455ed  B9 68 D7 91 01           MOV ECX,0x191d768
+        004455f2  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        004455f7  C7 05 C4 7F 99 01 3D 00 00 00  MOV dword ptr [0x01997fc4],0x3d
+        00445601  E8 FA 3A 04 00           CALL 0x00489100
+        00445606  5E                       POP ESI
+   00445751 in _HoldStrong::UI::MenuItemActionHandler_InGameMenu_TriggerPlaceBuildingCommand
+        0044573b  89 2D C0 7F 99 01        MOV dword ptr [0x01997fc0],EBP
+        00445741  89 3D C4 7F 99 01        MOV dword ptr [0x01997fc4],EDI
+        00445747  C7 05 C8 7F 99 01 0F 00 00 00  MOV dword ptr [0x01997fc8],0xf
+        00445751  E8 AA 39 04 00           CALL 0x00489100
+        00445756  0F BF 05 C0 79 A2 01     MOVSX EAX,word ptr [0x01a279c0]
+   00446086 in _HoldStrong::UI::MenuItemActionHandler_InGameMenu_TriggerPlaceBuildingCommand
+        0044607a  6A 1C                    PUSH 0x1c
+        0044607c  B9 68 D7 91 01           MOV ECX,0x191d768
+        00446081  A3 CC 7F 99 01           MOV [0x01997fcc],EAX
+        00446086  E8 75 30 04 00           CALL 0x00489100
+        0044608b  A1 EC 7A FE 01           MOV EAX,[0x01fe7aec]
+   004462fd in _HoldStrong::UI::MenuItemActionHandler_InGameMenu_TriggerPlaceBuildingCommand
+        004462ec  6A 15                    PUSH 0x15
+        004462ee  B9 68 D7 91 01           MOV ECX,0x191d768
+        004462f3  C7 05 C8 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fc8],0x0
+        004462fd  E8 FE 2D 04 00           CALL 0x00489100
+        00446302  5E                       POP ESI
+   00446320 in _HoldStrong::UI::MenuItemActionHandler_InGameMenu_TriggerPlaceBuildingCommand
+        0044630f  6A 15                    PUSH 0x15
+        00446311  B9 68 D7 91 01           MOV ECX,0x191d768
+        00446316  C7 05 C8 7F 99 01 01 00 00 00  MOV dword ptr [0x01997fc8],0x1
+        00446320  E8 DB 2D 04 00           CALL 0x00489100
+        00446325  5E                       POP ESI
+   00446345 in _HoldStrong::UI::MenuItemActionHandler_InGameMenu_TriggerPlaceBuildingCommand
+        00446337  83 C1 02                 ADD ECX,0x2
+        0044633a  89 0D C8 7F 99 01        MOV dword ptr [0x01997fc8],ECX
+        00446340  B9 68 D7 91 01           MOV ECX,0x191d768
+        00446345  E8 B6 2D 04 00           CALL 0x00489100
+        0044634a  5E                       POP ESI
+   004465ad in _HoldStrong::UI::MenuItemActionHandler_InGameMenu_TriggerPlaceBuildingCommand
+        004465a0  89 0D C0 7F 99 01        MOV dword ptr [0x01997fc0],ECX
+        004465a6  6A 66                    PUSH 0x66
+        004465a8  B9 68 D7 91 01           MOV ECX,0x191d768
+        004465ad  E8 4E 2B 04 00           CALL 0x00489100
+        004465b2  5E                       POP ESI
+   00465281 in _HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_WorkshopWeaponSelection
+        00465271  B9 68 D7 91 01           MOV ECX,0x191d768
+        00465276  89 35 BC 7F 99 01        MOV dword ptr [0x01997fbc],ESI
+        0046527c  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        00465281  E8 7A 3E 02 00           CALL 0x00489100
+        00465286  8B 0D DC 75 A2 01        MOV ECX,dword ptr [0x01a275dc]
+   0046538d in _HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_DrawbridgeOpenClose
+        0046537d  B9 68 D7 91 01           MOV ECX,0x191d768
+        00465382  89 35 BC 7F 99 01        MOV dword ptr [0x01997fbc],ESI
+        00465388  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        0046538d  E8 6E 3D 02 00           CALL 0x00489100
+        00465392  8B 0D DC 75 A2 01        MOV ECX,dword ptr [0x01a275dc]
+   004654ad in _HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_GatehouseOpenClose
+        0046549d  B9 68 D7 91 01           MOV ECX,0x191d768
+        004654a2  89 35 BC 7F 99 01        MOV dword ptr [0x01997fbc],ESI
+        004654a8  A3 C0 7F 99 01           MOV [0x01997fc0],EAX
+        004654ad  E8 4E 3C 02 00           CALL 0x00489100
+        004654b2  8B 0D DC 75 A2 01        MOV ECX,dword ptr [0x01a275dc]
+   0046585b in _HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_ChangeRations
+        0046584e  6A 23                    PUSH 0x23
+        00465850  B9 68 D7 91 01           MOV ECX,0x191d768
+        00465855  89 35 B8 7F 99 01        MOV dword ptr [0x01997fb8],ESI
+        0046585b  E8 A0 38 02 00           CALL 0x00489100
+        00465860  A1 DC 75 A2 01           MOV EAX,[0x01a275dc]
+   004660dd in _HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_BuildingSleep
+        004660d0  89 0D B8 7F 99 01        MOV dword ptr [0x01997fb8],ECX
+        004660d6  6A 2B                    PUSH 0x2b
+        004660d8  B9 68 D7 91 01           MOV ECX,0x191d768
+        004660dd  E8 1E 30 02 00           CALL 0x00489100
+        004660e2  C3                       RET
+   0046624c in _HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_RepairBuildingButton
+        0046623c  B9 68 D7 91 01           MOV ECX,0x191d768
+        00466241  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        00466246  89 15 BC 7F 99 01        MOV dword ptr [0x01997fbc],EDX
+        0046624c  E8 AF 2E 02 00           CALL 0x00489100
+        00466251  5F                       POP EDI
+   00466e8b in _HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_EngineerAndMonkPortraits
+        00466e7e  6A 1F                    PUSH 0x1f
+        00466e80  B9 68 D7 91 01           MOV ECX,0x191d768
+        00466e85  89 35 B8 7F 99 01        MOV dword ptr [0x01997fb8],ESI
+        00466e8b  E8 70 22 02 00           CALL 0x00489100
+        00466e90  E8 EB E1 FF FF           CALL 0x00465080
+   00466fbe in _HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_TunnelerPortrait
+        00466fb1  6A 1F                    PUSH 0x1f
+        00466fb3  B9 68 D7 91 01           MOV ECX,0x191d768
+        00466fb8  89 35 B8 7F 99 01        MOV dword ptr [0x01997fb8],ESI
+        00466fbe  E8 3D 21 02 00           CALL 0x00489100
+        00466fc3  E8 28 E1 FF FF           CALL 0x004650f0
+   004672de in _HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_BuySellMenuButtonsAndHands
+        004672ce  B9 68 D7 91 01           MOV ECX,0x191d768
+        004672d3  89 35 B8 7F 99 01        MOV dword ptr [0x01997fb8],ESI
+        004672d9  A3 BC 7F 99 01           MOV [0x01997fbc],EAX
+        004672de  E8 1D 1E 02 00           CALL 0x00489100
+        004672e3  5E                       POP ESI
+   0046733d in _HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_BarrackMenuClick
+        00467330  6A 1F                    PUSH 0x1f
+        00467332  B9 68 D7 91 01           MOV ECX,0x191d768
+        00467337  89 35 B8 7F 99 01        MOV dword ptr [0x01997fb8],ESI
+        0046733d  E8 BE 1D 02 00           CALL 0x00489100
+        00467342  E8 B9 FA FF FF           CALL 0x00466e00
+   0046750d in _HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_MercenaryPostPortraits
+        00467500  6A 1F                    PUSH 0x1f
+        00467502  B9 68 D7 91 01           MOV ECX,0x191d768
+        00467507  89 35 B8 7F 99 01        MOV dword ptr [0x01997fb8],ESI
+        0046750d  E8 EE 1B 02 00           CALL 0x00489100
+        00467512  E8 F9 F8 FF FF           CALL 0x00466e10
+   0048f860 in _HoldStrong::UI::MenuItemActionHandler_Chat_TauntButtons
+        0048f854  6A 0E                    PUSH 0xe
+        0048f856  B9 68 D7 91 01           MOV ECX,0x191d768
+        0048f85b  A3 F0 69 A2 01           MOV [0x01a269f0],EAX
+        0048f860  E8 9B 98 FF FF           CALL 0x00489100
+        0048f865  C3                       RET
+   00490d3f in _HoldStrong::UI::MenuItemActionHandler_ChooseNetworkServiceProvider_Buttons
+        00490d33  E8 E8 FB FF FF           CALL 0x00490920
+        00490d38  6A 04                    PUSH 0x4
+        00490d3a  B9 68 D7 91 01           MOV ECX,0x191d768
+        00490d3f  E8 BC 83 FF FF           CALL 0x00489100
+        00490d44  B9 B0 C9 F2 00           MOV ECX,0xf2c9b0
+   004ae867 in _HoldStrong::UI::MenuItemActionHandler_AiLordSelect_Main
+        004ae85a  6A 70                    PUSH 0x70
+        004ae85c  B9 68 D7 91 01           MOV ECX,0x191d768
+        004ae861  89 35 B8 7F 99 01        MOV dword ptr [0x01997fb8],ESI
+        004ae867  E8 94 A8 FD FF           CALL 0x00489100
+        004ae86c  C7 05 5C 4A A2 01 01 00 00 00  MOV dword ptr [0x01a24a5c],0x1
+   004b1212 in _HoldStrong::UI::MenuItemActionHandler_SendReceiveMap_Main
+        004b1202  B9 68 D7 91 01           MOV ECX,0x191d768
+        004b1207  A3 B8 7F 99 01           MOV [0x01997fb8],EAX
+        004b120c  89 35 BC 7F 99 01        MOV dword ptr [0x01997fbc],ESI
+        004b1212  E8 E9 7E FD FF           CALL 0x00489100
+        004b1217  83 C6 01                 ADD ESI,0x1
+   004b1293 in _HoldStrong::UI::MenuItemActionHandler_SendReceiveMap_Main
+        004b127e  B9 68 D7 91 01           MOV ECX,0x191d768
+        004b1283  89 1D 60 75 A2 01        MOV dword ptr [0x01a27560],EBX
+        004b1289  C7 05 B8 7F 99 01 01 00 00 00  MOV dword ptr [0x01997fb8],0x1
+        004b1293  E8 68 7E FD FF           CALL 0x00489100
+        004b1298  89 1D FC 74 A2 01        MOV dword ptr [0x01a274fc],EBX
+   004b13f5 in _HoldStrong::UI::MenuItemActionHandler_Allies_Main
+        004b13e5  B9 68 D7 91 01           MOV ECX,0x191d768
+        004b13ea  89 15 BC 7F 99 01        MOV dword ptr [0x01997fbc],EDX
+        004b13f0  A3 C8 7F 99 01           MOV [0x01997fc8],EAX
+        004b13f5  E8 06 7D FD FF           CALL 0x00489100
+        004b13fa  5E                       POP ESI
+   004b1497 in -
+        004b1487  B9 68 D7 91 01           MOV ECX,0x191d768
+        004b148c  A3 C4 7F 99 01           MOV [0x01997fc4],EAX
+        004b1491  89 35 C8 7F 99 01        MOV dword ptr [0x01997fc8],ESI
+        004b1497  E8 64 7C FD FF           CALL 0x00489100
+        004b149c  83 FE 0A                 CMP ESI,0xa
+   004b15c8 in _HoldStrong::UI::MenuItemActionHandler_AlliesSendAndRequestGoods_Main
+        004b15b3  B9 68 D7 91 01           MOV ECX,0x191d768
+        004b15b8  C7 05 B8 7F 99 01 03 00 00 00  MOV dword ptr [0x01997fb8],0x3
+        004b15c2  89 2D BC 7F 99 01        MOV dword ptr [0x01997fbc],EBP
+        004b15c8  E8 33 7B FD FF           CALL 0x00489100
+        004b15cd  5D                       POP EBP
+   004b17ec in _HoldStrong::UI::MenuItemActionHandler_AlliesSendAndRequestGoods_Main
+        004b17d7  B9 68 D7 91 01           MOV ECX,0x191d768
+        004b17dc  C7 05 B8 7F 99 01 01 00 00 00  MOV dword ptr [0x01997fb8],0x1
+        004b17e6  89 2D BC 7F 99 01        MOV dword ptr [0x01997fbc],EBP
+        004b17ec  E8 0F 79 FD FF           CALL 0x00489100
+        004b17f1  C7 05 BC 7C FE 01 FF FF FF FF  MOV dword ptr [0x01fe7cbc],0xffffffff
+   004b189f in _HoldStrong::UI::MenuItemActionHandler_AlliesSendAndRequestGoods_Main
+        004b188d  89 2D BC 7F 99 01        MOV dword ptr [0x01997fbc],EBP
+        004b1893  89 3D C0 7F 99 01        MOV dword ptr [0x01997fc0],EDI
+        004b1899  89 35 C4 7F 99 01        MOV dword ptr [0x01997fc4],ESI
+        004b189f  E8 5C 78 FD FF           CALL 0x00489100
+        004b18a4  6A 00                    PUSH 0x0
+   004da0f8 in _HoldStrong::UI::MenuItemActionHandler_TacticalPowerBar_Main
+        004da0e3  B9 68 D7 91 01           MOV ECX,0x191d768
+        004da0e8  89 15 B8 7F 99 01        MOV dword ptr [0x01997fb8],EDX
+        004da0ee  C7 05 BC 7F 99 01 00 00 00 00  MOV dword ptr [0x01997fbc],0x0
+        004da0f8  E8 03 F0 FA FF           CALL 0x00489100
+        004da0fd  68 00 01 00 00           PUSH 0x100
+   00536cb0 in _HoldStrong::Map::Units::UnitsState::queueUnitTypeCommand
+        00536c9e  A3 BC 7F 99 01           MOV [0x01997fbc],EAX
+        00536ca3  C7 44 24 04 0F 00 00 00  MOV dword ptr [ESP + 0x4],0xf
+        00536cab  B9 68 D7 91 01           MOV ECX,0x191d768
+        00536cb0  E9 4B 24 F5 FF           JMP 0x00489100
+        00536cc0  8B 44 24 04              MOV EAX,dword ptr [ESP + 0x4]
+   00536ce0 in _HoldStrong::Map::Units::UnitsState::queueClickNavigateMenuOrEscape
+        00536cce  A3 BC 7F 99 01           MOV [0x01997fbc],EAX
+        00536cd3  C7 44 24 04 0F 00 00 00  MOV dword ptr [ESP + 0x4],0xf
+        00536cdb  B9 68 D7 91 01           MOV ECX,0x191d768
+        00536ce0  E9 1B 24 F5 FF           JMP 0x00489100
+        00536cf0  8B 44 24 08              MOV EAX,dword ptr [ESP + 0x8]
+

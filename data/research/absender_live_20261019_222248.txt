@@ -1,0 +1,16 @@
+Zuruecksetzen: Ansicht 41, pausiert
+OK   A Absender: ABSENDER status: ok - eingebaut; gestempelt bisher 0, ich 1, Ausloeser 0 [villagestudio]: QUITTUNG 14339531097
+OK   B ein Paket: Spieler-2-Bau an (172, 354) -> Besitzer [2]; Klick-Bau (ohne Spieler) an (153, 167) -> Besitzer [1]
+OK   C 'ich' direkt nach dem Paket: 1
+ROT  D keine Einheit von Spieler 2 zum Pruefen
+Traceback (most recent call last):
+  File "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI\werkzeug\absender_live_pruefen.py", line 124, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI\werkzeug\absender_live_pruefen.py", line 113, in main
+    a2g, b1g, own_ag, own_bg, ich_g, G = paket_bau(lord2, lord1, belegt)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI\werkzeug\absender_live_pruefen.py", line 57, in paket_bau
+    kanal.sende({"befehle": [{"player": 2, "id": kanal.neue_id(), "baue": {"mapper": 51, "x": a2[0], "y": a2[1], "groesse": 3}},
+                                                                                              ~~^^^
+TypeError: 'NoneType' object is not subscriptable

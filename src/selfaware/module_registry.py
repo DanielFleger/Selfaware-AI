@@ -1,6 +1,8 @@
 """Relocated current-bot modules. Names are explicit; imports have no aliases or side effects."""
 
 MODULES = {
+    "absender_pruefen": "selfaware.tools.checks.absender_pruefen",
+    "absender_live_pruefen": "selfaware.tools.experiments.absender_live_pruefen",
     "backlog": "selfaware.tools.planning.backlog",
     "ablaufanalyse": "selfaware.telemetry.ablaufanalyse",
     "abriss_messen": "selfaware.tools.experiments.abriss_messen",

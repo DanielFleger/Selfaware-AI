@@ -28,3 +28,9 @@ The runner now resolves relocated modules through `selfaware.module_registry`
 and Lua snapshots through `bridge/snapshots/`. Written baseline findings remain
 unchanged historical evidence. The isolated run after relocation retained the
 same 20 passing / 17 metadata-blocked / 1 metadata-dependent failing suites.
+
+Latest upstream also adds the B-94 sender-tag patch and its explicit offline
+validator (`uv run --extra audit selfaware run absender_pruefen`). The original
+Lua audit mock does not activate that machine-code patch; its deferred-command
+probe therefore exercises the fallback path. It does not refute the separate
+upstream B-94 evidence or validate the patched native execution path.

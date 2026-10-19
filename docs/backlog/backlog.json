@@ -1732,6 +1732,7 @@
    "wo": [
     "src/selfaware/services/uebersicht.py",
     "src/selfaware/micro/zuweisung.py",
+    "docs/plans/Plan_Einheitenlenker.html",
     "docs/plans/Plan_Einheitenlenker.html"
    ],
    "belege": [],
@@ -2152,6 +2153,7 @@
     "58a0d50"
    ],
    "wo": [
+    "docs/research/Audit_Sharky.html",
     "docs/research/Audit_Sharky.html"
    ],
    "belege": [],
@@ -2168,16 +2170,21 @@
    "nr": "B-94",
    "titel": "SamurAI beeinflusst NIE einen anderen Spieler und wird von keinem beeinflusst",
    "bereich": "SamurAI",
-   "status": "offen",
+   "status": "gebaut",
    "seit": "2026-10-19",
    "herkunft": "Daniel 19.10. 21:52: komplett separat von anderen Inputs, beeinflusst sie auch nicht",
-   "gebaut": null,
-   "commits": [],
+   "gebaut": "2026-10-19 22:25",
+   "commits": [
+    "82a33b3"
+   ],
    "wo": [
+    "bridge/snapshots/logik_stand_20261019.lua",
+    "src/selfaware/tools/experiments/absender_live_pruefen.py",
+    "src/selfaware/tools/checks/absender_pruefen.py",
     "docs/BACKLOG.md"
    ],
    "belege": [],
-   "notiz": "Heute: das Modul setzt fuer SamurAIs Spielbefehle einen Takt lang 'ich' (currentPlayerSlotID 0x01A275DC) auf Spieler 2 (logik.lua alsSpieler); laut eigenem Kommentar gehen Klicks des Menschen in diesem Takt an SamurAI. Ausweg: Spielbefehle im selben Takt direkt ausfuehren statt ueber die Warteschlange - braucht Reverse Engineering der Befehlsverarbeitung. logik.lua gehoert der VillageStudio/Lua-Sitzung. | Ursache gefunden (B-114, Spielkarte 1). Loesung ohne Umschalten: Einzelspieler-Zweig von translateMultiplayerIDsIntoPlayerIDs (0x0047EAF0) fuer eine SamurAI-Absenderkennung oeffnen; SamurAI setzt Befehle mit eigener Kennung ab; 'ich' wird nie angefasst. Ort offen: logik.lua (VillageStudio/Lua-Sitzung) oder Rust-Modul (B-115) | LIVE-01/LIVE-02: connector ownership, actual player identity and guard coverage; docs/BACKLOG.md.",
+   "notiz": "Heute: das Modul setzt fuer SamurAIs Spielbefehle einen Takt lang 'ich' (currentPlayerSlotID 0x01A275DC) auf Spieler 2 (logik.lua alsSpieler); laut eigenem Kommentar gehen Klicks des Menschen in diesem Takt an SamurAI. Ausweg: Spielbefehle im selben Takt direkt ausfuehren statt ueber die Warteschlange - braucht Reverse Engineering der Befehlsverarbeitung. logik.lua gehoert der VillageStudio/Lua-Sitzung. | Ursache gefunden (B-114, Spielkarte 1). Loesung ohne Umschalten: Einzelspieler-Zweig von translateMultiplayerIDsIntoPlayerIDs (0x0047EAF0) fuer eine SamurAI-Absenderkennung oeffnen; SamurAI setzt Befehle mit eigener Kennung ab; 'ich' wird nie angefasst. Ort offen: logik.lua (VillageStudio/Lua-Sitzung) oder Rust-Modul (B-115) | im Spiel 8/8 + Gegenprobe; in Instanz 4 und 5 eingespielt; Instanz 1-3 haben noch eine aeltere logik.lua (SamurAI laeuft dort nicht)",
    "verlauf": [
     {
      "zeit": "2026-10-19 21:58",
@@ -2194,6 +2201,10 @@
     {
      "zeit": "2026-10-19 22:07",
      "was": "Rang 2 -> 1"
+    },
+    {
+     "zeit": "2026-10-19 22:25",
+     "was": "offen -> gebaut (Commit 82a33b3): im Spiel 8/8 + Gegenprobe; in Instanz 4 und 5 eingespielt; Instanz 1-3 haben noch eine aeltere logik.lua (SamurAI laeuft dort nicht)"
     },
     {
      "zeit": "2026-10-19 22:27",
@@ -2213,6 +2224,7 @@
    "gebaut": null,
    "commits": [],
    "wo": [
+    "docs/research/Spielkarte.md",
     "docs/research/Spielkarte.md",
     "docs/BACKLOG.md"
    ],
@@ -2278,6 +2290,8 @@
    "gebaut": null,
    "commits": [],
    "wo": [
+    "docs/research/Audit_Sharky.html",
+    "docs/plans/Plan_Architektur.md",
     "docs/research/Audit_Sharky.html",
     "docs/plans/Plan_Architektur.md",
     "docs/BACKLOG.md"
@@ -2399,10 +2413,11 @@
    "commits": [],
    "wo": [
     "docs/research/Audit_Sharky.html",
+    "docs/research/Audit_Sharky.html",
     "docs/BACKLOG.md"
    ],
    "belege": [],
-   "notiz": "heute: A, C, E rot; G fehlt; B, D, F, H, I gelb; J gruen | SCALE-01: scheduling, telemetry and learning validation criteria; docs/BACKLOG.md.",
+   "notiz": "heute: A, C, E rot; G fehlt; B, D, F, H, I gelb; J gruen | SCALE-01: scheduling, telemetry and learning validation criteria; docs/BACKLOG.md. | LIVE-01/LIVE-02: remaining audited transport/guard criteria in docs/BACKLOG.md. B-94 native player isolation is now implemented upstream and remains built.",
    "verlauf": [
     {
      "zeit": "2026-10-19 21:58",
@@ -2504,7 +2519,7 @@
     "docs/BACKLOG.md"
    ],
    "belege": [],
-   "notiz": "LIVE-01: acknowledgement is distinct from dispatched and observed effects; docs/BACKLOG.md.",
+   "notiz": "moegliche Ursache: altes Umschalten von 'ich' (B-94, jetzt behoben) - in der naechsten Partie nachsehen, ob Anwerben wieder abbucht | LIVE-01: acknowledgement is distinct from dispatched and observed effects; docs/BACKLOG.md.",
    "verlauf": [
     {
      "zeit": "2026-10-19 21:58",
@@ -2513,6 +2528,10 @@
     {
      "zeit": "2026-10-19 22:03",
      "was": "Rang - -> 11"
+    },
+    {
+     "zeit": "2026-10-19 22:25",
+     "was": "offen -> offen: moegliche Ursache: altes Umschalten von 'ich' (B-94, jetzt behoben) - in der naechsten Partie nachsehen, ob Anwerben wieder abbucht"
     },
     {
      "zeit": "2026-10-19 22:27",
@@ -2687,7 +2706,9 @@
    "wo": [
     "docs/backlog/backlog.json",
     "docs/backlog/Backlog.html",
-    "src/selfaware/tools/planning/backlog.py"
+    "src/selfaware/tools/planning/backlog.py",
+    "docs/backlog/backlog.json",
+    "docs/backlog/Backlog.html"
    ],
    "belege": [],
    "notiz": "113 Punkte, Kontrolle 0/0",
@@ -2742,7 +2763,8 @@
     "docs/research/Spielkarte.md",
     "research/native/dekomp_befehl_ausfuehren.c",
     "research/native/dekomp_absender.c",
-    "tools/research/ghidra/DumpFunktionen.java"
+    "tools/research/ghidra/DumpFunktionen.java",
+    "docs/research/Spielkarte.md"
    ],
    "belege": [],
    "notiz": "Ghidra-Projekt OpenSHC-ref, VillageStudio doku/ghidra; Frage: Warteschlange queueCommand, Handler-Tabelle 0x00B38E10, currentPlayerSlotID 0x01A275DC - wie fuehrt das Spiel Befehle fuer einen bestimmten Spieler aus, ohne den eigenen Platz umzuschalten? | Ursache belegt (abgelesen): im Einzelspieler gilt jeder Befehl fuer 'ich' bei der Ausfuehrung; VillageStudio Wissensstand 13i-2 (aff005f)",

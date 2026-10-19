@@ -6,7 +6,7 @@ engineering acceptance details for those points; it is not a second status list.
 
 | Acceptance section | Authoritative points |
 | --- | --- |
-| LIVE-01 / LIVE-02 | B-94, B-104 |
+| LIVE-01 / LIVE-02 | B-101, B-104 (B-94 player isolation built upstream) |
 | ENV-01 / MIGRATE-01 | B-97 |
 | MIGRATE-02 | B-98 |
 | MIGRATE-03 | B-99 |
@@ -38,12 +38,15 @@ Audit findings 1–5 and 7 remain **open in the old connector/module**:
 - Deferred commands can be counted as executed before native dispatch.
 - Partner ownership cleanup compares `<pid> partner` with `<pid>` and fails.
 
-The latest upstream [Spielkarte](research/Spielkarte.md) (B-114) documents that
-single-player native queue execution uses `currentPlayerSlotID`, ignoring the
-queued sender. A Python Session/player value alone therefore establishes no
-native isolation. Preserve B-94: verify the actual execution player and human
-input separation before supporting multiple player contexts. The proposed
-translation change in that research is not implemented or validated here.
+The latest upstream [Spielkarte](research/Spielkarte.md) documents native
+single-player queue execution and the B-94 sender-tag patch now present in
+`bridge/snapshots/logik_stand_20261019.lua`. Its source, offline disassembly
+checks and recorded upstream live probes are preserved. B-94 remains built in
+the authoritative backlog. This organization work did not repeat those matches.
+A Python Session/player value alone still establishes no native isolation:
+pin the actual deployed module and verify its execution/selection postconditions
+before connecting the typed GamePort. Remaining transport/guard acceptance is
+tracked under B-101/B-104, separately from the upstream B-94 implementation.
 
 Acceptance: obtain and pin the real module; cover same-player and cross-player
 concurrency, crashed/slow owners, exact response correlation, ambiguous timeout,

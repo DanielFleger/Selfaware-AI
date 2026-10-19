@@ -13,7 +13,7 @@ dependencies = []
 [project.optional-dependencies]
 dev = ["pytest>=8,<10", "ruff>=0.14,<1", "build>=1.2,<2"]
 legacy = ["PyYAML>=6,<7", "Pillow>=10,<13", "numpy>=2,<3"]
-audit = ["lupa>=2,<3"]
+audit = ["lupa>=2,<3", "capstone>=5,<6"]
 
 [project.scripts]
 selfaware = "selfaware.cli:main"
@@ -33,6 +33,8 @@ target-version = "py311"
 line-length = 100
 # Relocated historical sources retain their formatting; new modules are checked.
 extend-exclude = [
+    "src/selfaware/tools/checks/absender_pruefen.py",
+    "src/selfaware/tools/experiments/absender_live_pruefen.py",
     "src/selfaware/tools/planning/backlog.py",
     "src/selfaware/execution/auftragsbuch.py",
     "src/selfaware/execution/lordschutz.py",

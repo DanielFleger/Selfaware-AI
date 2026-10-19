@@ -32,7 +32,7 @@ The new `BotRuntime` currently operates on recorded observations. The current
 live bot is `selfaware.runtime.live.erstes_spiel`; its policies and external
 game requirements are preserved. Launch existing modules with `uv run selfaware
 run <name> [arguments]`, or `uv run python -m <module>`. `uv run selfaware modules`
-lists all 177 relocated module names. Missing external
+lists all 179 relocated module names. Missing external
 VillageStudio files and known connector defects are documented in the backlog;
 a green offline check does not establish live-game readiness.
 
