@@ -11,6 +11,7 @@
   6. der gejagte Holzfaeller ist weg -> genau ein Abschuss gezaehlt, auch nach drei weiteren Runden
   8. (17:41) feindlicher Holzfaeller 60 Felder weg, nichts naeher -> der Reiter bekommt trotzdem den Angriffsbefehl (reitet hin)
   9. (17:41) Huette und Waffenlager gleich weit -> der Sklave nimmt die Huette (Pennerhof)
+ 10. (17:58, Punkt 8) feindlicher Bauer (Lagerfeuer) und Holzfaeller gleich weit -> der Reiter jagt den Bauern
   7. Werbung: 100 Gold / 10 am Feuer -> 5 Sklaven, 1 Reiter; 20 Gold / 3 am Feuer -> 1 Sklave (2 bleiben am Feuer)
 Gegenprobe: mit "alt" ist nichts gefaehrlich und kein Gebaeude brennt -> Faelle 1, 3 und 4 rot (Fall 2 bleibt gruen: zwei
 Sklaven nehmen auch ohne Gefahrenpruefung verschiedene Ziele).
@@ -115,6 +116,11 @@ def main():
     bt9 = R.Brandtrupp(1, lambda nr: 0)
     bt9.schritt({10: einheit(71, 1, 100, 100)}, {1: geb(11, 2, 120, 100), 2: geb(1, 2, 100, 120)}, Befehle())
     pruefe(9, "Huette und Waffenlager 20 Felder: Ziel %s" % bt9.ziel, bt9.ziel.get(10) == 2)
+    rj10 = R.Reiterjagd(1)
+    b10 = Befehle()
+    rj10.schritt({20: einheit(74, 1, 100, 100), 900: einheit(3, 2, 115, 100), 901: einheit(1, 2, 100, 115)}, {}, b10)
+    pruefe(10, "Bauer und Holzfaeller 15 Felder: Ziel %s" % [x["angriff"].get("ziel") for x in b10.liste],
+           any(x["angriff"].get("ziel") == 901 for x in b10.liste))
     w = (R.werbung(100, 10, 0, 0), R.werbung(20, 3, 0, 0))
     pruefe(7, "Werbung 100/10: %s, 20/3: %s" % w, w[0] == [(71, 5), (74, 1)] and w[1] == [(71, 1)])
     print("%d von %d gruen" % (sum(ok), len(ok)))
