@@ -19,7 +19,9 @@ BRANDTRUPP (Sklaven): jeder Sklave nimmt das wertvollste ungefaehrliche feindlic
 brennt und das kein anderer Sklave hat; brennt es, zieht er sofort weiter. Gefaehrlich = feindlicher Schuetze oder Turm
 bis GEFAHR_FERN Felder, feindlicher Nahkaempfer/Assassine bis GEFAHR_NAH, feindliche Fallgrube bis GRUBE_R.
 REITERJAGD (Pferdebogen): Nahkaempfer/Assassine naeher als FLUCHT_R -> 12 Felder weg von ihm; sonst den naechsten
-ungeschuetzten Arbeiter bis JAGD_R angreifen (Holzfaeller zuerst - 1018j: liefernde Holzfaeller entschieden die Partie).
+ungeschuetzten Arbeiter bis JAGD_R angreifen (Holzfaeller zuerst - 1018j: liefernde Holzfaeller entschieden die Partie);
+gibt es dort keinen, zum naechsten ungeschuetzten Arbeiter irgendwo reiten (19.10. 17:41, Daniel: "hier stehen bei Orange
+Berittene - die sollten im besten Fall immer beim Gegner raiden und in Bewegung sein").
 Werbung nur aus Gold ueber der Ruecklage und nur, solange mindestens FEUER_MIN Bauern am Feuer stehen.
 STARTWERTE (nicht gemessen, je Partie mitgeschrieben): SKLAVEN_SOLL, REITER_SOLL, WERT.
 Pruefung ohne Spiel: werkzeug/raids_pruefen.py."""
@@ -41,7 +43,11 @@ TUERME = {74, 75, 76, 77, 78}                    # Gebaeudetypen Wach-/Verteidig
 GRUBE = 67
 # Wert je Gebaeudeart (Startwerte): Waffenlager fast immer hoeher (Daniel 17:13), Soeldnerposten (dort entstehen die
 # Assassinen), Kornspeicher (Nahrung, Beliebtheit), dann die Holzfaeller (1018j), Plantagen, Rest
-WERT = {11: 10, 8: 9, 19: 8, 9: 6, 3: 5, 5: 5, 13: 4, 18: 3, 32: 3, 31: 3, 33: 2, 1: 2, 10: 2}
+# 19.10. 17:41 (Daniel, Bilder 1018n: Feuer im Huettenhof am Bergfried, mehrere Huetten brennen nebeneinander - "das ist
+# natuerlich ein Jackpot, eigentlich hast du damit schon gewonnen ... wenn der Pennerhof brennt, ist das Spiel fast
+# entschieden"): Huetten 2 -> 12, hoechster Wert; dicht stehende Huetten fangen voneinander Feuer (Daniels Bild; die eine
+# Messung an einer Holzfaellerhuette mit Nachbarn bis 3 Felder zeigte kein Ueberspringen)
+WERT = {1: 12, 11: 10, 8: 9, 19: 8, 9: 6, 3: 5, 5: 5, 13: 4, 18: 3, 32: 3, 31: 3, 33: 2, 10: 2}
 # Arbeiter-Einheiten (ablaufanalyse.EINHEIT): Holzfaeller zuerst
 ARBEITER = {3: 10, 13: 6, 31: 5, 8: 4, 7: 4, 14: 3, 19: 3, 21: 3, 6: 2, 12: 2, 11: 2}
 
@@ -175,6 +181,11 @@ class Reiterjagd:
                 if d > JAGD_R or gefaehrlich(p, L, G, self.sp):
                     continue
                 kand.append((-ARBEITER[a["typ"]], d, k))
+            if not kand:
+                # 17:41: nichts in Reichweite -> der naechste ungeschuetzte Arbeiter irgendwo (der Angriffsbefehl reitet hin)
+                kand = [(0, schach(o, (a["x"], a["y"])), k) for k, a in L.items()
+                        if a["besitzer"] not in (0, self.sp) and a["typ"] in ARBEITER and a.get("leben", 1) > 0
+                        and not gefaehrlich((a["x"], a["y"]), L, G, self.sp)]
             if not kand:
                 continue
             k = min(kand)[2]

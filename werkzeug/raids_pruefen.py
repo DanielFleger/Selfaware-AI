@@ -9,6 +9,8 @@
   5. Reiter: feindlicher Holzfaeller 15 Felder weg, keine Gefahr -> Angriffsbefehl auf ihn; feindlicher Speer 6 Felder neben
      dem Reiter -> Laufbefehl, das Ziel liegt weiter vom Speer weg als der Reiter
   6. der gejagte Holzfaeller ist weg -> genau ein Abschuss gezaehlt, auch nach drei weiteren Runden
+  8. (17:41) feindlicher Holzfaeller 60 Felder weg, nichts naeher -> der Reiter bekommt trotzdem den Angriffsbefehl (reitet hin)
+  9. (17:41) Huette und Waffenlager gleich weit -> der Sklave nimmt die Huette (Pennerhof)
   7. Werbung: 100 Gold / 10 am Feuer -> 5 Sklaven, 1 Reiter; 20 Gold / 3 am Feuer -> 1 Sklave (2 bleiben am Feuer)
 Gegenprobe: mit "alt" ist nichts gefaehrlich und kein Gebaeude brennt -> Faelle 1, 3 und 4 rot (Fall 2 bleibt gruen: zwei
 Sklaven nehmen auch ohne Gefahrenpruefung verschiedene Ziele).
@@ -106,6 +108,13 @@ def main():
         rj.schritt(L6, {}, Befehle())
     pruefe(6, "Abschuesse nach Verschwinden + 3 Runden: %d" % rj.getoetet, rj.getoetet == 1)
 
+    rj8 = R.Reiterjagd(1)
+    b8 = Befehle()
+    rj8.schritt({20: einheit(74, 1, 100, 100), 800: einheit(3, 2, 160, 100)}, {}, b8)
+    pruefe(8, "Holzfaeller 60 Felder weg: Befehle %s" % b8.liste, any(x["angriff"].get("ziel") == 800 for x in b8.liste))
+    bt9 = R.Brandtrupp(1, lambda nr: 0)
+    bt9.schritt({10: einheit(71, 1, 100, 100)}, {1: geb(11, 2, 120, 100), 2: geb(1, 2, 100, 120)}, Befehle())
+    pruefe(9, "Huette und Waffenlager 20 Felder: Ziel %s" % bt9.ziel, bt9.ziel.get(10) == 2)
     w = (R.werbung(100, 10, 0, 0), R.werbung(20, 3, 0, 0))
     pruefe(7, "Werbung 100/10: %s, 20/3: %s" % w, w[0] == [(71, 5), (74, 1)] and w[1] == [(71, 1)])
     print("%d von %d gruen" % (sum(ok), len(ok)))
