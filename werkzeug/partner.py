@@ -38,11 +38,13 @@ class Ende:
         self.eigene = None
         self.gesehen = None
 
-    def melde(self, art, grund, tick=None):
-        """Erste Meldung gilt - ein spaeterer Folgefehler ueberschreibt den eigentlichen Grund nicht."""
+    def melde(self, art, grund, tick=None, **zusatz):
+        """Erste Meldung gilt - ein spaeterer Folgefehler ueberschreibt den eigentlichen Grund nicht.
+        zusatz (19.10., Partievergleich): z. B. lage=/ertrag= - die Dateien dieses Lenkers fuer den Vergleich beim Partner."""
         if self.eigene is not None:
             return self.eigene
         self.eigene = {"sp": self.sp, "art": art, "grund": grund, "tick": tick, "pid": os.getpid(), "zeit": time.time()}
+        self.eigene.update(zusatz)
         ziel = ende_datei(self.hier, self.instanz, self.sp)
         with open(ziel + ".neu", "w", encoding="utf-8") as f:
             json.dump(self.eigene, f, ensure_ascii=False)

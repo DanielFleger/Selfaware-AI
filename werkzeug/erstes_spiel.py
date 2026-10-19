@@ -3076,12 +3076,12 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 import traceback
                 traceback.print_exc()
             if aufgeben:
-                ENDE.melde("absturz", zeile_f, letzter_tick)
+                ENDE.melde("absturz", zeile_f, letzter_tick, lage=lage.pfad, ertrag=lernlog)
                 raise
             time.sleep(0.2)
     ende_art, ende_text = ende_grund or ("ende", "Phase 2 beendet")
     if PARTNER:
-        ENDE.melde(ende_art, ende_text, letzter_tick)
+        ENDE.melde(ende_art, ende_text, letzter_tick, lage=lage.pfad, ertrag=lernlog)   # Dateien fuer den Partievergleich
     # 18.10.: im 1v1 haelt nur an, wer als Letzter aufhoert (oder wenn die Partie vorbei ist) - sonst stand das Spiel fuer den
     # Partner still und er brach nach 30 s ab (1018b, 1018d)
     if not PARTNER or ENDE.anhalten_erlaubt(vorbei=ende_art in ("sieg", "niederlage")):
@@ -3108,6 +3108,23 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         schreib("Wissen angehaengt: %s" % AA.wissen_anhaengen(erg))
     except Exception as ex:
         schreib("ABLAUFANALYSE fehlgeschlagen: %r" % ex)
+    try:
+        # Daniel 19.10. 16:11: "baue solche Analysetools fuer jede zukuenftige Partie ein, damit man immer nachvollziehen
+        # kann warum und dann auch ab wann jemand im Nachteil ist" - partie_vergleich.py. Im 1v1 kommen die Dateien des
+        # Partners aus seiner Ende-Meldung; wer zuletzt aufhoert, hat beide (der andere vergleicht mit Gebaeuden und
+        # Einheiten aus dem eigenen Lageprotokoll, das alle Spieler enthaelt)
+        import partie_vergleich as PV
+        lagen, ertraege = [lage.pfad], [lernlog]
+        m_p = ENDE.partner() if PARTNER else None
+        if m_p and m_p.get("lage"):
+            lagen.append(m_p["lage"])
+            ertraege.append(m_p.get("ertrag"))
+        erg_v = PV.analyse(lagen, ertraege, haupt_sp=SP, nur=SP)
+        schreib(PV.text(erg_v))
+        schreib("Partievergleich gesichert: %s" % PV.sichern(erg_v, os.path.join(D, "vergleich_%s%s.json" % (
+            time.strftime("%Y%m%d_%H%M%S"), LAUF_ENDUNG))))
+    except Exception as ex:
+        schreib("PARTIEVERGLEICH fehlgeschlagen: %r" % ex)
     ausbau.sichern(os.path.join(D, "ertrag_gelernt_%s%s.json" % (time.strftime("%Y%m%d_%H%M%S"), LAUF_ENDUNG)))
 
 def main():
