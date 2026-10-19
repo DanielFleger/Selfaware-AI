@@ -12,6 +12,7 @@ Inhalt (alles gemessen, nichts geschaetzt):
   - Gold des Lenkers ueber die Zeit (aus seinen ANWERBEN-BREMSE-Zeilen), Zahl der Bremsen und Anwerbungen
   - Ereigniszaehler (Feldzug, Raid, Stillstand, Hunger, Planer wartet, Seasoning)
   - Partievergleich (partie_vergleich.py): ab wann wer hinten, Einbruch, Kette
+  - Gold-Bilanz (gold_bilanz.py, B-120): Einnahmen/Steuer/Ausgaben des Lenkers, Lager und Anwerbegold beider Spieler
   - letzter Tick und Truppen am Ende (wer gewonnen hat, steht in "anmerkung" - aus dem Protokoll noch nicht abgelesen)
 Aufruf: python werkzeug/partie_lernen.py <konsole.txt> <lage.jsonl.gz> [gegner=Daniel] [anmerkung="..."]"""
 import gzip
@@ -82,6 +83,14 @@ def vergleich(lage, stamp):
     return {"zeilen": zeilen, "datei": os.path.relpath(ziel, os.path.join(HIER, ".."))}
 
 
+def gold(konsole, lage, stamp):
+    """B-120: Gold-Bilanz beider Spieler (gold_bilanz.py) - Einnahmen/Steuer/Ausgaben des Lenkers, Lager und Anwerbegold je Spieler."""
+    r = subprocess.run([sys.executable, "-P", os.path.join(HIER, "gold_bilanz.py"), konsole, lage],
+                       capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
+    zeilen = [z.strip() for z in r.stdout.splitlines() if z.strip().startswith(("Einnahmen", "davon", "Ausgaben", "Spieler", "Holz je"))]
+    return {"zeilen": zeilen, "datei": "daten/lernen/gold_%s.txt" % stamp, "fehler": r.stderr[-300:] if r.returncode else None}
+
+
 def main():
     pos = [a for a in sys.argv[1:] if "=" not in a]
     arg = dict(a.split("=", 1) for a in sys.argv[1:] if "=" in a)
@@ -95,10 +104,11 @@ def main():
     tr, ende = truppen(lage, N)
     m = mitschrift(konsole)
     v = vergleich(lage, stamp)
+    gb = gold(konsole, lage, stamp)
     partie = {"partie": stamp, "erfasst": time.strftime("%Y-%m-%d %H:%M"), "lenker_spieler": int(sp.group(1)) if sp else 1,
               "gegner": arg.get("gegner"), "anmerkung": arg.get("anmerkung"), "letzter_tick": ende,
               "konsole": os.path.relpath(konsole, os.path.join(HIER, "..")), "lage": os.path.relpath(lage, os.path.join(HIER, "..")),
-              "truppen": tr, "lenker": m, "vergleich": v}
+              "truppen": tr, "lenker": m, "vergleich": v, "gold": gb}
     json.dump(partie, open(os.path.join(AUS, "partie_%s.json" % stamp), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     kurz = {k: partie[k] for k in ("partie", "erfasst", "lenker_spieler", "gegner", "anmerkung", "letzter_tick")}
     kurz["truppen_ende"] = tr[-1]["je_spieler"] if tr else {}
@@ -120,6 +130,8 @@ def main():
     print("  Lenker: Bremsen %d, Anwerbungen %d, Gold bei Bremsen max %s" % (kurz["bremsen"], kurz["anwerbungen"], kurz["gold_max"]))
     for z in v["zeilen"]:
         print("  " + z[:220])
+    for z in gb["zeilen"]:
+        print("  GOLD " + z[:220])
     print("gesichert: daten/lernen/partie_%s.json + Zeile in daten/lernen/partien.jsonl" % stamp)
 
 
