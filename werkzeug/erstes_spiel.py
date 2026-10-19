@@ -966,6 +966,7 @@ SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # ge
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
 KAUSAL_HORIZONT = 16000  # 12.10.: Kausalmodell rechnet Ertraege bis jetzt + so viele Ticks (Schalter kausal_horizont)
+DECKUNG_SOLL = 0         # B-129: so viele Schleuderer decken die Brand-Sklaven (Schalter deckung_soll, 0 = aus)
 KAUSAL_SPAREN = True     # B-122: Kausalmodell spart fuer seinen besten Betrieb (Schalter kausal_sparen=nein = altes Verhalten)
 OFFENES_ENDE = False     # B-123: ziel_tick=offen (Partie gegen einen Menschen) - Kausalmodell rechnet mitlaufend
 KAUSAL_RUNDEN = 3        # 19.10.: der Kausal-Planer entscheidet nur jede so vielte Runde (Rechenzeit, Bauen vertraegt 1 s)
@@ -2210,6 +2211,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         import raids as RA
         brand = RA.Brandtrupp(SP, lambda nr: peek(0xF98520 + nr * 0x32C + 0x14 + 702)[0] & 0xFFFF)
         reiter = RA.Reiterjagd(SP)
+        # B-129 (Daniel 19.10. 23:32 "Bogenschuetzen vor, mit Sklaven abgefackelt, nie lockergelassen"): Schleuderer decken
+        # die Sklaven; Knopf deckung_soll (0 = aus)
+        RA.DECKUNG_SOLL = DECKUNG_SOLL
+        deckung = RA.Deckung(SP, BERGFRIED)
     if weg == "feldzug" and streitkolben:
         from feldzug import Feldzug
         feldzug = Feldzug(SP, BERGFRIED, LORD_SCHUTZ_BIS, n=streitkolben)
@@ -3261,15 +3266,17 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     if brand is not None:
                         # 19.10. Raids: steuern jede Runde; werben nur aus Gold ueber der Ruecklage, nicht im Endspurt
                         try:
+                            brand.schutz = deckung.orte(L)
+                            ereignis += deckung.schritt(L, G, befehl, brand)
                             ereignis += brand.schritt(L, G, befehl)
                             ereignis += reiter.schritt(L, G, befehl)
                             if posten_h is not None and not es_an and not hunger_r and runde % 2 == 1:
                                 import bauen as BA_r
                                 for typ_r, n_r in RA.werbung(st["gold"] - wirt.ruecklage(G)["gold"], st.get("feuer", 0),
-                                                             len(brand.einheiten(L)), len(reiter.einheiten(L))):
+                                                             len(brand.einheiten(L)), len(reiter.einheiten(L)), len(deckung.einheiten(L))):
                                     for _ in range(n_r):
                                         BA_r.werbe(typ_r, posten_h)
-                                    ereignis.append("RAID-WERBUNG: %d %s" % (n_r, "Sklaven" if typ_r == RA.SKLAVE else "Pferdebogen"))
+                                    ereignis.append("RAID-WERBUNG: %d %s" % (n_r, {RA.SKLAVE: "Sklaven", RA.SCHLEUDER: "Schleuderer (Deckung)"}.get(typ_r, "Pferdebogen")))
                         except Exception as ex_r:
                             ereignis.append("RAIDS FEHLER %r - Partie laeuft weiter" % (ex_r,))
                     if bier is not None and not es_an and runde % 5 == 0:     # Endspurt: keine neuen Betriebe
@@ -3390,7 +3397,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         schreib("1v1: Spiel bleibt fuer den anderen Lenker laufen (%s: %s)" % (ende_art, ende_text))
     schreib(serie.bericht())
     if brand is not None:
-        schreib("RAIDS: %s; %s" % (brand.bericht(), reiter.bericht()))
+        schreib("RAIDS: %s; %s; %s" % (brand.bericht(), reiter.bericht(), deckung.bericht()))
     if GZ is not None:
         schreib(GZ.bericht())
     st, L, G = runde_lesen()
@@ -3618,7 +3625,8 @@ def main():
     # der Rechenhorizont des Kausalmodells (jede Apfelplantage "wert" Tausende, Partie 20261019_2240). Offen: Kausalmodell mit
     # mitlaufendem Fenster (jetzt + kausal_horizont); alles andere (Planer, Produktion) rechnet wie bisher mit bis_tick
     global OFFENES_ENDE, KAUSAL_SPAREN
-    global STEIN_FRUEH
+    global STEIN_FRUEH, DECKUNG_SOLL
+    DECKUNG_SOLL = int(arg.get("deckung_soll", DECKUNG_SOLL))
     STEIN_FRUEH = int(arg.get("steinbrueche_frueh", STEIN_FRUEH))
     KAUSAL_SPAREN = arg.get("kausal_sparen", "ja") == "ja"
     OFFENES_ENDE = arg.get("ziel_tick") == "offen"

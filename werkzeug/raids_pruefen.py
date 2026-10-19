@@ -25,7 +25,7 @@ import raids as R
 
 ALT = len(sys.argv) > 1 and sys.argv[1] == "alt"
 if ALT:
-    R.gefaehrlich = lambda ort, L, G, sp: None
+    R.gefaehrlich = lambda ort, L, G, sp, schutz=(): None
 
 
 def einheit(typ, sp, x, y, zustand=1):
@@ -123,6 +123,39 @@ def main():
            any(x["angriff"].get("ziel") == 901 for x in b10.liste))
     w = (R.werbung(100, 10, 0, 0), R.werbung(20, 3, 0, 0))
     pruefe(7, "Werbung 100/10: %s, 20/3: %s" % w, w[0] == [(71, 5), (74, 1)] and w[1] == [(71, 1)])
+    # 11. (B-129) feindlicher Bogen 5 Felder neben dem Waffenlager: ohne Deckung ist es gesperrt; steht ein eigener Schleuderer
+    #     3 Felder neben dem Bogen, gilt der Bogen als gedeckt und der Sklave nimmt das Waffenlager. Eine Fallgrube bleibt
+    #     auch mit Deckung gesperrt.
+    L11 = {1: einheit(71, 1, 100, 100), 50: einheit(22, 2, 135, 100)}
+    G11 = {7: geb(11, 2, 130, 100)}
+    b_ohne = R.Brandtrupp(1, lambda nr: 0)
+    ohne = b_ohne._ziele(L11, G11, (100, 100), set())
+    b_mit = R.Brandtrupp(1, lambda nr: 0)
+    b_mit.schutz = [(138, 100)]
+    mit = b_mit._ziele(L11, G11, (100, 100), set())
+    G11g = {7: geb(11, 2, 130, 100), 8: geb(67, 2, 131, 101)}
+    grube = b_mit._ziele(L11, G11g, (100, 100), set())
+    pruefe(11, "Deckung: ohne %s, mit Schleuderer %s, mit Fallgrube %s" % (ohne, mit, grube), ohne == [] and mit == [7] and grube == [])
+    # 12. (B-129) Deckung: ein Schleuderer, feindlicher Speer 8 Felder weg und Holzfaeller 6 Felder weg -> Angriff auf den Speer
+    #     (Kaempfer vor Arbeiter); nichts in Reichweite -> Laufbefehl zur Front (Ziel des Sklaven)
+    d = R.Deckung(1, (50, 50))
+    L12 = {3: einheit(72, 1, 100, 100), 60: einheit(24, 2, 108, 100), 61: einheit(3, 2, 106, 100)}
+    bf = Befehle()
+    d.schritt(L12, {}, bf)
+    b_sk = R.Brandtrupp(1, lambda nr: 0)
+    b_sk.ziel = {1: 7}
+    bf2 = Befehle()
+    d2 = R.Deckung(1, (50, 50))
+    d2.schritt({3: einheit(72, 1, 100, 100)}, {7: geb(11, 2, 160, 100)}, bf2, b_sk)
+    a12 = [c["angriff"] for c in bf.liste if "angriff" in c]
+    a12b = [c["angriff"] for c in bf2.liste if "angriff" in c]
+    pruefe(12, "Deckung greift %s an, ohne Feind laeuft sie %s" % (a12, a12b),
+           a12 and a12[0].get("ziel") == 60 and a12b and a12b[0].get("lauf") == [160, 100])
+    # 13. (B-129) Werbung mit DECKUNG_SOLL 4: 100 Gold / 10 am Feuer -> 5 Sklaven (25), dann Schleuderer bis Feuer 2 bleibt (3)
+    R.DECKUNG_SOLL = 4
+    w13 = R.werbung(100, 10, 0, 0, 0)
+    R.DECKUNG_SOLL = 0
+    pruefe(13, "Werbung mit Deckung 100/10: %s" % w13, w13 == [(71, 5), (72, 3)])
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

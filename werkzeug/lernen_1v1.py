@@ -50,8 +50,17 @@ KNOEPFE = {
     "holzfaeller_je_baum": [4, 2, 1],
     "holz_spam": [20, 10, 0],
     "produktion": ["ja", "nein"],              # B-128: eigene Waffenkette ODER (Daniels Weg) Stein/Eisen verkaufen + Soeldner
+    "deckung_soll": [0, 4, 8],                 # B-129: Schleuderer decken die Brand-Sklaven
 }
-METRIK = 2     # 2 = Einnahmen + Lagerwert + Truppenwert (ab 20.10. 00:05); Vergleiche anderer Metrik zaehlen nicht
+METRIK = 3     # 3 = Einnahmen + Lagerwert + Truppenwert + Feindschaden (ab 20.10. 00:15); andere Metriken zaehlen nicht
+# Feindschaden: feindliche Gebaeude, die im Lauf verschwunden sind (uid gesehen, am Ende weg; Lagerplatz/Steinhaufen nicht),
+# bewertet mit den Baukosten der Balance-Datei in Gold (Holz und Stein zum Kaufpreis je Stueck)
+GEB_NAME = {1: "Hovel", 3: "Woodcutter hut", 4: "Ox tether", 5: "Iron mine", 6: "Pitch rig", 7: "Hunters hut",
+            8: "Mercenary post", 9: "Barracks", 11: "Armory", 12: "Fletcher", 13: "Blacksmith", 14: "Poleturner",
+            15: "Armourer", 16: "Tanner", 17: "Bakery", 18: "Brewery", 20: "Quarry", 22: "Inn", 23: "Apothecary",
+            26: "Marketplace", 27: "Well", 28: "Oil smelter", 30: "Wheat farm", 31: "Hop farm", 32: "Apple farm",
+            33: "Dairy farm", 34: "Mill", 35: "Stables"}
+NICHT_SCHADEN = {10, 21}
 # Truppenwert je lebender eigener Kampfeinheit am Ende: Anwerbegold (Balance units.goldCost) + Waffen zum Verkaufspreis
 # (Balance resources sell / 5 je Stueck); fuer Einheiten ohne goldCost der Spielwert (Sklave 5 gemessen, Schleuder 12 Vanilla)
 EINHEIT = {22: ("European archer", ["Bow"]), 23: ("European crossbowman", ["Xbow", "Leather"]),
@@ -94,17 +103,30 @@ def preise():
             g += float(r.get("sell", r.get("buy", 0) / 2.0)) / 5.0
         tw[typ] = round(g, 1)
     p["_truppen"] = tw
+    holz_k = float((B["resources"].get("Wood") or {}).get("buy", 15)) / 5.0
+    stein_k = float((B["resources"].get("Stone") or {}).get("buy", 50)) / 5.0
+    gw = {}
+    for typ, name in GEB_NAME.items():
+        c = (B["buildings"].get(name) or {}).get("cost")
+        if c:
+            gw[typ] = round(c[0] * holz_k + c[1] * stein_k + c[4], 1)
+    p["_gebaeude"] = gw
     return p
 
 
 def wert(lage, P, sp=1):
     einnahmen, letzte, vor, zeile = 0, None, None, None
+    feind = {}          # uid -> Typ, alle je gesehenen feindlichen Gebaeude
     for z in gzip.open(lage, "rt", encoding="utf-8"):
         zeile = json.loads(z)
         st = zeile["st"]
         if vor is not None and st.get("gold", 0) > vor:
             einnahmen += st["gold"] - vor
         vor, letzte = st.get("gold", 0), st
+        for e in zeile["gebaeude"].split("\n")[1:]:
+            w = e.split()
+            if len(w) >= 7 and int(w[1]) not in (0, sp) and int(w[2]) not in NICHT_SCHADEN:
+                feind[w[6]] = int(w[2])
     waren = {w: p for w, p in P.items() if not w.startswith("_")}
     lager = sum(letzte.get(w, 0) * p for w, p in waren.items())
     truppen = {}
@@ -113,8 +135,12 @@ def wert(lage, P, sp=1):
         if len(w) >= 6 and int(w[1]) == sp and int(w[2]) in P["_truppen"] and int(w[5]) > 0:
             truppen[int(w[2])] = truppen.get(int(w[2]), 0) + 1
     tw = sum(P["_truppen"][k] * n for k, n in truppen.items())
+    am_ende = {e.split()[6] for e in zeile["gebaeude"].split("\n")[1:] if len(e.split()) >= 7}
+    weg = [typ for u, typ in feind.items() if u not in am_ende]
+    schaden = sum(P["_gebaeude"].get(typ, 0) for typ in weg)
     return {"metrik": METRIK, "einnahmen": einnahmen, "lager_wert": round(lager, 1), "truppen_wert": round(tw, 1),
-            "wert": round(einnahmen + lager + tw, 1), "tick": letzte.get("t"), "leute": letzte.get("leute"),
+            "feindschaden": round(schaden, 1), "feind_verloren": len(weg),
+            "wert": round(einnahmen + lager + tw + schaden, 1), "tick": letzte.get("t"), "leute": letzte.get("leute"),
             "lager": {w: letzte.get(w, 0) for w in waren if letzte.get(w, 0)}, "truppen": truppen}
 
 
@@ -216,8 +242,9 @@ def main():
         schl = "%s=%s" % (k, v)
         vergleiche.setdefault(schl, []).append({"nr": nr, "metrik": METRIK, "position": "%s %s" % pos, "a": a["wert"], "b": b["wert"],
                                                 "diff_prozent": round(diff, 1)})
-        print("  A %.0f (Einnahmen %d, Lager %s, Truppen %s) | B %.0f (Einnahmen %d, Lager %s, Truppen %s) -> %+.1f %%" % (
-            a["wert"], a["einnahmen"], a["lager"], a["truppen"], b["wert"], b["einnahmen"], b["lager"], b["truppen"], diff), flush=True)
+        print("  A %.0f (Einnahmen %d, Lager %s, Truppen %s, Feindschaden %.0f) | B %.0f (Einnahmen %d, Lager %s, Truppen %s, "
+              "Feindschaden %.0f) -> %+.1f %%" % (a["wert"], a["einnahmen"], a["lager"], a["truppen"], a["feindschaden"], b["wert"],
+                                                b["einnahmen"], b["lager"], b["truppen"], b["feindschaden"], diff), flush=True)
         vg = [x for x in vergleiche[schl] if x.get("metrik") == METRIK]
         if len(vg) >= UEBERNAHME_N and all(x["diff_prozent"] > 0 for x in vg):
             beste = variante
