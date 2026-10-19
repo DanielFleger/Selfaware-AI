@@ -30,7 +30,9 @@ Ausführung in `currentPlayerSlotID` steht).
 der Mod (`logik.lua`, `alsSpieler`) „ich“ einen Takt lang auf SamurAIs Platz. In diesem Takt gehen auch Daniels Klicks
 an SamurAI; wird „ich“ vor der Ausführung zurückgesetzt, ginge SamurAIs Befehl an Daniel. Das widerspricht B-94.
 
-**Weg zur Trennung (Vorschlag für B-94, nicht gebaut):** Das Spiel kennt den richtigen Weg schon - im Mehrspieler trägt
+**GEBAUT 19.10.2026 23:10 (B-94), im Spiel geprüft 8/8 + Gegenprobe** (`werkzeug/absender_live_pruefen.py`, `daten/absender_live_*.txt`; ohne Spiel `werkzeug/absender_pruefen.py` 6/6): logik.lua stempelt SamurAIs Einträge mit `0x53414D00 + Platz`, an `0x00489387` springt `processWaitingCommands` in eigenen Code, der nur für gestempelte Einträge Auslöser und „ich“ für den einen Aufruf setzt und die Auswahl-Leiste sichert. Rückweg `{"absender": "aus"}`. Der ursprüngliche Vorschlag:
+
+**Weg zur Trennung (Vorschlag für B-94):** Das Spiel kennt den richtigen Weg schon - im Mehrspieler trägt
 jeder Befehl seinen Absender. Im Einzelspieler-Zweig der Übersetzung muss nur ein Befehl mit SamurAIs Absender-Kennung
 für SamurAIs Platz gelten; jeder andere Befehl (Daniels Klicks) bleibt bei „ich“. SamurAI setzt seine Befehle dann
 mit eigener Absender-Kennung ab (`scheduleReceivedCommand` oder `playerUnk` des Eintrags nach `queueCommand`), und

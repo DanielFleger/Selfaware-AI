@@ -52,7 +52,9 @@ def laden(bytes_an_stelle):
       }, { __index = function() return leer end })
       INFO, WARNING, DEBUG, ERROR = 1, 2, 3, 4
       log = function(l, s) py.log(l, s) end
-      setmetatable(_G, { __index = function() return leer end })
+      -- wie UCP3 (gemessen 19.10. 22:55): ein Modul darf keine globale Variable anlegen
+      setmetatable(_G, { __index = function() return leer end,
+                         __newindex = function(t, k) error("global assignment not permitted in module: " .. tostring(k)) end })
     """ % SICHER)
     quelle = open(QUELLE, encoding="utf-8").read()
     lade = lua.eval("function(s) local f, e = load(s, 'logik.lua', 't'); if f then return f, '' end; return nil, e end")

@@ -760,8 +760,9 @@ local ABSENDER_ORIGINAL = { 0x8B, 0x04, 0x95, 0x10, 0x8E, 0xB3, 0x00, 0xFF, 0xD0
 local ABSENDER_KENNUNG = 0x53414D00
 local AUSWAHL_BITS = 0x01387F38 + 116        -- DAT_SelectedUnitsBitFlags, 400 Byte (100 x 4)
 local stempel = nil                          -- Platz des Lenkers, waehrend er einen Befehl einreiht
--- global (ohne "local"): ueberlebt das Neuladen von logik.lua - der eingebaute Code bleibt im Speicher und wird wiederverwendet
-if type(ABSENDER_ZUSTAND) ~= "table" then ABSENDER_ZUSTAND = { gestempelt = 0 } end
+-- Zustand je Laden (UCP3 verbietet Modulen globale Variablen - gemessen 19.10. 22:55, Instanz 5: "global assignment not
+-- permitted in module"). Ob der Code eingebaut ist, steht in den Bytes an ABSENDER_STELLE; ein Neuladen baut nicht doppelt.
+local ABSENDER_ZUSTAND = { gestempelt = 0 }
 
 local function le32(x)
   x = x % 0x100000000
@@ -773,7 +774,10 @@ local function absenderAktiv()
 end
 
 local function absenderEinbauen()
-  if absenderAktiv() then return true, "schon eingebaut" end
+  if absenderAktiv() then
+    local r = core.readInteger(ABSENDER_STELLE + 1) or 0
+    return true, string.format("schon eingebaut (Code 0x%X)", (ABSENDER_STELLE + 5 + r) % 0x100000000)
+  end
   for i, v in ipairs(ABSENDER_ORIGINAL) do
     if core.readByte(ABSENDER_STELLE + i - 1) ~= v then
       return false, string.format("unerwartetes Byte bei 0x%X - nichts geaendert", ABSENDER_STELLE + i - 1)
