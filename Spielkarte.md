@@ -179,8 +179,10 @@ Ein Feld ist NICHT bebaubar, wenn (in dieser Reihenfolge geprueft):
    menschliche Spieler (eine KI im Gefecht darf dort bauen);
 6. Sumpf/Graben-Eigenschaften des Gebaeudetyps es verbieten (buildingPlacementProperty_4/6/7).
 
-**Was das fuer uns heisst:** Die SamurAI spielt auf einem Platz, dessen KI wir abschalten - fuer das Spiel ist sie damit
-(vermutlich, `isAIPlayer` nicht im Lauf gemessen) ein menschlicher Spieler. Dann blockieren ihre EIGENEN Arbeiter, die gerade
+**Was das fuer uns heisst:** `isAIPlayer(sp)` = `currentPlayerFullIDArray[sp] == -1` UND `currentAIArray[sp] != 0`
+(@ 0x004010B0, `daten/dekomp_isaiplayer.c`). Die Wache setzt bei der Uebernahme `currentAIArray[sp] = 0` (ki_aus) und im
+eigenen Gefecht spielt die SamurAI einen Menschen-Platz - fuer die Bauregeln ist sie also in beiden Faellen ein
+menschlicher Spieler (abgelesen, Code und unser eigener ki_aus). Dann blockieren ihre EIGENEN Arbeiter, die gerade
 ueber den Bauplatz laufen, jeden Bau dort, und Baeume blockieren wie beim Menschen. Das passt zu den Meldungen "Markt am
 festen Platz nicht moeglich (z. B. Einheit drauf)" und zu Bauten, die erst im zweiten Versuch stehen. Zu messen: `isAIPlayer`
 fuer den Platz der SamurAI nach der Uebernahme, und wie oft ein Bau an einer Einheit scheitert.
