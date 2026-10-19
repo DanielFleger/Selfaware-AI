@@ -2168,14 +2168,20 @@
    "nr": "B-94",
    "titel": "SamurAI beeinflusst NIE einen anderen Spieler und wird von keinem beeinflusst",
    "bereich": "SamurAI",
-   "status": "offen",
+   "status": "gebaut",
    "seit": "2026-10-19",
    "herkunft": "Daniel 19.10. 21:52: komplett separat von anderen Inputs, beeinflusst sie auch nicht",
-   "gebaut": null,
-   "commits": [],
-   "wo": [],
+   "gebaut": "2026-10-19 22:25",
+   "commits": [
+    "82a33b3"
+   ],
+   "wo": [
+    "werkzeug/logik_stand_20261019.lua",
+    "werkzeug/absender_live_pruefen.py",
+    "werkzeug/absender_pruefen.py"
+   ],
    "belege": [],
-   "notiz": "Heute: das Modul setzt fuer SamurAIs Spielbefehle einen Takt lang 'ich' (currentPlayerSlotID 0x01A275DC) auf Spieler 2 (logik.lua alsSpieler); laut eigenem Kommentar gehen Klicks des Menschen in diesem Takt an SamurAI. Ausweg: Spielbefehle im selben Takt direkt ausfuehren statt ueber die Warteschlange - braucht Reverse Engineering der Befehlsverarbeitung. logik.lua gehoert der VillageStudio/Lua-Sitzung. | Ursache gefunden (B-114, Spielkarte 1). Loesung ohne Umschalten: Einzelspieler-Zweig von translateMultiplayerIDsIntoPlayerIDs (0x0047EAF0) fuer eine SamurAI-Absenderkennung oeffnen; SamurAI setzt Befehle mit eigener Kennung ab; 'ich' wird nie angefasst. Ort offen: logik.lua (VillageStudio/Lua-Sitzung) oder Rust-Modul (B-115)",
+   "notiz": "Heute: das Modul setzt fuer SamurAIs Spielbefehle einen Takt lang 'ich' (currentPlayerSlotID 0x01A275DC) auf Spieler 2 (logik.lua alsSpieler); laut eigenem Kommentar gehen Klicks des Menschen in diesem Takt an SamurAI. Ausweg: Spielbefehle im selben Takt direkt ausfuehren statt ueber die Warteschlange - braucht Reverse Engineering der Befehlsverarbeitung. logik.lua gehoert der VillageStudio/Lua-Sitzung. | Ursache gefunden (B-114, Spielkarte 1). Loesung ohne Umschalten: Einzelspieler-Zweig von translateMultiplayerIDsIntoPlayerIDs (0x0047EAF0) fuer eine SamurAI-Absenderkennung oeffnen; SamurAI setzt Befehle mit eigener Kennung ab; 'ich' wird nie angefasst. Ort offen: logik.lua (VillageStudio/Lua-Sitzung) oder Rust-Modul (B-115) | im Spiel 8/8 + Gegenprobe; in Instanz 4 und 5 eingespielt; Instanz 1-3 haben noch eine aeltere logik.lua (SamurAI laeuft dort nicht)",
    "verlauf": [
     {
      "zeit": "2026-10-19 21:58",
@@ -2192,6 +2198,10 @@
     {
      "zeit": "2026-10-19 22:07",
      "was": "Rang 2 -> 1"
+    },
+    {
+     "zeit": "2026-10-19 22:25",
+     "was": "offen -> gebaut (Commit 82a33b3): im Spiel 8/8 + Gegenprobe; in Instanz 4 und 5 eingespielt; Instanz 1-3 haben noch eine aeltere logik.lua (SamurAI laeuft dort nicht)"
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
@@ -2450,7 +2460,7 @@
    "commits": [],
    "wo": [],
    "belege": [],
-   "notiz": "",
+   "notiz": "moegliche Ursache: altes Umschalten von 'ich' (B-94, jetzt behoben) - in der naechsten Partie nachsehen, ob Anwerben wieder abbucht",
    "verlauf": [
     {
      "zeit": "2026-10-19 21:58",
@@ -2459,6 +2469,10 @@
     {
      "zeit": "2026-10-19 22:03",
      "was": "Rang - -> 11"
+    },
+    {
+     "zeit": "2026-10-19 22:25",
+     "was": "offen -> offen: moegliche Ursache: altes Umschalten von 'ich' (B-94, jetzt behoben) - in der naechsten Partie nachsehen, ob Anwerben wieder abbucht"
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
