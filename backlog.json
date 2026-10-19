@@ -2175,7 +2175,7 @@
    "commits": [],
    "wo": [],
    "belege": [],
-   "notiz": "Heute: das Modul setzt fuer SamurAIs Spielbefehle einen Takt lang 'ich' (currentPlayerSlotID 0x01A275DC) auf Spieler 2 (logik.lua alsSpieler); laut eigenem Kommentar gehen Klicks des Menschen in diesem Takt an SamurAI. Ausweg: Spielbefehle im selben Takt direkt ausfuehren statt ueber die Warteschlange - braucht Reverse Engineering der Befehlsverarbeitung. logik.lua gehoert der VillageStudio/Lua-Sitzung.",
+   "notiz": "Heute: das Modul setzt fuer SamurAIs Spielbefehle einen Takt lang 'ich' (currentPlayerSlotID 0x01A275DC) auf Spieler 2 (logik.lua alsSpieler); laut eigenem Kommentar gehen Klicks des Menschen in diesem Takt an SamurAI. Ausweg: Spielbefehle im selben Takt direkt ausfuehren statt ueber die Warteschlange - braucht Reverse Engineering der Befehlsverarbeitung. logik.lua gehoert der VillageStudio/Lua-Sitzung. | Ursache gefunden (B-114, Spielkarte 1). Loesung ohne Umschalten: Einzelspieler-Zweig von translateMultiplayerIDsIntoPlayerIDs (0x0047EAF0) fuer eine SamurAI-Absenderkennung oeffnen; SamurAI setzt Befehle mit eigener Kennung ab; 'ich' wird nie angefasst. Ort offen: logik.lua (VillageStudio/Lua-Sitzung) oder Rust-Modul (B-115)",
    "verlauf": [
     {
      "zeit": "2026-10-19 21:58",
@@ -2184,23 +2184,33 @@
     {
      "zeit": "2026-10-19 22:03",
      "was": "Rang - -> 2"
+    },
+    {
+     "zeit": "2026-10-19 22:07",
+     "was": "offen -> offen: Ursache gefunden (B-114, Spielkarte 1). Loesung ohne Umschalten: Einzelspieler-Zweig von translateMultiplayerIDsIntoPlayerIDs (0x0047EAF0) fuer eine SamurAI-Absenderkennung oeffnen; SamurAI setzt Befehle mit eigener Kennung ab; 'ich' wird nie angefasst. Ort offen: logik.lua (VillageStudio/Lua-Sitzung) oder Rust-Modul (B-115)"
+    },
+    {
+     "zeit": "2026-10-19 22:07",
+     "was": "Rang 2 -> 1"
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 2
+   "rang": 1
   },
   {
    "nr": "B-95",
    "titel": "Grundverstaendnis des Spiels per Reverse Engineering (Ghidra), bevor gebaut wird",
    "bereich": "Framework",
-   "status": "offen",
+   "status": "in_arbeit",
    "seit": "2026-10-19",
    "herkunft": "Krari ueber Daniel 19.10. 21:52",
    "gebaut": null,
    "commits": [],
-   "wo": [],
+   "wo": [
+    "Spielkarte.md"
+   ],
    "belege": [],
-   "notiz": "Vorhanden: Ghidra-Projekt OpenSHC-ref (4.765 benannte Funktionen), VillageStudio doku/ghidra",
+   "notiz": "Vorhanden: Ghidra-Projekt OpenSHC-ref (4.765 benannte Funktionen), VillageStudio doku/ghidra | Spielkarte.md angelegt, Abschnitt 1 (Befehle) fertig; offen: Spielerdaten, Einheiten/Gebaeude, Karte, Takt",
    "verlauf": [
     {
      "zeit": "2026-10-19 21:58",
@@ -2209,6 +2219,10 @@
     {
      "zeit": "2026-10-19 22:03",
      "was": "Rang - -> 3"
+    },
+    {
+     "zeit": "2026-10-19 22:07",
+     "was": "offen -> in Arbeit: Spielkarte.md angelegt, Abschnitt 1 (Befehle) fertig; offen: Spielerdaten, Einheiten/Gebaeude, Karte, Takt"
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
@@ -2659,14 +2673,21 @@
    "nr": "B-114",
    "titel": "Spielkarte 1: wie das Spiel Befehle je Spieler ausfuehrt (Grundlage fuer B-94 und das Geruest)",
    "bereich": "Framework",
-   "status": "in_arbeit",
+   "status": "gebaut",
    "seit": "2026-10-19 22:03",
    "herkunft": "Daniel 19.10. 22:02 'dann kannst du anfangen'; Krari: erst das Spiel verstehen",
-   "gebaut": null,
-   "commits": [],
-   "wo": [],
+   "gebaut": "2026-10-19 22:07",
+   "commits": [
+    "47dc5b6"
+   ],
+   "wo": [
+    "Spielkarte.md",
+    "daten/dekomp_befehl_ausfuehren.c",
+    "daten/dekomp_absender.c",
+    "werkzeug/ghidra/DumpFunktionen.java"
+   ],
    "belege": [],
-   "notiz": "Ghidra-Projekt OpenSHC-ref, VillageStudio doku/ghidra; Frage: Warteschlange queueCommand, Handler-Tabelle 0x00B38E10, currentPlayerSlotID 0x01A275DC - wie fuehrt das Spiel Befehle fuer einen bestimmten Spieler aus, ohne den eigenen Platz umzuschalten?",
+   "notiz": "Ghidra-Projekt OpenSHC-ref, VillageStudio doku/ghidra; Frage: Warteschlange queueCommand, Handler-Tabelle 0x00B38E10, currentPlayerSlotID 0x01A275DC - wie fuehrt das Spiel Befehle fuer einen bestimmten Spieler aus, ohne den eigenen Platz umzuschalten? | Ursache belegt (abgelesen): im Einzelspieler gilt jeder Befehl fuer 'ich' bei der Ausfuehrung; VillageStudio Wissensstand 13i-2 (aff005f)",
    "verlauf": [
     {
      "zeit": "2026-10-19 22:03",
@@ -2675,9 +2696,13 @@
     {
      "zeit": "2026-10-19 22:03",
      "was": "Rang - -> 1"
+    },
+    {
+     "zeit": "2026-10-19 22:07",
+     "was": "in Arbeit -> gebaut (Commit 47dc5b6): Ursache belegt (abgelesen): im Einzelspieler gilt jeder Befehl fuer 'ich' bei der Ausfuehrung; VillageStudio Wissensstand 13i-2 (aff005f)"
     }
    ],
-   "rang": 1
+   "rang": 2
   },
   {
    "nr": "B-115",
