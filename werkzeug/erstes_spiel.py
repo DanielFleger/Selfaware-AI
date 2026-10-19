@@ -914,6 +914,7 @@ NOTWERBUNG = False       # 12.10.: Soeldnerposten + Nachwerben bei Gegnern im ei
 KORNRING = True          # 18.10. (Daniel: "bau den Kornspeicher ein bis auf die Ecken" wie der Nomade): kornring.py, Schalter kornring=nein
 GRUBEN = True            # 18.10. (Daniel 23:07 "4 Holz ist sehr wenig, wenn es einem Assassinen das Leben nimmt"): Schalter gruben=nein
 GRABEN = True            # 19.10. (Daniel 10:31 "gerne"): Burggraben 1 Feld Abstand um den Kornspeicher, Schalter graben=nein
+FALLEN = True            # 19.10. (Daniel 11:00 "Holzfalle dahin, wo etwas ein Angriffsziel bekommt"): fallenwache.py, fallen=nein
 SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # gemessen 12.10. 00:04 (L63, Ascension)
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
@@ -2186,6 +2187,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     serie, fortgesetzt, ende_grund = PT.Serie(), 0, None      # 18.10. (1v1 robust, partner.py)
     korn = None                                                # 18.10.: Kornring (kornring.py), sobald ein Kornspeicher steht
     graben = None                                              # 19.10.: Burggraben um den Kornspeicher (kornring.Graben)
+    fallen = None                                              # 19.10.: Fallenwache (fallenwache.py)
     probe = {"fehler": FEHLERPROBE, "pause": PAUSEPROBE}
     while time.time() < ende and not os.path.exists(os.path.join(HIER, "STOP")):
         try:
@@ -2382,6 +2384,12 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                                          gruben=[(g["x"], g["y"]) for g in G.values() if g["besitzer"] == SP and g["typ"] == 67])
             if graben is not None:
                 ereignis += graben.schritt(st["t"], L, SP, ausgenommen=ausgenommen_w | reserve_w)
+            if FALLEN:
+                if fallen is None:
+                    import fallenwache as FW
+                    FW.GROESSE.update({t_: g_["b"] for t_, g_ in NACH_TYP.items()})
+                    fallen = FW.Fallenwache(SP, setze_grube)
+                ereignis += fallen.schritt(st["t"], L, G, st.get("holz", 0))
             if speicher_nachbauen(G, BUCH.offen if BUCH is not None else [], st["t"],
                                   fruehpruefung.get("speicher_nachbau", -10 ** 6)):
                 fruehpruefung["speicher_nachbau"] = st["t"]
@@ -3215,8 +3223,9 @@ def main():
     global NOTWERBUNG, KORNRING, GRUBEN
     KORNRING = arg.get("kornring", "ja") == "ja"
     GRUBEN = arg.get("gruben", "ja") == "ja"
-    global GRABEN
+    global GRABEN, FALLEN
     GRABEN = arg.get("graben", "ja") == "ja"
+    FALLEN = arg.get("fallen", "ja") == "ja"
     NOTWERBUNG = arg.get("notwerbung", "nein") == "ja"
     STUFE2_BELIEBT = arg.get("stufe2_beliebt", "halten")
     ANGRIFF_AB = int(arg.get("angriff_ab", 0))
