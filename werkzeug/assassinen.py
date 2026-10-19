@@ -65,7 +65,10 @@ WERT = {
     # 17.10. (Daniel: "nie den unzerstoerbaren Abstellhaufen des Steinbruchs angreifen"): Steinhaufen Typ 21 (L8) raus -
     # in den 1017-Partien 89x Ziel, 6x "zerstoert" (vermutlich nur mit seinem Steinbruch)
     20: 80, 5: 70, 6: 60,               # Steinbruch, Eisenmine, Pechgrube
-    11: 70, 12: 70, 13: 70, 14: 70, 15: 70,  # Waffenkammer und Waffenbauer
+    # 19.10. (Daniel 17:13, 1018l: eine Assassine lief an einer Waffenkammer vorbei, stand, griff nicht an und ging zu einem
+    # anderen Gebaeude - "eine Waffenkammer sollte eigentlich fast immer hoeher sein"): 70 -> 800, gleichauf mit der Kaserne;
+    # vorher zog der Zielwechsel (WECHSEL x Wert je Weg) sie zu jeder Apfelplantage (70) in der Naehe weg
+    11: 800, 12: 70, 13: 70, 14: 70, 15: 70,  # Waffenkammer und Waffenbauer
     24: 60, 25: 50, 35: 40,             # Ingenieurs-, Tunnelgraebergilde, Stall
     1: 60,                              # Huetten (Wohnraum = Arbeiter)
     # 19.10. (Daniel: "unten stehen Apfelfarmen und hinten ist keine Verteidigung - du nimmst die Farmen alle mit, dann ein paar
@@ -451,6 +454,12 @@ class Einzeln:
     LETZT_DPS_MIN = 40        # 185 und 308 gingen bei 9 Schaden je Takt in den letzten Einsatz (Fluchtweg "toedlich"), 185 lief
     #                           dabei in einen Trupp aus 14 Boegen; 311 (164 je Takt) war wirklich verloren - Stellgroesse
     RESERVE_LEBEN = 2000      # 86 raidete mit 50 Leben noch 7.600 Ticks und griff zuletzt einen Sklaven an: darunter daheim
+    # 19.10. (Daniel 16:57 "ab einem gewissen Punkt wurden keine Assassinen mehr gemikroed"; gemessen 1018k/l: eigene
+    # Assassinen standen spaet 30-55 % der Zeit still, 1.205 von 1.589 stillen Proben 1018l Sp1 30.000-42.000 hatten < 2.000
+    # Leben - sie heilen nie, der Stapel daheim wuchs): geparkt wird nur noch mit Todesgrenze (erstes_spiel stopp_tote > 0);
+    # sonst nehmen sie wieder Ziele - die Regel EIN_TREFFER laesst ihnen nur Ziele ohne Beschuss, weit ab von jedem Spaeher
+    # (Daniel 17:14: "wenn jemand sieht, dass er jemanden eindeutig killen oder snipen kann, sollte er angreifen")
+    RESERVE_PARKEN = True
     # 34 floh vor einer gleich schnellen feindlichen Assassine und lief ihr in die Arme. 19.10. (1019f, 301 griff mit 11.320
     # gegen 12.500 an, dann kamen 2 weitere Nahkaempfer): Editor-Duell Assassine gegen Assassine 148 je Takt in beide
     # Richtungen - das Leben entscheidet, also mindestens gleich viel
@@ -2617,7 +2626,7 @@ class Einzeln:
         # angegriffen; Einheiten heilen nie): unter RESERVE_LEBEN kein Auftrag mehr - daheim warten, das schont die Todesgrenze
         heim = getattr(self, "_heim", [])
         for n in sorted(self.mitglieder):
-            if L[n]["leben"] >= self.RESERVE_LEBEN or not heim or n in self.entdeckt or n in self.flucht \
+            if not self.RESERVE_PARKEN or L[n]["leben"] >= self.RESERVE_LEBEN or not heim or n in self.entdeckt or n in self.flucht \
                     or self._im_lordangriff(n):
                 continue
             h = min(heim, key=lambda q: schach((L[n]["x"], L[n]["y"]), q))
@@ -2632,7 +2641,7 @@ class Einzeln:
             ereignis.append("RESERVE %d: nur noch %d Leben - jeder Treffer toetet ihn, wartet daheim bei %s" % (n, L[n]["leben"], h))
         for n in sorted(self.mitglieder):
             if n in self.ziel or n in self.jagd or n in self.stapel["mitglieder"] or n in self.lordtrupp["mitglieder"] \
-                    or (L[n]["leben"] < self.RESERVE_LEBEN and getattr(self, "_heim", None)) \
+                    or (self.RESERVE_PARKEN and L[n]["leben"] < self.RESERVE_LEBEN and getattr(self, "_heim", None)) \
                     or (n in self.entdeckt and not self._aussendienst_frei(n, L)) \
                     or (n in self.warte and n in verletzt) or n in self.flucht:
                 continue

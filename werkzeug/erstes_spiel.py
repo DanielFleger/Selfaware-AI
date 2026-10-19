@@ -925,6 +925,8 @@ FALLEN = True            # 19.10. (Daniel 11:00 "Holzfalle dahin, wo etwas ein A
 ENDSPURT = True          # 19.10. (Daniel 16:49/16:51/16:57): endspurt.py - Wirtschaft verloren -> alles auf den Lord, endspurt=nein
 RAIDS = True             # 19.10. (Daniel 16:49/16:57): raids.py - Sklaven-Brandtrupp und Reiterjagd, raids=nein
 NEUBAU_SICHER = True     # 19.10. (Punkt 4, Daniel 16:57): gefahrenzone.py - Betriebe nur ausserhalb frischer Verluste, neubau_sicher=nein
+HUNGER_BELIEBT = 9500    # 19.10.: unter 95,00 Beliebtheit bei Nahrung 0 kauft der Hunger-Notkauf (1018l: 100 -> 92,5 in 1.500 Ticks ohne Nahrung)
+APFEL_LOS_GOLD = 40      # 5 Aepfel kaufen (L65: Kauf 8 Gold je Apfel)
 from gefahrenzone import R as GZ_R, TICKS as GZ_TICKS
 from endspurt import HOLZ_BLEIBT as ES_HOLZ_BLEIBT, schwertkaempfer as es_schwertkaempfer, SCHWERT as ES_SCHWERT,     NICHT_NAHRUNG as ES_NICHT_NAHRUNG
 SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # gemessen 12.10. 00:04 (L63, Ascension)
@@ -1949,6 +1951,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     befehlskanal.STRENG = True     # ab hier bricht jeder Modulfehler den Lauf laut ab
     w = Waechter(SP, posten=plan["lager_mitte"]) if mit_waechter else None
     trupp = Einzeln(SP, pruefe_begehbar=pruefe_begehbar, wegtest=wegtest) if assassinen else None
+    if trupp is not None and STOPP_TOTE == 0:
+        trupp.RESERVE_PARKEN = False     # 19.10.: ohne Todesgrenze nehmen verletzte Assassinen sichere Ziele (assassinen.py)
     if trupp is not None:
         trupp.lies_haltung = lies_haltung        # 17.10.: Verfolgung nach Haltung (sicht.py)
     if trupp is not None and trainingsstand:
@@ -2227,6 +2231,16 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 if GZ is not None:
                     GZ.runde(st.get("t"), G)
                     ausbau.gefahr = GZ.rechtecke()
+                # 19.10. HUNGER-NOTKAUF (Regel 50; 1018l/1018m: Regelbruch bei Beliebtheit 48,5/48,75 - ab ~35.000-42.000 keine
+                # Nahrung, die Beliebtheit fiel 100 -> 92 -> 76 -> 49, Gold war zeitweise da (158-174), floss aber in Assassinen,
+                # Notwerbung und Holz; der Wochen-Notkauf im Haushalt verlangt 150 freies Gold ueber der Ruecklage): Nahrung 0 und
+                # Beliebtheit unter HUNGER_BELIEBT -> ZUERST in der Runde ein 5er-Los Aepfel, sobald das Gold dafuer reicht (L65: 8 je
+                # Stueck), vor allen anderen Ausgaben
+                nahrung_n = sum(st.get(w_n, 0) for w_n in ("apfel", "brot", "kaese", "fleisch"))
+                if nahrung_n <= 0 and st.get("beliebt", 10000) < HUNGER_BELIEBT and st.get("gold", 0) >= APFEL_LOS_GOLD:
+                    befehl({"spielbefehl": {"nr": 38, "werte": [0, WAREN_NR["apfel"]]}}, 1.0, bis="SPIELBEFEHL")
+                    schreib("HUNGER-NOTKAUF bei Tick %s: 5 Aepfel (Nahrung 0, Beliebtheit %.2f, Gold %d)" % (
+                        st.get("t"), st.get("beliebt", 0) / 100.0, st.get("gold", 0)))
                 if es is not None and roh_l:
                     try:
                         es.runde(st.get("t"), st, *roh_l)
