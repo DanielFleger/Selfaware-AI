@@ -3056,6 +3056,29 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # die KLEINSTE Gruppe, mit der der Lord die Rechnung ueberlebt, Heimwache zuerst (lordwache.abwehr); der
                     # Feldzug ruht nur, wenn er Leute dafuer abgeben muss
                     gefahr_l, feldzug_ruht = False, False
+                    # 19.10. 18:45 MESSUNG (1018q: der Lord verlor 51.000 Leben an der Bergfried-Tuer, ohne dass ein Feind bis 6
+                    # Felder stand oder auf ihn zielte - Feuer vermutet, nicht belegt): verliert der Lord Leben ohne Angreifer,
+                    # die Brandzeit (fireDuration, raids.py) aller Gebaeude bis 6 Felder um ihn mitschreiben - erst messen
+                    try:
+                        lord_m = next(((n, e) for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 55), None)
+                        if lord_m:
+                            ln_m, le_m = lord_m
+                            vorher_m = fruehpruefung.get("lord_leben")
+                            fruehpruefung["lord_leben"] = le_m["leben"]
+                            angreifer_m = [n for n, e in L.items() if e["besitzer"] not in (0, SP)
+                                           and (e.get("nahziel") == ln_m or e.get("zieleinheit") == ln_m)]
+                            if vorher_m and le_m["leben"] < vorher_m and not angreifer_m:
+                                nah_m = [(n, g["typ"], g["x"], g["y"]) for n, g in G.items()
+                                         if max(abs(g["x"] - le_m["x"]), abs(g["y"] - le_m["y"])) <= 6]
+                                brand_m = []
+                                for n, typ_m, gx_m, gy_m in nah_m[:12]:
+                                    f_m = peek(0xF98520 + n * 0x32C + 0x14 + 702)[0] & 0xFFFF
+                                    if f_m:
+                                        brand_m.append("%d Typ %d (%d,%d) Brand %d" % (n, typ_m, gx_m, gy_m, f_m))
+                                ereignis.append("LORD-VERLUST ohne Angreifer: %d -> %d bei (%d,%d); Gebaeude bis 6 Felder %d, brennend: %s" % (
+                                    vorher_m, le_m["leben"], le_m["x"], le_m["y"], len(nah_m), "; ".join(brand_m) or "keines"))
+                    except Exception as ex_m:
+                        ereignis.append("LORD-VERLUST-MESSUNG FEHLER %r" % (ex_m,))
                     try:
                         import lordwache as LW_m
                         gefahr_l, text_l, feinde_l, ln_l = LW_m.bedrohung(L, SP)
