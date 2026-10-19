@@ -125,7 +125,7 @@ def brotketten(frei, b, lager, speicher):
 
 # 18.10. (Daniel: "bau den Kornspeicher ein bis auf die Ecken" wie der Nomade, kornring.py): um den Kornspeicher bleibt ein
 # Feld frei fuer den Mauerring - in 1018e lag an beiden Plaetzen eine Plantage darauf (3 bzw. 4 Ringkacheln)
-RING_RAND = 1
+RING_RAND = 2      # 19.10.: plus Burggraben (kornring.Graben) auf Abstand 2 - Ring UND Grabenring bleiben frei
 
 
 def speicherplatz(kurz, punkt, belegt):

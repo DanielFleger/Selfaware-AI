@@ -599,7 +599,11 @@ def wegtest(nr, punkte):
     return [c == "1" for c in m.group(1)] if m else [False] * len(punkte)
 
 def lies_mauer(kacheln):
-    """18.10. (Kornring): Mauerbit (LogicLayer 0x01BF8368, Bit 0x100) je Kachel - Kachel = translationMatrix[y].addXgetTile
+    """18.10. (Kornring): Mauerbit (LogicLayer Bit 0x100) je Kachel. Fehlt eine Antwort, fehlt die Kachel."""
+    return {k: bool(v & 0x100) for k, v in lies_logik(kacheln).items()}
+
+def lies_logik(kacheln):
+    """LogicLayer-Wert (0x01BF8368, int je Kachel) je Kachel - Kachel = translationMatrix[y].addXgetTile
     (0x023372F8 + y*12 + 8) + x. Zwei Befehlslisten: Zeilenanfaenge, dann Kacheln. Fehlt eine Antwort, fehlt die Kachel."""
     def lies(adressen):
         adressen = list(dict.fromkeys(adressen))
@@ -617,7 +621,20 @@ def lies_mauer(kacheln):
     basis = lies(zeilen.values())
     adr = {k: 0x01BF8368 + 4 * (basis[zeilen[k[1]]] + k[0]) for k in kacheln if zeilen[k[1]] in basis}
     werte = lies(adr.values())
-    return {k: bool(werte[a_] & 0x100) for k, a_ in adr.items() if a_ in werte}
+    return {k: werte[a_] for k, a_ in adr.items() if a_ in werte}
+
+def plane_graben(x, y, flag2):
+    """19.10. (Burggraben, Wissensregister L126): Spielbefehl 21 ClickSetTerrain mit L_MOAT - 3x3-Block um (x, y);
+    flag2 0 = planen, 1 = Planung loeschen. 2 (fertiger Graben ohne Graeber und Kosten) ist verboten."""
+    if flag2 not in (0, 1):
+        raise ValueError("Graben: nur planen (0) oder loeschen (1)")
+    import kornring as KR
+    befehl({"spielbefehl": {"nr": 21, "werte": [x, y, 0, KR.L_MOAT, flag2]}}, 1.0, bis="SPIELBEFEHL")
+
+def schicke_graeber(einheiten, ziel):
+    """19.10.: angriff mit "graben" (logik.lua: Befehl 36 Art 6 UIT_DIG_MOAT) - die Graeber arbeiten danach alle geplanten
+    Grabenfelder des Spielers ab."""
+    befehl({"angriff": {"einheiten": list(einheiten), "graben": list(ziel)}}, 1.0, bis="ANGRIFF")
 
 def setze_mauer(x1, y1, x2, y2, n):
     """18.10. (Kornring): Spielbefehl 25 ClickPlaceWall wie ein Mensch - Strecke, hohe Steinmauer, Kachelzahl."""
@@ -896,6 +913,7 @@ LORD_SCHUTZ_BIS = 9600   # Daniel 11.10. 16:41: der gegnerische Lord nimmt im er
 NOTWERBUNG = False       # 12.10.: Soeldnerposten + Nachwerben bei Gegnern im eigenen Gebiet (Schalter notwerbung=ja)
 KORNRING = True          # 18.10. (Daniel: "bau den Kornspeicher ein bis auf die Ecken" wie der Nomade): kornring.py, Schalter kornring=nein
 GRUBEN = True            # 18.10. (Daniel 23:07 "4 Holz ist sehr wenig, wenn es einem Assassinen das Leben nimmt"): Schalter gruben=nein
+GRABEN = True            # 19.10. (Daniel 10:31 "gerne"): Burggraben 1 Feld Abstand um den Kornspeicher, Schalter graben=nein
 SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # gemessen 12.10. 00:04 (L63, Ascension)
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
@@ -2167,6 +2185,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                              lambda: BUCH is not None and any(a["typ"] == 10 for a in BUCH.offen))
     serie, fortgesetzt, ende_grund = PT.Serie(), 0, None      # 18.10. (1v1 robust, partner.py)
     korn = None                                                # 18.10.: Kornring (kornring.py), sobald ein Kornspeicher steht
+    graben = None                                              # 19.10.: Burggraben um den Kornspeicher (kornring.Graben)
     probe = {"fehler": FEHLERPROBE, "pause": PAUSEPROBE}
     while time.time() < ende and not os.path.exists(os.path.join(HIER, "STOP")):
         try:
@@ -2286,6 +2305,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 feldzug.heimwache = hw
             reserve_w = feldzug.einheiten(L) if feldzug is not None and feldzug.phase == "sammeln" else set()
             ausgenommen_w = set(trupp.mitglieder if trupp else ()) | ((feldzug.einheiten(L) - reserve_w) if feldzug is not None else set())
+            ausgenommen_w |= graben.graeber if graben is not None and not graben.fertig else set()   # 19.10.: Graeber graben
             ereignis = w.schritt(L, gebs, ausgenommen=ausgenommen_w, reserve=reserve_w) if w is not None else []
             if feldzug is not None and w is not None:
                 feldzug.verteidiger = {n for n in w.auftrag if n in reserve_w}
@@ -2349,12 +2369,19 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     korn = KR.Kornring(min(eig_k, key=lambda q: abs(q[0] - plan["kornspeicher"][0]) + abs(q[1] - plan["kornspeicher"][1])),
                                        lies_mauer, setze_mauer, setze_grube=setze_grube if GRUBEN else None, feind=feind_k)
                     box_k = KR.kasten(*korn.ort)
+                    if GRABEN:
+                        graben = KR.Graben(korn.ort, feind_k, lies_logik, plane_graben, schicke_graeber)
+                        korn.tor = list(graben.tor)
+                        box_k = graben.kasten()          # Speicher bis einschliesslich Grabenring frei halten
                     RESERVIERT.append((box_k, korn.ort))
                     ausbau.sperr = ausbau.sperr + [box_k]
-                    ereignis.append("KORNRING um den Kornspeicher %s angelegt, Flaeche %s frei gehalten" % (korn.ort, box_k))
+                    ereignis.append("KORNRING um den Kornspeicher %s angelegt, Flaeche %s frei gehalten%s" % (
+                        korn.ort, box_k, ("; Burggraben %d Felder, Eingang %s" % (len(graben.soll), graben.tor)) if graben else ""))
             if korn is not None:
                 ereignis += korn.schritt(st["t"], st.get("stein", 0), holz=st.get("holz", 0),
                                          gruben=[(g["x"], g["y"]) for g in G.values() if g["besitzer"] == SP and g["typ"] == 67])
+            if graben is not None:
+                ereignis += graben.schritt(st["t"], L, SP, ausgenommen=ausgenommen_w | reserve_w)
             if speicher_nachbauen(G, BUCH.offen if BUCH is not None else [], st["t"],
                                   fruehpruefung.get("speicher_nachbau", -10 ** 6)):
                 fruehpruefung["speicher_nachbau"] = st["t"]
@@ -3188,6 +3215,8 @@ def main():
     global NOTWERBUNG, KORNRING, GRUBEN
     KORNRING = arg.get("kornring", "ja") == "ja"
     GRUBEN = arg.get("gruben", "ja") == "ja"
+    global GRABEN
+    GRABEN = arg.get("graben", "ja") == "ja"
     NOTWERBUNG = arg.get("notwerbung", "nein") == "ja"
     STUFE2_BELIEBT = arg.get("stufe2_beliebt", "halten")
     ANGRIFF_AB = int(arg.get("angriff_ab", 0))

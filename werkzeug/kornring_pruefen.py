@@ -16,8 +16,19 @@ Moerderloecher (Gegner oben links, Speicher (100, 50)):
  10. Mauer steht ganz (16), 100 Holz: nur die 4 Ecken, keine Seite
  11. 20 Stein, keine Mauer, 100 Holz: Gruben nur auf die Ecken, die Seiten bekommen Mauer (4 Seiten gesendet)
  12. das Spiel lehnt ein Eckfeld ab: 100 Ticks spaeter kein neuer Versuch dort, nach 1000 Ticks wieder
-Gegenprobe: mit "alt" sendet der Baustein ohne Steinpruefung, die Platzwahl ohne Ringabstand und die Gruben ohne
-Holzreserve -> Faelle 2, 3, 7 und 8 rot.
+Burggraben (19.10., Gegner links bei (60, 52), Speicher (100, 50)):
+ 13. Soll = Ring auf Abstand 2 (28 Felder) ohne die 3 Eingangsfelder; der Eingang liegt auf der dem Gegner abgewandten
+     (rechten) Seite, x = 105
+ 14. die Befehlsfolge (planen Abstand 3, loeschen Abstand 4, Eingang loeschen) ergibt auf leerer Karte GENAU das Soll -
+     kein Feld auf Abstand 1 (Ring/Gruben) und keins auf Abstand 3
+ 15. erster Schritt: plant (Befehle gesendet) und schickt die 4 naechsten grabfaehigen Einheiten - nie Streitkolben (Feldzug),
+     Assassinen, den Lord oder ausgenommene; 100 Ticks spaeter (Felder geplant, nichts gegraben) kein neues Schicken (unter
+     300 Ticks); alles ausgehoben -> "fertig", keine Graeber mehr
+ 16. Grubenplaetze: erst die 4 Ecken, dann die 3 Eingangsfelder
+ 17. bleiben nach dem Planen dieselben Felder unplanbar (bebaut), plant der Graben nicht alle 1.000 Ticks neu, sondern nach
+     dem zweiten Versuch (Zahl gleich) erst nach 5.000 Ticks: Planen bei Tick 1.000, 2.000, 7.000
+Gegenprobe: mit "alt" sendet der Baustein ohne Steinpruefung, die Platzwahl ohne Ringabstand, die Gruben ohne Holzreserve
+und der Graben ohne Loeschbloecke -> Faelle 2, 3, 7, 8 und 14 rot.
 Aufruf: python werkzeug/kornring_pruefen.py [alt]"""
 import json
 import os
@@ -32,6 +43,8 @@ if len(sys.argv) > 1 and sys.argv[1] == "alt":
     KR.bezahlbar = lambda stein, kacheln: True
     N.RING_RAND = 0
     KR.HOLZ_RESERVE = 0
+    _alt_plan = KR.plan_befehle
+    KR.plan_befehle = lambda gx, gy, feind: [b for b in _alt_plan(gx, gy, feind) if b[2] == 0]
 
 
 def neu(stehen=()):
@@ -130,6 +143,54 @@ def main():
     r.schritt(2100, 0, holz=100, gruben=list(g))
     pruefe(12, "abgelehnte Ecke: gesetzt %d, gesperrt bis Tick %s, Versuche danach angenommen? %s" % (
         n1, r.gesperrt.get(ecke), ecke in g), n1 == 0 and r.gesperrt.get(ecke) == 2100)
+    # Burggraben
+    feind = (60, 52)
+    soll = KR.graben_soll(100, 50, feind)
+    mitte, tor = KR.eingang(100, 50, feind)
+    r2 = set(KR.ring(100, 50, 2))
+    pruefe(13, "Soll %d Felder, Ring 2 hat %d, Eingang %s" % (len(soll), len(r2), tor),
+           len(r2) == 28 and len(soll) == 25 and set(soll) | set(tor) == r2 and all(k[0] == 105 for k in tor))
+    erg = KR.pinsel(KR.plan_befehle(100, 50, feind))
+    zu_nah = erg & set(KR.ring(100, 50, 1))
+    zu_weit = erg & set(KR.ring(100, 50, 3))
+    pruefe(14, "Planung ergibt %d Felder, = Soll %s, auf Abstand 1: %d, auf Abstand 3: %d" % (
+        len(erg), erg == set(soll), len(zu_nah), len(zu_weit)), erg == set(soll) and not zu_nah and not zu_weit)
+    logik = {}
+    geplant_cmds, geschickt = [], []
+    def plane(x, y, f2):
+        geplant_cmds.append((x, y, f2))
+    gr = KR.Graben((100, 50), feind, lambda ks: {k: logik.get(k, 0) for k in ks}, plane,
+                   lambda einh, ziel: geschickt.append((list(einh), ziel)))
+    L = {1: {"besitzer": 1, "typ": 24, "x": 101, "y": 60, "leben": 100}, 2: {"besitzer": 1, "typ": 22, "x": 102, "y": 61, "leben": 100},
+         3: {"besitzer": 1, "typ": 26, "x": 101, "y": 58, "leben": 100}, 4: {"besitzer": 1, "typ": 73, "x": 101, "y": 57, "leben": 100},
+         5: {"besitzer": 1, "typ": 55, "x": 101, "y": 56, "leben": 100}, 6: {"besitzer": 1, "typ": 71, "x": 99, "y": 62, "leben": 100},
+         7: {"besitzer": 1, "typ": 24, "x": 103, "y": 63, "leben": 100}, 8: {"besitzer": 1, "typ": 25, "x": 104, "y": 64, "leben": 100},
+         9: {"besitzer": 2, "typ": 24, "x": 101, "y": 55, "leben": 100}, 10: {"besitzer": 1, "typ": 24, "x": 100, "y": 59, "leben": 100}}
+    gr.schritt(1000, L, 1, ausgenommen={10})
+    n_plan = len(geplant_cmds)
+    for k in soll:
+        logik[k] = KR.GEPLANT
+    gr.schritt(1100, L, 1, ausgenommen={10})
+    erst = geschickt[0][0] if geschickt else []
+    n_schick_1100 = len(geschickt)
+    for k in soll:
+        logik[k] = KR.GEGRABEN
+    ev = gr.schritt(1400, L, 1, ausgenommen={10})
+    pruefe(15, "geplant %d Befehle; geschickt %s (bei 1100: %d Sendungen); fertig %s, Graeber danach %s" % (
+        n_plan, erst, n_schick_1100, gr.fertig, gr.graeber),
+           n_plan > 0 and sorted(erst) == [1, 2, 6, 7] and n_schick_1100 == 1 and gr.fertig and not gr.graeber)
+    # 17: dieselben 7 Felder bleiben unplanbar (bebaut) -> nach dem ersten Planen erst nach 5.000 Ticks wieder planen
+    plan17 = []
+    gr17 = KR.Graben((100, 50), feind, lambda ks: {k: (KR.GEPLANT if i >= 7 else 0) for i, k in enumerate(ks)},
+                     lambda x, y, f2: plan17.append(t), lambda e, z: None)
+    for t in range(1000, 7200, 100):
+        gr17.schritt(t, {}, 1)
+    zeiten17 = sorted(set(plan17))
+    pruefe(17, "gleich viele fehlende Felder: geplant bei Tick %s" % zeiten17, zeiten17 == [1000, 2000, 7000])
+    k16 = KR.Kornring((100, 50), lambda ks: {}, lambda *a: None, setze_grube=lambda x, y: True, feind=feind)
+    k16.tor = list(tor)
+    pl = k16.grubenplaetze(20, set(), {})
+    pruefe(16, "Grubenreihenfolge %s" % pl[:7], pl[:4] == KR.ecken(100, 50) and pl[4:7] == tor)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
