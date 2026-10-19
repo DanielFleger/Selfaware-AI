@@ -129,8 +129,40 @@ Takt-Zaehler: `mapAndTime.totalGameTicksUnk` (liest der Lenker) und `GameCore.ma
 | Spieler 2: Holz | `0x011636B8` | `DAT_GameState.playerDataArray[2].currentResources[2]` |
 | Spieler 2: Gold | `0x011636EC` | `DAT_GameState.playerDataArray[2].currentResources[15]` |
 
+## 3. Der Takt - wann was im Spiel passiert (B-95, 20.10.2026)
+
+Abgelesen aus OpenSHC-ref (Ghidra, nur lesen): `werkzeug/ghidra/DumpAufrufer.java` -> `daten/aufrufer_befehle.txt`
+(Aufrufkette und Aufrufreihenfolge), `DumpFunktionen.java` -> `daten/dekomp_takt.c` (WinMain, determineGameTicksToPerform,
+processGameTick). Marke: **abgelesen** (Programmcode gelesen, nicht im laufenden Spiel gemessen).
+
+**Hauptschleife** (`WinMain` @ 0x0057be10, je Bild):
+1. Fenster-Nachrichten, `processMenuViewSwitch`, Musik, `receiveAllTransmittedCommands` (Mehrspieler-Befehle annehmen).
+2. `gameTicksThisLoop = determineGameTicksToPerform(...)` - wie viele Spieltakte dieses Bild rechnet (hoeheres Tempo =
+   mehr Takte je Bild).
+3. Fuer jeden dieser Takte, in genau dieser Reihenfolge (0x0057c375 ...):
+   `processWaitingCommands` (0x004892F0, Abschnitt 1) -> `processGameTick` (0x0045CD10) -> `receiveAllTransmittedCommands`
+   -> Videos -> `TacticalPowersFill`; Abbruch, wenn `DAT_GameHalted`.
+4. Danach Zeichnen (Karte, Menue, Minikarte) - einmal je Bild, nicht je Takt.
+
+**Ein Takt** (`processGameTick`): zuerst Mehrspieler-Abgleich, Kartenschichten; dann - nur wenn kein haltendes Menue offen
+ist - in dieser Reihenfolge: Wind, Kletterdaten, **Gebaeude** (`updateBuildings`), Pechgraeben, **Baeume**,
+Einzelspieler-Ereignisse, **Niederlage pruefen** (`checkSkirmishGameDefeat`), **KI-Bauentscheidungen**
+(`AIVState::updateBuildingsStateAndUpdateAIBuildingDecisions`), KI-Einheitenbewegung (nicht Gefecht), **Einheiten**
+(`updateUnits`), Entitaeten, **Verbaende** (`TribesState::updateTribeUnitAssignments`, `updateTribes`), Verstaerkungswellen,
+Rehe nachwachsen, Staub, `updateGameRelatedValue`.
+
+**Was das fuer uns heisst:**
+- Ein Befehl, den wir senden (queueCommand), wird am **Anfang des naechsten Takts** ausgefuehrt - vor Gebaeuden, KI und
+  Einheiten dieses Takts. Mehrere Befehle laufen in der Reihenfolge, in der sie eingereiht wurden.
+- Bei hohem Tempo rechnet das Spiel mehrere Takte je Bild; wer je Bild einmal liest, sieht nur jeden n-ten Takt (passt zu
+  "der Lenker sieht bei Tempo 100 etwa alle 11 Ticks hin", lernen.py).
+- Die Gegner-KI entscheidet ihre Bauten in jedem Takt NACH den Gebaeuden und VOR den Einheiten.
+
+**Noch offen:** an welcher Stelle UCP3 sein `everyTick` (unser logik.lua-Takt, Rust-Kern) einhaengt - das steht nicht im
+Spiel, sondern in UCP3; im Lauf messen (Tick-Zaehler vor/nach einem eigenen Befehl).
+
 ## Offen (nächste Abschnitte, B-95)
 
 - ~~Spielerdaten~~, ~~Einheiten und Gebaeude~~ - Abschnitt 2 (die Felder, die wir lesen; weitere Felder stehen in den Strukturdateien).
 - Karte: Gelände, Begehbarkeit, Bauplatzprüfung.
-- Takt: wo `processWaitingCommands` im Spieltakt sitzt und wo ein Modul sicher einhängen kann.
+- ~~Takt~~ - Abschnitt 3 (offen nur noch: wo UCP3 `everyTick` einhaengt).
