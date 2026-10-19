@@ -103,7 +103,26 @@ def spiel_ueber_taskleiste():
         u.SetWindowPos(h, wintypes.HWND(-1), 0, 0, 0, 0, 0x13)      # HWND_TOPMOST, NOMOVE|NOSIZE|NOACTIVATE
 
 
-def lernen_starten(log, sp):
+# B-127 (20.10.): Kartenname der Partie - GameSynchronyState.shortMapName (OpenSHC, daten/strukturen_global.txt:
+# GSS 0x0191D768 + 0x1057B8, char[120]). Ohne ihn liess sich die Partie 19.10. 22:40 nicht nachspielen.
+KARTE_KURZ = 0x0191D768 + 0x1057B8
+
+
+def zeichen(worte):
+    """32-Bit-Worte (little endian, wie peek sie liefert) -> Text bis zum ersten Nullbyte."""
+    b = b"".join((int(w) & 0xFFFFFFFF).to_bytes(4, "little") for w in worte)
+    return b.split(b"\0")[0].decode("latin-1")
+
+
+def kartenname():
+    try:
+        from laden import peek
+        return zeichen(peek(KARTE_KURZ, 30)) or None
+    except Exception as e:
+        return "nicht lesbar (%r)" % (e,)
+
+
+def lernen_starten(log, sp, karte=None):
     """19.10. 22:55 (Daniel 22:48: "in Zukunft kann so eine Partie gerne fuer mehr Trainingsdaten genutzt werden", B-119):
     nach jeder Partie partie_lernen.py im Hintergrund - Mitschrift + das Lageprotokoll dieses Spielers aus dieser Partie."""
     import glob
@@ -117,7 +136,8 @@ def lernen_starten(log, sp):
         return
     lage = max(lagen, key=os.path.getmtime)
     ziel = os.path.join(D, "lernen_%s.txt" % os.path.basename(log).replace("_konsole.txt", ""))
-    subprocess.Popen([sys.executable, "-P", os.path.join(HIER, "partie_lernen.py"), log, lage, "gegner=Mensch"],
+    subprocess.Popen([sys.executable, "-P", os.path.join(HIER, "partie_lernen.py"), log, lage, "gegner=Mensch",
+                      "anmerkung=Karte %s" % (karte or "unbekannt")],
                      cwd=HIER, stdout=open(ziel, "w", encoding="utf-8"), stderr=subprocess.STDOUT)
     schreib("LERNEN: Auswertung gestartet (%s + %s -> %s)" % (os.path.basename(log), os.path.basename(lage), os.path.basename(ziel)))
 
@@ -196,7 +216,8 @@ def main():
         # einmal je Partie die KI-Nummern aller Plaetze mitschreiben (Gegenprobe der Annahme "Ratte = 1")
         gesehen = im_spiel(ansicht, gameover)
         if gesehen and not getattr(main, "gemeldet", False):
-            schreib("Partie erkannt - KI-Nummern je Spieler: %s" % {s: k for s, k in ai.items() if k})
+            main.karte = kartenname()
+            schreib("Partie erkannt - Karte %r, KI-Nummern je Spieler: %s" % (main.karte, {s: k for s, k in ai.items() if k}))
             main.gemeldet = True
         elif not gesehen:
             main.gemeldet = False
@@ -219,7 +240,7 @@ def main():
             schreib("Partie verlassen (Ansicht %s, Partie vorbei %s) - Lenker beendet" % (ansicht, gameover))
             lenker = None
             try:
-                lernen_starten(log, sp_aktiv)
+                lernen_starten(log, sp_aktiv, getattr(main, "karte", None))
             except Exception as ex_l:
                 schreib("LERNEN fehlgeschlagen: %r" % (ex_l,))
         elif tat == "neue_partie_frei":
