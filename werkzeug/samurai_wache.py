@@ -26,7 +26,9 @@ SPIELER = range(1, 9)
 PAUSE_S = 2.0                # waehrend unser Lenker spielt
 SCHNELL_S = 0.25             # vor der Partie: so oft nachsehen, ob ein Gefecht begonnen hat
 STOP = os.path.join(HIER, "STOP_SAMURAI")
-LENKER_ARGS = ("leere_ki=nein experiment=ja regel50=ja minuten=600 tempo=40 bis_tick=900000 ziel_tick=900000 streitkolben=30 "
+# 20:31: regel50=nein - gegen einen Menschen hoert SamurAI bei Beliebtheit unter 50 NICHT auf (Testlauf 20:28: Regelbruch bei
+# Tick 4.607, die Beliebtheit 48,25 hatte noch die Ratte vor der Uebernahme verursacht; Daniel: "hoert die KI auf nach ein paar Ticks")
+LENKER_ARGS = ("leere_ki=nein experiment=ja regel50=nein minuten=600 tempo=40 bis_tick=900000 ziel_tick=900000 streitkolben=30 "
                "weg=feldzug produktion=ja bier=ja abriss=nein assassinen=20 aufloesen=ende b_versatz=600 bevoelkerung_ziel=90 "
                "einzelkauf=nein entscheider=kausal gegner=1 gute_dinge=0 haushalt_rand=650 holz_kaufen=ja holz_spam=20 "
                "holzfaeller_je_baum=4 holzfaeller_max=30 holzfaeller_vorab=4 huetten_voraus=nein je_arbeiter=ja "
@@ -84,10 +86,19 @@ def main():
     if os.path.exists(STOP):
         os.remove(STOP)
     schreib("SamurAI-Wache an (Instanz %s) - wartet auf eine Partie mit der Ratte" % os.environ.get("SHC_INSTANZ", "1"))
-    lenker, bedient, log = None, False, None
+    lenker, bedient, log, scharf = None, False, None, False
+    from laden import befehl as befehl_w
     while not os.path.exists(STOP):
         try:
             ansicht, gameover, ai = lies(mit_ai=False)
+            # 20:39 (Daniel: "das sollte Tick 0 oder 1 passieren, nicht 38"): im Menue die Tick-Pause des Moduls scharf
+            # stellen - das Spiel haelt beim ersten Takt selbst an (logik.lua tickpause), umgeschaltet wird in der Pause
+            if ansicht != 14 and not scharf:
+                befehl_w({"tickpause": {"bei": 1}}, 0.5)
+                scharf = True
+                schreib("Tick-Pause bei Tick 1 scharf (Ansicht %s)" % ansicht)
+            if ansicht == 14 and scharf and not bedient:
+                scharf = False            # die Pause hat gegriffen oder die Partie lief schon - beim naechsten Menue neu
             if ansicht == 14 and gameover == 0 and not bedient:
                 ai = lies()[2]
         except Exception as ex:
@@ -110,7 +121,7 @@ def main():
             from laden import befehl
             from steuerkarte import tick
             t_vor = tick()
-            befehl({"pause": True}, 0.5)          # kurz anhalten: umschalten, bevor die KI baut (Daniel 20:21)
+            befehl({"pause": True}, 0.5)          # kurz anhalten (steht meist schon durch die Tick-Pause)
             ki_aus(sp)
             befehl({"pause": False}, 0.5)
             schreib("Umschaltung bei Tick %s (Spiel waehrenddessen angehalten)" % t_vor)
@@ -126,6 +137,12 @@ def main():
             lenker = None
         elif tat == "neue_partie_frei":
             bedient = False
+        elif tat == "warten" and ansicht == 14 and gameover == 0 and not bedient and not laeuft and ai and RATTE not in ai.values():
+            # Partie ohne Ratte: die Tick-Pause wieder aufheben (sonst stuende Daniels Spiel bei Tick 1)
+            from steuerkarte import tick as tick_w
+            if (tick_w() or 0) <= 2:
+                befehl_w({"pause": False}, 0.5)
+            bedient = True
         time.sleep(PAUSE_S if bedient else SCHNELL_S)
     if lenker is not None and lenker.poll() is None:
         lenker.terminate()

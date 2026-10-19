@@ -3452,9 +3452,17 @@ def main():
     if UEBERNEHMEN:
         # 19.10. 20:05: Karte und Platz kommen aus der Lobby des Menschen - Kurzname aus dem Ort unseres Lords, den Platz in
         # der laufenden Partie vermessen (wie Spieler 2 im 1v1; die KI-Burg steht anders als die eines Menschen, L-Fund 19.10.)
-        eig_l = [(x, y) for sp_, x, y in lords() if sp_ == SP]
+        # 20:35 (Lobby-Test: Umschaltung bei Tick 38, der Lord von Spieler 2 stand erst spaeter - er kommt mit dem Bergfried):
+        # auf den eigenen Lord warten statt aufzugeben
+        eig_l = []
+        ende_l = time.time() + 180
+        while not eig_l and time.time() < ende_l:
+            eig_l = [(x, y) for sp_, x, y in lords() if sp_ == SP]
+            if not eig_l:
+                time.sleep(1.0)
         if not eig_l:
-            raise SystemExit("UEBERNEHMEN: kein Lord von Spieler %d" % SP)
+            raise SystemExit("UEBERNEHMEN: kein Lord von Spieler %d nach 180 s" % SP)
+        schreib("UEBERNEHMEN: Lord von Spieler %d bei %s (Tick %s)" % (SP, eig_l[0], tick()))
         kurz, karte = "Lobby_sp%d_%d_%d" % (SP, eig_l[0][0], eig_l[0][1]), "Lobby"
         if not os.path.exists(os.path.join(D, "start_%s.json" % kurz)):
             schreib("UEBERNEHMEN: vermesse den Platz von Spieler %d live -> start_%s.json" % (SP, kurz))
@@ -3581,10 +3589,12 @@ def main():
             befehl({"eigenerPlatz": SP}, 0.8)
         elif arg.get("nur_phase2", "nein") != "ja":
             phase1(plan, int(arg.get("tempo", 40)), mit_posten=int(arg.get("assassinen", 0)) != 0)   # Daniel 22:52: jede Partie ab Tick 0
-    except Exception as e:
+    except (Exception, SystemExit) as e:
         # 18.10. (1018a: Spieler 1 stuerzte in der Eroeffnung bei Tick ~300 ab): im 1v1 nach dem gemeinsamen Start in Phase 2
         # weiterspielen - der Planer dort baut nach, was die Eroeffnung nicht mehr schaffte. Vor dem Start bleibt es ein Abbruch
-        if not (PARTNER and START_FERTIG):
+        # 19.10. 20:39 (Lobby-Test: "ZEIT UM beim Warten auf: Soeldnerposten" beendete SamurAI - SystemExit, kein Exception):
+        # in der Uebernahme auch dann weiter in Phase 2
+        if not ((PARTNER or UEBERNEHMEN) and START_FERTIG) or (isinstance(e, SystemExit) and not UEBERNEHMEN):
             raise
         import traceback
         traceback.print_exc()
