@@ -39,10 +39,21 @@ LENKER_ARGS = ("leere_ki=nein experiment=ja regel50=nein minuten=600 tempo=40 bi
                "uebernehmen=ja").split()
 
 
+# 19.10. 22:35 (Daniel 22:33 "spielen kann ich nicht, weil das Spiel haengt"; 21:25 "wenn ich Markt oder Soeldnerposten
+# benutze, haengt er"): im Spiel gibt es ZWEI Ansichten - 14 MVT_BUILD_MENU (Baumenue) und 16 MVT_BUILDING_AND_STATUS_MENU
+# (ein Gebaeude angeklickt, z. B. Markt oder Soeldnerposten); abgelesen OpenSHC-Enum MenuViewType (daten/enum_ansicht.txt),
+# der Lenker kannte beide schon (erstes_spiel.py). Die Wache kannte nur 14: oeffnete Daniel ein Gebaeude, hielt sie die
+# Partie fuer verlassen, beendete SamurAI und stellte die Tick-Pause scharf - die hielt dann sein Spiel an.
+IM_SPIEL = (14, 16)
+
+
+def im_spiel(ansicht, gameover):
+    return ansicht in IM_SPIEL and gameover == 0
+
+
 def entscheide(ansicht, gameover, ai, lenker_laeuft, partie_bedient):
     """ai: {sp: KI-Nummer}. Gibt ("starten", sp) | ("beenden", None) | ("warten", None) | ("neue_partie_frei", None)."""
-    im_spiel = ansicht == 14 and gameover == 0
-    if not im_spiel:
+    if not im_spiel(ansicht, gameover):
         if lenker_laeuft:
             return ("beenden", None)
         if partie_bedient:
@@ -134,13 +145,14 @@ def main():
             ansicht, gameover, ai = lies(mit_ai=False)
             # 20:39 (Daniel: "das sollte Tick 0 oder 1 passieren, nicht 38"): im Menue die Tick-Pause des Moduls scharf
             # stellen - das Spiel haelt beim ersten Takt selbst an (logik.lua tickpause), umgeschaltet wird in der Pause
-            if ansicht != 14 and not scharf:
+            # 22:35: nur AUSSERHALB einer Partie (vorher "Ansicht != 14" - auch beim Klick auf ein Gebaeude, Ansicht 16)
+            if ansicht not in IM_SPIEL and not scharf:
                 befehl_w({"tickpause": {"bei": 1}}, 0.5)
                 scharf = True
                 schreib("Tick-Pause bei Tick 1 scharf (Ansicht %s)" % ansicht)
-            if ansicht == 14 and scharf and not bedient:
+            if ansicht in IM_SPIEL and scharf and not bedient:
                 scharf = False            # die Pause hat gegriffen oder die Partie lief schon - beim naechsten Menue neu
-            if ansicht == 14 and gameover == 0 and not bedient:
+            if im_spiel(ansicht, gameover) and not bedient:
                 ai = lies()[2]
         except Exception as ex:
             schreib("Lesen fehlgeschlagen: %r" % (ex,))
@@ -152,7 +164,7 @@ def main():
             lenker = None
             # 20:42 (Daniel: "bitte schaue, dass es wirklich dauerhaft durchlaeuft fuer das ganze Spiel"): laeuft die Partie
             # weiter, SamurAI sofort neu starten (hoechstens NEUSTARTS_MAX je Partie) - er vermisst nichts doppelt (Plan liegt)
-            if ansicht == 14 and gameover == 0 and sp_aktiv and neustarts < NEUSTARTS_MAX:
+            if im_spiel(ansicht, gameover) and sp_aktiv and neustarts < NEUSTARTS_MAX:
                 neustarts += 1
                 log = os.path.join(D, "samurai_%s_sp%d_konsole.txt" % (time.strftime("%Y%m%d_%H%M%S"), sp_aktiv))
                 umgebung = dict(os.environ, SHC_SPIELER=str(sp_aktiv), SHC_PARTNER="ja")
@@ -163,7 +175,7 @@ def main():
                     neustarts, NEUSTARTS_MAX, sp_aktiv, lenker.pid, log))
         tat, sp = entscheide(ansicht, gameover, ai, laeuft, bedient)
         # einmal je Partie die KI-Nummern aller Plaetze mitschreiben (Gegenprobe der Annahme "Ratte = 1")
-        gesehen = (ansicht == 14 and gameover == 0)
+        gesehen = im_spiel(ansicht, gameover)
         if gesehen and not getattr(main, "gemeldet", False):
             schreib("Partie erkannt - KI-Nummern je Spieler: %s" % {s: k for s, k in ai.items() if k})
             main.gemeldet = True
@@ -189,7 +201,7 @@ def main():
             lenker = None
         elif tat == "neue_partie_frei":
             bedient, sp_aktiv = False, None
-        elif tat == "warten" and ansicht == 14 and gameover == 0 and not bedient and not laeuft and ai and RATTE not in ai.values():
+        elif tat == "warten" and im_spiel(ansicht, gameover) and not bedient and not laeuft and RATTE not in (ai or {}).values():
             # Partie ohne Ratte: die Tick-Pause wieder aufheben (sonst stuende Daniels Spiel bei Tick 1)
             from steuerkarte import tick as tick_w
             if (tick_w() or 0) <= 2:

@@ -9,6 +9,8 @@
   7. Partie bedient, zurueck im Menue, Lenker aus -> neue_partie_frei
   8. Ratten auf Spieler 3 und 5 -> starten Spieler 3 (die erste)
   9. Gefecht vorbei (gameOver 1), Lenker laeuft -> beenden
+ 10. Gebaeude angeklickt (Ansicht 16), Lenker laeuft -> warten (nicht beenden)
+ 11. Ansicht 16, Ratte, nicht bedient -> starten
 Gegenprobe: python werkzeug/samurai_wache_pruefen.py alt  (RATTE = Schlange) -> 2, 3 und 8 rot."""
 import os
 import sys
@@ -18,6 +20,9 @@ import samurai_wache as W
 
 if len(sys.argv) > 1 and sys.argv[1] == "alt":
     W.RATTE = 2
+# 19.10. 22:40 Gegenprobe zu 10/11: alte Regel "im Spiel = nur Ansicht 14" -> 10 und 11 muessen rot werden
+if len(sys.argv) > 1 and sys.argv[1] == "nur14":
+    W.IM_SPIEL = (14,)
 
 
 def main():
@@ -38,6 +43,9 @@ def main():
     pruefe(7, "zurueck im Menue", W.entscheide(41, 0, keine, False, True), ("neue_partie_frei", None))
     pruefe(8, "Ratten auf 3 und 5", W.entscheide(14, 0, {**keine, 3: 1, 5: 1}, False, False), ("starten", 3))
     pruefe(9, "Gefecht vorbei", W.entscheide(14, 1, ratte2, True, True), ("beenden", None))
+    # 19.10. 22:40 (Daniel 22:33 "das Spiel haengt"): Ansicht 16 = ein Gebaeude angeklickt (Markt, Soeldnerposten) - im Spiel
+    pruefe(10, "Gebaeude angeklickt (Ansicht 16), Lenker laeuft", W.entscheide(16, 0, ratte2, True, True), ("warten", None))
+    pruefe(11, "Gebaeude angeklickt (Ansicht 16), Ratte, nicht bedient", W.entscheide(16, 0, ratte2, False, False), ("starten", 2))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
