@@ -4,9 +4,12 @@
   2. Laufziel (95,101) - 5 Felder vom Gebaeude -> keine Falle
   3. eigene Einheit mit Laufziel (99,101) -> keine; feindliche Einheit 2 Felder vor dem Laufziel -> keine (steht gleich drauf)
   4. 8 Holz -> keine Falle; 30 Holz und 3 Angreifer mit verschiedenen Laufzielen -> hoechstens 2 in dieser Runde
-  5. dasselbe Feld wird 1.000 Ticks spaeter nicht erneut versucht, nach 2.000 wieder
+  5. lehnt das Spiel das Feld ab, wird es 1.000 Ticks spaeter nicht erneut versucht, nach 2.000 wieder (GEAENDERT 11:38:
+     vorher wurde auch nach einer GESETZTEN Falle wiederholt - jetzt hoechstens eine Falle je Assassine, Daniel)
   6. Laufziel AUF dem Gebaeude (Feld/Hof) -> keine Falle
-Gegenprobe: mit "alt" zaehlt jedes Laufziel (ohne NAH-Grenze) -> Fall 2 rot.
+  7. (Daniel 11:38) ein Sklave (71) mit Laufziel neben dem Gebaeude -> keine Falle; dieselbe Assassine mit neuem Laufziel
+     in der naechsten Runde -> keine zweite Falle
+Gegenprobe: mit "alt" zaehlt jedes Laufziel (ohne NAH-Grenze), jede Truppe und jede Runde -> Faelle 2 und 7 rot.
 Aufruf: python werkzeug/fallenwache_pruefen.py [alt]"""
 import os
 import sys
@@ -17,6 +20,12 @@ import fallenwache as F
 F.GROESSE[3] = 3
 if len(sys.argv) > 1 and sys.argv[1] == "alt":
     F.NAH = 10 ** 6
+    F.FEIND_TYPEN = {22, 23, 24, 25, 26, 27, 28, 29, 30, 70, 71, 72, 73, 74, 75, 76}
+    _alt_init = F.Fallenwache.__init__
+    def _ohne_bedient(self, *a, **k):
+        _alt_init(self, *a, **k)
+        self.bedient = type("Leer", (set,), {"add": lambda self, x: None})()
+    F.Fallenwache.__init__ = _ohne_bedient
 
 G = {1: {"besitzer": 1, "typ": 3, "x": 100, "y": 100}}
 
@@ -50,16 +59,24 @@ def main():
     w2, g2 = wache()
     w2.schritt(1000, {5: e(2, 90, 101, 99, 101), 6: e(2, 90, 103, 99, 102), 7: e(2, 110, 100, 103, 100)}, G, 30)
     pruefe(4, "8 Holz: %s; 30 Holz, 3 Angreifer: %s" % (g, g2), g == [] and len(g2) == 2)
-    w, g = wache()
+    versuche = []
+    w = F.Fallenwache(1, lambda x, y: versuche.append((x, y)) and False)
     L = {5: e(2, 90, 101, 99, 101)}
     w.schritt(1000, L, G, 30)
     w.schritt(2000, L, G, 30)
-    n1 = len(g)
+    n1 = len(versuche)
     w.schritt(3000, L, G, 30)
-    pruefe(5, "Versuche bei 1000/2000/3000: %d nach 2000, %d nach 3000" % (n1, len(g)), n1 == 1 and len(g) == 2)
+    pruefe(5, "abgelehnt - Versuche bei 1000/2000/3000: %d nach 2000, %d nach 3000" % (n1, len(versuche)),
+           n1 == 1 and len(versuche) == 2)
     w, g = wache()
     w.schritt(1000, {5: e(2, 90, 101, 101, 101)}, G, 30)
     pruefe(6, "Laufziel auf dem Gebaeude: Fallen %s" % g, g == [])
+    w, g = wache()
+    w.schritt(1000, {5: e(2, 90, 101, 99, 101, typ=71)}, G, 30)
+    w2, g2 = wache()
+    w2.schritt(1000, {5: e(2, 90, 101, 99, 101)}, G, 30)
+    w2.schritt(1100, {5: e(2, 91, 102, 99, 102)}, G, 30)
+    pruefe(7, "Sklave: %s; Assassine mit neuem Laufziel: %s" % (g, g2), g == [] and g2 == [(99, 101)])
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

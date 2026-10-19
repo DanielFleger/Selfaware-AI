@@ -15,7 +15,9 @@ JE_RUNDE = 2
 HOLZ = 4                # kosten(67) im laufenden Spiel (Ascension)
 HOLZ_RESERVE = 5        # ein Kornspeicher-Nachbau geht vor
 WIEDER_TICKS = 2000     # dasselbe Feld fruehestens so spaet erneut versuchen
-FEIND_TYPEN = {22, 23, 24, 25, 26, 27, 28, 29, 30, 70, 71, 72, 73, 74, 75, 76}   # Truppen (Lord 55 nicht)
+# Daniel 19.10. 11:38: "du brauchst nur die minimale Anzahl, weil jede meist einen Soldaten toetet, und am wichtigsten sind
+# Assassinen - Sklaven z. B. koennen mit Bogenschuetzen besiegt werden": nur Assassinen, hoechstens EINE Falle je Assassine
+FEIND_TYPEN = {73}
 GROESSE = {}            # Gebaeudetyp -> Kantenlaenge (vom Lenker aus bauen.NACH_TYP gesetzt)
 
 
@@ -51,6 +53,7 @@ class Fallenwache:
     def __init__(self, sp, setze_grube):
         self.sp, self.setze_grube = sp, setze_grube
         self.versucht = {}          # Feld -> Tick
+        self.bedient = set()        # Einheiten, fuer die schon eine Falle steht (eine je Assassine)
         self.gesetzt = 0
 
     def schritt(self, t, L, G, holz):
@@ -59,11 +62,12 @@ class Fallenwache:
         for ziel, nr in kandidaten(L, G, self.sp):
             if sum(1 for e in ev if e.startswith("FALLE gesetzt")) >= JE_RUNDE or rest < HOLZ + HOLZ_RESERVE:
                 break
-            if ziel in gruben or t - self.versucht.get(ziel, -10 ** 9) < WIEDER_TICKS:
+            if nr in self.bedient or ziel in gruben or t - self.versucht.get(ziel, -10 ** 9) < WIEDER_TICKS:
                 continue
             self.versucht[ziel] = t
             e = L[nr]
             if self.setze_grube(ziel[0], ziel[1]):
+                self.bedient.add(nr)
                 rest -= HOLZ
                 self.gesetzt += 1
                 ev.append("FALLE gesetzt auf %s - Laufziel von Einheit %d (Typ %d, Spieler %d, noch %d Felder weg)" % (
