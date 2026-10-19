@@ -15,6 +15,7 @@ from collections import Counter
 TRUPPE = {22, 23, 24, 25, 26, 27, 28, 55, 70, 71, 72, 73, 74, 75, 76}
 LORD = 55
 VERBAND_R = 8
+ARBEITER_BIS = 40         # Arten 1-32 ohne Truppen = Bauern und Arbeiter (1, 3, 7, 12, 13, 14, 17, 21, 31, 32 gesehen)
 STEHT_FELDER = 1          # weniger oder gleich so viele Felder seit der Vorrunde = steht
 ZEILE_RUNDEN = 10
 NAME = {22: "Bogen", 23: "Armbrust", 24: "Speer", 25: "Pike", 26: "Streitkolben", 27: "Schwert", 28: "Ritter", 55: "Lord",
@@ -49,13 +50,17 @@ class Uebersicht:
             b = e["besitzer"]
             if b == 0:
                 continue
-            s = self.spieler.setdefault(b, {"truppen": Counter(), "arbeiter": 0, "lord": None})
+            s = self.spieler.setdefault(b, {"truppen": Counter(), "arbeiter": 0, "sonstige": 0, "lord": None})
             if e["typ"] == LORD:
                 s["lord"] = (n, e["leben"], e["x"], e["y"])
             elif e["typ"] in TRUPPE:
                 s["truppen"][e["typ"]] += 1
-            else:
+            elif e["typ"] <= ARBEITER_BIS:
                 s["arbeiter"] += 1
+            else:
+                # 19.10. 18:40 (1018p: "Arbeiter 265" bei Spieler 2 - darin 45 von Typ 64, 22 von 63): Arten ab 51
+                # (51, 57, 62, 63, 64 gesehen) sind keine Arbeiter; was sie sind, ist nicht nachgesehen
+                s["sonstige"] += 1
         self.verbaende = self._verbaende(L)
         return self
 
@@ -112,8 +117,8 @@ class Uebersicht:
             vt = "; ".join("%d bei %s%s" % (len(v["mitglieder"]), v["mitte"],
                                              (" -> %s" % (v["laufziel"],)) if v["laufziel"] and v["laeuft"] else "")
                            for v in vb)
-            teile.append("SP%d%s: %s | Arbeiter %d | %s | Verbaende: %s" % (
-                b, "(wir)" if b == self.sp else "", arten or "keine Truppen", s["arbeiter"], lord, vt or "-"))
+            teile.append("SP%d%s: %s | Arbeiter %d (+%d sonstige) | %s | Verbaende: %s" % (
+                b, "(wir)" if b == self.sp else "", arten or "keine Truppen", s["arbeiter"], s["sonstige"], lord, vt or "-"))
         bd = self.bedrohungen(orte) if orte else []
         if bd:
             teile.append("BEDROHT von %d Verbaenden (naechster %d Mann, %d Felder)" % (

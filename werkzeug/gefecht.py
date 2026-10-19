@@ -99,6 +99,10 @@ def tabelle(dateien=None):
         for x, v in k.get("an_lord", {}).items():
             if v["proben"] >= LORD_PROBEN:
                 schaden.setdefault(int(x), {})[LORD] = v["je_takt"]
+        # 18:45: Arten ohne reine Probe aus gemischten Gruppen (kleinste Quadrate, lord_messen.gemischt)
+        for x, v in k.get("an_lord_gemischt", {}).items():
+            if LORD not in schaden.get(int(x), {}) and v["proben"] >= LORD_PROBEN and v["je_takt"] > 0:
+                schaden.setdefault(int(x), {})[LORD] = v["je_takt"]
         leben.setdefault(LORD, LORD_LEBEN)
     _TABELLE = (schaden, leben, fern)
     return _TABELLE
