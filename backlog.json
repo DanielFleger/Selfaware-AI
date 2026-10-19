@@ -2742,14 +2742,19 @@
    "nr": "B-115",
    "titel": "Rust-Grundmodul im Spiel: laedt als UCP3-Modul, liest jeden Takt die eigenen Einheiten, schreibt ein Protokoll",
    "bereich": "Framework",
-   "status": "in_arbeit",
+   "status": "gebaut",
    "seit": "2026-10-19 22:03",
    "herkunft": "Vorschlag 19.10. 22:00 (nach B-96)",
-   "gebaut": null,
-   "commits": [],
-   "wo": [],
+   "gebaut": "2026-10-19 22:58",
+   "commits": [
+    "59ec7fd"
+   ],
+   "wo": [
+    "samurai_kern/src/lib.rs",
+    "werkzeug/kern_pruefen.py"
+   ],
    "belege": [],
-   "notiz": "19.10. 22:58: Rust installiert (rustc 1.99.1, Host i686-pc-windows-gnu, ~/.cargo/bin, PATH unveraendert; rustup-init sha256 gegen static.rust-lang.org geprueft). Probe-DLL gebaut: PE32 i386, Exporte samurai_version/samurai_lies_int, nur System-Importe. PLAN: (1) Cargo-Projekt Selfaware-AI/samurai_kern (cdylib, edition 2024: #[unsafe(no_mangle)], panic=abort); (2) Exporte samurai_version, samurai_takt(tick, spieler) -> liest Einheiten aus 0x0138854C+i*1168 (Felder Spielkarte 2: owner +0x96, unitType +0x8E, x/y +0xB6/+0xB8 /8, health +0x3C8, dying +0x2A0) und schreibt alle N Takte eine Protokollzeile; (3) Laden aus logik.lua mit core.openLibraryHandle + Funktionsadresse + core.exposeCode (cdecl), Aufruf in everyTick; (4) Pruefung: Zahl eigener Einheiten aus der DLL = Zahl im Lagebild, Gegenprobe falscher Spieler",
+   "notiz": "19.10. 22:58: Rust installiert (rustc 1.99.1, Host i686-pc-windows-gnu, ~/.cargo/bin, PATH unveraendert; rustup-init sha256 gegen static.rust-lang.org geprueft). Probe-DLL gebaut: PE32 i386, Exporte samurai_version/samurai_lies_int, nur System-Importe. PLAN: (1) Cargo-Projekt Selfaware-AI/samurai_kern (cdylib, edition 2024: #[unsafe(no_mangle)], panic=abort); (2) Exporte samurai_version, samurai_takt(tick, spieler) -> liest Einheiten aus 0x0138854C+i*1168 (Felder Spielkarte 2: owner +0x96, unitType +0x8E, x/y +0xB6/+0xB8 /8, health +0x3C8, dying +0x2A0) und schreibt alle N Takte eine Protokollzeile; (3) Laden aus logik.lua mit core.openLibraryHandle + Funktionsadresse + core.exposeCode (cdecl), Aufruf in everyTick; (4) Pruefung: Zahl eigener Einheiten aus der DLL = Zahl im Lagebild, Gegenprobe falscher Spieler | im Spiel 4/4: DLL = Lagebild je Spieler, Gegenprobe +1; Stufe 1 (lesen + Protokoll); naechste Stufe: Lagebild ganz im Kern, dann Sharky-Geruest in Rust (B-97)",
    "verlauf": [
     {
      "zeit": "2026-10-19 22:03",
@@ -2770,6 +2775,10 @@
     {
      "zeit": "2026-10-19 22:56",
      "was": "in Arbeit -> in Arbeit: 19.10. 22:58: Rust installiert (rustc 1.99.1, Host i686-pc-windows-gnu, ~/.cargo/bin, PATH unveraendert; rustup-init sha256 gegen static.rust-lang.org geprueft). Probe-DLL gebaut: PE32 i386, Exporte samurai_version/samurai_lies_int, nur System-Importe. PLAN: (1) Cargo-Projekt Selfaware-AI/samurai_kern (cdylib, edition 2024: #[unsafe(no_mangle)], panic=abort); (2) Exporte samurai_version, samurai_takt(tick, spieler) -> liest Einheiten aus 0x0138854C+i*1168 (Felder Spielkarte 2: owner +0x96, unitType +0x8E, x/y +0xB6/+0xB8 /8, health +0x3C8, dying +0x2A0) und schreibt alle N Takte eine Protokollzeile; (3) Laden aus logik.lua mit core.openLibraryHandle + Funktionsadresse + core.exposeCode (cdecl), Aufruf in everyTick; (4) Pruefung: Zahl eigener Einheiten aus der DLL = Zahl im Lagebild, Gegenprobe falscher Spieler"
+    },
+    {
+     "zeit": "2026-10-19 22:58",
+     "was": "in Arbeit -> gebaut (Commit 59ec7fd): im Spiel 4/4: DLL = Lagebild je Spieler, Gegenprobe +1; Stufe 1 (lesen + Protokoll); naechste Stufe: Lagebild ganz im Kern, dann Sharky-Geruest in Rust (B-97)"
     }
    ],
    "rang": 3
@@ -2879,7 +2888,7 @@
      "was": "in Arbeit -> gebaut (Commit 84a0039): Wache startet die Auswertung am Partieende selbst (lernen_starten)"
     }
    ],
-   "rang": 1
+   "rang": 2
   },
   {
    "nr": "B-120",
@@ -2903,9 +2912,13 @@
     {
      "zeit": "2026-10-19 22:52",
      "was": "Rang - -> 2"
+    },
+    {
+     "zeit": "2026-10-19 22:58",
+     "was": "Rang 2 -> 1"
     }
    ],
-   "rang": 2
+   "rang": 1
   }
  ]
 }
