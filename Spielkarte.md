@@ -161,8 +161,32 @@ Rehe nachwachsen, Staub, `updateGameRelatedValue`.
 **Noch offen:** an welcher Stelle UCP3 sein `everyTick` (unser logik.lua-Takt, Rust-Kern) einhaengt - das steht nicht im
 Spiel, sondern in UCP3; im Lauf messen (Tick-Zaehler vor/nach einem eigenen Befehl).
 
+## 4. Darf hier gebaut werden? (B-95, 20.10.2026)
+
+Abgelesen: `TileMapState::isBuildingPlacementAllowedAtTile` @ 0x004F9A60 (je Feld; Rueckgabe 0 = erlaubt, 1 = nicht erlaubt,
+2 = dort steht schon ein Gebaeude), dazu `validateBuildingPlacementAtTile`, `placeBuilding` - `daten/dekomp_bauplatz.c`
+(`DumpFunktionen.java`, Namen Placement/placeBuilding/...). Marke: **abgelesen**.
+
+Ein Feld ist NICHT bebaubar, wenn (in dieser Reihenfolge geprueft):
+1. es zu hoch liegt (`buildingHeightLimit`; Hoefe/Apfel/Hopfen/Weizen setzen dabei eine eigene Warnung) oder die
+   Hoehe ueber `buildingMinHeight + buildingMaxHeightDifference` liegt;
+2. schon ein Gebaeude darauf steht (Rueckgabe 2);
+3. **eine Einheit darauf steht**: fuer einen MENSCHLICHEN Spieler blockiert JEDE Einheit ausser Huehnern - auch die
+   eigenen Arbeiter; fuer einen KI-Spieler nur der Lord oder eine waehlbare fremde Einheit (`isAIPlayer`);
+4. es Meer ist (LogicLayer Bit 0x1) oder Fluss (0x100000), oder fremde Mauer (WallOwnerLayer) - auf eigener Mauer nur
+   Tore und Tuerme;
+5. ein Baum darauf steht - bestimmte Baumarten blockieren immer, die uebrigen nur im Einzelspieler-Modus und fuer
+   menschliche Spieler (eine KI im Gefecht darf dort bauen);
+6. Sumpf/Graben-Eigenschaften des Gebaeudetyps es verbieten (buildingPlacementProperty_4/6/7).
+
+**Was das fuer uns heisst:** Die SamurAI spielt auf einem Platz, dessen KI wir abschalten - fuer das Spiel ist sie damit
+(vermutlich, `isAIPlayer` nicht im Lauf gemessen) ein menschlicher Spieler. Dann blockieren ihre EIGENEN Arbeiter, die gerade
+ueber den Bauplatz laufen, jeden Bau dort, und Baeume blockieren wie beim Menschen. Das passt zu den Meldungen "Markt am
+festen Platz nicht moeglich (z. B. Einheit drauf)" und zu Bauten, die erst im zweiten Versuch stehen. Zu messen: `isAIPlayer`
+fuer den Platz der SamurAI nach der Uebernahme, und wie oft ein Bau an einer Einheit scheitert.
+
 ## Offen (nächste Abschnitte, B-95)
 
 - ~~Spielerdaten~~, ~~Einheiten und Gebaeude~~ - Abschnitt 2 (die Felder, die wir lesen; weitere Felder stehen in den Strukturdateien).
-- Karte: Gelände, Begehbarkeit, Bauplatzprüfung.
+- Karte: ~~Bauplatzpruefung~~ (Abschnitt 4); offen: Gelaende- und Begehbarkeits-Schichten im Einzelnen.
 - ~~Takt~~ - Abschnitt 3 (offen nur noch: wo UCP3 `everyTick` einhaengt).
