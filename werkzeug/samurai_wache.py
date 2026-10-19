@@ -123,6 +123,18 @@ def main():
     if os.path.exists(STOP):
         os.remove(STOP)
     schreib("SamurAI-Wache an (Instanz %s) - wartet auf eine Partie mit der Ratte" % os.environ.get("SHC_INSTANZ", "1"))
+    # 20:51 (Daniel: "schon besser, aber manchmal flackert es noch auf"): die Taskleiste in einem eigenen Ablauf alle 0,1 s
+    # wieder hinter das Spiel legen (vorher nur einmal je Wache-Runde, 0,5 s)
+    import threading
+
+    def taskleisten_wache():
+        while not os.path.exists(STOP):
+            try:
+                spiel_ueber_taskleiste()
+            except Exception:
+                pass
+            time.sleep(0.1)
+    threading.Thread(target=taskleisten_wache, daemon=True).start()
     lenker, bedient, log, scharf = None, False, None, False
     sp_aktiv, neustarts = None, 0
     from laden import befehl as befehl_w
@@ -192,10 +204,6 @@ def main():
             if (tick_w() or 0) <= 2:
                 befehl_w({"pause": False}, 0.5)
             bedient = True
-        try:
-            spiel_ueber_taskleiste()
-        except Exception:
-            pass
         time.sleep(PAUSE_S if bedient else SCHNELL_S)
     # 20:44: beim Aufhoeren der Wache spielt SamurAI weiter (vorher beendete ein Neustart der Wache die laufende KI mit)
     schreib("SamurAI-Wache aus (STOP_SAMURAI) - SamurAI spielt weiter" if lenker is not None and lenker.poll() is None
