@@ -443,7 +443,8 @@ def haus_noetig(l, b):
 
 RESERVIERT = []      # 07.10. (Lauf 29): B-Plantagen-Flaechen (x0, y0, x1, y1 einschliesslich, Anker) - kein anderer Bau darf hinein
 BUCH = None          # Auftragsbuch (phase2): jeder Bau wird vorher gegen den Bestand geprueft und danach bestaetigt
-LORD_FEUER = True    # 19.10. 19:05 Lord geht dem Feuer aus dem Weg (lordwache.fluchtpunkt); Schalter lord_feuer=nein = alter Stand
+LORD_FEUER = False   # 19.10. 19:05 Lord geht dem Feuer aus dem Weg (lordwache.fluchtpunkt); 19:10 AUS nach 1018t: 5 Fluchten, aber
+                     # 8 weitere Verluste ohne Brand bis 6 Felder, zusammen 21.975 (1018s ohne Flucht 20.750) - nicht wirksam belegt
 GZ = None            # 19.10. Gefahrenzonen (gefahrenzone.py, phase2): kein neuer Betrieb, wo gerade ein eigenes Gebaeude fiel
 _KOSTEN_SPIEL = {}
 
@@ -3084,15 +3085,19 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                                     st.get("t"), le_m["leben"], (p_alt - le_m["leben"]) if p_alt else 0, len(angreifer_m),
                                     " ".join(brand_p) or "-"), flush=True)
                             if vorher_m and le_m["leben"] < vorher_m and not angreifer_m:
-                                nah_m = [(n, g["typ"], g["x"], g["y"]) for n, g in G.items()
-                                         if max(abs(g["x"] - le_m["x"]), abs(g["y"] - le_m["y"])) <= 6]
+                                # 19:10: bis 12 Felder (1018t: 8 Verluste ohne Brand bis 6 Felder) - mit Abstand, um den Radius zu messen
+                                nah_m = sorted([(n, g["typ"], g["x"], g["y"]) for n, g in G.items()
+                                                if max(abs(g["x"] - le_m["x"]), abs(g["y"] - le_m["y"])) <= 12],
+                                               key=lambda z: max(abs(z[2] - le_m["x"]), abs(z[3] - le_m["y"])))
                                 brand_m, brand_orte = [], []
-                                for n, typ_m, gx_m, gy_m in nah_m[:12]:
+                                for n, typ_m, gx_m, gy_m in nah_m[:25]:
                                     f_m = peek(0xF98520 + n * 0x32C + 0x14 + 702)[0] & 0xFFFF
                                     if f_m:
-                                        brand_m.append("%d Typ %d (%d,%d) Brand %d" % (n, typ_m, gx_m, gy_m, f_m))
-                                        brand_orte.append((gx_m, gy_m))
-                                ereignis.append("LORD-VERLUST ohne Angreifer: %d -> %d bei (%d,%d); Gebaeude bis 6 Felder %d, brennend: %s" % (
+                                        d_m = max(abs(gx_m - le_m["x"]), abs(gy_m - le_m["y"]))
+                                        brand_m.append("%d Typ %d (%d,%d) Abstand %d Brand %d" % (n, typ_m, gx_m, gy_m, d_m, f_m))
+                                        if d_m <= 6:
+                                            brand_orte.append((gx_m, gy_m))
+                                ereignis.append("LORD-VERLUST ohne Angreifer: %d -> %d bei (%d,%d); Gebaeude bis 12 Felder %d, brennend: %s" % (
                                     vorher_m, le_m["leben"], le_m["x"], le_m["y"], len(nah_m), "; ".join(brand_m) or "keines"))
                                 # 19.10. 19:05 FEUER-FLUCHT (lordwache.fluchtpunkt; 1018q/r/s gemessen, Gegenprobe 1018s): weg vom Brand
                                 if brand_orte and LORD_FEUER:
@@ -3476,7 +3481,7 @@ def main():
     RATIONEN = arg.get("rationen", RATIONEN)
     REGEL50 = arg.get("regel50", "nein") == "ja"
     STOPP_TOTE = int(arg.get("stopp_tote", 0))
-    LORD_FEUER = arg.get("lord_feuer", "ja") != "nein"     # 19.10. 19:05 Feuer-Flucht des Lords
+    LORD_FEUER = arg.get("lord_feuer", "nein") == "ja"     # 19.10. Feuer-Flucht des Lords (19:10 Standard aus, siehe oben)
     PRODUKTION = arg.get("produktion", "nein") == "ja"
     BIER = arg.get("bier", "nein") == "ja"
     PRODUKTION_FENSTER = int(arg.get("produktion_fenster", PRODUKTION_FENSTER))
