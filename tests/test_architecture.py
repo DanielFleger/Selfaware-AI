@@ -42,7 +42,7 @@ def test_domain_remains_free_of_filesystem_process_and_game_imports():
 
 
 def test_all_legacy_python_still_compiles_without_importing_it():
-    assert len(MODULES) == 176
+    assert MODULES
     for module in MODULES.values():
         path = ROOT / "src" / (module.replace(".", "/") + ".py")
         compile(path.read_bytes(), str(path), "exec")

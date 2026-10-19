@@ -10,8 +10,10 @@ status are in [ORGANIZATION.md](../ORGANIZATION.md) and [HANDOFF.md](../HANDOFF.
   knowledge and confidence annotations.
 - [Wissensregister.md](Wissensregister.md): original match/research evidence register.
 - [Meilensteine.md](Meilensteine.md): original investigation milestones.
-- [Backlog.md](Backlog.md): historical gameplay/research backlog; the current
-  engineering backlog is [../BACKLOG.md](../BACKLOG.md).
+- [Backlog.md](Backlog.md): historical gameplay/research backlog; the active task source is
+  [../backlog/backlog.json](../backlog/backlog.json), with engineering acceptance
+  details in [../BACKLOG.md](../BACKLOG.md).
+- [Spielkarte.md](Spielkarte.md): latest upstream native command/player research.
 - [Audit_Sharky.html](Audit_Sharky.html): upstream Sharky comparison.
 - `notes/`: original Markdown investigation notes formerly stored in `daten/`.
 

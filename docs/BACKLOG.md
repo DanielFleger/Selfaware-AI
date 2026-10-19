@@ -1,6 +1,17 @@
-# Implementation backlog
+# Engineering acceptance details
 
-This file separates implemented framework contracts from unresolved live work.
+The authoritative task/status list is [backlog/backlog.json](backlog/backlog.json),
+with its generated [Backlog.html](backlog/Backlog.html). This document supplies
+engineering acceptance details for those points; it is not a second status list.
+
+| Acceptance section | Authoritative points |
+| --- | --- |
+| LIVE-01 / LIVE-02 | B-94, B-104 |
+| ENV-01 / MIGRATE-01 | B-97 |
+| MIGRATE-02 | B-98 |
+| MIGRATE-03 | B-99 |
+| SCALE-01 | B-101 |
+| DATA-01 | B-95 |
 The source audit is [audit/AUDIT.txt](../audit/AUDIT.txt), against `7b994b7`.
 The old [Backlog.md](research/Backlog.md) remains the historical gameplay/research backlog.
 
@@ -26,6 +37,13 @@ Audit findings 1–5 and 7 remain **open in the old connector/module**:
 - `hinten` can reach the documented unsafe SetWindowPos ABI path.
 - Deferred commands can be counted as executed before native dispatch.
 - Partner ownership cleanup compares `<pid> partner` with `<pid>` and fails.
+
+The latest upstream [Spielkarte](research/Spielkarte.md) (B-114) documents that
+single-player native queue execution uses `currentPlayerSlotID`, ignoring the
+queued sender. A Python Session/player value alone therefore establishes no
+native isolation. Preserve B-94: verify the actual execution player and human
+input separation before supporting multiple player contexts. The proposed
+translation change in that research is not implemented or validated here.
 
 Acceptance: obtain and pin the real module; cover same-player and cross-player
 concurrency, crashed/slow owners, exact response correlation, ambiguous timeout,

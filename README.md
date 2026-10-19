@@ -7,7 +7,8 @@ The current bot and offline framework are organized together in `src/selfaware/`
 with separate packages for game access, live orchestration, macro, micro,
 strategy, learning and telemetry. Start with the [repository map](docs/ORGANIZATION.md),
 [agent handoff](docs/HANDOFF.md), [architecture](docs/ARCHITECTURE.md), and
-[implementation backlog](docs/BACKLOG.md).
+[engineering acceptance details](docs/BACKLOG.md). Task status is maintained in
+[the authoritative backlog](docs/backlog/backlog.json).
 
 ## Development quick start
 
@@ -31,7 +32,7 @@ The new `BotRuntime` currently operates on recorded observations. The current
 live bot is `selfaware.runtime.live.erstes_spiel`; its policies and external
 game requirements are preserved. Launch existing modules with `uv run selfaware
 run <name> [arguments]`, or `uv run python -m <module>`. `uv run selfaware modules`
-lists all 176 relocated module names. Missing external
+lists all 177 relocated module names. Missing external
 VillageStudio files and known connector defects are documented in the backlog;
 a green offline check does not establish live-game readiness.
 

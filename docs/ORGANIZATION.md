@@ -1,6 +1,6 @@
 # Current implementation and repository layout
 
-All 176 Python files formerly in `werkzeug/` are now installed modules under
+All 177 Python files formerly in `werkzeug/` are now installed modules under
 `src/selfaware/`, sorted by responsibility. The existing implementation is the
 current bot; the typed runtime is the foundation for migrating its interfaces.
 The same policy classes and live loop remain active. No match-strength or
@@ -20,7 +20,7 @@ connector fix is implied by moving a file.
 | `src/selfaware/execution/` | Existing `auftragsbuch`/`lordschutz`, alongside the new typed action ledger |
 | `src/selfaware/learning/` | Existing `kausal` model and `lernen` learning orchestration |
 | `src/selfaware/telemetry/` | `lageprotokoll`, `partie_vergleich`, `ablaufanalyse`, transitive code fingerprint |
-| `src/selfaware/tools/{setup,analysis,checks,experiments}/` | Existing command-line utilities; live probes and measurement setups are separate from analysis |
+| `src/selfaware/tools/{setup,analysis,checks,experiments,planning}/` | Existing command-line utilities; live probes and measurement setups are separate from analysis |
 | `src/selfaware/{domain,coordination,runtime,game}/` | Immutable contracts, deterministic allocator, engine lifecycle/loop, replay adapter |
 | `tools/windows/` | PowerShell window/process helpers |
 | `tools/research/` | AIV decoder client and Ghidra extraction script |
@@ -28,6 +28,7 @@ connector fix is implied by moving a file.
 | `assets/ai/SamurAI/` | Current AI metadata, portraits, dialogue and AIV assets |
 | `data/research/` | Original observations, model inputs, map plans, console logs and measurements |
 | `research/native/` | Existing C decompilation outputs and Java research captures |
+| `docs/backlog/` | Authoritative live task JSON and generated HTML; Python commands in `selfaware.tools.planning.backlog` |
 | `docs/research/`, `docs/plans/`, `docs/history/` | Preserved knowledge, proposals and historical handoff; see their indexes |
 | `tests/` | Offline framework, relocation, import, launch and selected current-policy regression checks |
 
@@ -41,6 +42,7 @@ List every old short name and its new module without importing the live bot:
 
 ```sh
 uv run selfaware modules
+uv run selfaware run backlog fokus
 ```
 
 Execute an existing utility, preserving its original arguments and exit code:
@@ -100,7 +102,7 @@ the evidence and commit/push rule in [README.md](../README.md).
 
 ## Preservation and cleanup
 
-[relocations.json](relocations.json) records all 1,166 moves from `a429e28`,
+[relocations.json](relocations.json) records all 1,174 moves from upstream `aeb454c`,
 with each original SHA256 and whether its content needed path/import changes.
 Research evidence, AI assets and Lua snapshots are verified byte for byte by
 the relocation tests. Historical filenames and match identifiers remain intact.
@@ -117,3 +119,7 @@ This keeps style cleanup separate from relocation while the existing audit
 and selected policy checks establish behavior compatibility. The code
 fingerprint now walks qualified package imports and records relative paths,
 so a change in a relocated policy still changes the match's code identity.
+
+Latest upstream task B-102 tracks this organization. Existing B-94/B-95 and
+Sharky implementation points retain their gameplay status. The Python offline
+foundation does not settle the open Rust/native-module research in B-96/B-115.

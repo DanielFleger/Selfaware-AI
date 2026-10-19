@@ -9,6 +9,6 @@ script. The decoder uses the same external-project setting. Native captures
 are in `research/native/`.
 
 Python utilities are installed under `selfaware.tools.setup`, `.analysis`,
-`.checks` and `.experiments`, so imports and child processes work consistently.
+`.checks`, `.experiments` and `.planning`, so imports and child processes work consistently.
 Use `uv run selfaware modules` to find a tool, then `uv run selfaware run NAME`
 with its original arguments. See [ORGANIZATION.md](../docs/ORGANIZATION.md).

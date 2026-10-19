@@ -25,3 +25,11 @@ must be explicit; a receipt or queued command is not an observed effect.
 The live GamePort and original connector defects remain implementation work.
 Do not claim a live fix from offline tests alone. Record actual native/module
 versions, postconditions and match evidence separately from policy improvement.
+
+## Authoritative work tracking
+
+Follow the backlog/focus rules in `CLAUDE.md`. `docs/backlog/backlog.json` is the
+one task/status list; `docs/backlog/Backlog.html` is its generated view. Use
+`uv run selfaware run backlog fokus` before work/reporting, register or select
+the user-authorized point, and include its B-number in commits. Never delete
+points. `docs/BACKLOG.md` contains linked engineering acceptance details.

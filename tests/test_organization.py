@@ -89,3 +89,23 @@ def test_external_and_state_path_overrides_do_not_create_files(tmp_path):
         str(tmp_path / "state"),
     ]
     assert not list(tmp_path.iterdir())
+
+
+def test_relocated_backlog_reads_its_authoritative_source_from_foreign_cwd(tmp_path):
+    from selfaware.tools.planning import backlog
+
+    root = Path(workspace.ROOT)
+    assert Path(backlog.QUELLE) == root / "docs/backlog/backlog.json"
+    assert Path(backlog.ANSICHT) == root / "docs/backlog/Backlog.html"
+    before = Path(backlog.QUELLE).read_bytes()
+    result = invoke("from selfaware.cli import main; main(['run', 'backlog', 'fokus'])", tmp_path)
+    assert result.returncode == 0, result.stderr
+    assert "JETZT DRAN:" in result.stdout
+    assert Path(backlog.QUELLE).read_bytes() == before
+    retired = {
+        entry["old"]
+        for entry in json.loads((root / "docs/relocations.json").read_text(encoding="utf-8"))[
+            "files"
+        ]
+    }
+    assert not {path for point in backlog.lade()["punkte"] for path in point["wo"]} & retired

@@ -1,3 +1,5 @@
+> **ABGELOEST am 19.10.2026 durch `backlog.json` / `Backlog.html`** (erzeugt mit `python werkzeug/backlog.py bauen`). Alle Punkte dieser Datei sind dort als B-1 bis B-58 uebernommen, mit Stand und Verlauf; hier wird nichts mehr gepflegt. Daniel 19.10. 21:52: eine wachsende Liste, was wann wie gebaut wurde, wo es steht und was fehlt.
+
 # Backlog Selfaware-AI
 
 Eine Stelle fuer alles Offene (Daniel 05.10.2026 19:14: "schreib dir das in den Backlog und picke dann daraus immer das

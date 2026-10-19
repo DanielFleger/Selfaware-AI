@@ -17,6 +17,10 @@ path and original content hash.
 - `data/research/`, `docs/research/`, `docs/plans/`, `research/native/`,
   `bridge/snapshots/`, `assets/ai/`: evidence, knowledge, plans and assets.
 
+The current task/status source is [backlog/backlog.json](backlog/backlog.json);
+read its focus with `uv run selfaware run backlog fokus`. The engineering
+acceptance details in `BACKLOG.md` link back to those point IDs.
+
 The framework does not yet drive the real game. A green CI run proves the
 offline contracts, relocation integrity, selected existing checks and Python syntax; it does not prove live matches or
 fix the original connector. Read [BACKLOG.md](BACKLOG.md) before live work.
@@ -24,7 +28,10 @@ fix the original connector. Read [BACKLOG.md](BACKLOG.md) before live work.
 This organization work starts from upstream `58a0d50`, which already includes
 the opening optimization (`813a98b`) and the separate
 [Audit_Sharky.html](research/Audit_Sharky.html). Those upstream changes are preserved.
-The earlier source audit in `audit/` remains pinned to its `7b994b7` baseline.
+Latest upstream through `aeb454c` is merged, including the active backlog tool,
+B-114 command/player research in [Spielkarte.md](research/Spielkarte.md), and
+Ghidra captures. The path manifest uses that updated source baseline. The earlier
+source audit in `audit/` remains pinned to its `7b994b7` baseline.
 
 ## Fresh checkout
 
@@ -138,3 +145,8 @@ the reproducible runner and written findings are versioned.
 
 No real match was run during this organization work. After every future actual
 match, preserve and commit/push the evidence required by the existing root rules.
+
+The upstream backlog inventory references one console log absent from the source
+checkout: `data/research/samurai_20261019_211644_sp2_konsole.txt` (B-105). The
+backlog view continues to flag it as missing; obtain the original evidence
+before reproducing or evaluating that run.
