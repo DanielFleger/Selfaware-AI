@@ -916,6 +916,7 @@ GRUBEN = True            # 18.10. (Daniel 23:07 "4 Holz ist sehr wenig, wenn es 
 GRABEN = True            # 19.10. (Daniel 10:31 "gerne"): Burggraben 1 Feld Abstand um den Kornspeicher, Schalter graben=nein
 FALLEN = True            # 19.10. (Daniel 11:00 "Holzfalle dahin, wo etwas ein Angriffsziel bekommt"): fallenwache.py, fallen=nein
 ENDSPURT = True          # 19.10. (Daniel 16:49/16:51/16:57): endspurt.py - Wirtschaft verloren -> alles auf den Lord, endspurt=nein
+RAIDS = True             # 19.10. (Daniel 16:49/16:57): raids.py - Sklaven-Brandtrupp und Reiterjagd, raids=nein
 from endspurt import HOLZ_BLEIBT as ES_HOLZ_BLEIBT, schwertkaempfer as es_schwertkaempfer, SCHWERT as ES_SCHWERT,     NICHT_NAHRUNG as ES_NICHT_NAHRUNG
 SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # gemessen 12.10. 00:04 (L63, Ascension)
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
@@ -2112,6 +2113,13 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     # nach dem anderen"): weg=feldzug - kein Bilanz-Endspiel (die Wirtschaft bleibt), Ruestung laufend aus dem Gold ueber
     # der Ruecklage auf streitkolben lebende Kaempfer aufgefuellt, Angriff ueber feldzug.py; Assassinen ohne Lord-Angriff
     feldzug = bier = None
+    brand = reiter = None
+    if RAIDS:
+        # 19.10. (Daniel 16:57 "Sklaven am Anfang richtig OP ... wenn Feuer erkannt werden kann"): Feuer = fireDuration im
+        # Gebaeudedatensatz (gemessen raid_messen.py: Sklave zuendet, das Gebaeude brennt allein ab)
+        import raids as RA
+        brand = RA.Brandtrupp(SP, lambda nr: peek(0xF98520 + nr * 0x32C + 0x14 + 702)[0] & 0xFFFF)
+        reiter = RA.Reiterjagd(SP)
     if weg == "feldzug" and streitkolben:
         from feldzug import Feldzug
         feldzug = Feldzug(SP, BERGFRIED, LORD_SCHUTZ_BIS, n=streitkolben)
@@ -2323,6 +2331,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 feldzug.heimwache = hw
             reserve_w = feldzug.einheiten(L) if feldzug is not None and feldzug.phase == "sammeln" else set()
             ausgenommen_w = set(trupp.mitglieder if trupp else ()) | ((feldzug.einheiten(L) - reserve_w) if feldzug is not None else set())
+            if brand is not None:          # 19.10.: Raid-Sklaven und -Reiter gehoeren nicht dem Waechter und graben nicht
+                ausgenommen_w |= brand.einheiten(L) | reiter.einheiten(L)
             ausgenommen_w |= graben.graeber if graben is not None and not graben.fertig else set()   # 19.10.: Graeber graben
             ereignis = w.schritt(L, gebs, ausgenommen=ausgenommen_w, reserve=reserve_w) if w is not None else []
             if feldzug is not None and w is not None:
@@ -3023,6 +3033,20 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             if fruehpruefung["heer_zaehler"] % 10 < n_h or fruehpruefung["heer_zaehler"] <= 2:
                                 ereignis.append("HEER-WERBUNG: %d Soeldner fuers Heer angeworben (zusammen %d, Heer jetzt %d), Gold %d" % (
                                     n_h, fruehpruefung["heer_zaehler"], heer_n + n_h, st["gold"]))
+                    if brand is not None:
+                        # 19.10. Raids: steuern jede Runde; werben nur aus Gold ueber der Ruecklage, nicht im Endspurt
+                        try:
+                            ereignis += brand.schritt(L, G, befehl)
+                            ereignis += reiter.schritt(L, G, befehl)
+                            if posten_h is not None and not es_an and runde % 2 == 1:
+                                import bauen as BA_r
+                                for typ_r, n_r in RA.werbung(st["gold"] - wirt.ruecklage(G)["gold"], st.get("feuer", 0),
+                                                             len(brand.einheiten(L)), len(reiter.einheiten(L))):
+                                    for _ in range(n_r):
+                                        BA_r.werbe(typ_r, posten_h)
+                                    ereignis.append("RAID-WERBUNG: %d %s" % (n_r, "Sklaven" if typ_r == RA.SKLAVE else "Pferdebogen"))
+                        except Exception as ex_r:
+                            ereignis.append("RAIDS FEHLER %r - Partie laeuft weiter" % (ex_r,))
                     if bier is not None and not es_an and runde % 5 == 0:     # Endspurt: keine neuen Betriebe
                         try:
                             ereignis += bier.schritt(st, G, wirt.ruecklage(G))
@@ -3137,6 +3161,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     else:
         schreib("1v1: Spiel bleibt fuer den anderen Lenker laufen (%s: %s)" % (ende_art, ende_text))
     schreib(serie.bericht())
+    if brand is not None:
+        schreib("RAIDS: %s; %s" % (brand.bericht(), reiter.bericht()))
     st, L, G = runde_lesen()
     schreib("Ende Phase 2 bei Tick %s nach %d Runden (%.1f s je Runde); Kornspeicher %d, Holzfaeller %d, Apfelplantagen %d%s" % (
         st.get("t"), runde, (time.time() - t0) / max(runde, 1), st.get("G19", 0), st.get("G3", 0), st.get("G32", 0),
@@ -3290,10 +3316,11 @@ def main():
     global NOTWERBUNG, KORNRING, GRUBEN
     KORNRING = arg.get("kornring", "ja") == "ja"
     GRUBEN = arg.get("gruben", "ja") == "ja"
-    global GRABEN, FALLEN, ENDSPURT
+    global GRABEN, FALLEN, ENDSPURT, RAIDS
     GRABEN = arg.get("graben", "ja") == "ja"
     FALLEN = arg.get("fallen", "ja") == "ja"
     ENDSPURT = arg.get("endspurt", "ja") == "ja"
+    RAIDS = arg.get("raids", "ja") == "ja"
     NOTWERBUNG = arg.get("notwerbung", "nein") == "ja"
     STUFE2_BELIEBT = arg.get("stufe2_beliebt", "halten")
     ANGRIFF_AB = int(arg.get("angriff_ab", 0))
