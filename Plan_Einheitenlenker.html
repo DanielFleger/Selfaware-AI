@@ -8,87 +8,127 @@
   :root { --bg:#f6f5f2; --karte:#ffffff; --text:#222; --leise:#666; --rand:#ddd; --gruen:#2e8b57; --gelb:#d4a017; --rot:#c0392b; --akzent:#3a5a8c; }
   @media (prefers-color-scheme: dark) { :root { --bg:#1e1f22; --karte:#2a2c30; --text:#e6e6e6; --leise:#aaa; --rand:#444; --akzent:#8fb0e0; } }
   body { background:var(--bg); color:var(--text); font:16px/1.5 system-ui, sans-serif; margin:0; padding:16px; }
-  main { max-width:900px; margin:0 auto; }
+  main { max-width:920px; margin:0 auto; }
   h1 { font-size:1.6em; margin:0 0 4px; } .timestamps { color:var(--leise); font-size:.9em; margin-bottom:12px; }
   .punkt { background:var(--karte); border:1px solid var(--rand); border-radius:10px; padding:14px 16px; margin:12px 0; }
   .punkt h2 { font-size:1.15em; margin:0 0 8px; } .rat { border-left:4px solid var(--akzent); padding:6px 10px; margin:10px 0; }
   .zeile { display:flex; gap:10px; align-items:flex-start; flex-wrap:wrap; }
   select, textarea { font:inherit; color:var(--text); background:var(--bg); border:1px solid var(--rand); border-radius:6px; padding:4px 6px; }
   textarea { width:100%; min-height:48px; box-sizing:border-box; }
-  table { border-collapse:collapse; width:100%; font-size:.95em; } td, th { border:1px solid var(--rand); padding:4px 6px; text-align:left; vertical-align:top; }
+  table { border-collapse:collapse; width:100%; font-size:.94em; } td, th { border:1px solid var(--rand); padding:4px 6px; text-align:left; vertical-align:top; }
+  .tabelle { overflow-x:auto; }
   .knoepfe { position:sticky; top:0; background:var(--bg); padding:8px 0; display:flex; gap:8px; z-index:2; }
   button { font:inherit; padding:6px 12px; border-radius:6px; border:1px solid var(--akzent); background:var(--karte); color:var(--text); cursor:pointer; }
   .gruen { border-left:6px solid var(--gruen); } .gelb { border-left:6px solid var(--gelb); } .rot { border-left:6px solid var(--rot); }
-  code { font-size:.92em; }
+  .marke { font-size:.8em; padding:1px 6px; border-radius:8px; border:1px solid var(--rand); color:var(--leise); }
+  details { margin:6px 0; } summary { cursor:pointer; font-weight:600; }
+  code { font-size:.92em; word-break:break-word; }
 </style>
 </head>
 <body>
 <main>
 <h1>Umbau: ein Lenker für alle Einheiten</h1>
-<div class="timestamps">Erstellt: 19.10.2026, 18:05 · Selfaware-AI · Plan, noch nichts gebaut</div>
+<div class="timestamps">Erstellt: 19.10.2026, 18:05 · Neu gefasst 18:30 nach Daniels Makro/Mikro-Wunsch (18:07) und dem Rat · Selfaware-AI</div>
 <div class="knoepfe"><button onclick="kopieren()">Kopieren</button><button onclick="herunterladen()">Herunterladen</button></div>
 
-<div class="punkt" data-id="ziel"><h2>1. Ziel</h2>
-<p>Daniel 19.10. 18:03: Module, die man je nach Bedarf umschaltet, egal welche Einheit. Die meisten Einheiten sind gleich aufgebaut: <b>verteidigen</b>, <b>angreifen</b> oder <b>warten/sammeln</b>. Danach geht es nur noch um die Bewertung: welche Einheit zuerst töten, um den meisten Schaden zu vermeiden (Abwehr) oder anzurichten (Angriff), und wie.</p>
-<div class="rat">Mein Rat: Rollen und Bewertung an EINER Stelle; die heutigen Module werden zu Bausteinen, die der Lenker je Einheitenart zuschaltet.</div>
+<div class="punkt" data-id="stand"><h2>0. Was seit 18:07 passiert ist</h2>
+<ul>
+<li><b>Ursache für „40 Schwertkämpfer gegen einen Assassinen" gefunden – mein eigener Fehler von heute:</b> Die Lordwache (L136) hat in 1018o bei Spieler 1 <b>195-mal</b> ausgelöst, bei Spieler 2 130-mal. Schon bei Tick 6.473 hieß es „2 Feinde (20.695 Leben) gegen den Lord: LORD FÄLLT". Jedes Mal griff das ganze Heer (Median 10–11 Mann, bis 30) den nächsten Feind an, oft eine Assassine. Der Wächter selbst schickte nur 6 von 92-mal 10 oder mehr Mann gegen eine Assassine. <span class="marke">gemessen, Mitschrift 1018o</span></li>
+<li><b>Warum:</b> Der Lord (Typ 55) fehlt in den Editor-Duellen; die Gefechtsrechnung nahm für ihn den Ersatzwert 20 Schaden je Takt. <span class="marke">belegt, gefecht.dps</span></li>
+<li><b>Gemessen statt geschätzt:</b> Die Lord-Kampfwerte stammen jetzt aus 271 gespeicherten Partien (<code>werkzeug/lord_messen.py</code> → <code>daten/lord_kampfwerte.json</code>). Der Lord macht 150 je Takt an Assassinen (175 Proben), 225 an arab. Schwertkämpfern (27 Proben), 150 an Speerträgern (610 Proben). Eine Assassine macht 100 je Takt am Lord (50 Proben). Zwei Assassinen sind damit für den vollen Lord harmlos, wie Daniel sagte. <span class="marke">gemessen, Auflösung grob (eine Runde ≈ 42 Takte)</span></li>
+<li><b>Gebaut (Commit 4cb3536):</b> Makro <code>uebersicht.py</code>, Mikro <code>zuweisung.py</code>, die neue Lordwache und die Jagd-Sperre im Wächter. Prüfungen: lordwache 9/9, zuweisung 6/6; jede Gegenprobe war rot. Die Prüfung waechter 8/8 läuft weiter grün.</li>
+<li><b>Partie 1018p läuft seit 18:18</b>, unter denselben Bedingungen wie 1018o. Vorher festgelegt, was als Widerlegung gilt: Die Lordwache löst weiter oft aus, das Heer jagt mit 10+ Mann Assassinen, oder ein Lord stirbt, obwohl nur eine kleine Gruppe geschickt wurde.</li>
+</ul>
+<div class="rat">Mein Rat: Ergebnis von 1018p abwarten (Punkt 9), dann Schritt 2 der Reihenfolge unten.</div>
 <div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
 
-<div class="punkt" data-id="bestand"><h2>2. Bestand heute (Zeilen gezählt 19.10. 18:04)</h2>
-<table><tr><th>Modul</th><th>Zeilen</th><th>Was darin steckt</th></tr>
-<tr><td><code>assassinen.py</code></td><td>2.875</td><td>Gefahrenkarte (Entdeckung + Beschuss, gemessen L73/L75/L81), Flucht, Wege mit wenig Beschuss, Zielwahl Wert × Überleben je Zeit, Lord-Gruppe, Reserve, Stapeln</td></tr>
-<tr><td><code>waechter.py</code></td><td>353</td><td>Abwehr gebündelt mit Gefechtsrechnung, Stellung, Stapeln von Nahkämpfern auf Schützen</td></tr>
-<tr><td><code>feldzug.py</code></td><td>276</td><td>Sammeln, Angriff auf den Lord, Wegplaner mit wenig Beschuss, Stau-Erkennung</td></tr>
-<tr><td><code>raids.py</code></td><td>230</td><td>Brandtrupp (Sklaven, Feuer lesbar), Reiterjagd (Ausweichen vor Nahkämpfern)</td></tr>
-<tr><td><code>gefecht.py</code></td><td>150</td><td>Schaden je Takt aus Editor-Duellen (<code>daten/editor_duell_*.jsonl</code>), <code>simuliere</code>, <code>bewerte</code></td></tr>
-<tr><td><code>endspurt.py</code> · <code>fallenwache.py</code> · <code>lordwache.py</code></td><td>103 · 75 · 50</td><td>Wann alles auf den Lord; Fallen auf Laufziele; Lord-Schutz mit Rechnung</td></tr></table>
-<div class="rat">Mein Rat: Gefahrenkarte und Flucht aus dem Assassinen-Modul herauslösen, sie sind das Wertvollste und gelten für alle.</div>
+<div class="punkt" data-id="rat"><h2>1. Der Rat (fünf Blickwinkel auf Daniels Frage)</h2>
+<p><b>Frage:</b> Wie bauen wir die Einheitensteuerung so um, dass eine Übersicht alles kennt (was habe ich, was hat der Gegner, wer was wo) und eine Feinsteuerung die richtigen Einheiten einsetzt – und was wird in der Stunde ohne Daniel gebaut?</p>
+<details><summary>Der Skeptiker</summary><p>Die 40 Schwertkämpfer kamen nicht von einem fehlenden Modul, sondern von einer <b>ungemessenen Zahl</b> (Lord = 20). Ein großer Lenker auf ungemessenen Werten vervielfacht den Fehler. Erst gehört auf den Tisch, welche Kampfpaare gemessen sind und welche nur Ersatz; jede Entscheidung muss sagen, wenn sie auf Ersatz steht. Dazu kommt: 4.100 Zeilen auf einmal umzubauen, mit drei Prüfungen, die schon rot sind, gefährdet, was gerade läuft (Reiterjagd 44 tote Arbeiter in 1018o).</p></details>
+<details><summary>Der Grundsatz-Denker</summary><p>Das eigentliche Problem ist <b>Zuweisung</b>: eigene Einheiten auf der einen Seite, Bedrohungen und Ziele auf der anderen. Jedes Paar hat einen Nutzen (verhinderter oder angerichteter Schaden je Zeit), Kosten (Weg, Lauftempo, Risiko) und eine Grenze. Die Rollen Verteidigen, Angreifen und Warten sind das <b>Ergebnis</b> der Zuweisung, nicht ihr Eingang. Im Beispiel braucht ein arab. Schwertkämpfer 19,5 Takte je Feld, eine Assassine 14,6. Er holt sie nie ein, das Paar ist nichts wert.</p></details>
+<details><summary>Der Visionär</summary><p>Steht die Zuweisung mit einem Nutzenmaß, kommt Daniels Liste fast von selbst: Pferdebogen, die schießen und nicht eingeholt werden (hoher Nutzen, kaum Risiko), Belagerung des Pennerhofs (Ziel mit hohem Wert), Lord-Ring, wenn keine Einheit den Lord decken kann, Aufgeben oder Endspurt als Gesamturteil. Die Übersicht macht auch den Partievergleich während der Partie möglich, und die KI misst nach jeder Partie selbst nach wie heute beim Lord – das ist der Lernkreis.</p></details>
+<details><summary>Der Außenstehende</summary><p>Von außen ist es offensichtlich: 40 Soldaten laufen einem schnelleren Dieb hinterher – das macht kein Mensch. Ein Mensch lässt das Heer stehen und schickt drei Bogenschützen. Und damit Daniel beim Zuschauen sieht, was die KI glaubt, gehört eine lesbare Zeile in die Mitschrift: „wir 40 Schwert bei X, Gegner 3 Assassinen bei Y".</p></details>
+<details><summary>Der Macher</summary><p>In einer Stunde: (1) Lord aus den gespeicherten Partien messen und in die Rechnung geben; (2) die Lordwache schickt nur die kleinste Gruppe, die reicht, und das ganze Heer nur, wenn nötig; (3) Übersicht und Zuweisung als eigene Bausteine mit Prüfung; (4) der Wächter jagt nichts, was er nicht einholt; (5) eine Partie unter gleichen Bedingungen und vergleichen. Das Assassinen-Modul nicht anfassen.</p></details>
+<p><b>Kreuzfeuer:</b> Am stärksten sind der Skeptiker und der Grundsatz-Denker: Den Fehler machten eine ungemessene Zahl und das fehlende „holt er ihn ein?", nicht eine fehlende Bauweise. Der blinde Fleck des Visionärs: Lernen aus Partien setzt saubere Messung voraus. Übersehen hatten alle fünf das Gegenstück auf Seiten des Gegners: Die Übersicht muss auch zeigen, <b>wohin</b> er läuft (Laufziel), sonst zählt jeder Raider in der Wirtschaft als Angriff auf den Lord.</p>
+<p><b>Urteil:</b> Einig ist sich der Rat: Eine Übersicht je Runde und eine zentrale Zuweisung, gerechnet mit gemessenen Werten und mit Lauftempo. Gestritten wird über den Zeitpunkt: großer Umbau jetzt (Grundsatz-Denker, Visionär) oder kleine Schritte (Skeptiker, Macher). <b>Entscheidung:</b> Die neuen Bausteine entstehen neben dem Bestand; angeschlossen werden zuerst Lordwache und Wächter, der Rest folgt Schritt für Schritt hinter einem Schalter. <b>Erster Schritt:</b> Lord messen – erledigt.</p>
 <div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
 
-<div class="punkt" data-id="kern"><h2>3. Der Kern (neu: <code>einheitenlenker.py</code>)</h2>
-<p>Jede eigene Einheit hat genau eine Rolle (Verteidigen / Angreifen / Warten-Sammeln) und einen Auftrag. Die Rollen verteilt eine Stelle nach der Lage: Lord-Rechnung (Gefahr?), Endspurt, Raid-Ziele, Heer-Stärke. Heute verteilen Wächter, Feldzug, Raids und Assassinen jeder für sich und nehmen sich gegenseitig Einheiten weg (Ausnahme-Listen).</p>
-<div class="rat">Mein Rat: Der Kern ersetzt die Ausnahme-Listen; jede Einheit gehört zu jeder Zeit genau einer Rolle.</div>
+<div class="punkt" data-id="makro"><h2>2. MAKRO – die Übersicht (<code>uebersicht.py</code>, gebaut)</h2>
+<p>Je Runde aus dem Lagebild, also jeder Einheit der Karte:</p>
+<ul>
+<li>je Spieler die Truppen nach Art, die Arbeiter und das Leben des Lords;</li>
+<li><b>Verbände</b>: Truppen eines Spielers in einer Kette von höchstens 8 Feldern, mit Mitte, Arten, Leben, Laufziel und wie viele laufen;</li>
+<li>je Einheit, ob sie <b>steht oder läuft</b> (mehr als 1 Feld seit der Vorrunde);</li>
+<li>Bedrohungen: feindliche Verbände, deren Mitte oder Laufziel höchstens 40 Felder von unseren Gebäuden ist.</li>
+</ul>
+<p>Alle 10 Runden steht in der Mitschrift eine Zeile wie diese aus 1018p:<br><code>LAGE Tick 1438: SP1(wir): 7 Speer, 5 Bogen, 2 Assassine | Arbeiter 22 | Lord 150000 | Verbaende: 7 bei (210, 301); … || SP2: … || BEDROHT von 1 Verbaenden (naechster 3 Mann, 32 Felder)</code></p>
+<p>Die Übersicht befiehlt nichts. Sie liefert nur: Die Wächter lesen daraus „steht oder läuft".</p>
+<div class="rat">Mein Rat: Als Nächstes kommen in die Übersicht die Wirtschaft beider Seiten (liefernde Betriebe, Kornspeicher, Waffenkammer, Markt mit Ort) und das Urteil „wer liegt vorn", aus dem Partievergleich während der Partie. Damit entscheiden Endspurt und Raid-Ziele aus derselben Quelle.</div>
 <div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
 
-<div class="punkt" data-id="module"><h2>4. Module zum Umschalten je Einheitenart</h2>
-<table><tr><th>Modul</th><th>Für</th><th>Stand</th></tr>
-<tr><td>Hit and Run (schießen, Abstand zu Nahkämpfern)</td><td>Bogen, Armbrust, arab. Bogen, Schleuder, Pferdebogen, Feuerwerfer</td><td>Ansatz in der Reiterjagd</td></tr>
-<tr><td>Unsichtbar bleiben (Entdeckung meiden)</td><td>Assassinen</td><td>im Assassinen-Modul</td></tr>
-<tr><td>Flucht vor Übermacht</td><td>alle</td><td>im Assassinen-Modul</td></tr>
-<tr><td>Pfeilen ausweichen</td><td>alle, besonders Nahkämpfer im Anmarsch</td><td>neu – Messung nötig</td></tr>
-<tr><td>Feuer legen</td><td>Sklaven</td><td>Brandtrupp</td></tr>
-<tr><td>Graben ausheben</td><td>Speer, Pike, Streitkolben, Sklave, Ingenieur, Bogen</td><td>Kornring/Graben</td></tr></table>
-<div class="rat">Mein Rat: Die Zuordnung steht in einer Tabelle, damit du sie umschalten kannst, ohne Code anzufassen.</div>
+<div class="punkt" data-id="mikro"><h2>3. MIKRO – wen schicke ich gegen wen (<code>zuweisung.py</code>, gebaut)</h2>
+<p>Für jede eigene Einheit gegen ein Ziel stellen sich zwei Fragen:</p>
+<ol>
+<li><b>Holt sie es ein?</b> Ein Schütze erreicht jedes Ziel, das er beschießen kann. Ein Nahkämpfer erreicht ein Ziel nur, wenn es steht (kämpft, abreißt, anzündet) oder wenn er schneller läuft (L80). Bei unbekanntem Lauftempo zählt er gegen ein laufendes Ziel nicht.</li>
+<li><b>Reicht es?</b> Das rechnet <code>gefecht.simuliere</code> mit gemessenen Werten. Jede Antwort nennt die Kampfpaare, die nur auf Ersatzwerten stehen („UNGEMESSEN").</li>
+</ol>
+<p><code>kleinste_gruppe()</code> nimmt die bevorzugten Einheiten zuerst (zum Beispiel die Heimwache vor dem Feldzug), dann die nächsten. Gesucht wird die kleinste Zahl (1, 2, 3, 4, 6, 9, 13 …), mit der die Rechnung gewinnt und der Lord lebt.</p>
+<p><b>Angeschlossen:</b></p>
+<ul>
+<li><b>Lordwache:</b> Gefahr heißt jetzt, dass der Lord stirbt. Es zählen nur Feinde im Anmarsch (höchstens 25 Felder vom Lord, oder ihr Laufziel liegt höchstens 30 Felder von ihm). Geschickt wird die kleinste Gruppe, die reicht. Der Feldzug ruht nur, wenn er Leute abgeben muss.</li>
+<li><b>Wächter:</b> Ein laufendes Ziel, das keiner einholt, wird nicht gejagt („KEINE JAGD"). Es bleibt 3 Wächter-Runden gesperrt, und die anderen Bedrohungen gehen vor.</li>
+</ul>
+<div class="rat">Mein Rat: Als Nächstes die Zielwahl selbst: Abwehr nach „Schaden, den der Feind je Takt an unserem Zeug anrichtet, geteilt durch die Zeit, bis wir ihn getötet haben"; Angriff nach „Wert je Zeit und Risiko". So beantwortet sich Daniels Frage „welche Einheit zuerst töten".</div>
 <div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
 
-<div class="punkt" data-id="bewertung"><h2>5. Eine Bewertung für alle</h2>
-<p><b>Abwehr:</b> zuerst der Feind mit dem meisten Schaden je Takt gegen das, was er gerade angreifen kann, geteilt durch die Zeit, bis wir ihn getötet haben (sein Leben / unser Schaden je Takt auf ihn). <b>Angriff:</b> Wert des Ziels (Wert-Tabellen) × Überleben / (Weg + Arbeit), Risiko aus der Gefahrenkarte. Eindeutige Kills und Snipes gehen vor (Daniel 17:14). Grundlage: Schaden je Takt aus den Editor-Duellen (<code>gefecht.py</code>), Leben je Art (L63, L109).</p>
-<div class="rat">Mein Rat: Die Bewertung zuerst bauen und ohne Spiel prüfen (Totschlagtests mit Extremfällen), dann erst die Rollen darauf stellen.</div>
+<div class="punkt" data-id="gemessen"><h2>4. Was gemessen ist und was nicht</h2>
+<div class="tabelle"><table><tr><th>Wert</th><th>Stand</th><th>Quelle</th></tr>
+<tr><td>Schaden je Takt zwischen 13 Arten (22–28, 70–73, 75, 76)</td><td>gemessen, 234 Duelle</td><td>L109, <code>daten/editor_duell_*.jsonl</code></td></tr>
+<tr><td>Lord an 16 Arten, 8 Arten am Lord</td><td>gemessen, 271 Partien, ab 5 Proben</td><td><code>daten/lord_kampfwerte.json</code></td></tr>
+<tr><td>arab. Schwertkämpfer am Lord, Speer am Lord</td><td><b>nicht gemessen</b>: Sie kämpften nur gemischt mit anderen Arten am Lord, die Messung zählt aber nur reine Gruppen</td><td>Ersatz: Mittel ihrer Zeile</td></tr>
+<tr><td>Lauftempo von 11 Arten</td><td>gemessen</td><td>L80</td></tr>
+<tr><td>Lauftempo von Pferdebogen, Streitkolben, Schwert und Ritter</td><td><b>nicht gemessen</b></td><td>gelten gegen laufende Ziele als „holt nicht ein"</td></tr>
+<tr><td>Pferdebogen in der Gefechtsrechnung</td><td><b>fehlt</b> (Typ 74 nicht in den Duellen)</td><td>Ersatz 20 je Takt</td></tr></table></div>
+<div class="rat">Mein Rat: Das gemischte Schaden-am-Lord teile ich nach Anteil der Arten auf (eine zweite Auswertung derselben Partien). Pferdebogen und Lauftempo der vier Arten kommen als Nächstes in die Editor-Messung, das sind die Lücken mit dem größten Hebel.</div>
 <div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
 
-<div class="punkt" data-id="schritte"><h2>6. Schritte</h2>
-<ol><li>Bewertung als eigener Baustein + Prüfskript.</li>
-<li>Kern mit Rollen; die <b>Heimwache</b> als erste Gruppe darauf.</li>
-<li>1v1 messen gegen heute: verlorene Gebäude und Arbeiter je 1.000 Ticks, getötete Angreifer, Lord-Leben.</li>
-<li>Feldzug, Reiter, Sklaven umstellen.</li>
-<li>Assassinen-Teile herauslösen (Gefahrenkarte, Flucht, Unsichtbar).</li></ol>
-<div class="rat">Mein Rat: Nach jedem Schritt eine 1v1-Partie mit Partievergleich – so sieht man sofort, ob es besser oder schlechter wurde.</div>
+<div class="punkt" data-id="module"><h2>5. Module zum Umschalten je Einheitenart</h2>
+<div class="tabelle"><table><tr><th>Modul</th><th>Für</th><th>Stand</th></tr>
+<tr><td>Einholen ja/nein</td><td>alle</td><td><b>gebaut</b> (zuweisung.einholbar)</td></tr>
+<tr><td>Kleinste Gruppe, die reicht</td><td>alle</td><td><b>gebaut</b>; angeschlossen sind Lordwache und Wächter</td></tr>
+<tr><td>Hit and Run (schießen, Abstand halten)</td><td>Fernkämpfer, Pferdebogen</td><td>Ansatz in der Reiterjagd</td></tr>
+<tr><td>Unsichtbar bleiben</td><td>Assassinen</td><td>im Assassinen-Modul</td></tr>
+<tr><td>Flucht vor Übermacht</td><td>alle</td><td>im Assassinen-Modul, herauslösen</td></tr>
+<tr><td>Pfeilen ausweichen</td><td>alle</td><td>neu, braucht eine Messung</td></tr>
+<tr><td>Feuer legen</td><td>Sklaven</td><td>Brandtrupp</td></tr></table></div>
 <div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
 
-<div class="punkt" data-id="messen"><h2>7. Vorher messen</h2>
-<ul><li>Pfeilen ausweichen: Geschosse stehen im Speicher (<code>DAT_EntityState</code>, Pfeil = Typ 1, Ziel x/y – VillageStudio-Wissensstand); wie weit muss eine Einheit seitlich gehen, damit ein Pfeil sie verfehlt?</li>
-<li>Schießt der Pferdebogen im Reiten? (Karteneditor, der Versuch im Spielstand mit Burg war unbrauchbar)</li>
-<li>Lauftempo je Art liegt vor (L80) – für Flucht- und Abfangrechnung.</li></ul>
-<div class="rat">Mein Rat: Pfeil-Ausweichen erst bauen, wenn die Messung zeigt, dass es geht – sonst ist es Raten.</div>
+<div class="punkt" data-id="schritte"><h2>6. Reihenfolge ab jetzt</h2>
+<ol>
+<li>✔ Lord messen, Übersicht, Zuweisung, Lordwache, Jagd-Sperre – Partie 1018p.</li>
+<li>Zielwahl nach Schaden je Takt geteilt durch die Zeit bis zum Tod. Sie bekommt einen eigenen Baustein mit Prüfung und ersetzt im Wächter „wer unseren Gebäuden am nächsten ist".</li>
+<li>Die Wirtschaft beider Seiten in die Übersicht. Endspurt und Raid-Ziele lesen von dort.</li>
+<li>Den Feldzug auf Zuweisung umstellen (wer greift an, wer wartet); dann Reiter und Sklaven.</li>
+<li>Gefahrenkarte und Flucht aus dem Assassinen-Modul herauslösen.</li>
+</ol>
+<div class="rat">Mein Rat: Nach jedem Schritt eine 1v1-Partie unter gleichen Bedingungen, vorher aufgeschrieben, was als Widerlegung gilt.</div>
 <div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
 
-<div class="punkt" data-id="risiken"><h2>8. Risiken</h2>
-<p>Großer Umbau über ~4.100 Zeilen Bestand. Drei Assassinen-Prüfungen waren schon vor heute rot (lordtrupp 3/10, tausch 2/3, wege 3/4). Rechenzeit je Runde (heute ~0,3–0,4 s). Schritt für Schritt umstellen, alter Weg per Schalter zurück.</p>
-<div class="rat">Mein Rat: Jeder Schritt bekommt einen Schalter (<code>lenker=neu|alt</code>), damit der Rückweg ein Startwert ist.</div>
+<div class="punkt" data-id="nebenbei"><h2>7. Nebenbei gefunden in 1018o (nicht angefasst)</h2>
+<ul>
+<li><b>Endspurt ohne Abbruch:</b> Spieler 2 ging bei Tick 16.570 auf Endspurt und rannte 63.000 Takte an, ohne zu siegen; am Ende hatte er 0 liefernde Betriebe. Zu früh war es <b>nicht</b> – das hatte ich zuerst behauptet und dann widerlegt: Laut KETTE brach seine Wirtschaft ab Tick 13.000 wirklich ein (liefernde Betriebe 11 → 4,4, Stärke 2,4), ob die Reiterjagd von Spieler 1 (44 tote Arbeiter über die ganze Partie) dazu beitrug, ist nicht geprüft. Offen ist, wann ein erfolgloser Ansturm abbricht. <span class="marke">gemessen</span></li>
+<li><b>19 Hopfenfarmen</b> bei Spieler 1; Daniel: 2–4 reichen. <span class="marke">gemessen</span></li>
+<li>„LORD EINDEUTIG" griff bei Tick 41.947 mit 6 Assassinen den vollen Lord ohne Wachen an, und der Lord lebte weiter. Mit den neuen Werten sagt die Rechnung, dass die 6 ihn knapp töten (ihnen bleiben 17.500 Leben). Warum es im Spiel nicht geklappt hat (kamen sie gestaffelt an, griff jemand ein?), ist nicht untersucht. <span class="marke">gerechnet, offen</span></li>
+</ul>
+<div class="rat">Mein Rat: Die Schwelle bleibt. Der Endspurt bekommt aber eine Rechnung aus der Übersicht: Zieht das Heer nur los, wenn es gegen Lord und Wachen gewinnen kann, und kehrt es um, wenn es das nicht mehr kann? Das ist Schritt 3 der Reihenfolge.</div>
 <div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
 
-<div class="punkt" data-id="zurueck"><h2>9. Zurückgestellt bis nach dem Umbau</h2>
-<p>Lord-Ring (Mauer + Graben, nur wenn die Lord-Rechnung Schutz verlangt), Pennerhof-Belagerung mit Assassinen, Schützen-Wache an der Wirtschaft, kein Bauen neben dem eigenen Pennerlager. Gebaut ist heute: Partievergleich, Endspurt, Kornring-Umbau, Raids, Gefahrenzonen, Hunger-Notkauf, Lord-Wache, Lord-Kill wenn eindeutig, Reiter jagen Bauern.</p>
-<div class="rat">Mein Rat: Diese Punkte gehen im neuen Lenker als Rollen-Regeln auf, statt einzeln angebaut zu werden.</div>
+<div class="punkt" data-id="zurueck"><h2>8. Zurückgestellt bis nach dem Umbau</h2>
+<p>Lord-Ring (Mauer und Graben, nur wenn die Lord-Rechnung Schutz verlangt), Belagerung des Pennerhofs, Schützen-Wache an der Wirtschaft, kein Bau neben dem eigenen Pennerlager. Mit der Zuweisung werden das Rollen-Regeln: Der Pennerhof ist ein Ziel mit hohem Wert, der Lord-Ring die Antwort, wenn <code>kleinste_gruppe</code> sagt „reicht nicht".</p>
+<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
+
+<div class="punkt" data-id="ergebnis"><h2>9. Ergebnis 1018p</h2>
+<p id="ergebnis-text">läuft noch (Start 18:18)</p>
 <div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option><option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>
 </main>
 <script>

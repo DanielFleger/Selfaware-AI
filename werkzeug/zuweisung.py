@@ -76,3 +76,28 @@ def kleinste_gruppe(kandidaten, sie, fest=(), ziel_steht=True, vorrang=()):
         return [e["nr"] for e in ordnung], ok, "alle %d, die es einholen: %s nach %d Takten%s%s" % (
             len(ordnung), "Sieg" if ok else "reicht nicht", t, langsam, hinweis)
     return [], False, "niemand holt es ein%s" % langsam
+
+
+def schaden_je_leben(feind_typ, feind_leben, eigene_typen):
+    """Wie viel Schaden je Takt die feindliche Einheit an unseren Arten macht (Mittel), je Lebenspunkt, den wir ihr nehmen
+    muessen - der Massstab "wen zuerst toeten, um den meisten Schaden zu vermeiden" (Daniel 19.10. 18:03)."""
+    tb = gefecht.tabelle()
+    typen = list(eigene_typen) or [75]
+    d = sum(gefecht.dps(feind_typ, t, tb[0], tb[2] if len(tb) > 2 else None, 2 if feind_typ in gefecht.FERN_REICH else 1)
+            for t in typen) / float(len(typen))
+    return d / float(max(1, feind_leben))
+
+
+def abwehr_rang(feinde, eigene, steht=None):
+    """19.10. 18:35 (Schritt 2 im Plan Einheitenlenker): Reihenfolge der Abwehrziele. feinde: {nr: einheit}; eigene: Liste
+    eigener Einheiten (dict typ); steht(nr) -> True/False/None (Uebersicht). Nur Ziele, die mindestens eine eigene Einheit
+    einholt; vorn das mit dem meisten Schaden je Leben. Gibt [(nr, wert)] absteigend."""
+    typen = {e["typ"] for e in eigene}
+    aus = []
+    for n, f in feinde.items():
+        st = steht(n) if steht else None
+        ziel_steht = st is not False or f.get("nahziel", -1) > 0
+        if not any(einholbar(t, f["typ"], ziel_steht) for t in typen):
+            continue
+        aus.append((n, schaden_je_leben(f["typ"], f["leben"], typen)))
+    return sorted(aus, key=lambda z: -z[1])

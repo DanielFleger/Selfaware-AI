@@ -85,6 +85,8 @@ def hauptheer(L, orte, sp=1, umkreis=35, schwelle=8):
     return n >= schwelle, n
 
 class Waechter:
+    ZIELWAHL = "schaden"         # 19.10. 18:35: "schaden" (zuweisung.abwehr_rang) oder "abstand" (bis 18:35)
+
     def __init__(self, sp=1, posten=None):
         self.sp, self.posten = sp, posten
         self.auftrag = {}            # unsere Einheit -> feindliche Einheit
@@ -218,6 +220,16 @@ class Waechter:
             if not frei:
                 return ereignis
             self.ziel = min(frei, key=lambda n: feinde[n][0])
+            # 19.10. 18:35 (Plan Einheitenlenker Schritt 2; Daniel 18:03 "welche Einheit gilt es als ehesten zu toeten, um den
+            # meisten Schaden zu vermeiden"): ZIELWAHL "schaden" = das Ziel mit dem meisten Schaden je Takt je Lebenspunkt
+            # (zuweisung.abwehr_rang), nur einholbare; "abstand" = wie bisher das unseren Gebaeuden naechste
+            if self.ZIELWAHL == "schaden":
+                import zuweisung as ZW
+                ub = getattr(self, "uebersicht", None)
+                rang = ZW.abwehr_rang({n: feinde[n][1] for n in frei}, list(eigene.values()),
+                                      steht=ub.steht if ub is not None else None)
+                if rang:
+                    self.ziel = rang[0][0]
             self.lauert = False
         fe = feinde[self.ziel][1]
         ort = (fe["x"], fe["y"])

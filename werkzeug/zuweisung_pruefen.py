@@ -10,7 +10,13 @@ Vorher festgelegt:
   5. Waechter (der Fall aus Daniels Bild 18:07): 40 eigene arab. Schwert, 1 feindliche Assassine LAEUFT durch unsere
      Wirtschaft -> KEIN Angriffsbefehl, Meldung KEINE JAGD
   6. Waechter: dieselbe Assassine STEHT (reisst ab) -> Angriff mit hoechstens 4, nicht 40
-Gegenprobe: python werkzeug/zuweisung_pruefen.py alt  (einholbar immer ja = alter Stand) -> 1, 2 und 5 rot."""
+  NEU 18:35 (Zielwahl, Plan Schritt 2):
+  7. abwehr_rang: Bogen 5 Felder, arab. Schwert 10, stehende Assassine 15 - eigene arab. Schwert -> Assassine zuerst,
+     dann Schwert, Bogen zuletzt (meister Schaden je Leben)
+  8. dieselbe Assassine LAEUFT -> sie faellt heraus (keiner holt sie ein), Schwert zuerst
+  9. Waechter mit ZIELWAHL "schaden": Bogen naeher an unseren Gebaeuden als die stehende Assassine -> Ziel ist die Assassine
+Gegenprobe: python werkzeug/zuweisung_pruefen.py alt  (einholbar immer ja = alter Stand) -> 1, 2, 5 und 8 rot;
+python werkzeug/zuweisung_pruefen.py abstand  (Zielwahl wie bis 18:35) -> 9 rot."""
 import os
 import sys
 
@@ -22,6 +28,8 @@ import waechter as W
 
 if len(sys.argv) > 1 and sys.argv[1] == "alt":
     ZW.einholbar = lambda a, b, c: True
+if len(sys.argv) > 1 and sys.argv[1] == "abstand":
+    W.Waechter.ZIELWAHL = "abstand"
 
 
 def e(typ, sp, x, y, leben, nr=0, lauf=(0, 0), nahziel=-1):
@@ -90,6 +98,26 @@ def main():
     ev6, an6 = waechter_fall(False)
     n6 = len(an6[0]["angriff"]["einheiten"]) if an6 else 0
     pruefe(6, "stehende Assassine: %d greifen an - %s" % (n6, [x[:110] for x in ev6]), 1 <= n6 <= 4)
+    fe = {1: e(22, 2, 105, 100, 10000, 1), 2: e(75, 2, 110, 100, 28000, 2), 3: e(73, 2, 115, 100, 12500, 3)}
+    eig7 = [dict(typ=75)]
+    r7 = [n for n, _ in ZW.abwehr_rang(fe, eig7, steht=lambda n: True)]
+    pruefe(7, "Rang (stehende Assassine): %s" % r7, r7 == [3, 2, 1])
+    r8 = [n for n, _ in ZW.abwehr_rang(fe, eig7, steht=lambda n: n != 3)]
+    pruefe(8, "Rang (Assassine laeuft): %s" % r8, r8 == [2, 1])
+    befehle.clear()
+    w9 = W.Waechter(1, posten=(100, 100))
+    w9.besetzt = True
+    u9 = UB.Uebersicht(1)
+    w9.uebersicht = u9
+    L9 = {}
+    for i in range(20):
+        L9[100 + i] = e(75, 1, 100 + i % 5, 100 + i // 5, 28000, 100 + i)
+    L9[600] = e(22, 2, 112, 112, 10000, 600)          # Bogen, 2 Felder vor unserem Gebaeude
+    L9[601] = e(73, 2, 116, 116, 12500, 601)          # Assassine, 6 Felder vor unserem Gebaeude
+    u9.runde(1000, L9)
+    u9.runde(1060, dict(L9))
+    w9.schritt(L9, [(110, 110)])
+    pruefe(9, "Waechter Zielwahl %s: Ziel %s" % (W.Waechter.ZIELWAHL, w9.ziel), w9.ziel == 601)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
