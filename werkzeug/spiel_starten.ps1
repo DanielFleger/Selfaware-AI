@@ -17,8 +17,8 @@ $ende = (Get-Date).AddSeconds(60)
 while ((Get-Date) -lt $ende) {
     if ((Test-Path $log) -and (Select-String -Path $log -Pattern "villagestudio aktiv" -Quiet)) {
         Write-Output "villagestudio aktiv"
-        Start-Sleep -Seconds 2
-        & "$PSScriptRoot\spielen_vorne.ps1" -Instanz $Instanz      # 20:43: Spiel ueber die Taskleiste (Daniel: "so kann ich nicht spielen")
+        # 20:56 AUS: spielen_vorne.ps1 (Spiel "immer im Vordergrund") wird nicht mehr aufgerufen - Daniel: "es liegt an einem
+        # Skript, das du gemacht hast, bitte ausschalten". Das Spiel startet wie bei einem normalen Start.
         exit 0
     }
     Start-Sleep -Milliseconds 500

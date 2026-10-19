@@ -123,18 +123,9 @@ def main():
     if os.path.exists(STOP):
         os.remove(STOP)
     schreib("SamurAI-Wache an (Instanz %s) - wartet auf eine Partie mit der Ratte" % os.environ.get("SHC_INSTANZ", "1"))
-    # 20:51 (Daniel: "schon besser, aber manchmal flackert es noch auf"): die Taskleiste in einem eigenen Ablauf alle 0,1 s
-    # wieder hinter das Spiel legen (vorher nur einmal je Wache-Runde, 0,5 s)
-    import threading
-
-    def taskleisten_wache():
-        while not os.path.exists(STOP):
-            try:
-                spiel_ueber_taskleiste()
-            except Exception:
-                pass
-            time.sleep(0.1)
-    threading.Thread(target=taskleisten_wache, daemon=True).start()
+    # 20:56 AUS (Daniel: "ich brauche keinen Fix, ich will, dass du den Ursprung loest - es liegt an einem Skript, das du
+    # gemacht hast, bitte ausschalten"): spiel_ueber_taskleiste() wird nicht mehr aufgerufen - das Spiel wird nicht mehr
+    # ueber die Taskleiste gelegt. Die Funktion bleibt nur zum Nachlesen stehen.
     lenker, bedient, log, scharf = None, False, None, False
     sp_aktiv, neustarts = None, 0
     from laden import befehl as befehl_w
