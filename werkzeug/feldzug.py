@@ -220,6 +220,10 @@ class Feldzug:
                     self.direkt = True
                     aus.append("FELDZUG STAU %d: Spitze %d Ticks bei %d Feldern vor dem Lord - alle direkt auf den Lord" % (
                         self.staus, t - self._stau[1], spitze))
+                elif self.bresche is not None and self.bresche in G:
+                    # B-138: die gewaehlte Bresche steht noch - nicht umwaehlen (ein anderes Tor haette die laufende Sturmwelle
+                    # abgebrochen und neu sammeln lassen; beim Sammeln kommt die Spitze naturgemaess nicht naeher)
+                    pass
                 else:
                     # B-134 Burg knacken (Daniel 20.10. 19:16, 2v2 gegen Rotkaeppchen: 180 Truppen standen 37.000 Ticks still,
                     # "alle direkt auf den Lord" fand keinen Weg - der Lord steht hinter Mauern): auch direkt kein Schritt naeher ->

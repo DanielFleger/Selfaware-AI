@@ -309,6 +309,29 @@ def main():
     pruefe(17, "Sturmwelle: Punkt %s (a %s: Lauf %s, Tor %d) (b %s: Tor %s, Lauf danach %d) (c %s: %s)" % (
         sp17, bool(ok_a), lauf_a, len(tor_a), bool(ok_b), len(tor_b[0]["angriff"]["einheiten"]) if tor_b else 0, len(lauf_b),
         bool(ok_c), [m[:40] for m in m17 if "ABGEWEHRT" in m]), ok_a and ok_b and ok_c)
+    # 18 (B-138, 20.10. Partie gegen Franz+Karl: beim Sammeln und Stuermen kommt die Spitze nicht naeher -> neuer Stau): ein Stau
+    #    waehrend der laufenden Welle waehlt KEIN anderes Tor, auch wenn eines naeher am Lord liegt - die Welle laeuft weiter.
+    #    Gegenprobe: ist die Bresche gefallen, waehlt der naechste Stau das andere Tor.
+    f18 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=20)
+    f18.schritt({"t": 12000}, *lage(10, heim), Befehle())
+    f18.schritt({"t": 12050}, *lage(30, f18.punkt), Befehle())
+    L18, G18 = lage(0, heim)
+    G18[900] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 1000}
+    for i in range(20):
+        L18[10 + i] = einheit(75, 1, 280 + i % 3, 120 + i // 10, 28000)
+    f18.phase, f18.direkt, f18.bresche, f18.staus = "angriff", True, 900, 3
+    f18.weg, f18.weg_i, f18.weg_ziel = [(300, 100)], 0, (300, 100)
+    f18.sturm_fuer, f18.sturm_punkt, f18.sturm_seit, f18.sturm_los = 900, (250, 150), 12000, 12050
+    G18[901] = {"typ": 46, "besitzer": 2, "x": 301, "y": 101, "leben": 1000}      # neues Tor, naeher am Lord
+    f18._stau = (20, 12100)
+    m18 = f18.schritt({"t": 12100 + F.Feldzug.STAU_TICKS}, L18, G18, Befehle())
+    bleibt = f18.bresche == 900 and f18.sturm_los == 12050 and not any("STURM:" in m for m in m18)
+    del G18[900]
+    f18.schritt({"t": 13700}, L18, G18, Befehle())
+    f18._stau = (20, 13700)
+    m18b = f18.schritt({"t": 13700 + F.Feldzug.STAU_TICKS}, L18, G18, Befehle())
+    pruefe(18, "Stau waehrend der Welle: Bresche %s bleibt %s; nach dem Fall neu: %s" % (
+        900, bleibt, [m[:60] for m in m18b if "BURG" in m]), bleibt and f18.bresche == 901)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
