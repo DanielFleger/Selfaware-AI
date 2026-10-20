@@ -143,6 +143,7 @@ class Feldzug:
     # erst nach 1.500 Takten Stau): ohne stehende Bresche fragt der Feldzug den Wegfinder, ob ein Feld bis LORD_RINGE am Lord
     # erreichbar ist - ja: alle dorthin, am Lord der Angriff; nein: sofort die naechste Schwachstelle
     LORD_RINGE = (1, 2, 3)
+    ZIEL_BIS = 4000           # B-140: Rechengrenze (Takte) fuer die Gefechtsrechnung am Ziel
     LORD_PRUEF_RUNDEN = 20
 
     def _erreichbar_bei(self, ziel, nr, mitte, ringe):
@@ -248,8 +249,10 @@ class Feldzug:
             # mehr schon bei N am Sammelpunkt oder irgendwo (B-139). Bis dahin waechst das Heer (B-141: alles Gold ins Heer)
             lohnt_alle, text_alle = False, ""
             if t >= self.schutz_bis and len(kolben) >= self.MIN_ANGRIFF:
-                # neu rechnen alle RECHNEN_ALLE Runden - und sofort, wenn sich die Heeresgroesse geaendert hat
-                if self.runde - self._rechnung_alle[0] >= self.RECHNEN_ALLE or self._rechnung_alle[3:] != (len(kolben),):
+                # neu rechnen alle RECHNEN_ALLE Runden - und sofort, wenn sich die Heeresgroesse um 10 % geaendert hat (nicht bei
+                # jeder Werbung: die Rechnung mit 160 gegen 60 kostet spuerbar Rundenzeit)
+                n_alt = self._rechnung_alle[3] if len(self._rechnung_alle) > 3 else -999
+                if self.runde - self._rechnung_alle[0] >= self.RECHNEN_ALLE or abs(len(kolben) - n_alt) * 10 >= max(10, n_alt):
                     self._rechnung_alle = (self.runde,) + tuple(self._lohnt(L, kolben, lord, am_ziel=True)) + (len(kolben),)
                 lohnt_alle, text_alle = self._rechnung_alle[1], self._rechnung_alle[2]
                 if lohnt_alle and not text:
@@ -476,6 +479,7 @@ class Feldzug:
         wir = [dict(typ=L[n]["typ"], leben=L[n]["leben"], x=lp[0] if am_ziel else L[n]["x"], y=lp[1] if am_ziel else L[n]["y"])
                for n in da]
         try:
-            return gefecht.bewerte(wir, sie)
+            # B-140 (Pruefstand 22:04: 115 gegen 84 "offen nach 1500 Takten", mit 167 Sieg nach 1.460): am Ziel bis ZIEL_BIS rechnen
+            return gefecht.bewerte(wir, sie, bis=self.ZIEL_BIS if am_ziel else gefecht.BIS)
         except Exception as ex:
             return False, "Rechnung fehlgeschlagen (%s)" % ex

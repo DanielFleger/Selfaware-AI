@@ -169,12 +169,13 @@ def simuliere(wir, sie, schaden=None, bis=BIS, rest_aus=None):
     return rest[0], rest[1], t, rest[1] <= 0 and rest[0] > 0
 
 
-def bewerte(wir, sie, schaden=None):
-    """(lohnt, Text): Gegenangriff lohnt, wenn die Gruppe faellt und mindestens BEHALTEN unseres Lebens bleibt."""
+def bewerte(wir, sie, schaden=None, bis=BIS):
+    """(lohnt, Text): Gegenangriff lohnt, wenn die Gruppe faellt und mindestens BEHALTEN unseres Lebens bleibt.
+    bis: Rechengrenze in Takten (B-140: grosse Schlachten brauchen laenger als BIS - sonst "offen")."""
     if not wir or not sie:
         return False, "keine Gegner" if wir else "keine Verteidiger"
     voll = sum(e["leben"] for e in wir)
-    r_wir, r_sie, t, sieg = simuliere(wir, sie, schaden)
+    r_wir, r_sie, t, sieg = simuliere(wir, sie, schaden, bis=bis)
     anteil = r_wir / float(max(1, voll))
     lohnt = sieg and anteil >= BEHALTEN
     return lohnt, "%d eigene (%d Leben) gegen %d (%d Leben): %s nach %d Takten, uns bleiben %.0f %%" % (
