@@ -232,7 +232,19 @@ class Feldzug:
             elif t - self._stau[1] >= self.STAU_TICKS:
                 self.staus += 1
                 if self.bresche is not None and self.bresche in G:
-                    pass        # B-138: die gewaehlte Bresche steht noch - nicht umwaehlen ("zaeh" regelt den Wechsel)
+                    # B-138: die gewaehlte Bresche steht noch - nicht umwaehlen ("zaeh" regelt den Wechsel), AUSSER kaum jemand
+                    # kommt hin (B-139, 20.10. gegen Franz: 72.000 Takte standen 95 Nahkaempfer 150+ Felder vom Ziel, kein Stau
+                    # und kein "zaeh" griff, weil die Torsperre jeden Wechsel verhinderte)
+                    tor_s = (G[self.bresche]["x"], G[self.bresche]["y"])
+                    davor = sum(1 for n in kolben if L[n]["typ"] not in FERN_REICH and schach((L[n]["x"], L[n]["y"]), tor_s) <= self.TOR_R)
+                    if davor < self.TOR_MIN:
+                        alt_b = self.bresche
+                        self.verworfen.add(alt_b)
+                        self.bresche, self.bresche_leben = None, None
+                        aus.append("FELDZUG BRESCHE UNERREICHBAR: Gebaeude %d - nach %d Ticks ohne Fortschritt %d Nahkaempfer davor, "
+                                   "verworfen" % (alt_b, t - self._stau[1], davor))
+                        if not self._schwachstelle(G, lp, orte, aus, "Stau %d" % self.staus):
+                            self.lord_versuch = t
                 elif self._schwachstelle(G, lp, orte, aus, "Stau %d" % self.staus):
                     self.lord_versuch = None        # B-139: nach gefallener Bresche kein Weg zum Lord -> naechster Teil
                 elif self.staus == 1 and self.weg_i < len(self.weg) - 1:
@@ -301,9 +313,18 @@ class Feldzug:
                     self.verworfen.add(bresche)
                     self.bresche, self.bresche_leben, self._stau = None, None, (None, t)
                 else:
-                    # B-134/B-139: alle Nahkaempfer auf das Tor/den Turm, ohne Sammeln davor
+                    # B-134/B-139: alle Nahkaempfer auf das Tor/den Turm, ohne Sammeln davor. 20.10. (gegen Franz: der
+                    # Gebaeude-Angriffsbefehl bewegt weit entfernte Truppen NICHT - 95 standen 72.000 Takte im Zustand 105 zu
+                    # Hause): wer weiter als TOR_R weg ist, laeuft erst hin; der Angriffsbefehl kommt vor dem Tor
                     belegt = set(nah_kampf)
-                    neu_b = [n for n in nah_kampf if befohlen.get(n) != ("bresche", bresche) or L[n]["zustand"] in (0, 1)]
+                    am_tor_s = set(am_tor)
+                    hin_b = [n for n in nah_kampf if n not in am_tor_s
+                             and (befohlen.get(n) != ("zum_tor", bresche) or L[n]["zustand"] in (0, 1, 105))]
+                    if hin_b:
+                        befehl({"angriff": {"einheiten": hin_b, "lauf": [tor[0], tor[1]]}}, 1.0, bis="ANGRIFF")
+                        for n in hin_b:
+                            befohlen[n] = ("zum_tor", bresche)
+                    neu_b = [n for n in am_tor if befohlen.get(n) != ("bresche", bresche) or L[n]["zustand"] in (0, 1)]
                     if neu_b and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
                         befehl({"angriff": {"einheiten": neu_b, "gebaeude": bresche}}, 1.0, bis="ANGRIFF")
                         self.letzter_befehl = self.runde
