@@ -102,6 +102,8 @@ class Feldzug:
         self.direkt = False         # 19.10.: nach zwei Staus alle direkt auf den Lord
         self.bresche = None         # B-134: Nr des Tors/Turms, das zuerst fallen muss
         self.lord_versuch = None    # B-139: Tick, seit dem nach einer gefallenen Bresche direkt auf den Lord gegangen wird
+        self.wegtest = None         # B-139: (nr, punkte) -> [bool] - der Wegfinder des Spiels; setzt erstes_spiel
+        self.vorposten = None       # B-139: (Bresche, erreichbarer Punkt vor ihr)
         self.bresche_leben = None   # B-138: (niedrigstes Leben der Bresche, seit Tick)
         self.verworfen = set()      # B-138: zaehe Breschen - nicht noch einmal waehlen
 
@@ -120,6 +122,26 @@ class Feldzug:
         aus.append("FELDZUG SCHWACHSTELLE (%s): Gebaeude %d (Typ %d, Leben %d) bei (%d, %d), %d Felder vom Lord - alle Nahkaempfer "
                    "darauf" % (anlass, nr, g["typ"], leben, g["x"], g["y"], schach((g["x"], g["y"]), lp)))
         return True
+
+    RINGE = (4, 8, 12, 16, 22, 30)
+
+    def _vorposten(self, L, tor, nah_kampf, mitte):
+        """B-139 (21:39 gemessen mit dem Wegtest des Spiels: Franz' Turm 596 ist von Sueden bis auf 4 Felder erreichbar, von
+        Norden gar nicht; Laufbefehle auf das Turmfeld selbst liessen die Einheiten untaetig): der naechste erreichbare Punkt
+        auf Ringen um die Bresche (je 8 Richtungen), bei gleichem Ring der naechste an der Mitte unseres Heeres. Ohne
+        Wegtest oder ohne Treffer: None (dann der alte Weg)."""
+        if self.wegtest is None or not nah_kampf:
+            return None
+        punkte = [(tor[0] + dx * r, tor[1] + dy * r) for r in self.RINGE
+                  for dx, dy in ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1))]
+        try:
+            gut = self.wegtest(nah_kampf[0], punkte)
+        except Exception:
+            return None
+        treffer = [q for q, g in zip(punkte, gut) if g]
+        if not treffer:
+            return None
+        return min(treffer, key=lambda q: (schach(q, tor), schach(q, mitte)))
 
     def _lords(self, L):
         return {n: e for n, e in L.items() if e["typ"] == LORD and e["besitzer"] not in freunde_von(self.sp) and e["leben"] > 0}
@@ -281,6 +303,8 @@ class Feldzug:
             p = lp if self.direkt else self.weg[self.weg_i] if self.weg_i < len(self.weg) - 1 else lp
             # (B-139: kein Laufziel auf die Bresche selbst - 21:35 gemessen: Laufbefehle auf ein Torhaus-/Turmfeld in der Mauer
             # liessen die Einheiten untaetig stehen; auf dem Weg zum Lord kamen sie bei Rotkaeppchen bis 3-9 Felder heran)
+            if self.bresche is not None and self.vorposten and self.vorposten[0] == self.bresche and self.vorposten[1]:
+                p = self.vorposten[1]                   # B-139: alle zum erreichbaren Vorposten vor der Bresche
             schluss = spitze <= self.SCHLUSS_R or self.direkt
             nah_kampf = [n for n in kolben if L[n]["typ"] not in FERN_REICH]
             fern = [n for n in kolben if L[n]["typ"] in FERN_REICH]
@@ -318,6 +342,23 @@ class Feldzug:
                     # Laufbefehl auf das Torfeld auch nicht (in der Mauer, unerreichbar). Darum: wer weiter als TOR_R weg ist,
                     # laeuft mit allen anderen den Weg zum Lord (unten "unterwegs"); vor dem Tor kommt der Angriffsbefehl
                     belegt = set(am_tor)
+                    if self.vorposten is None or self.vorposten[0] != bresche:
+                        vp = self._vorposten(L, tor, nah_kampf, mitte)
+                        self.vorposten = (bresche, vp)
+                        aus.append("FELDZUG VORPOSTEN vor Gebaeude %d: %s" % (
+                            bresche, "%s, %d Felder davor (Wegtest des Spiels)" % (vp, schach(vp, tor)) if vp else "keiner gefunden - Weg zum Lord"))
+                    vp = self.vorposten[1]
+                    if vp is not None:
+                        # B-139: alle Nahkaempfer, die noch nicht am Tor sind, laufen zum Vorposten (einmal; erneut nur, wer
+                        # untaetig und nicht dort ist)
+                        hin_v = [n for n in nah_kampf if n not in belegt
+                                 and (befohlen.get(n) != ("vorposten", vp)
+                                      or (L[n]["zustand"] in (0, 1) and schach((L[n]["x"], L[n]["y"]), vp) > self.AM_PUNKT))]
+                        if hin_v:
+                            befehl({"angriff": {"einheiten": hin_v, "lauf": [vp[0], vp[1]]}}, 1.0, bis="ANGRIFF")
+                            for n in hin_v:
+                                befohlen[n] = ("vorposten", vp)
+                        belegt |= set(nah_kampf)
                     neu_b = [n for n in am_tor if befohlen.get(n) != ("bresche", bresche) or L[n]["zustand"] in (0, 1)]
                     if neu_b and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
                         befehl({"angriff": {"einheiten": neu_b, "gebaeude": bresche}}, 1.0, bis="ANGRIFF")

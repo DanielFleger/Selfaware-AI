@@ -389,6 +389,42 @@ def main():
     pruefe(21, "Niemand kommt hin: erst %s, dann %s, verworfen %s %s | 20 davor: %s bleibt %s, verworfen %s" % (
         e21, z21, v21, m21, e21g, z21g, v21g),
            v21 == [e21] and z21 not in (None, e21) and any("UNERREICHBAR" in m for m in m21) and z21g == e21g and not v21g)
+    # 22 (B-139, 21:39 mit dem Wegtest des Spiels gemessen: Turm 596 nur von Sueden erreichbar, Laufbefehle aufs Turmfeld liessen
+    #    die Einheiten untaetig): Wegtest meldet nur Punkte suedlich der Bresche erreichbar -> Vorposten = 4 Felder suedlich,
+    #    alle 10 Nahkaempfer (weit weg) laufen dorthin, der Bogen auch; in der naechsten Runde (laufend, Zustand 105) kein neuer
+    #    Befehl; am Vorposten (4 Felder vom Tor) -> Gebaeudeangriff. Gegenprobe: Wegtest findet nichts -> Weg zum Lord (300,100).
+    def vorposten(findet):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+        f.wegtest = lambda nr, punkte: [findet and q[1] > 106 for q in punkte]
+        f.schritt({"t": 12000}, *lage(5, heim), Befehle())
+        L_, G_ = lage(0, heim)
+        for i in range(10):
+            L_[10 + i] = einheit(75, 1, 100 + i % 5, 240 + i // 5, 28000)
+        L_[60] = einheit(70, 1, 90, 250, 15000)
+        G_[901] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 1500}
+        b = Befehle()
+        m_ = f.schritt({"t": 12050}, L_, G_, b)
+        lauf_ = [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in b.liste if "lauf" in x.get("angriff", {})]
+        for i in range(10):
+            L_[10 + i]["zustand"] = 105
+        b2 = Befehle()
+        f.schritt({"t": 12100}, L_, G_, b2)
+        nochmal = [x for x in b2.liste if "lauf" in x.get("angriff", {}) and set(x["angriff"]["einheiten"]) & set(range(10, 20))]
+        bogen2 = [x["angriff"]["lauf"] for x in b2.liste if "lauf" in x.get("angriff", {}) and 60 in x["angriff"]["einheiten"]]
+        vp = f.vorposten[1] if f.vorposten else None
+        for i in range(10):
+            L_[10 + i]["x"], L_[10 + i]["y"], L_[10 + i]["zustand"] = 306, 110, 1
+        b3 = Befehle()
+        f.schritt({"t": 12200}, L_, G_, b3)
+        tor_ = [len(x["angriff"]["einheiten"]) for x in b3.liste if x.get("angriff", {}).get("gebaeude") == 901]
+        return [m[:60] for m in m_ if "VORPOSTEN" in m], lauf_, len(nochmal), tor_, vp, bogen2
+    m22, l22, n22, t22, vp22, bg22 = vorposten(True)
+    m22g, l22g, _, _, vp22g, _ = vorposten(False)
+    pruefe(22, "Vorposten %s: %s, Laufbefehle %s, naechste Runde %d, Bogen dann %s, am Tor Angriff %s | ohne Treffer: %s %s" % (
+        vp22, m22, l22, n22, bg22, t22, m22g, l22g),
+           vp22 and F.schach(vp22, (306, 106)) == 4 and vp22[1] > 106 and ([list(vp22), 10] in [list(x) for x in l22])
+           and n22 == 0 and bg22 == [list(vp22)] and t22 == [10]
+           and vp22g is None and any("keiner gefunden" in m for m in m22g) and l22g == [([300, 100], 11)])
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

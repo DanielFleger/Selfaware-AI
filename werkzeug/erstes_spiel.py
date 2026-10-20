@@ -2288,6 +2288,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 wp = []
             return list(wp) if wp else [ziel]
         feldzug.wegplaner = feldzug_weg
+        feldzug.wegtest = wegtest           # B-139: erreichbarer Vorposten vor der Bresche (Wegfinder des Spiels)
         # 19.10. (Daniel: "warum wird keine Waffenproduktion gebaut? Wenn die Streitis es nicht schaffen, muesste teuer
         # nachgebaut werden - longterm denken"): produktion=ja - eigene Kette (Minen, Schmieden, Kuhhoefe, Gerber), Groesse
         # aus PRODUKTION_FENSTER (30 Kaempfer in so vielen Ticks); bis sie steht, nur bei grossem Ueberschuss Markt-Kauf
