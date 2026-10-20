@@ -67,8 +67,8 @@ class Befehle:
 
 def main():
     heim = (80, 260)
-    # 1
-    f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    # 1 (B-140: Lord-Schutz bis 12.040 - ohne ihn gewinnt die Gefechtsrechnung schon mit 10 gegen den Lord mit 2 Schuetzen)
+    f = F.Feldzug(1, heim, lord_schutz_bis=12040, n=30)
     L, G = lage(10, heim)
     b = Befehle()
     aus = f.schritt({"t": 12000}, L, G, b)
@@ -97,9 +97,10 @@ def main():
     L, G = lage(18, p)
     del L[500]
     aus = f.schritt({"t": 13000}, L, G, Befehle())
-    pruefe(4, "Lord 500 tot: Ziel jetzt %s, Phase %s, Meldungen %s" % (f.ziel, f.phase, [a[:40] for a in aus][:2]), f.ziel == 700 and f.phase == "sammeln")
+    pruefe(4, "Lord 500 tot: Ziel jetzt %s, Phase %s, Meldungen %s" % (f.ziel, f.phase, [a[:40] for a in aus][:2]),
+           f.ziel == 700 and any("Ziel Lord 700" in a for a in aus))      # (B-140: die Phase entscheidet die Gefechtsrechnung)
     # 5
-    f5 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f5 = F.Feldzug(1, heim, lord_schutz_bis=13000, n=30)   # B-140: unter Lord-Schutz wird gesammelt
     f5.schritt({"t": 12000}, *lage(10, heim), Befehle())
     q = f5.punkt
     L, G = lage(10, q)
@@ -109,7 +110,7 @@ def main():
     pruefe(5, "Speer 12 Felder vor dem Sammelpunkt: Angriff auf ihn %s" % [x for x in b.liste if x.get("angriff", {}).get("ziel") == 800][:1],
            any(x.get("angriff", {}).get("ziel") == 800 for x in b.liste))
     # 6
-    f6 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f6 = F.Feldzug(1, heim, lord_schutz_bis=12040, n=30)   # B-140: Schritt 1 unter Lord-Schutz
     f6.schritt({"t": 12000}, *lage(10, heim), Befehle())
     L, G = lage(8, f6.punkt)
     for i in range(20):

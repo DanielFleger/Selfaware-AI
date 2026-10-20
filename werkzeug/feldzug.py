@@ -250,7 +250,7 @@ class Feldzug:
             if t >= self.schutz_bis and len(kolben) >= self.MIN_ANGRIFF:
                 # neu rechnen alle RECHNEN_ALLE Runden - und sofort, wenn sich die Heeresgroesse geaendert hat
                 if self.runde - self._rechnung_alle[0] >= self.RECHNEN_ALLE or self._rechnung_alle[3:] != (len(kolben),):
-                    self._rechnung_alle = (self.runde,) + tuple(self._lohnt(L, kolben, lord)) + (len(kolben),)
+                    self._rechnung_alle = (self.runde,) + tuple(self._lohnt(L, kolben, lord, am_ziel=True)) + (len(kolben),)
                 lohnt_alle, text_alle = self._rechnung_alle[1], self._rechnung_alle[2]
                 if lohnt_alle and not text:
                     text = "ganzes Heer: " + text_alle
@@ -461,7 +461,7 @@ class Feldzug:
         Ruhe (1018y: sein "Stapeln" holte sie heim), ausser als Reserve beim Sammeln."""
         return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] in HEER and n not in self.heimwache}
 
-    def _lohnt(self, L, da, lord):
+    def _lohnt(self, L, da, lord, am_ziel=False):
         """19.10.: (lohnt, Text) - unsere am Sammelpunkt gegen den Lord, feindliche Truppen bis LORD_UMKREIS Felder und
         Schuetzen, deren Reichweite den Lord erreicht (alle stehen, wir laufen hin)."""
         import gefecht
@@ -470,7 +470,10 @@ class Feldzug:
                if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in TRUPPE and (
                    schach((e["x"], e["y"]), lp) <= self.LORD_UMKREIS
                    or (e["typ"] in gefecht.FERN_REICH and schach((e["x"], e["y"]), lp) <= gefecht.FERN_REICH[e["typ"]]))]
-        wir = [dict(typ=L[n]["typ"], leben=L[n]["leben"], x=L[n]["x"], y=L[n]["y"]) for n in da]
+        # B-140 (Pruefstand 22:00: "165 eigene gegen 49: offen nach 1500 Takten" - der Anmarsch von 160+ Feldern frass die
+        # ganze Rechenzeit, also kein Angriff): am_ziel=True rechnet den Kampf selbst, als stuende das Heer schon am Lord
+        wir = [dict(typ=L[n]["typ"], leben=L[n]["leben"], x=lp[0] if am_ziel else L[n]["x"], y=lp[1] if am_ziel else L[n]["y"])
+               for n in da]
         try:
             return gefecht.bewerte(wir, sie)
         except Exception as ex:
