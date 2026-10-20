@@ -101,16 +101,21 @@ pub struct Welt {
     pub einheiten_max: i32,
     /// je Feld: Bit 0 geplant, Bit 1 ausgehoben (Stand des letzten Takts); leer = noch keine Aufnahme in dieser Epoche
     graben: Vec<u8>,
+    /// Kopie der ganzen Kartenschicht vom letzten Takt (Version 13: einziger Lesepfad der Grabenwache)
+    roh: Vec<u32>,
+    roh_neu: Vec<u32>,
 }
 
 impl Welt {
     pub const fn neu() -> Self {
-        Welt { einheiten: Vec::new(), gebaeude: Vec::new(), einheiten_max: 0, graben: Vec::new() }
+        Welt { einheiten: Vec::new(), gebaeude: Vec::new(), einheiten_max: 0, graben: Vec::new(), roh: Vec::new(),
+               roh_neu: Vec::new() }
     }
 
     /// Neue Epoche (Laden, neue Partie): die Grabenwache nimmt im naechsten Takt neu auf, ohne Alarm.
     pub fn epoche(&mut self) {
         self.graben.clear();
+        self.roh.clear();
     }
 
     pub fn lesen(&mut self) {
@@ -179,13 +184,50 @@ impl Welt {
         }
     }
 
-    /// Grabenwache: alle 80.400 Felder; liefert, was seit dem letzten Takt neu geplant/ausgehoben wurde.
+    /// Grabenwache: die Kartenschicht (80.400 Felder) als ein Block kopieren, mit dem letzten Takt in Bloecken zu 64 Feldern
+    /// vergleichen und nur geaenderte Bloecke auswerten; liefert, was seit dem letzten Takt neu geplant/ausgehoben/zugeschuettet
+    /// wurde. (Version 12 lief parallel zum alten Weg Feld fuer Feld: 0 Abweichungen, ~35 statt ~140 us; Gegenprobe L166.)
     pub fn graben_lesen(&mut self) -> GrabenAenderung {
-        let jetzt: Vec<u8> = (0..FELDER)
-            .map(|i| graben_bits(unsafe { i32_bei(LOGIK + 4 * i) } as u32))
-            .collect();
-        let a = graben_vergleich(&self.graben, &jetzt);
-        self.graben = jetzt;
+        self.roh_neu.resize(FELDER, 0);
+        unsafe { std::ptr::copy_nonoverlapping(LOGIK as *const u32, self.roh_neu.as_mut_ptr(), FELDER) };
+        let erste = self.roh.len() != FELDER;
+        if erste {
+            self.graben = self.roh_neu.iter().map(|&v| graben_bits(v)).collect();
+            std::mem::swap(&mut self.roh, &mut self.roh_neu);
+            return graben_vergleich(&[], &self.graben);
+        }
+        let mut a = GrabenAenderung::default();
+        for (k, (alt, neu)) in self.roh.chunks(64).zip(self.roh_neu.chunks(64)).enumerate() {
+            if alt == neu {
+                continue;
+            }
+            for (j, (&va, &vn)) in alt.iter().zip(neu.iter()).enumerate() {
+                let (v, n) = (graben_bits(va), graben_bits(vn));
+                if v == n {
+                    continue;
+                }
+                let i = k * 64 + j;
+                if n & 1 != 0 && v & 1 == 0 {
+                    a.neu_geplant.push(i);
+                }
+                if n & 2 != 0 && v & 2 == 0 {
+                    a.neu_ausgehoben.push(i);
+                }
+                if v & 2 != 0 && n & 2 == 0 {
+                    a.zugeschuettet.push(i);
+                }
+                if v & 1 != 0 && n & 1 == 0 && n & 2 == 0 {
+                    a.plan_geloescht += 1;
+                }
+                if n == 0 && v != 0 {
+                    a.weg += 1;
+                }
+                self.graben[i] = n;
+            }
+        }
+        std::mem::swap(&mut self.roh, &mut self.roh_neu);
+        a.geplant = self.graben.iter().filter(|&&b| b & 1 != 0).count();
+        a.ausgehoben = self.graben.iter().filter(|&&b| b & 2 != 0).count();
         a
     }
 

@@ -27,7 +27,7 @@ use haende::{Annahme, Auftrag, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 11;
+pub const VERSION: u32 = 13;
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -331,7 +331,8 @@ fn takt(tick: i32, spieler: i32) -> i32 {
         let w = &z.waechter;
         schreibe(&format!(
             "waechter tick {} version {} epoche {} neu {} pause {} wechsel {} keine_partie {} | aufrufe {} kern_us_mittel {:.1} \
-             kern_us_max {:.1} | takte {} takt_ms_mittel {:.3} | welt_us {:.1} karte_us {:.1} einheiten {} gebaeude {} max {} | kern_einheiten {} auftraege_offen {}",
+             kern_us_max {:.1} | takte {} takt_ms_mittel {:.3} | welt_us {:.1} karte_us {:.1} einheiten {} gebaeude {} max {} | kern_einheiten {} \
+             auftraege_offen {}",
             tick, VERSION, w.epoche, w.neu, w.pause, w.wechsel, w.keine_partie, m.aufrufe, je_aufruf(m.kern_ns),
             m.kern_ns_max as f64 / 1000.0, m.takte, je_takt(m.takt_ns) / 1000.0, je_takt(m.welt_ns), je_takt(m.karte_ns),
             z.welt.einheiten.len(), z.welt.gebaeude.len(), z.welt.einheiten_max,
