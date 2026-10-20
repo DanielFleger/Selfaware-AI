@@ -240,6 +240,31 @@ def main():
         [m[:50] for m in m15 if "BURG" in m][:1], len(tor15), [m[:40] for m in fall15], [m[:50] for m in m15o][-1:]),
            any("BURG KNACKEN" in m for m in m15) and tor15 and len(tor15[0]["angriff"]["einheiten"]) == 20 and fall15
            and not tor15o and any("kein feindliches Tor" in m for m in m15o))
+    # 16 (B-137, 20.10. Revanche Tick 104.000: 77 arab. Bogen standen 154 Felder vom Lord zu Hause am Wegpunkt 9/25, nur 7
+    #    Schwertkaempfer vor dem Tor): nach "alle direkt auf den Lord" laufen auch die Schuetzen auf den Lord, nicht weiter an
+    #    den alten Wegpunkt. Gegenprobe: vor dem Stau laufen sie an den Wegpunkt (der Umweg aus Pruefung 8 bleibt).
+    f16 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f16.wegplaner = lambda L_, G_, s, z: [(150, 200), (200, 150), (250, 120), z]
+    f16.schritt({"t": 12000}, *lage(10, heim), Befehle())
+    f16.schritt({"t": 12050}, *lage(30, f16.punkt), Befehle())
+    L16, G16 = lage(0, heim)
+    for i in range(20):
+        L16[10 + i] = einheit(75, 1, 100 + i % 5, 240 + i // 5, 28000)
+    for i in range(6):
+        L16[40 + i] = einheit(70, 1, 70 + i, 270, 15000)
+    ziele16 = {}
+    for t in range(12100, 15400, 100):
+        b16 = Befehle()
+        f16.schritt({"t": t}, L16, G16, b16)
+        for x in b16.liste:
+            if "lauf" in x.get("angriff", {}) and set(x["angriff"]["einheiten"]) & set(range(40, 46)):
+                ziele16[t] = x["angriff"]["lauf"]
+        for n in range(40, 46):
+            L16[n]["zustand"] = 1                   # stehen still -> jede Runde neu befehlbar
+    vor16 = [z for t, z in sorted(ziele16.items()) if not f16.direkt or t < 15000][:1]
+    nach16 = [z for t, z in sorted(ziele16.items())][-1:]
+    pruefe(16, "Schuetzen: erster Laufbefehl %s, letzter nach 'direkt' %s (direkt=%s)" % (vor16, nach16, f16.direkt),
+           f16.direkt and vor16 and vor16[0] != [300, 100] and nach16 == [[300, 100]])
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

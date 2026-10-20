@@ -229,7 +229,9 @@ class Feldzug:
                     self.weg_i += 1
                 else:
                     break
-            p = self.weg[self.weg_i] if self.weg_i < len(self.weg) - 1 else lp
+            # B-137 (20.10. Revanche Tick 104.000: nach "alle direkt" liefen nur die Nahkaempfer los - 77 arab. Bogen warteten
+            # 154 Felder vom Lord am Wegpunkt 9/25, den die Spitzengruppe nie mehr erreichte): direkt heisst fuer ALLE auf den Lord
+            p = lp if self.direkt else self.weg[self.weg_i] if self.weg_i < len(self.weg) - 1 else lp
             schluss = spitze <= self.SCHLUSS_R or self.direkt
             nah_kampf = [n for n in kolben if L[n]["typ"] not in FERN_REICH]
             fern = [n for n in kolben if L[n]["typ"] in FERN_REICH]

@@ -1621,9 +1621,11 @@ class Produktion:
         self.hof_kern = hof_kern
         self.hof_orte = produktions_hofplaetze(None, hof_kern)
         if len(self.hof_orte) < self.hoefe:
-            if V14 or not self.hof_orte:
+            if V14:
                 raise RuntimeError("nur %d produktive Hofplaetze fuer %d benoetigte Hoefe" % (len(self.hof_orte), self.hoefe))
-            self.hoefe = len(self.hof_orte)          # 19.10.: fremde Karte - so viele Hoefe, wie das Spiel erlaubt
+            # 19.10.: fremde Karte - so viele Hoefe, wie das Spiel erlaubt. 20.10. (Neustart Spieler 2 im 2v2 bei Tick 104.000:
+            # "nur 0 produktive Hofplaetze" beendete den Lenker, die Karte war zugebaut): auch keiner - dann ohne Leder weiter
+            self.hoefe = len(self.hof_orte)
         self.hof_verworfen = set()
         # Gesamtes Bauholz der Zielkette plus Steinwirtschaft/Haeuser; ein frueher Holzfaeller traegt konservativ
         # rund 35 Holz bis zur Zielzeit bei. Das skaliert 25 -> ca. 14 und 50 -> ca. 20 statt einer offenen Spam-Schleife.
@@ -3600,6 +3602,10 @@ def main():
             schreib("UEBERNEHMEN: vermesse den Platz von Spieler %d live -> start_%s.json" % (SP, kurz))
             KH.vermessen_live(kurz, SP)
     if not os.path.exists(os.path.join(D, "start_%s.json" % kurz)):
+        if arg.get("nur_phase2", "nein") == "ja":
+            # B-136 (20.10.): ein Neustart in der laufenden Partie darf nie ein eigenes Vermessungsgefecht starten - das
+            # beendet die Partie
+            raise SystemExit("NUR_PHASE2: start_%s.json fehlt - keine Vermessung mitten in der Partie" % kurz)
         schreib("KARTE %s unbekannt - einmalige Vermessung in eigenem Gefecht (vor der Partie)" % karte)
         KH.vermessen("gefecht:" + karte, kurz)
     # B-124: lager_max (Lager hoechstens so viele Felder vom Bergfried-Eingang) ist ein Knopf; andere Werte als 45 bekommen
