@@ -119,7 +119,6 @@ class Feldzug:
     RUECKZUG_TAKTE = 300       # so lange auf demselben Feld (Kern-Messung L170: STEHT NUR Median 345 Takte)
     RUECKZUG_SCHADEN = 1000    # Schaden innerhalb dieser Takte zaehlt als "unter Beschuss" (eine Lenker-Runde: 187-1.069 Takte)
     RUECKZUG_MIN = 5           # so viele muessen es sein - einzelne Nachzuegler loesen keinen Rueckzug aus
-    SCHUETZEN_MAX = 10         # Angriffsstellen mit mehr Feindschuetzen in Reichweite scheiden aus (L171: Vorposten mit 25)
 
     def _steht_nur(self, L, nah_kampf, t):
         """B-146: Nahkaempfer, die seit RUECKZUG_TAKTE auf demselben Feld stehen, in den letzten RUECKZUG_SCHADEN Takten
@@ -177,9 +176,9 @@ class Feldzug:
                 kand = [k for k in kand if k[3] in angreifbar]
             except Exception:
                 pass
-        # B-146 (L171: der Feldzug schickte das Heer an einen Vorposten mit 25 Feindschuetzen in Reichweite): Stellen mit mehr als
-        # SCHUETZEN_MAX Schuetzen scheiden aus
-        kand = [k for k in kand if k[0] <= self.SCHUETZEN_MAX]
+        # (B-146: ein Filter "mehr als 10 Schuetzen scheiden aus" stand hier - die Auswahl nimmt ohnehin die Stelle mit den
+        # wenigsten Schuetzen, der Filter konnte also nur "gar keine" bewirken; Pruefstand 21.10. 00:37: keine Schwachstelle,
+        # das Heer stand 17.000 Takte im STAU. Der Schutz gehoert an den Vorposten, siehe _vorposten.)
         return min(kand) if kand else None
 
     def _schwachstelle(self, G, lp, orte, aus, anlass):
@@ -206,9 +205,10 @@ class Feldzug:
     ZIEL_BIS = 4000           # B-140: Rechengrenze (Takte) fuer die Gefechtsrechnung am Ziel
     LORD_PRUEF_RUNDEN = 20
 
-    def _erreichbar_bei(self, ziel, nr, mitte, ringe):
+    def _erreichbar_bei(self, ziel, nr, mitte, ringe, gefahr=None):
         """Der naechste vom Wegfinder des Spiels erreichbare Punkt auf Ringen um ziel (je 8 Richtungen), bei gleichem Ring der
-        naechste an mitte; None ohne Wegtest oder ohne Treffer."""
+        naechste an mitte; None ohne Wegtest oder ohne Treffer. Mit gefahr (Punkt -> Zahl Feindschuetzen in Reichweite, B-146):
+        zuerst Punkte bis TOR_R (dort kommt der Angriffsbefehl), darunter der mit den wenigsten Schuetzen."""
         if self.wegtest is None:
             return None
         punkte = [(ziel[0] + dx * r, ziel[1] + dy * r) for r in ringe
@@ -218,6 +218,8 @@ class Feldzug:
         except Exception:
             return None
         treffer = [q for q, g in zip(punkte, gut) if g]
+        if gefahr is not None:
+            return min(treffer, key=lambda q: (schach(q, ziel) > self.TOR_R, gefahr(q), schach(q, ziel), schach(q, mitte))) if treffer else None
         return min(treffer, key=lambda q: (schach(q, ziel), schach(q, mitte))) if treffer else None
 
     def _vorposten(self, L, tor, nah_kampf, mitte):
@@ -227,7 +229,13 @@ class Feldzug:
         Wegtest oder ohne Treffer: None (dann der alte Weg)."""
         if not nah_kampf:
             return None
-        return self._erreichbar_bei(tor, nah_kampf[0], mitte, self.RINGE)
+        # B-146 (Daniel 21.10. 00:34; L171: Vorposten (146,133) vor Turm 241 lag im Schussfeld von 25 Feindschuetzen, die
+        # Armee stand dort und wurde abgeschossen): bis TOR_R der Punkt mit den wenigsten Schuetzen in Reichweite
+        import gefecht
+        schuetzen = [((e["x"], e["y"]), gefecht.FERN_REICH[e["typ"]]) for e in L.values()
+                     if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in gefecht.FERN_REICH and e.get("leben", 1) > 0]
+        return self._erreichbar_bei(tor, nah_kampf[0], mitte, self.RINGE,
+                                    gefahr=lambda q: sum(1 for f, r in schuetzen if schach(q, f) <= r))
 
     def _lords(self, L):
         return {n: e for n, e in L.items() if e["typ"] == LORD and e["besitzer"] not in freunde_von(self.sp) and e["leben"] > 0}
@@ -510,8 +518,12 @@ class Feldzug:
                     if self.vorposten is None or self.vorposten[0] != bresche:
                         vp = self._vorposten(L, tor, nah_kampf, mitte)
                         self.vorposten = (bresche, vp)
+                        import gefecht
+                        n_sch = (sum(1 for e in L.values() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in gefecht.FERN_REICH
+                                     and schach(vp, (e["x"], e["y"])) <= gefecht.FERN_REICH[e["typ"]]) if vp else 0)
                         aus.append("FELDZUG VORPOSTEN vor Gebaeude %d: %s" % (
-                            bresche, "%s, %d Felder davor (Wegtest des Spiels)" % (vp, schach(vp, tor)) if vp else "keiner gefunden - Weg zum Lord"))
+                            bresche, "%s, %d Felder davor (Wegtest des Spiels), %d Feindschuetzen in Reichweite" % (vp, schach(vp, tor), n_sch)
+                            if vp else "keiner gefunden - Weg zum Lord"))
                     vp = self.vorposten[1]
                     if vp is not None:
                         # B-139: alle Nahkaempfer, die noch nicht am Tor sind, laufen zum Vorposten (einmal; erneut nur, wer

@@ -571,21 +571,29 @@ def main():
     e27g, v27g, m27g, z27g = rueckzug(True)
     pruefe(27, "steht nur: Tor %s verworfen %s %s Laufbefehl %s | im Nahkampf: verworfen %s %s" % (e27, v27, m27, z27, v27g, m27g),
            e27 is not None and e27 in v27 and m27 and z27 and not m27g)
-    # 28 (B-146, L171): einzige Angriffsstelle mit 25 Feindschuetzen in Reichweite -> keine Schwachstelle gewaehlt;
-    #    Gegenprobe: dieselbe Stelle mit 2 Schuetzen -> gewaehlt
-    def kreuzfeuer(n_schuetzen):
+    # 28 (B-146, L171): Vorposten - zwei erreichbare Punkte im selben Ring vor Turm 901, einer im Schussfeld von 25 Schuetzen,
+    #    der andere von keinem -> der ohne Schuetzen; Gegenprobe ohne Schuetzen: der naechste an der Heeresmitte (wie vorher).
+    #    Dazu der Fehler des ersten Pruefstand-Laufs (21.10. 00:37): die einzige Angriffsstelle mit 25 Schuetzen muss trotzdem
+    #    gewaehlt werden - sonst steht das Heer ohne Ziel.
+    def vorposten(n_schuetzen):
         f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
-        f.schritt({"t": 12000}, *lage(5, heim), Befehle())
+        f.wegtest = lambda nr, punkte: [q in ((300, 110), (300, 102)) for q in punkte]
         L_, G_ = lage(0, heim)
-        for i in range(10):
-            L_[10 + i] = einheit(26, 1, 280 + i % 3, 130 + i // 5, 28000)
+        L_[10] = einheit(26, 1, 300, 140, 28000)
         for i in range(n_schuetzen):
+            L_[800 + i] = einheit(22, 2, 300 + i % 5, 150 + i // 5)   # (300,110) in Reichweite 44, (300,102) nicht
+        return f._vorposten(L_, (300, 106), [10], (300, 140))
+    def einzige_stelle():
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+        L_, G_ = lage(0, heim)
+        for i in range(25):
             L_[800 + i] = einheit(22, 2, 300 + i % 5, 100 + i // 5)
         G_[901] = {"typ": 46, "besitzer": 2, "x": 300, "y": 106, "leben": 1500}
-        f.phase = "angriff"
-        f.schritt({"t": 12050}, L_, G_, Befehle())
-        return f.bresche
-    pruefe(28, "Stelle mit 25 Schuetzen: %s | mit 2: %s" % (kreuzfeuer(25), kreuzfeuer(2)), kreuzfeuer(25) is None and kreuzfeuer(2) == 901)
+        f._lagebild = L_
+        return f._beste_stelle(G_, (300, 100), [(280, 130)])
+    v28, v28g, b28 = vorposten(25), vorposten(0), einzige_stelle()
+    pruefe(28, "Vorposten mit 25 Schuetzen im Sueden: %s | ohne Schuetzen: %s | einzige Stelle im Kreuzfeuer: %s" % (v28, v28g, b28),
+           v28 == (300, 102) and v28g == (300, 110) and b28 is not None and b28[3] == 901)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
