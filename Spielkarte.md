@@ -158,10 +158,10 @@ Rehe nachwachsen, Staub, `updateGameRelatedValue`.
   "der Lenker sieht bei Tempo 100 etwa alle 11 Ticks hin", lernen.py).
 - Die Gegner-KI entscheidet ihre Bauten in jedem Takt NACH den Gebaeuden und VOR den Einheiten.
 
-**Geklaert 20.10.2026 (L154):** `everyTick` haengt nicht an UCP3, sondern an unserem eigenen Haken am Anfang von
-`processGameTick` (villagestudio init.lua, hookCode 0x45CD10) - also nach `processWaitingCommands`, vor Gebaeuden und
-Einheiten. Gemessen: das Kern-Protokoll hat 2.238 von 2.238 Abstaenden von genau 500 Takten, auch bei Tempo 300 - der
-Kern laeuft in jedem Takt.
+**Geklaert 20.10.2026 (L154, korrigiert 23:05):** `everyTick` haengt an unserem eigenen Haken auf `processGameTick`
+(villagestudio init.lua Z. 783-788, hookCode 0x45CD10) - und der ruft ERST den ganzen Takt, DANN `onTick`. Unser Code
+laeuft also nach Gebaeuden und Einheiten. Er laeuft auch in der Pause (Spielzeit steht, logik.lua Z. 956). Gemessen:
+kein Takt wird uebersprungen (2.238 von 2.238 Protokoll-Abstaenden genau 500 Takte, `werkzeug/takt_messen.py kern 5`).
 
 ## 4. Darf hier gebaut werden? (B-95, 20.10.2026)
 
