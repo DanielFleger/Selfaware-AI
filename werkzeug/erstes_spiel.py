@@ -3513,7 +3513,7 @@ def main():
     KH.GEFECHT_EXTRA = dict(gegner=GEGNER_ZAHL, **({"startliste": (startliste + [246] * 8)[:8]} if startliste else {}))
     if GEGNER_ZAHL > 1 and arg.get("verbuendet", "ja") == "ja":
         KH.GEFECHT_EXTRA["teams"] = [1] * GEGNER_ZAHL     # alle Gegner in einer Mannschaft gegen uns (Mannschaft 0)
-    if EINS_GEGEN_EINS or ANHAENGEN:
+    if EINS_GEGEN_EINS or ANHAENGEN or TEAM_KIS:     # B-133: auch ein Neustart im 2v2 (nur_phase2=ja) nimmt die Teamplaetze
         # 19.10. (1v1): eigene Kurznamen - beide Plaetze werden in einem Gefecht mit zwei Menschen live vermessen
         kurz += "_1v1"
     if EINS_GEGEN_EINS:
@@ -3706,7 +3706,9 @@ def main():
         # weiterspielen - der Planer dort baut nach, was die Eroeffnung nicht mehr schaffte. Vor dem Start bleibt es ein Abbruch
         # 19.10. 20:39 (Lobby-Test: "ZEIT UM beim Warten auf: Soeldnerposten" beendete SamurAI - SystemExit, kein Exception):
         # in der Uebernahme auch dann weiter in Phase 2
-        if not ((PARTNER or UEBERNEHMEN) and START_FERTIG) or (isinstance(e, SystemExit) and not UEBERNEHMEN):
+        # 20.10. (B-133 2v2, Spieler 1: "ZEIT UM beim Warten auf: Gold fuer den Assassinen abgebucht" beendete den Lenker):
+        # mit Partner (1v1/2v2) wie in der Uebernahme auch nach einem SystemExit weiter in Phase 2
+        if not ((PARTNER or UEBERNEHMEN) and START_FERTIG) or (isinstance(e, SystemExit) and not (UEBERNEHMEN or PARTNER)):
             raise
         import traceback
         traceback.print_exc()
