@@ -1,0 +1,260 @@
+Selfaware-AI connector and code-quality audit
+Audited revision: 7b994b71bbf41d8a11c5c720b05e91d31b8db24c (main)
+Audit date: 2026-10-19
+
+The shared command channel needs corrections before concurrent runs can be
+treated as reliable experimental evidence. The strongest problems concern
+exclusive access, duplicate command IDs, and distinguishing delivery from
+successful execution. There is also a reachable native window call that uses
+a calling convention the source itself documents as crash-prone.
+
+This is an audit, with reproducible evidence; production code was not changed.
+
+Scope and references
+
+The repository was cloned into S:\Projects\SelfawareAI. Review covered the
+Python file/log command bridge, Lua dispatch and native-call boundaries,
+per-player and per-instance routing, the runtime/configuration helpers,
+representative controller and analysis code, and the offline test scripts.
+All Python sources and Lua snapshots received syntax checks. This is not a
+line-by-line proof of all AI policy code.
+
+Primary reference sources were the existing local UCP project:
+- UnofficialCrusaderPatch3 at 02a7a6bc8ab956a91fc752e8c8ed215c149855e7:
+  content/ucp/code/core.lua, especially exposeCode's contract at lines 292-300.
+- OpenSHC at 126f25c9a53c14270ccd10c6a5db6f05bd143204:
+  src/OpenSHC/Synchrony/GameSynchronyState.hpp, currentPlayerSlotID and
+  queueCommand declarations; src/precomp/addresses-SHC-3BB0A8C1.hpp for symbols.
+
+These are pinned local reference revisions, not a claim about the latest
+upstream UCP release. The UCP checkout already had changes in loader.lua and
+main.lua; those files were not changed by this audit. Native addresses and
+argument layouts were inspected against the reference; native execution and
+the actual game's timing were not tested.
+
+The runtime VillageStudio init.lua, instanz.py, building catalogue, installed
+module metadata, and a live game session were not supplied by this checkout.
+Only the three dated logik.lua snapshots can be audited here. The omitted
+init.lua means its polling, duplicate suppression, JSON decoding and hot reload
+cannot be verified end to end.
+
+Prioritized findings
+
+1. [P1] A sender can steal a live partner's command lock.
+   Source: werkzeug/befehl.py:112-141, 183-195.
+   Probe: C02 in results.json.
+
+   _sperren removes .sende as soon as its mtime exceeds eight seconds, without
+   checking whether the owner is alive or renewing ownership. sende explicitly
+   permits a partner request to wait at least twenty seconds, and long map
+   queries are documented in the code. A second sender can therefore replace
+   the first sender's command before its acknowledgement. The old sender's
+   finally then calls _entsperren, which unconditionally deletes the new
+   owner's lock. More senders can enter the same transaction.
+
+   Reproduction replaced a nine-second-old active-owner marker, then showed
+   that the unconditional unlock deleted its replacement.
+   Correct with an OS-backed interprocess lock, or an owner-token lease renewed
+   throughout the complete request, with owner-checked release. A timeout must
+   not free a still-pending command for another writer to overwrite.
+
+2. [P1] Concurrent senders for the same player can allocate the same ID.
+   Source: werkzeug/befehl.py:54-68, 162-166;
+   werkzeug/logik_stand_20261019.lua:3116-3119.
+   Probe: C09.
+
+   neue_id reads and rewrites the same per-player counter without locking.
+   sende allocates the ID before acquiring the partner lock. Separating player
+   residues prevents player 1 versus player 2 collisions, but two helpers or
+   controllers for the same player still race. The Lua completed-ID table
+   skips the second command, so the second sender can receive an acknowledgement
+   for an operation that never ran.
+
+   Two independent module states with synchronized counter reads returned
+   8000000001 twice. This deterministically models the cross-process race;
+   it does not rely on a probabilistic stress test.
+   Allocate IDs inside the shared transaction lock, or use a protocol identity
+   containing a unique sender/session and a local sequence. Add same-player
+   coverage: ids_pruefen.py currently tests players 1 and 2 only.
+
+3. [P1] Missing acknowledgements return normally, even with strict checking.
+   Source: werkzeug/befehl.py:171-199; werkzeug/laden.py:37-44.
+   Probes: C01 and C05.
+
+   The polling loop simply expires and returns whatever log lines exist.
+   STRENG checks textual errors, so an empty response is accepted too. The
+   partner lock is then released, allowing the next command to overwrite a
+   command the game may never have read. Supplying bis also replaces the
+   request-ID completion condition with a generic substring; an unrelated or
+   delayed matching line can complete the request in non-partner mode.
+
+   Reproduction with no consumer returned [] instead of raising in strict
+   mode. Another probe accepted a PEEK line without the request's QUITTUNG.
+   Always require the exact request acknowledgement and a bounded timeout
+   exception; make payload/operation completion a separate condition. Define
+   recovery for an ambiguous timeout instead of silently continuing. Use a
+   monotonic clock for durations. Publish command files atomically so a poller
+   cannot observe a truncated or partially written JSON document.
+
+4. [P1] Single-command failure is acknowledged without reaching STRENG.
+   Source: werkzeug/logik_stand_20261019.lua:3133-3146;
+   werkzeug/befehl.py:75-84.
+   Probe: C06.
+
+   Lua emits the failed/executed summary only for multiple processed commands
+   or duplicates. If the only command returns false, the response can consist
+   of a plain warning followed by QUITTUNG. Python recognizes only a Lua
+   location/line error or an incomplete numeric batch summary. Thus a one-item
+   befehle list, the normal laden.befehl envelope, has this blind spot too.
+
+   The real Lua snapshot, under a mocked core, returned
+     logik: unbekannter Befehl.
+     QUITTUNG 101
+   and Python's strict checker accepted it.
+   Emit an explicit, ID-correlated result for every request and child command,
+   including false returns, and parse status rather than warning prose.
+
+5. [P1] The known unsafe SetWindowPos native call remains reachable.
+   Source: werkzeug/logik_stand_20261019.lua:1030-1051;
+   compare the disabled path at 662-683.
+   UCP reference: content/ucp/code/core.lua:292-300.
+   Probe: C08.
+
+   fensterSetzen refuses this call after three documented crashes, but the
+   separate cmd.hinten branch still calls the imported SetWindowPos with seven
+   arguments and convention 0 by default. UCP documents 0 as cdecl and stdcall
+   as unimplemented. pcall does not make an ABI mismatch safe.
+
+   A mocked command confirmed that {player=1,hinten=true} reaches the native
+   call with convention 0. No unsafe function was executed during this audit;
+   crash risk is supported by UCP's contract and this repository's recorded
+   failure, not by a new live crash reproduction.
+   Disable this branch too, or move the operation to the external Windows
+   helper with the correct ABI. Do not expose an experimental convention knob
+   as a normal runtime command.
+
+6. [P2] The common Lord guard does not filter direct commands.
+   Source: werkzeug/lordschutz.py:46-60;
+   werkzeug/befehl.py:153-162.
+   Probe: C04.
+
+   filtern only inspects dictionaries containing befehle. sende and its CLI
+   also accept a direct command dictionary. A direct attack is returned
+   unchanged even when the guard knows the target is an enemy Lord and the
+   tick is below 9600, or when it includes the player's own Lord. The equivalent
+   batch is correctly removed. This contradicts the stated all-command-path
+   guarantee and can invalidate a run under the experiment's rules.
+
+   At tick 5000 a direct attack on the known enemy Lord was allowed while
+   the same attack wrapped in befehle was blocked.
+   Normalize every supported envelope, apply pruefe to each command, then
+   restore the envelope. Test sende itself as well as the guard's helpers.
+
+7. [P2] Deferred operations are reported as executed before dispatch.
+   Source: werkzeug/logik_stand_20261019.lua:3122-3127, 3133-3146,
+   3667-3684.
+   Probe: C07.
+
+   A command belonging to a different player is put in aufgeschoben but counted
+   as executed, marked completed, and included in the immediate QUITTUNG.
+   Its actual dispatch occurs in a later tick. The original request cannot
+   receive that operation's later failure; platzTick ignores false returns,
+   and its exception message uses a different prefix from the Python checker.
+
+   A two-player build batch reported '2 von 2 Befehlen ausgefuehrt' while the
+   mocked native queue had received only one call. The second arrived only
+   after everyTick. Game action completion is later still.
+   Distinguish received, queued, dispatched and failed states. Preserve the
+   original request ID until deferred dispatch finishes and report its result.
+   Do not treat QUITTUNG or a queued count as proof of a game-state change.
+
+8. [P2] The checkout cannot reproduce much of its own offline validation.
+   Source: werkzeug/bauen.py:19-21; werkzeug/sicht.py:80-82;
+   werkzeug/spiel.py:37-43; werkzeug/befehl.py:27-30;
+   werkzeug/partie_vergleich.py:77-91.
+
+   Core imports require ../VillageStudio/lib/gebaeude.json and, for process
+   helpers, ../VillageStudio/werkzeug/instanz.py. The paths are fixed, with no
+   declared revision or bootstrap instructions. The game directory check runs
+   at import time, even for offline policy tests. There is no dependency
+   manifest or CI workflow. PyYAML, Pillow and NumPy are imported by tools;
+   the initial audit environment did not have PyYAML.
+
+   Even with a disconnected connector stub, 17 of 38 selected offline scripts
+   stopped on the missing building catalogue. One more script failed because
+   its assertion expects 'Holzfaellerhuette' while the supported metadata-free
+   fallback emits 'Typ 3'. That failure is test portability, not evidence of a
+   wrong numeric economic calculation. A recorded-match case was explicitly
+   skipped because its trace files were absent.
+
+   Declare and pin the VillageStudio/module/catalogue dependencies and Python
+   packages; document installation and supported executable identity. Separate
+   pure policy imports from installation validation. Use stable numeric fields
+   in assertions and make missing optional data an explicit skip. Add one
+   documented offline command and run it in CI.
+
+Additional code-quality observations
+
+- Partner cleanup is broken: belege writes '<pid> partner', whereas freigeben
+  compares the whole contents with '<pid>' (befehl.py:91-98). C03 confirms that
+  release leaves the marker behind. A following non-partner tool can be
+  spuriously rejected for the remaining fifteen-second lease. Owner cleanup
+  should compare parsed identity and preserve other active partner owners.
+- Runtime configuration editors use backups, YAML safe_load, and read-back
+  checks, which are useful safeguards. They still depend on textual indentation
+  and first-match positions; preserve unknown settings and validate explicit
+  sparse/full sections with fixtures before broadening deployment.
+- Executable addresses are fixed, and the repository explicitly treats AOB and
+  other versions as future work. A game-binary identity check is needed before
+  advertising support beyond the measured build. UCP data/symbol references
+  alone do not establish binary compatibility.
+- Native memory read/write and process control are intentional research
+  facilities. No remote/network attack surface was established. Treat the
+  command file as trusted local input; do not expose it to untrusted writers.
+- The 3651-line main controller and 2875-line assassin policy mix decisions,
+  persistence, command assembly, and research history. Extract the connector
+  protocol and pure decision functions incrementally, with existing scenario
+  checks preserving behavior. A wholesale policy rewrite is not needed to fix
+  the connector defects.
+- The repository has substantial empirical documentation, confidence labels,
+  scenario checks, and some deliberately failing control modes. Those are real
+  strengths. Missing dependencies and transport blind spots currently limit
+  how much confidence a green script or recorded run can provide.
+
+Validation performed
+
+- Python 3.14.7: all 174 original Python files compile.
+- Lupa Lua compiler: all three Lua snapshots compile.
+- All 188 top-level daten/*.json files parse. JSONL/gzip datasets were not all
+  exhaustively checked for schema or semantic consistency.
+- 38 selected offline scripts, with live connector calls disabled and writes
+  outside temporary directories blocked: 20 passed, 17 blocked by missing
+  VillageStudio metadata, 1 failed a metadata-dependent name assertion.
+- Nine deterministic connector probes reproduced the behaviors documented
+  above. They are bug reproductions, not nine passing product requirements.
+- Ruff 0.17.1, selected correctness rules: no undefined/unbound-name findings.
+  The narrower selection produced twelve loop-closure advisories and one
+  exception-chaining advisory; the broader F/B/S scan also produced cleanup,
+  zip, subprocess, assertion and research-hash warnings. These are not counted
+  as proven defects or security vulnerabilities. See lint.json for raw output.
+- No game was started, no native call was made, no config/game file was changed,
+  and no commit or push was made. Existing tracked sources are unchanged.
+
+Reproduction
+
+  python audit/run_checks.py
+
+Python's standard library is sufficient for the Python probes and offline
+runner. Install lupa to include Lua syntax and mocked dispatch probes:
+
+  python -m pip install lupa
+
+The runner writes audit/results.json. It exits successfully when the audit run
+finishes; inspect suite_counts and individual statuses for product test results.
+Ruff output can be regenerated independently with:
+
+  python -m ruff check werkzeug --select F,B,S --output-format json --output-file audit/lint.json
+
+Suggested repair order: lock lifetime and ownership; ID allocation; explicit
+transport timeout and result protocol; unsafe native branch; complete guard
+coverage; deferred result correlation; dependency/CI reproducibility.

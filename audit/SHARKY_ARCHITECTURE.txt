@@ -1,0 +1,327 @@
+Architecture review: applying Sharky's patterns to Selfaware-AI
+
+Reviewed Selfaware-AI: 7b994b71bbf41d8a11c5c720b05e91d31b8db24c
+Reviewed Sharky:       2628ba1c5c2083aeeddf9f13c25bf6f218820a05
+Date: 2026-10-19
+Status: design proposal; runtime code and existing plans are unchanged.
+
+Recommendation
+
+Use Sharky as an architectural reference for a Python bot framework with a
+small, versioned UCP/Lua game adapter. The architecture should make ownership
+of state, units, resources and commands explicit. Add capabilities by plugging
+in policies and tasks with consistent contracts, while retaining the measured
+Stronghold models and the original game's worker/pathing behavior.
+
+Plan_Architektur.md already names Sharky and proposes four engines, a shared
+world view, a household allocator and a unit commander. That is broadly sound.
+The implementation needs enforceable boundaries: policies produce proposals;
+coordinators grant units and resources; one executor owns native dispatch;
+observations establish whether actions actually took effect.
+
+What the Sharky source actually does
+
+1. Lifecycle and manager pipeline.
+   SharkyBot calls an ordered manager list at start, each frame, and end. It
+   collects returned actions and records manager timing. The inspected manager
+   loop is sequential. Its README's multithreading claim is not a reason to
+   parallelize Selfaware-AI's writers.
+   Source: Sharky/SharkyBot.cs, Managers/IManager.cs.
+
+2. Shared game data and derived information.
+   ActiveUnitData holds units, commanders and deaths; UnitManager updates
+   calculations; MapData and MacroData hold map and macro state. This is shared
+   mutable state in Sharky. For this repo I recommend a read-only snapshot per
+   decision cycle and explicit state ownership instead.
+   Source: Sharky/SharkyData/ActiveUnitData.cs, Managers/UnitManager.cs,
+   Pathing/MapData.cs, Builds/MacroData.cs.
+
+3. Strategy/build intent is separate from macro execution.
+   BuildManager selects and transitions builds; build data expresses desired
+   composition and production. MacroManager calls the services that perform
+   production. It also runs full production less frequently than every frame.
+   This translates well to goals plus a production/economy planner.
+   Source: Sharky/Managers/BuildManager.cs, Managers/MacroManager.cs,
+   Builds/ISharkyBuild.cs.
+
+4. Micro tasks claim units in priority order.
+   MicroManager removes dead units, visits enabled tasks sorted by Priority,
+   and calls ClaimUnits and PerformActions. AttackTask claims unclaimed army
+   units. Claims, release and deliberate transfer prevent different tasks from
+   continually overriding each other.
+   Source: Sharky/Managers/MicroManager.cs, MicroTasks/MicroTask.cs,
+   MicroTasks/Attack/AttackTask.cs.
+
+5. UnitCommander handles order discipline.
+   Order tracks the previous ability and target, suppresses duplicates and
+   same-frame conflicts, and keeps stuck/cooldown information. GameConnection
+   also filters conflicting unit orders before sending a request. Selfaware-AI
+   should have a similar final arbitration boundary, extended for delayed UCP
+   execution and entity IDs that can be reused.
+   Source: Sharky/Unit/UnitCommander.cs, Setup/GameConnection.cs.
+
+6. Adaptation includes selecting builds from recorded results.
+   BuildManager saves game/build history. DefaultSharkyBot selects a
+   RecentBuildDecisionService that chooses among supplied build sequences from
+   prior results. This is a useful example of adaptive selection; this code
+   does not establish a general reinforcement-learning solution.
+   Source: Sharky/Managers/BuildManager.cs,
+   Builds/BuildChoosing/RecentBuildDecisionService.cs,
+   DefaultBot/DefaultSharkyBot.cs.
+
+The proposed Stronghold pipeline
+
+  UCP adapter / channel owner, one per game instance
+      -> coherent, versioned world snapshot
+      -> derived state: threats, logistics, combat estimates, placement/pathing
+      -> strategy goals + economy/production proposals + tactical task requests
+      -> coordinator: resource reservations, unit claims, priorities and rules
+      -> unit/group commanders + pending-action ledger
+      -> serialized UCP commands
+      -> next observations reconcile costs, entities, orders and outcomes
+
+This describes decision stages, not a requirement to run those stages on
+different threads. One runtime can host two player contexts in a self-play
+game. If policies remain in separate processes, both talk to the same channel
+owner rather than writing befehl.json themselves. Each separate game instance
+gets its own channel owner, command ledger and lifecycle.
+
+Core contracts
+
+GamePort:
+  capabilities() -> executable/module/protocol identity and supported actions
+  observe() -> WorldSnapshot plus domain events and command results
+  submit(batch, session) -> transport receipt
+
+WorldSnapshot:
+  instance_id, game_epoch, snapshot_id, tick, schema_version, player views,
+  entities, stocks, orders, static-map reference, observation timestamps.
+  Include actual native entity UIDs: a reusable table slot is not identity.
+  Track freshness of any asynchronously refreshed field. Preserve unknown
+  values instead of converting them into confident zeroes.
+
+Engine:
+  on_start(context)
+  propose(world, goals, knowledge) -> proposals
+  on_events(events)
+  on_end(outcome)
+
+Proposal:
+  stable key, producer, goal/reason, required entities/resources/footprint,
+  prerequisites, estimated benefit and confidence, priority, deadline,
+  expected observable effect, cancellation conditions.
+
+The coordinator grants compatible proposals. Micro controllers turn granted
+tasks into commands for the units they own. A proposal that needs several
+resources reserves the bundle together. Policy code has no filesystem or
+native-memory access and cannot call sende, peek or poke.
+
+Budget and claim records belong to their player context. The raw adapter can
+sample a full game, while an explicit observation policy determines which
+information a particular bot is permitted to use in that experiment.
+
+Command lifecycle:
+  planned -> reserved -> submitted -> received -> dispatched
+          -> confirmed by observation, rejected, cancelled or unresolved
+
+Received/queued is not confirmation of a building, recruitment or movement.
+Reconcile the ledger before allocating a new budget. Release a reservation
+when its observed cost/effect has been accounted for, so it is neither spent
+twice nor permanently withheld. A timeout after submission is ambiguous;
+blindly retrying a non-idempotent build/recruit/trade command is unsafe.
+
+The adapter owns player-slot switching and native selection/command queue
+transactions. A grouped move/attack can require multiple dependent native
+steps; represent this as one logical operation with a lifecycle. Final command
+validation checks entity identity, ownership, state freshness and configured
+experiment rules. Debug spawning, resource edits and raw memory writes remain
+capabilities of explicit experiment/admin tooling.
+
+Reuse the existing components
+
+- befehl.py, laden.py, Lua dispatch snapshots:
+  game adapter and reliable channel executor. Pin the external VillageStudio
+  module/catalogue dependency or version its necessary bridge code explicitly.
+- runde_lesen, waechter parsers, Uebersicht:
+  snapshot decoder, world state and derived formation/movement features.
+- auftragsbuch.Auftragsbuch:
+  starting point for the pending-action ledger and observed-effect checks.
+  Preserve its useful building confirmation behavior and extend the model to
+  recruitment, trade and orders.
+- wirtschaft, ertragsplaner, Produktion, brotbau, bierkette, kausal:
+  economy/production proposals and measured yield/logistics models.
+- haushalt.Haushalt:
+  tax/ration/popularity policy inside macro. It is not currently the global
+  resource allocator; create a distinct BudgetAllocator.
+- waechter, lordwache, feldzug, raids, assassinen:
+  tactical tasks and specialized unit/group controllers. Existing Einzeln
+  already returns command proposals in part; preserve and extend that seam.
+  Migrate components that currently send commands internally behind adapters.
+- zuweisung:
+  combat assignment and smallest-sufficient-group service, used by the claim
+  coordinator. The helper does not itself provide exclusive task ownership.
+- sicht, schussfeld, wegkarte, navigation, gefahrenzone, gefecht, bedrohung:
+  shared sensing, threat, movement and combat services. Keep measured facts,
+  estimates and unsupported matchups distinguishable.
+- lernen, partie_vergleich, lageprotokoll, kennung:
+  evaluation, policy selection, traces and run provenance.
+- erstes_spiel.py:
+  compatibility CLI while the runtime and scenario setup are extracted.
+  New tactical features belong in tasks, not more branches in phase2.
+
+Stronghold-specific design choices
+
+Unit allocation:
+  Start with explicit task priorities and persistent ownership. Critical
+  defense can temporarily claim units from a raid; transfer ownership once,
+  record why, then release them when the threat ends. Use minimum commitment
+  and reassessment rules to avoid oscillation. Group tasks can request a
+  smallest sufficient force through zuweisung. A final arbiter rejects any
+  conflicting nonqueued commands that still reach it.
+
+Resource allocation:
+  Gold-equivalent return alone cannot encode food security, worker limits,
+  housing, popularity, production bottlenecks or survival. Satisfy critical
+  constraints and commitments first, then rank feasible optional investments
+  with the existing measured returns and remaining useful horizon. Reserve
+  gold/wood/stone/weapons/workers/space together. Include time until operation,
+  not just placement: a hops farm requires downstream brewing and tavern
+  capacity before it delivers the intended popularity/tax benefit.
+
+  Example: defense recruitment and a farm may each be affordable from the same
+  snapshot but not together. The coordinator grants one bundle and records its
+  cost before either planner can consume the same stock. The next snapshot
+  reconciles the actual debit; it is never inferred from a log acknowledgement.
+
+Worker economy and pathing:
+  Keep native worker routines and native pathing where they are appropriate.
+  SC2 mining micro is not a direct model for Crusader's automatic occupations,
+  carrying, stockpiles, seasons and production chains. Cached threat/terrain
+  maps can guide native movement queries. Assassins' climbing and group
+  selection must retain the game's established command path.
+
+Scheduling and computational scaling:
+  Measure adapter latency, snapshot age, decision time, queue delay and effect
+  delay separately. Use game ticks for behavior and monotonic time for I/O
+  deadlines. Run urgent tactical checks on each fresh sample; refresh macro
+  when relevant stock/worker/building events occur or its tick interval expires;
+  run strategy on a slower schedule plus emergency triggers.
+  Cache static geometry/catalogues, index nearby entities, and invalidate
+  affected placement/path data when buildings or walls change. Schedule slow
+  map queries so they cannot monopolize the action channel. Add parallel
+  computation only after profiling, over read-only snapshots with a single
+  deterministic merge and one writer. Independent games can scale by instance.
+  Use measured freshness limits; do not transplant Sharky's millisecond or
+  frame thresholds into a different game speed and transport.
+
+Learning and evidence:
+  Make policy profiles and measured knowledge explicit versioned inputs. Start
+  with build/profile selection and bounded parameter optimization using the
+  current lernen machinery. Decisions should log the alternatives considered,
+  chosen proposal, estimated return/confidence, ownership/budget denial reasons
+  and later observed outcome. That creates usable learning examples.
+  Keep policy/model versions fixed during evaluation. A replay of old
+  observations validates decisions, contracts and runtime cost; its recorded
+  future cannot establish the win rate of actions the new policy would take.
+  Use repeated actual matches, controlled starting saves, side swaps and an
+  opponent/map suite for outcome comparisons. Claim exact seeded equivalence
+  only after reset/RNG determinism has been demonstrated. Report technical
+  invalidity separately from valid match outcomes and track its rate.
+
+Suggested repository layout (target, introduced gradually)
+
+  pyproject.toml                    Python package, extras and tooling
+  src/selfaware/
+    domain/                        entities, snapshots, proposals, events
+    game/                          GamePort, UCP protocol, codec, catalogues
+    runtime/                       composition, sessions, loop, scheduler
+    strategy/                      profiles, goals, transitions
+    macro/                         economy, logistics, production, fiscal policy
+    micro/tasks/                   defense, raids, assault, scouting
+    micro/controllers/             unit/group-specific behavior
+    coordination/                  claims, budget reservations, arbitration
+    execution/                     commanders, action ledger, rule validation
+    services/                      threats, visibility, combat, pathing
+    learning/                      selection and measured model inputs
+    telemetry/                     structured traces, run manifests, metrics
+  bridge/                          UCP module sources or pinned dependency spec
+  configs/                         validated match and bot profiles
+  tests/unit/                      pure decisions and coordination
+  tests/protocol/                  fake adapter, delivery and lifecycle failures
+  tests/replay/                    recorded-observation decision regressions
+  tests/integration/               explicitly invoked real-game scenarios
+  tests/fixtures/                  small catalogues and representative snapshots
+  tools/                          launcher, editor measurement, research CLIs
+  experiments/                    versioned experiment definitions/evaluation
+  research/                       handbook, reverse engineering and evidence index
+  runs/                           manifests, outcomes, referenced large artifacts
+
+Keep existing werkzeug entry points as small wrappers during migration. Keep
+the existing daten archive and its provenance readable while new runs adopt a
+schema; no bulk move is required. Preserve the repository's existing rule for
+committing each real match's reproduction files and logs under its size limit.
+Use the current register mechanism for larger external artifacts.
+
+Composition stays explicit and small: build only the selected services/tasks
+for a profile and pass their dependencies directly. Sharky's large default
+composition object is convenient, but handing every component the entire bot
+would preserve the coupling this repo needs to reduce.
+
+Migration sequence and acceptance gates
+
+1. Reliable GamePort and action lifecycle.
+   Wrap the current channel and repair the audit's delivery/ID/error/native-call
+   defects. Establish complete/pinned runtime dependencies and fixtures.
+   Gate: timeout, duplicate, late reply, same-player concurrency, partner
+   locking, deferred result and player-switch tests have explicit outcomes;
+   a receipt is never used as proof of a game effect.
+
+2. Explicit sessions and world snapshots.
+   Extract configuration, decoder and domain models. Preserve legacy CLI
+   behavior through wrappers. Reuse Uebersicht's derived features.
+   Gate: replay/unit suites import and run without Steam or sibling checkout
+   paths; policy imports do not reach live I/O; two player contexts have no
+   shared mutable policy state; samples are tagged with tick and identity.
+
+3. Unit claims and commanders, one task at a time.
+   Put defense and raiding behind common contracts. Compare proposed commands
+   in shadow mode, then route both through the common commander. Remove their
+   direct-send routes as each component migrates. Wrap remaining legacy tasks
+   so they obey the same authority before enabling mixed operation.
+   Gate: one owner per unit, no conflicting unqueued commands, no duplicate
+   spam while an action is pending, observed stuck-order recovery, UID reuse,
+   preemption/release scenarios, and no player/formation control regression.
+
+4. Strategy goals and budgeted macro.
+   Extract opening, food/popularity, production and investment decisions.
+   Expand the action ledger from buildings to recruitment/trade.
+   Gate: reserved cost never exceeds available resources; pending actions are
+   not ordered again; critical goals have explicit precedence; existing
+   economy checks pass and controlled actual-match comparisons meet declared
+   tolerances. Retire braucht_gold coordination as each producer migrates.
+
+5. Performance, multiple instances and learning evaluation.
+   Add scheduling/freshness metrics, incremental services and scenario suites.
+   Compare policy profiles against fixed baselines; promote measured changes.
+   Gate: agreed latency/freshness limits hold across tested game speeds, match
+   technical-failure rate is visible, evaluation data is separated from tuning,
+   and every result identifies code/module/config/catalogue/model/map versions.
+
+Behavior migration and policy improvement should be evaluated separately.
+Replay/shadow checks establish compatibility at the decision boundary;
+actual matches establish whether behavior and performance remain acceptable.
+
+Sources (all Sharky paths pinned to the reviewed commit)
+
+https://github.com/sharknice/Sharky/tree/2628ba1c5c2083aeeddf9f13c25bf6f218820a05
+https://github.com/sharknice/Sharky/blob/2628ba1c5c2083aeeddf9f13c25bf6f218820a05/Sharky/SharkyBot.cs
+https://github.com/sharknice/Sharky/blob/2628ba1c5c2083aeeddf9f13c25bf6f218820a05/Sharky/Managers/MicroManager.cs
+https://github.com/sharknice/Sharky/blob/2628ba1c5c2083aeeddf9f13c25bf6f218820a05/Sharky/Unit/UnitCommander.cs
+https://github.com/sharknice/Sharky/blob/2628ba1c5c2083aeeddf9f13c25bf6f218820a05/Sharky/Managers/BuildManager.cs
+https://github.com/sharknice/Sharky/blob/2628ba1c5c2083aeeddf9f13c25bf6f218820a05/Sharky/Managers/MacroManager.cs
+https://github.com/sharknice/Sharky/blob/2628ba1c5c2083aeeddf9f13c25bf6f218820a05/Sharky/Builds/BuildChoosing/RecentBuildDecisionService.cs
+https://github.com/sharknice/Sharky/blob/2628ba1c5c2083aeeddf9f13c25bf6f218820a05/Sharky/Setup/GameConnection.cs
+
+Local evidence: Plan_Architektur.md; audit/AUDIT.txt and results.json;
+the current source files listed above. This source/design review did not build
+or benchmark Sharky and did not launch a Stronghold or StarCraft match.
