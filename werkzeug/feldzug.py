@@ -99,9 +99,15 @@ class Feldzug:
         self.sturm_fuer, self.sturm_punkt, self.sturm_seit, self.sturm_los = None, None, 0, None   # B-138
 
     def _sturmpunkt(self, L, tor, mitte):
-        """B-138: auf der Linie Tor -> Mitte des Heeres der erste Punkt (vom Tor aus), der SICHER Felder von jedem feindlichen
-        Fernkaempfer entfernt ist; sonst die Mitte."""
+        """B-138: der Standort einer eigenen Truppe, der SICHER Felder von jedem feindlichen Fernkaempfer entfernt ist und dem
+        Tor am naechsten liegt - dort steht schon jemand, also ist er erreichbar (20.10. gegen Franz: ein Punkt auf der
+        gedachten Linie Tor -> Mitte war es nicht, die Nahkaempfer blieben 11 Felder davor stehen: "0 von 30 am Sturmpunkt").
+        Ohne solche Truppe: auf der Linie Tor -> Mitte des Heeres der erste sichere Punkt; sonst die Mitte."""
         fern = [(e["x"], e["y"]) for e in L.values() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in FERN]
+        eigene = [(e["x"], e["y"]) for e in L.values() if e["besitzer"] == self.sp and e["typ"] in TRUPPE and e["typ"] != LORD]
+        sicher = [q for q in eigene if all(schach(q, f) > self.SICHER for f in fern)]
+        if sicher:
+            return min(sicher, key=lambda q: (schach(q, tor), q))
         d = max(1, schach(tor, mitte))
         for k in range(0, d + 1, 2):
             q = (tor[0] + (mitte[0] - tor[0]) * k // d, tor[1] + (mitte[1] - tor[1]) * k // d)
