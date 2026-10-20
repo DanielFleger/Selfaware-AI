@@ -20,11 +20,11 @@ noch Trainer (Partien starten, Stellschrauben setzen, auswerten). Dann ist das T
 
 | # | Befund | Marke | Beleg |
 |---|---|---|---|
-| 1 | Der Kern wird in JEDEM Takt aufgerufen: im Protokoll liegen 2.238 von 2.238 Abstaenden bei genau 500 Takten, auch bei Tempo 300. Der Haken sitzt am Anfang von `processGameTick` (init.lua: hookCode 0x45CD10) - nach `processWaitingCommands`, vor Gebaeuden und Einheiten. | gemessen | `Instanz5/ucp/villagestudio/samurai_kern.log`, init.lua Z. 101/519 |
-| 2 | Der Python-Lenker sieht das Spiel nur alle 187-1.069 Takte (Tempo 300, Median 424-586). | gemessen | 4 Pruefstand-Laeufe 20.10. (B-144) |
+| 1 | Der Kern wird in JEDEM Takt aufgerufen: im Protokoll liegen 2.238 von 2.238 Abstaenden bei genau 500 Takten, auch bei Tempo 300. Der Haken sitzt am Anfang von `processGameTick` (init.lua: hookCode 0x45CD10) - nach `processWaitingCommands`, vor Gebaeuden und Einheiten. | gemessen | `python werkzeug/takt_messen.py kern 5`; init.lua Z. 101/519 |
+| 2 | Der Python-Lenker sieht das Spiel nur alle 187-1.069 Takte (Tempo 300, Median 424-586). | gemessen | `python werkzeug/takt_messen.py runden daten/pruefstand_20261020_22*_konsole.txt` (4 Laeufe, alle Tempo 300; andere Tempi nicht gemessen) |
 | 3 | Unser Rust (1.99.1, i686-pc-windows-gnu) uebersetzt `extern "thiscall"` - Spielfunktionen sind direkt aufrufbar. Im Spiel noch NICHT aufgerufen. | gemessen (Uebersetzen) | Probe `thiscall_probe.rs` |
 | 4 | Eine geladene DLL ist bis Spielende gesperrt - heute heisst jede neue Fassung: Instanz neu starten. | gemessen 19.10. | VillageStudio `doku/Betriebsregeln.md` |
-| 5 | Graben im Kartenbild: geplant = LogicLayer-Bit 0x4000, ausgehoben = 0x40000000; an Franz' Burg liegt 0x40000000 genau dort, wo das Bild Wasser neben der Zugbruecke zeigt. Gebaeudeflaeche 0x10000000, Mauer 0x100, Zugbruecke 0. | gemessen (L126 + 20.10.) | Wissensregister L126, L154 |
+| 5 | Graben im Kartenbild: geplant = LogicLayer-Bit 0x4000, ausgehoben = 0x40000000; an Franz' Burg liegt 0x40000000 genau dort, wo das Bild Wasser neben der Zugbruecke zeigt. Mauer 0x100 (gemessen 18.10.); gedeutet aus je zwei Grundflaechen: Gebaeudeflaeche 0x10000000, Zugbruecke 0. | gemessen (L126) + gedeutet (20.10.) | Wissensregister L126, L154 |
 | 6 | Alle Felder von Einheit, Gebaeude, Spielerdaten sind benannt und gegen das Lagebild geprueft. | abgelesen + geprueft | `Spielkarte.md` Abschnitt 2 |
 
 ## Was wir nicht aendern koennen (Plattform-Regeln)
