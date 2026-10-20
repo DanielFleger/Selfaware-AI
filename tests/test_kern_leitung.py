@@ -1,4 +1,4 @@
-"""B-145 S4a: der Leser des gemeinsamen Speichers versteht den Aufbau 1 und lehnt einen fremden ab (offline)."""
+"""B-145 S4a/S4b: der Leser des gemeinsamen Speichers versteht den Aufbau 2 und lehnt einen fremden ab (offline)."""
 
 import struct
 
@@ -17,7 +17,7 @@ def _puffer(aufbau=KL.AUFBAU):
     return bytes(b)
 
 
-def test_aufbau_1_wird_vollstaendig_gelesen():
+def test_aufbau_2_wird_vollstaendig_gelesen():
     w = KL.entpacken(_puffer())
     assert (w.tick, w.epoche, w.ich, w.kern, w.graben_geplant, w.graben_ausgehoben) == (40471, 2, 1, 9, 9, 63)
     assert set(w.einheiten) == {85, 91}
@@ -28,4 +28,4 @@ def test_aufbau_1_wird_vollstaendig_gelesen():
 
 def test_fremder_aufbau_wird_abgelehnt():
     with pytest.raises(KL.FalscherAufbau):
-        KL.entpacken(_puffer(aufbau=2))
+        KL.entpacken(_puffer(aufbau=1))

@@ -208,6 +208,17 @@ Gebiet teilt, wird ueber die Erreichbarkeit erfasst - im Spiel noch nicht beobac
 **Naechster Schritt S4b:** Auftraege von Python an den Kern ueber einen Ring im selben Speicher (statt Befehlsdatei) - dann
 kann ein Python-Gehirn (unser Lenker oder Krarilotus' GamePort) jeden Takt sehen UND im naechsten Takt handeln.
 
+## Stand S4b (20.10.2026, 23:53) - Auftragsring, geschlossener Kreis im Spiel (Kern Version 10, Instanz 5)
+
+| Pruefpunkt | Ergebnis | Beleg |
+|---|---|---|
+| Kreis Python -> Kern -> Spiel -> Python | Python schreibt Takt 47.840 (uebernehmen + Laufen fuer 2 Einheiten); Kern nimmt sie in Takt 47.841 aus dem Ring und setzt im selben Takt den Gruppenbefehl ab; Python sieht die Wirkung (neue Gruppe 19, Laufziele (163,192)/(162,191)) bei Takt 47.842 - **2 Takte vom Entschluss bis zur sichtbaren Wirkung, ohne Dateikanal** | `python -m selfaware.tools.experiments.kern_kreis_pruefen`; samurai_kern.log `ring`/`haende` |
+| Gegenproben | Auftrag fuer nicht uebergebene Einheit -> -4; unbekannte Art 99 -> -5 | dito |
+| Aufbau | Fassung 2 (117.200 Byte, Name ..._A2 - eine aeltere Fassung im selben Prozess belegt den alten Namen mit alter Groesse) | `leitung`-Zeile |
+
+**Damit steht der Unterbau:** Augen (S1), Haende (S2), Wege + Grabenreflex (S3), Leitung in beide Richtungen (S4) - jede
+Stufe im Spiel mit Gegenprobe belegt, jede Fassung ohne Neustart austauschbar (S0).
+
 ## Beziehungen (beide Richtungen)
 
 - Spiel -> Kern: ruft ihn nach jedem Takt UND in der Pause (Haken nach `processGameTick`). Kern -> Spiel: liest Strukturen, handelt nur ueber Spielbefehle.

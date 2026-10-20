@@ -8,6 +8,7 @@
 //! S2: Haende - Auftraege an uebergebene Einheiten ueber den Befehlsweg des Spiels, ein Gruppenbefehl je Takt (haende.rs).
 //! S3: Wege - Erreichbarkeit ueber das Wegnetz (wege.rs); Grabenreflex: Graben am Ziel einer Kern-Einheit -> sofort neues Ziel.
 //! S4a: Leitung - Weltbild jeden neuen Takt in einen benannten gemeinsamen Speicher fuer Python (leitung.rs).
+//! S4b: Auftragsring - Python schreibt Auftraege in denselben Speicher, der Kern arbeitet sie im naechsten Takt ab.
 
 mod haende;
 mod leitung;
@@ -26,7 +27,7 @@ use haende::{Annahme, Auftrag, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 9;
+pub const VERSION: u32 = 10;
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -218,6 +219,42 @@ fn grabenreflex(z: &mut Zustand, tick: i32, neu: &[(i32, i32)]) {
     }
 }
 
+/// S4b: Auftraege aus dem Ring - Art 1 uebernehmen, 2 freigeben, 17/4/9 Auftrag (wie samurai_auftrag). Ergebnis je Eintrag.
+fn ring_abarbeiten(z: &mut Zustand, tick: i32) {
+    let Some(Some(l)) = &z.leitung else { return };
+    let liste = l.auftraege();
+    if liste.is_empty() {
+        return;
+    }
+    let buch = z.buch.get_or_insert_with(Buch::default);
+    let mut zahl = [0usize; 4];
+    for &(i, art, nr, a, b) in &liste {
+        let ergebnis = match art {
+            1 => {
+                buch.uebernehmen(nr);
+                1
+            }
+            2 => {
+                buch.freigeben(nr);
+                1
+            }
+            _ => {
+                let untaetig = z.welt.einheiten.iter().find(|e| e.nr == nr).is_none_or(|e| matches!(e.zustand, 0 | 1));
+                match buch.auftrag(nr, Auftrag { art, a, b }, untaetig) {
+                    Annahme::Angenommen => 1,
+                    Annahme::Doppelt => 0,
+                    Annahme::NichtUebernommen => -4,
+                    Annahme::UnbekannteArt => -5,
+                }
+            }
+        };
+        zahl[match ergebnis { 1 => 0, 0 => 1, -4 => 2, _ => 3 }] += 1;
+        l.quittieren(i, ergebnis);
+    }
+    schreibe(&format!("ring tick {}: {} Eintraege - angenommen {}, doppelt {}, nicht uebergeben {}, abgelehnt {}", tick,
+                      liste.len(), zahl[0], zahl[1], zahl[2], zahl[3]));
+}
+
 /// S4a: Weltbild dieses Takts in den gemeinsamen Speicher (beim ersten Mal anlegen und den Namen protokollieren).
 fn leitung_schreiben(z: &mut Zustand, tick: i32) {
     if z.leitung.is_none() {
@@ -267,6 +304,7 @@ fn takt(tick: i32, spieler: i32) -> i32 {
                     .filter_map(|&f| Welt::feld_xy(f)).collect();
                 grabenreflex(&mut z, tick, &neu);
             }
+            ring_abarbeiten(&mut z, tick);
             haende_takt(&mut z, tick);
             leitung_schreiben(&mut z, tick);
         }
