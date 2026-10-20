@@ -1,7 +1,7 @@
 //! Leitung (B-145 S4a, docs/plans/Plan_Kern.md "Bauplan S4a"): der Kern legt sein Weltbild in jedem neuen Takt in einen
 //! benannten gemeinsamen Speicher; Python liest ihn ohne Dateikanal (selfaware.game.kern_leitung).
-//! Aufbau Fassung 2: Kopf 64 Byte, Einheiten zu 32 Byte (bis 2.500), Gebaeude zu 16 Byte (bis 2.000), dann der
-//! Auftragsring (S4b): Ringkopf 16 Byte (+0 Schreibzaehler von Python, +4 Lesezaehler des Kerns), 256 Eintraege zu 20 Byte
+//! Aufbau Fassung 3: Kopf 64 Byte, Einheiten zu 32 Byte (bis 2.500), Gebaeude zu 16 Byte (bis 2.000), Vorraete (9 Spieler x
+//! 25 Waren als i32, Ware wie im Spiel: 2 Holz ... 15 Gold ... 24 Ruestung), dann der Auftragsring (S4b): Ringkopf 16 Byte (+0 Schreibzaehler von Python, +4 Lesezaehler des Kerns), 256 Eintraege zu 20 Byte
 //! (Art, Einheit, a, b, Ergebnis vom Kern). Little endian. Folgezaehler im Kopf: ungerade = Weltbild wird gerade geschrieben.
 
 use std::ffi::c_void;
@@ -9,14 +9,21 @@ use std::sync::atomic::{AtomicU32, Ordering, fence};
 
 use crate::welt::Welt;
 
-pub const AUFBAU: u32 = 2;
+pub const AUFBAU: u32 = 3;
 pub const KENNUNG: u32 = u32::from_le_bytes(*b"SAMK");
 pub const KOPF: usize = 64;
 pub const EINHEIT: usize = 32;
 pub const GEBAEUDE: usize = 16;
 pub const MAX_EINHEITEN: usize = 2500;
 pub const MAX_GEBAEUDE: usize = 2000;
-pub const RING_START: usize = KOPF + MAX_EINHEITEN * EINHEIT + MAX_GEBAEUDE * GEBAEUDE;
+pub const VORRAT_START: usize = KOPF + MAX_EINHEITEN * EINHEIT + MAX_GEBAEUDE * GEBAEUDE;
+pub const SPIELER: usize = 9;
+pub const WAREN: usize = 25;
+pub const RING_START: usize = VORRAT_START + SPIELER * WAREN * 4;
+/// Spielerdaten 0x0115BDF8 + Spieler * 0x39F4, Waren ab +0x4D0 (wie logik.lua ware())
+const SPIELERDATEN: usize = 0x0115_BDF8;
+const SD_SCHRITT: usize = 0x39F4;
+const SD_WAREN: usize = 0x4D0;
 pub const RING_KOPF: usize = 16;
 pub const RING_N: usize = 256;
 pub const RING_EINTRAG: usize = 20;
@@ -124,6 +131,12 @@ impl Leitung {
                 for (k, w) in [e.besitzer, e.typ, e.x as i16, e.y as i16, e.zustand, e.laufx, e.laufy, e.gruppe, e.zielart,
                                e.zieleinheit, e.zielgebaeude, e.nahziel].iter().enumerate() {
                     self.setze::<i16>(o + 8 + 2 * k, *w);
+                }
+            }
+            for sp in 0..SPIELER {
+                for w in 0..WAREN {
+                    let v = std::ptr::read_volatile((SPIELERDATEN + sp * SD_SCHRITT + SD_WAREN + w * 4) as *const i32);
+                    self.setze::<i32>(VORRAT_START + (sp * WAREN + w) * 4, v);
                 }
             }
             let gb = KOPF + MAX_EINHEITEN * EINHEIT;

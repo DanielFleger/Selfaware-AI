@@ -46,7 +46,7 @@ def _bild(tick, gruppe, laufx, laufy):
         "zielgebaeude": 0,
         "nahziel": 0,
     }
-    return KL.Weltbild(tick, 1, 1, 10, 0, 25, {91: e}, {})
+    return KL.Weltbild(tick, 1, 1, 10, 0, 25, {91: e}, {}, {1: {"gold": 700, "holz": -3}})
 
 
 def _intent():
@@ -64,7 +64,9 @@ def test_move_wird_erst_mit_sichtbarer_wirkung_bestaetigt():
     leitung = FalscheLeitung([_bild(100, 5, 157, 192), _bild(101, 5, 157, 192), _bild(102, 19, 163, 192)])
     port = KernPort(leitung)
     session = Session(5, 1, port.epoche_kennung())
-    assert port.observe(session).snapshot.tick == 101
+    erst = port.observe(session).snapshot
+    assert erst.tick == 101
+    assert dict(erst.resources.amounts) == {"gold": 700, "holz": 0}
     r = port.submit(session, _intent())
     assert r.status == ReceiptStatus.DISPATCHED
     assert leitung.auftraege == [(KL.UEBERNEHMEN, 91, 0, 0), (KL.LAUF, 91, 163, 192)]

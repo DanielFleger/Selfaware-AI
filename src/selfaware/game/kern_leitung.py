@@ -13,10 +13,35 @@ import struct
 from dataclasses import dataclass
 
 KENNUNG = int.from_bytes(b"SAMK", "little")
-AUFBAU = 2
+AUFBAU = 3
 KOPF, EINHEIT, GEBAEUDE = 64, 32, 16
 MAX_EINHEITEN, MAX_GEBAEUDE = 2500, 2000
-RING_START = KOPF + MAX_EINHEITEN * EINHEIT + MAX_GEBAEUDE * GEBAEUDE
+VORRAT_START = KOPF + MAX_EINHEITEN * EINHEIT + MAX_GEBAEUDE * GEBAEUDE
+SPIELER, WAREN = 9, 25
+RING_START = VORRAT_START + SPIELER * WAREN * 4
+WARE_NAMEN = {
+    2: "holz",
+    3: "hopfen",
+    4: "stein",
+    6: "eisen",
+    7: "pech",
+    9: "weizen",
+    10: "brot",
+    11: "kaese",
+    12: "fleisch",
+    13: "apfel",
+    14: "bier",
+    15: "gold",
+    16: "mehl",
+    17: "bogen",
+    18: "armbrust",
+    19: "speer",
+    20: "pike",
+    21: "keule",
+    22: "schwert",
+    23: "leder",
+    24: "ruestung",
+}
 RING_KOPF, RING_N, RING_EINTRAG = 16, 256, 20
 GROESSE = RING_START + RING_KOPF + RING_N * RING_EINTRAG
 OFFEN = -(2**31)
@@ -57,10 +82,11 @@ class Weltbild:
     graben_ausgehoben: int
     einheiten: dict
     gebaeude: dict
+    vorrat: dict
 
 
 def entpacken(puffer):
-    """Bytes im Aufbau 2 -> Weltbild."""
+    """Bytes im Aufbau 3 -> Weltbild (vorrat: {spieler: {ware: menge}} fuer Spieler 1-8)."""
     kopf = struct.unpack_from(KOPF_FORMAT, puffer, 0)
     kennung, aufbau, _folge, tick, epoche, ich, ne, ng, geplant, ausgehoben, kern = kopf
     if kennung != KENNUNG or aufbau != AUFBAU:
@@ -77,7 +103,11 @@ def entpacken(puffer):
         g = dict(zip(GEBAEUDE_FELDER, werte, strict=True))
         g.pop("_frei")
         gebaeude[g["nr"]] = g
-    return Weltbild(tick, epoche, ich, kern, geplant, ausgehoben, einheiten, gebaeude)
+    vorrat = {}
+    for sp in range(1, SPIELER):
+        werte = struct.unpack_from(f"<{WAREN}i", puffer, VORRAT_START + sp * WAREN * 4)
+        vorrat[sp] = {name: werte[w] for w, name in WARE_NAMEN.items()}
+    return Weltbild(tick, epoche, ich, kern, geplant, ausgehoben, einheiten, gebaeude, vorrat)
 
 
 class Leitung:

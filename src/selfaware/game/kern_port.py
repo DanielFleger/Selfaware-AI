@@ -48,7 +48,9 @@ class KernPort:
             "graben_geplant": w.graben_geplant,
             "graben_ausgehoben": w.graben_ausgehoben,
         }
-        return Snapshot(session, f"{session.epoch}-t{w.tick}", w.tick, Resources(), tuple(entities), facts)
+        vorrat = {k: max(v, 0) for k, v in w.vorrat.get(session.player, {}).items()}
+        snapshot_id = f"{session.epoch}-t{w.tick}"
+        return Snapshot(session, snapshot_id, w.tick, Resources(vorrat), tuple(entities), facts)
 
     def observe(self, session):
         w = self.leitung.lesen()
