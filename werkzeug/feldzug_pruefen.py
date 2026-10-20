@@ -287,6 +287,7 @@ def main():
     G17[901] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 1500}
     G17[902] = {"typ": 46, "besitzer": 2, "x": 294, "y": 96, "leben": 400}
     G17[903] = {"typ": 74, "besitzer": 2, "x": 300, "y": 140, "leben": 100}
+    f17.phase = "angriff"                            # (B-140: der Zeitpunkt ist Sache von Pruefung 20 - hier die Torwahl)
     b17 = Befehle()
     m17 = f17.schritt({"t": 12050}, L17, G17, b17)
     tor17 = [x for x in b17.liste if "gebaeude" in x.get("angriff", {})]
@@ -351,19 +352,22 @@ def main():
         [m[:50] for m in m19 if "ZAEH" in m], f19.bresche, sorted(f19g.verworfen), f19g.bresche),
         any("ZAEH" in m for m in m19) and f19.verworfen == {900} and f19.bresche == 901
         and not f19g.verworfen and f19g.bresche == 900)
-    # 20 (B-139, Daniel 20:52, Bild: nach einem Neustart standen 80 Truppen vor Franz' Burg und liefen erst zum Sammelpunkt
-    #    zurueck): 30 Truppen irgendwo (nicht am Sammelpunkt), Lord-Schutz vorbei -> sofort ANGRIFF.
-    #    Gegenprobe: 29 Truppen -> weiter sammeln.
-    def neustart(n):
+    # 20 (B-139/B-140): 30 arab. Schwertkaempfer irgendwo (nicht am Sammelpunkt), der Lord mit 2 Schuetzen, Lord-Schutz vorbei
+    #    -> die Gefechtsrechnung mit dem ganzen Heer gewinnt -> sofort ANGRIFF (kein Rueckweg zum Sammelpunkt).
+    #    Gegenprobe (B-140, Pruefstand T40126: 30 gegen Franz' 86): dieselben 30, am Lord stehen 80 arab. Schwertkaempfer -> sammeln.
+    def neustart(verteidiger):
         f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
         L_, G_ = lage(0, heim)
-        for i in range(n):
+        for i in range(30):
             L_[10 + i] = einheit(75, 1, 250 + i % 5, 160 + i // 5, 28000)
+        for i in range(verteidiger):
+            L_[1000 + i] = einheit(75, 2, 296 + i % 9, 96 + i // 9, 28000)
         m_ = f.schritt({"t": 12000}, L_, G_, Befehle())
         return f.phase, [m[:50] for m in m_ if "ANGRIFF" in m]
-    ph20, m20 = neustart(30)
-    ph20g, _ = neustart(29)
-    pruefe(20, "30 Truppen verstreut: Phase %s %s | 29: %s" % (ph20, m20, ph20g), ph20 == "angriff" and ph20g == "sammeln")
+    ph20, m20 = neustart(0)
+    ph20g, _ = neustart(80)
+    pruefe(20, "30 verstreut gegen Lord + 2 Schuetzen: Phase %s %s | gegen 80 am Lord: %s" % (ph20, m20, ph20g),
+           ph20 == "angriff" and ph20g == "sammeln")
     # 21 (B-139, 20.10. gegen Franz: 72.000 Takte Stillstand, Ziel 1.500 Leben, Truppen 150+ Felder weg): Stau, die Bresche steht,
     #    weniger als TOR_MIN Nahkaempfer davor -> "UNERREICHBAR", verworfen, naechste Schwachstelle.
     #    Gegenprobe: 20 stehen davor und ihr Leben sinkt -> die Bresche bleibt.
@@ -376,6 +380,7 @@ def main():
         for i in range(20):
             x_, y_ = (300 + i % 3, 108 + i // 10) if davor else (100 + i % 5, 240 + i // 5)
             L_[10 + i] = einheit(75, 1, x_, y_, 28000)
+        f.phase = "angriff"                          # (B-140: der Zeitpunkt ist Sache von Pruefung 20)
         f.schritt({"t": 12050}, L_, G_, Befehle())
         erst = f.bresche
         m_ = []
@@ -402,6 +407,7 @@ def main():
             L_[10 + i] = einheit(75, 1, 100 + i % 5, 240 + i // 5, 28000)
         L_[60] = einheit(70, 1, 90, 250, 15000)
         G_[901] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 1500}
+        f.phase = "angriff"                          # (B-140: der Zeitpunkt ist Sache von Pruefung 20)
         b = Befehle()
         m_ = f.schritt({"t": 12050}, L_, G_, b)
         lauf_ = [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in b.liste if "lauf" in x.get("angriff", {})]
@@ -464,6 +470,27 @@ def main():
            e23 == 901 and z23 == 902 and any("eingemauert" in m for m in m23) and any("SCHWACHSTELLE (Lord eingemauert)" in m for m in m23)
            and z23g is None and any("erreichbar bei (300, 102)" in m for m in m23g) and ([300, 102], 10) in [tuple(x) for x in l23g]
            and lord23g == [10])
+    # 24 (B-140, Daniel 21:47 "die beste Position auswaehlen"): zwei Torhaeuser am Lord - eines mit 400 Leben im Schussfeld
+    #    beider Feindschuetzen, eines mit 1.500 Leben ausserhalb jeder Reichweite -> Ziel ist das ungedeckte (wenigster Beschuss
+    #    vor wenigsten Leben). Gegenprobe: liegen beide im Schussfeld, gewinnt wieder das mit weniger Leben.
+    def seite(beide_gedeckt):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+        f.schritt({"t": 12000}, *lage(5, heim), Befehle())
+        L_, G_ = lage(0, heim)
+        for i in range(10):
+            L_[10 + i] = einheit(75, 1, 280 + i % 3, 130 + i // 5, 28000)
+        L_[600]["x"], L_[600]["y"] = 300, 92            # Armbrust nordwestlich, Bogen nordoestlich des Lords
+        L_[601]["x"], L_[601]["y"] = 304, 90
+        G_[901] = {"typ": 46, "besitzer": 2, "x": 298, "y": 96, "leben": 400}
+        G_[902] = {"typ": 46, "besitzer": 2, "x": 300, "y": 126 if not beide_gedeckt else 110, "leben": 1500}
+        if not beide_gedeckt:
+            for n in (600, 601):
+                L_[n]["y"] = 60                         # Schuetzen weit noerdlich: 902 (y 126) ausser Reichweite
+        m_ = f.schritt({"t": 12050}, L_, G_, Befehle())
+        return f.bresche, [m[:90] for m in m_ if "SCHWACHSTELLE" in m]
+    z24, m24 = seite(False)
+    z24g, m24g = seite(True)
+    pruefe(24, "Angriffsstelle: %s %s | beide gedeckt: %s" % (z24, m24, z24g), z24 == 902 and z24g == 901)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

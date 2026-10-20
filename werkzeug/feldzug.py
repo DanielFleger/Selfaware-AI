@@ -96,6 +96,7 @@ class Feldzug:
         self.verteidiger = set()    # 19.10.: Streitkolben, die der Waechter gerade zur Abwehr einsetzt - der Feldzug laesst sie
         self.heimwache = set()      # 19.10.: bleiben zu Hause (Waechter) - gehoeren nicht zum Heer
         self._rechnung = (-99, False, "")
+        self._rechnung_alle = (-99, False, "")   # B-140: Gefechtsrechnung mit dem ganzen Heer
         self.endspurt = False       # 19.10. (endspurt.py): Wirtschaft verloren - angreifen, sobald die Haelfte da ist
         self._stau = (None, 0)      # 19.10.: (bester Abstand der Spitze zum Lord, seit Tick)
         self.staus = 0
@@ -105,6 +106,7 @@ class Feldzug:
         self.wegtest = None         # B-139: (nr, punkte) -> [bool] - der Wegfinder des Spiels; setzt erstes_spiel
         self.vorposten = None       # B-139: (Bresche, erreichbarer Punkt vor ihr)
         self.lord_vp = None         # B-139: (Lord-Ort, erreichbarer Punkt am Lord oder None, Runde der Pruefung)
+        self._lagebild = None       # B-140: Lagebild der laufenden Runde (Schuetzen fuer die Wahl der Angriffsstelle)
         self.bresche_leben = None   # B-138: (niedrigstes Leben der Bresche, seit Tick)
         self.verworfen = set()      # B-138: zaehe Breschen - nicht noch einmal waehlen
 
@@ -112,16 +114,27 @@ class Feldzug:
         """B-139: der schwaechste Teil der Burg am Lord (Torhaus/Turm bis BURG_R Felder vom Lord, nicht verworfen): wenigstes
         Leben, bei Gleichstand der naechste an unserer Spitze. Setzt self.bresche; False, wenn es keinen gibt."""
         spitze_o = min(orte, key=lambda o: schach(o, lp))
-        kand = [(g.get("leben", 0), schach((g["x"], g["y"]), spitze_o), nr) for nr, g in G.items()
-                if g["besitzer"] not in freunde_von(self.sp) and g["typ"] in BURG_TEILE and nr not in self.verworfen
-                and schach((g["x"], g["y"]), lp) <= self.BURG_R]
+        # B-140 (Daniel 21:47 "nicht nur stupide drauf gehen, sondern die beste Position auswaehlen"): zuerst die Stelle, auf die
+        # die wenigsten feindlichen Schuetzen schiessen koennen (Reichweiten wie gefecht.FERN_REICH), dann die wenigsten Leben
+        import gefecht
+        schuetzen_f = [((e["x"], e["y"]), gefecht.FERN_REICH[e["typ"]]) for e in self._lagebild.values()
+                       if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in gefecht.FERN_REICH] if self._lagebild else []
+        kand = []
+        for nr, g in G.items():
+            if g["besitzer"] in freunde_von(self.sp) or g["typ"] not in BURG_TEILE or nr in self.verworfen:
+                continue
+            ort = (g["x"], g["y"])
+            if schach(ort, lp) > self.BURG_R:
+                continue
+            gefahr = sum(1 for q, r in schuetzen_f if schach(ort, q) <= r)
+            kand.append((gefahr, g.get("leben", 0), schach(ort, spitze_o), nr))
         if not kand:
             return False
-        leben, _, nr = min(kand)
+        gefahr, leben, _, nr = min(kand)
         g = G[nr]
         self.bresche, self.bresche_leben = nr, None
-        aus.append("FELDZUG SCHWACHSTELLE (%s): Gebaeude %d (Typ %d, Leben %d) bei (%d, %d), %d Felder vom Lord - alle Nahkaempfer "
-                   "darauf" % (anlass, nr, g["typ"], leben, g["x"], g["y"], schach((g["x"], g["y"]), lp)))
+        aus.append("FELDZUG SCHWACHSTELLE (%s): Gebaeude %d (Typ %d, Leben %d, %d Feindschuetzen in Reichweite) bei (%d, %d), %d Felder "
+                   "vom Lord - alle Nahkaempfer darauf" % (anlass, nr, g["typ"], leben, gefahr, g["x"], g["y"], schach((g["x"], g["y"]), lp)))
         return True
 
     RINGE = (4, 8, 12, 16, 22, 30)
@@ -174,6 +187,7 @@ class Feldzug:
     def schritt(self, st, L, G, befehl):
         """Gibt die Meldungen der Runde. befehl(dict, warte, bis=...) schickt einen Modulbefehl."""
         self.runde += 1
+        self._lagebild = L
         aus = []
         t = st.get("t", 0)
         lords = self._lords(L)
@@ -229,9 +243,20 @@ class Feldzug:
             # sobald die Haelfte des Heeres (mindestens MIN_ANGRIFF) am Sammelpunkt steht, ohne auf die Gefechtsrechnung zu warten
             if self.endspurt and len(da) >= self.MIN_ANGRIFF and 2 * len(da) >= len(kolben):
                 lohnt, text = True, "ENDSPURT: %d von %d am Sammelpunkt" % (len(da), len(kolben))
-            # B-139 (Daniel 20:52): auch los, wenn N Truppen irgendwo stehen - nach einem Neustart standen 80 vor Franz' Burg und
-            # liefen erst zum Sammelpunkt zurueck
-            if (len(da) >= self.N or len(kolben) >= self.N or lohnt) and t >= self.schutz_bis:
+            # B-140 (Daniel 21:56 "die KI soll halt mal bitte schlau angreifen"; Pruefstand T40126: Angriff mit 30 gegen Franz' 86):
+            # los, wenn die Gefechtsrechnung mit dem GANZEN Heer (wo es auch steht) gegen den Lord und alles um ihn gewinnt - nicht
+            # mehr schon bei N am Sammelpunkt oder irgendwo (B-139). Bis dahin waechst das Heer (B-141: alles Gold ins Heer)
+            lohnt_alle, text_alle = False, ""
+            if t >= self.schutz_bis and len(kolben) >= self.MIN_ANGRIFF:
+                # neu rechnen alle RECHNEN_ALLE Runden - und sofort, wenn sich die Heeresgroesse geaendert hat
+                if self.runde - self._rechnung_alle[0] >= self.RECHNEN_ALLE or self._rechnung_alle[3:] != (len(kolben),):
+                    self._rechnung_alle = (self.runde,) + tuple(self._lohnt(L, kolben, lord)) + (len(kolben),)
+                lohnt_alle, text_alle = self._rechnung_alle[1], self._rechnung_alle[2]
+                if lohnt_alle and not text:
+                    text = "ganzes Heer: " + text_alle
+            if self.runde % 10 == 0 and t >= self.schutz_bis and not (lohnt_alle or lohnt):
+                aus.append("FELDZUG WARTET: Gefechtsrechnung mit %d Truppen verliert noch (%s)" % (len(kolben), text_alle[:80]))
+            if (lohnt_alle or lohnt) and t >= self.schutz_bis:
                 self.phase = "angriff"
                 self.letzter_befehl = -99
                 self._stau, self.staus, self.direkt = (None, 0), 0, False
