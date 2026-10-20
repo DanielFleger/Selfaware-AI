@@ -110,13 +110,12 @@ class Feldzug:
         self.bresche_leben = None   # B-138: (niedrigstes Leben der Bresche, seit Tick)
         self.verworfen = set()      # B-138: zaehe Breschen - nicht noch einmal waehlen
 
-    def _schwachstelle(self, G, lp, orte, aus, anlass):
-        """B-139: der schwaechste Teil der Burg am Lord (Torhaus/Turm bis BURG_R Felder vom Lord, nicht verworfen): wenigstes
-        Leben, bei Gleichstand der naechste an unserer Spitze. Setzt self.bresche; False, wenn es keinen gibt."""
-        spitze_o = min(orte, key=lambda o: schach(o, lp))
-        # B-140 (Daniel 21:47 "nicht nur stupide drauf gehen, sondern die beste Position auswaehlen"): zuerst die Stelle, auf die
-        # die wenigsten feindlichen Schuetzen schiessen koennen (Reichweiten wie gefecht.FERN_REICH), dann die wenigsten Leben
+    def _beste_stelle(self, G, lp, orte):
+        """B-140 (Daniel 21:47 "nicht nur stupide drauf gehen, sondern die beste Position auswaehlen"): (Gefahr, Leben, Abstand,
+        Nr) des Torhauses/Turms bis BURG_R vom Lord, auf das die wenigsten feindlichen Schuetzen schiessen koennen (Reichweiten
+        wie gefecht.FERN_REICH), dann die wenigsten Leben; None ohne Kandidaten."""
         import gefecht
+        spitze_o = min(orte, key=lambda o: schach(o, lp))
         schuetzen_f = [((e["x"], e["y"]), gefecht.FERN_REICH[e["typ"]]) for e in self._lagebild.values()
                        if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in gefecht.FERN_REICH] if self._lagebild else []
         kand = []
@@ -128,9 +127,15 @@ class Feldzug:
                 continue
             gefahr = sum(1 for q, r in schuetzen_f if schach(ort, q) <= r)
             kand.append((gefahr, g.get("leben", 0), schach(ort, spitze_o), nr))
-        if not kand:
+        return min(kand) if kand else None
+
+    def _schwachstelle(self, G, lp, orte, aus, anlass):
+        """B-139: der schwaechste Teil der Burg am Lord (Torhaus/Turm bis BURG_R Felder vom Lord, nicht verworfen): wenigstes
+        Leben, bei Gleichstand der naechste an unserer Spitze. Setzt self.bresche; False, wenn es keinen gibt."""
+        beste = self._beste_stelle(G, lp, orte)
+        if beste is None:
             return False
-        gefahr, leben, _, nr = min(kand)
+        gefahr, leben, _, nr = beste
         g = G[nr]
         self.bresche, self.bresche_leben = nr, None
         aus.append("FELDZUG SCHWACHSTELLE (%s): Gebaeude %d (Typ %d, Leben %d, %d Feindschuetzen in Reichweite) bei (%d, %d), %d Felder "
@@ -253,7 +258,10 @@ class Feldzug:
                 # jeder Werbung: die Rechnung mit 160 gegen 60 kostet spuerbar Rundenzeit)
                 n_alt = self._rechnung_alle[3] if len(self._rechnung_alle) > 3 else -999
                 if self.runde - self._rechnung_alle[0] >= self.RECHNEN_ALLE or abs(len(kolben) - n_alt) * 10 >= max(10, n_alt):
-                    self._rechnung_alle = (self.runde,) + tuple(self._lohnt(L, kolben, lord, am_ziel=True)) + (len(kolben),)
+                    lp_k = (lord["x"], lord["y"])
+                    beste_k = self._beste_stelle(G, lp_k, [(L[n]["x"], L[n]["y"]) for n in kolben])
+                    ort_k = (G[beste_k[3]]["x"], G[beste_k[3]]["y"]) if beste_k else None
+                    self._rechnung_alle = (self.runde,) + tuple(self._lohnt(L, kolben, lord, am_ziel=True, ort=ort_k)) + (len(kolben),)
                 lohnt_alle, text_alle = self._rechnung_alle[1], self._rechnung_alle[2]
                 if lohnt_alle and not text:
                     text = "ganzes Heer: " + text_alle
@@ -464,20 +472,26 @@ class Feldzug:
         Ruhe (1018y: sein "Stapeln" holte sie heim), ausser als Reserve beim Sammeln."""
         return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] in HEER and n not in self.heimwache}
 
-    def _lohnt(self, L, da, lord, am_ziel=False):
+    def _lohnt(self, L, da, lord, am_ziel=False, ort=None):
         """19.10.: (lohnt, Text) - unsere am Sammelpunkt gegen den Lord, feindliche Truppen bis LORD_UMKREIS Felder und
         Schuetzen, deren Reichweite den Lord erreicht (alle stehen, wir laufen hin)."""
         import gefecht
         lp = (lord["x"], lord["y"])
+        # B-140 (Daniel 22:07: "schlau angestellt werden vielleicht nur 20-30 % der gegnerischen Einheiten ueberhaupt genutzt
+        # um zu verteidigen"): mit ort wird an der Angriffsstelle gerechnet - es kaempfen nur Feinde bis LORD_UMKREIS um die
+        # Stelle und Schuetzen, deren Reichweite sie trifft (der Lord nur, wenn er dort steht); unser Heer steht an der Stelle
+        mitte_k = tuple(ort) if ort else lp
         # (B-140: am Ziel kaempfen die Verteidiger mit - als "stehend" schlugen 30 unserer Schwertkaempfer 80 gleiche nacheinander)
         sie = [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=not am_ziel) for e in L.values()
                if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in TRUPPE and (
-                   schach((e["x"], e["y"]), lp) <= self.LORD_UMKREIS
-                   or (e["typ"] in gefecht.FERN_REICH and schach((e["x"], e["y"]), lp) <= gefecht.FERN_REICH[e["typ"]]))]
+                   schach((e["x"], e["y"]), mitte_k) <= self.LORD_UMKREIS
+                   or (e["typ"] in gefecht.FERN_REICH and schach((e["x"], e["y"]), mitte_k) <= gefecht.FERN_REICH[e["typ"]]))]
         # B-140 (Pruefstand 22:00: "165 eigene gegen 49: offen nach 1500 Takten" - der Anmarsch von 160+ Feldern frass die
         # ganze Rechenzeit, also kein Angriff): am_ziel=True rechnet den Kampf selbst, als stuende das Heer schon am Lord
-        wir = [dict(typ=L[n]["typ"], leben=L[n]["leben"], x=lp[0] if am_ziel else L[n]["x"], y=lp[1] if am_ziel else L[n]["y"])
-               for n in da]
+        wir = [dict(typ=L[n]["typ"], leben=L[n]["leben"], x=mitte_k[0] if am_ziel else L[n]["x"],
+                    y=mitte_k[1] if am_ziel else L[n]["y"]) for n in da]
+        if not sie and wir:
+            return True, "keine Verteidiger an der Angriffsstelle (%d eigene)" % len(wir)   # B-140: dann lohnt es erst recht
         try:
             # B-140 (Pruefstand 22:04: 115 gegen 84 "offen nach 1500 Takten", mit 167 Sieg nach 1.460): am Ziel bis ZIEL_BIS rechnen
             return gefecht.bewerte(wir, sie, bis=self.ZIEL_BIS if am_ziel else gefecht.BIS)

@@ -492,6 +492,23 @@ def main():
     z24, m24 = seite(False)
     z24g, m24g = seite(True)
     pruefe(24, "Angriffsstelle: %s %s | beide gedeckt: %s" % (z24, m24, z24g), z24 == 902 and z24g == 901)
+    # 25 (B-140, Daniel 22:07 "schlau angestellt werden vielleicht nur 20-30 % der gegnerischen Einheiten ueberhaupt genutzt"):
+    #    80 arab. Schwertkaempfer stehen 40 Felder noerdlich des Lords, das Torhaus liegt 20 Felder suedlich -> an der
+    #    Angriffsstelle kaempft keiner von ihnen mit, 30 eigene greifen an. Gegenprobe: die 80 stehen am Torhaus -> sammeln.
+    def stelle(am_tor):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+        L_, G_ = lage(0, heim)
+        for i in range(30):
+            L_[10 + i] = einheit(75, 1, 250 + i % 5, 160 + i // 5, 28000)
+        for i in range(80):
+            L_[1000 + i] = einheit(75, 2, 296 + i % 9, (116 if am_tor else 56) + i // 9, 28000)
+        G_[901] = {"typ": 46, "besitzer": 2, "x": 300, "y": 120, "leben": 1500}
+        m_ = f.schritt({"t": 12000}, L_, G_, Befehle())
+        return f.phase, [m[:60] for m in m_ if "ANGRIFF" in m]
+    ph25, m25 = stelle(False)
+    ph25g, _ = stelle(True)
+    pruefe(25, "80 Verteidiger 40 Felder hinter dem Lord, Tor vorn: Phase %s %s | 80 am Tor: %s" % (ph25, m25, ph25g),
+           ph25 == "angriff" and ph25g == "sammeln")
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
