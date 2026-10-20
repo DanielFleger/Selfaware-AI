@@ -25,8 +25,9 @@ STREITKOLBEN = 26
 # Verteidigen ist das Overkill ... danach besser verteilen um auch zu raiden"; "beim naechsten Run sollen beide Nomaden
 # sterben"): das Heer sind alle eigenen Truppen dieser Arten, ausser der Heimwache (setzt erstes_spiel)
 HEER = {24, 25, 26, 27, 28, 75, 22, 23, 70}
-# B-134 Burg knacken: Torhaeuser (45 gross, 46 klein), Zugbruecke 49, Tuerme 74-78 (bauen.NACH_TYP)
-BURG_TEILE = {45, 46, 49, 74, 75, 76, 77, 78}
+# B-134 Burg knacken: Torhaeuser (45 gross, 46 klein), Tuerme 74-78 (bauen.NACH_TYP). Zugbruecke 49 nicht mehr (20.10. gegen
+# Franz: 6 Mal Ziel, ihr Leben blieb bei 100 stehen, keine einzige fiel - gefallen sind nur Torhaeuser 46 und ein Turm 74)
+BURG_TEILE = {45, 46, 74, 75, 76, 77, 78}
 FERN_REICH = {22: 44, 23: 44, 70: 44}
 LORD = 55
 FERN = {22, 23, 70, 72, 74, 76}
@@ -74,6 +75,9 @@ class Feldzug:
     STURM_ABWEHR = 1500
     STURM_REST = 5
     STURM_TOR_R = 25
+    # B-138: verliert die Bresche so lange kein Leben, obwohl mindestens STURM_REST davor stehen, ist sie zaeh (wie die
+    # Zugbruecke gegen Franz) - verwerfen und beim naechsten Stau ein anderes Ziel waehlen
+    BRESCHE_ZAEH = 3000
 
     def __init__(self, sp, heim, lord_schutz_bis=0, n=None):
         self.sp, self.heim, self.schutz_bis = sp, tuple(heim), lord_schutz_bis
@@ -97,6 +101,8 @@ class Feldzug:
         self.direkt = False         # 19.10.: nach zwei Staus alle direkt auf den Lord
         self.bresche = None         # B-134: Nr des Tors/Turms, das zuerst fallen muss
         self.sturm_fuer, self.sturm_punkt, self.sturm_seit, self.sturm_los = None, None, 0, None   # B-138
+        self.bresche_leben = None   # B-138: (niedrigstes Leben der Bresche, seit Tick)
+        self.verworfen = set()      # B-138: zaehe Breschen - nicht noch einmal waehlen
 
     def _sturmpunkt(self, L, tor, mitte):
         """B-138: der Standort einer eigenen Truppe, der SICHER Felder von jedem feindlichen Fernkaempfer entfernt ist und dem
@@ -236,7 +242,7 @@ class Feldzug:
                     # das feindliche Tor/der Turm, der am naechsten an Spitze und Lord liegt, wird zuerst eingerissen
                     spitze_o = min(orte, key=lambda o: schach(o, lp))
                     kand_b = [(schach((g["x"], g["y"]), spitze_o) + schach((g["x"], g["y"]), lp), nr) for nr, g in G.items()
-                              if g["besitzer"] not in freunde_von(self.sp) and g["typ"] in BURG_TEILE]
+                              if g["besitzer"] not in freunde_von(self.sp) and g["typ"] in BURG_TEILE and nr not in self.verworfen]
                     if kand_b:
                         self.bresche = min(kand_b)[1]
                         g_b = G[self.bresche]
@@ -293,11 +299,23 @@ class Feldzug:
                         self.sturm_punkt, schach(self.sturm_punkt, tor), bresche, self.N))
                 if self.sturm_los is not None:
                     am_tor = [n for n in nah_kampf if schach((L[n]["x"], L[n]["y"]), tor) <= self.STURM_TOR_R]
+                    leben_b = G[bresche].get("leben", -1)
+                    if (self.bresche_leben is None or self.bresche_leben[2] != bresche or leben_b < self.bresche_leben[0]
+                            or len(am_tor) < self.STURM_REST):
+                        self.bresche_leben = (leben_b, t, bresche)
                     if t - self.sturm_los >= self.STURM_ABWEHR and len(am_tor) < self.STURM_REST:
                         aus.append("FELDZUG STURM ABGEWEHRT: nach %d Ticks %d am Gebaeude %d (Leben %d) - neu sammeln" % (
-                            t - self.sturm_los, len(am_tor), bresche, G[bresche].get("leben", -1)))
+                            t - self.sturm_los, len(am_tor), bresche, leben_b))
                         self.sturm_los, self.sturm_seit = None, t
-                if self.sturm_los is None:
+                    elif t - self.bresche_leben[1] >= self.BRESCHE_ZAEH:
+                        aus.append("FELDZUG BRESCHE ZAEH: Gebaeude %d (Typ %d) seit %d Ticks bei %d Leben, %d davor - verworfen, anderes Ziel" % (
+                            bresche, G[bresche]["typ"], t - self.bresche_leben[1], leben_b, len(am_tor)))
+                        self.verworfen.add(bresche)
+                        self.bresche, self.bresche_leben = None, None
+                        self.sturm_fuer, self.sturm_punkt, self.sturm_los = None, None, None
+                        self._stau = (None, t)
+                        bresche, belegt = None, set()
+                if self.sturm_los is None and bresche is not None:
                     sp_ = self.sturm_punkt
                     da_s = [n for n in nah_kampf if schach((L[n]["x"], L[n]["y"]), sp_) <= self.AM_PUNKT]
                     if len(da_s) >= self.N or (da_s and t - self.sturm_seit >= self.STURM_WARTEN):
@@ -313,7 +331,7 @@ class Feldzug:
                                 befohlen[n] = ("sturm", sp_)
                         if self.runde % 5 == 0:
                             aus.append("FELDZUG STURM sammeln: %d von %d am Sturmpunkt %s" % (len(da_s), self.N, sp_))
-                if self.sturm_los is not None:
+                if self.sturm_los is not None and bresche is not None:
                     # B-134: erst die Bresche - alle Nahkaempfer auf das Tor/den Turm
                     neu_b = [n for n in nah_kampf if befohlen.get(n) != ("bresche", bresche) or L[n]["zustand"] in (0, 1)]
                     if neu_b and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:

@@ -2589,7 +2589,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         korn.tor = list(graben.tor)
                         box_k = graben.kasten()          # Speicher bis einschliesslich Grabenring frei halten
                     RESERVIERT.append((box_k, korn.ort))
-                    ausbau.sperr = ausbau.sperr + [box_k]
+                    # 20.10. (Neustart nur_phase2 gegen Franz: "'Ertragsplaner' object has no attribute 'sperr'"): das Feld gibt
+                    # es erst, wenn jemand gesperrt hat - der Planer selbst liest es mit getattr
+                    ausbau.sperr = list(getattr(ausbau, "sperr", None) or []) + [box_k]
                     ereignis.append("KORNRING um den Kornspeicher %s angelegt, Flaeche %s frei gehalten%s" % (
                         korn.ort, box_k, ("; Burggraben %d Felder, Eingang %s" % (len(graben.soll), graben.tor)) if graben else ""))
             if korn is not None:

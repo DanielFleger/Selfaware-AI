@@ -335,6 +335,36 @@ def main():
     m18b = f18.schritt({"t": 13700 + F.Feldzug.STAU_TICKS}, L18, G18, Befehle())
     pruefe(18, "Stau waehrend der Welle: Bresche %s bleibt %s; nach dem Fall neu: %s" % (
         900, bleibt, [m[:60] for m in m18b if "BURG" in m]), bleibt and f18.bresche == 901)
+    # 19 (B-138, 20.10. gegen Franz: Zugbruecke 420 blieb trotz Sturm bei 100 Leben): 20 Nahkaempfer stehen am Tor, sein Leben
+    #    sinkt BRESCHE_ZAEH Ticks lang nicht -> "ZAEH", verworfen, der naechste Stau waehlt das andere Tor.
+    #    Gegenprobe: sinkt das Leben zwischendurch, wird nichts verworfen.
+    def zaeh(sinkt):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=20)
+        f.schritt({"t": 12000}, *lage(10, heim), Befehle())
+        f.schritt({"t": 12050}, *lage(30, f.punkt), Befehle())
+        L_, G_ = lage(0, heim)
+        G_[900] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 100}
+        G_[901] = {"typ": 46, "besitzer": 2, "x": 301, "y": 110, "leben": 1500}
+        for i in range(20):
+            L_[10 + i] = einheit(75, 1, 300 + i % 3, 108 + i // 10, 28000)
+        f.phase, f.direkt, f.bresche, f.staus = "angriff", True, 900, 3
+        f.weg, f.weg_i, f.weg_ziel = [(300, 100)], 0, (300, 100)
+        f.sturm_fuer, f.sturm_punkt, f.sturm_seit, f.sturm_los = 900, (250, 150), 12000, 12050
+        f._stau = (0, 99999)
+        m_ = []
+        for k, t in enumerate(range(12100, 12100 + F.Feldzug.BRESCHE_ZAEH + 200, 100)):
+            if sinkt and k % 10 == 9:
+                G_[900]["leben"] -= 5
+            m_ += f.schritt({"t": t}, L_, G_, Befehle())
+        f._stau = (0, t)
+        m_ += f.schritt({"t": t + F.Feldzug.STAU_TICKS}, L_, G_, Befehle())
+        return m_, f
+    m19, f19 = zaeh(False)
+    m19g, f19g = zaeh(True)
+    pruefe(19, "Zaehe Bresche: %s, danach Ziel %s | Leben sinkt: verworfen %s, Ziel %s" % (
+        [m[:50] for m in m19 if "ZAEH" in m], f19.bresche, sorted(f19g.verworfen), f19g.bresche),
+        any("ZAEH" in m for m in m19) and f19.verworfen == {900} and f19.bresche == 901
+        and not f19g.verworfen and f19g.bresche == 900)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
