@@ -34,7 +34,9 @@ def freunde_von(sp):
         from laden import peek
         gruppen = gruppen_aus_worten(peek(GRUPPE - 1, 3))
     except Exception:
-        return frozenset((0, sp))
+        # ohne Spiel (Pruefungen) oder Kanal kaputt: nicht bei jedem Aufruf neu ins Spiel fragen (feldzug_pruefen hing 20.10.)
+        _FEST[sp] = frozenset((0, sp))
+        return _FEST[sp]
     f = freunde_aus_gruppen(sp, gruppen)
     if gruppen[sp] != 0xFF:            # erst merken, wenn das Spiel die Mannschaft eingetragen hat
         _FEST[sp] = f

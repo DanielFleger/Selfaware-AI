@@ -31,6 +31,8 @@ import sys
 HIER = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HIER)
 import feldzug as F
+import parteien
+parteien.setzen(1, {1})   # B-133: ohne Spiel - nur Spieler 1 ist Freund
 
 ok = []
 
@@ -208,6 +210,36 @@ def main():
         [m[:60] for m in meld], len(lord14[0]["angriff"]["einheiten"]) if lord14 else 0),
            len(meld) == 2 and "uebersprungen" in meld[0] and "direkt" in meld[1] and lord14
            and len(lord14[0]["angriff"]["einheiten"]) == 20)
+    # 15 (B-134 Burg knacken, 20.10.: 2v2 gegen Rotkaeppchen, 37.000 Ticks Stau vor der Burg): auch "direkt" bringt niemanden
+    #    naeher -> beim dritten Stau Angriff auf das feindliche Tor (Typ 46) am Lord; faellt es, wieder auf den Lord.
+    #    Gegenprobe: ohne Tor/Turm nur die Meldung "kein feindliches Tor/Turm", kein Gebaeude-Angriff.
+    def burg(mit_tor):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+        f.wegplaner = lambda L_, G_, s, z: [(150, 200), (200, 150), (250, 120), z]
+        f.schritt({"t": 12000}, *lage(10, heim), Befehle())
+        f.schritt({"t": 12050}, *lage(30, f.punkt), Befehle())
+        L_, G_ = lage(0, heim)
+        for i in range(20):
+            L_[10 + i] = einheit(75, 1, 100 + i % 5, 240 + i // 5, 28000)
+        lp = (L_[500]["x"], L_[500]["y"])
+        if mit_tor:
+            G_[900] = {"typ": 46, "besitzer": 2, "x": lp[0] + 6, "y": lp[1] + 6, "leben": 1000}
+        m_, tor_ = [], []
+        for t in range(12100, 17000, 100):
+            b = Befehle()
+            m_ += [m for m in f.schritt({"t": t}, L_, G_, b) if "STAU" in m or "BURG" in m or "BRESCHE" in m]
+            tor_ += [x for x in b.liste if x.get("angriff", {}).get("gebaeude") == 900]
+        fallen = []
+        if mit_tor:
+            del G_[900]
+            fallen = [m for m in f.schritt({"t": 17100}, L_, G_, Befehle()) if "BRESCHE" in m]
+        return m_, tor_, fallen
+    m15, tor15, fall15 = burg(True)
+    m15o, tor15o, _ = burg(False)
+    pruefe(15, "Burg knacken: %s; Tor-Angriffe %d, gefallen %s | ohne Tor: %s" % (
+        [m[:50] for m in m15 if "BURG" in m][:1], len(tor15), [m[:40] for m in fall15], [m[:50] for m in m15o][-1:]),
+           any("BURG KNACKEN" in m for m in m15) and tor15 and len(tor15[0]["angriff"]["einheiten"]) == 20 and fall15
+           and not tor15o and any("kein feindliches Tor" in m for m in m15o))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

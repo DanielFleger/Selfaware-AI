@@ -25,6 +25,8 @@ STREITKOLBEN = 26
 # Verteidigen ist das Overkill ... danach besser verteilen um auch zu raiden"; "beim naechsten Run sollen beide Nomaden
 # sterben"): das Heer sind alle eigenen Truppen dieser Arten, ausser der Heimwache (setzt erstes_spiel)
 HEER = {24, 25, 26, 27, 28, 75, 22, 23, 70}
+# B-134 Burg knacken: Torhaeuser (45 gross, 46 klein), Zugbruecke 49, Tuerme 74-78 (bauen.NACH_TYP)
+BURG_TEILE = {45, 46, 49, 74, 75, 76, 77, 78}
 FERN_REICH = {22: 44, 23: 44, 70: 44}
 LORD = 55
 FERN = {22, 23, 70, 72, 74, 76}
@@ -192,11 +194,28 @@ class Feldzug:
                     self.weg_i += 1
                     aus.append("FELDZUG STAU: Spitze %d Ticks bei %d Feldern vor dem Lord - Wegpunkt uebersprungen, jetzt %d/%d" % (
                         t - self._stau[1], spitze, self.weg_i + 1, len(self.weg)))
-                else:
+                elif not self.direkt:
                     self.direkt = True
                     aus.append("FELDZUG STAU %d: Spitze %d Ticks bei %d Feldern vor dem Lord - alle direkt auf den Lord" % (
                         self.staus, t - self._stau[1], spitze))
+                else:
+                    # B-134 Burg knacken (Daniel 20.10. 19:16, 2v2 gegen Rotkaeppchen: 180 Truppen standen 37.000 Ticks still,
+                    # "alle direkt auf den Lord" fand keinen Weg - der Lord steht hinter Mauern): auch direkt kein Schritt naeher ->
+                    # das feindliche Tor/der Turm, der am naechsten an Spitze und Lord liegt, wird zuerst eingerissen
+                    spitze_o = min(orte, key=lambda o: schach(o, lp))
+                    kand_b = [(schach((g["x"], g["y"]), spitze_o) + schach((g["x"], g["y"]), lp), nr) for nr, g in G.items()
+                              if g["besitzer"] not in freunde_von(self.sp) and g["typ"] in BURG_TEILE]
+                    if kand_b:
+                        self.bresche = min(kand_b)[1]
+                        g_b = G[self.bresche]
+                        aus.append("FELDZUG BURG KNACKEN (Stau %d): kein Weg zum Lord - Truppen auf Gebaeude %d (Typ %d) bei (%d, %d), "
+                                   "%d Felder vom Lord" % (self.staus, self.bresche, g_b["typ"], g_b["x"], g_b["y"], schach((g_b["x"], g_b["y"]), lp)))
+                    else:
+                        aus.append("FELDZUG STAU %d: kein Weg zum Lord und kein feindliches Tor/Turm gefunden" % self.staus)
                 self._stau = (spitze, t)
+            if getattr(self, "bresche", None) is not None and self.bresche not in G:
+                aus.append("FELDZUG BRESCHE: Gebaeude %d ist gefallen - wieder auf den Lord" % self.bresche)
+                self.bresche, self._stau = None, (None, t)
             # 19.10. (1019i: die Spitze stand 2.000 Takte 37 Felder vor dem Lord, die Mitte wanderte von 55 auf 80 Felder
             # zurueck - neu angeworbene Soeldner kamen von zu Hause nach): ueber den Wegpunkt entscheidet nur die Spitzengruppe
             # (hoechstens SPITZE_TIEFE Felder weiter vom Lord als der vorderste)
@@ -227,6 +246,16 @@ class Feldzug:
             am_lord = [n for n in nah_kampf if schluss or schach((L[n]["x"], L[n]["y"]), lp) <= self.ANGRIFF_NAH]
             befohlen = getattr(self, "_befohlen", {})
             self._befohlen = befohlen
+            bresche = getattr(self, "bresche", None)
+            if bresche is not None and bresche in G:
+                # B-134: erst die Bresche - alle Nahkaempfer auf das Tor/den Turm
+                neu_b = [n for n in nah_kampf if befohlen.get(n) != ("bresche", bresche) or L[n]["zustand"] in (0, 1)]
+                if neu_b and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
+                    befehl({"angriff": {"einheiten": neu_b, "gebaeude": bresche}}, 1.0, bis="ANGRIFF")
+                    self.letzter_befehl = self.runde
+                    for n in neu_b:
+                        befohlen[n] = ("bresche", bresche)
+                am_lord = []
             neu_lord = [n for n in am_lord if befohlen.get(n) != ("lord", self.ziel) or L[n]["zustand"] in (0, 1)]
             if neu_lord and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
                 befehl({"angriff": {"einheiten": neu_lord, "ziel": self.ziel}}, 1.0, bis="ANGRIFF")
