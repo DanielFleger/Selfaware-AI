@@ -2463,7 +2463,25 @@ local function einzelbefehl(cmd)
         local k = feldM(x, y)
         return k and (core.readSmallInteger(0x01DF6FD8 + k * 2) or 0) or 0
       end
-      local meinGebiet = gebiet(ux, uy)
+      -- (Probe 21.10. 00:56: die erste Einheit stand auf einem Feld mit Gebiet 0 - darum das haeufigste Gebiet aller
+      -- gewaehlten Einheiten, bei Gebiet 0 das eines Nachbarfelds)
+      local zaehl, meinGebiet, meinZahl = {}, 0, 0
+      for _, nr in ipairs(gewaehlt) do
+        local ue = 0x0138854C + nr * 1168
+        local ex, ey = (core.readSmallInteger(ue + 0xB6) or 0) // 8, (core.readSmallInteger(ue + 0xB8) or 0) // 8
+        local g = gebiet(ex, ey)
+        if g == 0 then
+          for dy = -1, 1 do
+            for dx = -1, 1 do
+              if g == 0 then g = gebiet(ex + dx, ey + dy) end
+            end
+          end
+        end
+        if g ~= 0 then
+          zaehl[g] = (zaehl[g] or 0) + 1
+          if zaehl[g] > meinZahl then meinGebiet, meinZahl = g, zaehl[g] end
+        end
+      end
       local MB = 0x100 | 0x200 | 0x800 | 0x10000 | 0x400000
       local beste, besteWert, zahl = nil, nil, 0
       for y = ly - r, ly + r do
