@@ -466,7 +466,8 @@ class Feldzug:
         Schuetzen, deren Reichweite den Lord erreicht (alle stehen, wir laufen hin)."""
         import gefecht
         lp = (lord["x"], lord["y"])
-        sie = [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=True) for e in L.values()
+        # (B-140: am Ziel kaempfen die Verteidiger mit - als "stehend" schlugen 30 unserer Schwertkaempfer 80 gleiche nacheinander)
+        sie = [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=not am_ziel) for e in L.values()
                if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in TRUPPE and (
                    schach((e["x"], e["y"]), lp) <= self.LORD_UMKREIS
                    or (e["typ"] in gefecht.FERN_REICH and schach((e["x"], e["y"]), lp) <= gefecht.FERN_REICH[e["typ"]]))]
