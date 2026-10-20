@@ -113,3 +113,10 @@ and gold accounting is in `telemetry/`. These are the latest upstream
 implementations, including B-132 army budgeting. Compiling the DLL and testing
 Python launch paths does not validate a deployed native session or a policy's
 match strength.
+
+The [strategy expansion design](plans/STRATEGY_DESIGN.md) specifies cooperating
+strategic, emergency, economic, castle and group states; explainable decision
+gates; aggressive/defensive task portfolios; and capability-driven investment.
+It maps the proposed components to these boundaries and identifies observations
+and reservation dimensions the current framework still lacks. B-134 through
+B-139 track implementation; this design does not activate new live policies.

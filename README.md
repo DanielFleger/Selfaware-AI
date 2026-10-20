@@ -10,6 +10,10 @@ strategy, learning and telemetry. Start with the [repository map](docs/ORGANIZAT
 [engineering acceptance details](docs/BACKLOG.md). Task status is maintained in
 [the authoritative backlog](docs/backlog/backlog.json).
 
+The [strategy design](docs/plans/STRATEGY_DESIGN.md) develops the next behavior
+ideas: sustained aggression, layered defense, phased castles, technology
+choices and explicit state/decision gates, with linked implementation work.
+
 ## Development quick start
 
 With uv 0.12.9 installed, run from a fresh checkout:

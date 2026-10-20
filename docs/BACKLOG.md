@@ -12,6 +12,13 @@ engineering acceptance details for those points; it is not a second status list.
 | MIGRATE-03 | B-99 |
 | SCALE-01 | B-101 |
 | DATA-01 | B-95 |
+| [States and gates](plans/STRATEGY_DESIGN.md#states-gates) | B-134 (extends B-97/B-100) |
+| [Castle planning](plans/STRATEGY_DESIGN.md#castle) | B-135 (extends B-54/B-82/B-99/B-108) |
+| [Capabilities and production choices](plans/STRATEGY_DESIGN.md#capabilities) | B-136 (extends B-95/B-115/B-128) |
+| [Aggressive task repertoire](plans/STRATEGY_DESIGN.md#aggression) | B-137 (extends B-98/B-118/B-129) |
+| [Defensive task repertoire](plans/STRATEGY_DESIGN.md#defense) | B-138 (extends B-46/B-77/B-82/B-108) |
+| [Strategy acceptance and evaluation](plans/STRATEGY_DESIGN.md#evaluation) | B-139 (extends B-100/B-130) |
+
 The source audit is [audit/AUDIT.txt](../audit/AUDIT.txt), against `7b994b7`.
 The old [Backlog.md](research/Backlog.md) remains the historical gameplay/research backlog.
 

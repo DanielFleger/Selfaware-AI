@@ -102,6 +102,12 @@ check, not an assertion that the entire archive is clean.
 
 ## Next implementation boundaries
 
+Read the [strategy expansion design](plans/STRATEGY_DESIGN.md) for the requested
+aggressive/defensive repertoire, state transitions, castle construction phases,
+technology prerequisites and evaluation scenarios. B-133 delivers that design;
+B-134 through B-139 remain implementation points. Reuse the existing raid,
+guard and granary-ring behavior as the first migration slices.
+
 Follow the authoritative backlog focus. B-96 selects Rust for the native core,
 and B-115 is built upstream. Its crate is now in `crates/samurai-kern/`;
 [build it explicitly for 32-bit Windows](../crates/samurai-kern/README.md).
