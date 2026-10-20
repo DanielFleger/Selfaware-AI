@@ -8,5 +8,5 @@ description = "SamurAI-Kern im Spiel (Backlog B-115): laeuft als DLL im Strongho
 crate-type = ["cdylib"]
 
 [profile.release]
-panic = "abort"
+panic = "unwind"   # B-145: Fehler im Kern fangen statt das Spiel mitzureissen (geschuetzt() in lib.rs)
 opt-level = 2
