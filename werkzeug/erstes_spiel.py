@@ -915,6 +915,7 @@ HOLZ_KAUFEN = False      # v17: Holz kaufen, wenn >= 4 Bauern untaetig sind und 
 HOLZ_SPAM = 0            # E3: erst so viele Holzfaeller rund ums Lager, dann Steinbrueche und Leder
 STEIN_MAX = False        # E4: Steinbrueche erst nach der ersten Holzlieferung, dann alle (2 am Lager + 3 am zweiten Steinfeld)
 STEIN_FRUEH = 2          # B-125: so viele Steinbrueche am Steinplatz des Plans sind Pflicht (Daniel 19.10.: "zwei Steinbrueche"), 0 = aus
+STEIN_FEHL_MAX = 5        # B-125: so viele gescheiterte Steinbruch-Bauten, dann gibt die Steinpflicht auf
 STEIN_UMKREIS = 10       # B-125: Suchumkreis um den Steinplatz des Plans
 JOCH_NACH_STEIN = False  # v18: Joch erst, wenn der Steinhaufen seines Steinbruchs Stein hat (Daniel 23:10, Punkte 4+5)
 STEIN_PARALLEL = False   # v18: Steinbrueche sofort (vor allem), Holzfaeller-Spam mit dem Rest - nicht erst nach dem Spam
@@ -1162,10 +1163,20 @@ def stein_pflicht(st, G, wirt, plan, anzahl):
     q = tuple(plan["stein"]["steinbruch"])
     brueche = steht_bei(G, 20, q, STEIN_UMKREIS)
     bestellt = sum(1 for a in BUCH.offen if a["typ"] == 20 and max(abs(a["ort"][0] - q[0]), abs(a["ort"][1] - q[1])) <= STEIN_UMKREIS)
+    # 20.10. (2v2-Partie 1: 616 x "STEINPFLICHT ... gesendet: None" bei (301, 269) - kein Platz im Umkreis): nach
+    # STEIN_FEHL_MAX Fehlschlaegen gibt die Pflicht auf und gibt das zurueckgelegte Holz frei
+    fehl = getattr(stein_pflicht, "fehl", 0)
+    if fehl >= STEIN_FEHL_MAX:
+        wirt.extra = {"holz": 0, "gold": 0}
+        return ev
     if len(brueche) + bestellt < anzahl:
         k = kosten_spiel(20)["holz"]
         if holz >= k:
             o = baue_schnell(20, q[0], q[1], STEIN_UMKREIS, zweck="Steinpflicht")
+            if not o:
+                stein_pflicht.fehl = fehl + 1
+                if stein_pflicht.fehl >= STEIN_FEHL_MAX:
+                    ev.append("STEINPFLICHT aufgegeben nach %d Fehlschlaegen bei %s (kein Platz) - Holz wieder frei" % (stein_pflicht.fehl, q))
             ev.append("STEINPFLICHT Steinbruch %d von %d bei %s gesendet: %s (Holz %d)" % (len(brueche) + bestellt + 1, anzahl, q, o, holz))
             holz -= k if o else 0
         else:
