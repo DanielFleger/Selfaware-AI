@@ -111,8 +111,14 @@ class Feldzug:
         #                             Angriffszeitpunkt ab so vielen Truppen statt der Gefechtsrechnung (Schalter angriff_ab)
         self.bresche_leben = None   # B-138: (niedrigstes Leben der Bresche, seit Tick)
         self.verworfen = set()      # B-138: zaehe Breschen - nicht noch einmal waehlen
+        self._bresche_pruef = (None, -99)   # B-140: (Bresche, Runde) der letzten Pruefung mit dem Wegfinder
 
     NACHBAR_RINGE = (1, 2, 3)  # B-140: so nah am Gebaeude muss ein Feld erreichbar sein, sonst ist es nicht angreifbar
+
+    def _nachbar_punkte(self, G, nr):
+        gx, gy = G[nr]["x"], G[nr]["y"]
+        return [(gx + dx * r, gy + dy * r) for r in self.NACHBAR_RINGE
+                for dx, dy in ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1))]
 
     def _beste_stelle(self, G, lp, orte, nr_test=None):
         """B-140 (Daniel 21:47 "nicht nur stupide drauf gehen, sondern die beste Position auswaehlen"): (Gefahr, Leben, Abstand,
@@ -137,11 +143,9 @@ class Feldzug:
         if kand and self.wegtest is not None and nr_test is not None:
             punkte, wem = [], []
             for k in kand:
-                gx, gy = G[k[3]]["x"], G[k[3]]["y"]
-                for r in self.NACHBAR_RINGE:
-                    for dx, dy in ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)):
-                        punkte.append((gx + dx * r, gy + dy * r))
-                        wem.append(k[3])
+                for q in self._nachbar_punkte(G, k[3]):
+                    punkte.append(q)
+                    wem.append(k[3])
             try:
                 gut = self.wegtest(nr_test, punkte)
                 angreifbar = {w for w, g_ in zip(wem, gut) if g_}
@@ -160,6 +164,7 @@ class Feldzug:
         gefahr, leben, _, nr = beste
         g = G[nr]
         self.bresche, self.bresche_leben = nr, None
+        self._bresche_pruef = (nr, self.runde)      # (die Wahl hat gerade selbst geprueft)
         aus.append("FELDZUG SCHWACHSTELLE (%s): Gebaeude %d (Typ %d, Leben %d, %d Feindschuetzen in Reichweite) bei (%d, %d), %d Felder "
                    "vom Lord - alle Nahkaempfer darauf" % (anlass, nr, g["typ"], leben, gefahr, g["x"], g["y"], schach((g["x"], g["y"]), lp)))
         return True
@@ -381,6 +386,34 @@ class Feldzug:
             schluss = spitze <= self.SCHLUSS_R or self.direkt
             nah_kampf = [n for n in kolben if L[n]["typ"] not in FERN_REICH]
             fern = [n for n in kolben if L[n]["typ"] in FERN_REICH]
+            # B-140 (Daniel 22:27: "sofort erkennen, wenn jemand einen Burggraben setzt - dann soll darauf nicht gegangen
+            # werden, sondern einen anderen Weg"; die KI sieht keine Bilder - ihr Auge ist der Wegfinder des Spiels, der Wasser
+            # und Mauern kennt): die gewaehlte Bresche JEDE Runde nachpruefen. Kein Nachbarfeld mehr erreichbar (frischer
+            # Graben, neue Mauer) -> verwerfen, sofort die naechste Stelle; ist nur der Vorposten abgeschnitten, wird er neu
+            # gesucht. (Daniel 22:30 "was genau ist eine Runde?": ein Durchlauf des Lenkers, gemessen 187-1.069 Takte bei
+            # Tempo 300 - "alle 3 Runden" waeren 600-3.200 Takte gewesen, je nach Tempo und Rechnerlast. Der Wegtest kostet
+            # 0,03 s, also jede Runde - oefter sieht der Lenker das Spiel nicht)
+            if (self.bresche is not None and self.bresche in G and self.wegtest is not None and nah_kampf
+                    and self._bresche_pruef != (self.bresche, self.runde)):
+                b_alt = self.bresche
+                punkte_b = self._nachbar_punkte(G, b_alt)
+                vp_alt = self.vorposten[1] if self.vorposten and self.vorposten[0] == b_alt else None
+                try:
+                    gut_b = self.wegtest(nah_kampf[0], punkte_b + ([vp_alt] if vp_alt else []))
+                except Exception:
+                    gut_b = None
+                self._bresche_pruef = (b_alt, self.runde)
+                if gut_b is not None and not any(gut_b[:len(punkte_b)]):
+                    self.verworfen.add(b_alt)
+                    self.bresche, self.bresche_leben, self.vorposten = None, None, None
+                    aus.append("FELDZUG BRESCHE ABGESCHNITTEN: Gebaeude %d - der Wegfinder findet kein Feld bis %d daneben mehr "
+                               "(Graben/Mauer), verworfen" % (b_alt, max(self.NACHBAR_RINGE)))
+                    if not self._schwachstelle(G, lp, orte, aus, "abgeschnitten"):
+                        self.lord_versuch = t
+                elif gut_b is not None and vp_alt and not gut_b[-1]:
+                    self.vorposten = None
+                    aus.append("FELDZUG VORPOSTEN ABGESCHNITTEN: %s vor Gebaeude %d nicht mehr erreichbar - neu suchen" % (
+                        vp_alt, b_alt))
             lord_ziel = None      # B-139: erreichbarer Punkt am Lord (Wegtest); None = keiner gefunden oder ohne Wegtest
             if (self.bresche is None or self.bresche not in G) and self.wegtest is not None and nah_kampf:
                 if (self.lord_vp is None or schach(self.lord_vp[0], lp) > 3

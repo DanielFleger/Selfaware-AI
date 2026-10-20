@@ -510,6 +510,39 @@ def main():
     ph25g, _ = stelle(True)
     pruefe(25, "80 Verteidiger 40 Felder hinter dem Lord, Tor vorn: Phase %s %s | 80 am Tor: %s" % (ph25, m25, ph25g),
            ph25 == "angriff" and ph25g == "sammeln")
+    # 26 (B-140, Daniel 22:27 "sofort erkennen, wenn jemand einen Burggraben setzt - dann ... einen anderen Weg"): Bresche 901
+    #    gewaehlt, dann meldet der Wegfinder kein Feld bis 3 daneben mehr (Graben) -> in der NAECHSTEN Runde
+    #    "ABGESCHNITTEN", 901 verworfen, Ziel 902. Zweiter Fall: nur der Vorposten wird abgeschnitten -> Bresche bleibt, neuer
+    #    Vorposten. Gegenprobe: nichts aendert sich -> 901 bleibt, Vorposten bleibt, keine Meldung.
+    def graben(was):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+        zu = set()
+        f.wegtest = lambda nr, punkte: [q not in zu for q in punkte]
+        f.schritt({"t": 12000}, *lage(5, heim), Befehle())
+        L_, G_ = lage(0, heim)
+        for i in range(10):
+            L_[10 + i] = einheit(75, 1, 304 + i % 3, 120 + i // 5, 28000)
+        G_[901] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 1500}
+        G_[902] = {"typ": 46, "besitzer": 2, "x": 290, "y": 96, "leben": 1500}
+        f.phase = "angriff"
+        f.schritt({"t": 12050}, L_, G_, Befehle())
+        erst, vp_erst = f.bresche, (f.vorposten[1] if f.vorposten else None)
+        if was == "graben":
+            zu.update(f._nachbar_punkte(G_, erst))
+        elif was == "vorposten" and vp_erst:
+            zu.add(tuple(vp_erst))
+        m_ = []
+        m_ += f.schritt({"t": 12100}, L_, G_, Befehle())
+        return erst, f.bresche, sorted(f.verworfen), vp_erst, (f.vorposten[1] if f.vorposten else None), \
+            [m[:70] for m in m_ if "ABGESCHNITTEN" in m]
+    e26, z26, v26, _, _, m26 = graben("graben")
+    e26v, z26v, v26v, vp26v, vpn26v, m26v = graben("vorposten")
+    e26g, z26g, v26g, vp26g, vpn26g, m26g = graben("nichts")
+    pruefe(26, "Graben: %s -> %s, verworfen %s %s | Vorposten zu: %s bleibt %s, Vorposten %s -> %s %s | nichts: %s bleibt %s, %s, %s" % (
+        e26, z26, v26, m26, e26v, z26v, vp26v, vpn26v, m26v, e26g, z26g, m26g, vpn26g),
+           e26 == 901 and z26 == 902 and v26 == [901] and any("BRESCHE ABGESCHNITTEN" in m for m in m26)
+           and z26v == 901 and vp26v and vpn26v and tuple(vpn26v) != tuple(vp26v) and any("VORPOSTEN ABGESCHNITTEN" in m for m in m26v)
+           and not v26v and z26g == 901 and not v26g and not m26g and vpn26g == vp26g)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
