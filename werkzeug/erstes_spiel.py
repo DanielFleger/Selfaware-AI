@@ -103,6 +103,7 @@ def lords():
 SAAT_DATEI = os.path.join(D, "saat_liga.json")
 SAAT_FELDER = ("karte", "partie", "wert1", "wert2", "zaehler1", "zaehler2")
 GEGNER_ZAHL = 1
+arg_global = {}          # B-140: Aufrufschalter fuer Bausteine tief in phase2 (angriff_ab)
 PRUEFSTAND = None        # B-140 (Daniel 21:49): Name - beim ersten Angriff des Feldzugs einmal speichern
 NUR_PHASE2 = False      # B-139 (20.10.): Lenker-Neustart mitten in der Partie - keine Anfangs-"Stellung" des Waechters
 TEAM_KIS = []            # B-133 2v2 (Daniel 20.10. 18:30): KI-Nummern des gegnerischen Paars, z. B. 1,2 = Rotkaeppchen +
@@ -2296,6 +2297,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             return list(wp) if wp else [ziel]
         feldzug.wegplaner = feldzug_weg
         feldzug.wegtest = wegtest           # B-139: erreichbarer Vorposten vor der Bresche (Wegfinder des Spiels)
+        if arg_global.get("angriff_ab"):
+            feldzug.angriff_ab = int(arg_global["angriff_ab"])     # B-140 Versuchsreihe
         # 19.10. (Daniel: "warum wird keine Waffenproduktion gebaut? Wenn die Streitis es nicht schaffen, muesste teuer
         # nachgebaut werden - longterm denken"): produktion=ja - eigene Kette (Minen, Schmieden, Kuhhoefe, Gerber), Groesse
         # aus PRODUKTION_FENSTER (30 Kaempfer in so vielen Ticks); bis sie steht, nur bei grossem Ueberschuss Markt-Kauf
@@ -3562,7 +3565,8 @@ def main():
     # Platz = Burgnummer der Karte - 1). Die Vermessung laeuft mit derselben Aufstellung; ihr Kurzname traegt die Plaetze.
     global GEGNER_ZAHL
     GEGNER_ZAHL = int(arg.get("gegner", 1))
-    global TEAM_KIS, NUR_PHASE2, PRUEFSTAND
+    global TEAM_KIS, NUR_PHASE2, PRUEFSTAND, arg_global
+    arg_global = arg
     PRUEFSTAND = arg.get("pruefstand") or None
     # B-139/B-140: Neustart mitten in der Partie oder geladener Stand (Pruefstand, stellung=nein) - keine Anfangs-Stellung
     NUR_PHASE2 = arg.get("nur_phase2", "nein") == "ja" or arg.get("stellung", "ja") == "nein"

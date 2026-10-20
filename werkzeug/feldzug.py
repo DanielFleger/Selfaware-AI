@@ -107,6 +107,8 @@ class Feldzug:
         self.vorposten = None       # B-139: (Bresche, erreichbarer Punkt vor ihr)
         self.lord_vp = None         # B-139: (Lord-Ort, erreichbarer Punkt am Lord oder None, Runde der Pruefung)
         self._lagebild = None       # B-140: Lagebild der laufenden Runde (Schuetzen fuer die Wahl der Angriffsstelle)
+        self.angriff_ab = None      # B-140 Versuchsreihe (Daniel 22:09 "so viele Variablen ... dafuer die Tests"): fester
+        #                             Angriffszeitpunkt ab so vielen Truppen statt der Gefechtsrechnung (Schalter angriff_ab)
         self.bresche_leben = None   # B-138: (niedrigstes Leben der Bresche, seit Tick)
         self.verworfen = set()      # B-138: zaehe Breschen - nicht noch einmal waehlen
 
@@ -267,6 +269,9 @@ class Feldzug:
                     text = "ganzes Heer: " + text_alle
             if self.runde % 10 == 0 and t >= self.schutz_bis and not (lohnt_alle or lohnt):
                 aus.append("FELDZUG WARTET: Gefechtsrechnung mit %d Truppen verliert noch (%s)" % (len(kolben), text_alle[:80]))
+            if self.angriff_ab is not None:          # Versuchsreihe: nur die Heeresgroesse entscheidet
+                lohnt_alle, lohnt = len(kolben) >= self.angriff_ab, False
+                text = "Versuchsreihe: ab %d Truppen" % self.angriff_ab
             if (lohnt_alle or lohnt) and t >= self.schutz_bis:
                 self.phase = "angriff"
                 self.letzter_befehl = -99
