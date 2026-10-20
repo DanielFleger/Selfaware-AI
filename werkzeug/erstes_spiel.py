@@ -669,6 +669,11 @@ def pruefe_begehbar(punkte):
             gut.add((x, y))
     return gut
 
+def werbe_viele(typen, gebaeude):
+    """B-141: mehrere Soeldner in EINER Befehlsliste werben (bauen.werbe wartet je Werbung 0,8 s)."""
+    sende({"befehle": [{"player": 1, "id": neue_id(), "werbe": {"typ": t, "gebaeude": gebaeude}} for t in typen]}, 1.0,
+          bis="WERBE")
+
 def wegtest(nr, punkte):
     """Modulbefehl wegtest: hat Einheit <nr> laut Wegfinder des Spiels einen Weg zu jedem Punkt? (05.10., Gegenprobe gruen:
     Wasser und Gebaeudefelder -> kein Weg, freies Feld -> Weg)"""
@@ -972,7 +977,8 @@ MARKE_TOTE = 5           # 19.10. (Daniel: "nur markieren, nicht stoppen"): ohne
 HEIM_FERN, HEIM_NAH = 6, 4   # 19.10.: Heimwache (Schuetzen, Nahkaempfer) - der Rest ist das Heer des Feldzugs (Stellgroessen)
 NOT_R, NOT_JE_RUNDE = 12, 2  # 19.10.: Notwerbung nur gegen Feinde so nah an unseren Gebaeuden, hoechstens so viele je Runde
 # 19.10. (1019g): Soeldner fuers Heer nur mit so viel Gold ueber der Ruecklage, hoechstens so viele (1019h: bei 60 lagen 3.400 Gold)
-HEER_GOLD_RAND, HEER_MAX = 150, 100
+HEER_GOLD_RAND, HEER_MAX = 150, 300   # B-141 (Daniel 21:54 "10k Gold - sonst verschwendetes Geld"): Heer bis 300 statt 100
+HEER_JE_RUNDE = 10      # B-141: Werbungen je Runde, gebuendelt in EINER Befehlsliste (einzeln je 0,8 s Wartezeit)
 # 19.10. (1019j: assassinen=20 zaehlte ALLE Anwerbungen - nach der 20. kam keine mehr, 15 starben, zuletzt 6 Raider bei
 # 2.700-6.000 Gold; Daniel: "die Raids aussenrum waren am effektivsten, wurden aber zu wenig eingesetzt"): assassinen= gilt
 # fuer LEBENDE (Tote werden ersetzt); dazu bis ASSASSINEN_EXTRA mehr, solange jede ein Ziel hat, es weitere lohnende
@@ -3321,27 +3327,29 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         if n_h:
                             ereignis.append("ENDSPURT-WERBUNG: %d arab. Schwertkaempfer (Gold %d, Feuer %d, Heer jetzt %d)" % (
                                 n_h, st["gold"], st.get("feuer", 0), len(feldzug.einheiten(L)) + n_h))
-                    elif posten_h is not None and runde % 2 == 0:
-                        import bauen as BA_h
+                    elif posten_h is not None:
+                        # B-141 (Daniel 21:54, gemessen Pruefstand: Gold 6.409 -> 10.938 bei 2 Soeldnern je zweiter Runde): jede
+                        # Runde alles Gold ueber Ruecklage + Rand ins Heer, so weit Bauern am Feuer stehen, bis HEER_JE_RUNDE
                         if HEER_ANTEIL > 0:      # B-132: die Heereskasse zahlt (ohne Rand - sie ist der Rand)
                             frei_h = min(getattr(wirt, "heer_kasse", 0.0), st["gold"] - wirt.ruecklage(G, ohne_heer=True)["gold"])
                         else:
                             frei_h = st["gold"] - wirt.ruecklage(G)["gold"] - HEER_GOLD_RAND
                         heer_n, n_h, feuer_h = len(feldzug.einheiten(L)), 0, st.get("feuer", 0)
-                        while n_h < 2 and heer_n + n_h < HEER_MAX and feuer_h - n_h >= 1:
-                            typ_h = 70 if (fruehpruefung.get("heer_zaehler", 0) + n_h) % 4 == 3 else 75
+                        typen_h = []
+                        while len(typen_h) < HEER_JE_RUNDE and heer_n + len(typen_h) < HEER_MAX and feuer_h - len(typen_h) >= 1:
+                            typ_h = 70 if (fruehpruefung.get("heer_zaehler", 0) + len(typen_h)) % 4 == 3 else 75
                             if frei_h < SOELDNER_GOLD[typ_h]:
                                 break
-                            BA_h.werbe(typ_h, posten_h)
+                            typen_h.append(typ_h)
                             frei_h -= SOELDNER_GOLD[typ_h]
                             if HEER_ANTEIL > 0:
                                 wirt.heer_ausgabe(SOELDNER_GOLD[typ_h])
-                            n_h += 1
-                        if n_h:
+                        if typen_h:
+                            werbe_viele(typen_h, posten_h)
+                            n_h = len(typen_h)
                             fruehpruefung["heer_zaehler"] = fruehpruefung.get("heer_zaehler", 0) + n_h
-                            if fruehpruefung["heer_zaehler"] % 10 < n_h or fruehpruefung["heer_zaehler"] <= 2:
-                                ereignis.append("HEER-WERBUNG: %d Soeldner fuers Heer angeworben (zusammen %d, Heer jetzt %d), Gold %d" % (
-                                    n_h, fruehpruefung["heer_zaehler"], heer_n + n_h, st["gold"]))
+                            ereignis.append("HEER-WERBUNG: %d Soeldner fuers Heer angeworben (zusammen %d, Heer jetzt %d), Gold %d" % (
+                                n_h, fruehpruefung["heer_zaehler"], heer_n + n_h, st["gold"]))
                     if brand is not None:
                         # 19.10. Raids: steuern jede Runde; werben nur aus Gold ueber der Ruecklage, nicht im Endspurt
                         try:
@@ -3556,7 +3564,8 @@ def main():
     GEGNER_ZAHL = int(arg.get("gegner", 1))
     global TEAM_KIS, NUR_PHASE2, PRUEFSTAND
     PRUEFSTAND = arg.get("pruefstand") or None
-    NUR_PHASE2 = arg.get("nur_phase2", "nein") == "ja"
+    # B-139/B-140: Neustart mitten in der Partie oder geladener Stand (Pruefstand, stellung=nein) - keine Anfangs-Stellung
+    NUR_PHASE2 = arg.get("nur_phase2", "nein") == "ja" or arg.get("stellung", "ja") == "nein"
     TEAM_KIS = [int(z) for z in arg["team_kis"].split(",")] if arg.get("team_kis") else []
     # 00:59 (Daniel: "Nomade 2 wird nicht wirklich geladen"): die Startliste des Spiels ist PLATZ -> Spieler (Index 0 = wir),
     # nicht Spieler -> Platz - startliste=0,1,7 setzte Platz 2 auf einen Spieler 7, den es nicht gibt. plaetze=0,1,7 nimmt
