@@ -3995,8 +3995,13 @@ log(INFO, "logik.lua (31.08.2026): + Bauwacht, + Durchreichen an init.lua.")
 do
   local okA, gutA, textA = pcall(absenderEinbauen)
   log(okA and gutA and INFO or WARNING, "ABSENDER beim Laden: " .. tostring(okA and textA or gutA))
-  local okK, gutK, textK = pcall(kernLaden)
-  log(INFO, "KERN beim Laden: " .. tostring(okK and textK or gutK))
+  -- 20.10.2026 B-145: die aktuelle Kern-Fassung steht in ucp/villagestudio/kern_aktuell.txt (ein Dateiname samurai_kern*.dll);
+  -- fehlt die Datei, gilt samurai_kern.dll. So startet nach einem Neuladen von logik.lua oder des Spiels die neueste Fassung.
+  local aktuell = nil
+  local fa = io.open("ucp/villagestudio/kern_aktuell.txt", "r")
+  if fa then aktuell = (fa:read("*l") or ""):match("^%s*(samurai_kern[%w_]*%.dll)%s*$"); fa:close() end
+  local okK, gutK, textK = pcall(kernLaden, aktuell)
+  log(INFO, "KERN beim Laden: " .. tostring(okK and textK or gutK) .. (aktuell and " (aus kern_aktuell.txt)" or ""))
 end
 
 -- Im Hauptmenue laeuft processGameTick nicht, also auch everyTick nicht.

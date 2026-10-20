@@ -35,6 +35,10 @@ Version 2 (B-145 stage S0, `docs/plans/Plan_Kern.md`):
   `{"kern": {"laden": "samurai_kern.dll"}}`. Measured on instance 5, 20.10.2026
   (`docs/research/Wissensregister.md` L155).
 
+Deploying a new version: copy the DLL under a new name (`samurai_kern_<n>.dll`) into the module folder, write that
+name into `ucp/villagestudio/kern_aktuell.txt` and send `{"kern": {"laden": "samurai_kern_<n>.dll"}}`. After a reload of
+logik.lua or a game restart, logik.lua loads the name from `kern_aktuell.txt` (fallback `samurai_kern.dll`).
+
 Offline checks: `cargo test --target i686-pc-windows-gnu` (or the MSVC target) runs only
 the parts that do not touch game memory.
 The unit-count and tick functions access fixed game addresses and must run
