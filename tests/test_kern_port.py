@@ -61,7 +61,9 @@ def _intent():
 
 
 def test_move_wird_erst_mit_sichtbarer_wirkung_bestaetigt():
-    leitung = FalscheLeitung([_bild(100, 5, 157, 192), _bild(101, 5, 157, 192), _bild(102, 19, 163, 192)])
+    leitung = FalscheLeitung(
+        [_bild(100, 5, 157, 192), _bild(101, 5, 157, 192), _bild(102, 19, 163, 192)]
+    )
     port = KernPort(leitung)
     session = Session(5, 1, port.epoche_kennung())
     erst = port.observe(session).snapshot
@@ -75,7 +77,9 @@ def test_move_wird_erst_mit_sichtbarer_wirkung_bestaetigt():
 
 
 def test_ohne_wirkung_keine_bestaetigung_und_absage_wird_abgelehnt():
-    leitung = FalscheLeitung([_bild(100, 5, 157, 192), _bild(101, 5, 157, 192), _bild(102, 5, 157, 192)])
+    leitung = FalscheLeitung(
+        [_bild(100, 5, 157, 192), _bild(101, 5, 157, 192), _bild(102, 5, 157, 192)]
+    )
     port = KernPort(leitung)
     session = Session(5, 1, port.epoche_kennung())
     port.observe(session)

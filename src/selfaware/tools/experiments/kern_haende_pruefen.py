@@ -40,11 +40,7 @@ def main(argv=None):
     befehl({"eigenerPlatz": sp}, 1.0)
     print(befehl({"kern": {"laden": KERN}}, 1.5)[0])
     e = welt(befehl, vs)
-    eigene = [
-        nr
-        for nr, z in e.items()
-        if int(z["besitzer"]) == sp and int(z["typ"]) in KAEMPFER
-    ]
+    eigene = [nr for nr, z in e.items() if int(z["besitzer"]) == sp and int(z["typ"]) in KAEMPFER]
     if len(eigene) < 4:
         print("zu wenige Kaempfer:", len(eigene))
         return 1
@@ -54,7 +50,9 @@ def main(argv=None):
     print("drei:", drei, "Ziel", (x, y), "| nicht uebergeben:", fremd)
     print(befehl({"kern": {"uebernehmen": drei}}, 1.0)[0])
     print(befehl({"kern": {"lauf": {"einheiten": drei, "x": x, "y": y}}}, 1.0)[0])
-    print("Gegenprobe A:", befehl({"kern": {"lauf": {"einheiten": [fremd], "x": x, "y": y}}}, 1.0)[0])
+    print(
+        "Gegenprobe A:", befehl({"kern": {"lauf": {"einheiten": [fremd], "x": x, "y": y}}}, 1.0)[0]
+    )
     t0 = peek(TICK)[0]
     befehl({"pause": False}, 1.0)
     time.sleep(1.0)
@@ -70,7 +68,16 @@ def main(argv=None):
             continue
         ok = (int(z["laufx"]), int(z["laufy"])) == (x, y)
         gut += ok
-        print(nr, "Gruppe", z["gruppe"], "Laufziel", (z["laufx"], z["laufy"]), "Zustand", z["zustand"], "OK" if ok else "")
+        print(
+            nr,
+            "Gruppe",
+            z["gruppe"],
+            "Laufziel",
+            (z["laufx"], z["laufy"]),
+            "Zustand",
+            z["zustand"],
+            "OK" if ok else "",
+        )
         print("   vorher Gruppe", e[nr]["gruppe"], "Laufziel", (e[nr]["laufx"], e[nr]["laufy"]))
     zf = e2.get(fremd, {})
     print("nicht uebergeben", fremd, "Laufziel", (zf.get("laufx"), zf.get("laufy")))

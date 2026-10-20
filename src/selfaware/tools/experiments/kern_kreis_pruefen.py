@@ -44,7 +44,9 @@ def main():
     gegen_a = leitung.auftrag(KL.LAUF, fremd["nr"], *ziel)
     gegen_b = leitung.auftrag(99, zwei[0]["nr"])
     ergebnisse = [warte_ergebnis(leitung, n) for n in nummern]
-    print(f"geschrieben bei Takt {t0}: Einheiten {[e['nr'] for e in zwei]} -> {ziel}, Ergebnisse {ergebnisse}")
+    print(
+        f"geschrieben bei Takt {t0}: Einheiten {[e['nr'] for e in zwei]} -> {ziel}, Ergebnisse {ergebnisse}"
+    )
     print(f"Gegenprobe A (nicht uebergeben {fremd['nr']}): {warte_ergebnis(leitung, gegen_a)}")
     print(f"Gegenprobe B (Art 99): {warte_ergebnis(leitung, gegen_b)}")
     t1, ende = None, time.time() + 5.0
@@ -65,7 +67,9 @@ def main():
     if t1 is None:
         print("Wirkung in 5 s NICHT gesehen")
         return 1
-    print(f"Kreis geschlossen: geschrieben Takt {t0}, Wirkung im Speicher bei Takt {t1} -> {t1 - t0} Takte")
+    print(
+        f"Kreis geschlossen: geschrieben Takt {t0}, Wirkung im Speicher bei Takt {t1} -> {t1 - t0} Takte"
+    )
     return 0
 
 

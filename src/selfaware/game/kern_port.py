@@ -31,14 +31,30 @@ class KernPort:
 
     def _snapshot(self, session, w):
         if session.epoch != f"{self.leitung.name}-e{w.epoche}":
-            raise ValueError(f"Spiel-Epoche gewechselt: {session.epoch} -> {self.leitung.name}-e{w.epoche}")
+            raise ValueError(
+                f"Spiel-Epoche gewechselt: {session.epoch} -> {self.leitung.name}-e{w.epoche}"
+            )
         entities = [
-            Entity(EntityRef("unit", e["nr"], None), e["besitzer"], e["typ"], e["x"], e["y"], max(e["leben"], 0))
+            Entity(
+                EntityRef("unit", e["nr"], None),
+                e["besitzer"],
+                e["typ"],
+                e["x"],
+                e["y"],
+                max(e["leben"], 0),
+            )
             for e in w.einheiten.values()
             if e["besitzer"] >= 0 and e["typ"] >= 0
         ]
         entities += [
-            Entity(EntityRef("building", g["nr"], None), g["besitzer"], g["typ"], g["x"], g["y"], max(g["leben"], 0))
+            Entity(
+                EntityRef("building", g["nr"], None),
+                g["besitzer"],
+                g["typ"],
+                g["x"],
+                g["y"],
+                max(g["leben"], 0),
+            )
             for g in w.gebaeude.values()
             if g["besitzer"] >= 0 and g["typ"] >= 0
         ]
@@ -62,7 +78,9 @@ class KernPort:
         for action_id, auftrag in list(self._offen.items()):
             status = self._pruefen(auftrag, w)
             if status is not None:
-                outcomes.append(ObservedOutcome(action_id, status, snapshot.snapshot_id, auftrag["art"]))
+                outcomes.append(
+                    ObservedOutcome(action_id, status, snapshot.snapshot_id, auftrag["art"])
+                )
                 del self._offen[action_id]
         return Observation(snapshot, tuple(outcomes))
 
@@ -80,14 +98,21 @@ class KernPort:
             x, y = auftrag["ziel"]
             ok = all(max(abs(e["laufx"] - x), abs(e["laufy"] - y)) <= ZIEL_ABSTAND for e in lebend)
         else:
-            ok = all(e["zieleinheit"] == auftrag["ziel"] or e["zielgebaeude"] == auftrag["ziel"] for e in lebend)
+            ok = all(
+                e["zieleinheit"] == auftrag["ziel"] or e["zielgebaeude"] == auftrag["ziel"]
+                for e in lebend
+            )
         return OutcomeStatus.CONFIRMED if ok else None
 
     def submit(self, session, intent):
         name = intent.command.name
         einheiten = [a.slot for a in intent.actors if a.kind == "unit"]
         if name not in ("move", "attack") or not einheiten:
-            return Receipt(intent.intent_id, ReceiptStatus.REJECTED, f"nicht unterstuetzt: {name} / {len(einheiten)}")
+            return Receipt(
+                intent.intent_id,
+                ReceiptStatus.REJECTED,
+                f"nicht unterstuetzt: {name} / {len(einheiten)}",
+            )
         if name == "attack" and not intent.targets:
             return Receipt(intent.intent_id, ReceiptStatus.REJECTED, "attack ohne Ziel")
         w = self._zuletzt or self.leitung.lesen()

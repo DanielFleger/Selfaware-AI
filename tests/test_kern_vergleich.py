@@ -22,7 +22,9 @@ def test_gleiche_dateien_haben_keine_abweichung(tmp_path):
 
 
 def test_abweichender_wert_und_fehlende_einheit_werden_gemeldet(tmp_path):
-    _, _, da = lesen(_datei(tmp_path, "a.txt", ["7 1 75 10 20 28000 1", "9 2 23 11 21 12000 0"]), False)
+    _, _, da = lesen(
+        _datei(tmp_path, "a.txt", ["7 1 75 10 20 28000 1", "9 2 23 11 21 12000 0"]), False
+    )
     _, _, db = lesen(_datei(tmp_path, "b.txt", ["7 1 75 10 20 27999 1", "8 0 1 5 5 100 -9"]), False)
     nur_a, nur_b, ab = vergleiche(da, db)
     assert nur_a == [9]

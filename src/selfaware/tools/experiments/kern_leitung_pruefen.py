@@ -13,7 +13,19 @@ import time
 from selfaware.game.kern_leitung import Leitung
 from selfaware.tools.experiments.kern_vergleich import lesen
 
-SPALTEN = ("besitzer", "typ", "x", "y", "leben", "zustand", "laufx", "laufy", "gruppe", "zielart", "zieleinheit")
+SPALTEN = (
+    "besitzer",
+    "typ",
+    "x",
+    "y",
+    "leben",
+    "zustand",
+    "laufx",
+    "laufy",
+    "gruppe",
+    "zielart",
+    "zieleinheit",
+)
 
 
 def main(argv=None):
@@ -35,8 +47,12 @@ def main(argv=None):
         if str(w.einheiten[nr][s]) != e[nr][s]
     ]
     fehlen = sorted(set(e) ^ set(w.einheiten))
-    print(f"Speicher {leitung.name}: Takt {w.tick} (Datei {t_datei}), Kern {w.kern}, Epoche {w.epoche}")
-    print(f"angehalten: {len(w.einheiten)} Einheiten, nur in einer Quelle {len(fehlen)}, abweichend {len(ab)} {ab[:3]}")
+    print(
+        f"Speicher {leitung.name}: Takt {w.tick} (Datei {t_datei}), Kern {w.kern}, Epoche {w.epoche}"
+    )
+    print(
+        f"angehalten: {len(w.einheiten)} Einheiten, nur in einer Quelle {len(fehlen)}, abweichend {len(ab)} {ab[:3]}"
+    )
     befehl({"pause": False}, 1.0)
     gesehen, ende = [], time.time() + sekunden
     while time.time() < ende:

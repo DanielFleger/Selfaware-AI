@@ -1,10 +1,10 @@
 """B-145 / L154: wie oft sieht wer das Spiel? (20.10.2026)
 
-  python -m selfaware.tools.experiments.takt_messen kern [Instanz]
-      Abstaende der Zeilen "tick N einheiten" im Kern-Protokoll (samurai_kern.log, eine Zeile alle
-      500 Takte) - genau 500 heisst: kein Takt fehlt.
-  python -m selfaware.tools.experiments.takt_messen runden <konsole> ...
-      Takte zwischen zwei Runden des Python-Lenkers ("<tick> |"-Zeilen einer Mitschrift).
+python -m selfaware.tools.experiments.takt_messen kern [Instanz]
+    Abstaende der Zeilen "tick N einheiten" im Kern-Protokoll (samurai_kern.log, eine Zeile alle
+    500 Takte) - genau 500 heisst: kein Takt fehlt.
+python -m selfaware.tools.experiments.takt_messen runden <konsole> ...
+    Takte zwischen zwei Runden des Python-Lenkers ("<tick> |"-Zeilen einer Mitschrift).
 """
 
 import collections

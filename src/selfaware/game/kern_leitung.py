@@ -90,7 +90,9 @@ def entpacken(puffer):
     kopf = struct.unpack_from(KOPF_FORMAT, puffer, 0)
     kennung, aufbau, _folge, tick, epoche, ich, ne, ng, geplant, ausgehoben, kern = kopf
     if kennung != KENNUNG or aufbau != AUFBAU:
-        raise FalscherAufbau(f"Kennung {kennung:#x} / Aufbau {aufbau}, erwartet {KENNUNG:#x} / {AUFBAU}")
+        raise FalscherAufbau(
+            f"Kennung {kennung:#x} / Aufbau {aufbau}, erwartet {KENNUNG:#x} / {AUFBAU}"
+        )
     einheiten = {}
     for i in range(min(ne, MAX_EINHEITEN)):
         werte = struct.unpack_from(EINHEIT_FORMAT, puffer, KOPF + i * EINHEIT)
