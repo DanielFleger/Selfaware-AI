@@ -210,40 +210,35 @@ def main():
         [m[:60] for m in meld], len(lord14[0]["angriff"]["einheiten"]) if lord14 else 0),
            len(meld) == 2 and "uebersprungen" in meld[0] and "direkt" in meld[1] and lord14
            and len(lord14[0]["angriff"]["einheiten"]) == 20)
-    # 15 (B-134 Burg knacken, 20.10.: 2v2 gegen Rotkaeppchen, 37.000 Ticks Stau vor der Burg): auch "direkt" bringt niemanden
-    #    naeher -> beim dritten Stau Angriff auf das feindliche Tor (Typ 46) am Lord; faellt es, wieder auf den Lord.
-    #    Gegenprobe: ohne Tor/Turm nur die Meldung "kein feindliches Tor/Turm", kein Gebaeude-Angriff.
+    # 15 (B-139 Schwachstelle, Daniel 20.10. 20:52: "sei aggressiver, gehe aufs Torhaus oder die groesste Schwachstelle"): ein
+    #    Torhaus 6 Felder vom Lord -> im ersten Angriffsschritt greifen ALLE 30 Nahkaempfer es an, keiner bekommt einen
+    #    Laufbefehl (kein Sammeln, kein Warten auf Staus); faellt es -> "BRESCHE gefallen", Angriff auf den Lord.
+    #    Gegenprobe: ohne Torhaus kein Gebaeudeangriff und keine SCHWACHSTELLE.
     def burg(mit_tor):
-        # B-138: mit Sturmwelle - N = 20, die 20 Schwertkaempfer erreichen den Sturmpunkt, dann geht es aufs Tor
-        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=20)
-        f.wegplaner = lambda L_, G_, s, z: [(150, 200), (200, 150), (250, 120), z]
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
         f.schritt({"t": 12000}, *lage(10, heim), Befehle())
-        f.schritt({"t": 12050}, *lage(30, f.punkt), Befehle())
-        L_, G_ = lage(0, heim)
-        for i in range(20):
-            L_[10 + i] = einheit(75, 1, 100 + i % 5, 240 + i // 5, 28000)
-        lp = (L_[500]["x"], L_[500]["y"])
+        L_, G_ = lage(30, f.punkt)
         if mit_tor:
-            G_[900] = {"typ": 46, "besitzer": 2, "x": lp[0] + 6, "y": lp[1] + 6, "leben": 1000}
-        m_, tor_ = [], []
-        for t in range(12100, 17000, 100):
-            b = Befehle()
-            m_ += [m for m in f.schritt({"t": t}, L_, G_, b) if "STAU" in m or "BURG" in m or "BRESCHE" in m]
-            tor_ += [x for x in b.liste if x.get("angriff", {}).get("gebaeude") == 900]
-            if f.sturm_punkt and f.sturm_los is None:
-                for i in range(20):
-                    L_[10 + i]["x"], L_[10 + i]["y"] = f.sturm_punkt[0] + i % 3, f.sturm_punkt[1] + i // 10
-        fallen = []
+            G_[901] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 1500}
+        b = Befehle()
+        m_ = f.schritt({"t": 12050}, L_, G_, b)
+        tor_ = [x for x in b.liste if x.get("angriff", {}).get("gebaeude") == 901]
+        lauf_ = [x for x in b.liste if "lauf" in x.get("angriff", {})]
+        fall_, lord_ = [], []
         if mit_tor:
-            del G_[900]
-            fallen = [m for m in f.schritt({"t": 17100}, L_, G_, Befehle()) if "BRESCHE" in m]
-        return m_, tor_, fallen
-    m15, tor15, fall15 = burg(True)
-    m15o, tor15o, _ = burg(False)
-    pruefe(15, "Burg knacken: %s; Tor-Angriffe %d, gefallen %s | ohne Tor: %s" % (
-        [m[:50] for m in m15 if "BURG" in m][:1], len(tor15), [m[:40] for m in fall15], [m[:50] for m in m15o][-1:]),
-           any("BURG KNACKEN" in m for m in m15) and tor15 and len(tor15[0]["angriff"]["einheiten"]) == 20 and fall15
-           and not tor15o and any("kein feindliches Tor" in m for m in m15o))
+            del G_[901]
+            for k, t in enumerate(range(12100, 12700, 100)):
+                b2 = Befehle()
+                fall_ += [m for m in f.schritt({"t": t}, L_, G_, b2) if "BRESCHE" in m]
+                lord_ += [x for x in b2.liste if x.get("angriff", {}).get("ziel") == 500 or "lauf" in x.get("angriff", {})]
+        return m_, tor_, lauf_, fall_, lord_
+    m15, tor15, lauf15, fall15, lord15 = burg(True)
+    m15o, tor15o, _, _, _ = burg(False)
+    pruefe(15, "Schwachstelle sofort: %s; Torangriff fuer %d, Laufbefehle %d; gefallen %s, danach Befehle %d | ohne Tor: %s" % (
+        [m[:60] for m in m15 if "SCHWACHSTELLE" in m], len(tor15[0]["angriff"]["einheiten"]) if tor15 else 0, len(lauf15),
+        [m[:40] for m in fall15], len(lord15), [m[:40] for m in m15o if "SCHWACHSTELLE" in m or "ANGRIFF" in m]),
+           any("SCHWACHSTELLE (Angriff)" in m for m in m15) and tor15 and len(tor15[0]["angriff"]["einheiten"]) == 30
+           and not lauf15 and fall15 and lord15 and not tor15o and not any("SCHWACHSTELLE" in m for m in m15o))
     # 16 (B-137, 20.10. Revanche Tick 104.000: 77 arab. Bogen standen 154 Felder vom Lord zu Hause am Wegpunkt 9/25, nur 7
     #    Schwertkaempfer vor dem Tor): nach "alle direkt auf den Lord" laufen auch die Schuetzen auf den Lord, nicht weiter an
     #    den alten Wegpunkt. Gegenprobe: vor dem Stau laufen sie an den Wegpunkt (der Umweg aus Pruefung 8 bleibt).
@@ -269,95 +264,71 @@ def main():
     nach16 = [z for t, z in sorted(ziele16.items())][-1:]
     pruefe(16, "Schuetzen: erster Laufbefehl %s, letzter nach 'direkt' %s (direkt=%s)" % (vor16, nach16, f16.direkt),
            f16.direkt and vor16 and vor16[0] != [300, 100] and nach16 == [[300, 100]])
-    # 17 (B-138 Sturmwelle, 20.10. L151: Nahkaempfer kamen einzeln ans Torhaus und starben; dazu hob der Laufbefehl zum Lord
-    #    jeden Torangriff in derselben Runde wieder auf). Vorher festgelegt:
-    #    a) Bresche steht, 10 von N=20 Nahkaempfern weit weg -> Laufbefehl an den Sturmpunkt, KEIN Torangriff; der Sturmpunkt
-    #       ist der Standort des eigenen Bogens (240,160) - sicher (mehr als SICHER Felder von jedem Feindschuetzen) und dem
-    #       Tor am naechsten (20.10.: ein gedachter Punkt war unerreichbar)
-    #    b) 20 am Sturmpunkt -> STURM LOS, Torangriff fuer alle 20, und in dieser und der naechsten Runde KEIN Laufbefehl an sie
-    #    c) STURM_ABWEHR Ticks nach dem Losgehen weniger als STURM_REST am Tor -> ABGEWEHRT, wieder Laufbefehl zum Sturmpunkt
-    f17 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=20)
-    f17.schritt({"t": 12000}, *lage(10, heim), Befehle())
-    f17.schritt({"t": 12050}, *lage(30, f17.punkt), Befehle())
+
+    # 17 (B-139 "groesste Schwachstelle"): zwei Torhaeuser am Lord mit 1.500 und 400 Leben, dazu ein Turm mit 100 Leben 40 Felder
+    #    vom Lord (ausserhalb BURG_R) -> Ziel ist das Torhaus mit 400; die 10 Nahkaempfer stehen weit weg zu Hause und bekommen
+    #    trotzdem sofort den Torangriff (kein Laufbefehl an sie); die Schuetzen laufen zum Tor, nicht zum Lord.
+    f17 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+    f17.schritt({"t": 12000}, *lage(5, heim), Befehle())
     L17, G17 = lage(0, heim)
-    G17[900] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 1000}
     for i in range(10):
         L17[10 + i] = einheit(75, 1, 100 + i % 5, 240 + i // 5, 28000)
-    L17[60] = einheit(70, 1, 240, 160, 15000)     # ein eigener Bogen steht sicher vor dem Tor (55 Felder vom naechsten Feindbogen)
-    f17.phase, f17.direkt, f17.bresche, f17.weg, f17.weg_i, f17.weg_ziel = "angriff", True, 900, [(300, 100)], 0, (300, 100)
-    f17._stau = (0, 12100)                           # kein neuer Stau waehrend der Pruefung
-    b = Befehle()
-    m17 = f17.schritt({"t": 12100}, L17, G17, b)
-    sp17 = f17.sturm_punkt
-    fern17 = [(e["x"], e["y"]) for e in L17.values() if e["besitzer"] == 2 and e["typ"] in F.FERN]
-    nk = set(range(10, 30))
-    lauf_a = [x["angriff"]["lauf"] for x in b.liste if "lauf" in x.get("angriff", {}) and set(x["angriff"]["einheiten"]) & nk]
-    tor_a = [x for x in b.liste if x.get("angriff", {}).get("gebaeude") == 900]
-    ok_a = sp17 == (240, 160) and lauf_a == [list(sp17)] and not tor_a and min(F.schach(sp17, q) for q in fern17) > F.Feldzug.SICHER
-    for i in range(20):
-        L17[10 + i] = einheit(75, 1, sp17[0] + i % 3, sp17[1] + i // 10, 28000)
-    b1, b2 = Befehle(), Befehle()
-    m17 += f17.schritt({"t": 12200}, L17, G17, b1) + f17.schritt({"t": 12300}, L17, G17, b2)
-    tor_b = [x for x in b1.liste if x.get("angriff", {}).get("gebaeude") == 900]
-    lauf_b = [x for x in b1.liste + b2.liste if "lauf" in x.get("angriff", {}) and set(x["angriff"]["einheiten"]) & set(range(10, 30))]
-    ok_b = any("STURM LOS" in m for m in m17) and tor_b and len(tor_b[0]["angriff"]["einheiten"]) == 20 and not lauf_b
-    for i in range(17):
-        del L17[10 + i]                              # die Welle stirbt: 3 bleiben auf halber Strecke (31 Felder vom Tor)
-    for n in (27, 28, 29):
-        L17[n]["x"], L17[n]["y"] = (sp17[0] + 306) // 2, (sp17[1] + 106) // 2
-    b3 = Befehle()
-    m17 += f17.schritt({"t": 12300 + F.Feldzug.STURM_ABWEHR}, L17, G17, b3)
-    lauf_c = [x["angriff"]["lauf"] for x in b3.liste if "lauf" in x.get("angriff", {}) and set(x["angriff"]["einheiten"]) & nk]
-    ok_c = any("ABGEWEHRT" in m for m in m17) and f17.sturm_los is None and lauf_c == [list(sp17)]
-    pruefe(17, "Sturmwelle: Punkt %s (a %s: Lauf %s, Tor %d) (b %s: Tor %s, Lauf danach %d) (c %s: %s)" % (
-        sp17, bool(ok_a), lauf_a, len(tor_a), bool(ok_b), len(tor_b[0]["angriff"]["einheiten"]) if tor_b else 0, len(lauf_b),
-        bool(ok_c), [m[:40] for m in m17 if "ABGEWEHRT" in m]), ok_a and ok_b and ok_c)
-    # 18 (B-138, 20.10. Partie gegen Franz+Karl: beim Sammeln und Stuermen kommt die Spitze nicht naeher -> neuer Stau): ein Stau
-    #    waehrend der laufenden Welle waehlt KEIN anderes Tor, auch wenn eines naeher am Lord liegt - die Welle laeuft weiter.
-    #    Gegenprobe: ist die Bresche gefallen, waehlt der naechste Stau das andere Tor.
+    L17[60] = einheit(70, 1, 90, 250, 15000)
+    G17[901] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 1500}
+    G17[902] = {"typ": 46, "besitzer": 2, "x": 294, "y": 96, "leben": 400}
+    G17[903] = {"typ": 74, "besitzer": 2, "x": 300, "y": 140, "leben": 100}
+    b17 = Befehle()
+    m17 = f17.schritt({"t": 12050}, L17, G17, b17)
+    tor17 = [x for x in b17.liste if "gebaeude" in x.get("angriff", {})]
+    lauf17 = [x for x in b17.liste if "lauf" in x.get("angriff", {})]
+    nk17 = [x for x in lauf17 if set(x["angriff"]["einheiten"]) & set(range(10, 20))]
+    bogen17 = [x["angriff"]["lauf"] for x in lauf17 if 60 in x["angriff"]["einheiten"]]
+    pruefe(17, "Schwaechste Stelle: Ziel %s, Torangriffe %s, Laufbefehle an Nahkaempfer %d, Bogen laeuft nach %s" % (
+        f17.bresche, [(x["angriff"]["gebaeude"], len(x["angriff"]["einheiten"])) for x in tor17], len(nk17), bogen17),
+           f17.bresche == 902 and tor17 and tor17[0]["angriff"]["gebaeude"] == 902 and len(tor17[0]["angriff"]["einheiten"]) == 10
+           and not nk17 and bogen17 == [[294, 96]])
+    # 18 (B-138): ein Stau, waehrend die gewaehlte Bresche noch steht, waehlt kein anderes Tor - auch wenn eines schwaecher ist.
+    #    Gegenprobe: ist die Bresche gefallen und kommt danach niemand weiter, waehlt schon der erste Stau danach das andere
+    #    Tor (vorher keine Stau-Stufe wie Wegpunkt ueberspringen oder 'direkt').
     f18 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=20)
     f18.schritt({"t": 12000}, *lage(10, heim), Befehle())
-    f18.schritt({"t": 12050}, *lage(30, f18.punkt), Befehle())
     L18, G18 = lage(0, heim)
-    G18[900] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 1000}
+    G18[901] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 1000}
     for i in range(20):
         L18[10 + i] = einheit(75, 1, 280 + i % 3, 120 + i // 10, 28000)
-    f18.phase, f18.direkt, f18.bresche, f18.staus = "angriff", True, 900, 3
-    f18.weg, f18.weg_i, f18.weg_ziel = [(300, 100)], 0, (300, 100)
-    f18.sturm_fuer, f18.sturm_punkt, f18.sturm_seit, f18.sturm_los = 900, (250, 150), 12000, 12050
-    G18[901] = {"typ": 46, "besitzer": 2, "x": 301, "y": 101, "leben": 1000}      # neues Tor, naeher am Lord
-    f18._stau = (20, 12100)
-    m18 = f18.schritt({"t": 12100 + F.Feldzug.STAU_TICKS}, L18, G18, Befehle())
-    bleibt = f18.bresche == 900 and f18.sturm_los == 12050 and not any("STURM:" in m for m in m18)
-    del G18[900]
-    f18.schritt({"t": 13700}, L18, G18, Befehle())
-    f18._stau = (20, 13700)
-    m18b = f18.schritt({"t": 13700 + F.Feldzug.STAU_TICKS}, L18, G18, Befehle())
-    pruefe(18, "Stau waehrend der Welle: Bresche %s bleibt %s; nach dem Fall neu: %s" % (
-        900, bleibt, [m[:60] for m in m18b if "BURG" in m]), bleibt and f18.bresche == 901)
+    f18.schritt({"t": 12050}, L18, G18, Befehle())          # Angriff, Ziel 901
+    G18[902] = {"typ": 46, "besitzer": 2, "x": 301, "y": 101, "leben": 50}      # neues, schwaecheres Tor
+    m18 = []
+    for t in range(12100, 12100 + F.Feldzug.STAU_TICKS + 200, 100):
+        G18[901]["leben"] -= 1                       # sinkt langsam - nicht "zaeh"
+        m18 += f18.schritt({"t": t}, L18, G18, Befehle())
+    bleibt = f18.bresche == 901
+    del G18[901]
+    m18b = []
+    for t in range(13900, 13900 + F.Feldzug.STAU_TICKS + 300, 100):
+        m18b += f18.schritt({"t": t}, L18, G18, Befehle())
+    pruefe(18, "Stau bei stehender Bresche: Ziel bleibt 901 %s; nach dem Fall: %s, Ziel %s" % (
+        bleibt, [m[:55] for m in m18b if "SCHWACHSTELLE" in m or "BRESCHE" in m], f18.bresche),
+           bleibt and not any("SCHWACHSTELLE" in m for m in m18) and f18.bresche == 902
+           and any("SCHWACHSTELLE (Stau" in m for m in m18b)
+           and not any("STAU" in m for m in m18b[:next(i for i, m in enumerate(m18b) if "SCHWACHSTELLE" in m)]))
     # 19 (B-138, 20.10. gegen Franz: Zugbruecke 420 blieb trotz Sturm bei 100 Leben): 20 Nahkaempfer stehen am Tor, sein Leben
-    #    sinkt BRESCHE_ZAEH Ticks lang nicht -> "ZAEH", verworfen, der naechste Stau waehlt das andere Tor.
+    #    sinkt BRESCHE_ZAEH Ticks lang nicht -> "ZAEH", verworfen, sofort die naechste Schwachstelle.
     #    Gegenprobe: sinkt das Leben zwischendurch, wird nichts verworfen.
     def zaeh(sinkt):
         f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=20)
         f.schritt({"t": 12000}, *lage(10, heim), Befehle())
-        f.schritt({"t": 12050}, *lage(30, f.punkt), Befehle())
         L_, G_ = lage(0, heim)
         G_[900] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 100}
         G_[901] = {"typ": 46, "besitzer": 2, "x": 301, "y": 110, "leben": 1500}
         for i in range(20):
             L_[10 + i] = einheit(75, 1, 300 + i % 3, 108 + i // 10, 28000)
-        f.phase, f.direkt, f.bresche, f.staus = "angriff", True, 900, 3
-        f.weg, f.weg_i, f.weg_ziel = [(300, 100)], 0, (300, 100)
-        f.sturm_fuer, f.sturm_punkt, f.sturm_seit, f.sturm_los = 900, (250, 150), 12000, 12050
-        f._stau = (0, 99999)
         m_ = []
-        for k, t in enumerate(range(12100, 12100 + F.Feldzug.BRESCHE_ZAEH + 200, 100)):
+        for k, t in enumerate(range(12050, 12050 + F.Feldzug.BRESCHE_ZAEH + 300, 100)):
             if sinkt and k % 10 == 9:
                 G_[900]["leben"] -= 5
+            f._stau = (0, t)                          # kein Stau in dieser Pruefung
             m_ += f.schritt({"t": t}, L_, G_, Befehle())
-        f._stau = (0, t)
-        m_ += f.schritt({"t": t + F.Feldzug.STAU_TICKS}, L_, G_, Befehle())
         return m_, f
     m19, f19 = zaeh(False)
     m19g, f19g = zaeh(True)
@@ -365,6 +336,19 @@ def main():
         [m[:50] for m in m19 if "ZAEH" in m], f19.bresche, sorted(f19g.verworfen), f19g.bresche),
         any("ZAEH" in m for m in m19) and f19.verworfen == {900} and f19.bresche == 901
         and not f19g.verworfen and f19g.bresche == 900)
+    # 20 (B-139, Daniel 20:52, Bild: nach einem Neustart standen 80 Truppen vor Franz' Burg und liefen erst zum Sammelpunkt
+    #    zurueck): 30 Truppen irgendwo (nicht am Sammelpunkt), Lord-Schutz vorbei -> sofort ANGRIFF.
+    #    Gegenprobe: 29 Truppen -> weiter sammeln.
+    def neustart(n):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+        L_, G_ = lage(0, heim)
+        for i in range(n):
+            L_[10 + i] = einheit(75, 1, 250 + i % 5, 160 + i // 5, 28000)
+        m_ = f.schritt({"t": 12000}, L_, G_, Befehle())
+        return f.phase, [m[:50] for m in m_ if "ANGRIFF" in m]
+    ph20, m20 = neustart(30)
+    ph20g, _ = neustart(29)
+    pruefe(20, "30 Truppen verstreut: Phase %s %s | 29: %s" % (ph20, m20, ph20g), ph20 == "angriff" and ph20g == "sammeln")
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

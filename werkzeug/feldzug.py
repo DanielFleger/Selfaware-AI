@@ -66,18 +66,19 @@ class Feldzug:
     # wird der Wegpunkt uebersprungen, beim zweiten Stau greifen alle direkt den Lord an (das Spiel sucht den Weg).
     # 1.500 Ticks: ein arab. Schwertkaempfer laeuft darin ~77 Felder (L80: 19,5 Takte je Feld)
     STAU_TICKS = 1500
-    # B-138 Sturmwelle (20.10. Revanche gegen Rotkaeppchen, L151: Pfeile machten ihrem Lord auf dem Bergfried 0 Schaden, die
-    # Nahkaempfer kamen einzeln ans Torhaus und starben unter 74 Bogen auf den Mauern): solange eine Bresche steht, sammeln
-    # sich die Nahkaempfer SICHER Felder vor den feindlichen Schuetzen; erst wenn N da sind (oder STURM_WARTEN vorbei ist),
-    # gehen alle zugleich aufs Tor. Stehen STURM_ABWEHR Ticks nach dem Losgehen weniger als STURM_REST am Tor, gilt die Welle
-    # als abgewehrt - neu sammeln
-    STURM_WARTEN = 6000
-    STURM_ABWEHR = 1500
-    STURM_REST = 5
-    STURM_TOR_R = 25
-    # B-138: verliert die Bresche so lange kein Leben, obwohl mindestens STURM_REST davor stehen, ist sie zaeh (wie die
-    # Zugbruecke gegen Franz) - verwerfen und beim naechsten Stau ein anderes Ziel waehlen
+    # B-139 Schwachstelle (Daniel 20.10. 20:52, Bild: unsere Truppen standen vor Franz' Burg herum - "sei aggressiver, gehe
+    # aufs Torhaus oder die groesste Schwachstelle bei der Burg"): steht am Ziel-Lord eine Burg (feindliche Torhaeuser/Tuerme
+    # bis BURG_R Felder vom Lord), gehen ab dem ersten Angriffsschritt ALLE Nahkaempfer auf ihren schwaechsten Teil (wenigstes
+    # Leben), die Schuetzen ziehen mit und schiessen die Verteidiger. Kein Sammeln davor, kein Warten auf Staus. Faellt er,
+    # geht es auf den Lord; kommt die Spitze dann STAU_TICKS lang nicht naeher, sofort der naechste Teil. Ersetzt die
+    # Sturmwelle B-138 (Sammeln ausser Reichweite = Herumstehen). Gemessen: Torhaeuser lagen 3-6 Felder vom Lord
+    # (Rotkaeppchen 264, Franz 274); 30 deckt auch aeussere Ringe
+    BURG_R = 30
+    TOR_R = 25                # so nah an der Bresche gilt als "davor"
+    # B-138: verliert die Bresche BRESCHE_ZAEH Ticks lang kein Leben, obwohl mindestens TOR_MIN davor stehen, ist sie zaeh
+    # (Zugbruecke gegen Franz: Leben blieb bei 100) - verwerfen, naechste Schwachstelle
     BRESCHE_ZAEH = 3000
+    TOR_MIN = 5
 
     def __init__(self, sp, heim, lord_schutz_bis=0, n=None):
         self.sp, self.heim, self.schutz_bis = sp, tuple(heim), lord_schutz_bis
@@ -100,26 +101,25 @@ class Feldzug:
         self.staus = 0
         self.direkt = False         # 19.10.: nach zwei Staus alle direkt auf den Lord
         self.bresche = None         # B-134: Nr des Tors/Turms, das zuerst fallen muss
-        self.sturm_fuer, self.sturm_punkt, self.sturm_seit, self.sturm_los = None, None, 0, None   # B-138
+        self.lord_versuch = None    # B-139: Tick, seit dem nach einer gefallenen Bresche direkt auf den Lord gegangen wird
         self.bresche_leben = None   # B-138: (niedrigstes Leben der Bresche, seit Tick)
         self.verworfen = set()      # B-138: zaehe Breschen - nicht noch einmal waehlen
 
-    def _sturmpunkt(self, L, tor, mitte):
-        """B-138: der Standort einer eigenen Truppe, der SICHER Felder von jedem feindlichen Fernkaempfer entfernt ist und dem
-        Tor am naechsten liegt - dort steht schon jemand, also ist er erreichbar (20.10. gegen Franz: ein Punkt auf der
-        gedachten Linie Tor -> Mitte war es nicht, die Nahkaempfer blieben 11 Felder davor stehen: "0 von 30 am Sturmpunkt").
-        Ohne solche Truppe: auf der Linie Tor -> Mitte des Heeres der erste sichere Punkt; sonst die Mitte."""
-        fern = [(e["x"], e["y"]) for e in L.values() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in FERN]
-        eigene = [(e["x"], e["y"]) for e in L.values() if e["besitzer"] == self.sp and e["typ"] in TRUPPE and e["typ"] != LORD]
-        sicher = [q for q in eigene if all(schach(q, f) > self.SICHER for f in fern)]
-        if sicher:
-            return min(sicher, key=lambda q: (schach(q, tor), q))
-        d = max(1, schach(tor, mitte))
-        for k in range(0, d + 1, 2):
-            q = (tor[0] + (mitte[0] - tor[0]) * k // d, tor[1] + (mitte[1] - tor[1]) * k // d)
-            if all(schach(q, f) > self.SICHER for f in fern):
-                return q
-        return tuple(mitte)
+    def _schwachstelle(self, G, lp, orte, aus, anlass):
+        """B-139: der schwaechste Teil der Burg am Lord (Torhaus/Turm bis BURG_R Felder vom Lord, nicht verworfen): wenigstes
+        Leben, bei Gleichstand der naechste an unserer Spitze. Setzt self.bresche; False, wenn es keinen gibt."""
+        spitze_o = min(orte, key=lambda o: schach(o, lp))
+        kand = [(g.get("leben", 0), schach((g["x"], g["y"]), spitze_o), nr) for nr, g in G.items()
+                if g["besitzer"] not in freunde_von(self.sp) and g["typ"] in BURG_TEILE and nr not in self.verworfen
+                and schach((g["x"], g["y"]), lp) <= self.BURG_R]
+        if not kand:
+            return False
+        leben, _, nr = min(kand)
+        g = G[nr]
+        self.bresche, self.bresche_leben = nr, None
+        aus.append("FELDZUG SCHWACHSTELLE (%s): Gebaeude %d (Typ %d, Leben %d) bei (%d, %d), %d Felder vom Lord - alle Nahkaempfer "
+                   "darauf" % (anlass, nr, g["typ"], leben, g["x"], g["y"], schach((g["x"], g["y"]), lp)))
+        return True
 
     def _lords(self, L):
         return {n: e for n, e in L.items() if e["typ"] == LORD and e["besitzer"] not in freunde_von(self.sp) and e["leben"] > 0}
@@ -149,6 +149,7 @@ class Feldzug:
             aus.append("FELDZUG: Lord %d tot bei Tick %d - %d Streitkolben ueberlebten, naechstes Ziel" % (self.ziel, t, len(kolben)))
             self.ziel, self.phase, self.punkt = None, "sammeln", None
             self._stau, self.staus, self.direkt = (None, 0), 0, False
+            self.bresche, self.bresche_leben, self.lord_versuch = None, None, None
         if not lords:
             return aus
         if self.ziel is None:
@@ -179,14 +180,6 @@ class Feldzug:
                     self.verteidigt[feind[1]] = self.runde
                     aus.append("FELDZUG: %d Streitkolben greifen Einheit %d (Typ %d) %d Felder vor dem Sammelpunkt an" % (
                         len(da), feind[1], L[feind[1]]["typ"], feind[0]))
-            befohlen = getattr(self, "_befohlen", {})
-            self._befohlen = befohlen
-            hin = [n for n in kolben if n not in da and n not in self.verteidiger
-                   and (befohlen.get(n) != ("lauf", p) or L[n]["zustand"] in (0, 1))]
-            if hin:
-                befehl({"angriff": {"einheiten": hin, "lauf": [p[0], p[1]]}}, 1.0, bis="ANGRIFF")
-                for n in hin:
-                    befohlen[n] = ("lauf", p)
             if self.runde % 10 == 0:
                 aus.append("FELDZUG sammeln: %d von %d am Sammelpunkt %s, %d Streitkolben leben, Lord %d Leben %d%s" % (
                     len(da), self.N, p, len(kolben), self.ziel, lord["leben"],
@@ -202,13 +195,27 @@ class Feldzug:
             # sobald die Haelfte des Heeres (mindestens MIN_ANGRIFF) am Sammelpunkt steht, ohne auf die Gefechtsrechnung zu warten
             if self.endspurt and len(da) >= self.MIN_ANGRIFF and 2 * len(da) >= len(kolben):
                 lohnt, text = True, "ENDSPURT: %d von %d am Sammelpunkt" % (len(da), len(kolben))
-            if (len(da) >= self.N or lohnt) and t >= self.schutz_bis:
+            # B-139 (Daniel 20:52): auch los, wenn N Truppen irgendwo stehen - nach einem Neustart standen 80 vor Franz' Burg und
+            # liefen erst zum Sammelpunkt zurueck
+            if (len(da) >= self.N or len(kolben) >= self.N or lohnt) and t >= self.schutz_bis:
                 self.phase = "angriff"
                 self.letzter_befehl = -99
                 self._stau, self.staus, self.direkt = (None, 0), 0, False
+                self.bresche, self.bresche_leben, self.lord_versuch = None, None, None
                 self.weg, self.weg_i, self.weg_ziel = [], 0, None
                 aus.append("FELDZUG ANGRIFF: %d Truppen (%d am Sammelpunkt) gemeinsam auf Lord %d (Leben %d) bei Tick %d%s" % (
                     len(kolben), len(da), self.ziel, lord["leben"], t, " - " + text if text else ""))
+            else:
+                # B-139: der Laufbefehl zum Sammelpunkt erst, wenn feststeht, dass nicht angegriffen wird (vorher bekamen alle im
+                # Schritt des Angriffsbeginns noch einen Laufbefehl zum Sammelpunkt, bevor der Torangriff kam)
+                befohlen = getattr(self, "_befohlen", {})
+                self._befohlen = befohlen
+                hin = [n for n in kolben if n not in da and n not in self.verteidiger
+                       and (befohlen.get(n) != ("lauf", p) or L[n]["zustand"] in (0, 1))]
+                if hin:
+                    befehl({"angriff": {"einheiten": hin, "lauf": [p[0], p[1]]}}, 1.0, bis="ANGRIFF")
+                    for n in hin:
+                        befohlen[n] = ("lauf", p)
         if self.phase == "angriff":
             orte = sorted((L[n]["x"], L[n]["y"]) for n in kolben)
             mitte = (sorted(o[0] for o in orte)[len(orte) // 2], sorted(o[1] for o in orte)[len(orte) // 2])
@@ -224,7 +231,11 @@ class Feldzug:
                 self._stau = (spitze, t)
             elif t - self._stau[1] >= self.STAU_TICKS:
                 self.staus += 1
-                if self.staus == 1 and self.weg_i < len(self.weg) - 1:
+                if self.bresche is not None and self.bresche in G:
+                    pass        # B-138: die gewaehlte Bresche steht noch - nicht umwaehlen ("zaeh" regelt den Wechsel)
+                elif self._schwachstelle(G, lp, orte, aus, "Stau %d" % self.staus):
+                    self.lord_versuch = None        # B-139: nach gefallener Bresche kein Weg zum Lord -> naechster Teil
+                elif self.staus == 1 and self.weg_i < len(self.weg) - 1:
                     self.weg_i += 1
                     aus.append("FELDZUG STAU: Spitze %d Ticks bei %d Feldern vor dem Lord - Wegpunkt uebersprungen, jetzt %d/%d" % (
                         t - self._stau[1], spitze, self.weg_i + 1, len(self.weg)))
@@ -232,29 +243,14 @@ class Feldzug:
                     self.direkt = True
                     aus.append("FELDZUG STAU %d: Spitze %d Ticks bei %d Feldern vor dem Lord - alle direkt auf den Lord" % (
                         self.staus, t - self._stau[1], spitze))
-                elif self.bresche is not None and self.bresche in G:
-                    # B-138: die gewaehlte Bresche steht noch - nicht umwaehlen (ein anderes Tor haette die laufende Sturmwelle
-                    # abgebrochen und neu sammeln lassen; beim Sammeln kommt die Spitze naturgemaess nicht naeher)
-                    pass
                 else:
-                    # B-134 Burg knacken (Daniel 20.10. 19:16, 2v2 gegen Rotkaeppchen: 180 Truppen standen 37.000 Ticks still,
-                    # "alle direkt auf den Lord" fand keinen Weg - der Lord steht hinter Mauern): auch direkt kein Schritt naeher ->
-                    # das feindliche Tor/der Turm, der am naechsten an Spitze und Lord liegt, wird zuerst eingerissen
-                    spitze_o = min(orte, key=lambda o: schach(o, lp))
-                    kand_b = [(schach((g["x"], g["y"]), spitze_o) + schach((g["x"], g["y"]), lp), nr) for nr, g in G.items()
-                              if g["besitzer"] not in freunde_von(self.sp) and g["typ"] in BURG_TEILE and nr not in self.verworfen]
-                    if kand_b:
-                        self.bresche = min(kand_b)[1]
-                        g_b = G[self.bresche]
-                        aus.append("FELDZUG BURG KNACKEN (Stau %d): kein Weg zum Lord - Truppen auf Gebaeude %d (Typ %d) bei (%d, %d), "
-                                   "%d Felder vom Lord" % (self.staus, self.bresche, g_b["typ"], g_b["x"], g_b["y"], schach((g_b["x"], g_b["y"]), lp)))
-                    else:
-                        aus.append("FELDZUG STAU %d: kein Weg zum Lord und kein feindliches Tor/Turm gefunden" % self.staus)
+                    aus.append("FELDZUG STAU %d: kein Weg zum Lord und kein feindliches Tor/Turm gefunden" % self.staus)
                 self._stau = (spitze, t)
             if self.bresche is not None and self.bresche not in G:
-                aus.append("FELDZUG BRESCHE: Gebaeude %d ist gefallen - wieder auf den Lord" % self.bresche)
-                self.bresche, self._stau = None, (None, t)
-                self.sturm_fuer, self.sturm_punkt, self.sturm_los = None, None, None
+                aus.append("FELDZUG BRESCHE: Gebaeude %d ist gefallen - auf den Lord" % self.bresche)
+                self.bresche, self.bresche_leben, self.lord_versuch, self._stau = None, None, t, (None, t)
+            if self.bresche is None and self.lord_versuch is None:
+                self._schwachstelle(G, lp, orte, aus, "Angriff")       # B-139: Burg am Lord -> sofort ihr schwaechster Teil
             # 19.10. (1019i: die Spitze stand 2.000 Takte 37 Felder vor dem Lord, die Mitte wanderte von 55 auf 80 Felder
             # zurueck - neu angeworbene Soeldner kamen von zu Hause nach): ueber den Wegpunkt entscheidet nur die Spitzengruppe
             # (hoechstens SPITZE_TIEFE Felder weiter vom Lord als der vorderste)
@@ -271,6 +267,8 @@ class Feldzug:
             # B-137 (20.10. Revanche Tick 104.000: nach "alle direkt" liefen nur die Nahkaempfer los - 77 arab. Bogen warteten
             # 154 Felder vom Lord am Wegpunkt 9/25, den die Spitzengruppe nie mehr erreichte): direkt heisst fuer ALLE auf den Lord
             p = lp if self.direkt else self.weg[self.weg_i] if self.weg_i < len(self.weg) - 1 else lp
+            if self.bresche is not None and self.bresche in G:
+                p = (G[self.bresche]["x"], G[self.bresche]["y"])   # B-139: Schuetzen ziehen zur Bresche und schiessen ihre Verteidiger
             schluss = spitze <= self.SCHLUSS_R or self.direkt
             nah_kampf = [n for n in kolben if L[n]["typ"] not in FERN_REICH]
             fern = [n for n in kolben if L[n]["typ"] in FERN_REICH]
@@ -288,58 +286,30 @@ class Feldzug:
             befohlen = getattr(self, "_befohlen", {})
             self._befohlen = befohlen
             bresche = self.bresche
-            belegt = set()        # B-138: Nahkaempfer mit Tor-/Sturmauftrag - kein Laufbefehl zum Lord darueber (der hob
-            #                       bis 20.10. jeden Torangriff in derselben Runde wieder auf: Torhaus 264 blieb 6 Staus bei 1.500)
+            belegt = set()        # B-138: Nahkaempfer mit Torauftrag - kein Laufbefehl zum Lord darueber (der hob bis 20.10.
+            #                       jeden Torangriff in derselben Runde wieder auf: Torhaus 264 blieb 6 Staus bei 1.500)
             if bresche is not None and bresche in G:
                 tor = (G[bresche]["x"], G[bresche]["y"])
-                belegt = set(nah_kampf)
-                if self.sturm_fuer != bresche:
-                    self.sturm_fuer, self.sturm_punkt, self.sturm_seit, self.sturm_los = bresche, self._sturmpunkt(L, tor, mitte), t, None
-                    aus.append("FELDZUG STURM: Nahkaempfer sammeln bei %s, %d Felder vor Gebaeude %d, bis %d da sind" % (
-                        self.sturm_punkt, schach(self.sturm_punkt, tor), bresche, self.N))
-                if self.sturm_los is not None:
-                    am_tor = [n for n in nah_kampf if schach((L[n]["x"], L[n]["y"]), tor) <= self.STURM_TOR_R]
-                    leben_b = G[bresche].get("leben", -1)
-                    if (self.bresche_leben is None or self.bresche_leben[2] != bresche or leben_b < self.bresche_leben[0]
-                            or len(am_tor) < self.STURM_REST):
-                        self.bresche_leben = (leben_b, t, bresche)
-                    if t - self.sturm_los >= self.STURM_ABWEHR and len(am_tor) < self.STURM_REST:
-                        aus.append("FELDZUG STURM ABGEWEHRT: nach %d Ticks %d am Gebaeude %d (Leben %d) - neu sammeln" % (
-                            t - self.sturm_los, len(am_tor), bresche, leben_b))
-                        self.sturm_los, self.sturm_seit = None, t
-                    elif t - self.bresche_leben[1] >= self.BRESCHE_ZAEH:
-                        aus.append("FELDZUG BRESCHE ZAEH: Gebaeude %d (Typ %d) seit %d Ticks bei %d Leben, %d davor - verworfen, anderes Ziel" % (
-                            bresche, G[bresche]["typ"], t - self.bresche_leben[1], leben_b, len(am_tor)))
-                        self.verworfen.add(bresche)
-                        self.bresche, self.bresche_leben = None, None
-                        self.sturm_fuer, self.sturm_punkt, self.sturm_los = None, None, None
-                        self._stau = (None, t)
-                        bresche, belegt = None, set()
-                if self.sturm_los is None and bresche is not None:
-                    sp_ = self.sturm_punkt
-                    da_s = [n for n in nah_kampf if schach((L[n]["x"], L[n]["y"]), sp_) <= self.AM_PUNKT]
-                    if len(da_s) >= self.N or (da_s and t - self.sturm_seit >= self.STURM_WARTEN):
-                        self.sturm_los = t
-                        aus.append("FELDZUG STURM LOS: %d Nahkaempfer zugleich auf Gebaeude %d (%d Felder)%s" % (
-                            len(da_s), bresche, schach(sp_, tor), "" if len(da_s) >= self.N else " - Wartezeit vorbei"))
-                    else:
-                        hin_s = [n for n in nah_kampf if n not in da_s
-                                 and (befohlen.get(n) != ("sturm", sp_) or L[n]["zustand"] in (0, 1))]
-                        if hin_s:
-                            befehl({"angriff": {"einheiten": hin_s, "lauf": [sp_[0], sp_[1]]}}, 1.0, bis="ANGRIFF")
-                            for n in hin_s:
-                                befohlen[n] = ("sturm", sp_)
-                        if self.runde % 5 == 0:
-                            aus.append("FELDZUG STURM sammeln: %d von %d am Sturmpunkt %s" % (len(da_s), self.N, sp_))
-                if self.sturm_los is not None and bresche is not None:
-                    # B-134: erst die Bresche - alle Nahkaempfer auf das Tor/den Turm
+                am_tor = [n for n in nah_kampf if schach((L[n]["x"], L[n]["y"]), tor) <= self.TOR_R]
+                leben_b = G[bresche].get("leben", -1)
+                if (self.bresche_leben is None or self.bresche_leben[2] != bresche or leben_b < self.bresche_leben[0]
+                        or len(am_tor) < self.TOR_MIN):
+                    self.bresche_leben = (leben_b, t, bresche)
+                if t - self.bresche_leben[1] >= self.BRESCHE_ZAEH:
+                    aus.append("FELDZUG BRESCHE ZAEH: Gebaeude %d (Typ %d) seit %d Ticks bei %d Leben, %d davor - verworfen, "
+                               "naechste Schwachstelle" % (bresche, G[bresche]["typ"], t - self.bresche_leben[1], leben_b, len(am_tor)))
+                    self.verworfen.add(bresche)
+                    self.bresche, self.bresche_leben, self._stau = None, None, (None, t)
+                else:
+                    # B-134/B-139: alle Nahkaempfer auf das Tor/den Turm, ohne Sammeln davor
+                    belegt = set(nah_kampf)
                     neu_b = [n for n in nah_kampf if befohlen.get(n) != ("bresche", bresche) or L[n]["zustand"] in (0, 1)]
                     if neu_b and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
                         befehl({"angriff": {"einheiten": neu_b, "gebaeude": bresche}}, 1.0, bis="ANGRIFF")
                         self.letzter_befehl = self.runde
                         for n in neu_b:
                             befohlen[n] = ("bresche", bresche)
-                am_lord = []
+                    am_lord = []
             neu_lord = [n for n in am_lord if befohlen.get(n) != ("lord", self.ziel) or L[n]["zustand"] in (0, 1)]
             if neu_lord and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
                 befehl({"angriff": {"einheiten": neu_lord, "ziel": self.ziel}}, 1.0, bis="ANGRIFF")
