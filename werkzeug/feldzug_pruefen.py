@@ -214,7 +214,8 @@ def main():
     #    naeher -> beim dritten Stau Angriff auf das feindliche Tor (Typ 46) am Lord; faellt es, wieder auf den Lord.
     #    Gegenprobe: ohne Tor/Turm nur die Meldung "kein feindliches Tor/Turm", kein Gebaeude-Angriff.
     def burg(mit_tor):
-        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+        # B-138: mit Sturmwelle - N = 20, die 20 Schwertkaempfer erreichen den Sturmpunkt, dann geht es aufs Tor
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=20)
         f.wegplaner = lambda L_, G_, s, z: [(150, 200), (200, 150), (250, 120), z]
         f.schritt({"t": 12000}, *lage(10, heim), Befehle())
         f.schritt({"t": 12050}, *lage(30, f.punkt), Befehle())
@@ -229,6 +230,9 @@ def main():
             b = Befehle()
             m_ += [m for m in f.schritt({"t": t}, L_, G_, b) if "STAU" in m or "BURG" in m or "BRESCHE" in m]
             tor_ += [x for x in b.liste if x.get("angriff", {}).get("gebaeude") == 900]
+            if f.sturm_punkt and f.sturm_los is None:
+                for i in range(20):
+                    L_[10 + i]["x"], L_[10 + i]["y"] = f.sturm_punkt[0] + i % 3, f.sturm_punkt[1] + i // 10
         fallen = []
         if mit_tor:
             del G_[900]
@@ -265,6 +269,46 @@ def main():
     nach16 = [z for t, z in sorted(ziele16.items())][-1:]
     pruefe(16, "Schuetzen: erster Laufbefehl %s, letzter nach 'direkt' %s (direkt=%s)" % (vor16, nach16, f16.direkt),
            f16.direkt and vor16 and vor16[0] != [300, 100] and nach16 == [[300, 100]])
+    # 17 (B-138 Sturmwelle, 20.10. L151: Nahkaempfer kamen einzeln ans Torhaus und starben; dazu hob der Laufbefehl zum Lord
+    #    jeden Torangriff in derselben Runde wieder auf). Vorher festgelegt:
+    #    a) Bresche steht, 10 von N=20 Nahkaempfern weit weg -> Laufbefehl an den Sturmpunkt, KEIN Torangriff; der Sturmpunkt
+    #       liegt mehr als SICHER Felder von jedem feindlichen Schuetzen
+    #    b) 20 am Sturmpunkt -> STURM LOS, Torangriff fuer alle 20, und in dieser und der naechsten Runde KEIN Laufbefehl an sie
+    #    c) STURM_ABWEHR Ticks nach dem Losgehen weniger als STURM_REST am Tor -> ABGEWEHRT, wieder Laufbefehl zum Sturmpunkt
+    f17 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=20)
+    f17.schritt({"t": 12000}, *lage(10, heim), Befehle())
+    f17.schritt({"t": 12050}, *lage(30, f17.punkt), Befehle())
+    L17, G17 = lage(0, heim)
+    G17[900] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 1000}
+    for i in range(10):
+        L17[10 + i] = einheit(75, 1, 100 + i % 5, 240 + i // 5, 28000)
+    f17.phase, f17.direkt, f17.bresche, f17.weg, f17.weg_i, f17.weg_ziel = "angriff", True, 900, [(300, 100)], 0, (300, 100)
+    f17._stau = (0, 12100)                           # kein neuer Stau waehrend der Pruefung
+    b = Befehle()
+    m17 = f17.schritt({"t": 12100}, L17, G17, b)
+    sp17 = f17.sturm_punkt
+    fern17 = [(e["x"], e["y"]) for e in L17.values() if e["besitzer"] == 2 and e["typ"] in F.FERN]
+    lauf_a = [x["angriff"]["lauf"] for x in b.liste if "lauf" in x.get("angriff", {})]
+    tor_a = [x for x in b.liste if x.get("angriff", {}).get("gebaeude") == 900]
+    ok_a = sp17 and lauf_a == [list(sp17)] and not tor_a and min(F.schach(sp17, q) for q in fern17) > F.Feldzug.SICHER
+    for i in range(20):
+        L17[10 + i] = einheit(75, 1, sp17[0] + i % 3, sp17[1] + i // 10, 28000)
+    b1, b2 = Befehle(), Befehle()
+    m17 += f17.schritt({"t": 12200}, L17, G17, b1) + f17.schritt({"t": 12300}, L17, G17, b2)
+    tor_b = [x for x in b1.liste if x.get("angriff", {}).get("gebaeude") == 900]
+    lauf_b = [x for x in b1.liste + b2.liste if "lauf" in x.get("angriff", {}) and set(x["angriff"]["einheiten"]) & set(range(10, 30))]
+    ok_b = any("STURM LOS" in m for m in m17) and tor_b and len(tor_b[0]["angriff"]["einheiten"]) == 20 and not lauf_b
+    for i in range(17):
+        del L17[10 + i]                              # die Welle stirbt: 3 bleiben auf halber Strecke (31 Felder vom Tor)
+    for n in (27, 28, 29):
+        L17[n]["x"], L17[n]["y"] = (sp17[0] + 306) // 2, (sp17[1] + 106) // 2
+    b3 = Befehle()
+    m17 += f17.schritt({"t": 12300 + F.Feldzug.STURM_ABWEHR}, L17, G17, b3)
+    lauf_c = [x["angriff"]["lauf"] for x in b3.liste if "lauf" in x.get("angriff", {})]
+    ok_c = any("ABGEWEHRT" in m for m in m17) and f17.sturm_los is None and lauf_c == [list(sp17)]
+    pruefe(17, "Sturmwelle: Punkt %s (a %s: Lauf %s, Tor %d) (b %s: Tor %s, Lauf danach %d) (c %s: %s)" % (
+        sp17, bool(ok_a), lauf_a, len(tor_a), bool(ok_b), len(tor_b[0]["angriff"]["einheiten"]) if tor_b else 0, len(lauf_b),
+        bool(ok_c), [m[:40] for m in m17 if "ABGEWEHRT" in m]), ok_a and ok_b and ok_c)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

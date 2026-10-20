@@ -65,6 +65,15 @@ class Feldzug:
     # wird der Wegpunkt uebersprungen, beim zweiten Stau greifen alle direkt den Lord an (das Spiel sucht den Weg).
     # 1.500 Ticks: ein arab. Schwertkaempfer laeuft darin ~77 Felder (L80: 19,5 Takte je Feld)
     STAU_TICKS = 1500
+    # B-138 Sturmwelle (20.10. Revanche gegen Rotkaeppchen, L151: Pfeile machten ihrem Lord auf dem Bergfried 0 Schaden, die
+    # Nahkaempfer kamen einzeln ans Torhaus und starben unter 74 Bogen auf den Mauern): solange eine Bresche steht, sammeln
+    # sich die Nahkaempfer SICHER Felder vor den feindlichen Schuetzen; erst wenn N da sind (oder STURM_WARTEN vorbei ist),
+    # gehen alle zugleich aufs Tor. Stehen STURM_ABWEHR Ticks nach dem Losgehen weniger als STURM_REST am Tor, gilt die Welle
+    # als abgewehrt - neu sammeln
+    STURM_WARTEN = 6000
+    STURM_ABWEHR = 1500
+    STURM_REST = 5
+    STURM_TOR_R = 25
 
     def __init__(self, sp, heim, lord_schutz_bis=0, n=None):
         self.sp, self.heim, self.schutz_bis = sp, tuple(heim), lord_schutz_bis
@@ -86,6 +95,19 @@ class Feldzug:
         self._stau = (None, 0)      # 19.10.: (bester Abstand der Spitze zum Lord, seit Tick)
         self.staus = 0
         self.direkt = False         # 19.10.: nach zwei Staus alle direkt auf den Lord
+        self.bresche = None         # B-134: Nr des Tors/Turms, das zuerst fallen muss
+        self.sturm_fuer, self.sturm_punkt, self.sturm_seit, self.sturm_los = None, None, 0, None   # B-138
+
+    def _sturmpunkt(self, L, tor, mitte):
+        """B-138: auf der Linie Tor -> Mitte des Heeres der erste Punkt (vom Tor aus), der SICHER Felder von jedem feindlichen
+        Fernkaempfer entfernt ist; sonst die Mitte."""
+        fern = [(e["x"], e["y"]) for e in L.values() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in FERN]
+        d = max(1, schach(tor, mitte))
+        for k in range(0, d + 1, 2):
+            q = (tor[0] + (mitte[0] - tor[0]) * k // d, tor[1] + (mitte[1] - tor[1]) * k // d)
+            if all(schach(q, f) > self.SICHER for f in fern):
+                return q
+        return tuple(mitte)
 
     def _lords(self, L):
         return {n: e for n, e in L.items() if e["typ"] == LORD and e["besitzer"] not in freunde_von(self.sp) and e["leben"] > 0}
@@ -213,9 +235,10 @@ class Feldzug:
                     else:
                         aus.append("FELDZUG STAU %d: kein Weg zum Lord und kein feindliches Tor/Turm gefunden" % self.staus)
                 self._stau = (spitze, t)
-            if getattr(self, "bresche", None) is not None and self.bresche not in G:
+            if self.bresche is not None and self.bresche not in G:
                 aus.append("FELDZUG BRESCHE: Gebaeude %d ist gefallen - wieder auf den Lord" % self.bresche)
                 self.bresche, self._stau = None, (None, t)
+                self.sturm_fuer, self.sturm_punkt, self.sturm_los = None, None, None
             # 19.10. (1019i: die Spitze stand 2.000 Takte 37 Felder vor dem Lord, die Mitte wanderte von 55 auf 80 Felder
             # zurueck - neu angeworbene Soeldner kamen von zu Hause nach): ueber den Wegpunkt entscheidet nur die Spitzengruppe
             # (hoechstens SPITZE_TIEFE Felder weiter vom Lord als der vorderste)
@@ -248,15 +271,46 @@ class Feldzug:
             am_lord = [n for n in nah_kampf if schluss or schach((L[n]["x"], L[n]["y"]), lp) <= self.ANGRIFF_NAH]
             befohlen = getattr(self, "_befohlen", {})
             self._befohlen = befohlen
-            bresche = getattr(self, "bresche", None)
+            bresche = self.bresche
+            belegt = set()        # B-138: Nahkaempfer mit Tor-/Sturmauftrag - kein Laufbefehl zum Lord darueber (der hob
+            #                       bis 20.10. jeden Torangriff in derselben Runde wieder auf: Torhaus 264 blieb 6 Staus bei 1.500)
             if bresche is not None and bresche in G:
-                # B-134: erst die Bresche - alle Nahkaempfer auf das Tor/den Turm
-                neu_b = [n for n in nah_kampf if befohlen.get(n) != ("bresche", bresche) or L[n]["zustand"] in (0, 1)]
-                if neu_b and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
-                    befehl({"angriff": {"einheiten": neu_b, "gebaeude": bresche}}, 1.0, bis="ANGRIFF")
-                    self.letzter_befehl = self.runde
-                    for n in neu_b:
-                        befohlen[n] = ("bresche", bresche)
+                tor = (G[bresche]["x"], G[bresche]["y"])
+                belegt = set(nah_kampf)
+                if self.sturm_fuer != bresche:
+                    self.sturm_fuer, self.sturm_punkt, self.sturm_seit, self.sturm_los = bresche, self._sturmpunkt(L, tor, mitte), t, None
+                    aus.append("FELDZUG STURM: Nahkaempfer sammeln bei %s, %d Felder vor Gebaeude %d, bis %d da sind" % (
+                        self.sturm_punkt, schach(self.sturm_punkt, tor), bresche, self.N))
+                if self.sturm_los is not None:
+                    am_tor = [n for n in nah_kampf if schach((L[n]["x"], L[n]["y"]), tor) <= self.STURM_TOR_R]
+                    if t - self.sturm_los >= self.STURM_ABWEHR and len(am_tor) < self.STURM_REST:
+                        aus.append("FELDZUG STURM ABGEWEHRT: nach %d Ticks %d am Gebaeude %d (Leben %d) - neu sammeln" % (
+                            t - self.sturm_los, len(am_tor), bresche, G[bresche].get("leben", -1)))
+                        self.sturm_los, self.sturm_seit = None, t
+                if self.sturm_los is None:
+                    sp_ = self.sturm_punkt
+                    da_s = [n for n in nah_kampf if schach((L[n]["x"], L[n]["y"]), sp_) <= self.AM_PUNKT]
+                    if len(da_s) >= self.N or (da_s and t - self.sturm_seit >= self.STURM_WARTEN):
+                        self.sturm_los = t
+                        aus.append("FELDZUG STURM LOS: %d Nahkaempfer zugleich auf Gebaeude %d (%d Felder)%s" % (
+                            len(da_s), bresche, schach(sp_, tor), "" if len(da_s) >= self.N else " - Wartezeit vorbei"))
+                    else:
+                        hin_s = [n for n in nah_kampf if n not in da_s
+                                 and (befohlen.get(n) != ("sturm", sp_) or L[n]["zustand"] in (0, 1))]
+                        if hin_s:
+                            befehl({"angriff": {"einheiten": hin_s, "lauf": [sp_[0], sp_[1]]}}, 1.0, bis="ANGRIFF")
+                            for n in hin_s:
+                                befohlen[n] = ("sturm", sp_)
+                        if self.runde % 5 == 0:
+                            aus.append("FELDZUG STURM sammeln: %d von %d am Sturmpunkt %s" % (len(da_s), self.N, sp_))
+                if self.sturm_los is not None:
+                    # B-134: erst die Bresche - alle Nahkaempfer auf das Tor/den Turm
+                    neu_b = [n for n in nah_kampf if befohlen.get(n) != ("bresche", bresche) or L[n]["zustand"] in (0, 1)]
+                    if neu_b and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
+                        befehl({"angriff": {"einheiten": neu_b, "gebaeude": bresche}}, 1.0, bis="ANGRIFF")
+                        self.letzter_befehl = self.runde
+                        for n in neu_b:
+                            befohlen[n] = ("bresche", bresche)
                 am_lord = []
             neu_lord = [n for n in am_lord if befohlen.get(n) != ("lord", self.ziel) or L[n]["zustand"] in (0, 1)]
             if neu_lord and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
@@ -274,7 +328,7 @@ class Feldzug:
                     befohlen[n] = ("schuss", k)
             # 19.10. (1019h: Laufbefehle jede Runde neu - das Spiel meldet als Laufziel seinen naechsten Wegknoten, nicht
             # unseren Punkt): nur, wer noch keinen Befehl zu p hat oder steht
-            unterwegs = [n for n in kolben if n not in am_lord and n not in schiessen
+            unterwegs = [n for n in kolben if n not in am_lord and n not in schiessen and n not in belegt
                          and (befohlen.get(n) != ("lauf", p) or L[n]["zustand"] in (0, 1))]
             if unterwegs:
                 befehl({"angriff": {"einheiten": unterwegs, "lauf": [p[0], p[1]]}}, 1.0, bis="ANGRIFF")

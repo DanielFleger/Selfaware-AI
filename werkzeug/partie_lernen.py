@@ -100,23 +100,27 @@ def main():
     os.makedirs(AUS, exist_ok=True)
     stamp = re.search(r"(\d{8}_\d{6})", os.path.basename(konsole)).group(1)
     sp = re.search(r"_sp(\d)", os.path.basename(konsole))
+    lenker = int(sp.group(1)) if sp else 1
+    # 20.10. (2v2-Revanche: beide Lenker einer Partie hiessen gleich - die Zeile von Spieler 2 wurde nicht angehaengt, seine
+    # Einzeldatei ueberschrieb die von Spieler 1): Dateien von Spieler 2+ tragen _spN, Spieler 1 bleibt wie bisher
+    kennung = stamp if lenker == 1 else "%s_sp%d" % (stamp, lenker)
     N = namen()
     tr, ende = truppen(lage, N)
     m = mitschrift(konsole)
-    v = vergleich(lage, stamp)
-    gb = gold(konsole, lage, stamp)
-    partie = {"partie": stamp, "erfasst": time.strftime("%Y-%m-%d %H:%M"), "lenker_spieler": int(sp.group(1)) if sp else 1,
+    v = vergleich(lage, kennung)
+    gb = gold(konsole, lage, kennung)
+    partie = {"partie": stamp, "erfasst": time.strftime("%Y-%m-%d %H:%M"), "lenker_spieler": lenker,
               "gegner": arg.get("gegner"), "anmerkung": arg.get("anmerkung"), "letzter_tick": ende,
               "konsole": os.path.relpath(konsole, os.path.join(HIER, "..")), "lage": os.path.relpath(lage, os.path.join(HIER, "..")),
               "truppen": tr, "lenker": m, "vergleich": v, "gold": gb}
-    json.dump(partie, open(os.path.join(AUS, "partie_%s.json" % stamp), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    json.dump(partie, open(os.path.join(AUS, "partie_%s.json" % kennung), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     kurz = {k: partie[k] for k in ("partie", "erfasst", "lenker_spieler", "gegner", "anmerkung", "letzter_tick")}
     kurz["truppen_ende"] = tr[-1]["je_spieler"] if tr else {}
     kurz["gold_max"] = max([g["gold"] for g in m["gold_bei_bremse"]] or [None]) if m["gold_bei_bremse"] else None
     kurz["bremsen"], kurz["anwerbungen"] = m["ereignisse"]["ANWERBEN-BREMSE"], m["anwerbungen"]
     kurz["nachteil"] = next((z for z in v["zeilen"] if z.startswith("NACHTEIL")), None)
     sammlung = os.path.join(AUS, "partien.jsonl")
-    schon = os.path.exists(sammlung) and any(json.loads(z).get("partie") == stamp
+    schon = os.path.exists(sammlung) and any(json.loads(z).get("partie") == stamp and json.loads(z).get("lenker_spieler", 1) == lenker
                                               for z in open(sammlung, encoding="utf-8") if z.strip())
     if schon:
         print("Partie %s steht schon in partien.jsonl - nicht doppelt angehaengt (Einzeldatei neu geschrieben)" % stamp)
