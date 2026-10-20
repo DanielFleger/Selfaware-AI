@@ -258,6 +258,30 @@ def angleichen():
         {sp: z_ for sp, z_ in zahl.items()}, gesetzt or "nichts"))
 
 
+def team_feinde_eintragen(karte, kurz, plaetze):
+    """B-136 (Daniel 20.10. 20:01: "wenn die linke KI nicht alles Holz nach oben gemacht haette und damit die ganze Zeit
+    abgeschossen werden wuerde"): im 2v2 vermisst eins_gegen_eins_vorbereiten die Plaetze in einem Gefecht NUR mit den zwei
+    SamurAIs - in start_<kurz>.json stand darum der Verbuendete als feind_bergfried, und "eigene Seite" (Eroeffnung,
+    Wirtschaft, Nahrungswahl) zeigte zu den echten Gegnern hin. Feinde sind hier die KI-Plaetze: Spieler i+1 steht auf
+    Platz plaetze[i], die KIs sind die Spieler nach den SamurAIs. Ihre Burgen aus daten/liga_karten.json (vermessen mit
+    KI-Burgen auf den Plaetzen 1-3 - die KI-Burg steht anders als die eines Menschen, L-Fund 19.10.)."""
+    pfad = os.path.join(D, "start_%s.json" % kurz)
+    info = json.load(open(pfad, encoding="utf-8"))
+    liga = json.load(open(os.path.join(D, "liga_karten.json"), encoding="utf-8"))
+    if karte not in liga:
+        raise SystemExit("2v2: Karte %s fehlt in daten/liga_karten.json - erst werkzeug/liga_karten_messen.py" % karte)
+    burgen = liga[karte]["plaetze"]
+    feinde = {str(i + 1): {"anker": burgen[str(p)]["anker"], "eingang": burgen[str(p)]["eingang"]}
+              for i, p in enumerate(plaetze) if i >= 1 + GEGNER_ZAHL}
+    if not feinde:
+        raise SystemExit("2v2: keine KI-Plaetze in plaetze=%s" % plaetze)
+    if info.get("feind_bergfried") != feinde:
+        schreib("2v2 FEINDE %s: feind_bergfried %s -> %s (KI-Burgen aus liga_karten.json)" % (
+            kurz, {k: v["eingang"] for k, v in info.get("feind_bergfried", {}).items()}, {k: v["eingang"] for k, v in feinde.items()}))
+        info["feind_bergfried"], info["feind_quelle"] = feinde, "liga_karten.json (KI-Burgen), B-136"
+        json.dump(info, open(pfad, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+
+
 def eins_gegen_eins_start():
     """19.10. (1v1): bis ANGLEICH_TICK laufen lassen, pausieren, angleichen, Startsignal fuer den Lenker von Spieler 2 und
     pausiert warten, bis er bereit ist (hoechstens 10 Minuten) - dann laufen beide gleichzeitig los."""
@@ -3526,11 +3550,13 @@ def main():
         KH.GEFECHT_EXTRA["teams"] = [1] * GEGNER_ZAHL     # alle Gegner in einer Mannschaft gegen uns (Mannschaft 0)
     if EINS_GEGEN_EINS or ANHAENGEN or TEAM_KIS:     # B-133: auch ein Neustart im 2v2 (nur_phase2=ja) nimmt die Teamplaetze
         # 19.10. (1v1): eigene Kurznamen - beide Plaetze werden in einem Gefecht mit zwei Menschen live vermessen
-        kurz += "_1v1"
+        # B-136: im 2v2 eigene Namen "_2v2" - dort sind die KIs die Feinde, nicht der andere SamurAI (start_*_1v1.json bleibt
+        # fuer das 1v1 SamurAI gegen SamurAI richtig)
+        kurz += "_2v2" if TEAM_KIS else "_1v1"
     if EINS_GEGEN_EINS:
         # B-133 (2v2): Spieler 2 sieht seinen Platz zuerst - die ersten beiden Plaetze tauschen, die KI-Plaetze bleiben
         gegen_pl = ([plaetze[1], plaetze[0]] + plaetze[2:]) if plaetze and len(plaetze) > 2 else list(reversed(plaetze or []))
-        gegen = KH.kurz_von(karte) + "_pl" + "-".join(map(str, gegen_pl)) + "_1v1"
+        gegen = KH.kurz_von(karte) + "_pl" + "-".join(map(str, gegen_pl)) + ("_2v2" if TEAM_KIS else "_1v1")
         if not all(os.path.exists(os.path.join(D, "start_%s.json" % k)) for k in (kurz, gegen)):
             schreib("1v1: vermesse beide Plaetze in einem eigenen Gefecht mit zwei Menschen (%s, %s)" % (kurz, gegen))
             vliste = [s if s in (0, 1) else 246 for s in (startliste + [246] * 8)[:8]]     # B-133: nur die beiden SamurAI-Plaetze
@@ -3547,6 +3573,8 @@ def main():
         if not os.path.exists(os.path.join(D, "start_%s.json" % kurz)):
             schreib("1v1: vermesse den Platz von Spieler %d live -> start_%s.json" % (SP, kurz))
             KH.vermessen_live(kurz, SP)
+    if TEAM_KIS:
+        team_feinde_eintragen(karte, kurz, plaetze)      # B-136: vor dem Eroeffnungsplan, der die eigene Seite daraus nimmt
     if UEBERNEHMEN:
         # 19.10. 20:05: Karte und Platz kommen aus der Lobby des Menschen - Kurzname aus dem Ort unseres Lords, den Platz in
         # der laufenden Partie vermessen (wie Spieler 2 im 1v1; die KI-Burg steht anders als die eines Menschen, L-Fund 19.10.)
