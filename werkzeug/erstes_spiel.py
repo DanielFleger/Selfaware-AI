@@ -977,7 +977,7 @@ MARKE_TOTE = 5           # 19.10. (Daniel: "nur markieren, nicht stoppen"): ohne
 HEIM_FERN, HEIM_NAH = 6, 4   # 19.10.: Heimwache (Schuetzen, Nahkaempfer) - der Rest ist das Heer des Feldzugs (Stellgroessen)
 NOT_R, NOT_JE_RUNDE = 12, 2  # 19.10.: Notwerbung nur gegen Feinde so nah an unseren Gebaeuden, hoechstens so viele je Runde
 # 19.10. (1019g): Soeldner fuers Heer nur mit so viel Gold ueber der Ruecklage, hoechstens so viele (1019h: bei 60 lagen 3.400 Gold)
-HEER_GOLD_RAND, HEER_MAX = 150, 300   # B-141 (Daniel 21:54 "10k Gold - sonst verschwendetes Geld"): Heer bis 300 statt 100
+HEER_GOLD_RAND = 150    # B-141 (Daniel 21:56 "keine Heer-Obergrenze"): HEER_MAX (100) entfernt - Grenze sind nur Gold und Bauern
 HEER_JE_RUNDE = 10      # B-141: Werbungen je Runde, gebuendelt in EINER Befehlsliste (einzeln je 0,8 s Wartezeit)
 # 19.10. (1019j: assassinen=20 zaehlte ALLE Anwerbungen - nach der 20. kam keine mehr, 15 starben, zuletzt 6 Raider bei
 # 2.700-6.000 Gold; Daniel: "die Raids aussenrum waren am effektivsten, wurden aber zu wenig eingesetzt"): assassinen= gilt
@@ -3315,7 +3315,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # 19.10. (1019g: das Heer blieb bei 5 Mann, Gold 1.163 lag brach; Daniel: "beim naechsten Run sollen beide
                     # Nomaden sterben"): Soeldner fuers Heer, sobald Gold ueber der Ruecklage + HEER_GOLD_RAND liegt - arab.
                     # Schwertkaempfer (Editor-Duelle: 28.000 Leben, ~180 je Takt), jeder vierte ein arab. Bogen; hoechstens 2 je
-                    # Runde und bis HEER_MAX im Heer
+                    # Runde (B-141: jetzt ohne Obergrenze)
                     posten_h = next((n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 8), None)
                     if posten_h is not None and es_an:
                         # 19.10. Endspurt (Daniel: "all mein Gold in Schwertkaempfer"): alles Gold, so viele wie Bauern am Feuer
@@ -3336,7 +3336,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             frei_h = st["gold"] - wirt.ruecklage(G)["gold"] - HEER_GOLD_RAND
                         heer_n, n_h, feuer_h = len(feldzug.einheiten(L)), 0, st.get("feuer", 0)
                         typen_h = []
-                        while len(typen_h) < HEER_JE_RUNDE and heer_n + len(typen_h) < HEER_MAX and feuer_h - len(typen_h) >= 1:
+                        while len(typen_h) < HEER_JE_RUNDE and feuer_h - len(typen_h) >= 1:
                             typ_h = 70 if (fruehpruefung.get("heer_zaehler", 0) + len(typen_h)) % 4 == 3 else 75
                             if frei_h < SOELDNER_GOLD[typ_h]:
                                 break
