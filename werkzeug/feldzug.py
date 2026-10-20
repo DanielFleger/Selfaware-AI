@@ -279,8 +279,8 @@ class Feldzug:
             # B-137 (20.10. Revanche Tick 104.000: nach "alle direkt" liefen nur die Nahkaempfer los - 77 arab. Bogen warteten
             # 154 Felder vom Lord am Wegpunkt 9/25, den die Spitzengruppe nie mehr erreichte): direkt heisst fuer ALLE auf den Lord
             p = lp if self.direkt else self.weg[self.weg_i] if self.weg_i < len(self.weg) - 1 else lp
-            if self.bresche is not None and self.bresche in G:
-                p = (G[self.bresche]["x"], G[self.bresche]["y"])   # B-139: Schuetzen ziehen zur Bresche und schiessen ihre Verteidiger
+            # (B-139: kein Laufziel auf die Bresche selbst - 21:35 gemessen: Laufbefehle auf ein Torhaus-/Turmfeld in der Mauer
+            # liessen die Einheiten untaetig stehen; auf dem Weg zum Lord kamen sie bei Rotkaeppchen bis 3-9 Felder heran)
             schluss = spitze <= self.SCHLUSS_R or self.direkt
             nah_kampf = [n for n in kolben if L[n]["typ"] not in FERN_REICH]
             fern = [n for n in kolben if L[n]["typ"] in FERN_REICH]
@@ -313,19 +313,11 @@ class Feldzug:
                     self.verworfen.add(bresche)
                     self.bresche, self.bresche_leben, self._stau = None, None, (None, t)
                 else:
-                    # B-134/B-139: alle Nahkaempfer auf das Tor/den Turm, ohne Sammeln davor. 20.10. (gegen Franz: der
-                    # Gebaeude-Angriffsbefehl bewegt weit entfernte Truppen NICHT - 95 standen 72.000 Takte im Zustand 105 zu
-                    # Hause): wer weiter als TOR_R weg ist, laeuft erst hin; der Angriffsbefehl kommt vor dem Tor
-                    belegt = set(nah_kampf)
-                    am_tor_s = set(am_tor)
-                    # (nur einmal schicken, wiederholen erst bei Untaetigen 0/1: 21:31 schickte ich ihn auch bei Zustand 105 jede
-                    # Runde neu - jeder Befehl bildet eine neue Gruppe und startet die Wegsuche von vorn, niemand kam vom Fleck)
-                    hin_b = [n for n in nah_kampf if n not in am_tor_s
-                             and (befohlen.get(n) != ("zum_tor", bresche) or L[n]["zustand"] in (0, 1))]
-                    if hin_b:
-                        befehl({"angriff": {"einheiten": hin_b, "lauf": [tor[0], tor[1]]}}, 1.0, bis="ANGRIFF")
-                        for n in hin_b:
-                            befohlen[n] = ("zum_tor", bresche)
+                    # B-134/B-139: alle Nahkaempfer auf das Tor/den Turm, ohne Sammeln davor. 20.10. gegen Franz gemessen: der
+                    # Gebaeude-Angriffsbefehl bewegt weit entfernte Truppen NICHT (95 standen 72.000 Takte zu Hause), ein
+                    # Laufbefehl auf das Torfeld auch nicht (in der Mauer, unerreichbar). Darum: wer weiter als TOR_R weg ist,
+                    # laeuft mit allen anderen den Weg zum Lord (unten "unterwegs"); vor dem Tor kommt der Angriffsbefehl
+                    belegt = set(am_tor)
                     neu_b = [n for n in am_tor if befohlen.get(n) != ("bresche", bresche) or L[n]["zustand"] in (0, 1)]
                     if neu_b and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
                         befehl({"angriff": {"einheiten": neu_b, "gebaeude": bresche}}, 1.0, bis="ANGRIFF")

@@ -211,8 +211,9 @@ def main():
            len(meld) == 2 and "uebersprungen" in meld[0] and "direkt" in meld[1] and lord14
            and len(lord14[0]["angriff"]["einheiten"]) == 20)
     # 15 (B-139 Schwachstelle, Daniel 20.10. 20:52: "sei aggressiver, gehe aufs Torhaus oder die groesste Schwachstelle"): ein
-    #    Torhaus 6 Felder vom Lord -> im ersten Angriffsschritt laufen ALLE 30 Nahkaempfer zum Torhaus (kein Sammeln, kein
-    #    Warten auf Staus), vor dem Tor bekommen sie den Gebaeudeangriff; faellt es -> "BRESCHE gefallen", Angriff auf den Lord.
+    #    Torhaus 6 Felder vom Lord -> im ersten Angriffsschritt laufen ALLE 30 Nahkaempfer los (Weg zum Lord - ein Laufbefehl
+    #    auf das Torfeld selbst blieb 21:35 wirkungslos), vor dem Tor bekommen sie den Gebaeudeangriff; faellt es -> "BRESCHE
+    #    gefallen", Angriff auf den Lord.
     #    Gegenprobe: ohne Torhaus kein Gebaeudeangriff und keine SCHWACHSTELLE.
     def burg(mit_tor):
         f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
@@ -245,7 +246,7 @@ def main():
         [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in lauf15],
         [m[:40] for m in fall15], len(lord15), [m[:40] for m in m15o if "SCHWACHSTELLE" in m or "ANGRIFF" in m]),
            any("SCHWACHSTELLE (Angriff)" in m for m in m15) and tor15 and len(tor15[0]["angriff"]["einheiten"]) == 30
-           and [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in lauf15] == [([306, 106], 30)]
+           and [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in lauf15] == [([300, 100], 30)]
            and fall15 and lord15 and not tor15o and not any("SCHWACHSTELLE" in m for m in m15o))
     # 16 (B-137, 20.10. Revanche Tick 104.000: 77 arab. Bogen standen 154 Felder vom Lord zu Hause am Wegpunkt 9/25, nur 7
     #    Schwertkaempfer vor dem Tor): nach "alle direkt auf den Lord" laufen auch die Schuetzen auf den Lord, nicht weiter an
@@ -275,7 +276,8 @@ def main():
 
     # 17 (B-139 "groesste Schwachstelle"): zwei Torhaeuser am Lord mit 1.500 und 400 Leben, dazu ein Turm mit 100 Leben 40 Felder
     #    vom Lord (ausserhalb BURG_R) -> Ziel ist das Torhaus mit 400; die 10 Nahkaempfer stehen weit weg zu Hause und laufen
-    #    sofort zu DIESEM Tor (der Gebaeudeangriff bewegt Entfernte nicht, 20.10.); die Schuetzen laufen zum Tor, nicht zum Lord.
+    #    sofort los - mit dem Bogen zusammen den Weg zum Lord (Gebaeudeangriff und Lauf aufs Torfeld bewegten Entfernte nicht);
+    #    in der naechsten Runde kein neuer Laufbefehl an Laufende (Zustand 105).
     f17 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
     f17.schritt({"t": 12000}, *lage(5, heim), Befehle())
     L17, G17 = lage(0, heim)
@@ -298,8 +300,8 @@ def main():
     nochmal17 = [x for x in b17b.liste if "lauf" in x.get("angriff", {}) and set(x["angriff"]["einheiten"]) & set(range(10, 20))]
     pruefe(17, "Schwaechste Stelle: Ziel %s, Torangriffe %d, Laufbefehle an Nahkaempfer %s (naechste Runde nochmal: %d), Bogen laeuft nach %s" % (
         f17.bresche, len(tor17), [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in nk17], len(nochmal17), bogen17),
-           f17.bresche == 902 and not tor17 and [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in nk17] == [([294, 96], 10)]
-           and bogen17 == [[294, 96]] and not nochmal17)
+           f17.bresche == 902 and not tor17 and [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in nk17] == [([300, 100], 11)]
+           and bogen17 == [[300, 100]] and not nochmal17)
     # 18 (B-138): ein Stau, waehrend die gewaehlte Bresche noch steht, waehlt kein anderes Tor - auch wenn eines schwaecher ist.
     #    Gegenprobe: ist die Bresche gefallen und kommt danach niemand weiter, waehlt schon der erste Stau danach das andere
     #    Tor (vorher keine Stau-Stufe wie Wegpunkt ueberspringen oder 'direkt').
