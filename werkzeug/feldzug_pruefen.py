@@ -424,14 +424,17 @@ def main():
         b3 = Befehle()
         f.schritt({"t": 12200}, L_, G_, b3)
         tor_ = [len(x["angriff"]["einheiten"]) for x in b3.liste if x.get("angriff", {}).get("gebaeude") == 901]
-        return [m[:60] for m in m_ if "VORPOSTEN" in m or "SCHWACHSTELLE" in m], lauf_, len(nochmal), tor_, vp, bogen2
-    m22, l22, n22, t22, vp22, bg22 = vorposten(True)
-    m22g, l22g, _, _, vp22g, _ = vorposten(False)
-    pruefe(22, "Vorposten %s: %s, Laufbefehle %s, naechste Runde %d, Bogen dann %s, am Tor Angriff %s | ohne Treffer: %s %s" % (
-        vp22, m22, l22, n22, bg22, t22, m22g, l22g),
+        mauer_ = [len(x["angriff"]["einheiten"]) for x in b.liste if "mauer" in x.get("angriff", {})]
+        return [m[:60] for m in m_ if "VORPOSTEN" in m or "SCHWACHSTELLE" in m], lauf_, len(nochmal), tor_, vp, bogen2, mauer_
+    m22, l22, n22, t22, vp22, bg22, w22 = vorposten(True)
+    m22g, l22g, _, _, vp22g, _, w22g = vorposten(False)
+    # (B-147, Daniel 21.10. 00:47 "Mauer einreissen": ohne Treffer ist auch der Lord eingemauert - die 10 arab. Schwertkaempfer
+    #  hacken die Mauer auf statt zum Lord zu laufen; der Bogenschuetze laeuft wie bisher. Vorher: alle 11 zum Lord.)
+    pruefe(22, "Vorposten %s: %s, Laufbefehle %s, naechste Runde %d, Bogen dann %s, am Tor Angriff %s, Mauer %s | ohne Treffer: %s %s "
+           "Mauer %s" % (vp22, m22, l22, n22, bg22, t22, w22, m22g, l22g, w22g),
            vp22 and F.schach(vp22, (306, 106)) == 4 and vp22[1] > 106 and ([list(vp22), 10] in [list(x) for x in l22])
-           and n22 == 0 and bg22 == [list(vp22)] and t22 == [10]
-           and vp22g is None and l22g == [([300, 100], 11)])     # (B-140: ohne erreichbares Nachbarfeld kein Ziel)
+           and n22 == 0 and bg22 == [list(vp22)] and t22 == [10] and w22 == []
+           and vp22g is None and l22g == [([300, 100], 1)] and w22g == [10])     # (B-140: ohne erreichbares Nachbarfeld kein Ziel)
     # 23 (B-139, Daniel 21:44, Bild: nach dem ersten zerstoerten Turm standen alle vor der Burg und wurden abgeschossen): zwei
     #    Tore, das erste faellt, der Wegtest findet am Lord (Ringe 1-3) nichts -> "eingemauert" und SOFORT die naechste
     #    Schwachstelle (kein Stau abwarten). Gegenprobe: Lord erreichbar (Feld 2 suedlich) -> alle Nahkaempfer laufen dorthin,
@@ -594,6 +597,25 @@ def main():
     v28, v28g, b28 = vorposten(25), vorposten(0), einzige_stelle()
     pruefe(28, "Vorposten mit 25 Schuetzen im Sueden: %s | ohne Schuetzen: %s | einzige Stelle im Kreuzfeuer: %s" % (v28, v28g, b28),
            v28 == (300, 102) and v28g == (300, 110) and b28 is not None and b28[3] == 901)
+    # 29 (B-147, Daniel 21.10. 00:47 "Mauer einreissen"; L172): Lord 500 (Spieler 2) bei (300,100) eingemauert (Wegtest
+    #    ueberall nein), kein Turm -> die 8 Streitkolben bekommen den Mauerbefehl [300, 100, 2, MAUER_R], die 2 Bogenschuetzen
+    #    nicht. Gegenprobe: Lord bei (300,102) erreichbar -> kein Mauerbefehl.
+    def mauer(erreichbar):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+        f.wegtest = lambda nr, punkte: [erreichbar and q == (300, 102) for q in punkte]
+        f.schritt({"t": 12000}, *lage(5, heim), Befehle())
+        L_, G_ = lage(0, heim)
+        for i in range(10):
+            L_[10 + i] = einheit(26 if i < 8 else 22, 1, 300 + i % 3, 125 + i // 5, 28000)
+        f.phase = "angriff"
+        b_ = Befehle()
+        m_ = f.schritt({"t": 12050}, L_, G_, b_)
+        return ([(x["angriff"]["mauer"], sorted(x["angriff"]["einheiten"])) for x in b_.liste if "mauer" in x.get("angriff", {})],
+                [m[:40] for m in m_ if "MAUER" in m])
+    w29, m29 = mauer(False)
+    w29g, m29g = mauer(True)
+    pruefe(29, "eingemauert: %s %s | erreichbar: %s %s" % (w29, m29, w29g, m29g),
+           w29 == [([300, 100, 2, F.Feldzug.MAUER_R], list(range(10, 18)))] and m29 and not w29g and not m29g)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

@@ -31,6 +31,9 @@ BURG_TEILE = {45, 46, 74, 75, 76, 77, 78}
 FERN_REICH = {22: 44, 23: 44, 70: 44}
 LORD = 55
 FERN = {22, 23, 70, 72, 74, 76}
+# B-147 (abgelesen TribesState::giveTribeAnInstruction 0x00527C80): diese duerfen Mauern aufhacken (Speer, Pike, Streitkolben,
+# Schwert, Ritter, Sklave, arab. Schwert) - Bogen, Armbrust, Assassinen, Schleuder, Feuerwerfer nicht
+MAUER_TYPEN = {24, 25, 26, 27, 28, 71, 75}
 TRUPPE = {22, 23, 24, 25, 26, 27, 28, 37, 55, 70, 71, 72, 73, 74, 75, 76}
 
 
@@ -40,6 +43,7 @@ def schach(a, b):
 
 class Feldzug:
     N = 30                    # je Nomade (Daniel)
+    MAUER_R = 30              # B-147: so weit um den Lord sucht logik.lua die Mauerkachel (Burgradius wie BURG_R-Groessenordnung)
     SICHER = 50               # Felder Abstand des Sammelpunkts zu feindlichen Fernkaempfern (Reichweite 44 + Rand)
     GEB_ABSTAND = 30          # ... und zu feindlichen Gebaeuden (Tuerme, Mauern mit Schuetzen)
     AM_PUNKT = 10             # so nah am Sammelpunkt gilt als "da"
@@ -112,6 +116,7 @@ class Feldzug:
         self.bresche_leben = None   # B-138: (niedrigstes Leben der Bresche, seit Tick)
         self.verworfen = set()      # B-138: zaehe Breschen - nicht noch einmal waehlen
         self._bresche_pruef = (None, -99)   # B-140: (Bresche, Runde) der letzten Pruefung mit dem Wegfinder
+        self.mauer_seit = None      # B-147: Tick, seit dem die Mauer am eingemauerten Lord aufgehackt wird
         self._spur = {}             # B-146: je Nahkaempfer (Ort, Leben, still seit Tick, letzter Schaden bei Tick)
 
     NACHBAR_RINGE = (1, 2, 3)  # B-140: so nah am Gebaeude muss ein Feld erreichbar sein, sonst ist es nicht angreifbar
@@ -471,8 +476,9 @@ class Feldzug:
                         vp_alt, b_alt))
             lord_ziel = None      # B-139: erreichbarer Punkt am Lord (Wegtest); None = keiner gefunden oder ohne Wegtest
             if (self.bresche is None or self.bresche not in G) and self.wegtest is not None and nah_kampf:
+                # (B-147: waehrend die Mauer aufgehackt wird, jede 3. Runde pruefen, ob der Lord schon erreichbar ist)
                 if (self.lord_vp is None or schach(self.lord_vp[0], lp) > 3
-                        or self.runde - self.lord_vp[2] >= self.LORD_PRUEF_RUNDEN):
+                        or self.runde - self.lord_vp[2] >= (3 if self.mauer_seit is not None else self.LORD_PRUEF_RUNDEN)):
                     self.lord_vp = (lp, self._erreichbar_bei(lp, nah_kampf[0], mitte, self.LORD_RINGE), self.runde)
                     aus.append("FELDZUG LORD %d %s" % (self.ziel, "erreichbar bei %s" % (self.lord_vp[1],) if self.lord_vp[1]
                                                          else "eingemauert (kein Feld bis %d erreichbar)" % max(self.LORD_RINGE)))
@@ -556,6 +562,31 @@ class Feldzug:
                     for n in hin_l:
                         befohlen[n] = ("zum_lord", lord_ziel)
                 belegt |= set(nah_kampf) - set(am_lord)
+            # B-147 (Daniel 21.10. 00:47 "ja, Mauer einreissen bauen und wieder messen"; L172: nach "Lord eingemauert" lief das
+            # Heer immer wieder auf den unerreichbaren Lord, stand unter Beschuss und zog sich zurueck): ist der Lord eingemauert
+            # und keine Bresche (Turm/Torhaus) mehr da, hacken alle Nahkaempfer, die es koennen, die naechste erreichbare Mauer
+            # am Lord auf (logik.lua waehlt die Kachel, Spielbefehl 36 Art 23); jede 3. Runde wird geprueft, ob der Lord jetzt
+            # erreichbar ist - dann geht es wie gehabt auf ihn
+            if (lord_ziel is None and self.lord_vp is not None and (self.bresche is None or self.bresche not in G)
+                    and self.ziel in L):
+                wand = [n for n in nah_kampf if L[n]["typ"] in MAUER_TYPEN]
+                if wand:
+                    if self.mauer_seit is None:
+                        self.mauer_seit = t
+                        aus.append("FELDZUG MAUER: Lord %d eingemauert, kein Turm erreichbar - %d Nahkaempfer hacken die Mauer bis %d "
+                                   "Felder um den Lord auf" % (self.ziel, len(wand), self.MAUER_R))
+                    neu_w = [n for n in wand if befohlen.get(n) != ("mauer", lp) or L[n]["zustand"] in (0, 1)]
+                    if neu_w:
+                        befehl({"angriff": {"einheiten": neu_w, "mauer": [lp[0], lp[1], L[self.ziel]["besitzer"], self.MAUER_R]}},
+                               1.0, bis="ANGRIFF")
+                        for n in neu_w:
+                            befohlen[n] = ("mauer", lp)
+                    belegt |= set(wand)
+                    am_lord = [n for n in am_lord if n not in wand]
+            elif self.mauer_seit is not None:
+                aus.append("FELDZUG MAUER beendet nach %d Ticks: Lord %s" % (
+                    t - self.mauer_seit, "erreichbar bei %s" % (lord_ziel,) if lord_ziel else "nicht mehr eingemauert/anderes Ziel"))
+                self.mauer_seit = None
             neu_lord = [n for n in am_lord if befohlen.get(n) != ("lord", self.ziel) or L[n]["zustand"] in (0, 1)]
             if neu_lord and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
                 befehl({"angriff": {"einheiten": neu_lord, "ziel": self.ziel}}, 1.0, bis="ANGRIFF")
