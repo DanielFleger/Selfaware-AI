@@ -291,10 +291,15 @@ def main():
     lauf17 = [x for x in b17.liste if "lauf" in x.get("angriff", {})]
     nk17 = [x for x in lauf17 if set(x["angriff"]["einheiten"]) & set(range(10, 20))]
     bogen17 = [x["angriff"]["lauf"] for x in lauf17 if 60 in x["angriff"]["einheiten"]]
-    pruefe(17, "Schwaechste Stelle: Ziel %s, Torangriffe %d, Laufbefehle an Nahkaempfer %s, Bogen laeuft nach %s" % (
-        f17.bresche, len(tor17), [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in nk17], bogen17),
+    for i in range(10):
+        L17[10 + i]["zustand"] = 105                 # 21:31 gemessen: so sehen sie nach dem Laufbefehl aus
+    b17b = Befehle()
+    f17.schritt({"t": 12150}, L17, G17, b17b)
+    nochmal17 = [x for x in b17b.liste if "lauf" in x.get("angriff", {}) and set(x["angriff"]["einheiten"]) & set(range(10, 20))]
+    pruefe(17, "Schwaechste Stelle: Ziel %s, Torangriffe %d, Laufbefehle an Nahkaempfer %s (naechste Runde nochmal: %d), Bogen laeuft nach %s" % (
+        f17.bresche, len(tor17), [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in nk17], len(nochmal17), bogen17),
            f17.bresche == 902 and not tor17 and [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in nk17] == [([294, 96], 10)]
-           and bogen17 == [[294, 96]])
+           and bogen17 == [[294, 96]] and not nochmal17)
     # 18 (B-138): ein Stau, waehrend die gewaehlte Bresche noch steht, waehlt kein anderes Tor - auch wenn eines schwaecher ist.
     #    Gegenprobe: ist die Bresche gefallen und kommt danach niemand weiter, waehlt schon der erste Stau danach das andere
     #    Tor (vorher keine Stau-Stufe wie Wegpunkt ueberspringen oder 'direkt').

@@ -318,8 +318,10 @@ class Feldzug:
                     # Hause): wer weiter als TOR_R weg ist, laeuft erst hin; der Angriffsbefehl kommt vor dem Tor
                     belegt = set(nah_kampf)
                     am_tor_s = set(am_tor)
+                    # (nur einmal schicken, wiederholen erst bei Untaetigen 0/1: 21:31 schickte ich ihn auch bei Zustand 105 jede
+                    # Runde neu - jeder Befehl bildet eine neue Gruppe und startet die Wegsuche von vorn, niemand kam vom Fleck)
                     hin_b = [n for n in nah_kampf if n not in am_tor_s
-                             and (befohlen.get(n) != ("zum_tor", bresche) or L[n]["zustand"] in (0, 1, 105))]
+                             and (befohlen.get(n) != ("zum_tor", bresche) or L[n]["zustand"] in (0, 1))]
                     if hin_b:
                         befehl({"angriff": {"einheiten": hin_b, "lauf": [tor[0], tor[1]]}}, 1.0, bis="ANGRIFF")
                         for n in hin_b:
