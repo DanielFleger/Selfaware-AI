@@ -103,6 +103,7 @@ def lords():
 SAAT_DATEI = os.path.join(D, "saat_liga.json")
 SAAT_FELDER = ("karte", "partie", "wert1", "wert2", "zaehler1", "zaehler2")
 GEGNER_ZAHL = 1
+PRUEFSTAND = None        # B-140 (Daniel 21:49): Name - beim ersten Angriff des Feldzugs einmal speichern
 NUR_PHASE2 = False      # B-139 (20.10.): Lenker-Neustart mitten in der Partie - keine Anfangs-"Stellung" des Waechters
 TEAM_KIS = []            # B-133 2v2 (Daniel 20.10. 18:30): KI-Nummern des gegnerischen Paars, z. B. 1,2 = Rotkaeppchen +
                          # Rattenfaenger; Spieler 1+2 = SamurAIs (Mannschaft 1), die KIs dahinter (Mannschaft 2)
@@ -3295,6 +3296,16 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             ereignis += feldzug.schritt(st, L, G, befehl)
                     except Exception as ex_z:
                         ereignis.append("FELDZUG FEHLER %r - Partie laeuft weiter" % (ex_z,))   # 19.10. (1019i): nie den Lauf beenden
+                    # B-140 Pruefstand (Daniel 21:49 "mit hohem Tempo bis dahin, damit man schnelle Auswertung hat"): beim ersten
+                    # Angriff einmal speichern - ab diesem Stand laesst sich die Belagerung beliebig oft wiederholen
+                    if PRUEFSTAND and feldzug.phase == "angriff" and not fruehpruefung.get("pruefstand"):
+                        fruehpruefung["pruefstand"] = True
+                        try:
+                            from speichern import speichere
+                            kopie_p = speichere(("%s T%d" % (PRUEFSTAND, st["t"]))[:32])
+                            ereignis.append("PRUEFSTAND gespeichert bei Tick %d: %s" % (st["t"], os.path.basename(kopie_p or "?")))
+                        except Exception as ex_p:
+                            ereignis.append("PRUEFSTAND Speichern FEHLER %r" % (ex_p,))
                     # 19.10. (1019g: das Heer blieb bei 5 Mann, Gold 1.163 lag brach; Daniel: "beim naechsten Run sollen beide
                     # Nomaden sterben"): Soeldner fuers Heer, sobald Gold ueber der Ruecklage + HEER_GOLD_RAND liegt - arab.
                     # Schwertkaempfer (Editor-Duelle: 28.000 Leben, ~180 je Takt), jeder vierte ein arab. Bogen; hoechstens 2 je
@@ -3543,7 +3554,8 @@ def main():
     # Platz = Burgnummer der Karte - 1). Die Vermessung laeuft mit derselben Aufstellung; ihr Kurzname traegt die Plaetze.
     global GEGNER_ZAHL
     GEGNER_ZAHL = int(arg.get("gegner", 1))
-    global TEAM_KIS, NUR_PHASE2
+    global TEAM_KIS, NUR_PHASE2, PRUEFSTAND
+    PRUEFSTAND = arg.get("pruefstand") or None
     NUR_PHASE2 = arg.get("nur_phase2", "nein") == "ja"
     TEAM_KIS = [int(z) for z in arg["team_kis"].split(",")] if arg.get("team_kis") else []
     # 00:59 (Daniel: "Nomade 2 wird nicht wirklich geladen"): die Startliste des Spiels ist PLATZ -> Spieler (Index 0 = wir),
