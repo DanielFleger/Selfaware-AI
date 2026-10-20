@@ -7,8 +7,10 @@
 //! S1: Augen - Einheiten, Gebaeude und Grabenwache in jedem neuen Takt (welt.rs); Weltbild auf Befehl ausschreiben.
 //! S2: Haende - Auftraege an uebergebene Einheiten ueber den Befehlsweg des Spiels, ein Gruppenbefehl je Takt (haende.rs).
 //! S3: Wege - Erreichbarkeit ueber das Wegnetz (wege.rs); Grabenreflex: Graben am Ziel einer Kern-Einheit -> sofort neues Ziel.
+//! S4a: Leitung - Weltbild jeden neuen Takt in einen benannten gemeinsamen Speicher fuer Python (leitung.rs).
 
 mod haende;
+mod leitung;
 mod waechter;
 mod wege;
 mod welt;
@@ -24,7 +26,7 @@ use haende::{Annahme, Auftrag, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 8;
+pub const VERSION: u32 = 9;
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -76,6 +78,9 @@ struct Zustand {
     waechter: Waechter,
     welt: Welt,
     buch: Option<Buch>,
+    /// S4a: None = noch nicht versucht; Some(None) = Anlegen fehlgeschlagen
+    leitung: Option<Option<leitung::Leitung>>,
+    graben_zahl: (u32, u32),
     letzte_zeile: i32,
     letzter_takt: Option<Instant>,
     m: Messung,
@@ -85,6 +90,8 @@ static ZUSTAND: Mutex<Zustand> = Mutex::new(Zustand {
     waechter: Waechter::neu(),
     welt: Welt::neu(),
     buch: None,
+    leitung: None,
+    graben_zahl: (0, 0),
     letzte_zeile: -1,
     letzter_takt: None,
     m: Messung::neu(),
@@ -211,6 +218,20 @@ fn grabenreflex(z: &mut Zustand, tick: i32, neu: &[(i32, i32)]) {
     }
 }
 
+/// S4a: Weltbild dieses Takts in den gemeinsamen Speicher (beim ersten Mal anlegen und den Namen protokollieren).
+fn leitung_schreiben(z: &mut Zustand, tick: i32) {
+    if z.leitung.is_none() {
+        let l = leitung::Leitung::oeffnen();
+        schreibe(&format!("leitung tick {}: {}", tick, l.as_ref().map_or("FEHLER - gemeinsamer Speicher nicht angelegt".to_string(),
+            |l| format!("gemeinsamer Speicher {} ({} Byte), Name in {}", l.name, leitung::GROESSE, leitung::NAME_DATEI))));
+        z.leitung = Some(l);
+    }
+    if let Some(Some(l)) = &z.leitung {
+        let ich = unsafe { i32_bei(SLOT_ICH) };
+        l.schreiben(&z.welt, tick, z.waechter.epoche, ich, z.graben_zahl.0, z.graben_zahl.1, VERSION);
+    }
+}
+
 fn ort(feld: usize) -> String {
     Welt::feld_xy(feld).map_or(format!("Feld {}", feld), |(x, y)| format!("({},{})", x, y))
 }
@@ -231,6 +252,7 @@ fn takt(tick: i32, spieler: i32) -> i32 {
             z.welt.lesen();
             let t1 = Instant::now();
             let g = z.welt.graben_lesen();
+            z.graben_zahl = (g.geplant as u32, g.ausgehoben as u32);
             z.m.welt_ns += t1.duration_since(t0).as_nanos();
             z.m.karte_ns += t1.elapsed().as_nanos();
             if !g.neu_geplant.is_empty() || !g.neu_ausgehoben.is_empty() || !g.zugeschuettet.is_empty() || g.plan_geloescht > 0 {
@@ -246,6 +268,7 @@ fn takt(tick: i32, spieler: i32) -> i32 {
                 grabenreflex(&mut z, tick, &neu);
             }
             haende_takt(&mut z, tick);
+            leitung_schreiben(&mut z, tick);
         }
         Ereignis::Epoche { von, nach } => {
             schreibe(&format!("epoche {} tick {} von {} (Sprung {})", z.waechter.epoche, nach,

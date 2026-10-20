@@ -178,6 +178,36 @@ Pruefpunkt "Laufziel = Auftrag" muss die Formation zulassen (Abstand statt Gleic
 **Offen:** Reflex prueft nur das Ziel, nicht den Weg dorthin (der Weg des Spiels ist nicht sichtbar); ausgehobener Graben, der ein
 Gebiet teilt, wird ueber die Erreichbarkeit erfasst - im Spiel noch nicht beobachtet (kein Aushub waehrend des Tests).
 
+## Bauplan S4a Leitung, Leseseite (20.10.2026, 23:46) - vor dem ersten Bau
+
+- **Gemeinsamer Speicher** (Windows: benannte Speicherabbildung, CreateFileMappingW/MapViewOfFile, aus Rust ohne fremde Kiste):
+  Name `SamurAI_Kern_<Prozessnummer des Spiels>`; der Kern schreibt den Namen nach `ucp/villagestudio/kern_leitung.txt`,
+  Python liest ihn dort (eine Instanz = ein Spielprozess = ein Name).
+- **Aufbau Fassung 1** (little endian): Kopf 64 Byte (Kennung "SAMK", Aufbau-Fassung, Folgezaehler, Takt, Epoche, ich,
+  Zahl Einheiten, Zahl Gebaeude, Graben geplant/ausgehoben, Kern-Fassung), dann bis 2.500 Einheiten zu 32 Byte (nr, leben,
+  besitzer, typ, x, y, zustand, laufx, laufy, gruppe, zielart, zieleinheit, zielgebaeude, nahziel), dann bis 2.000 Gebaeude
+  zu 16 Byte (nr, typ, besitzer, x, y, leben).
+- **Folgezaehler** (wie ein Seqlock): ungerade = Kern schreibt gerade; Python kopiert und nimmt die Kopie nur, wenn der
+  Zaehler vorher und nachher gleich und gerade war. Der Kern schreibt in jedem neuen Takt, nach Augen und Grabenwache.
+- **Python-Seite:** `selfaware.game.kern_leitung` (Leser, reine Standardbibliothek) - das ist die Quelle, auf die ein
+  GamePort (Krarilotus' LIVE-01) seine Beobachtung stuetzen kann.
+- **Pruefpunkt:** im angehaltenen Takt gleiche Werte wie das Weltbild des Kerns (kern_lagebild.txt); bei laufendem Spiel
+  sieht Python aufeinanderfolgende Takte (Zahl gesehener Takte / vergangener Takte). Gegenprobe: falsche Aufbau-Fassung ->
+  der Leser verweigert.
+- **Spaeter S4b:** Auftraege von Python an den Kern ueber einen Ring im selben Speicher (statt Befehlsdatei).
+
+## Stand S4a (20.10.2026, 23:51) - Leitung Leseseite, im Spiel geprueft (Kern Version 9, Instanz 5)
+
+| Pruefpunkt | Ergebnis | Beleg |
+|---|---|---|
+| Speicher angelegt | "gemeinsamer Speicher SamurAI_Kern_31380 (112064 Byte)", Name in kern_leitung.txt | samurai_kern.log `leitung`-Zeile |
+| Angehalten gleich | Takt 46.721: 733 Einheiten, 0 nur in einer Quelle, 0 abweichende Werte (11 Spalten) gegen kern_lagebild.txt | `python -m selfaware.tools.experiments.kern_leitung_pruefen 3` |
+| Jeder Takt | laufend 3 s: **999 verschiedene Takte gesehen bei 998 vergangenen, groesste Luecke 1** - Python sieht jetzt jeden Takt (vorher alle 187-1.069 Takte) | dito |
+| Offline | `tests/test_kern_leitung.py` 2/2 (Aufbau 1 vollstaendig gelesen; fremder Aufbau abgelehnt = Gegenprobe) | tests |
+
+**Naechster Schritt S4b:** Auftraege von Python an den Kern ueber einen Ring im selben Speicher (statt Befehlsdatei) - dann
+kann ein Python-Gehirn (unser Lenker oder Krarilotus' GamePort) jeden Takt sehen UND im naechsten Takt handeln.
+
 ## Beziehungen (beide Richtungen)
 
 - Spiel -> Kern: ruft ihn nach jedem Takt UND in der Pause (Haken nach `processGameTick`). Kern -> Spiel: liest Strukturen, handelt nur ueber Spielbefehle.
