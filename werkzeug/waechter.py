@@ -100,9 +100,11 @@ class Waechter:
         self.verzicht = None         # 19.10.: Ziel, gegen das die Gefechtsbewertung zuletzt "lohnt nicht" ergab
         self.zurueck = None          # 19.10.: (Ziel, Schuetzen), die zuletzt aus dem Nahkampf herausgehalten wurden
 
-    def stellung(self, L):
-        """Zu Spielbeginn: alle Truppen (ohne Lord) an den Posten mitten in der Wirtschaft."""
-        eig = [n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] in TRUPPE and e["typ"] != LORD and e["typ"] != 73]
+    def stellung(self, L, ausgenommen=()):
+        """Zu Spielbeginn: alle Truppen (ohne Lord) an den Posten mitten in der Wirtschaft. 20.10. (B-139): nie die
+        ausgenommenen (Feldzug im Angriff) - nach einem Lenker-Neustart hielt "Stellung" 127 Angreifer am Posten fest."""
+        eig = [n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] in TRUPPE and e["typ"] != LORD and e["typ"] != 73
+               and n not in ausgenommen]
         if eig and self.posten:
             befehl({"halten": {"nr": eig, "x": self.posten[0], "y": self.posten[1]}}, 1.0, bis="HALTEN")
             self.besetzt = True
@@ -115,7 +117,7 @@ class Waechter:
         ereignis = []
         self._schritte = getattr(self, "_schritte", 0) + 1     # 19.10.: Uhr fuer gesperrte Ziele (keine Jagd)
         if not self.besetzt:
-            t = self.stellung(L)
+            t = self.stellung(L, ausgenommen)
             if t:
                 ereignis.append(t)
         # Bilanz: wer ist seit der letzten Runde verschwunden?

@@ -103,6 +103,7 @@ def lords():
 SAAT_DATEI = os.path.join(D, "saat_liga.json")
 SAAT_FELDER = ("karte", "partie", "wert1", "wert2", "zaehler1", "zaehler2")
 GEGNER_ZAHL = 1
+NUR_PHASE2 = False      # B-139 (20.10.): Lenker-Neustart mitten in der Partie - keine Anfangs-"Stellung" des Waechters
 TEAM_KIS = []            # B-133 2v2 (Daniel 20.10. 18:30): KI-Nummern des gegnerischen Paars, z. B. 1,2 = Rotkaeppchen +
                          # Rattenfaenger; Spieler 1+2 = SamurAIs (Mannschaft 1), die KIs dahinter (Mannschaft 2)
 LIGA_START_GOLD = 150    # Liga-Startgueter: Computer 150 Gold, Mensch 0 - im 2v2 bekommen beide SamurAIs die 150
@@ -2072,6 +2073,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     import befehl as befehlskanal
     befehlskanal.STRENG = True     # ab hier bricht jeder Modulfehler den Lauf laut ab
     w = Waechter(SP, posten=plan["lager_mitte"]) if mit_waechter else None
+    if w is not None and NUR_PHASE2:
+        # B-139 (20.10. gegen Franz): die Anfangs-"Stellung" (alle Truppen per Haltebefehl zum Posten) ist fuer den Spielbeginn -
+        # nach einem Neustart mitten in der Partie hielt sie 127 Angreifer zu Hause fest (Zustand 105, kein neuer Befehl)
+        w.besetzt = True
     trupp = Einzeln(SP, pruefe_begehbar=pruefe_begehbar, wegtest=wegtest) if assassinen else None
     if trupp is not None and STOPP_TOTE == 0:
         trupp.RESERVE_PARKEN = False     # 19.10.: ohne Todesgrenze nehmen verletzte Assassinen sichere Ziele (assassinen.py)
@@ -3537,7 +3542,8 @@ def main():
     # Platz = Burgnummer der Karte - 1). Die Vermessung laeuft mit derselben Aufstellung; ihr Kurzname traegt die Plaetze.
     global GEGNER_ZAHL
     GEGNER_ZAHL = int(arg.get("gegner", 1))
-    global TEAM_KIS
+    global TEAM_KIS, NUR_PHASE2
+    NUR_PHASE2 = arg.get("nur_phase2", "nein") == "ja"
     TEAM_KIS = [int(z) for z in arg["team_kis"].split(",")] if arg.get("team_kis") else []
     # 00:59 (Daniel: "Nomade 2 wird nicht wirklich geladen"): die Startliste des Spiels ist PLATZ -> Spieler (Index 0 = wir),
     # nicht Spieler -> Platz - startliste=0,1,7 setzte Platz 2 auf einen Spieler 7, den es nicht gibt. plaetze=0,1,7 nimmt
