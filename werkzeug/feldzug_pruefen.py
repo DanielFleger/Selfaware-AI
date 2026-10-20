@@ -425,6 +425,45 @@ def main():
            vp22 and F.schach(vp22, (306, 106)) == 4 and vp22[1] > 106 and ([list(vp22), 10] in [list(x) for x in l22])
            and n22 == 0 and bg22 == [list(vp22)] and t22 == [10]
            and vp22g is None and any("keiner gefunden" in m for m in m22g) and l22g == [([300, 100], 11)])
+    # 23 (B-139, Daniel 21:44, Bild: nach dem ersten zerstoerten Turm standen alle vor der Burg und wurden abgeschossen): zwei
+    #    Tore, das erste faellt, der Wegtest findet am Lord (Ringe 1-3) nichts -> "eingemauert" und SOFORT die naechste
+    #    Schwachstelle (kein Stau abwarten). Gegenprobe: Lord erreichbar (Feld 2 suedlich) -> alle Nahkaempfer laufen dorthin,
+    #    keine neue Schwachstelle; dort angekommen -> Angriffsbefehl auf den Lord.
+    def lord_frei(erreichbar):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+        lp_ = (300, 100)
+        def wt(nr, punkte):
+            return [(q[1] > 106 and abs(q[0] - 306) <= 4) or (erreichbar and q == (lp_[0], lp_[1] + 2)) for q in punkte]
+        f.wegtest = wt
+        f.schritt({"t": 12000}, *lage(5, heim), Befehle())
+        L_, G_ = lage(0, heim)
+        for i in range(10):
+            L_[10 + i] = einheit(75, 1, 304 + i % 3, 110 + i // 5, 28000)
+        G_[901] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 1500}
+        G_[902] = {"typ": 46, "besitzer": 2, "x": 290, "y": 96, "leben": 1500}
+        f.schritt({"t": 12050}, L_, G_, Befehle())          # Ziel 901 (naeher an der Spitze)
+        erst = f.bresche
+        del G_[erst]
+        for i in range(10):                            # die Truppen sind (zurueck)gewichen - weit weg vom Lord
+            L_[10 + i]["x"], L_[10 + i]["y"] = 250 + i % 3, 160 + i // 5
+        b = Befehle()
+        m_ = f.schritt({"t": 12100}, L_, G_, b)
+        lauf_ = [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in b.liste if "lauf" in x.get("angriff", {})]
+        for i in range(10):
+            L_[10 + i]["x"], L_[10 + i]["y"], L_[10 + i]["zustand"] = 300 + i % 3, 102 + i // 5, 1
+        lord_ = []
+        for k in range(6):                             # Angriffsbefehle hoechstens alle WIEDERHOLEN Runden
+            b2 = Befehle()
+            f.schritt({"t": 12200 + 50 * k}, L_, G_, b2)
+            lord_ += [len(x["angriff"]["einheiten"]) for x in b2.liste if x.get("angriff", {}).get("ziel") == 500]
+        return erst, f.bresche, [m[:70] for m in m_ if "LORD" in m or "SCHWACHSTELLE" in m], lauf_, lord_
+    e23, z23, m23, l23, _ = lord_frei(False)
+    e23g, z23g, m23g, l23g, lord23g = lord_frei(True)
+    pruefe(23, "Lord eingemauert: erst %s, dann %s %s | Lord erreichbar: Ziel %s %s, Laufbefehle %s, dort Angriff %s" % (
+        e23, z23, m23, z23g, m23g, l23g, lord23g),
+           e23 == 901 and z23 == 902 and any("eingemauert" in m for m in m23) and any("SCHWACHSTELLE (Lord eingemauert)" in m for m in m23)
+           and z23g is None and any("erreichbar bei (300, 102)" in m for m in m23g) and ([300, 102], 10) in [tuple(x) for x in l23g]
+           and lord23g == [10])
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

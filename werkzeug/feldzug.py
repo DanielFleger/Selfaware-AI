@@ -104,6 +104,7 @@ class Feldzug:
         self.lord_versuch = None    # B-139: Tick, seit dem nach einer gefallenen Bresche direkt auf den Lord gegangen wird
         self.wegtest = None         # B-139: (nr, punkte) -> [bool] - der Wegfinder des Spiels; setzt erstes_spiel
         self.vorposten = None       # B-139: (Bresche, erreichbarer Punkt vor ihr)
+        self.lord_vp = None         # B-139: (Lord-Ort, erreichbarer Punkt am Lord oder None, Runde der Pruefung)
         self.bresche_leben = None   # B-138: (niedrigstes Leben der Bresche, seit Tick)
         self.verworfen = set()      # B-138: zaehe Breschen - nicht noch einmal waehlen
 
@@ -124,24 +125,35 @@ class Feldzug:
         return True
 
     RINGE = (4, 8, 12, 16, 22, 30)
+    # B-139 (Daniel 21:44, Bild: nach dem ersten zerstoerten Turm standen alle vor Franz' Burg, zogen sich zurueck und wurden
+    # abgeschossen - der Lord war eingemauert, der Angriffsbefehl auf ihn bewegte niemanden, die naechste Schwachstelle kam
+    # erst nach 1.500 Takten Stau): ohne stehende Bresche fragt der Feldzug den Wegfinder, ob ein Feld bis LORD_RINGE am Lord
+    # erreichbar ist - ja: alle dorthin, am Lord der Angriff; nein: sofort die naechste Schwachstelle
+    LORD_RINGE = (1, 2, 3)
+    LORD_PRUEF_RUNDEN = 20
+
+    def _erreichbar_bei(self, ziel, nr, mitte, ringe):
+        """Der naechste vom Wegfinder des Spiels erreichbare Punkt auf Ringen um ziel (je 8 Richtungen), bei gleichem Ring der
+        naechste an mitte; None ohne Wegtest oder ohne Treffer."""
+        if self.wegtest is None:
+            return None
+        punkte = [(ziel[0] + dx * r, ziel[1] + dy * r) for r in ringe
+                  for dx, dy in ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1))]
+        try:
+            gut = self.wegtest(nr, punkte)
+        except Exception:
+            return None
+        treffer = [q for q, g in zip(punkte, gut) if g]
+        return min(treffer, key=lambda q: (schach(q, ziel), schach(q, mitte))) if treffer else None
 
     def _vorposten(self, L, tor, nah_kampf, mitte):
         """B-139 (21:39 gemessen mit dem Wegtest des Spiels: Franz' Turm 596 ist von Sueden bis auf 4 Felder erreichbar, von
         Norden gar nicht; Laufbefehle auf das Turmfeld selbst liessen die Einheiten untaetig): der naechste erreichbare Punkt
         auf Ringen um die Bresche (je 8 Richtungen), bei gleichem Ring der naechste an der Mitte unseres Heeres. Ohne
         Wegtest oder ohne Treffer: None (dann der alte Weg)."""
-        if self.wegtest is None or not nah_kampf:
+        if not nah_kampf:
             return None
-        punkte = [(tor[0] + dx * r, tor[1] + dy * r) for r in self.RINGE
-                  for dx, dy in ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1))]
-        try:
-            gut = self.wegtest(nah_kampf[0], punkte)
-        except Exception:
-            return None
-        treffer = [q for q, g in zip(punkte, gut) if g]
-        if not treffer:
-            return None
-        return min(treffer, key=lambda q: (schach(q, tor), schach(q, mitte)))
+        return self._erreichbar_bei(tor, nah_kampf[0], mitte, self.RINGE)
 
     def _lords(self, L):
         return {n: e for n, e in L.items() if e["typ"] == LORD and e["besitzer"] not in freunde_von(self.sp) and e["leben"] > 0}
@@ -308,6 +320,18 @@ class Feldzug:
             schluss = spitze <= self.SCHLUSS_R or self.direkt
             nah_kampf = [n for n in kolben if L[n]["typ"] not in FERN_REICH]
             fern = [n for n in kolben if L[n]["typ"] in FERN_REICH]
+            lord_ziel = None      # B-139: erreichbarer Punkt am Lord (Wegtest); None = keiner gefunden oder ohne Wegtest
+            if (self.bresche is None or self.bresche not in G) and self.wegtest is not None and nah_kampf:
+                if (self.lord_vp is None or schach(self.lord_vp[0], lp) > 3
+                        or self.runde - self.lord_vp[2] >= self.LORD_PRUEF_RUNDEN):
+                    self.lord_vp = (lp, self._erreichbar_bei(lp, nah_kampf[0], mitte, self.LORD_RINGE), self.runde)
+                    aus.append("FELDZUG LORD %d %s" % (self.ziel, "erreichbar bei %s" % (self.lord_vp[1],) if self.lord_vp[1]
+                                                         else "eingemauert (kein Feld bis %d erreichbar)" % max(self.LORD_RINGE)))
+                lord_ziel = self.lord_vp[1]
+                if lord_ziel is None and self._schwachstelle(G, lp, orte, aus, "Lord eingemauert"):
+                    self.lord_versuch, self.lord_vp = None, None
+                if lord_ziel is not None:
+                    p = lord_ziel                       # auch die Schuetzen dorthin
             # Schuetzen: naechster Feind in Reichweite (zuerst Schuetzen) - sonst mit dem Haufen
             feinde_f = [(k, e) for k, e in L.items() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in TRUPPE]
             schiessen = {}
@@ -366,6 +390,18 @@ class Feldzug:
                         for n in neu_b:
                             befohlen[n] = ("bresche", bresche)
                     am_lord = []
+            if lord_ziel is not None and (self.bresche is None or self.bresche not in G):
+                # B-139: am erreichbaren Punkt (oder schon am Lord) -> Angriff; alle anderen laufen dorthin (einmal; erneut nur,
+                # wer untaetig und nicht dort ist)
+                am_lord = [n for n in nah_kampf if schach((L[n]["x"], L[n]["y"]), lp) <= self.ANGRIFF_NAH
+                           or schach((L[n]["x"], L[n]["y"]), lord_ziel) <= self.AM_PUNKT]
+                hin_l = [n for n in nah_kampf if n not in am_lord
+                         and (befohlen.get(n) != ("zum_lord", lord_ziel) or L[n]["zustand"] in (0, 1))]
+                if hin_l:
+                    befehl({"angriff": {"einheiten": hin_l, "lauf": [lord_ziel[0], lord_ziel[1]]}}, 1.0, bis="ANGRIFF")
+                    for n in hin_l:
+                        befohlen[n] = ("zum_lord", lord_ziel)
+                belegt |= set(nah_kampf) - set(am_lord)
             neu_lord = [n for n in am_lord if befohlen.get(n) != ("lord", self.ziel) or L[n]["zustand"] in (0, 1)]
             if neu_lord and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
                 befehl({"angriff": {"einheiten": neu_lord, "ziel": self.ziel}}, 1.0, bis="ANGRIFF")
