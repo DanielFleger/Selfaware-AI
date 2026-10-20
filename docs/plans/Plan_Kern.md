@@ -148,8 +148,8 @@ denselben Werten seit 04.10. aus Lua belegt (exposeCode(0x00489100, 2, 1) = this
 | Gegenprobe C: ohne Absender-Umbau | `{"absender": "aus"}` -> Kern Takt 42.348 "VERWEIGERT - Absender-Umbau fehlt"; danach `{"absender": "an"}` wieder eingebaut | samurai_kern.log, ucp3.log |
 | Offline | `cargo test` 14/14; Gegenlaeufe rot (Schreiber-Regel, Dauer-Neubefehl-Regel) | crates/samurai-kern |
 
-**Offen:** Stempel fuer einen Platz, der nicht "ich" ist (2v2) - hier war der Kern selbst Spieler 1; Angriffsauftraege (Art 4/9)
-im Spiel noch nicht abgesetzt (gleicher Weg, Befehl 36); warum Bogenschuetze 145 nicht lief (Zustand 8) - im Feldzug wichtig;
+**Offen:** Stempel fuer einen Platz, der nicht "ich" ist (2v2) - hier war der Kern selbst Spieler 1; Angriff auf eine Einheit
+(Art 4) inzwischen geprueft (L162), auf ein Gebaeude (Art 9) noch nicht; warum Bogenschuetze 145 nicht lief (Zustand 8) - im Feldzug wichtig;
 Pruefpunkt "Laufziel = Auftrag" muss die Formation zulassen (Abstand statt Gleichheit).
 
 ## Bauplan S3 Wege (20.10.2026, 23:45) - vor dem ersten Bau
