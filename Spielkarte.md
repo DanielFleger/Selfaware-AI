@@ -158,8 +158,10 @@ Rehe nachwachsen, Staub, `updateGameRelatedValue`.
   "der Lenker sieht bei Tempo 100 etwa alle 11 Ticks hin", lernen.py).
 - Die Gegner-KI entscheidet ihre Bauten in jedem Takt NACH den Gebaeuden und VOR den Einheiten.
 
-**Noch offen:** an welcher Stelle UCP3 sein `everyTick` (unser logik.lua-Takt, Rust-Kern) einhaengt - das steht nicht im
-Spiel, sondern in UCP3; im Lauf messen (Tick-Zaehler vor/nach einem eigenen Befehl).
+**Geklaert 20.10.2026 (L154):** `everyTick` haengt nicht an UCP3, sondern an unserem eigenen Haken am Anfang von
+`processGameTick` (villagestudio init.lua, hookCode 0x45CD10) - also nach `processWaitingCommands`, vor Gebaeuden und
+Einheiten. Gemessen: das Kern-Protokoll hat 2.238 von 2.238 Abstaenden von genau 500 Takten, auch bei Tempo 300 - der
+Kern laeuft in jedem Takt.
 
 ## 4. Darf hier gebaut werden? (B-95, 20.10.2026)
 
@@ -191,4 +193,4 @@ fuer den Platz der SamurAI nach der Uebernahme, und wie oft ein Bau an einer Ein
 
 - ~~Spielerdaten~~, ~~Einheiten und Gebaeude~~ - Abschnitt 2 (die Felder, die wir lesen; weitere Felder stehen in den Strukturdateien).
 - Karte: ~~Bauplatzpruefung~~ (Abschnitt 4); offen: Gelaende- und Begehbarkeits-Schichten im Einzelnen.
-- ~~Takt~~ - Abschnitt 3 (offen nur noch: wo UCP3 `everyTick` einhaengt).
+- ~~Takt~~ - Abschnitt 3 (auch `everyTick` geklaert, L154).
