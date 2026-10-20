@@ -22,6 +22,8 @@ import sys
 HIER = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HIER)
 import raids as R
+import parteien
+parteien.setzen(1, {1})   # B-133: ohne Spiel - nur Spieler 1 ist Freund
 
 ALT = len(sys.argv) > 1 and sys.argv[1] == "alt"
 if ALT:
@@ -156,6 +158,16 @@ def main():
     w13 = R.werbung(100, 10, 0, 0, 0)
     R.DECKUNG_SOLL = 0
     pruefe(13, "Werbung mit Deckung 100/10: %s" % w13, w13 == [(71, 5), (72, 3)])
+    # 14. (B-133, 2v2) Spieler 2 ist verbuendet: sein Waffenlager ist KEIN Ziel, das von Spieler 3 schon. Gegenprobe: ohne
+    #     Verbuendete (alte Regel) waere das naechste Ziel das Waffenlager des Verbuendeten.
+    import parteien
+    L14 = {1: einheit(71, 1, 100, 100)}
+    G14 = {7: geb(11, 2, 110, 100), 8: geb(11, 3, 140, 100)}
+    parteien.setzen(1, {1, 2})
+    mit_v = R.Brandtrupp(1, lambda nr: 0)._ziele(L14, G14, (100, 100), set())
+    parteien.setzen(1, {1})
+    ohne_v = R.Brandtrupp(1, lambda nr: 0)._ziele(L14, G14, (100, 100), set())
+    pruefe(14, "Verbuendeter Spieler 2: Ziele %s (ohne Verbuendete %s)" % (mit_v, ohne_v), mit_v == [8] and ohne_v[:1] == [7])
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

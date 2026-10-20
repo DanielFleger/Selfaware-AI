@@ -18,6 +18,7 @@ Ablauf je Runde (schritt):
            Ist der Lord tot: naechstes Ziel, die Ueberlebenden sammeln neu, aufgefuellt wird auf N.
 Anwerben/Kaufen macht erstes_spiel.ruestung_kaufen (Ziel N lebende Streitkolben, nur Gold ueber der Ruecklage).
 """
+from parteien import freunde_von   # B-133: Freund/Feind aus den Mannschaften des Spiels (2v2)
 
 STREITKOLBEN = 26
 # 19.10. (Daniel, 1019f: 26 arab. Schwertkaempfer und 25 arab. Bogen standen am Bergfried, kein Streitkolben - "nur zum
@@ -85,13 +86,13 @@ class Feldzug:
         self.direkt = False         # 19.10.: nach zwei Staus alle direkt auf den Lord
 
     def _lords(self, L):
-        return {n: e for n, e in L.items() if e["typ"] == LORD and e["besitzer"] not in (0, self.sp) and e["leben"] > 0}
+        return {n: e for n, e in L.items() if e["typ"] == LORD and e["besitzer"] not in freunde_von(self.sp) and e["leben"] > 0}
 
     def _sammelpunkt(self, L, G, lord):
         """Auf der Linie Heim -> Lord von vorn nach hinten der erste Punkt, der SICHER Felder von jedem feindlichen
         Fernkaempfer und GEB_ABSTAND von jedem feindlichen Gebaeude entfernt ist."""
-        fern = [(e["x"], e["y"]) for e in L.values() if e["besitzer"] not in (0, self.sp) and e["typ"] in FERN]
-        geb = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] not in (0, self.sp)]
+        fern = [(e["x"], e["y"]) for e in L.values() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in FERN]
+        geb = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] not in freunde_von(self.sp)]
         h, z = self.heim, (lord["x"], lord["y"])
         d = max(1, schach(h, z))
         for k in range(d, -1, -2):
@@ -134,7 +135,7 @@ class Feldzug:
             da = [n for n in kolben if schach((L[n]["x"], L[n]["y"]), p) <= self.AM_PUNKT]
             # Verteidigen statt stehen: feindliche Einheit nahe am Sammelpunkt -> die, die da sind, greifen sie an
             feind = min(((schach(p, (e["x"], e["y"])), n) for n, e in L.items()
-                         if e["besitzer"] not in (0, self.sp) and e["typ"] in TRUPPE and schach(p, (e["x"], e["y"])) <= self.VERTEIDIGEN),
+                         if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in TRUPPE and schach(p, (e["x"], e["y"])) <= self.VERTEIDIGEN),
                         default=None)
             if feind and da:
                 if self.verteidigt.get(feind[1], -99) < self.runde - self.WIEDERHOLEN:
@@ -214,7 +215,7 @@ class Feldzug:
             nah_kampf = [n for n in kolben if L[n]["typ"] not in FERN_REICH]
             fern = [n for n in kolben if L[n]["typ"] in FERN_REICH]
             # Schuetzen: naechster Feind in Reichweite (zuerst Schuetzen) - sonst mit dem Haufen
-            feinde_f = [(k, e) for k, e in L.items() if e["besitzer"] not in (0, self.sp) and e["typ"] in TRUPPE]
+            feinde_f = [(k, e) for k, e in L.items() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in TRUPPE]
             schiessen = {}
             for n in fern:
                 o = (L[n]["x"], L[n]["y"])
@@ -266,7 +267,7 @@ class Feldzug:
         import gefecht
         lp = (lord["x"], lord["y"])
         sie = [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=True) for e in L.values()
-               if e["besitzer"] not in (0, self.sp) and e["typ"] in TRUPPE and (
+               if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in TRUPPE and (
                    schach((e["x"], e["y"]), lp) <= self.LORD_UMKREIS
                    or (e["typ"] in gefecht.FERN_REICH and schach((e["x"], e["y"]), lp) <= gefecht.FERN_REICH[e["typ"]]))]
         wir = [dict(typ=L[n]["typ"], leben=L[n]["leben"], x=L[n]["x"], y=L[n]["y"]) for n in da]

@@ -17,6 +17,7 @@ Annahmen, die (noch) nicht gemessen sind, stehen offen hier:
   - Einheiten weiter als 45 Felder vom Lord: in der einzigen gemessenen Lage war keine beteiligt (alle Beteiligten
     starteten hoechstens 14 Felder vom Lord). Sie werden mitgeschrieben, aber nicht verglichen.
 """
+from parteien import freunde_von   # B-133: Freund/Feind aus den Mannschaften des Spiels (2v2)
 import json
 import os
 
@@ -40,7 +41,7 @@ def schach(a, b):
 
 
 def feindlord(L, sp=1):
-    return next(((n, e) for n, e in sorted(L.items()) if e["typ"] == LORD and e["besitzer"] not in (0, sp)), None)
+    return next(((n, e) for n, e in sorted(L.items()) if e["typ"] == LORD and e["besitzer"] not in freunde_von(sp)), None)
 
 
 def fingerabdruck(L, G, sp=1):
@@ -52,7 +53,7 @@ def fingerabdruck(L, G, sp=1):
     lp = (le["x"], le["y"])
     einheiten, fern, gebaeude = {}, {}, {}
     for n, e in L.items():
-        if n == ln or e["besitzer"] in (0, sp):
+        if n == ln or e["besitzer"] in freunde_von(sp):
             continue
         d = schach((e["x"], e["y"]), lp)
         ring = next((r for r in RINGE if d <= r), None)
@@ -60,7 +61,7 @@ def fingerabdruck(L, G, sp=1):
         k = "%s:%d" % (ring or "fern", e["typ"])
         ziel[k] = ziel.get(k, 0) + 1
     for g in (G or {}).values():
-        if g["besitzer"] in (0, sp) or schach((g["x"], g["y"]), lp) > GEBAEUDE_RING:
+        if g["besitzer"] in freunde_von(sp) or schach((g["x"], g["y"]), lp) > GEBAEUDE_RING:
             continue
         k = "%d:%d" % (GEBAEUDE_RING, g["typ"])
         gebaeude[k] = gebaeude.get(k, 0) + 1

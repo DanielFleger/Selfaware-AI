@@ -3027,8 +3027,11 @@ local function einzelbefehl(cmd)
 
     for i = 0, 8 do core.writeInteger(bereit + i*4, 1) end
 
+    -- 20.10.2026 (B-133, Daniel: "2v2 gegen Rotkaeppchen und Rattenfaenger und alle Teams"): { "kis": [1, 2] } - je
+    -- KI-Platz eine eigene KI (Nummer wie "ki"); ohne Angabe alle Plaetze mit "ki"
+    local kis = (type(cmd.kis) == "table") and cmd.kis or nil
     for slot = 1 + menschen, menschen + anzKI do
-      core.writeInteger(aiArr + slot*4, ki)
+      core.writeInteger(aiArr + slot*4, kis and (tonumber(kis[slot - menschen]) or ki) or ki)
       resetAiVar(slot)
     end
 
@@ -3037,12 +3040,14 @@ local function einzelbefehl(cmd)
     -- Gleiche Zahl heisst verbuendet. Ohne Angabe bekommt jeder sein eigenes
     -- Team, 0xFF heisst "Platz nicht besetzt".
     local teams = (type(cmd.teams) == "table") and cmd.teams or nil
+    -- 20.10. (B-133): { "mensch_teams": [0, 0] } - Mannschaft je menschlichem Platz (2v2: beide SamurAIs verbuendet)
+    local mteams = (type(cmd.mensch_teams) == "table") and cmd.mensch_teams or nil
     for i = 0, 8 do
       local wert = 0xFF
       if i == 1 then
-        wert = 0                                   -- der Mensch
+        wert = mteams and (tonumber(mteams[1]) or 0) or 0   -- der Mensch
       elseif i >= 2 and i <= menschen then
-        wert = i - 1                               -- 19.10.: weiterer Mensch, eigene Mannschaft
+        wert = mteams and (tonumber(mteams[i]) or (i - 1)) or (i - 1)   -- 19.10.: weiterer Mensch, eigene Mannschaft
       elseif i > menschen and i <= menschen + anzKI then
         wert = teams and (tonumber(teams[i - menschen]) or (i - 1)) or (i - 1)
       end

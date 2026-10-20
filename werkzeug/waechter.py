@@ -12,6 +12,7 @@ Lord (Daniel 22:43: wichtig sind nur seine letzten Lebenspunkte): greift nur ueb
 zum Bergfried-Eingang (Modulbefehl "halten").
 Gemessen 22:46: 8 Speertraeger gegen 2 Angreifer - beide tot, keiner von uns verloren.
 """
+from parteien import freunde_von   # B-133: Freund/Feind aus den Mannschaften des Spiels (2v2)
 import math, os
 from laden import befehl
 from befehl import ABZUG
@@ -69,7 +70,7 @@ def schach(a, b):
 
 def sicherster_ort(L, kandidaten, sp=1):
     """Der Ort aus kandidaten, der am weitesten von jeder feindlichen Truppe weg ist (Schachbrett-Abstand)."""
-    feind = [(e["x"], e["y"]) for e in L.values() if e["besitzer"] not in (0, sp) and e["typ"] in TRUPPE]
+    feind = [(e["x"], e["y"]) for e in L.values() if e["besitzer"] not in freunde_von(sp) and e["typ"] in TRUPPE]
     if not feind or not kandidaten:
         return kandidaten[0] if kandidaten else None
     return max(kandidaten, key=lambda k: min(schach(k, f) for f in feind))
@@ -78,7 +79,7 @@ def hauptheer(L, orte, sp=1, umkreis=35, schwelle=8):
     """Kommt das Hauptheer? = mindestens <schwelle> feindliche Truppen mit Ort oder Laufziel nahe an unseren Orten."""
     n = 0
     for e in L.values():
-        if e["besitzer"] in (0, sp) or e["typ"] not in TRUPPE:
+        if e["besitzer"] in freunde_von(sp) or e["typ"] not in TRUPPE:
             continue
         if any(schach((e["x"], e["y"]), o) <= umkreis or (e["laufx"] > 0 and schach((e["laufx"], e["laufy"]), o) <= umkreis) for o in orte):
             n += 1
@@ -130,7 +131,7 @@ class Waechter:
                 self.bekannt[n] = (e["besitzer"], e["typ"])
         feinde = {}
         for n, e in L.items():
-            if e["besitzer"] in (0, self.sp) or e["typ"] not in TRUPPE:
+            if e["besitzer"] in freunde_von(self.sp) or e["typ"] not in TRUPPE:
                 continue
             ort, ziel = (e["x"], e["y"]), (e["laufx"], e["laufy"])
             nah_ort = min((schach(ort, g) for g in gebaeude), default=999)
@@ -168,7 +169,7 @@ class Waechter:
         # (Nahkampf) oder zieleinheit (Schuss) eine unserer Einheiten in unserem Gebiet ist (Truppen des Waechters,
         # Arbeiter, Bauern - nicht Assassinen oder Feldzug draussen) und die hoechstens ANGREIFER_R Felder von uns stehen
         geschuetzt = set(eigene) | {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] not in TRUPPE}
-        angreifer = {n for n, e in L.items() if e["besitzer"] not in (0, self.sp) and e["typ"] in TRUPPE
+        angreifer = {n for n, e in L.items() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in TRUPPE
                      and (e.get("nahziel") in geschuetzt or e.get("zieleinheit") in geschuetzt)
                      and min((schach((e["x"], e["y"]), g) for g in gebaeude), default=0) <= ANGREIFER_R}
         for n in angreifer:
@@ -322,7 +323,7 @@ class Waechter:
         alt = getattr(self, "_wertung", None)
         if alt and alt[0] == self.ziel and self.runde_w - alt[1] < WERTUNG_RUNDEN:
             return alt[2], alt[3], [n for n in alt[4] if n in verfuegbar]
-        feind = {n: e for n, e in L.items() if e["besitzer"] not in (0, self.sp) and e["typ"] in TRUPPE and e["typ"] != LORD}
+        feind = {n: e for n, e in L.items() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in TRUPPE and e["typ"] != LORD}
         gruppe, offen = {self.ziel}, [self.ziel]
         while offen:
             k = offen.pop()

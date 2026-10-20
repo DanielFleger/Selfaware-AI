@@ -25,6 +25,7 @@ Berittene - die sollten im besten Fall immer beim Gegner raiden und in Bewegung 
 Werbung nur aus Gold ueber der Ruecklage und nur, solange mindestens FEUER_MIN Bauern am Feuer stehen.
 STARTWERTE (nicht gemessen, je Partie mitgeschrieben): SKLAVEN_SOLL, REITER_SOLL, WERT.
 Pruefung ohne Spiel: werkzeug/raids_pruefen.py."""
+from parteien import freunde_von   # B-133: Freund/Feind aus den Mannschaften des Spiels (2v2)
 
 SKLAVE, PFERDEBOGEN = 71, 74
 SCHLEUDER = 72                                   # B-129: Deckung fuer die Sklaven (Daniel 22:40: 25 Schleuderer)
@@ -68,7 +69,7 @@ def schach(a, b):
 
 
 def feinde(L, sp):
-    return [(e["typ"], (e["x"], e["y"])) for e in L.values() if e.get("besitzer") not in (0, sp) and e.get("leben", 1) > 0]
+    return [(e["typ"], (e["x"], e["y"])) for e in L.values() if e.get("besitzer") not in freunde_von(sp) and e.get("leben", 1) > 0]
 
 
 def gefaehrlich(ort, L, G, sp, schutz=()):
@@ -82,7 +83,7 @@ def gefaehrlich(ort, L, G, sp, schutz=()):
         if typ in NAH and schach(ort, p) <= GEFAHR_NAH:
             return "Nahkaempfer Typ %d in %d" % (typ, schach(ort, p))
     for g in G.values():
-        if g.get("besitzer") in (0, sp):
+        if g.get("besitzer") in freunde_von(sp):
             continue
         if g["typ"] in TUERME and schach(ort, (g["x"], g["y"])) <= GEFAHR_FERN:
             return "Turm in %d" % schach(ort, (g["x"], g["y"]))
@@ -108,7 +109,7 @@ class Brandtrupp:
     def _ziele(self, L, G, ort, belegt):
         kand = []
         for n, g in G.items():
-            if g.get("besitzer") in (0, self.sp) or g["typ"] not in WERT or n in belegt or n in self.brennt:
+            if g.get("besitzer") in freunde_von(self.sp) or g["typ"] not in WERT or n in belegt or n in self.brennt:
                 continue
             p = (g["x"], g["y"])
             if gefaehrlich(p, L, G, self.sp, self.schutz):
@@ -177,7 +178,7 @@ class Reiterjagd:
             o = (e["x"], e["y"])
             # Flucht vor Nahkaempfern/Assassinen
             nah = min(((schach(o, (f["x"], f["y"])), k) for k, f in L.items()
-                       if f["besitzer"] not in (0, self.sp) and f["typ"] in NAH and f.get("leben", 1) > 0), default=None)
+                       if f["besitzer"] not in freunde_von(self.sp) and f["typ"] in NAH and f.get("leben", 1) > 0), default=None)
             if nah and nah[0] < FLUCHT_R:
                 f = L[nah[1]]
                 dx, dy = o[0] - f["x"], o[1] - f["y"]
@@ -190,7 +191,7 @@ class Reiterjagd:
                 continue
             kand = []
             for k, a in L.items():
-                if a["besitzer"] in (0, self.sp) or a["typ"] not in ARBEITER or a.get("leben", 1) <= 0:
+                if a["besitzer"] in freunde_von(self.sp) or a["typ"] not in ARBEITER or a.get("leben", 1) <= 0:
                     continue
                 p = (a["x"], a["y"])
                 d = schach(o, p)
@@ -200,7 +201,7 @@ class Reiterjagd:
             if not kand:
                 # 17:41: nichts in Reichweite -> der naechste ungeschuetzte Arbeiter irgendwo (der Angriffsbefehl reitet hin)
                 kand = [(0, schach(o, (a["x"], a["y"])), k) for k, a in L.items()
-                        if a["besitzer"] not in (0, self.sp) and a["typ"] in ARBEITER and a.get("leben", 1) > 0
+                        if a["besitzer"] not in freunde_von(self.sp) and a["typ"] in ARBEITER and a.get("leben", 1) > 0
                         and not gefaehrlich((a["x"], a["y"]), L, G, self.sp)]
             if not kand:
                 continue
@@ -217,7 +218,7 @@ class Reiterjagd:
     def _abschuesse(self, L):
         """Ein gejagtes Ziel, das nicht mehr lebt, zaehlt genau einmal; der Reiter ist danach frei."""
         for r, v in list(self.befohlen.items()):
-            if v[0] == "jagd" and (v[1] not in L or L[v[1]].get("leben", 1) <= 0 or L[v[1]]["besitzer"] in (0, self.sp)):
+            if v[0] == "jagd" and (v[1] not in L or L[v[1]].get("leben", 1) <= 0 or L[v[1]]["besitzer"] in freunde_von(self.sp)):
                 self.getoetet += 1
                 self.befohlen.pop(r)
 
@@ -248,14 +249,14 @@ class Deckung:
         if z:
             return (z[0]["x"], z[0]["y"])
         kand = [(WERT[g["typ"]] / float(max(schach(self.heim, (g["x"], g["y"])), 1)), (g["x"], g["y"]))
-                for g in G.values() if g.get("besitzer") not in (0, self.sp) and g["typ"] in WERT and g["typ"] not in TUERME]
+                for g in G.values() if g.get("besitzer") not in freunde_von(self.sp) and g["typ"] in WERT and g["typ"] not in TUERME]
         return max(kand)[1] if kand else None
 
     def schritt(self, L, G, befehl, brand=None):
         self.runde += 1
         aus = []
         for r, v in list(self.befohlen.items()):
-            if v[0] == "ziel" and (v[1] not in L or L[v[1]].get("leben", 1) <= 0 or L[v[1]]["besitzer"] in (0, self.sp)):
+            if v[0] == "ziel" and (v[1] not in L or L[v[1]].get("leben", 1) <= 0 or L[v[1]]["besitzer"] in freunde_von(self.sp)):
                 self.getoetet += 1
                 self.befohlen.pop(r)
         f = self.front(G, brand)
@@ -263,7 +264,7 @@ class Deckung:
             o = (L[r]["x"], L[r]["y"])
             kand = []
             for k, a in L.items():
-                if a["besitzer"] in (0, self.sp) or a.get("leben", 1) <= 0:
+                if a["besitzer"] in freunde_von(self.sp) or a.get("leben", 1) <= 0:
                     continue
                 d = schach(o, (a["x"], a["y"]))
                 if d > SCHUSS_R:

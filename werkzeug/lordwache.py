@@ -20,6 +20,7 @@ Assassine - Daniel 18:07, Bild "40 Schwertkaempfer, die nur einen Assassinen abw
   - Abwehr mit der kleinsten Gruppe, die reicht.
 ANMARSCH_R = 60: ein arab. Schwertkaempfer braucht fuer 60 Felder ~1.170 Takte (L80: 19,5 je Feld). Pruefung ohne Spiel:
 werkzeug/lordwache_pruefen.py."""
+from parteien import freunde_von   # B-133: Freund/Feind aus den Mannschaften des Spiels (2v2)
 import gefecht
 import zuweisung
 
@@ -58,7 +59,7 @@ def bedrohung(L, sp):
         return False, "kein Lord", [], None
     ln, le = lord
     lp = (le["x"], le["y"])
-    feinde = [n for n, e in L.items() if e.get("besitzer") not in (0, sp) and e["typ"] in TRUPPE and e.get("leben", 1) > 0
+    feinde = [n for n, e in L.items() if e.get("besitzer") not in freunde_von(sp) and e["typ"] in TRUPPE and e.get("leben", 1) > 0
               and im_anmarsch(e, lp)]
     if not feinde:
         return False, "kein Feind im Anmarsch", [], ln

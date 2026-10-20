@@ -10,6 +10,7 @@ Darum sitzt die Sperre jetzt in befehl.sende - durch diese Stelle geht jeder Bef
 Den Stand (Tick, Lord-Nummern) setzt erstes_spiel.runde_lesen jede Runde. Ohne Stand wird ein Angriff auf eine
 bekannte Lord-Nummer verworfen (sicherer Rueckfall).
 GRENZE: Einheiten, die von selbst in den Nahkampf geraten, faengt keine Befehlssperre - dagegen hilft nur Abstand."""
+from parteien import freunde_von   # B-133: Freund/Feind aus den Mannschaften des Spiels (2v2)
 
 BIS = 9600
 STAND = {"t": None, "feind": set(), "eigen": set()}
@@ -18,7 +19,7 @@ MELDUNGEN = []
 
 def aktualisieren(t, L, sp=1):
     STAND["t"] = t
-    STAND["feind"] = {n for n, e in L.items() if e.get("typ") == 55 and e.get("besitzer") not in (0, sp)}
+    STAND["feind"] = {n for n, e in L.items() if e.get("typ") == 55 and e.get("besitzer") not in freunde_von(sp)}
     STAND["eigen"] = {n for n, e in L.items() if e.get("typ") == 55 and e.get("besitzer") == sp}
 
 

@@ -14,6 +14,7 @@ Je Runde (Lagebild + Gebaeudeliste aus EINEM Aufruf, siehe erstes_spiel.runde_le
     Gefahr, und nicht schon Ziel eines anderen Trupps. Alle Mitglieder des Trupps gebuendelt auf dieses Gebaeude.
 Grenzen (offen): Reichweiten FERN/NAH sind Startwerte, nicht gemessen; Tuerme nicht beruecksichtigt.
 """
+from parteien import freunde_von   # B-133: Freund/Feind aus den Mannschaften des Spiels (2v2)
 import math
 from laden import befehl
 from waechter import sicherster_ort
@@ -104,7 +105,7 @@ def schach(a, b):
 
 def feinde(L, sp):
     return [((e["x"], e["y"]), FERN if e["typ"] in FERNKAMPF else NAH)
-            for e in L.values() if e["besitzer"] not in (0, sp) and e["typ"] in TRUPPE]
+            for e in L.values() if e["besitzer"] not in freunde_von(sp) and e["typ"] in TRUPPE]
 
 def gefaehrdet(p, fe, zuschlag=0):
     return any(schach(p, f) < r + zuschlag for f, r in fe)
@@ -184,8 +185,8 @@ class Angriffstrupp:
                 # Kaempfen statt fliehen (Daniel 23:32): Fernkaempfer direkt daneben erledigen; gegen Nahkaempfer nur in
                 # Ueberzahl (eigene Assassinen im Umkreis 6 mindestens doppelt so viele wie feindliche Nahkaempfer im Umkreis 8)
                 fern_nah = sorted((schach(mitte, (e["x"], e["y"])), m) for m, e in L.items()
-                                  if e["besitzer"] not in (0, self.sp) and e["typ"] in FERNKAMPF and schach(mitte, (e["x"], e["y"])) <= 6)
-                nah_feinde = [m for m, e in L.items() if e["besitzer"] not in (0, self.sp) and e["typ"] in TRUPPE
+                                  if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in FERNKAMPF and schach(mitte, (e["x"], e["y"])) <= 6)
+                nah_feinde = [m for m, e in L.items() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in TRUPPE
                               and e["typ"] not in FERNKAMPF and schach(mitte, (e["x"], e["y"])) <= 8]
                 freunde = sum(1 for e in L.values() if e["besitzer"] == self.sp and e["typ"] == ASSASSINE and schach(mitte, (e["x"], e["y"])) <= 6)
                 ziel_einheit = fern_nah[0][1] if fern_nah else (min(nah_feinde, key=lambda m: schach(mitte, (L[m]["x"], L[m]["y"])))
@@ -198,10 +199,10 @@ class Angriffstrupp:
                     continue
                 # naechster Feind (Art, Abstand) - Messung der echten Reichweite (Daniel 23:22: einverstanden)
                 feind_e = [(schach(mitte, (e["x"], e["y"])), e["typ"]) for e in L.values()
-                           if e["besitzer"] not in (0, self.sp) and e["typ"] in TRUPPE]
+                           if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in TRUPPE]
                 nf = min(feind_e) if feind_e else (999, 0)
                 # weg vom Angreifer: 15 Felder in Gegenrichtung, wenn dort sicher - sonst naechster sicherer Ort
-                fx, fy = min(((e["x"], e["y"]) for e in L.values() if e["besitzer"] not in (0, self.sp) and e["typ"] in TRUPPE),
+                fx, fy = min(((e["x"], e["y"]) for e in L.values() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in TRUPPE),
                              key=lambda f: schach(mitte, f), default=(mitte[0], mitte[1]))
                 dx, dy = mitte[0] - fx, mitte[1] - fy
                 lang = max(abs(dx), abs(dy), 1)
@@ -226,7 +227,7 @@ class Angriffstrupp:
                 kand = []
                 for weite in (MAX_WEG, 45, 60):
                     for n, g in G.items():
-                        if g["besitzer"] in (0, self.sp) or g["typ"] not in WERT or n in belegt or not g.get("erreichbar", 1):
+                        if g["besitzer"] in freunde_von(self.sp) or g["typ"] not in WERT or n in belegt or not g.get("erreichbar", 1):
                             continue
                         ort = (g["x"], g["y"])
                         d = schach(mitte, ort)
@@ -242,7 +243,7 @@ class Angriffstrupp:
                         continue
                     andere = [o.bereit_ziel for o in self.trupps if o is not t and o.bereit_ziel is not None]
                     ziele = sorted(((schach(mitte, (g["x"], g["y"])), (g["x"], g["y"])) for n, g in G.items()
-                                    if g["besitzer"] not in (0, self.sp) and g["typ"] in WERT and g.get("erreichbar", 1)
+                                    if g["besitzer"] not in freunde_von(self.sp) and g["typ"] in WERT and g.get("erreichbar", 1)
                                     and n not in belegt and not gefaehrdet((g["x"], g["y"]), fe, 4)
                                     and all(schach((g["x"], g["y"]), a) > 10 for a in andere)))
                     for d, (gx, gy) in ziele:
@@ -568,7 +569,7 @@ class Einzeln:
             if e["besitzer"] == 0 and e["typ"] == self.LOEWE:
                 nah.append((nr, (e["x"], e["y"]), e["typ"]))      # 18.10.: Loewen greifen Assassinen an
                 continue
-            if e["besitzer"] in (0, self.sp):
+            if e["besitzer"] in freunde_von(self.sp):
                 continue
             if e["typ"] not in TRUPPE:
                 if e["typ"] in self.ARBEITER_GEFAHR:
@@ -764,7 +765,7 @@ class Einzeln:
         ort = (L[n]["x"], L[n]["y"])
         nf, nn = self._naechster(ort, fern), self._naechster(ort, nah)
         feind = min(nf, nn)
-        gb = min(((schach(ort, (g["x"], g["y"])), g["typ"]) for g in G.values() if g["besitzer"] not in (0, self.sp)),
+        gb = min(((schach(ort, (g["x"], g["y"])), g["typ"]) for g in G.values() if g["besitzer"] not in freunde_von(self.sp)),
                  default=(999, 0))
         z = self.ziel.get(n)
         zd = schach(ort, (G[z]["x"], G[z]["y"])) if z in G else -1
@@ -840,7 +841,7 @@ class Einzeln:
         if self._sicht is not None and getattr(self, "_sicht_runde", None) == self.runde:
             return self._sicht
         if self.lies_haltung:
-            gruppen = sorted({e.get("gruppe") for e in L.values() if e["besitzer"] not in (0, self.sp)
+            gruppen = sorted({e.get("gruppe") for e in L.values() if e["besitzer"] not in freunde_von(self.sp)
                               and e["typ"] in sicht.NAHKAMPF and e.get("gruppe")})
             neu = [g for g in gruppen if g not in self._haltung]
             # 18.10. (1017m: Assassinen-Teil 0,12 s je Runde statt 0,01-0,02 - die Nomaden werben laufend an, jeder neue Trupp
@@ -1089,7 +1090,7 @@ class Einzeln:
         aus = []
         for k in nrs:
             e = L.get(k)
-            if not e or e["besitzer"] in (0, self.sp) or e["typ"] not in sicht.REICHWEITE:
+            if not e or e["besitzer"] in freunde_von(self.sp) or e["typ"] not in sicht.REICHWEITE:
                 continue
             p = (e["x"], e["y"])
             r = sicht.REICHWEITE[e["typ"]] + self.ENTDECKT_RAND
@@ -1184,7 +1185,7 @@ class Einzeln:
         alt = getattr(self, "_spur", {})
         spur, jaeger, wandernd = {}, set(), set()
         for k, e in L.items():
-            if e["besitzer"] in (0, self.sp) or (e["typ"] not in sicht.REICHWEITE and e["typ"] not in self.NAHTRUPP_TYPEN):
+            if e["besitzer"] in freunde_von(self.sp) or (e["typ"] not in sicht.REICHWEITE and e["typ"] not in self.NAHTRUPP_TYPEN):
                 continue
             p = (e["x"], e["y"])
             d = [x for x in alt.get(k, ()) if x[0] >= self.jetzt - self.JAEGER_ZEIT and x[1] != p] + [(self.jetzt, p)]
@@ -1213,7 +1214,7 @@ class Einzeln:
         NAHTRUPP_RAND; Laufziel-Zone nur fuer wandernde Mitglieder, deren Laufziel mindestens JAEGER_WEG Felder weg ist."""
         if getattr(self, "_nt_runde", None) == self.runde:
             return self._nt
-        kand = [k for k, e in L.items() if e["besitzer"] not in (0, self.sp) and e["typ"] in self.NAHTRUPP_TYPEN]
+        kand = [k for k, e in L.items() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in self.NAHTRUPP_TYPEN]
         pos = {k: (L[k]["x"], L[k]["y"]) for k in kand}
         rest, trupps = set(kand), []
         while rest:
@@ -1309,7 +1310,7 @@ class Einzeln:
         orte_t = [(L[k]["x"], L[k]["y"]) for k in trupp["mitglieder"] if k in L]
         sie = []
         for k, e in L.items():
-            if e["besitzer"] in (0, self.sp):
+            if e["besitzer"] in freunde_von(self.sp):
                 continue
             p = (e["x"], e["y"])
             if e["typ"] in sicht.NAHKAMPF and (k in trupp["mitglieder"] or any(schach(p, q) <= self.GEGEN_UMKREIS for q in orte_t)):
@@ -1338,7 +1339,7 @@ class Einzeln:
         wir = [dict(typ=ASSASSINE, leben=L[m]["leben"], x=L[m]["x"], y=L[m]["y"]) for m in mitglieder if m in L]
         sie, schuetzen = [], 0
         for k, e in L.items():
-            if e["besitzer"] in (0, self.sp):
+            if e["besitzer"] in freunde_von(self.sp):
                 continue
             q = (e["x"], e["y"])
             if e["typ"] in sicht.REICHWEITE and schach(q, p) <= sicht.REICHWEITE[e["typ"]]:
@@ -1381,7 +1382,7 @@ class Einzeln:
 
     def _nahe_schuetzen(self, ort, L, r=60):
         """19.10.: alle feindlichen Schuetzen bis r Felder - die Flucht meidet alle, nicht nur die, die ihn gesehen haben."""
-        return {k for k, e in L.items() if e["besitzer"] not in (0, self.sp) and e["typ"] in sicht.REICHWEITE
+        return {k for k, e in L.items() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in sicht.REICHWEITE
                 and schach(ort, (e["x"], e["y"])) <= r}
 
     def _entdeckt_pruefen(self, L, G, ereignis, flieh, jagen=None, angriffe=None):
@@ -1466,7 +1467,7 @@ class Einzeln:
                         self.flucht.pop(n, None)
                         self.bilanz["entdeckt"] = self.bilanz.get("entdeckt", 0) + 1
                         sp = min(((sicht.abstand_fein(ort, (x["x"], x["y"])), x["typ"], schach(ort, (x["x"], x["y"])))
-                                  for x in L.values() if x["besitzer"] not in (0, self.sp) and x["typ"] in sicht.WAEHLBAR),
+                                  for x in L.values() if x["besitzer"] not in freunde_von(self.sp) and x["typ"] in sicht.WAEHLBAR),
                                  default=(0, 0, 0))
                         ereignis.append("ENTDECKT %d bei %s (Auftrag: %s): Spaeher Typ %d in %d Feldern, %d Schuetzen mit Linie, "
                                         "Leben %d -> raus" % (n, ort, self._taetigkeit(n, G), sp[1], sp[2], len(sehen),
@@ -1589,9 +1590,9 @@ class Einzeln:
         Assassine der einzige feindliche Nahkaempfer bis GEGEN_R Felder, hat er mindestens GEGEN_ANTEIL ihres Lebens und
         schaffen die Schuetzen bis zu ihrem Tod hoechstens SPAEHER_ANTEIL seines Lebens -> zuerst zuschlagen."""
         j = self.jagd.get(n)
-        nahk = sorted((schach(ort, (e["x"], e["y"])), k, e) for k, e in L.items() if e["besitzer"] not in (0, self.sp)
+        nahk = sorted((schach(ort, (e["x"], e["y"])), k, e) for k, e in L.items() if e["besitzer"] not in freunde_von(self.sp)
                       and e["typ"] in sicht.NAHKAMPF and schach(ort, (e["x"], e["y"])) <= self.GEGEN_UMKREIS)
-        dran = j in L and L[j]["typ"] == ASSASSINE and L[j]["besitzer"] not in (0, self.sp) and schach(
+        dran = j in L and L[j]["typ"] == ASSASSINE and L[j]["besitzer"] not in freunde_von(self.sp) and schach(
             ort, (L[j]["x"], L[j]["y"])) <= self.GEGEN_UMKREIS
         if not dran and (not nahk or nahk[0][2]["typ"] != ASSASSINE or nahk[0][0] > self.GEGEN_R):
             return False
@@ -1649,7 +1650,7 @@ class Einzeln:
             return True                        # ist schon dran
         if L[n]["leben"] < self.EIN_TREFFER:
             return False                       # 19.10. (1019a, 86 griff mit 50 Leben einen Sklaven an): Sklaven schlagen zurueck
-        sp = sorted((schach(ort, (e["x"], e["y"])), k, e) for k, e in L.items() if e["besitzer"] not in (0, self.sp)
+        sp = sorted((schach(ort, (e["x"], e["y"])), k, e) for k, e in L.items() if e["besitzer"] not in freunde_von(self.sp)
                     and e["typ"] in sicht.WAEHLBAR and sicht.abstand_fein(ort, (e["x"], e["y"])) <= sicht.SICHT)
         if not sp or len(sp) > self.SPAEHER_MAX or any(e["typ"] != 71 for _, _, e in sp) or sp[0][0] > self.SPAEHER_R:
             return False
@@ -1687,20 +1688,20 @@ class Einzeln:
         ort = (L[n]["x"], L[n]["y"])
         nrs = self._nahe_schuetzen(ort, L)
         auf_ihn = set(self._drohende(ort, nrs, L))
-        nah = sum(1 for e in L.values() if e["besitzer"] not in (0, self.sp) and e["typ"] in sicht.NAHKAMPF
+        nah = sum(1 for e in L.values() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in sicht.NAHKAMPF
                   and schach(ort, (e["x"], e["y"])) <= 2)
         nah += sum(1 for e in L.values() if e["besitzer"] == 0 and e["typ"] == self.LOEWE and schach(ort, (e["x"], e["y"])) <= 2)
         dps = self._feuer_von(ort, nrs, L) + nah * self.NAH_SCHADEN
         rest = L[n]["leben"] / max(dps, 1.0)
         kand = []
         for gn, g in G.items():
-            if g["besitzer"] in (0, self.sp) or g["typ"] not in WERT:
+            if g["besitzer"] in freunde_von(self.sp) or g["typ"] not in WERT:
                 continue
             d = schach(ort, (g["x"], g["y"]))
             if d <= self.LETZT_R:
                 kand.append((WERT[g["typ"]], d * TEMPO + ARBEIT.get(g["typ"], ARBEIT_SONST), ("g", gn)))
         for k, e in L.items():
-            if e["besitzer"] in (0, self.sp) or e["typ"] not in TRUPPE or e["typ"] == 55:
+            if e["besitzer"] in freunde_von(self.sp) or e["typ"] not in TRUPPE or e["typ"] == 55:
                 continue
             d = schach(ort, (e["x"], e["y"]))
             if d <= self.LETZT_R:
@@ -1922,7 +1923,7 @@ class Einzeln:
         self._fern = fern                    # 4a: Fluchtpunkte nicht unter feindliche Fernkaempfer
         # 4a: ihre Burg ist tabu (gewinn_1, Tick 4.312: Assassine 163 starb auf der Flucht an ihrer Aussenmauer, 13 Felder
         # neben ihrem Lord, 14 Fernkaempfer im Umkreis 40) - Fluchtpunkte und Kreismitte mind. SCHUSSWEITE von ihrem Lord
-        self._feindburg = [(e["x"], e["y"]) for e in L.values() if e["typ"] == 55 and e["besitzer"] not in (0, self.sp)]
+        self._feindburg = [(e["x"], e["y"]) for e in L.values() if e["typ"] == 55 and e["besitzer"] not in freunde_von(self.sp)]
         # Rueckzugs-Kandidaten fuer alle, die Feinde nah haben - EIN Modulaufruf prueft, welche begehbar sind
         self._kand = {}
         for n in self.mitglieder:
@@ -2019,7 +2020,7 @@ class Einzeln:
                 self._arb_seit.pop(n, None)
                 ereignis.append("ARBEITER %d laesst Arbeiter %d (laeuft weg oder dauert zu lange)" % (n, f))
                 continue
-            if f not in L or L[f]["besitzer"] in (0, self.sp):
+            if f not in L or L[f]["besitzer"] in freunde_von(self.sp):
                 del self.jagd[n]
         # 3. Gegenprobe: laeuft er wirklich zu seinem Gebaeude?
         wirklich, abweichler = set(), 0
@@ -2058,13 +2059,13 @@ class Einzeln:
         # snacken"): ein Fernkaempfer am Boden (kein Turm/Torhaus im Umkreis 2), bei dem hoechstens ein Nahkaempfer steht,
         # wird von freien Assassinen im Umkreis BEUTE_R gejagt - auch statt eines Gebaeudes. GRENZE: Schuetzen auf Mauern
         # erkennt das nicht (Mauern stehen nicht in der Gebaeudeliste) - sie gelten als "am Boden"
-        hoch = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] not in (0, self.sp) and g["typ"] in self.ERHOEHT]
+        hoch = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] not in freunde_von(self.sp) and g["typ"] in self.ERHOEHT]
         beute = [(nr, p) for nr, p, typ in fern if all(schach(p, h) > self.HOCH_R for h in hoch)
                  and all(schach(p, b) > self.LORD_ABSTAND for b in self._feindburg) and self._anzahl(p, nah, 5) <= 1]
         # 18.10. (1018q/r: die meisten Entdeckungen durch Sklaven; 16 Assassinen standen "ohne Ziel, alle gefaehrlich" - Daniel:
         # "alle Einheiten sollten irgendwas Begruendetes machen"): ein Sklave allein (kein weiterer Nahkaempfer in 5) wird Beute,
         # wenn an seinem Ort kein Schuetze trifft (Risiko unten wie bei Fernkaempfern, Wert 5 + Spaeher weg)
-        beute += [(k, (e["x"], e["y"])) for k, e in L.items() if e["typ"] == 71 and e["besitzer"] not in (0, self.sp)
+        beute += [(k, (e["x"], e["y"])) for k, e in L.items() if e["typ"] == 71 and e["besitzer"] not in freunde_von(self.sp)
                   and all(schach((e["x"], e["y"]), b) > self.LORD_ABSTAND for b in self._feindburg)
                   and self._anzahl((e["x"], e["y"]), nah, 5) <= 1 and self._sicht.beschuss((e["x"], e["y"]), self._sicht.RAND) <= 0]
         # 19.10. (Daniel: "sie beachten die Bauern nicht - die koennen gerne Bauern mitnehmen, aber Holzfaeller machen gut
@@ -2313,7 +2314,7 @@ class Einzeln:
         lord_lauf, lord_ziel = {}, []        # 17.10.: Laufbefehle {Ort: [n]} und Angriffsbefehle auf den Lord
         lt = self.lordtrupp
         lt["mitglieder"] = {n for n in lt["mitglieder"] if n in self.mitglieder}
-        lords = [(n, e) for n, e in L.items() if e["typ"] == 55 and e["besitzer"] not in (0, self.sp)]
+        lords = [(n, e) for n, e in L.items() if e["typ"] == 55 and e["besitzer"] not in freunde_von(self.sp)]
         if not lords:
             lt.update(mitglieder=set(), phase=None, sammelpunkt=None)
         else:
@@ -2584,7 +2585,7 @@ class Einzeln:
             zahl[z] = zahl.get(z, 0) + 1
         kand = []
         for gn, g in G.items():
-            if g["besitzer"] in (0, self.sp) or g["typ"] not in WERT:
+            if g["besitzer"] in freunde_von(self.sp) or g["typ"] not in WERT:
                 continue
             p = (g["x"], g["y"])
             # 18.10.: Abstaende zu den Fernkaempfern einmal je Gebaeude, dann vier Zaehlungen (vorher vier Durchlaeufe)
@@ -2746,7 +2747,7 @@ class Einzeln:
         stapel_befehl = None
         stp = self.stapel
         stp["mitglieder"] = {n for n in stp["mitglieder"] if n in self.mitglieder}
-        ziel_lebt = stp["ziel"] in L and L[stp["ziel"]]["besitzer"] not in (0, self.sp)
+        ziel_lebt = stp["ziel"] in L and L[stp["ziel"]]["besitzer"] not in freunde_von(self.sp)
         wartende = [n for n in self.mitglieder if n not in self.ziel and n not in self.jagd and n not in stp["mitglieder"]
                     and n not in self.lordtrupp["mitglieder"] and n not in self.flucht and L[n]["leben"] >= self.SCHWACH * self.VOLL]
         if stp["mitglieder"] or (len(wartende) >= self.STAPEL_AB and self.jetzt >= stp.get("pause_bis", 0)):

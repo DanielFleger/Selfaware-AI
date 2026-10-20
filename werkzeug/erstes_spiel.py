@@ -16,6 +16,7 @@ Aufruf:  python erstes_spiel.py [minuten=10] [tempo=40] [nur_phase2=nein] [waech
          Tests mit Hoechstgeschwindigkeit (Daniel 22:55): tempo=1000 bis_tick=...
 Stop von aussen: Datei werkzeug/STOP anlegen.
 """
+from parteien import freunde_von   # B-133: Freund/Feind aus den Mannschaften des Spiels (2v2)
 import json, math, os, re, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from laden import lade_stand, befehl, peek
@@ -2487,7 +2488,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 # bis 40 Felder von IRGENDEINEM unserer Gebaeude eine Einheit, ohne Obergrenze - auf Green Haven zaehlten die
                 # Truppen vor den feindlichen Burgen mit. Jetzt nur Feinde bis NOT_R Felder an unseren Gebaeuden, und nur wenn die
                 # Gefechtsrechnung sagt, dass unsere Truppen bis 60 Felder dort nicht gewinnen; hoechstens NOT_JE_RUNDE je Runde
-                feinde_n = [e for e in L.values() if e["besitzer"] not in (0, SP) and e["typ"] in W_TRUPPE
+                feinde_n = [e for e in L.values() if e["besitzer"] not in freunde_von(SP) and e["typ"] in W_TRUPPE
                             and min(max(abs(e["x"] - o[0]), abs(e["y"] - o[1])) for o in orte_n) <= NOT_R]
                 if feinde_n and posten_n is not None:
                     import gefecht as GF
@@ -2526,7 +2527,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 eig_k = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] == SP and g["typ"] == 19]
                 if eig_k:
                     import kornring as KR
-                    feind_k = next(((e["x"], e["y"]) for e in L.values() if e["typ"] == 55 and e["besitzer"] not in (0, SP)), None)
+                    feind_k = next(((e["x"], e["y"]) for e in L.values() if e["typ"] == 55 and e["besitzer"] not in freunde_von(SP)), None)
                     korn = KR.Kornring(min(eig_k, key=lambda q: abs(q[0] - plan["kornspeicher"][0]) + abs(q[1] - plan["kornspeicher"][1])),
                                        lies_mauer, setze_mauer, setze_grube=setze_grube if GRUBEN else None, feind=feind_k,
                                        # 19.10. (Daniel 16:50): Behelfsgruben auf den Seiten weichen der Mauer, sobald Stein da ist
@@ -3157,7 +3158,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             ln_m, le_m = lord_m
                             vorher_m = fruehpruefung.get("lord_leben")
                             fruehpruefung["lord_leben"] = le_m["leben"]
-                            angreifer_m = [n for n, e in L.items() if e["besitzer"] not in (0, SP)
+                            angreifer_m = [n for n, e in L.items() if e["besitzer"] not in freunde_von(SP)
                                            and (e.get("nahziel") == ln_m or e.get("zieleinheit") == ln_m)]
                             # 18:52 GEGENPROBE (1018r: 22 von 22 Verlusten ohne Angreifer mit Brand bis 6 Felder - aber brennt
                             # dort auch etwas, wenn er NICHTS verliert?): alle 3 Runden Leben, Verlust seit der letzten Probe,
@@ -3306,7 +3307,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     ereignis.append("ANGRIFF wartet: %d Streitkolbenkaempfer bereit bei Tick %d, Lord-Schutz bis Tick %d" % (
                         st.get("T26", 0), st["t"], LORD_SCHUTZ_BIS))
                 if ANGRIFF_AB and st.get("T26", 0) >= ANGRIFF_AB and runde % 10 == 0 and st["t"] >= LORD_SCHUTZ_BIS:
-                    feind = next((n for n, e in L.items() if e["typ"] == 55 and e["besitzer"] not in (0, SP)), None)
+                    feind = next((n for n, e in L.items() if e["typ"] == 55 and e["besitzer"] not in freunde_von(SP)), None)
                     kolben = [n for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 26]
                     if feind and kolben:
                         befehl({"angriff": {"einheiten": kolben, "ziel": feind}}, 1.0, bis="ANGRIFF")
@@ -3347,7 +3348,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 tz = uhr("ruestung", tz)
             # Feindlicher Lord: jede Runde mit Lebensverlust mitschreiben - wer steht bei ihm? (9i/9j: Sieg ohne Befehl auf ihn)
             for n, e in L.items():
-                if e["typ"] == 55 and e["besitzer"] not in (0, SP):
+                if e["typ"] == 55 and e["besitzer"] not in freunde_von(SP):
                     alt = feindlord.get(n)
                     if alt is not None and e["leben"] < alt:
                         bei = {}
