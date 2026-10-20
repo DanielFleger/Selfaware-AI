@@ -230,6 +230,19 @@ Gemessen 23:51: Speertraeger 165 move -> `confirmed` 3 Takte nach der Beobachtun
 lief) -> richtig NICHT bestaetigt. Offline 3 Tests + Gegenlauf (Bestaetigung ohne Wirkung -> rot). Ressourcen sind noch
 leer (Gold usw. stehen noch nicht im Speicher) - naechster Ausbau der Leitung.
 
+## So benutzt man den Kern (Stand 20.10.2026, 23:57, Kern Version 11)
+
+| Was | Wie |
+|---|---|
+| Neue Fassung ins laufende Spiel | `cargo build --release --target i686-pc-windows-gnu` (crates/samurai-kern) -> DLL als `samurai_kern_<n>.dll` in `ucp/modules/villagestudio-0.1.0/`, Namen in `ucp/villagestudio/kern_aktuell.txt`, dann `{"kern": {"laden": "samurai_kern_<n>.dll"}}` - kein Neustart |
+| Welche Fassung laeuft | `{"kern": {"stand": true}}` bzw. `{"kern": "status"}` |
+| Weltbild jeden Takt in Python | `from selfaware.game.kern_leitung import Leitung; w = Leitung(spiel_ordner).lesen()` -> Takt, Epoche, Einheiten, Gebaeude, Vorraete aller Spieler, Grabenzahlen |
+| Auftraege aus Python | `Leitung.auftrag(UEBERNEHMEN, nr)`, dann `auftrag(LAUF, nr, x, y)` / `auftrag(ANGRIFF_EINHEIT, nr, ziel)` / `ANGRIFF_GEBAEUDE`; Ergebnis mit `ergebnis(nummer)` (1/0/-4/-5) |
+| Krarilotus' Rahmen | `selfaware.game.kern_port.KernPort(Leitung(...))` - GamePort mit observe/submit, Bestaetigung erst bei beobachteter Wirkung |
+| Pruefungen | `kern_vergleich` (Weltbild = Lagebild), `kern_haende_pruefen`, `kern_leitung_pruefen`, `kern_kreis_pruefen`, `takt_messen` (alle `python -m selfaware.tools.experiments.<name>`, SHC_INSTANZ/SHC_SPIELER) |
+| Protokoll | `ucp/villagestudio/samurai_kern.log`: `waechter` (Kosten, Takte), `graben` (jede Grabenaenderung mit Ort), `grabenreflex`, `haende`, `ring`, `leitung`, `epoche` |
+| Notbremse | `{"kern": {"laden": "samurai_kern.dll"}}` (Version 1, liest nur) bzw. `kern_aktuell.txt` loeschen; ein Fehler im Kern schaltet ihn ab, nicht das Spiel |
+
 ## Beziehungen (beide Richtungen)
 
 - Spiel -> Kern: ruft ihn nach jedem Takt UND in der Pause (Haken nach `processGameTick`). Kern -> Spiel: liest Strukturen, handelt nur ueber Spielbefehle.
