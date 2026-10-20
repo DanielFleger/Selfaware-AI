@@ -1,13 +1,13 @@
-//! SamurAI-Kern (Backlog B-115, Daniel 19.10.2026 22:33: "ja bau es in Rust"; B-145 Stufe S0, Daniel 20.10.2026 22:34:
+//! SamurAI-Kern (Backlog B-115, Daniel 19.10.2026 22:33: "ja bau es in Rust"; B-145, Daniel 20.10.2026 22:34:
 //! "wir brauchen absolute Kontrolle in jedem Tick des Spiels").
 //! Laeuft als 32-Bit-DLL im Spielprozess (geladen von logik.lua ueber core.openLibraryHandle, Aufruf cdecl) und liest die
-//! Spielstrukturen direkt - ohne Datei-Kanal. Adressen und Felder: docs/research/Spielkarte.md Abschnitt 2 (OpenSHC-Strukturen,
-//! gegen jede Lagebild-Spalte geprueft).
-//! Stufe 1: Einheiten je Spieler zaehlen und alle 500 Takte eine Protokollzeile schreiben.
-//! Stufe S0 (Plan_Kern.md): Taktwaechter (neuer Takt / Pause / Epochenwechsel / keine Partie), Messbasis (Dauer des Kerns
-//! je Aufruf, echte Zeit je Spieltakt) und Fehlerfang - ein Fehler im Kern schaltet den Kern ab, nicht das Spiel.
+//! Spielstrukturen direkt - ohne Datei-Kanal. Adressen und Felder: docs/research/Spielkarte.md Abschnitt 2.
+//! Stufe 1 (B-115): Einheiten je Spieler zaehlen, alle 500 Takte eine Protokollzeile.
+//! S0 (docs/plans/Plan_Kern.md): Taktwaechter, Messbasis, Fehlerfang - ein Fehler schaltet den Kern ab, nicht das Spiel.
+//! S1: Augen - Einheiten, Gebaeude und Grabenwache in jedem neuen Takt (welt.rs); Weltbild auf Befehl ausschreiben.
 
 mod waechter;
+mod welt;
 
 use std::fs::OpenOptions;
 use std::io::Write;
@@ -17,8 +17,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
 
 use waechter::{Ereignis, Waechter};
+use welt::Welt;
 
-pub const VERSION: u32 = 2;
+pub const VERSION: u32 = 5;
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -31,7 +32,11 @@ const F_TYP: usize = 0x8E;
 const F_BESITZER: usize = 0x96;
 const F_STIRBT: usize = 0x2A0;
 const PROTOKOLL: &str = "ucp/villagestudio/samurai_kern.log";
+const WELT_EINHEITEN: &str = "ucp/villagestudio/kern_lagebild.txt";
+const WELT_GEBAEUDE: &str = "ucp/villagestudio/kern_gebaeude.txt";
 const PROTOKOLL_ALLE: i32 = 500;
+/// So viele neue Grabenfelder werden je Meldung mit Ort genannt
+const GRABEN_ORTE: usize = 5;
 /// samurai_test_fehler(TESTFEHLER) loest absichtlich einen Fehler aus (Gegenprobe zum Fehlerfang)
 const TESTFEHLER: i32 = 0x5A4D;
 
@@ -40,27 +45,37 @@ const AUS: i32 = -2;
 
 static KAPUTT: AtomicBool = AtomicBool::new(false);
 
-struct Zustand {
-    waechter: Waechter,
-    letzte_zeile: i32,
-    /// Messbasis seit der letzten Protokollzeile
+/// Summen und Hoechstwerte seit der letzten Protokollzeile
+struct Messung {
     aufrufe: u64,
-    kern_ns_summe: u128,
+    kern_ns: u128,
     kern_ns_max: u128,
     takte: u64,
-    takt_ns_summe: u128,
+    takt_ns: u128,
+    welt_ns: u128,
+    karte_ns: u128,
+}
+
+impl Messung {
+    const fn neu() -> Self {
+        Messung { aufrufe: 0, kern_ns: 0, kern_ns_max: 0, takte: 0, takt_ns: 0, welt_ns: 0, karte_ns: 0 }
+    }
+}
+
+struct Zustand {
+    waechter: Waechter,
+    welt: Welt,
+    letzte_zeile: i32,
     letzter_takt: Option<Instant>,
+    m: Messung,
 }
 
 static ZUSTAND: Mutex<Zustand> = Mutex::new(Zustand {
     waechter: Waechter::neu(),
+    welt: Welt::neu(),
     letzte_zeile: -1,
-    aufrufe: 0,
-    kern_ns_summe: 0,
-    kern_ns_max: 0,
-    takte: 0,
-    takt_ns_summe: 0,
     letzter_takt: None,
+    m: Messung::neu(),
 });
 
 unsafe fn i16_bei(adresse: usize) -> i16 {
@@ -95,6 +110,10 @@ fn schreibe(zeile: &str) {
     }
 }
 
+fn zustand() -> std::sync::MutexGuard<'static, Zustand> {
+    ZUSTAND.lock().unwrap_or_else(|e| e.into_inner())
+}
+
 /// Fuehrt `f` aus; ein Fehler (panic) schaltet den Kern ab und wird protokolliert, das Spiel laeuft weiter.
 fn geschuetzt(was: &str, f: impl FnOnce() -> i32) -> i32 {
     if KAPUTT.load(Ordering::Relaxed) {
@@ -115,18 +134,35 @@ fn geschuetzt(was: &str, f: impl FnOnce() -> i32) -> i32 {
     }
 }
 
+fn ort(feld: usize) -> String {
+    Welt::feld_xy(feld).map_or(format!("Feld {}", feld), |(x, y)| format!("({},{})", x, y))
+}
+
 fn takt(tick: i32, spieler: i32) -> i32 {
     let start = Instant::now();
     let je = einheiten_je_spieler();
     let leer = je.iter().all(|&n| n == 0);
-    let mut z = ZUSTAND.lock().unwrap_or_else(|e| e.into_inner());
+    let mut z = zustand();
     match z.waechter.sieh(tick, leer) {
         Ereignis::NeuerTakt => {
             if let Some(vorher) = z.letzter_takt {
-                z.takt_ns_summe += start.duration_since(vorher).as_nanos();
-                z.takte += 1;
+                z.m.takt_ns += start.duration_since(vorher).as_nanos();
+                z.m.takte += 1;
             }
             z.letzter_takt = Some(start);
+            let t0 = Instant::now();
+            z.welt.lesen();
+            let t1 = Instant::now();
+            let g = z.welt.graben_lesen();
+            z.m.welt_ns += t1.duration_since(t0).as_nanos();
+            z.m.karte_ns += t1.elapsed().as_nanos();
+            if !g.neu_geplant.is_empty() || !g.neu_ausgehoben.is_empty() || !g.zugeschuettet.is_empty() || g.plan_geloescht > 0 {
+                let orte = |v: &Vec<usize>| v.iter().take(GRABEN_ORTE).map(|&f| ort(f)).collect::<Vec<_>>().join(" ");
+                schreibe(&format!(
+                    "graben tick {}: neu geplant {} [{}] | neu ausgehoben {} [{}] | zugeschuettet {} [{}] | Planung geloescht {} | jetzt geplant {} ausgehoben {}",
+                    tick, g.neu_geplant.len(), orte(&g.neu_geplant), g.neu_ausgehoben.len(), orte(&g.neu_ausgehoben),
+                    g.zugeschuettet.len(), orte(&g.zugeschuettet), g.plan_geloescht, g.geplant, g.ausgehoben));
+            }
         }
         Ereignis::Epoche { von, nach } => {
             schreibe(&format!("epoche {} tick {} von {} (Sprung {})", z.waechter.epoche, nach,
@@ -134,6 +170,10 @@ fn takt(tick: i32, spieler: i32) -> i32 {
                               von.map_or("-".to_string(), |v| (nach as i64 - v as i64).to_string())));
             z.letzter_takt = Some(start);
             z.letzte_zeile = -1;
+            z.welt.epoche();
+            z.welt.lesen();
+            let g = z.welt.graben_lesen();
+            schreibe(&format!("graben tick {}: Aufnahme der Epoche - geplant {} ausgehoben {}", tick, g.geplant, g.ausgehoben));
         }
         Ereignis::Pause | Ereignis::KeinePartie => {}
     }
@@ -141,23 +181,22 @@ fn takt(tick: i32, spieler: i32) -> i32 {
     if letzte < 0 || tick < letzte || tick - letzte >= PROTOKOLL_ALLE {
         z.letzte_zeile = tick;
         schreibe(&format!("tick {} einheiten {:?}", tick, je));
+        let m = &z.m;
+        let je_aufruf = |ns: u128| if m.aufrufe > 0 { ns as f64 / m.aufrufe as f64 / 1000.0 } else { 0.0 };
+        let je_takt = |ns: u128| if m.takte > 0 { ns as f64 / m.takte as f64 / 1000.0 } else { 0.0 };
         let w = &z.waechter;
-        let mittel_us = if z.aufrufe > 0 { z.kern_ns_summe as f64 / z.aufrufe as f64 / 1000.0 } else { 0.0 };
-        let takt_ms = if z.takte > 0 { z.takt_ns_summe as f64 / z.takte as f64 / 1e6 } else { 0.0 };
         schreibe(&format!(
-            "waechter tick {} version {} epoche {} neu {} pause {} wechsel {} keine_partie {} | aufrufe {} kern_us_mittel {:.1} kern_us_max {:.1} | takte {} takt_ms_mittel {:.3}",
-            tick, VERSION, w.epoche, w.neu, w.pause, w.wechsel, w.keine_partie, z.aufrufe, mittel_us,
-            z.kern_ns_max as f64 / 1000.0, z.takte, takt_ms));
-        z.aufrufe = 0;
-        z.kern_ns_summe = 0;
-        z.kern_ns_max = 0;
-        z.takte = 0;
-        z.takt_ns_summe = 0;
+            "waechter tick {} version {} epoche {} neu {} pause {} wechsel {} keine_partie {} | aufrufe {} kern_us_mittel {:.1} \
+             kern_us_max {:.1} | takte {} takt_ms_mittel {:.3} | welt_us {:.1} karte_us {:.1} einheiten {} gebaeude {} max {}",
+            tick, VERSION, w.epoche, w.neu, w.pause, w.wechsel, w.keine_partie, m.aufrufe, je_aufruf(m.kern_ns),
+            m.kern_ns_max as f64 / 1000.0, m.takte, je_takt(m.takt_ns) / 1000.0, je_takt(m.welt_ns), je_takt(m.karte_ns),
+            z.welt.einheiten.len(), z.welt.gebaeude.len(), z.welt.einheiten_max));
+        z.m = Messung::neu();
     }
     let dauer = start.elapsed().as_nanos();
-    z.aufrufe += 1;
-    z.kern_ns_summe += dauer;
-    z.kern_ns_max = z.kern_ns_max.max(dauer);
+    z.m.aufrufe += 1;
+    z.m.kern_ns += dauer;
+    z.m.kern_ns_max = z.m.kern_ns_max.max(dauer);
     if (0..9).contains(&spieler) { je[spieler as usize] as i32 } else { -1 }
 }
 
@@ -167,7 +206,7 @@ pub extern "C" fn samurai_version() -> u32 {
 }
 
 /// Jeden Aufruf aus logik.lua (nach jedem Takt und in der Pause): gibt die Zahl lebender Einheiten von `spieler` zurueck,
-/// -1 bei ungueltigem Spieler, -2 wenn der Kern nach einem Fehler abgeschaltet ist; alle 500 Takte zwei Protokollzeilen.
+/// -1 bei ungueltigem Spieler, -2 wenn der Kern nach einem Fehler abgeschaltet ist.
 #[unsafe(no_mangle)]
 pub extern "C" fn samurai_takt(tick: i32, spieler: i32) -> i32 {
     geschuetzt("samurai_takt", || takt(tick, spieler))
@@ -179,6 +218,21 @@ pub extern "C" fn samurai_einheiten(spieler: i32) -> i32 {
     geschuetzt("samurai_einheiten", || {
         let je = einheiten_je_spieler();
         if (0..9).contains(&spieler) { je[spieler as usize] as i32 } else { -1 }
+    })
+}
+
+/// S1: liest das Weltbild jetzt neu und schreibt es im Lagebild-Format nach ucp/villagestudio/kern_lagebild.txt und
+/// kern_gebaeude.txt (Vergleich mit {"lagebild": true} im selben, angehaltenen Takt). Rueckgabe: Zahl der Einheiten, -3 bei
+/// einem Schreibfehler.
+#[unsafe(no_mangle)]
+pub extern "C" fn samurai_welt_schreiben(tick: i32) -> i32 {
+    geschuetzt("samurai_welt_schreiben", || {
+        let mut z = zustand();
+        z.welt.lesen();
+        match z.welt.schreiben(tick, WELT_EINHEITEN, WELT_GEBAEUDE) {
+            Ok(()) => z.welt.einheiten.len() as i32,
+            Err(_) => -3,
+        }
     })
 }
 
@@ -198,7 +252,7 @@ pub extern "C" fn samurai_test_fehler(code: i32) -> i32 {
 mod tests {
     use super::*;
 
-    // (Nur Funktionen ohne Spielspeicher - einheiten_je_spieler/samurai_takt lesen feste Adressen und duerfen hier nicht laufen.)
+    // (Nur Funktionen ohne Spielspeicher - takt/welt lesen feste Adressen und duerfen hier nicht laufen.)
     #[test]
     fn fehlerfang_schaltet_kern_ab_statt_abzustuerzen() {
         assert_eq!(samurai_test_fehler(7), 7);

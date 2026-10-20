@@ -92,6 +92,26 @@ logik.lua liest den Namen der aktuellen Fassung aus einer Datei).
 **Folge fuer den Plan:** S0 ist erfuellt ohne Stecker. Jede weitere Stufe kann jetzt im laufenden Spiel in Sekunden ausgetauscht
 werden: bauen -> unter neuem Namen in den Modulordner -> `{"kern": {"laden": ...}}`.
 
+## Stand S1 (20.10.2026, 23:31) - Augen, im Spiel geprueft (Kern Version 3-5, Instanz 5)
+
+| Pruefpunkt | Ergebnis | Beleg |
+|---|---|---|
+| Weltbild = Lagebild im selben Takt | Takt 42.824: 694 Einheiten, 313 Gebaeude, **0 Abweichungen** in allen Spalten (ausser "erreichbar" = S3) | `python -m selfaware.tools.experiments.kern_vergleich` -> GLEICH |
+| Gegenprobe | Fassung mit falschem Feld fuer "leben" (+972 statt +968): 7 Abweichungen, UNGLEICH; zurueck auf die richtige Fassung: GLEICH | dito |
+| Kosten je Takt | Einheiten + Gebaeude 7,3 us, Grabenwache (alle 80.400 Felder) 96-121 us, Kern gesamt ~106-131 us bei 3,0 ms je Takt (~4 %) | `waechter`-Zeilen, samurai_kern.log |
+| Graben im selben Takt | Planbefehl eingereiht in Takt 47.989 -> Kern meldet "neu geplant" in Takt 47.990 (= Ausfuehrungstakt); ebenso 48.343->48.344, 48.699->48.700; mit Feldkoordinaten | samurai_kern.log `graben`-Zeilen, ucp3.log SPIELBEFEHL |
+| Gegner beim Graben gesehen | Franz hob waehrenddessen seinen Graben aus: "neu ausgehoben (195,113)", (184,70), (177,70) ... jede Zelle im Takt | dito |
+| Planung geloescht | Version 4: Planen und Loeschen live - "neu geplant 7" (Takt 58.152), "Planung geloescht 9" (Takt 58.829) | dito |
+| Nach dem Laden kein Fehlalarm | jede neue Epoche beginnt mit "Aufnahme der Epoche - geplant n ausgehoben m", ohne "neu"-Meldung | dito; offline-Test `neue_epoche_gibt_keinen_alarm` |
+| Offline | `cargo test` 10/10; Gegenlaeufe rot (Alarmsperre nach Laden, Ortsrechnung, Zuschuetten); `tests/test_kern_vergleich.py` 2/2 | crates/samurai-kern, tests |
+
+**Offen / nicht geprueft:** "zugeschuettet" nur offline geprueft (kein Zuschuetten im Spiel beobachtet); Version 5 (nur Zeilenformat)
+im Spiel nicht mehr mit Grabenmeldung gesehen - die Partie endete bei Takt 60.861; das Loeschen der Planung entfernte im ersten
+Versuch nur 10 von 22 Feldern (warum, ungeklaert - fuer den Kern unerheblich).
+
+**Naechste Verbesserung Grabenwache:** statt 80.400 Felder je Takt die Zaehler des Spiels pruefen (`moatTileCount`,
+`currentMoatCount`, Spielkarte-Strukturen) und nur bei Aenderung voll lesen - das spart die ~100 us je Takt.
+
 ## Beziehungen (beide Richtungen)
 
 - Spiel -> Kern: ruft ihn nach jedem Takt UND in der Pause (Haken nach `processGameTick`). Kern -> Spiel: liest Strukturen, handelt nur ueber Spielbefehle.

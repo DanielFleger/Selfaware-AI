@@ -871,6 +871,8 @@ local function kernLaden(datei)
               einheiten = core.exposeCode(adresse("samurai_einheiten"), 1, 0) }
   local af = adresse("samurai_test_fehler")
   if af then k.test_fehler = core.exposeCode(af, 1, 0) end
+  local aw = adresse("samurai_welt_schreiben")          -- ab Version 3 (B-145 S1)
+  if aw then k.welt = core.exposeCode(aw, 1, 0) end
   local alt = kern and (kern.datei .. " Version " .. tostring(kern.version)) or "keine"
   kern = k
   return true, "geladen " .. datei .. ", Version " .. tostring(k.version) .. " (vorher: " .. alt .. ")"
@@ -878,6 +880,7 @@ end
 
 -- { "kern": { "laden": "samurai_kern_2.dll" } }  andere Fassung laden (Rueckweg: "samurai_kern.dll")
 -- { "kern": { "test_fehler": true } }              Gegenprobe: absichtlicher Fehler im Kern -> Kern aus, Spiel laeuft weiter
+-- { "kern": { "welt": true } }                     S1: Weltbild des Kerns -> ucp/villagestudio/kern_lagebild.txt, kern_gebaeude.txt
 -- { "kern": { "stand": true } }                    welche Fassung laeuft
 local function kernBefehl(cmd)
   local c = cmd.kern
@@ -888,6 +891,16 @@ local function kernBefehl(cmd)
   if c.laden ~= nil then
     local ok, gut, text = pcall(kernLaden, c.laden)
     log(INFO, "KERN laden: " .. tostring(ok and text or gut))
+    return true
+  end
+  if c.welt ~= nil then
+    if kern == nil or kern.welt == nil then
+      log(INFO, "KERN welt: diese Fassung kann das Weltbild nicht schreiben")
+      return true
+    end
+    local ok, n = pcall(kern.welt, tick())
+    log(INFO, string.format("KERN welt: Tick %d, Rueckgabe %s (ok=%s) -> kern_lagebild.txt, kern_gebaeude.txt", tick(),
+      tostring(n), tostring(ok)))
     return true
   end
   if c.test_fehler ~= nil then
