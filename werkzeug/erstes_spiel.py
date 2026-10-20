@@ -103,6 +103,9 @@ def lords():
 SAAT_DATEI = os.path.join(D, "saat_liga.json")
 SAAT_FELDER = ("karte", "partie", "wert1", "wert2", "zaehler1", "zaehler2")
 GEGNER_ZAHL = 1
+TEAM_KIS = []            # B-133 2v2 (Daniel 20.10. 18:30): KI-Nummern des gegnerischen Paars, z. B. 1,2 = Rotkaeppchen +
+                         # Rattenfaenger; Spieler 1+2 = SamurAIs (Mannschaft 1), die KIs dahinter (Mannschaft 2)
+LIGA_START_GOLD = 150    # Liga-Startgueter: Computer 150 Gold, Mensch 0 - im 2v2 bekommen beide SamurAIs die 150
 LIGA_GEFECHT = {"eigenesGefecht": True, "karte": "Liga_Grumpy Neighbors", "ki": 1, "gegner": 1, "ausgleich": 3,
                 "startliste": [0, 1, 246, 246, 246, 246, 246, 246]}   # aus dem M19-Stand gelesen: Mensch Platz 0, Rotkaeppchen 1
 
@@ -138,8 +141,13 @@ def gefecht_starten(tempo):
             if os.path.exists(f_):
                 os.remove(f_)
     # 19.10. (1v1): zwei menschliche Plaetze, keine KI (gleicher Start fuer beide, logik.lua "menschen")
-    zeilen = kanal.sende(dict(LIGA_GEFECHT, **({"saat": saat} if saat else {}),
-                              **({"startpause": 1, "gegner": 0, "menschen": 1 + GEGNER_ZAHL} if EINS_GEGEN_EINS else {})),
+    gefecht = dict(LIGA_GEFECHT, **({"saat": saat} if saat else {}))
+    if EINS_GEGEN_EINS:
+        gefecht.update({"startpause": 1, "gegner": 0, "menschen": 1 + GEGNER_ZAHL})
+        if TEAM_KIS:     # B-133 2v2: die KIs des Paars ueberschreiben "gegner 0"
+            gefecht.update({"gegner": len(TEAM_KIS), "ki": TEAM_KIS[0], "kis": TEAM_KIS, "mensch_teams": [1] * (1 + GEGNER_ZAHL),
+                            "teams": [2] * len(TEAM_KIS)})
+    zeilen = kanal.sende(gefecht,
                          4, bis="LaunchSkirmishGame zurueck")
     if EINS_GEGEN_EINS:
         ki_aus()
@@ -151,7 +159,8 @@ def gefecht_starten(tempo):
     else:
         schreib("SAAT nicht gelesen: %s" % zeilen[-3:])
     befehl({"tempo": tempo}, 1.0, bis="TEMPO")
-    t_lords = warte_bis(lambda: len(lords()) >= 1 + GEGNER_ZAHL, "alle %d Lords" % (1 + GEGNER_ZAHL))
+    n_lords = 1 + GEGNER_ZAHL + (len(TEAM_KIS) if EINS_GEGEN_EINS else 0)      # B-133: im 2v2 auch die beiden KI-Lords
+    t_lords = warte_bis(lambda: len(lords()) >= n_lords, "alle %d Lords" % n_lords)
     zustand = partie_pruefen()
     # Erst im laufenden Gefecht setzen: Im Hauptmenue hat eine frisch gestartete Instanz noch keinen AIV-Slot und der
     # Menue-Haken deutet leereKI sonst als Bauplanwechsel (Instanz 3, 08.10.: "Spieler 1 hat keinen AIV-Slot").
@@ -257,6 +266,11 @@ def eins_gegen_eins_start():
     warte_bis(lambda: tick() >= ANGLEICH_TICK, "Tick %d (Startwaren vollstaendig)" % ANGLEICH_TICK, 300)
     befehl({"pause": True}, 0.5)
     angleichen()
+    if TEAM_KIS:
+        # B-133: Liga-Start wie die KIs (150 Gold) fuer beide SamurAIs - PlayerData +0x50C = Gold (Einzelkauf, gemessen)
+        for sp_g in range(1, 2 + GEGNER_ZAHL):
+            befehl({"poke": 0x0115BDF8 + sp_g * 0x39F4 + 0x50C, "wert": LIGA_START_GOLD}, 1.0, bis="POKE")
+        schreib("2v2: Liga-Startgold %d fuer die Spieler %s" % (LIGA_START_GOLD, list(range(1, 2 + GEGNER_ZAHL))))
     _j.dump({"pid": os.getpid(), "tick": tick(), "zeit": time.time()}, open(BARRIERE_START, "w"))
     schreib("1v1: Startsignal bei Tick %d - warte pausiert auf den Lenker von Spieler 2 (%s)" % (tick(), BARRIERE_BEREIT))
     t0 = time.time()
@@ -3484,6 +3498,8 @@ def main():
     # Platz = Burgnummer der Karte - 1). Die Vermessung laeuft mit derselben Aufstellung; ihr Kurzname traegt die Plaetze.
     global GEGNER_ZAHL
     GEGNER_ZAHL = int(arg.get("gegner", 1))
+    global TEAM_KIS
+    TEAM_KIS = [int(z) for z in arg["team_kis"].split(",")] if arg.get("team_kis") else []
     # 00:59 (Daniel: "Nomade 2 wird nicht wirklich geladen"): die Startliste des Spiels ist PLATZ -> Spieler (Index 0 = wir),
     # nicht Spieler -> Platz - startliste=0,1,7 setzte Platz 2 auf einen Spieler 7, den es nicht gibt. plaetze=0,1,7 nimmt
     # je Spieler seinen Platz (Burgnummer der Karte - 1) und baut daraus die Liste des Spiels.
@@ -3501,10 +3517,13 @@ def main():
         # 19.10. (1v1): eigene Kurznamen - beide Plaetze werden in einem Gefecht mit zwei Menschen live vermessen
         kurz += "_1v1"
     if EINS_GEGEN_EINS:
-        gegen = KH.kurz_von(karte) + "_pl" + "-".join(map(str, list(reversed(plaetze or [])))) + "_1v1"
+        # B-133 (2v2): Spieler 2 sieht seinen Platz zuerst - die ersten beiden Plaetze tauschen, die KI-Plaetze bleiben
+        gegen_pl = ([plaetze[1], plaetze[0]] + plaetze[2:]) if plaetze and len(plaetze) > 2 else list(reversed(plaetze or []))
+        gegen = KH.kurz_von(karte) + "_pl" + "-".join(map(str, gegen_pl)) + "_1v1"
         if not all(os.path.exists(os.path.join(D, "start_%s.json" % k)) for k in (kurz, gegen)):
             schreib("1v1: vermesse beide Plaetze in einem eigenen Gefecht mit zwei Menschen (%s, %s)" % (kurz, gegen))
-            KH.eins_gegen_eins_vorbereiten(karte, (startliste + [246] * 8)[:8], [(1, kurz), (2, gegen)])
+            vliste = [s if s in (0, 1) else 246 for s in (startliste + [246] * 8)[:8]]     # B-133: nur die beiden SamurAI-Plaetze
+            KH.eins_gegen_eins_vorbereiten(karte, vliste, [(1, kurz), (2, gegen)])
     if ANHAENGEN:
         # 19.10. (1v1): Spieler 2 wartet, bis der Lenker von Spieler 1 die Plaetze vermessen, das Gefecht gestartet und
         # pausiert hat; fehlt die Vermessung trotzdem, vermisst er seinen Platz selbst live
