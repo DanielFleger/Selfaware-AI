@@ -543,6 +543,49 @@ def main():
            e26 == 901 and z26 == 902 and v26 == [901] and any("BRESCHE ABGESCHNITTEN" in m for m in m26)
            and z26v == 901 and vp26v and vpn26v and tuple(vpn26v) != tuple(vp26v) and any("VORPOSTEN ABGESCHNITTEN" in m for m in m26v)
            and not v26v and z26g == 901 and not v26g and not m26g and vpn26g == vp26g)
+    # 27 (B-146, Daniel 21.10. 00:34 Rueckzugsregel; L170/L171): 10 Streitkolben stehen ueber RUECKZUG_TAKTE auf demselben Feld
+    #    vor Tor 901, verlieren Leben, ohne Ziel und ohne Nahkampfgegner -> "FELDZUG RUECKZUG", 901 verworfen, Laufbefehl zum
+    #    Sammelpunkt. Gegenprobe: dieselben, aber im Nahkampf (nahziel > 0) -> kein Rueckzug.
+    def rueckzug(nahkampf):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+        f.wegtest = lambda nr, punkte: [True for q in punkte]
+        f.schritt({"t": 12000}, *lage(5, heim), Befehle())
+        L_, G_ = lage(0, heim)
+        for i in range(10):
+            L_[10 + i] = einheit(26, 1, 304 + i % 3, 112 + i // 5, 28000)
+            L_[10 + i]["nahziel"] = 600 if nahkampf else 0
+        G_[901] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 1500}
+        G_[902] = {"typ": 46, "besitzer": 2, "x": 290, "y": 96, "leben": 1500}
+        f.phase = "angriff"
+        f.schritt({"t": 12050}, L_, G_, Befehle())
+        erst = f.bresche
+        m_, b_ = [], Befehle()
+        for k, t_ in enumerate((12400, 12800)):
+            for i in range(10):
+                L_[10 + i]["leben"] -= 500
+            b_ = Befehle()
+            m_ += f.schritt({"t": t_}, L_, G_, b_)
+        zur = [x["angriff"]["lauf"] for x in b_.liste if "lauf" in x.get("angriff", {}) and len(x["angriff"]["einheiten"]) == 10]
+        return erst, sorted(f.verworfen), [m[:60] for m in m_ if "RUECKZUG" in m], zur
+    e27, v27, m27, z27 = rueckzug(False)
+    e27g, v27g, m27g, z27g = rueckzug(True)
+    pruefe(27, "steht nur: Tor %s verworfen %s %s Laufbefehl %s | im Nahkampf: verworfen %s %s" % (e27, v27, m27, z27, v27g, m27g),
+           e27 is not None and e27 in v27 and m27 and z27 and not m27g)
+    # 28 (B-146, L171): einzige Angriffsstelle mit 25 Feindschuetzen in Reichweite -> keine Schwachstelle gewaehlt;
+    #    Gegenprobe: dieselbe Stelle mit 2 Schuetzen -> gewaehlt
+    def kreuzfeuer(n_schuetzen):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+        f.schritt({"t": 12000}, *lage(5, heim), Befehle())
+        L_, G_ = lage(0, heim)
+        for i in range(10):
+            L_[10 + i] = einheit(26, 1, 280 + i % 3, 130 + i // 5, 28000)
+        for i in range(n_schuetzen):
+            L_[800 + i] = einheit(22, 2, 300 + i % 5, 100 + i // 5)
+        G_[901] = {"typ": 46, "besitzer": 2, "x": 300, "y": 106, "leben": 1500}
+        f.phase = "angriff"
+        f.schritt({"t": 12050}, L_, G_, Befehle())
+        return f.bresche
+    pruefe(28, "Stelle mit 25 Schuetzen: %s | mit 2: %s" % (kreuzfeuer(25), kreuzfeuer(2)), kreuzfeuer(25) is None and kreuzfeuer(2) == 901)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

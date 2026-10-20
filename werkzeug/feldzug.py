@@ -112,8 +112,33 @@ class Feldzug:
         self.bresche_leben = None   # B-138: (niedrigstes Leben der Bresche, seit Tick)
         self.verworfen = set()      # B-138: zaehe Breschen - nicht noch einmal waehlen
         self._bresche_pruef = (None, -99)   # B-140: (Bresche, Runde) der letzten Pruefung mit dem Wegfinder
+        self._spur = {}             # B-146: je Nahkaempfer (Ort, Leben, still seit Tick, letzter Schaden bei Tick)
 
     NACHBAR_RINGE = (1, 2, 3)  # B-140: so nah am Gebaeude muss ein Feld erreichbar sein, sonst ist es nicht angreifbar
+    # B-146 (Daniel 21.10. 00:34 "ja bau die Rueckzugsregel und miss gegen die 107"): Stellschrauben, noch nicht gemessen
+    RUECKZUG_TAKTE = 300       # so lange auf demselben Feld (Kern-Messung L170: STEHT NUR Median 345 Takte)
+    RUECKZUG_SCHADEN = 1000    # Schaden innerhalb dieser Takte zaehlt als "unter Beschuss" (eine Lenker-Runde: 187-1.069 Takte)
+    RUECKZUG_MIN = 5           # so viele muessen es sein - einzelne Nachzuegler loesen keinen Rueckzug aus
+    SCHUETZEN_MAX = 10         # Angriffsstellen mit mehr Feindschuetzen in Reichweite scheiden aus (L171: Vorposten mit 25)
+
+    def _steht_nur(self, L, nah_kampf, t):
+        """B-146: Nahkaempfer, die seit RUECKZUG_TAKTE auf demselben Feld stehen, in den letzten RUECKZUG_SCHADEN Takten
+        Leben verloren und weder Ziel noch Nahkampfgegner haben - "STEHT NUR" der Kern-Beschusswache (L169/L170)."""
+        neu, stehen = {}, []
+        for n in nah_kampf:
+            e = L[n]
+            ort = (e["x"], e["y"])
+            alt = self._spur.get(n)
+            still_seit = alt[2] if alt and alt[0] == ort else t
+            schaden = alt[3] if alt else None
+            if alt and e["leben"] < alt[1]:
+                schaden = t
+            neu[n] = (ort, e["leben"], still_seit, schaden)
+            if (t - still_seit >= self.RUECKZUG_TAKTE and schaden is not None and t - schaden <= self.RUECKZUG_SCHADEN
+                    and not e.get("zielart", 0) and e.get("nahziel", 0) <= 0):
+                stehen.append(n)
+        self._spur = neu
+        return stehen
 
     def _nachbar_punkte(self, G, nr):
         gx, gy = G[nr]["x"], G[nr]["y"]
@@ -152,6 +177,9 @@ class Feldzug:
                 kand = [k for k in kand if k[3] in angreifbar]
             except Exception:
                 pass
+        # B-146 (L171: der Feldzug schickte das Heer an einen Vorposten mit 25 Feindschuetzen in Reichweite): Stellen mit mehr als
+        # SCHUETZEN_MAX Schuetzen scheiden aus
+        kand = [k for k in kand if k[0] <= self.SCHUETZEN_MAX]
         return min(kand) if kand else None
 
     def _schwachstelle(self, G, lp, orte, aus, anlass):
@@ -386,6 +414,25 @@ class Feldzug:
             schluss = spitze <= self.SCHLUSS_R or self.direkt
             nah_kampf = [n for n in kolben if L[n]["typ"] not in FERN_REICH]
             fern = [n for n in kolben if L[n]["typ"] in FERN_REICH]
+            # B-146 Rueckzugsregel (Daniel 21.10. 00:34; Grundzahl L170: 107 eigene Einheiten standen in einem Pruefstand-Lauf unter
+            # Beschuss herum - am Vorposten im Schussfeld und vor dem Graben nach "Lord eingemauert", L171): stehen mindestens
+            # RUECKZUG_MIN Nahkaempfer "STEHT NUR", wird die Angriffsstelle verworfen, sie laufen zum Sammelpunkt (ausser Reichweite
+            # der Schuetzen) und die naechste Schwachstelle kommt
+            stehen = self._steht_nur(L, nah_kampf, t)
+            if len(stehen) >= self.RUECKZUG_MIN:
+                sp_r = self._sammelpunkt(L, G, lord)
+                alt_r = self.bresche
+                if alt_r is not None:
+                    self.verworfen.add(alt_r)
+                self.bresche, self.bresche_leben, self.vorposten, self.lord_vp = None, None, None, None
+                befehl({"angriff": {"einheiten": sorted(stehen), "lauf": [sp_r[0], sp_r[1]]}}, 1.0, bis="ANGRIFF")
+                bef_r = getattr(self, "_befohlen", {})
+                self._befohlen = bef_r
+                for n in stehen:
+                    bef_r[n] = ("rueckzug", sp_r)
+                aus.append("FELDZUG RUECKZUG: %d Nahkaempfer standen >= %d Takte unter Beschuss ohne Ziel - Stelle %s verworfen, "
+                           "zurueck zum Sammelpunkt %s" % (len(stehen), self.RUECKZUG_TAKTE, alt_r, sp_r))
+                self._schwachstelle(G, lp, orte, aus, "Rueckzug")
             # B-140 (Daniel 22:27: "sofort erkennen, wenn jemand einen Burggraben setzt - dann soll darauf nicht gegangen
             # werden, sondern einen anderen Weg"; die KI sieht keine Bilder - ihr Auge ist der Wegfinder des Spiels, der Wasser
             # und Mauern kennt): die gewaehlte Bresche JEDE Runde nachpruefen. Kein Nachbarfeld mehr erreichbar (frischer
