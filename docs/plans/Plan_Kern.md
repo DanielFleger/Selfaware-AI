@@ -219,6 +219,17 @@ kann ein Python-Gehirn (unser Lenker oder Krarilotus' GamePort) jeden Takt sehen
 **Damit steht der Unterbau:** Augen (S1), Haende (S2), Wege + Grabenreflex (S3), Leitung in beide Richtungen (S4) - jede
 Stufe im Spiel mit Gegenprobe belegt, jede Fassung ohne Neustart austauschbar (S0).
 
+## Entwurf KernPort (20.10.2026, 23:52) - Krarilotus' GamePort ueber den Kern
+
+`src/selfaware/game/kern_port.py`: `observe(session)` baut seinen Snapshot aus dem gemeinsamen Speicher (Einheiten und
+Gebaeude als Entity, Fakten: Kern-Fassung, Epoche, Graben geplant/ausgehoben; Epoche der Session muss passen),
+`submit(session, intent)` macht aus "move" {x, y} / "attack" (targets[0]) Ring-Auftraege (Einheiten werden dem Kern
+uebergeben). Bestaetigt wird nach seiner Regel erst die beobachtete Wirkung (neue Gruppe + Laufziel bis 2 Felder bzw.
+Angriffsziel), abgelehnt bei -4/-5 vom Kern, nie wegen der Quittung.
+Gemessen 23:51: Speertraeger 165 move -> `confirmed` 3 Takte nach der Beobachtung; Bogenschuetze 145 (der schon in S2 nicht
+lief) -> richtig NICHT bestaetigt. Offline 3 Tests + Gegenlauf (Bestaetigung ohne Wirkung -> rot). Ressourcen sind noch
+leer (Gold usw. stehen noch nicht im Speicher) - naechster Ausbau der Leitung.
+
 ## Beziehungen (beide Richtungen)
 
 - Spiel -> Kern: ruft ihn nach jedem Takt UND in der Pause (Haken nach `processGameTick`). Kern -> Spiel: liest Strukturen, handelt nur ueber Spielbefehle.
