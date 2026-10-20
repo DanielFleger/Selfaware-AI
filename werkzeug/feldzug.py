@@ -77,7 +77,7 @@ class Feldzug:
     TOR_R = 25                # so nah an der Bresche gilt als "davor"
     # B-138: verliert die Bresche BRESCHE_ZAEH Ticks lang kein Leben, obwohl mindestens TOR_MIN davor stehen, ist sie zaeh
     # (Zugbruecke gegen Franz: Leben blieb bei 100) - verwerfen, naechste Schwachstelle
-    BRESCHE_ZAEH = 3000
+    BRESCHE_ZAEH = 1000       # (B-140 22:16: 3.000 liess 35 Mann unter Beschuss stehen)
     TOR_MIN = 5
 
     def __init__(self, sp, heim, lord_schutz_bis=0, n=None):
@@ -112,7 +112,9 @@ class Feldzug:
         self.bresche_leben = None   # B-138: (niedrigstes Leben der Bresche, seit Tick)
         self.verworfen = set()      # B-138: zaehe Breschen - nicht noch einmal waehlen
 
-    def _beste_stelle(self, G, lp, orte):
+    NACHBAR_RINGE = (1, 2, 3)  # B-140: so nah am Gebaeude muss ein Feld erreichbar sein, sonst ist es nicht angreifbar
+
+    def _beste_stelle(self, G, lp, orte, nr_test=None):
         """B-140 (Daniel 21:47 "nicht nur stupide drauf gehen, sondern die beste Position auswaehlen"): (Gefahr, Leben, Abstand,
         Nr) des Torhauses/Turms bis BURG_R vom Lord, auf das die wenigsten feindlichen Schuetzen schiessen koennen (Reichweiten
         wie gefecht.FERN_REICH), dann die wenigsten Leben; None ohne Kandidaten."""
@@ -129,12 +131,30 @@ class Feldzug:
                 continue
             gefahr = sum(1 for q, r in schuetzen_f if schach(ort, q) <= r)
             kand.append((gefahr, g.get("leben", 0), schach(ort, spitze_o), nr))
+        # B-140 (Daniel 22:11/22:16, Bilder: Truppen standen vor der Mauer und liessen sich abschiessen; Lauf 40: 35 Mann
+        # 3.330 Takte vor Torhaus 239, kein Schaden): nur Gebaeude, an die ein Nachbarfeld erreichbar ist - ein Wegtest fuer
+        # alle Kandidaten zusammen
+        if kand and self.wegtest is not None and nr_test is not None:
+            punkte, wem = [], []
+            for k in kand:
+                gx, gy = G[k[3]]["x"], G[k[3]]["y"]
+                for r in self.NACHBAR_RINGE:
+                    for dx, dy in ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)):
+                        punkte.append((gx + dx * r, gy + dy * r))
+                        wem.append(k[3])
+            try:
+                gut = self.wegtest(nr_test, punkte)
+                angreifbar = {w for w, g_ in zip(wem, gut) if g_}
+                kand = [k for k in kand if k[3] in angreifbar]
+            except Exception:
+                pass
         return min(kand) if kand else None
 
     def _schwachstelle(self, G, lp, orte, aus, anlass):
         """B-139: der schwaechste Teil der Burg am Lord (Torhaus/Turm bis BURG_R Felder vom Lord, nicht verworfen): wenigstes
         Leben, bei Gleichstand der naechste an unserer Spitze. Setzt self.bresche; False, wenn es keinen gibt."""
-        beste = self._beste_stelle(G, lp, orte)
+        kolben_s = [n for n, e in (self._lagebild or {}).items() if e["besitzer"] == self.sp and e["typ"] in HEER]
+        beste = self._beste_stelle(G, lp, orte, nr_test=kolben_s[0] if kolben_s else None)
         if beste is None:
             return False
         gefahr, leben, _, nr = beste
@@ -424,10 +444,11 @@ class Feldzug:
                             for n in hin_v:
                                 befohlen[n] = ("vorposten", vp)
                         belegt |= set(nah_kampf)
+                    # (B-140: Untaetige am Tor jede Runde neu - mit der WIEDERHOLEN-Sperre bekamen in 3.330 Takten nur 22 von 35
+                    # ueberhaupt einen Torbefehl)
                     neu_b = [n for n in am_tor if befohlen.get(n) != ("bresche", bresche) or L[n]["zustand"] in (0, 1)]
-                    if neu_b and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
+                    if neu_b:
                         befehl({"angriff": {"einheiten": neu_b, "gebaeude": bresche}}, 1.0, bis="ANGRIFF")
-                        self.letzter_befehl = self.runde
                         for n in neu_b:
                             befohlen[n] = ("bresche", bresche)
                     am_lord = []

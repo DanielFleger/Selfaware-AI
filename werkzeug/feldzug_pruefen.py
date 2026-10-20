@@ -424,14 +424,14 @@ def main():
         b3 = Befehle()
         f.schritt({"t": 12200}, L_, G_, b3)
         tor_ = [len(x["angriff"]["einheiten"]) for x in b3.liste if x.get("angriff", {}).get("gebaeude") == 901]
-        return [m[:60] for m in m_ if "VORPOSTEN" in m], lauf_, len(nochmal), tor_, vp, bogen2
+        return [m[:60] for m in m_ if "VORPOSTEN" in m or "SCHWACHSTELLE" in m], lauf_, len(nochmal), tor_, vp, bogen2
     m22, l22, n22, t22, vp22, bg22 = vorposten(True)
     m22g, l22g, _, _, vp22g, _ = vorposten(False)
     pruefe(22, "Vorposten %s: %s, Laufbefehle %s, naechste Runde %d, Bogen dann %s, am Tor Angriff %s | ohne Treffer: %s %s" % (
         vp22, m22, l22, n22, bg22, t22, m22g, l22g),
            vp22 and F.schach(vp22, (306, 106)) == 4 and vp22[1] > 106 and ([list(vp22), 10] in [list(x) for x in l22])
            and n22 == 0 and bg22 == [list(vp22)] and t22 == [10]
-           and vp22g is None and any("keiner gefunden" in m for m in m22g) and l22g == [([300, 100], 11)])
+           and vp22g is None and l22g == [([300, 100], 11)])     # (B-140: ohne erreichbares Nachbarfeld kein Ziel)
     # 23 (B-139, Daniel 21:44, Bild: nach dem ersten zerstoerten Turm standen alle vor der Burg und wurden abgeschossen): zwei
     #    Tore, das erste faellt, der Wegtest findet am Lord (Ringe 1-3) nichts -> "eingemauert" und SOFORT die naechste
     #    Schwachstelle (kein Stau abwarten). Gegenprobe: Lord erreichbar (Feld 2 suedlich) -> alle Nahkaempfer laufen dorthin,
@@ -440,7 +440,8 @@ def main():
         f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
         lp_ = (300, 100)
         def wt(nr, punkte):
-            return [(q[1] > 106 and abs(q[0] - 306) <= 4) or (erreichbar and q == (lp_[0], lp_[1] + 2)) for q in punkte]
+            return [(q[1] > 106 and abs(q[0] - 306) <= 4) or (q[1] > 96 and abs(q[0] - 290) <= 3 and q[1] <= 99)
+                    or (erreichbar and q == (lp_[0], lp_[1] + 2)) for q in punkte]
         f.wegtest = wt
         f.schritt({"t": 12000}, *lage(5, heim), Befehle())
         L_, G_ = lage(0, heim)
@@ -470,7 +471,7 @@ def main():
         e23, z23, m23, z23g, m23g, l23g, lord23g),
            e23 == 901 and z23 == 902 and any("eingemauert" in m for m in m23) and any("SCHWACHSTELLE (Lord eingemauert)" in m for m in m23)
            and z23g is None and any("erreichbar bei (300, 102)" in m for m in m23g) and ([300, 102], 10) in [tuple(x) for x in l23g]
-           and lord23g == [10])
+           and lord23g and all(x == 10 for x in lord23g))   # (B-140: Lord-Befehle alle WIEDERHOLEN Runden, in 6 Runden auch zwei)
     # 24 (B-140, Daniel 21:47 "die beste Position auswaehlen"): zwei Torhaeuser am Lord - eines mit 400 Leben im Schussfeld
     #    beider Feindschuetzen, eines mit 1.500 Leben ausserhalb jeder Reichweite -> Ziel ist das ungedeckte (wenigster Beschuss
     #    vor wenigsten Leben). Gegenprobe: liegen beide im Schussfeld, gewinnt wieder das mit weniger Leben.
