@@ -5,7 +5,9 @@
 //! Stufe 1 (B-115): Einheiten je Spieler zaehlen, alle 500 Takte eine Protokollzeile.
 //! S0 (docs/plans/Plan_Kern.md): Taktwaechter, Messbasis, Fehlerfang - ein Fehler schaltet den Kern ab, nicht das Spiel.
 //! S1: Augen - Einheiten, Gebaeude und Grabenwache in jedem neuen Takt (welt.rs); Weltbild auf Befehl ausschreiben.
+//! S2: Haende - Auftraege an uebergebene Einheiten ueber den Befehlsweg des Spiels, ein Gruppenbefehl je Takt (haende.rs).
 
+mod haende;
 mod waechter;
 mod welt;
 
@@ -16,10 +18,11 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
 
+use haende::{Annahme, Auftrag, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 5;
+pub const VERSION: u32 = 6;
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -65,6 +68,7 @@ impl Messung {
 struct Zustand {
     waechter: Waechter,
     welt: Welt,
+    buch: Option<Buch>,
     letzte_zeile: i32,
     letzter_takt: Option<Instant>,
     m: Messung,
@@ -73,6 +77,7 @@ struct Zustand {
 static ZUSTAND: Mutex<Zustand> = Mutex::new(Zustand {
     waechter: Waechter::neu(),
     welt: Welt::neu(),
+    buch: None,
     letzte_zeile: -1,
     letzter_takt: None,
     m: Messung::neu(),
@@ -134,6 +139,36 @@ fn geschuetzt(was: &str, f: impl FnOnce() -> i32) -> i32 {
     }
 }
 
+/// S2: ein Gruppenbefehl je neuem Takt - erst wenn der letzte in seiner Gruppe steht (oder WARTEN_TAKTE vorbei sind).
+fn haende_takt(z: &mut Zustand, tick: i32) {
+    let buch = z.buch.get_or_insert_with(Buch::default);
+    if let Some((g, e, t)) = &buch.warten {
+        if !haende::in_gruppe(*g, e) && tick - *t < haende::WARTEN_TAKTE {
+            return;
+        }
+        buch.warten = None;
+    }
+    let Some((a, einheiten)) = buch.naechster() else { return };
+    if !haende::absender_aktiv() {
+        schreibe(&format!("haende tick {}: VERWEIGERT - Absender-Umbau von logik.lua fehlt, Befehle gingen an den Menschen \
+                           ({} Einheiten, Auftrag {:?})", tick, einheiten.len(), a));
+        return;
+    }
+    let platz = einheiten.iter().find_map(|nr| z.welt.einheiten.iter().find(|e| e.nr == *nr).map(|e| e.besitzer as i32));
+    let Some(platz) = platz else {
+        schreibe(&format!("haende tick {}: keine der {} Einheiten lebt - Auftrag {:?} verworfen", tick, einheiten.len(), a));
+        return;
+    };
+    match haende::absetzen(a, &einheiten, platz) {
+        Ok((gruppe, gewaehlt)) => {
+            schreibe(&format!("haende tick {}: Gruppe {}, {} von {} Einheiten von Spieler {}, Auftrag {:?} - abgesetzt",
+                              tick, gruppe, gewaehlt.len(), einheiten.len(), platz, a));
+            buch.abgesetzt(a, &gewaehlt, gruppe, tick);
+        }
+        Err(e) => schreibe(&format!("haende tick {}: Auftrag {:?} fuer {} Einheiten - FEHLER {}", tick, a, einheiten.len(), e)),
+    }
+}
+
 fn ort(feld: usize) -> String {
     Welt::feld_xy(feld).map_or(format!("Feld {}", feld), |(x, y)| format!("({},{})", x, y))
 }
@@ -163,6 +198,7 @@ fn takt(tick: i32, spieler: i32) -> i32 {
                     tick, g.neu_geplant.len(), orte(&g.neu_geplant), g.neu_ausgehoben.len(), orte(&g.neu_ausgehoben),
                     g.zugeschuettet.len(), orte(&g.zugeschuettet), g.plan_geloescht, g.geplant, g.ausgehoben));
             }
+            haende_takt(&mut z, tick);
         }
         Ereignis::Epoche { von, nach } => {
             schreibe(&format!("epoche {} tick {} von {} (Sprung {})", z.waechter.epoche, nach,
@@ -187,10 +223,11 @@ fn takt(tick: i32, spieler: i32) -> i32 {
         let w = &z.waechter;
         schreibe(&format!(
             "waechter tick {} version {} epoche {} neu {} pause {} wechsel {} keine_partie {} | aufrufe {} kern_us_mittel {:.1} \
-             kern_us_max {:.1} | takte {} takt_ms_mittel {:.3} | welt_us {:.1} karte_us {:.1} einheiten {} gebaeude {} max {}",
+             kern_us_max {:.1} | takte {} takt_ms_mittel {:.3} | welt_us {:.1} karte_us {:.1} einheiten {} gebaeude {} max {} | kern_einheiten {} auftraege_offen {}",
             tick, VERSION, w.epoche, w.neu, w.pause, w.wechsel, w.keine_partie, m.aufrufe, je_aufruf(m.kern_ns),
             m.kern_ns_max as f64 / 1000.0, m.takte, je_takt(m.takt_ns) / 1000.0, je_takt(m.welt_ns), je_takt(m.karte_ns),
-            z.welt.einheiten.len(), z.welt.gebaeude.len(), z.welt.einheiten_max));
+            z.welt.einheiten.len(), z.welt.gebaeude.len(), z.welt.einheiten_max,
+            z.buch.as_ref().map_or(0, |b| b.eigene.len()), z.buch.as_ref().map_or(0, |b| b.offen_zahl())));
         z.m = Messung::neu();
     }
     let dauer = start.elapsed().as_nanos();
@@ -232,6 +269,41 @@ pub extern "C" fn samurai_welt_schreiben(tick: i32) -> i32 {
         match z.welt.schreiben(tick, WELT_EINHEITEN, WELT_GEBAEUDE) {
             Ok(()) => z.welt.einheiten.len() as i32,
             Err(_) => -3,
+        }
+    })
+}
+
+/// S2: Einheit `nr` dem Kern uebergeben (ein Schreiber je Einheit). Rueckgabe 1.
+#[unsafe(no_mangle)]
+pub extern "C" fn samurai_uebernehmen(nr: i32) -> i32 {
+    geschuetzt("samurai_uebernehmen", || {
+        zustand().buch.get_or_insert_with(Buch::default).uebernehmen(nr);
+        1
+    })
+}
+
+/// S2: Einheit `nr` zurueckgeben - offene Auftraege fuer sie verfallen. Rueckgabe 1.
+#[unsafe(no_mangle)]
+pub extern "C" fn samurai_freigeben(nr: i32) -> i32 {
+    geschuetzt("samurai_freigeben", || {
+        zustand().buch.get_or_insert_with(Buch::default).freigeben(nr);
+        1
+    })
+}
+
+/// S2: Auftrag fuer eine uebergebene Einheit - art 17 Laufen nach (a, b), 4 Angriff auf Einheit a, 9 auf Gebaeude a.
+/// Abgesetzt wird im naechsten neuen Takt. Rueckgabe: 1 angenommen, 0 doppelt (laeuft schon), -4 nicht uebergeben,
+/// -5 unbekannte Art.
+#[unsafe(no_mangle)]
+pub extern "C" fn samurai_auftrag(art: i32, nr: i32, a: i32, b: i32) -> i32 {
+    geschuetzt("samurai_auftrag", || {
+        let mut z = zustand();
+        let untaetig = z.welt.einheiten.iter().find(|e| e.nr == nr).is_none_or(|e| matches!(e.zustand, 0 | 1));
+        match z.buch.get_or_insert_with(Buch::default).auftrag(nr, Auftrag { art, a, b }, untaetig) {
+            Annahme::Angenommen => 1,
+            Annahme::Doppelt => 0,
+            Annahme::NichtUebernommen => -4,
+            Annahme::UnbekannteArt => -5,
         }
     })
 }

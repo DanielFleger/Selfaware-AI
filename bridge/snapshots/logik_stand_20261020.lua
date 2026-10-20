@@ -873,6 +873,12 @@ local function kernLaden(datei)
   if af then k.test_fehler = core.exposeCode(af, 1, 0) end
   local aw = adresse("samurai_welt_schreiben")          -- ab Version 3 (B-145 S1)
   if aw then k.welt = core.exposeCode(aw, 1, 0) end
+  local au, af2, aa = adresse("samurai_uebernehmen"), adresse("samurai_freigeben"), adresse("samurai_auftrag")   -- ab 6 (S2)
+  if au and af2 and aa then
+    k.uebernehmen = core.exposeCode(au, 1, 0)
+    k.freigeben = core.exposeCode(af2, 1, 0)
+    k.auftrag = core.exposeCode(aa, 4, 0)
+  end
   local alt = kern and (kern.datei .. " Version " .. tostring(kern.version)) or "keine"
   kern = k
   return true, "geladen " .. datei .. ", Version " .. tostring(k.version) .. " (vorher: " .. alt .. ")"
@@ -881,6 +887,10 @@ end
 -- { "kern": { "laden": "samurai_kern_2.dll" } }  andere Fassung laden (Rueckweg: "samurai_kern.dll")
 -- { "kern": { "test_fehler": true } }              Gegenprobe: absichtlicher Fehler im Kern -> Kern aus, Spiel laeuft weiter
 -- { "kern": { "welt": true } }                     S1: Weltbild des Kerns -> ucp/villagestudio/kern_lagebild.txt, kern_gebaeude.txt
+-- { "kern": { "uebernehmen": [nr, ...] } }         S2: Einheiten dem Kern uebergeben (ein Schreiber je Einheit)
+-- { "kern": { "freigeben": [nr, ...] } }           S2: zurueckgeben
+-- { "kern": { "lauf": { "einheiten": [...], "x": 140, "y": 250 } } }      S2: Auftrag Laufen
+-- { "kern": { "angriff": { "einheiten": [...], "ziel": nr } } }  bzw. "gebaeude": nr - S2: Auftrag Angriff
 -- { "kern": { "stand": true } }                    welche Fassung laeuft
 local function kernBefehl(cmd)
   local c = cmd.kern
@@ -901,6 +911,35 @@ local function kernBefehl(cmd)
     local ok, n = pcall(kern.welt, tick())
     log(INFO, string.format("KERN welt: Tick %d, Rueckgabe %s (ok=%s) -> kern_lagebild.txt, kern_gebaeude.txt", tick(),
       tostring(n), tostring(ok)))
+    return true
+  end
+  if c.uebernehmen ~= nil or c.freigeben ~= nil or c.lauf ~= nil or c.angriff ~= nil then
+    if kern == nil or kern.auftrag == nil then
+      log(INFO, "KERN haende: diese Fassung hat keine Haende")
+      return true
+    end
+    local function zahl(v) v = tonumber(v) or 0; if v >= 0x80000000 then v = v - 0x100000000 end; return v end
+    local was, ergebnis = "", {}
+    if type(c.uebernehmen) == "table" then
+      for _, nr in ipairs(c.uebernehmen) do kern.uebernehmen(tonumber(nr) or 0) end
+      was = string.format("uebernommen %d", #c.uebernehmen)
+    elseif type(c.freigeben) == "table" then
+      for _, nr in ipairs(c.freigeben) do kern.freigeben(tonumber(nr) or 0) end
+      was = string.format("freigegeben %d", #c.freigeben)
+    else
+      local a = c.lauf or c.angriff
+      local art, wa, wb = 17, tonumber(a.x) or 0, tonumber(a.y) or 0
+      if c.angriff ~= nil then
+        if a.gebaeude ~= nil then art, wa, wb = 9, tonumber(a.gebaeude) or 0, 0 else art, wa, wb = 4, tonumber(a.ziel) or 0, 0 end
+      end
+      for _, nr in ipairs(a.einheiten or {}) do
+        local r = zahl(kern.auftrag(art, tonumber(nr) or 0, wa, wb))
+        ergebnis[#ergebnis + 1] = tostring(r)
+      end
+      was = string.format("Auftrag Art %d (%d,%d) fuer %d Einheiten -> %s (1 angenommen, 0 doppelt, -4 nicht uebergeben)",
+        art, wa, wb, #ergebnis, table.concat(ergebnis, " "))
+    end
+    log(INFO, string.format("KERN haende Tick %d: %s", tick(), was))
     return true
   end
   if c.test_fehler ~= nil then

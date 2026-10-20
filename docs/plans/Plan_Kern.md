@@ -112,6 +112,46 @@ Versuch nur 10 von 22 Feldern (warum, ungeklaert - fuer den Kern unerheblich).
 **Naechste Verbesserung Grabenwache:** statt 80.400 Felder je Takt die Zaehler des Spiels pruefen (`moatTileCount`,
 `currentMoatCount`, Spielkarte-Strukturen) und nur bei Aenderung voll lesen - das spart die ~100 us je Takt.
 
+## Bauplan S2 Haende (20.10.2026, 23:40) - vor dem ersten Bau
+
+Quelle: der heutige Befehlsweg in logik_stand_20261020.lua (befehlAbsetzen Z. ~1855, angriff Z. ~2304, angriffSchlangeTick,
+absenderAktiv) - nachgelesen, nicht erinnert. Der Kern geht denselben Weg in Rust, damit es keinen zweiten gibt:
+
+1. **Befehl absetzen** (wie befehlAbsetzen): 6 Werte nach GameCommandParam (GSS 0x0191D768 + 0x7A850), queueCommand
+   0x00489100 (thiscall, this = GSS, 1 Argument), dann den eben eingereihten Eintrag (Nr bei GSS+0x2D824, Eintrag
+   GSS+0x3C67C + Nr*0x4F8: +8 Art, +9 Zustand 1) mit Absender 0x53414D00 + Platz stempeln. Waehrend des Einreihens steht
+   "ich" (0x01A275DC) auf dem Platz der Einheiten, danach sofort zurueck (wie alsSpieler).
+2. **Laufen/Angreifen** (wie angriff): Auswahl des Menschen (UnitsState+116, 100 Worte) sichern, Auswahlmarken (+178/+180)
+   der eigenen Einheiten loeschen, die Einheiten auswaehlen, freie Gruppe suchen (Gruppentabelle 0x01667F78+40, je 0x334,
+   +24 = belegt), Befehl 16 {Gruppe}, Auswahl zurueck, dann 17 {Gruppe, x, y} oder 36 {Gruppe, Art 4/9, Ziel, uid}.
+   **Gruppen sucht der Kern von 1 aufwaerts**, logik.lua von 1249 abwaerts - so greifen beide im selben Takt nie dieselbe.
+3. **Ein Gruppenbefehl je Takt**, naechster erst, wenn die Einheiten in ihrer Gruppe stehen oder 20 Takte vorbei sind
+   (gemessen 04.10.: mehrere Auswahlbefehle im selben Takt landeten in der letzten Gruppe).
+4. **Ein Schreiber je Einheit:** der Kern befiehlt nur Einheiten, die ihm uebergeben wurden ({"kern": {"uebernehmen": [...]}},
+   Rueckweg "freigeben"). **Kein Dauer-Neubefehl:** derselbe Auftrag an dieselbe Einheit wird nicht wiederholt.
+5. **Ohne Absender-Umbau kein Befehl** (Byte an 0x00489387 != 0xE8 -> verweigert und gemeldet) - sonst gingen die Befehle an
+   den Menschen.
+
+Pruefpunkt: Kern-Laufbefehl -> im naechsten Takt steht die Einheit in der neuen Gruppe und ihr Laufziel ist (x, y)
+(Lagebild). Gegenproben: nicht uebernommene Einheit -> abgelehnt; derselbe Auftrag zweimal -> einmal abgesetzt; Absender-
+Umbau aus -> verweigert. Risiko: falsche Aufrufart toetet das Spiel (Betriebsregeln Z. 495-503) - queueCommand ist mit
+denselben Werten seit 04.10. aus Lua belegt (exposeCode(0x00489100, 2, 1) = thiscall, this + 1 Argument).
+
+## Stand S2 (20.10.2026, 23:38) - Haende, im Spiel geprueft (Kern Version 6, Instanz 5, Pruefstand B140)
+
+| Pruefpunkt | Ergebnis | Beleg |
+|---|---|---|
+| Kern setzt selbst einen Gruppenbefehl ab | Takt 40.471: "Gruppe 16, 3 von 3 Einheiten von Spieler 1, Laufen (163,192) - abgesetzt"; Rust -> queueCommand (thiscall) lief, das Spiel lief weiter | samurai_kern.log `haende`-Zeile |
+| Einheiten folgen | alle 3 in Gruppe 16 (vorher 1245/1242/1249); Arab. Bogen 85 und Streitkolben 91 liefen hin und stehen auf (163,192)/(162,191) - das Spiel verteilt eine Gruppe in Formation um das Ziel; Bogenschuetze 145 (Zustand 8, 40 Felder weg) blieb an seinem Platz | `python -m selfaware.tools.experiments.kern_haende_pruefen` + Weltbild ueber 3 Zeitpunkte |
+| Gegenprobe A: nicht uebergeben | Auftrag fuer Einheit 146 -> -4, ihr Laufziel blieb (204,242) | dito |
+| Gegenprobe B: kein Dauer-Neubefehl | derselbe Auftrag an die laufenden drei -> 0 0 0 | dito |
+| Gegenprobe C: ohne Absender-Umbau | `{"absender": "aus"}` -> Kern Takt 42.348 "VERWEIGERT - Absender-Umbau fehlt"; danach `{"absender": "an"}` wieder eingebaut | samurai_kern.log, ucp3.log |
+| Offline | `cargo test` 14/14; Gegenlaeufe rot (Schreiber-Regel, Dauer-Neubefehl-Regel) | crates/samurai-kern |
+
+**Offen:** Stempel fuer einen Platz, der nicht "ich" ist (2v2) - hier war der Kern selbst Spieler 1; Angriffsauftraege (Art 4/9)
+im Spiel noch nicht abgesetzt (gleicher Weg, Befehl 36); warum Bogenschuetze 145 nicht lief (Zustand 8) - im Feldzug wichtig;
+Pruefpunkt "Laufziel = Auftrag" muss die Formation zulassen (Abstand statt Gleichheit).
+
 ## Beziehungen (beide Richtungen)
 
 - Spiel -> Kern: ruft ihn nach jedem Takt UND in der Pause (Haken nach `processGameTick`). Kern -> Spiel: liest Strukturen, handelt nur ueber Spielbefehle.
