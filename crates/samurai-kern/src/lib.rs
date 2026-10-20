@@ -6,9 +6,11 @@
 //! S0 (docs/plans/Plan_Kern.md): Taktwaechter, Messbasis, Fehlerfang - ein Fehler schaltet den Kern ab, nicht das Spiel.
 //! S1: Augen - Einheiten, Gebaeude und Grabenwache in jedem neuen Takt (welt.rs); Weltbild auf Befehl ausschreiben.
 //! S2: Haende - Auftraege an uebergebene Einheiten ueber den Befehlsweg des Spiels, ein Gruppenbefehl je Takt (haende.rs).
+//! S3: Wege - Erreichbarkeit ueber das Wegnetz (wege.rs); Grabenreflex: Graben am Ziel einer Kern-Einheit -> sofort neues Ziel.
 
 mod haende;
 mod waechter;
+mod wege;
 mod welt;
 
 use std::fs::OpenOptions;
@@ -22,7 +24,7 @@ use haende::{Annahme, Auftrag, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 6;
+pub const VERSION: u32 = 8;
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -40,6 +42,11 @@ const WELT_GEBAEUDE: &str = "ucp/villagestudio/kern_gebaeude.txt";
 const PROTOKOLL_ALLE: i32 = 500;
 /// So viele neue Grabenfelder werden je Meldung mit Ort genannt
 const GRABEN_ORTE: usize = 5;
+/// S3 Grabenreflex: Graben bis so viele Felder am Laufziel -> neues Ziel auf den Ringen GRABEN_RING_MIN..=MAX
+const GRABEN_R: i32 = 2;
+const GRABEN_RING_MIN: i32 = 3;
+const GRABEN_RING_MAX: i32 = 10;
+const SLOT_ICH: usize = 0x01A2_75DC;
 /// samurai_test_fehler(TESTFEHLER) loest absichtlich einen Fehler aus (Gegenprobe zum Fehlerfang)
 const TESTFEHLER: i32 = 0x5A4D;
 
@@ -169,6 +176,41 @@ fn haende_takt(z: &mut Zustand, tick: i32) {
     }
 }
 
+/// S3 Grabenreflex (Daniel 22:27: "sofort erkennen, wenn jemand einen Burggraben setzt - dann soll darauf nicht gegangen
+/// werden, sondern einen anderen Weg"): liegt ein neues Grabenfeld bis GRABEN_R am Laufziel einer Kern-Einheit, sucht der Kern
+/// das naechste Feld ohne Graben im Umkreis GRABEN_R, das die Einheit erreichen kann, und gibt den neuen Laufauftrag.
+fn grabenreflex(z: &mut Zustand, tick: i32, neu: &[(i32, i32)]) {
+    let Some(buch) = z.buch.as_mut() else { return };
+    let welt = &z.welt;
+    let zeilen = Welt::zeilen();
+    let mut neue: Vec<(i32, (i32, i32))> = Vec::new();
+    for (nr, ziel) in buch.lauf_ziele() {
+        let Some(&(gx, gy)) = neu.iter().find(|&&(x, y)| (x - ziel.0).abs().max((y - ziel.1).abs()) <= GRABEN_R) else {
+            continue;
+        };
+        let Some(e) = welt.einheiten.iter().find(|e| e.nr == nr) else { continue };
+        let platz = e.besitzer as i32;
+        // (gemessen 23:46: eine Einheit kann auf einem Feld mit Gebiet 0 stehen - dann zaehlt das naechste begehbare daneben)
+        let von = match wege::gebiet(e.x, e.y) {
+            g if g > 0 => g,
+            _ => wege::ring_suche((e.x, e.y), (e.x, e.y), 1, 3, |x, y| wege::gebiet(x, y) > 0)
+                .map_or(0, |(x, y)| wege::gebiet(x, y)),
+        };
+        let ersatz = wege::ring_suche(ziel, (e.x, e.y), GRABEN_RING_MIN, GRABEN_RING_MAX, |x, y| {
+            !welt.graben_nahe(x, y, GRABEN_R, &zeilen) && wege::kann_hin(platz, von, wege::gebiet(x, y))
+        });
+        schreibe(&format!("grabenreflex tick {}: Graben bei ({},{}) am Ziel ({},{}) von Einheit {} -> {}", tick, gx, gy,
+                          ziel.0, ziel.1, nr, ersatz.map_or("KEIN freies erreichbares Feld bis 10".to_string(),
+                                                            |p| format!("neues Ziel ({},{})", p.0, p.1))));
+        if let Some(p) = ersatz {
+            neue.push((nr, p));
+        }
+    }
+    for (nr, p) in neue {
+        buch.auftrag(nr, Auftrag { art: haende::LAUF, a: p.0, b: p.1 }, true);
+    }
+}
+
 fn ort(feld: usize) -> String {
     Welt::feld_xy(feld).map_or(format!("Feld {}", feld), |(x, y)| format!("({},{})", x, y))
 }
@@ -197,6 +239,11 @@ fn takt(tick: i32, spieler: i32) -> i32 {
                     "graben tick {}: neu geplant {} [{}] | neu ausgehoben {} [{}] | zugeschuettet {} [{}] | Planung geloescht {} | jetzt geplant {} ausgehoben {}",
                     tick, g.neu_geplant.len(), orte(&g.neu_geplant), g.neu_ausgehoben.len(), orte(&g.neu_ausgehoben),
                     g.zugeschuettet.len(), orte(&g.zugeschuettet), g.plan_geloescht, g.geplant, g.ausgehoben));
+            }
+            if !g.neu_geplant.is_empty() || !g.neu_ausgehoben.is_empty() {
+                let neu: Vec<(i32, i32)> = g.neu_geplant.iter().chain(g.neu_ausgehoben.iter())
+                    .filter_map(|&f| Welt::feld_xy(f)).collect();
+                grabenreflex(&mut z, tick, &neu);
             }
             haende_takt(&mut z, tick);
         }
@@ -266,6 +313,8 @@ pub extern "C" fn samurai_welt_schreiben(tick: i32) -> i32 {
     geschuetzt("samurai_welt_schreiben", || {
         let mut z = zustand();
         z.welt.lesen();
+        let ich = unsafe { i32_bei(SLOT_ICH) };
+        z.welt.erreichbar_berechnen(ich);
         match z.welt.schreiben(tick, WELT_EINHEITEN, WELT_GEBAEUDE) {
             Ok(()) => z.welt.einheiten.len() as i32,
             Err(_) => -3,

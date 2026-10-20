@@ -5,14 +5,14 @@
 Haelt das Spiel an (falls es laeuft, danach wieder los), laesst logik.lua das Lagebild schreiben
 ({"lagebild": true} -> abzug/lagebild.txt, gebaeude.txt) und den Kern sein Weltbild
 ({"kern": {"welt": true}} -> kern_lagebild.txt, kern_gebaeude.txt) und vergleicht jede Spalte.
-"erreichbar" braucht den Wegfinder (S3) und wird ausgelassen. Instanz und Spieler wie immer ueber
-SHC_INSTANZ / SHC_SPIELER.
+Ab Kern-Fassung 7 (S3) wird auch "erreichbar" verglichen (aeltere Fassungen schreiben -9: dann
+SHC_OHNE_ERREICHBAR=ja). Instanz und Spieler wie immer ueber SHC_INSTANZ / SHC_SPIELER.
 """
 
 import os
 import sys
 
-AUSNAHMEN = frozenset({"erreichbar"})
+AUSNAHMEN = frozenset({"erreichbar"} if os.environ.get("SHC_OHNE_ERREICHBAR") == "ja" else set())
 
 
 def lesen(pfad, mit_tick):

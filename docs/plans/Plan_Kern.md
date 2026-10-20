@@ -152,6 +152,32 @@ denselben Werten seit 04.10. aus Lua belegt (exposeCode(0x00489100, 2, 1) = this
 im Spiel noch nicht abgesetzt (gleicher Weg, Befehl 36); warum Bogenschuetze 145 nicht lief (Zustand 8) - im Feldzug wichtig;
 Pruefpunkt "Laufziel = Auftrag" muss die Formation zulassen (Abstand statt Gleichheit).
 
+## Bauplan S3 Wege (20.10.2026, 23:45) - vor dem ersten Bau
+
+- **Erreichbarkeit ohne Nebenwirkung:** nicht der Wegtest von logik.lua (setzt das Laufziel der Einheit um und zurueck), sondern
+  die reine Abfrage, die schon das Lagebild fuer "erreichbar" nutzt: Gebiet je Feld (PathConnectionLayer 0x01DF6FD8, short je
+  Feld, Feld = addXgetTile(y) + x) und calculateCanPlayerUnitsNavigateToAreaFromArea 0x004A5320 (thiscall, this =
+  PathFindingState 0x012BB8C8; Spieler, Gebiet von, Gebiet nach, 0) - dieselbe Pruefung nutzt der Holzfaeller (findTree).
+- **Pruefpunkt:** der Kern fuellt im Weltbild die Spalte "erreichbar" genau wie logik.lua (Start (165,111), Spieler "ich",
+  Einheiten: fremde ja, eigene -1; Gebaeude: Rand des Grundrisses) -> kern_vergleich vergleicht dann ALLE Spalten.
+- **Grabenreflex** (Daniel 22:27): meldet die Grabenwache ein neues Graben-Feld (geplant oder ausgehoben) bis 2 Felder am
+  Laufziel einer Kern-Einheit, sucht der Kern im selben Takt auf Ringen 3-10 um das alte Ziel das naechste Feld ohne Graben
+  im Umkreis 2, das von der Einheit aus erreichbar ist, und gibt den neuen Laufauftrag (ab dem naechsten Takt).
+  Gegenprobe: Graben weit weg -> kein neuer Auftrag.
+
+## Stand S3 (20.10.2026, 23:49) - Wege und Grabenreflex, im Spiel geprueft (Kern Version 7-8, Instanz 5, Pruefstand B140)
+
+| Pruefpunkt | Ergebnis | Beleg |
+|---|---|---|
+| Erreichbarkeit = Lagebild | Kern fuellt "erreichbar" ueber Wegnetz-Gebiet + calculateCanPlayerUnitsNavigateToAreaFromArea; Takt 42.558: 701 Einheiten, 315 Gebaeude, **alle Spalten gleich**; die Spalte unterscheidet wirklich (Einheiten 177x 1, 19x 0, 505x -1; Gebaeude 299x 1, 16x 0) | `python -m selfaware.tools.experiments.kern_vergleich` -> GLEICH |
+| Grabenreflex, Gegenprobe | Graben 15 Felder neben dem Ziel (Takt 42.903) -> keine Reaktion | samurai_kern.log |
+| Grabenreflex | Graben am Ziel (158,196), geplant und gesehen in Takt 44.490 -> im selben Takt neue Ziele: Einheit 85 -> (158,192), 91 -> (154,195); Gruppenbefehle in 44.490 und 44.491; beide stehen danach dort | `grabenreflex`- und `haende`-Zeilen, Weltbild |
+| Fehler gefunden und behoben | Version 7: Einheit 85 stand auf einem Feld mit Gebiet 0 -> "kein freies erreichbares Feld". Gemessen: ein geplanter Graben aendert das Gebiet NICHT (Felder (157,196)/(158,196) sind auch ohne Graben 0). Version 8 nimmt dann das naechste begehbare Feld daneben als Start | dito |
+| Offline | `cargo test` 17/17 (Ringsuche, Feld<->xy, Graben-Vergleich ...) | crates/samurai-kern |
+
+**Offen:** Reflex prueft nur das Ziel, nicht den Weg dorthin (der Weg des Spiels ist nicht sichtbar); ausgehobener Graben, der ein
+Gebiet teilt, wird ueber die Erreichbarkeit erfasst - im Spiel noch nicht beobachtet (kein Aushub waehrend des Tests).
+
 ## Beziehungen (beide Richtungen)
 
 - Spiel -> Kern: ruft ihn nach jedem Takt UND in der Pause (Haken nach `processGameTick`). Kern -> Spiel: liest Strukturen, handelt nur ueber Spielbefehle.

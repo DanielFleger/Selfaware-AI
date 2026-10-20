@@ -84,6 +84,16 @@ impl Buch {
         self.warten = Some((gruppe, einheiten.to_vec(), tick));
     }
 
+    /// S3: (Einheit, Laufziel) aller zuletzt abgesetzten Laufauftraege von Einheiten, die der Kern noch fuehrt
+    pub fn lauf_ziele(&self) -> Vec<(i32, (i32, i32))> {
+        let mut v: Vec<_> = self.letzter.iter()
+            .filter(|(nr, a)| a.art == LAUF && self.eigene.contains(*nr))
+            .map(|(nr, a)| (*nr, (a.a, a.b)))
+            .collect();
+        v.sort();
+        v
+    }
+
     pub fn offen_zahl(&self) -> usize {
         self.offen.values().map(|s| s.len()).sum()
     }

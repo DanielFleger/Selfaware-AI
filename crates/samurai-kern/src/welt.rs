@@ -59,6 +59,8 @@ pub struct Einheit {
     pub arbeitsplatz: i16,
     pub nahziel: i16,
     pub nahangreifer: i16,
+    /// S3: wie logik.lua - fremde Einheit vom Startpunkt aus erreichbar 1/0, eigene -1; -9 = nicht berechnet
+    pub erreichbar: i32,
 }
 
 #[derive(Clone, Copy, Default)]
@@ -74,6 +76,9 @@ pub struct Gebaeude {
     pub grenze: i32,
     pub verbund: i16,
     pub ware: i32,
+    pub groesse: i32,
+    /// S3: ein Feld am Rand des Grundrisses vom Startpunkt aus erreichbar 1/0; -9 = nicht berechnet
+    pub erreichbar: i32,
 }
 
 /// Was die Grabenwache in einem Takt gesehen hat
@@ -144,6 +149,7 @@ impl Welt {
                     arbeitsplatz: i16_bei(u + 824),
                     nahziel: i16_bei(u + 830),
                     nahangreifer: i16_bei(u + 942),
+                    erreichbar: -9,
                 });
             }
             let anz = i32_bei(GEBAEUDE + 8);
@@ -165,6 +171,8 @@ impl Welt {
                         grenze: i32_bei(b + 0x19C),
                         verbund: i16_bei(b + 0x1A6),
                         ware: i32_bei(b + 0x1A0),
+                        groesse: i32_bei(b + 0x10C),
+                        erreichbar: -9,
                     });
                 }
             }
@@ -179,6 +187,62 @@ impl Welt {
         let a = graben_vergleich(&self.graben, &jetzt);
         self.graben = jetzt;
         a
+    }
+
+    /// S3: die Spalte "erreichbar" genau wie das Lagebild von logik.lua (Startpunkt VON_LAGEBILD, Spieler "ich").
+    pub fn erreichbar_berechnen(&mut self, ich: i32) {
+        use crate::wege::{gebiet, kann_hin, VON_LAGEBILD};
+        let von = gebiet(VON_LAGEBILD.0, VON_LAGEBILD.1);
+        for e in &mut self.einheiten {
+            e.erreichbar = -1;
+            if e.besitzer as i32 != ich && e.besitzer > 0 && von > 0 {
+                e.erreichbar = 0;
+                let a = gebiet(e.x, e.y);
+                if a > 0 && kann_hin(ich, von, a) {
+                    e.erreichbar = 1;
+                }
+            }
+        }
+        for b in &mut self.gebaeude {
+            b.erreichbar = 0;
+            let (bx, by) = (b.x as i32, b.y as i32);
+            let gr = if (1..=12).contains(&b.groesse) { b.groesse } else { 3 };
+            if von > 0 && bx >= 1 && by >= 1 {
+                'suche: for d in -1..=gr {
+                    for (x, y) in [(bx + d, by - 1), (bx + d, by + gr), (bx - 1, by + d), (bx + gr, by + d)] {
+                        if (0..400).contains(&x) && (0..400).contains(&y) {
+                            let a = gebiet(x, y);
+                            if a > 0 && kann_hin(ich, von, a) {
+                                b.erreichbar = 1;
+                                break 'suche;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// S3: liegt ein geplantes oder ausgehobenes Grabenfeld bis `r` Felder um (x, y)? (Stand der letzten Grabenwache)
+    pub fn graben_nahe(&self, x: i32, y: i32, r: i32, zeilen: &[(i32, i32)]) -> bool {
+        if self.graben.len() != FELDER {
+            return false;
+        }
+        for yy in y - r..=y + r {
+            for xx in x - r..=x + r {
+                if let Some(f) = feld_aus(zeilen, xx, yy) {
+                    if self.graben[f] != 0 {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    /// Zeilentabelle (erstes x, erstes Feld) je Kartenzeile
+    pub fn zeilen() -> Vec<(i32, i32)> {
+        (0..KARTE_ZEILEN).map(|y| unsafe { (i32_bei(ZEILEN + y * 12), i32_bei(ZEILEN + y * 12 + 4)) }).collect()
     }
 
     /// Feldnummer -> (x, y) ueber die Zeilentabelle des Spiels
@@ -196,16 +260,16 @@ impl Welt {
         writeln!(f, "nr besitzer typ x y leben zustand zielart zieleinheit zieluid zielgebaeude ziel zielx ziely laufx laufy \
                      auswahlvon auswahlmarke gruppe gruppenuid ladung arbeitsplatz erreichbar nahziel nahangreifer")?;
         for e in &self.einheiten {
-            writeln!(f, "{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} -9 {} {}",
+            writeln!(f, "{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
                      e.nr, e.besitzer, e.typ, e.x, e.y, e.leben, e.zustand, e.zielart, e.zieleinheit, e.zieluid,
                      e.zielgebaeude, e.ziel, e.zielx, e.ziely, e.laufx, e.laufy, e.auswahlvon, e.auswahlmarke, e.gruppe,
-                     e.gruppenuid, e.ladung, e.arbeitsplatz, e.nahziel, e.nahangreifer)?;
+                     e.gruppenuid, e.ladung, e.arbeitsplatz, e.erreichbar, e.nahziel, e.nahangreifer)?;
         }
         let mut g = BufWriter::new(File::create(pfad_gebaeude)?);
         writeln!(g, "nr besitzer typ x y leben uid erreichbar vorrat grenze verbund ware")?;
         for b in &self.gebaeude {
-            writeln!(g, "{} {} {} {} {} {} {} -9 {} {} {} {}", b.nr, b.besitzer, b.typ, b.x, b.y, b.leben, b.uid,
-                     b.vorrat, b.grenze, b.verbund, b.ware)?;
+            writeln!(g, "{} {} {} {} {} {} {} {} {} {} {} {}", b.nr, b.besitzer, b.typ, b.x, b.y, b.leben, b.uid,
+                     b.erreichbar, b.vorrat, b.grenze, b.verbund, b.ware)?;
         }
         Ok(())
     }
@@ -243,6 +307,14 @@ pub fn graben_vergleich(vorher: &[u8], jetzt: &[u8]) -> GrabenAenderung {
         }
     }
     a
+}
+
+/// (x, y) -> Feldnummer, nur innerhalb der Zeilenbreite (sonst None)
+pub fn feld_aus(zeilen: &[(i32, i32)], x: i32, y: i32) -> Option<usize> {
+    let (x0, start) = *zeilen.get(usize::try_from(y).ok()?)?;
+    let ende = zeilen.get(y as usize + 1).map_or(FELDER as i32, |z| z.1);
+    let f = start + x - x0;
+    if x >= x0 && f < ende { Some(f as usize) } else { None }
 }
 
 /// zeilen[y] = (erstes x, Nummer des ersten Feldes); die Zeile reicht bis zum ersten Feld der naechsten Zeile.
@@ -303,5 +375,17 @@ mod tests {
         assert_eq!(feld_xy_aus(&zeilen, 1), Some((200, 0)));
         assert_eq!(feld_xy_aus(&zeilen, 2), Some((198, 1)));
         assert_eq!(feld_xy_aus(&zeilen, 7), Some((198, 2)));
+    }
+
+    #[test]
+    fn feld_aus_ist_die_umkehrung_und_kennt_die_zeilenbreite() {
+        let zeilen = [(199, 0), (198, 2), (197, 6), (196, 12)];
+        for f in 0..12 {
+            let (x, y) = feld_xy_aus(&zeilen, f).unwrap();
+            assert_eq!(feld_aus(&zeilen, x, y), Some(f));
+        }
+        assert_eq!(feld_aus(&zeilen, 198, 0), None);   // links vor der Zeile
+        assert_eq!(feld_aus(&zeilen, 201, 0), None);   // rechts nach der Zeile (Zeile 0 hat 2 Felder)
+        assert_eq!(feld_aus(&zeilen, 5, -1), None);
     }
 }
