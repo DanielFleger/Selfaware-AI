@@ -9,7 +9,7 @@ from selfaware.game import kern_leitung as KL
 
 def _puffer(aufbau=KL.AUFBAU):
     b = bytearray(KL.GROESSE)
-    struct.pack_into(KL.KOPF_FORMAT, b, 0, KL.KENNUNG, aufbau, 4, 40471, 2, 1, 2, 1, 9, 63, 9)
+    struct.pack_into(KL.KOPF_FORMAT, b, 0, KL.KENNUNG, aufbau, 4, 40471, 2, 1, 2, 1, 9, 63, 9, 3)
     struct.pack_into(
         KL.EINHEIT_FORMAT, b, KL.KOPF, 85, 12000, 1, 70, 163, 192, 6, 163, 192, 16, 17, 0, 0, 0
     )
@@ -52,6 +52,7 @@ def test_aufbau_3_wird_vollstaendig_gelesen():
     assert set(w.einheiten) == {85, 91}
     assert w.einheiten[85]["laufx"] == 163 and w.einheiten[85]["gruppe"] == 16
     assert w.einheiten[91]["nahziel"] == -1
+    assert w.beschuss == 3
     assert w.gebaeude == {
         239: {"nr": 239, "typ": 46, "besitzer": 2, "x": 149, "y": 104, "leben": 1500}
     }

@@ -46,7 +46,7 @@ RING_KOPF, RING_N, RING_EINTRAG = 16, 256, 20
 GROESSE = RING_START + RING_KOPF + RING_N * RING_EINTRAG
 OFFEN = -(2**31)
 UEBERNEHMEN, FREIGEBEN, LAUF, ANGRIFF_EINHEIT, ANGRIFF_GEBAEUDE = 1, 2, 17, 4, 9
-KOPF_FORMAT = "<IIIiIiIIIII"
+KOPF_FORMAT = "<IIIiIiIIIIII"
 EINHEIT_FORMAT = "<ii12h"
 GEBAEUDE_FORMAT = "<i6h"
 EINHEIT_FELDER = (
@@ -83,12 +83,13 @@ class Weltbild:
     einheiten: dict
     gebaeude: dict
     vorrat: dict
+    beschuss: int = 0
 
 
 def entpacken(puffer):
     """Bytes im Aufbau 3 -> Weltbild (vorrat: {spieler: {ware: menge}} fuer Spieler 1-8)."""
     kopf = struct.unpack_from(KOPF_FORMAT, puffer, 0)
-    kennung, aufbau, _folge, tick, epoche, ich, ne, ng, geplant, ausgehoben, kern = kopf
+    kennung, aufbau, _folge, tick, epoche, ich, ne, ng, geplant, ausgehoben, kern, beschuss = kopf
     if kennung != KENNUNG or aufbau != AUFBAU:
         raise FalscherAufbau(
             f"Kennung {kennung:#x} / Aufbau {aufbau}, erwartet {KENNUNG:#x} / {AUFBAU}"
@@ -109,7 +110,9 @@ def entpacken(puffer):
     for sp in range(1, SPIELER):
         werte = struct.unpack_from(f"<{WAREN}i", puffer, VORRAT_START + sp * WAREN * 4)
         vorrat[sp] = {name: werte[w] for w, name in WARE_NAMEN.items()}
-    return Weltbild(tick, epoche, ich, kern, geplant, ausgehoben, einheiten, gebaeude, vorrat)
+    return Weltbild(
+        tick, epoche, ich, kern, geplant, ausgehoben, einheiten, gebaeude, vorrat, beschuss
+    )
 
 
 class Leitung:

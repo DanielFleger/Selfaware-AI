@@ -9,7 +9,9 @@
 //! S3: Wege - Erreichbarkeit ueber das Wegnetz (wege.rs); Grabenreflex: Graben am Ziel einer Kern-Einheit -> sofort neues Ziel.
 //! S4a: Leitung - Weltbild jeden neuen Takt in einen benannten gemeinsamen Speicher fuer Python (leitung.rs).
 //! S4b: Auftragsring - Python schreibt Auftraege in denselben Speicher, der Kern arbeitet sie im naechsten Takt ab.
+//! Beschusswache: eigene Kaempfer, die stehen und Leben verlieren, werden im Takt gemeldet (beschuss.rs) - Auge, kein Verhalten.
 
+mod beschuss;
 mod haende;
 mod leitung;
 mod waechter;
@@ -27,7 +29,7 @@ use haende::{Annahme, Auftrag, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 13;
+pub const VERSION: u32 = 14;
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -50,6 +52,8 @@ const GRABEN_R: i32 = 2;
 const GRABEN_RING_MIN: i32 = 3;
 const GRABEN_RING_MAX: i32 = 10;
 const SLOT_ICH: usize = 0x01A2_75DC;
+/// Kaempfer fuer die Beschusswache: Bogen, Armbrust, Speer, Pike, Streitkolben, Schwert, Ritter, Lord, arabische Truppen
+const KAEMPFER: [i16; 15] = [22, 23, 24, 25, 26, 27, 28, 55, 70, 71, 72, 73, 74, 75, 76];
 /// samurai_test_fehler(TESTFEHLER) loest absichtlich einen Fehler aus (Gegenprobe zum Fehlerfang)
 const TESTFEHLER: i32 = 0x5A4D;
 
@@ -82,6 +86,7 @@ struct Zustand {
     /// S4a: None = noch nicht versucht; Some(None) = Anlegen fehlgeschlagen
     leitung: Option<Option<leitung::Leitung>>,
     graben_zahl: (u32, u32),
+    beschuss: Option<beschuss::Wache>,
     letzte_zeile: i32,
     letzter_takt: Option<Instant>,
     m: Messung,
@@ -93,6 +98,7 @@ static ZUSTAND: Mutex<Zustand> = Mutex::new(Zustand {
     buch: None,
     leitung: None,
     graben_zahl: (0, 0),
+    beschuss: None,
     letzte_zeile: -1,
     letzter_takt: None,
     m: Messung::neu(),
@@ -219,6 +225,29 @@ fn grabenreflex(z: &mut Zustand, tick: i32, neu: &[(i32, i32)]) {
     }
 }
 
+/// Beschusswache: eigene Kaempfer ("ich"), die stehen und Leben verlieren - Beginn und Ende je Einheit ins Protokoll.
+fn beschuss_takt(z: &mut Zustand, tick: i32) {
+    let ich = unsafe { i32_bei(SLOT_ICH) };
+    let welt = &z.welt;
+    let w = z.beschuss.get_or_insert_with(beschuss::Wache::default);
+    let eigene = welt.einheiten.iter()
+        .filter(|e| e.besitzer as i32 == ich && KAEMPFER.contains(&e.typ))
+        .map(|e| (e.nr, e.leben, e.x, e.y));
+    for m in w.sieh(tick, eigene) {
+        match m {
+            beschuss::Meldung::Beginn { nr, still } => {
+                if let Some(e) = welt.einheiten.iter().find(|e| e.nr == nr) {
+                    schreibe(&format!(
+                        "beschuss tick {}: Einheit {} (Typ {}, Zustand {}, Zielart {}, Nahziel {}) bei ({},{}) steht seit {} Takten und verliert Leben ({}) [Fenster {} / still {}]",
+                        tick, nr, e.typ, e.zustand, e.zielart, e.nahziel, e.x, e.y, still, e.leben,
+                        beschuss::SCHADEN_FENSTER, beschuss::STILL_TAKTE));
+                }
+            }
+            beschuss::Meldung::Ende { nr } => schreibe(&format!("beschuss tick {}: Einheit {} - Ende", tick, nr)),
+        }
+    }
+}
+
 /// S4b: Auftraege aus dem Ring - Art 1 uebernehmen, 2 freigeben, 17/4/9 Auftrag (wie samurai_auftrag). Ergebnis je Eintrag.
 fn ring_abarbeiten(z: &mut Zustand, tick: i32) {
     let Some(Some(l)) = &z.leitung else { return };
@@ -265,7 +294,8 @@ fn leitung_schreiben(z: &mut Zustand, tick: i32) {
     }
     if let Some(Some(l)) = &z.leitung {
         let ich = unsafe { i32_bei(SLOT_ICH) };
-        l.schreiben(&z.welt, tick, z.waechter.epoche, ich, z.graben_zahl.0, z.graben_zahl.1, VERSION);
+        let beschuss = z.beschuss.as_ref().map_or(0, |w| w.betroffen() as u32);
+        l.schreiben(&z.welt, tick, z.waechter.epoche, ich, z.graben_zahl.0, z.graben_zahl.1, VERSION, beschuss);
     }
 }
 
@@ -304,6 +334,7 @@ fn takt(tick: i32, spieler: i32) -> i32 {
                     .filter_map(|&f| Welt::feld_xy(f)).collect();
                 grabenreflex(&mut z, tick, &neu);
             }
+            beschuss_takt(&mut z, tick);
             ring_abarbeiten(&mut z, tick);
             haende_takt(&mut z, tick);
             leitung_schreiben(&mut z, tick);
@@ -315,6 +346,9 @@ fn takt(tick: i32, spieler: i32) -> i32 {
             z.letzter_takt = Some(start);
             z.letzte_zeile = -1;
             z.welt.epoche();
+            if let Some(w) = z.beschuss.as_mut() {
+                w.leeren();
+            }
             z.welt.lesen();
             let g = z.welt.graben_lesen();
             schreibe(&format!("graben tick {}: Aufnahme der Epoche - geplant {} ausgehoben {}", tick, g.geplant, g.ausgehoben));

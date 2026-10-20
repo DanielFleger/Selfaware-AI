@@ -107,7 +107,9 @@ impl Leitung {
     }
 
     /// Schreibt das Weltbild dieses Takts (Folgezaehler ungerade waehrend des Schreibens).
-    pub fn schreiben(&self, welt: &Welt, tick: i32, epoche: u32, ich: i32, geplant: u32, ausgehoben: u32, kern: u32) {
+    #[allow(clippy::too_many_arguments)]
+    pub fn schreiben(&self, welt: &Welt, tick: i32, epoche: u32, ich: i32, geplant: u32, ausgehoben: u32, kern: u32,
+                     beschuss: u32) {
         let f = self.folge();
         f.fetch_add(1, Ordering::AcqRel);
         fence(Ordering::Release);
@@ -124,6 +126,7 @@ impl Leitung {
             self.setze::<u32>(32, geplant);
             self.setze::<u32>(36, ausgehoben);
             self.setze::<u32>(40, kern);
+            self.setze::<u32>(44, beschuss);   // Zahl eigener Kaempfer unter Beschuss (Beschusswache)
             for (i, e) in welt.einheiten.iter().take(ne).enumerate() {
                 let o = KOPF + i * EINHEIT;
                 self.setze::<i32>(o, e.nr);

@@ -230,6 +230,13 @@ Gemessen 23:51: Speertraeger 165 move -> `confirmed` 3 Takte nach der Beobachtun
 lief) -> richtig NICHT bestaetigt. Offline 3 Tests + Gegenlauf (Bestaetigung ohne Wirkung -> rot). Ressourcen sind noch
 leer (Gold usw. stehen noch nicht im Speicher) - naechster Ausbau der Leitung.
 
+## Beschusswache (21.10.2026, 00:06, Kern Version 14) - Auge, kein Verhalten
+
+Eigene Kaempfer, die Leben verlieren und seit STILL_TAKTE (100) auf demselben Feld stehen, werden im Takt gemeldet (Beginn/Ende,
+mit Zustand, Zielart, Nahziel); die Zahl steht im Kopf des gemeinsamen Speichers (KernPort-Fakt `unter_beschuss`). Gleich beim
+ersten Lauf: 3 eigene Assassinen standen 1.639-2.754 Takte vor Franz' Burg und verloren Leben (L168). Was darauf geschieht
+(zurueckziehen, angreifen, Leiter ...), entscheidet das Gehirn - Vorschlag fuer den naechsten Schritt.
+
 ## So benutzt man den Kern (Stand 20.10.2026, 23:57, Kern Version 11)
 
 | Was | Wie |

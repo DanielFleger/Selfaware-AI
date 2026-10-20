@@ -63,6 +63,7 @@ class KernPort:
             "epoche": w.epoche,
             "graben_geplant": w.graben_geplant,
             "graben_ausgehoben": w.graben_ausgehoben,
+            "unter_beschuss": w.beschuss,
         }
         vorrat = {k: max(v, 0) for k, v in w.vorrat.get(session.player, {}).items()}
         snapshot_id = f"{session.epoch}-t{w.tick}"
