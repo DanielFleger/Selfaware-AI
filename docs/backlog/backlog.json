@@ -2212,7 +2212,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 9
+   "rang": 8
   },
   {
    "nr": "B-95",
@@ -2265,7 +2265,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 11
+   "rang": 10
   },
   {
    "nr": "B-96",
@@ -2298,7 +2298,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 12
+   "rang": 11
   },
   {
    "nr": "B-97",
@@ -2333,7 +2333,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 13
+   "rang": 12
   },
   {
    "nr": "B-98",
@@ -2364,7 +2364,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 14
+   "rang": 13
   },
   {
    "nr": "B-99",
@@ -2395,7 +2395,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 15
+   "rang": 14
   },
   {
    "nr": "B-100",
@@ -2420,7 +2420,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 16
+   "rang": 15
   },
   {
    "nr": "B-101",
@@ -2453,28 +2453,31 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 20
+   "rang": 19
   },
   {
    "nr": "B-102",
    "titel": "Dateien ordnen: Geruest, Bot, Messen, Pruefen getrennt",
    "bereich": "Framework",
-   "status": "in_arbeit",
+   "status": "gebaut",
    "seit": "2026-10-19",
    "herkunft": "Audit_Sharky.html Punkt 2 (177 .py in einem Ordner)",
-   "gebaut": null,
+   "gebaut": "2026-10-20 09:28",
    "commits": [
     "a429e28",
     "3008e6c",
-    "42038ea"
+    "42038ea",
+    "1305c9cff71f287059b36fba165793cf39a767d4"
    ],
    "wo": [
     "docs/ORGANIZATION.md",
     "docs/HANDOFF.md",
-    "docs/relocations.json"
+    "docs/relocations.json",
+    "crates/samurai-kern/README.md",
+    "tests/test_organization.py"
    ],
    "belege": [],
-   "notiz": "User requested that the actual current implementation be sorted into the new package structure; PR 2. | 179 current modules sorted; 1185 relocations; 84 offline tests and 6 sender-patch checks pass on Python 3.11/3.14. No game run by this organization task. | User requested current conflict resolution and final merge; preserve all subsequent Rust, learning and policy work.",
+   "notiz": "User requested that the actual current implementation be sorted into the new package structure; PR 2. | 179 current modules sorted; 1185 relocations; 84 offline tests and 6 sender-patch checks pass on Python 3.11/3.14. No game run by this organization task. | User requested current conflict resolution and final merge; preserve all subsequent Rust, learning and policy work. | Latest upstream a1f41a2 preserved in the organized tree: 184 Python modules, Rust crate, 1343 relocations and 1147 unchanged evidence/assets. 86 tests pass on Python 3.11 and 3.14, six offline sender checks pass, 32-bit Rust DLL builds. Source archive excludes match data and build output. No live game run; PR merge awaits CI.",
    "verlauf": [
     {
      "zeit": "2026-10-19 21:58",
@@ -2511,10 +2514,18 @@
     {
      "zeit": "2026-10-20 09:19",
      "was": "Rang 14 -> 1"
+    },
+    {
+     "zeit": "2026-10-20 09:28",
+     "was": "in Arbeit -> gebaut (Commit 1305c9cff71f287059b36fba165793cf39a767d4): Latest upstream a1f41a2 preserved in the organized tree: 184 Python modules, Rust crate, 1343 relocations and 1147 unchanged evidence/assets. 86 tests pass on Python 3.11 and 3.14, six offline sender checks pass, 32-bit Rust DLL builds. Source archive excludes match data and build output. No live game run; PR merge awaits CI."
+    },
+    {
+     "zeit": "2026-10-20 09:28",
+     "was": "Conflict resolution validated; original upstream ranks and other task statuses restored."
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 1
+   "rang": 20
   },
   {
    "nr": "B-103",
@@ -2545,7 +2556,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 17
+   "rang": 16
   },
   {
    "nr": "B-104",
@@ -2580,7 +2591,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 18
+   "rang": 17
   },
   {
    "nr": "B-105",
@@ -2607,7 +2618,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 19
+   "rang": 18
   },
   {
    "nr": "B-106",
@@ -2823,7 +2834,7 @@
      "was": "in Arbeit -> gebaut (Commit 47dc5b6): Ursache belegt (abgelesen): im Einzelspieler gilt jeder Befehl fuer 'ich' bei der Ausfuehrung; VillageStudio Wissensstand 13i-2 (aff005f)"
     }
    ],
-   "rang": 10
+   "rang": 9
   },
   {
    "nr": "B-115",
@@ -2868,7 +2879,7 @@
      "was": "in Arbeit -> gebaut (Commit 59ec7fd): im Spiel 4/4: DLL = Lagebild je Spieler, Gegenprobe +1; Stufe 1 (lesen + Protokoll); naechste Stufe: Lagebild ganz im Kern, dann Sharky-Geruest in Rust (B-97)"
     }
    ],
-   "rang": 8
+   "rang": 7
   },
   {
    "nr": "B-116",
