@@ -1,5 +1,8 @@
 # Plan: der Kern - absolute Kontrolle in jedem Takt (Stand 20.10.2026, 22:45)
 
+> **Ab 20.10. 23:30 fortgefuehrt im Zweig `kern-s0` (Arbeitsordner `../Selfaware-AI-kern`, Krarilotus' Aufbau):
+> `docs/plans/Plan_Kern.md`. Diese Fassung hier wird nicht mehr gepflegt.**
+
 Anlass (woertlich):
 - Daniel 22:30: "du musst immer 3 Jahre in die Zukunft denken ... wenn du das fertige Programm haettest und es einfach nur
   abschreiben muesstest, mit was wuerdest du anfangen, was haette den groessten Hebel?"
