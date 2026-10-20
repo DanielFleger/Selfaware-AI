@@ -27,6 +27,11 @@ STARTWERTE (nicht gemessen, je Partie mitgeschrieben): SKLAVEN_SOLL, REITER_SOLL
 Pruefung ohne Spiel: src/selfaware/tools/checks/raids_pruefen.py."""
 
 SKLAVE, PFERDEBOGEN = 71, 74
+SCHLEUDER = 72                                   # B-129: Deckung fuer die Sklaven (Daniel 22:40: 25 Schleuderer)
+SCHLEUDER_GOLD = 12                              # SOELDNER_GOLD in erstes_spiel.py (L63, Ascension)
+DECKUNG_SOLL = 0                                 # B-129 Knopf deckung_soll: so viele Schleuderer gehen vor (0 = aus)
+DECK_R = 10                                      # Startwert, UNGEMESSEN: Feind gilt als gedeckt, steht ein eigener Schleuderer so nah
+SCHUSS_R = 12                                    # Startwert, UNGEMESSEN: Schleuderer greifen Feinde bis hier an
 SKLAVE_GOLD, PFERD_GOLD = 5, 75                  # L63
 SKLAVEN_SOLL = 5                                 # Startwert
 REITER_SOLL = 3                                  # Startwert
@@ -66,8 +71,12 @@ def feinde(L, sp):
     return [(e["typ"], (e["x"], e["y"])) for e in L.values() if e.get("besitzer") not in (0, sp) and e.get("leben", 1) > 0]
 
 
-def gefaehrlich(ort, L, G, sp):
+def gefaehrlich(ort, L, G, sp, schutz=()):
+    """schutz (B-129, Daniel 19.10. 23:32 \"Bogenschuetzen vor und mit Sklaven abgefackelt\"): Orte eigener Deckungs-
+    Schuetzen. Ein feindlicher Kaempfer, neben dem einer von ihnen steht (DECK_R), gilt als gedeckt - Tuerme und Gruben nicht."""
     for typ, p in feinde(L, sp):
+        if schutz and any(schach(p, s) <= DECK_R for s in schutz):
+            continue
         if typ in FERN and schach(ort, p) <= GEFAHR_FERN:
             return "Schuetze Typ %d in %d" % (typ, schach(ort, p))
         if typ in NAH and schach(ort, p) <= GEFAHR_NAH:
@@ -91,6 +100,7 @@ class Brandtrupp:
         self.brennt = set()         # Gebaeude, die wir brennen sahen
         self.angezuendet = 0
         self.runde = 0
+        self.schutz = []            # B-129: Orte der Deckungs-Schuetzen, setzt der Lenker je Runde
 
     def einheiten(self, L):
         return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] == SKLAVE and e.get("leben", 1) > 0}
@@ -101,7 +111,7 @@ class Brandtrupp:
             if g.get("besitzer") in (0, self.sp) or g["typ"] not in WERT or n in belegt or n in self.brennt:
                 continue
             p = (g["x"], g["y"])
-            if gefaehrlich(p, L, G, self.sp):
+            if gefaehrlich(p, L, G, self.sp, self.schutz):
                 continue
             kand.append((WERT[g["typ"]] / float(max(schach(ort, p), 1)), n))
         return [n for _, n in sorted(kand, reverse=True)]
@@ -215,8 +225,71 @@ class Reiterjagd:
         return "Reiterjagd: %d Arbeiter getoetet" % self.getoetet
 
 
-def werbung(gold_frei, feuer, sklaven, reiter):
-    """[(typ, anzahl)] - erst Sklaven bis SKLAVEN_SOLL, dann Reiter bis REITER_SOLL; nur Gold ueber der Ruecklage und nur
+class Deckung:
+    """B-129 (Daniel 19.10. 23:32: "direkt geraidet - Bogenschuetzen vor, mit Sklaven abgefackelt; penetrant vorgestuermt, nie
+    lockergelassen"; L147: seine 48 ungedeckten Sklaven kosteten Daniel bis Tick 22.000 nur 3 Plantagen, 3 Holzfaeller).
+    Schleuderer (Typ 72, nicht im Heer des Feldzugs) gehen VOR die Sklaven: Front = das Ziel eines Sklaven, sonst das wertvollste
+    feindliche Gebaeude (WERT je Weg von unserem Bergfried). Jeder Schleuderer greift den naechsten Feind bis SCHUSS_R an -
+    Kaempfer zuerst, dann Arbeiter -, sonst laeuft er zur Front. Seine Orte gehen als Schutz an den Brandtrupp (gefaehrlich)."""
+    def __init__(self, sp, heim):
+        self.sp, self.heim = sp, tuple(heim)
+        self.befohlen = {}
+        self.runde = 0
+        self.getoetet = 0
+
+    def einheiten(self, L):
+        return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] == SCHLEUDER and e.get("leben", 1) > 0}
+
+    def orte(self, L):
+        return [(L[n]["x"], L[n]["y"]) for n in self.einheiten(L)]
+
+    def front(self, G, brand):
+        z = [G[nr] for nr in (brand.ziel.values() if brand else ()) if nr in G]
+        if z:
+            return (z[0]["x"], z[0]["y"])
+        kand = [(WERT[g["typ"]] / float(max(schach(self.heim, (g["x"], g["y"])), 1)), (g["x"], g["y"]))
+                for g in G.values() if g.get("besitzer") not in (0, self.sp) and g["typ"] in WERT and g["typ"] not in TUERME]
+        return max(kand)[1] if kand else None
+
+    def schritt(self, L, G, befehl, brand=None):
+        self.runde += 1
+        aus = []
+        for r, v in list(self.befohlen.items()):
+            if v[0] == "ziel" and (v[1] not in L or L[v[1]].get("leben", 1) <= 0 or L[v[1]]["besitzer"] in (0, self.sp)):
+                self.getoetet += 1
+                self.befohlen.pop(r)
+        f = self.front(G, brand)
+        for r in sorted(self.einheiten(L)):
+            o = (L[r]["x"], L[r]["y"])
+            kand = []
+            for k, a in L.items():
+                if a["besitzer"] in (0, self.sp) or a.get("leben", 1) <= 0:
+                    continue
+                d = schach(o, (a["x"], a["y"]))
+                if d > SCHUSS_R:
+                    continue
+                rang = 0 if a["typ"] in FERN or a["typ"] in NAH else 1 if a["typ"] in ARBEITER else 2
+                kand.append((rang, d, k))
+            alt = self.befohlen.get(r)
+            if kand:
+                k = min(kand)[2]
+                if alt is None or alt[:2] != ("ziel", k) or self.runde - alt[2] >= NEU_ALLE:
+                    befehl({"angriff": {"einheiten": [r], "ziel": k}}, 1.0, bis="ANGRIFF")
+                    self.befohlen[r] = ("ziel", k, self.runde)
+                    if alt is None or alt[:2] != ("ziel", k):
+                        aus.append("DECKUNG: Schleuderer %d greift Typ %d in %d Feldern an" % (r, L[k]["typ"], schach(o, (L[k]["x"], L[k]["y"]))))
+            elif f is not None and schach(o, f) > 4:
+                if alt is None or alt[0] != "front" or alt[1] != f or self.runde - alt[2] >= NEU_ALLE:
+                    befehl({"angriff": {"einheiten": [r], "lauf": [f[0], f[1]]}}, 1.0, bis="ANGRIFF")
+                    self.befohlen[r] = ("front", f, self.runde)
+        return aus
+
+    def bericht(self):
+        return "Deckung: %d Feinde getoetet" % self.getoetet
+
+
+def werbung(gold_frei, feuer, sklaven, reiter, schleuder=0):
+    """[(typ, anzahl)] - erst Sklaven bis SKLAVEN_SOLL, dann Schleuderer bis DECKUNG_SOLL (B-129), dann Reiter bis REITER_SOLL; nur Gold ueber der Ruecklage und nur
     so viele, dass FEUER_MIN Bauern am Feuer bleiben."""
     aus, frei, f = [], int(gold_frei), int(feuer) - FEUER_MIN
     n = max(0, min(SKLAVEN_SOLL - sklaven, frei // SKLAVE_GOLD, f))
@@ -224,6 +297,11 @@ def werbung(gold_frei, feuer, sklaven, reiter):
         aus.append((SKLAVE, n))
         frei -= n * SKLAVE_GOLD
         f -= n
+    d = max(0, min(DECKUNG_SOLL - schleuder, frei // SCHLEUDER_GOLD, f))
+    if d:
+        aus.append((SCHLEUDER, d))
+        frei -= d * SCHLEUDER_GOLD
+        f -= d
     m = max(0, min(REITER_SOLL - reiter, frei // PFERD_GOLD, f))
     if m:
         aus.append((PFERDEBOGEN, m))

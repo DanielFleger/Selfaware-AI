@@ -31,3 +31,8 @@ jobs:
       - run: uv build
       - run: uv run selfaware doctor --offline
       - run: uv run selfaware replay tests/fixtures/legacy_sample.jsonl
+      - name: Build the 32-bit Windows game DLL
+        if: runner.os == 'Windows'
+        run: |
+          rustup target add i686-pc-windows-msvc
+          cargo build --locked --release --target i686-pc-windows-msvc --manifest-path crates/samurai-kern/Cargo.toml

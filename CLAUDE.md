@@ -11,7 +11,10 @@ Nie loeschen, nur den Stand aendern. "Commits ohne Punkt" in Backlog.html muss 0
 Reihenfolge (Daniel 19.10. 22:02): das Wichtigste - das, woran gerade gearbeitet wird - steht oben (`uv run selfaware run backlog rang B-n 1`,
 Stand `in_arbeit`). Vor jedem Schritt und jedem Bericht `uv run selfaware run backlog fokus`: passt die eigene Arbeit nicht
 zum obersten Punkt, zurueck dorthin. Was dabei erledigt wird, sofort im Backlog abhaken.
+Jede Partie wird Trainingsdaten (Daniel 19.10.2026 22:48): nach jeder Partie `uv run selfaware run partie_lernen <konsole> <lage>`
+(die SamurAI-Wache startet es am Partieende selbst) - eine Zeile je Partie in `data/research/lernen/partien.jsonl`; Lehren ins
+Wissensregister, offene Folgen ins Backlog.
 
-Read [AGENTS.md](AGENTS.md), [docs/HANDOFF.md](docs/HANDOFF.md) and the
-[repository map](docs/ORGANIZATION.md) for the current layout. Direct user
-instructions determine the active task; register that task before changing focus.
+Read [AGENTS.md](AGENTS.md), [docs/HANDOFF.md](docs/HANDOFF.md), and
+[docs/ORGANIZATION.md](docs/ORGANIZATION.md). Direct user instructions determine
+the active task; register that task before changing focus.

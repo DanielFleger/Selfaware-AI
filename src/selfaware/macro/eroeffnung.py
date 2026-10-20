@@ -185,7 +185,7 @@ def holz_lebensdauer(huetten, lager_mitte, horizont=20000):
              "baeume_leer_nach_ticks": int(k["geliefert"] / k["rate"]) if k["geliefert"] < k["rate"] * horizont else None}
             for k in huetten]
 
-def plane(K=8, A=6, holz=150, bevoelkerung_platz=10, steinbruch=True, huetten_min=0, start=None):
+def plane(K=8, A=6, holz=150, bevoelkerung_platz=10, steinbruch=True, huetten_min=0, start=None, lager_max=45):
     """start = Kurzname eines mit karten_holen.py geholten Startstands (z. B. "M19"): dann kommen Platzkarten, Baeume
     und der Bergfried-Eingang aus diesem Start (Daniel 05.10.: erst schauen, wo der Bergfried steht)."""
     global BERGFRIED_EINGANG
@@ -209,7 +209,9 @@ def plane(K=8, A=6, holz=150, bevoelkerung_platz=10, steinbruch=True, huetten_mi
             return all(d_eigen < max(abs(p[0] - f[0]), abs(p[1] - f[1])) for f in feinde)
         karten = {n: {q for q in k if eigene_seite(q)} for n, k in karten.items()}
         B = [b for b in B if eigene_seite((b[1], b[2]) if isinstance(b, (tuple, list)) else (b["x"], b["y"]))]
-    h = plane_holz(karten["holzfaeller"], karten["lager"], B, K)
+    # B-124 (19.10.): lager_max ist ein Knopf - Lobby-Partie 2240: 1 faellbarer Baum im Umkreis 60 um SamurAIs Bergfried,
+    # Holzfaeller im Mittel 91 Felder entfernt; Modell: Lager bis 45 -> 60 Holz je 1.000 Ticks, bis 75 -> 84, bis 90 -> 93
+    h = plane_holz(karten["holzfaeller"], karten["lager"], B, K, lager_max=lager_max)
     if h is None:
         return {"fehler": "keine Holzfaeller-Stelle"}
     gesamt, lager, huetten, belegt = h
@@ -251,7 +253,7 @@ def plane(K=8, A=6, holz=150, bevoelkerung_platz=10, steinbruch=True, huetten_mi
     H = max(huetten_min, math.ceil((arbeiter + 2 - bevoelkerung_platz) / 8.0))
     haeuser = plane_haeuser(karten["huette"], belegt, H)
     kosten = KOSTEN["holzfaeller"] * K + KOSTEN["speicher"] + KOSTEN["apfel"] * A + KOSTEN["huette"] * H         + ((KOSTEN["steinbruch"] + KOSTEN["ochsen"]) if stein else 0)
-    return {"lager": lager, "lager_mitte": lm, "holz_je_1000_ticks": round(1000 * rate, 1),
+    return {"lager_max": lager_max, "lager": lager, "lager_mitte": lm, "holz_je_1000_ticks": round(1000 * rate, 1),
             "holz_in_20000_ticks": int(gesamt), "holzfaeller": [(k["x"], k["y"]) for k in huetten], "holz_lebensdauer": holz_lebensdauer(huetten, lm),
             "kornspeicher": speicher, "aepfel": [(f["x"], f["y"]) for f in farmen["farmen"]], "aepfel_status": farmen["status"],
             "aepfel_weg_summe": farmen["weg_summe"], "huetten": haeuser, "stein": stein, "arbeiter": arbeiter,

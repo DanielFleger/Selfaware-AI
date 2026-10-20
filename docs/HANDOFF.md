@@ -28,9 +28,10 @@ fix the original connector. Read [BACKLOG.md](BACKLOG.md) before live work.
 This organization work starts from upstream `58a0d50`, which already includes
 the opening optimization (`813a98b`) and the separate
 [Audit_Sharky.html](research/Audit_Sharky.html). Those upstream changes are preserved.
-Latest upstream through `ea306c2` is merged, including the active backlog tool,
-B-114 command/player research in [Spielkarte.md](research/Spielkarte.md), and
-Ghidra captures. The path manifest uses that updated source baseline. The earlier
+Latest upstream through `a1f41a2` is merged, including the active backlog tool,
+B-114 command/player research, the B-115 Rust DLL and Lua loader,
+post-match training, the paired 1v1 learning loop and B-132 army budgeting.
+Research, match records and Ghidra captures are preserved. The path manifest uses that updated source baseline. The earlier
 source audit in `audit/` remains pinned to its `7b994b7` baseline.
 
 ## Fresh checkout
@@ -102,8 +103,11 @@ check, not an assertion that the entire archive is clean.
 ## Next implementation boundaries
 
 Follow the authoritative backlog focus. B-96 selects Rust for the native core,
-and B-115 is in progress. Keep the Python offline harness/current policies as
-a baseline while that core is developed. `LIVE-01` describes acceptance for
+and B-115 is built upstream. Its crate is now in `crates/samurai-kern/`;
+[build it explicitly for 32-bit Windows](../crates/samurai-kern/README.md).
+The upstream native-check evidence is preserved, and Windows CI compiles the DLL.
+No game was run to revalidate native behavior during this organization work.
+Keep the Python offline harness/current policies as a baseline while that core develops. `LIVE-01` describes acceptance for
 a reliable single-owner UCP
 GamePort with typed request/results and observation-based effect confirmation.
 Apply the GamePort ownership/evidence contracts across that native boundary.
@@ -154,3 +158,5 @@ The upstream backlog inventory references one console log absent from the source
 checkout: `data/research/samurai_20261019_211644_sp2_konsole.txt` (B-105). The
 backlog view continues to flag it as missing; obtain the original evidence
 before reproducing or evaluating that run.
+The B-116 desktop shortcut is also specific to the original machine and absent
+here. Its external path remains in the backlog rather than being fabricated.

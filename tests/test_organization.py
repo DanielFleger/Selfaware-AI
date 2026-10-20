@@ -125,3 +125,65 @@ def test_audit_suite_discovery_excludes_real_game_probes(tmp_path):
     assert "absender_pruefen.py" in suites
     assert "absender_live_pruefen.py" not in suites
     assert "spieler2_pruefen.py" not in suites
+
+
+def test_post_match_training_launches_relocated_analysis_modules(monkeypatch, tmp_path):
+    from selfaware.learning import partie_lernen
+
+    calls = []
+
+    def analysis(command, **kwargs):
+        calls.append(command)
+        return subprocess.CompletedProcess(command, 0, "VERGLEICH ok\n Einnahmen 25\n", "")
+
+    monkeypatch.setattr(partie_lernen.subprocess, "run", analysis)
+    monkeypatch.setattr(partie_lernen, "AUS", str(tmp_path))
+    monkeypatch.setattr(workspace, "ROOT", str(tmp_path))
+    assert partie_lernen.vergleich("recording.gz", "stamp")["zeilen"] == ["VERGLEICH ok"]
+    assert partie_lernen.gold("console.txt", "recording.gz", "stamp")["fehler"] is None
+    assert calls == [
+        [
+            sys.executable,
+            "-P",
+            "-m",
+            MODULES["partie_vergleich"],
+            "recording.gz",
+            "json=" + str(tmp_path / "partievergleich_stamp.json"),
+        ],
+        [sys.executable, "-P", "-m", MODULES["gold_bilanz"], "console.txt", "recording.gz"],
+    ]
+    assert not list(tmp_path.iterdir())
+
+
+def test_paired_training_preserves_game_and_recording_launches(monkeypatch, tmp_path):
+    from selfaware.learning import lernen_1v1
+
+    calls = []
+    trace = tmp_path / "recording.jsonl.gz"
+    trace.touch()
+
+    def launch(command, **kwargs):
+        calls.append(command)
+        if command[3] == MODULES["erstes_spiel"]:
+            kwargs["stdout"].write(
+                f"CODE-KENNUNG abc123\nLageprotokoll (jede Runde komplett): {trace}\n"
+            )
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(lernen_1v1.subprocess, "run", launch)
+    monkeypatch.setattr(lernen_1v1, "AUS", str(tmp_path))
+    monkeypatch.setattr(lernen_1v1, "wert", lambda *args: {"tick": lernen_1v1.BIS_TICK})
+    # Reads the actual relocated watcher, without importing or starting the live bot.
+    watcher_args = lernen_1v1.wache_args()
+    monkeypatch.setattr(lernen_1v1, "wache_args", lambda: watcher_args)
+    monkeypatch.setattr(workspace, "ROOT", str(tmp_path))
+    result = lernen_1v1.lauf({"heer_anteil": 0.3}, ("Green Haven", "4,3"), 1, "A", {})
+    assert result["code"] == "abc123"
+    assert "ungueltig" not in result
+    assert calls[0][:4] == [sys.executable, "-u", "-m", MODULES["erstes_spiel"]]
+    assert calls[0][4 : 4 + len(watcher_args)] == watcher_args
+    assert "heer_anteil=0.3" in calls[0]
+    assert calls[1][:4] == [sys.executable, "-P", "-m", MODULES["partie_lernen"]]
+    assert calls[1][5] == str(trace)
+    assert Path(lernen_1v1.STOP) == Path(workspace.STATE) / "STOP_LERNEN"
+    assert Path(lernen_1v1.PAUSE) == Path(workspace.STATE) / "PAUSE_LERNEN"

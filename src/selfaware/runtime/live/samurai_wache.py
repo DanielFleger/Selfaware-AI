@@ -31,7 +31,7 @@ SCHNELL_S = 0.25             # vor der Partie: so oft nachsehen, ob ein Gefecht 
 STOP = os.path.join(_workspace.STATE, 'STOP_SAMURAI')
 # 20:31: regel50=nein - gegen einen Menschen hoert SamurAI bei Beliebtheit unter 50 NICHT auf (Testlauf 20:28: Regelbruch bei
 # Tick 4.607, die Beliebtheit 48,25 hatte noch die Ratte vor der Uebernahme verursacht; Daniel: "hoert die KI auf nach ein paar Ticks")
-LENKER_ARGS = ("leere_ki=nein experiment=ja regel50=nein minuten=600 tempo=40 bis_tick=900000 ziel_tick=900000 streitkolben=30 "
+LENKER_ARGS = ("leere_ki=nein experiment=ja regel50=nein minuten=600 tempo=40 bis_tick=900000 ziel_tick=offen streitkolben=30 "
                "weg=feldzug produktion=ja bier=ja abriss=nein assassinen=20 aufloesen=ende b_versatz=600 bevoelkerung_ziel=90 "
                "einzelkauf=nein entscheider=kausal gegner=1 gute_dinge=0 haushalt_rand=650 holz_kaufen=ja holz_spam=20 "
                "holzfaeller_je_baum=4 holzfaeller_max=30 holzfaeller_vorab=4 huetten_voraus=nein je_arbeiter=ja "
@@ -105,6 +105,44 @@ def spiel_ueber_taskleiste():
         u.SetWindowPos(h, wintypes.HWND(-1), 0, 0, 0, 0, 0x13)      # HWND_TOPMOST, NOMOVE|NOSIZE|NOACTIVATE
 
 
+# B-127 (20.10.): Kartenname der Partie - GameSynchronyState.shortMapName (OpenSHC, data/research/strukturen_global.txt:
+# GSS 0x0191D768 + 0x1057B8, char[120]). Ohne ihn liess sich die Partie 19.10. 22:40 nicht nachspielen.
+KARTE_KURZ = 0x0191D768 + 0x1057B8
+
+
+def zeichen(worte):
+    """32-Bit-Worte (little endian, wie peek sie liefert) -> Text bis zum ersten Nullbyte."""
+    b = b"".join((int(w) & 0xFFFFFFFF).to_bytes(4, "little") for w in worte)
+    return b.split(b"\0")[0].decode("latin-1")
+
+
+def kartenname():
+    try:
+        from selfaware.game.ucp.laden import peek
+        return zeichen(peek(KARTE_KURZ, 30)) or None
+    except Exception as e:
+        return "nicht lesbar (%r)" % (e,)
+
+
+def lernen_starten(log, sp, karte=None):
+    """19.10. 22:55 (Daniel 22:48: "in Zukunft kann so eine Partie gerne fuer mehr Trainingsdaten genutzt werden", B-119):
+    nach jeder Partie partie_lernen.py im Hintergrund - Mitschrift + das Lageprotokoll dieses Spielers aus dieser Partie."""
+    import glob
+    if not log or not os.path.exists(log) or not sp:
+        schreib("LERNEN: keine Mitschrift (%s) - nichts ausgewertet" % log)
+        return
+    seit = os.path.getmtime(log) - 3600      # Lageprotokoll dieser Partie: zuletzt geschrieben nach Start der Mitschrift
+    lagen = [p for p in glob.glob(os.path.join(D, "lage_*_sp%d.jsonl.gz" % sp)) if os.path.getmtime(p) >= seit]
+    if not lagen:
+        schreib("LERNEN: kein Lageprotokoll fuer Spieler %s - nichts ausgewertet" % sp)
+        return
+    lage = max(lagen, key=os.path.getmtime)
+    ziel = os.path.join(D, "lernen_%s.txt" % os.path.basename(log).replace("_konsole.txt", ""))
+    subprocess.Popen([sys.executable, '-P', '-m', 'selfaware.learning.partie_lernen', log, lage, 'gegner=Mensch', 'anmerkung=Karte %s' % (karte or 'unbekannt')],
+                     cwd=HIER, stdout=open(ziel, "w", encoding="utf-8"), stderr=subprocess.STDOUT)
+    schreib("LERNEN: Auswertung gestartet (%s + %s -> %s)" % (os.path.basename(log), os.path.basename(lage), os.path.basename(ziel)))
+
+
 def schreib(text):
     zeile = time.strftime("%H:%M:%S ") + text
     print(zeile, flush=True)
@@ -170,8 +208,8 @@ def main():
                 neustarts += 1
                 log = os.path.join(D, "samurai_%s_sp%d_konsole.txt" % (time.strftime("%Y%m%d_%H%M%S"), sp_aktiv))
                 umgebung = dict(os.environ, SHC_SPIELER=str(sp_aktiv), SHC_PARTNER="ja")
-                lenker = subprocess.Popen(_workspace.module_command("erstes_spiel") + LENKER_ARGS,
-                                          cwd=_workspace.ROOT, env=umgebung, stdout=open(log, "w", encoding="utf-8"), stderr=subprocess.STDOUT)
+                lenker = subprocess.Popen([sys.executable, '-u', '-m', 'selfaware.runtime.live.erstes_spiel'] + LENKER_ARGS,
+                                          cwd=HIER, env=umgebung, stdout=open(log, "w", encoding="utf-8"), stderr=subprocess.STDOUT)
                 laeuft = True
                 schreib("NEUSTART %d von %d: SamurAI fuer Spieler %d wieder gestartet (Prozess %d, Mitschrift %s)" % (
                     neustarts, NEUSTARTS_MAX, sp_aktiv, lenker.pid, log))
@@ -179,7 +217,8 @@ def main():
         # einmal je Partie die KI-Nummern aller Plaetze mitschreiben (Gegenprobe der Annahme "Ratte = 1")
         gesehen = im_spiel(ansicht, gameover)
         if gesehen and not getattr(main, "gemeldet", False):
-            schreib("Partie erkannt - KI-Nummern je Spieler: %s" % {s: k for s, k in ai.items() if k})
+            main.karte = kartenname()
+            schreib("Partie erkannt - Karte %r, KI-Nummern je Spieler: %s" % (main.karte, {s: k for s, k in ai.items() if k}))
             main.gemeldet = True
         elif not gesehen:
             main.gemeldet = False
@@ -193,14 +232,18 @@ def main():
             schreib("Umschaltung bei Tick %s (Spiel waehrenddessen angehalten)" % t_vor)
             log = os.path.join(D, "samurai_%s_sp%d_konsole.txt" % (time.strftime("%Y%m%d_%H%M%S"), sp))
             umgebung = dict(os.environ, SHC_SPIELER=str(sp), SHC_PARTNER="ja")
-            lenker = subprocess.Popen(_workspace.module_command("erstes_spiel") + LENKER_ARGS,
-                                      cwd=_workspace.ROOT, env=umgebung, stdout=open(log, "w", encoding="utf-8"), stderr=subprocess.STDOUT)
+            lenker = subprocess.Popen([sys.executable, '-u', '-m', 'selfaware.runtime.live.erstes_spiel'] + LENKER_ARGS,
+                                      cwd=HIER, env=umgebung, stdout=open(log, "w", encoding="utf-8"), stderr=subprocess.STDOUT)
             bedient, sp_aktiv, neustarts = True, sp, 0
             schreib("Ratte auf Spieler %d gefunden - KI aus, SamurAI uebernimmt (Prozess %d, Mitschrift %s)" % (sp, lenker.pid, log))
         elif tat == "beenden":
             lenker.terminate()
-            schreib("Partie verlassen (Ansicht %s) - Lenker beendet" % ansicht)
+            schreib("Partie verlassen (Ansicht %s, Partie vorbei %s) - Lenker beendet" % (ansicht, gameover))
             lenker = None
+            try:
+                lernen_starten(log, sp_aktiv, getattr(main, "karte", None))
+            except Exception as ex_l:
+                schreib("LERNEN fehlgeschlagen: %r" % (ex_l,))
         elif tat == "neue_partie_frei":
             bedient, sp_aktiv = False, None
         elif tat == "warten" and im_spiel(ansicht, gameover) and not bedient and not laeuft and RATTE not in (ai or {}).values():

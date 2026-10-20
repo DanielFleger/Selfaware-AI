@@ -28,11 +28,14 @@ The package supports Python 3.11+; CI covers Windows/Linux with Python 3.11 and
 Use `--extra legacy` for the old tools' Python libraries and `--extra audit` for
 Lua audit probes. Dependency resolution is recorded in `uv.lock`.
 
+The existing Rust game DLL is in [crates/samurai-kern](crates/samurai-kern/README.md),
+including its explicit 32-bit Windows build command. It is compiled by Windows CI.
+
 The new `BotRuntime` currently operates on recorded observations. The current
 live bot is `selfaware.runtime.live.erstes_spiel`; its policies and external
 game requirements are preserved. Launch existing modules with `uv run selfaware
 run <name> [arguments]`, or `uv run python -m <module>`. `uv run selfaware modules`
-lists all 180 relocated module names. Missing external
+lists all 184 relocated module names. Missing external
 VillageStudio files and known connector defects are documented in the backlog;
 a green offline check does not establish live-game readiness.
 

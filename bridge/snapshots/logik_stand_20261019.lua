@@ -829,6 +829,27 @@ local function absenderEinbauen()
     ABSENDER_STELLE, z.code, z.laenge, z.sicher)
 end
 
+-- 19.10.2026 23:05 SAMURAI-KERN IN RUST (Backlog B-115, Daniel 22:33 "ja bau es in Rust"): Quelle Selfaware-AI/samurai_kern
+-- (cdylib, 32 Bit), Datei im Modulordner ucp/modules/villagestudio-0.1.0/samurai_kern.dll. Geladen mit core.openLibraryHandle, Aufruf cdecl
+-- (exposeCode Aufrufart 0). Stufe 1: samurai_takt(tick, spieler) jeden Takt - zaehlt lebende Einheiten je Spieler direkt im
+-- Speicher und schreibt alle 500 Takte eine Zeile nach ucp/villagestudio/samurai_kern.log. Eine geladene DLL ist bis zum
+-- Spielende gesperrt: eine neue Fassung wirkt erst nach Neustart der Instanz.
+local KERN_DATEI = "ucp/modules/villagestudio-0.1.0/samurai_kern.dll"   -- UCP3: DLLs nur aus einem Modulordner (gemessen 19.10. 23:10)
+local kern = nil
+
+local function kernLaden()
+  if kern ~= nil then return true, "schon geladen (Version " .. tostring(kern.version) .. ")" end
+  local f = io.open(KERN_DATEI, "rb")
+  if not f then return false, "keine " .. KERN_DATEI end
+  f:close()
+  local h = core.openLibraryHandle(KERN_DATEI)
+  local k = { version = core.exposeCode(h:getProcAddress("samurai_version"), 0, 0)(),
+              takt = core.exposeCode(h:getProcAddress("samurai_takt"), 2, 0),
+              einheiten = core.exposeCode(h:getProcAddress("samurai_einheiten"), 1, 0) }
+  kern = k
+  return true, "geladen, Version " .. tostring(k.version)
+end
+
 local function absenderAusbauen()
   if not absenderAktiv() then return true, "war nicht eingebaut" end
   core.writeCode(ABSENDER_STELLE, ABSENDER_ORIGINAL)
@@ -890,6 +911,18 @@ local function einzelbefehl(cmd)
     else text = absenderAktiv() and "eingebaut" or "nicht eingebaut" end
     log(INFO, string.format("ABSENDER %s: %s - %s; gestempelt bisher %d, ich %s, Ausloeser %s", was, ok and "ok" or "FEHLER",
       text, ABSENDER_ZUSTAND.gestempelt or 0, tostring(core.readInteger(SLOT_ICH)), tostring(core.readInteger(0x01A275D8))))
+    return true
+  end
+
+  -- { "kern": "laden" | "status" }  (19.10.2026, B-115) Rust-Kern laden / Einheiten je Spieler aus der DLL melden
+  if cmd.kern ~= nil then
+    local okL, gutL, textL = pcall(kernLaden)
+    local je = {}
+    if kern ~= nil then
+      for sp = 0, 8 do je[#je + 1] = tostring(kern.einheiten(sp)) end
+    end
+    log(INFO, string.format("KERN %s: %s - %s; Einheiten je Spieler 0-8 aus der DLL: %s", tostring(cmd.kern),
+      (okL and gutL) and "ok" or "FEHLER", tostring(okL and textL or gutL), table.concat(je, " ")))
     return true
   end
 
@@ -3823,6 +3856,7 @@ local function platzTick()
 end
 
 local function everyTick()
+  if kern ~= nil then pcall(kern.takt, tick(), core.readInteger(SLOT_ICH) or 1) end   -- 19.10. B-115: Rust-Kern je Takt
   pcall(platzTick)            -- 19.10.: Platz zurueck / aufgeschobene Spielbefehle (1v1, zwei Lenker)
   pcall(ladePauseTick)        -- zuerst: die Pause soll vor allem anderen greifen
   pcall(leereKITick)
@@ -3847,6 +3881,8 @@ log(INFO, "logik.lua (31.08.2026): + Bauwacht, + Durchreichen an init.lua.")
 do
   local okA, gutA, textA = pcall(absenderEinbauen)
   log(okA and gutA and INFO or WARNING, "ABSENDER beim Laden: " .. tostring(okA and textA or gutA))
+  local okK, gutK, textK = pcall(kernLaden)
+  log(INFO, "KERN beim Laden: " .. tostring(okK and textK or gutK))
 end
 
 -- Im Hauptmenue laeuft processGameTick nicht, also auch everyTick nicht.

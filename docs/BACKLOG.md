@@ -22,7 +22,7 @@ The old [Backlog.md](research/Backlog.md) remains the historical gameplay/resear
 - Priority selection, whole-resource reservations and pending-action claims.
 - Action receipt/outcome separation, ambiguous-delivery reservation retention.
 - Replay of existing JSONL/gzip records; read-only live dependency diagnostics.
-- Failure-path tests and agent onboarding. All 176 current-bot modules are relocated by responsibility; evidence hashes
+- Failure-path tests and agent onboarding. All 184 current-bot modules are relocated by responsibility; evidence hashes
   and the old/new path manifest are checked. Selected current offline checks
   run through the new launcher from an unrelated working directory.
 

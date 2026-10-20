@@ -383,9 +383,12 @@ def phase1(plan, tempo, mit_posten=True):
         # Abriss vermessen; (78,256) "kein Platz im Umkreis 10", solange das Startlager steht) - darum den Lagerplatz (5x5 + 1)
         # fuer den fruehen Umzug FREI halten, kein Holzfaeller darauf
         lp_ = tuple(plan["lager"])
-        holz_bauten = [(19, tuple(plan["kornspeicher"])), (26, MARKT)] +                       [(3, tuple(p)) for p in plan["holzfaeller"] if not (lp_[0] - 3 <= p[0] <= lp_[0] + 6 and lp_[1] - 3 <= p[1] <= lp_[1] + 6)]
-    if plan.get("stein") and not V14:
-        holz_bauten += [(20, tuple(plan["stein"]["steinbruch"])), (4, tuple(plan["stein"]["ochsen"]))]
+        # B-125 (19.10., Partie 20261019_2240): der Steinbruch stand HINTER 14 Holzfaellern und bekam kein Startholz mehr ("nicht
+        # gebaut"), danach versuchte es niemand mehr - die ganze Partie kein Stein. Daniels Siegerweg (L147): 8 Holzfaeller und
+        # 2 Steinbrueche bei Tick 639. Jetzt Steinbruch + Joch direkt nach Kornspeicher und Markt, die Holzfaeller danach
+        stein_ = [(20, tuple(plan["stein"]["steinbruch"])), (4, tuple(plan["stein"]["ochsen"]))] if plan.get("stein") else []
+        holz_bauten = [(19, tuple(plan["kornspeicher"])), (26, MARKT)] + stein_ + [
+                      (3, tuple(p)) for p in plan["holzfaeller"] if not (lp_[0] - 3 <= p[0] <= lp_[0] + 6 and lp_[1] - 3 <= p[1] <= lp_[1] + 6)]
     holz_bauten += [(1, tuple(p)) for p in plan["huetten"]]
     # 19.10. (Kartenwechsel, Pruefung der festen Kartenannahmen): findet freier_platz keinen Markt, stand hier (26, None) -
     # TypeError beim Entpacken; dann ohne festen Platz und gleich danach live suchen
@@ -898,6 +901,8 @@ HUETTEN_JE_BAUM = None   # v17: bis zu so viele Holzfaeller je Baum (Daniel 22:5
 HOLZ_KAUFEN = False      # v17: Holz kaufen, wenn >= 4 Bauern untaetig sind und Holz fehlt
 HOLZ_SPAM = 0            # E3: erst so viele Holzfaeller rund ums Lager, dann Steinbrueche und Leder
 STEIN_MAX = False        # E4: Steinbrueche erst nach der ersten Holzlieferung, dann alle (2 am Lager + 3 am zweiten Steinfeld)
+STEIN_FRUEH = 2          # B-125: so viele Steinbrueche am Steinplatz des Plans sind Pflicht (Daniel 19.10.: "zwei Steinbrueche"), 0 = aus
+STEIN_UMKREIS = 10       # B-125: Suchumkreis um den Steinplatz des Plans
 JOCH_NACH_STEIN = False  # v18: Joch erst, wenn der Steinhaufen seines Steinbruchs Stein hat (Daniel 23:10, Punkte 4+5)
 STEIN_PARALLEL = False   # v18: Steinbrueche sofort (vor allem), Holzfaeller-Spam mit dem Rest - nicht erst nach dem Spam
 HUETTEN_VORAUS = False   # v18: Huetten vor dem Bedarf (Daniel 23:10 Punkt 3: Bauern brauchen Spawnzeit)
@@ -963,6 +968,10 @@ SOELDNER_GOLD = {70: 60, 71: 5, 72: 12, 73: 70, 74: 75, 75: 100, 76: 125}   # ge
 STUFE2_BELIEBT = "halten"  # nach dem ersten Ziel: "hoch" = Beliebtheit auf 90 (mehr Zuzug), "halten" = 50 + Rand
 NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine Apfelplantage mehr je Woche (Lauf s25/1)
 KAUSAL_HORIZONT = 16000  # 12.10.: Kausalmodell rechnet Ertraege bis jetzt + so viele Ticks (Schalter kausal_horizont)
+HEER_ANTEIL = 0.0        # B-132: Anteil jedes Gold-Zuwachses fuer die Heereskasse (Schalter heer_anteil, 0 = aus)
+DECKUNG_SOLL = 0         # B-129: so viele Schleuderer decken die Brand-Sklaven (Schalter deckung_soll, 0 = aus)
+KAUSAL_SPAREN = True     # B-122: Kausalmodell spart fuer seinen besten Betrieb (Schalter kausal_sparen=nein = altes Verhalten)
+OFFENES_ENDE = False     # B-123: ziel_tick=offen (Partie gegen einen Menschen) - Kausalmodell rechnet mitlaufend
 KAUSAL_RUNDEN = 3        # 19.10.: der Kausal-Planer entscheidet nur jede so vielte Runde (Rechenzeit, Bauen vertraegt 1 s)
 ZIEL_TICK = 9400         # Zieltick, bis zu dem das Kausalmodell Ertraege rechnet (unter 1 Jahr = 9.600, Endspiel davor)
                          # 07.10.: Lernkreis setzt ihn auf das gemessene Ende der besten Strategie; gilt auch fuer den Planer
@@ -1127,6 +1136,39 @@ def v14_steinpflicht(st, G, wirt, mehr_stein=True):
                 holz -= k
                 continue
         offen += k
+    wirt.extra = {"holz": offen, "gold": 0}
+    return ev
+
+def stein_pflicht(st, G, wirt, plan, anzahl):
+    """B-125 (Daniel 19.10. 23:32 "am Anfang noch zwei Steinbrueche"; L147): ohne v14 baute nur die Eroeffnung einen
+    Steinbruch - scheiterte er, nie wieder. Jetzt jede Runde: bis `anzahl` Steinbrueche am Steinplatz des Plans stehen (Umkreis
+    STEIN_UMKREIS), wird der naechste gesendet, sobald das Holz reicht; bis dahin liegt sein Holz als Ruecklage in wirt.extra
+    (Kausalmodell, Planer und Huetten halten es frei). Je stehendem Steinbruch ein Joch daneben; mehr Ochsen ruestet
+    "OCHSE NACHGERUESTET" nach, sobald der Steinhaufen waechst."""
+    ev, holz, offen = [], st.get("holz", 0), 0
+    q = tuple(plan["stein"]["steinbruch"])
+    brueche = steht_bei(G, 20, q, STEIN_UMKREIS)
+    bestellt = sum(1 for a in BUCH.offen if a["typ"] == 20 and max(abs(a["ort"][0] - q[0]), abs(a["ort"][1] - q[1])) <= STEIN_UMKREIS)
+    if len(brueche) + bestellt < anzahl:
+        k = kosten_spiel(20)["holz"]
+        if holz >= k:
+            o = baue_schnell(20, q[0], q[1], STEIN_UMKREIS, zweck="Steinpflicht")
+            ev.append("STEINPFLICHT Steinbruch %d von %d bei %s gesendet: %s (Holz %d)" % (len(brueche) + bestellt + 1, anzahl, q, o, holz))
+            holz -= k if o else 0
+        else:
+            offen += k
+    for n in brueche:
+        g = G[n]
+        if steht_bei(G, 4, (g["x"], g["y"]), 12) or BUCH.offen_bei(4, (g["x"], g["y"]), 12):
+            continue
+        k = kosten_spiel(4)["holz"]
+        if holz >= k:
+            o = baue_schnell(4, g["x"] + 3, g["y"] - 4, 8, zweck="Steinpflicht Joch")
+            ev.append("STEINPFLICHT Joch am Steinbruch Nr %s gesendet: %s (Holz %d)" % (n, o, holz))
+            holz -= k if o else 0
+        else:
+            offen += k
+        break                                  # je Runde hoechstens ein Joch
     wirt.extra = {"holz": offen, "gold": 0}
     return ev
 
@@ -2172,6 +2214,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         import selfaware.micro.tasks.raids as RA
         brand = RA.Brandtrupp(SP, lambda nr: peek(0xF98520 + nr * 0x32C + 0x14 + 702)[0] & 0xFFFF)
         reiter = RA.Reiterjagd(SP)
+        # B-129 (Daniel 19.10. 23:32 "Bogenschuetzen vor, mit Sklaven abgefackelt, nie lockergelassen"): Schleuderer decken
+        # die Sklaven; Knopf deckung_soll (0 = aus)
+        RA.DECKUNG_SOLL = DECKUNG_SOLL
+        deckung = RA.Deckung(SP, BERGFRIED)
     if weg == "feldzug" and streitkolben:
         from selfaware.micro.tasks.feldzug import Feldzug
         feldzug = Feldzug(SP, BERGFRIED, LORD_SCHUTZ_BIS, n=streitkolben)
@@ -2263,6 +2309,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             befehlskanal.belege()
             st, L, G = runde_lesen()
             hunger_r = False
+            if st and HEER_ANTEIL > 0 and wirt is not None:
+                wirt.heer_einnahme(st.get("gold", 0), HEER_ANTEIL)     # B-132 Heereskasse
             if st:
                 roh_l = lage.schreibe(st)
                 # 19.10. 18:25 MAKRO (uebersicht.py, Daniel 18:07 "was habe ich, was haben die Gegner, wer davon was und wo"):
@@ -2570,10 +2618,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # 12.10. 01:36 (1012h: bis Tick 11.000 nur 23 Apfelplantagen, kein Hopfen/Eisen - der feste ZIEL_TICK 16.753 liess
                     # Ketten mit langem Anlauf (Hopfen ~8.000, Eisen ~6.600) nie lohnen): mitlaufendes Fenster - eine Investition muss
                     # sich in den naechsten KAUSAL_HORIZONT Ticks lohnen, egal wann sie faellt
-                    ziel_k = max(ZIEL_TICK, st["t"] + KAUSAL_HORIZONT)
+                    ziel_k = st["t"] + KAUSAL_HORIZONT if OFFENES_ENDE else max(ZIEL_TICK, st["t"] + KAUSAL_HORIZONT)
                     for w_k, typ_k, ort_k, text_k in KM.entscheide(st["t"], ziel_k, st_k, kand_k, feuer_g,
                                                                     {3: lager_m, 32: speicher_m, 7: speicher_m}, kosten_spiel(1)["holz"],
-                                                                    offene_stellen=offen_k):
+                                                                    offene_stellen=offen_k, sparen=KAUSAL_SPAREN):
                         if typ_k == 1:
                             o_k = baue_haus()
                         else:
@@ -2676,6 +2724,14 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 if st.get("leute", 0) > kasse.get("leute_max", -1):
                     kasse["leute_max"], kasse["wuchs_tick"] = st.get("leute", 0), st["t"]
                 stillstand = st["t"] - kasse.get("wuchs_tick", st["t"]) >= 800
+                # B-120 (19.10.): ohne Kasse endete das Wachstum nie - "bis zur Ziel-Bevoelkerung keine Steuer" (Daniel 00:38)
+                # galt so die ganze Partie (Partie 20261019_2240: Stufe 2 = 0 Gold je Kopf, kein Goldsprung an 34 Monatswechseln).
+                # Ab der Ziel-Bevoelkerung gilt die Beliebtheitsregel des Planers (hoch ab steuer_runter + 2, runter darunter)
+                if KASSE == "nein" and ausbau.wachstum and BEV_ZIEL and st.get("leute", 0) >= BEV_ZIEL:
+                    ausbau.wachstum = False
+                    ereignis.append("STEUER FREI ab Tick %d: Ziel-Bevoelkerung %d erreicht (Leute %d, Beliebtheit %.2f) - Steuer "
+                                    "nach Beliebtheit (unter %d senken)" % (st["t"], BEV_ZIEL, st.get("leute", 0),
+                                                                          st.get("beliebt", 0) / 100.0, STEUER_RUNTER))
                 if KASSE != "nein" and not kasse["an"] and not endspiel["fertig"] and (
                         (BEV_ZIEL and st.get("leute", 0) >= BEV_ZIEL)
                         or (fruehpruefung.get("holz_ueberfluessig") and (not BEV_ZIEL or stillstand))):
@@ -2869,6 +2925,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         hf_jetzt += 1
                 # E4 (Daniel 23:03: "wenn die ersten 20 Holzfaeller Holz geladen haben, direkt Steinbrueche, so viele wie geht")
                 stein_frei = STEIN_PARALLEL or not spam_offen
+                if not V14 and STEIN_FRUEH and plan.get("stein") and not endspiel["fertig"]:
+                    ereignis += stein_pflicht(st, G, wirt, plan, STEIN_FRUEH)
                 if V14 and not endspiel["fertig"] and stein_frei:
                     # Die zwei Lager-Brueche sind immer Pflicht. Nur die drei zusaetzlichen Brueche am zweiten Feld warten
                     # auf die erste Holzlieferung; vorher blockierte STEIN_MAX versehentlich sogar den fehlenden Pflichtbruch.
@@ -3196,7 +3254,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                                 n_h, st["gold"], st.get("feuer", 0), len(feldzug.einheiten(L)) + n_h))
                     elif posten_h is not None and runde % 2 == 0:
                         import selfaware.game.ucp.bauen as BA_h
-                        frei_h = st["gold"] - wirt.ruecklage(G)["gold"] - HEER_GOLD_RAND
+                        if HEER_ANTEIL > 0:      # B-132: die Heereskasse zahlt (ohne Rand - sie ist der Rand)
+                            frei_h = min(getattr(wirt, "heer_kasse", 0.0), st["gold"] - wirt.ruecklage(G, ohne_heer=True)["gold"])
+                        else:
+                            frei_h = st["gold"] - wirt.ruecklage(G)["gold"] - HEER_GOLD_RAND
                         heer_n, n_h, feuer_h = len(feldzug.einheiten(L)), 0, st.get("feuer", 0)
                         while n_h < 2 and heer_n + n_h < HEER_MAX and feuer_h - n_h >= 1:
                             typ_h = 70 if (fruehpruefung.get("heer_zaehler", 0) + n_h) % 4 == 3 else 75
@@ -3204,6 +3265,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                                 break
                             BA_h.werbe(typ_h, posten_h)
                             frei_h -= SOELDNER_GOLD[typ_h]
+                            if HEER_ANTEIL > 0:
+                                wirt.heer_ausgabe(SOELDNER_GOLD[typ_h])
                             n_h += 1
                         if n_h:
                             fruehpruefung["heer_zaehler"] = fruehpruefung.get("heer_zaehler", 0) + n_h
@@ -3213,15 +3276,19 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     if brand is not None:
                         # 19.10. Raids: steuern jede Runde; werben nur aus Gold ueber der Ruecklage, nicht im Endspurt
                         try:
+                            brand.schutz = deckung.orte(L)
+                            ereignis += deckung.schritt(L, G, befehl, brand)
                             ereignis += brand.schritt(L, G, befehl)
                             ereignis += reiter.schritt(L, G, befehl)
                             if posten_h is not None and not es_an and not hunger_r and runde % 2 == 1:
                                 import selfaware.game.ucp.bauen as BA_r
-                                for typ_r, n_r in RA.werbung(st["gold"] - wirt.ruecklage(G)["gold"], st.get("feuer", 0),
-                                                             len(brand.einheiten(L)), len(reiter.einheiten(L))):
+                                for typ_r, n_r in RA.werbung(st["gold"] - wirt.ruecklage(G, ohne_heer=HEER_ANTEIL > 0)["gold"], st.get("feuer", 0),
+                                                             len(brand.einheiten(L)), len(reiter.einheiten(L)), len(deckung.einheiten(L))):
                                     for _ in range(n_r):
                                         BA_r.werbe(typ_r, posten_h)
-                                    ereignis.append("RAID-WERBUNG: %d %s" % (n_r, "Sklaven" if typ_r == RA.SKLAVE else "Pferdebogen"))
+                                    if HEER_ANTEIL > 0:
+                                        wirt.heer_ausgabe(n_r * {RA.SKLAVE: RA.SKLAVE_GOLD, RA.SCHLEUDER: RA.SCHLEUDER_GOLD}.get(typ_r, RA.PFERD_GOLD))
+                                    ereignis.append("RAID-WERBUNG: %d %s" % (n_r, {RA.SKLAVE: "Sklaven", RA.SCHLEUDER: "Schleuderer (Deckung)"}.get(typ_r, "Pferdebogen")))
                         except Exception as ex_r:
                             ereignis.append("RAIDS FEHLER %r - Partie laeuft weiter" % (ex_r,))
                     if bier is not None and not es_an and runde % 5 == 0:     # Endspurt: keine neuen Betriebe
@@ -3342,7 +3409,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         schreib("1v1: Spiel bleibt fuer den anderen Lenker laufen (%s: %s)" % (ende_art, ende_text))
     schreib(serie.bericht())
     if brand is not None:
-        schreib("RAIDS: %s; %s" % (brand.bericht(), reiter.bericht()))
+        schreib("RAIDS: %s; %s; %s" % (brand.bericht(), reiter.bericht(), deckung.bericht()))
     if GZ is not None:
         schreib(GZ.bericht())
     st, L, G = runde_lesen()
@@ -3478,7 +3545,10 @@ def main():
     if not os.path.exists(os.path.join(D, "start_%s.json" % kurz)):
         schreib("KARTE %s unbekannt - einmalige Vermessung in eigenem Gefecht (vor der Partie)" % karte)
         KH.vermessen("gefecht:" + karte, kurz)
-    datei = os.path.join(D, arg.get("plan", "eroeffnung_plan_%s.json" % kurz))
+    # B-124: lager_max (Lager hoechstens so viele Felder vom Bergfried-Eingang) ist ein Knopf; andere Werte als 45 bekommen
+    # eine eigene Plandatei, damit kein alter Plan mit anderem Lager gelesen wird
+    lager_max = int(arg.get("lager_max", 45))
+    datei = os.path.join(D, arg.get("plan", "eroeffnung_plan_%s%s.json" % (kurz, "" if lager_max == 45 else "_lm%d" % lager_max)))
     selbst = arg.get("eroeffnung", "fest" if arg.get("v14", "nein") == "ja" else "selbst") == "selbst"
     if not os.path.exists(datei):
         import selfaware.macro.eroeffnung as eroeffnung
@@ -3487,11 +3557,11 @@ def main():
         # dort passen nur 2 Apfelplantagen, die Mindestzahl 4 hat SamurAI in der Eroeffnung beendet. Mit eroeffnung=selbst
         # plant die Eroeffnung nur Holz, Huetten, Stein (A=0); die Nahrung (Jaeger x Brotketten x Aepfel, auch ganz ohne
         # Aepfel) waehlt allein nahrungswahl.py weiter unten
-        p_neu = eroeffnung.plane(K=14, A=0 if selbst else 6, start=kurz)      # K wie der M19-Plan (14 Holzfaeller)
+        p_neu = eroeffnung.plane(K=14, A=0 if selbst else 6, start=kurz, lager_max=lager_max)      # K wie der M19-Plan (14 Holzfaeller)
         if "fehler" in p_neu and "Apfelplantagen" in str(p_neu["fehler"]):
             # 19.10. (1v1, Green Haven Platz 3: "keine 6 Apfelplantagen") - mit 4 Plantagen statt Abbruch
             schreib("Eroeffnungsplan %s: %s - neu mit 4 Apfelplantagen" % (kurz, p_neu["fehler"]))
-            p_neu = eroeffnung.plane(K=14, A=4, start=kurz)
+            p_neu = eroeffnung.plane(K=14, A=4, start=kurz, lager_max=lager_max)
         if "fehler" in p_neu:
             raise SystemExit("EROEFFNUNGSPLAN %s: %s" % (kurz, p_neu["fehler"]))
         p_neu["karte"] = karte
@@ -3563,7 +3633,17 @@ def main():
     STEUER_ENDE = arg.get("steuer_ende", "nein")
     B_VERSATZ = None if arg.get("b_versatz", "reif") == "reif" else int(arg["b_versatz"])
     ENTSCHEIDER = arg.get("entscheider", "regeln")
-    ZIEL_TICK = int(arg.get("ziel_tick", 9400))
+    # B-123 (19.10.): ziel_tick=offen - gegen einen Menschen ist das Ende unbekannt. Vorher stand dort 900000; das war zugleich
+    # der Rechenhorizont des Kausalmodells (jede Apfelplantage "wert" Tausende, Partie 20261019_2240). Offen: Kausalmodell mit
+    # mitlaufendem Fenster (jetzt + kausal_horizont); alles andere (Planer, Produktion) rechnet wie bisher mit bis_tick
+    global OFFENES_ENDE, KAUSAL_SPAREN
+    global STEIN_FRUEH, DECKUNG_SOLL, HEER_ANTEIL
+    HEER_ANTEIL = float(arg.get("heer_anteil", HEER_ANTEIL))
+    DECKUNG_SOLL = int(arg.get("deckung_soll", DECKUNG_SOLL))
+    STEIN_FRUEH = int(arg.get("steinbrueche_frueh", STEIN_FRUEH))
+    KAUSAL_SPAREN = arg.get("kausal_sparen", "ja") == "ja"
+    OFFENES_ENDE = arg.get("ziel_tick") == "offen"
+    ZIEL_TICK = int(arg.get("bis_tick", 900000)) if OFFENES_ENDE else int(arg.get("ziel_tick", 9400))
     global KAUSAL_HORIZONT
     KAUSAL_HORIZONT = int(arg.get("kausal_horizont", KAUSAL_HORIZONT))
     HOLZ_SPAM = int(arg.get("holz_spam", 0))

@@ -129,8 +129,66 @@ Takt-Zaehler: `mapAndTime.totalGameTicksUnk` (liest der Lenker) und `GameCore.ma
 | Spieler 2: Holz | `0x011636B8` | `DAT_GameState.playerDataArray[2].currentResources[2]` |
 | Spieler 2: Gold | `0x011636EC` | `DAT_GameState.playerDataArray[2].currentResources[15]` |
 
+## 3. Der Takt - wann was im Spiel passiert (B-95, 20.10.2026)
+
+Abgelesen aus OpenSHC-ref (Ghidra, nur lesen): `werkzeug/ghidra/DumpAufrufer.java` -> `daten/aufrufer_befehle.txt`
+(Aufrufkette und Aufrufreihenfolge), `DumpFunktionen.java` -> `daten/dekomp_takt.c` (WinMain, determineGameTicksToPerform,
+processGameTick). Marke: **abgelesen** (Programmcode gelesen, nicht im laufenden Spiel gemessen).
+
+**Hauptschleife** (`WinMain` @ 0x0057be10, je Bild):
+1. Fenster-Nachrichten, `processMenuViewSwitch`, Musik, `receiveAllTransmittedCommands` (Mehrspieler-Befehle annehmen).
+2. `gameTicksThisLoop = determineGameTicksToPerform(...)` - wie viele Spieltakte dieses Bild rechnet (hoeheres Tempo =
+   mehr Takte je Bild).
+3. Fuer jeden dieser Takte, in genau dieser Reihenfolge (0x0057c375 ...):
+   `processWaitingCommands` (0x004892F0, Abschnitt 1) -> `processGameTick` (0x0045CD10) -> `receiveAllTransmittedCommands`
+   -> Videos -> `TacticalPowersFill`; Abbruch, wenn `DAT_GameHalted`.
+4. Danach Zeichnen (Karte, Menue, Minikarte) - einmal je Bild, nicht je Takt.
+
+**Ein Takt** (`processGameTick`): zuerst Mehrspieler-Abgleich, Kartenschichten; dann - nur wenn kein haltendes Menue offen
+ist - in dieser Reihenfolge: Wind, Kletterdaten, **Gebaeude** (`updateBuildings`), Pechgraeben, **Baeume**,
+Einzelspieler-Ereignisse, **Niederlage pruefen** (`checkSkirmishGameDefeat`), **KI-Bauentscheidungen**
+(`AIVState::updateBuildingsStateAndUpdateAIBuildingDecisions`), KI-Einheitenbewegung (nicht Gefecht), **Einheiten**
+(`updateUnits`), Entitaeten, **Verbaende** (`TribesState::updateTribeUnitAssignments`, `updateTribes`), Verstaerkungswellen,
+Rehe nachwachsen, Staub, `updateGameRelatedValue`.
+
+**Was das fuer uns heisst:**
+- Ein Befehl, den wir senden (queueCommand), wird am **Anfang des naechsten Takts** ausgefuehrt - vor Gebaeuden, KI und
+  Einheiten dieses Takts. Mehrere Befehle laufen in der Reihenfolge, in der sie eingereiht wurden.
+- Bei hohem Tempo rechnet das Spiel mehrere Takte je Bild; wer je Bild einmal liest, sieht nur jeden n-ten Takt (passt zu
+  "der Lenker sieht bei Tempo 100 etwa alle 11 Ticks hin", lernen.py).
+- Die Gegner-KI entscheidet ihre Bauten in jedem Takt NACH den Gebaeuden und VOR den Einheiten.
+
+**Noch offen:** an welcher Stelle UCP3 sein `everyTick` (unser logik.lua-Takt, Rust-Kern) einhaengt - das steht nicht im
+Spiel, sondern in UCP3; im Lauf messen (Tick-Zaehler vor/nach einem eigenen Befehl).
+
+## 4. Darf hier gebaut werden? (B-95, 20.10.2026)
+
+Abgelesen: `TileMapState::isBuildingPlacementAllowedAtTile` @ 0x004F9A60 (je Feld; Rueckgabe 0 = erlaubt, 1 = nicht erlaubt,
+2 = dort steht schon ein Gebaeude), dazu `validateBuildingPlacementAtTile`, `placeBuilding` - `daten/dekomp_bauplatz.c`
+(`DumpFunktionen.java`, Namen Placement/placeBuilding/...). Marke: **abgelesen**.
+
+Ein Feld ist NICHT bebaubar, wenn (in dieser Reihenfolge geprueft):
+1. es zu hoch liegt (`buildingHeightLimit`; Hoefe/Apfel/Hopfen/Weizen setzen dabei eine eigene Warnung) oder die
+   Hoehe ueber `buildingMinHeight + buildingMaxHeightDifference` liegt;
+2. schon ein Gebaeude darauf steht (Rueckgabe 2);
+3. **eine Einheit darauf steht**: fuer einen MENSCHLICHEN Spieler blockiert JEDE Einheit ausser Huehnern - auch die
+   eigenen Arbeiter; fuer einen KI-Spieler nur der Lord oder eine waehlbare fremde Einheit (`isAIPlayer`);
+4. es Meer ist (LogicLayer Bit 0x1) oder Fluss (0x100000), oder fremde Mauer (WallOwnerLayer) - auf eigener Mauer nur
+   Tore und Tuerme;
+5. ein Baum darauf steht - bestimmte Baumarten blockieren immer, die uebrigen nur im Einzelspieler-Modus und fuer
+   menschliche Spieler (eine KI im Gefecht darf dort bauen);
+6. Sumpf/Graben-Eigenschaften des Gebaeudetyps es verbieten (buildingPlacementProperty_4/6/7).
+
+**Was das fuer uns heisst:** `isAIPlayer(sp)` = `currentPlayerFullIDArray[sp] == -1` UND `currentAIArray[sp] != 0`
+(@ 0x004010B0, `daten/dekomp_isaiplayer.c`). Die Wache setzt bei der Uebernahme `currentAIArray[sp] = 0` (ki_aus) und im
+eigenen Gefecht spielt die SamurAI einen Menschen-Platz - fuer die Bauregeln ist sie also in beiden Faellen ein
+menschlicher Spieler (abgelesen, Code und unser eigener ki_aus). Dann blockieren ihre EIGENEN Arbeiter, die gerade
+ueber den Bauplatz laufen, jeden Bau dort, und Baeume blockieren wie beim Menschen. Das passt zu den Meldungen "Markt am
+festen Platz nicht moeglich (z. B. Einheit drauf)" und zu Bauten, die erst im zweiten Versuch stehen. Zu messen: `isAIPlayer`
+fuer den Platz der SamurAI nach der Uebernahme, und wie oft ein Bau an einer Einheit scheitert.
+
 ## Offen (nächste Abschnitte, B-95)
 
 - ~~Spielerdaten~~, ~~Einheiten und Gebaeude~~ - Abschnitt 2 (die Felder, die wir lesen; weitere Felder stehen in den Strukturdateien).
-- Karte: Gelände, Begehbarkeit, Bauplatzprüfung.
-- Takt: wo `processWaitingCommands` im Spieltakt sitzt und wo ein Modul sicher einhängen kann.
+- Karte: ~~Bauplatzpruefung~~ (Abschnitt 4); offen: Gelaende- und Begehbarkeits-Schichten im Einzelnen.
+- ~~Takt~~ - Abschnitt 3 (offen nur noch: wo UCP3 `everyTick` einhaengt).

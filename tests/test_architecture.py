@@ -69,7 +69,7 @@ def test_relocated_modules_use_package_imports_and_resolve_local_dependencies():
 
 def test_relocation_manifest_preserves_research_and_removes_old_paths():
     if not (ROOT / "data/research").is_dir() and not (ROOT / ".git").exists():
-        pytest.skip("The source distribution excludes the 578 MiB historical corpus")
+        pytest.skip("The source distribution excludes the historical corpus")
     manifest = json.loads((ROOT / "docs/relocations.json").read_text(encoding="utf-8"))
     immutable = [entry["new"] for entry in manifest["files"] if not entry["content_changed"]]
     attributes = subprocess.run(

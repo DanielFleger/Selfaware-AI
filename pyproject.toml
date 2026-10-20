@@ -22,7 +22,8 @@ selfaware = "selfaware.cli:main"
 packages = ["src/selfaware"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src", "tests", "audit", "configs", "docs", "bridge", "tools", "research", "assets", "README.md", "AGENTS.md", "pyproject.toml", "uv.lock"]
+include = ["src", "tests", "audit", "configs", "docs", "bridge", "tools", "crates", "research", "assets", "README.md", "AGENTS.md", "pyproject.toml", "uv.lock"]
+exclude = ["/data/**", "**/target/**", "**/__pycache__/**", "*.pyc", "/audit/results.json", "/audit/lint.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -33,10 +34,6 @@ target-version = "py311"
 line-length = 100
 # Relocated historical sources retain their formatting; new modules are checked.
 extend-exclude = [
-    "src/selfaware/tools/analysis/spielkarte_felder.py",
-    "src/selfaware/tools/checks/absender_pruefen.py",
-    "src/selfaware/tools/experiments/absender_live_pruefen.py",
-    "src/selfaware/tools/planning/backlog.py",
     "src/selfaware/execution/auftragsbuch.py",
     "src/selfaware/execution/lordschutz.py",
     "src/selfaware/game/ucp/aufbau.py",
@@ -47,6 +44,8 @@ extend-exclude = [
     "src/selfaware/game/ucp/steuerkarte.py",
     "src/selfaware/learning/kausal.py",
     "src/selfaware/learning/lernen.py",
+    "src/selfaware/learning/lernen_1v1.py",
+    "src/selfaware/learning/partie_lernen.py",
     "src/selfaware/macro/aufbau_planer.py",
     "src/selfaware/macro/bierkette.py",
     "src/selfaware/macro/brotbau.py",
@@ -82,6 +81,7 @@ extend-exclude = [
     "src/selfaware/strategy/bilanz.py",
     "src/selfaware/strategy/endspurt.py",
     "src/selfaware/telemetry/ablaufanalyse.py",
+    "src/selfaware/telemetry/gold_bilanz.py",
     "src/selfaware/telemetry/kennung.py",
     "src/selfaware/telemetry/lageprotokoll.py",
     "src/selfaware/telemetry/partie_vergleich.py",
@@ -100,6 +100,7 @@ extend-exclude = [
     "src/selfaware/tools/analysis/nomade_nachschau.py",
     "src/selfaware/tools/analysis/rohstoff_formel.py",
     "src/selfaware/tools/analysis/schussrate_messen.py",
+    "src/selfaware/tools/analysis/spielkarte_felder.py",
     "src/selfaware/tools/analysis/stein_auswerten.py",
     "src/selfaware/tools/analysis/tempo_messen.py",
     "src/selfaware/tools/analysis/tode_erklaeren.py",
@@ -107,6 +108,7 @@ extend-exclude = [
     "src/selfaware/tools/analysis/treffer_genau.py",
     "src/selfaware/tools/analysis/vergleich.py",
     "src/selfaware/tools/analysis/verlust_eingrenzen.py",
+    "src/selfaware/tools/checks/absender_pruefen.py",
     "src/selfaware/tools/checks/angriffsdaten_pruefen.py",
     "src/selfaware/tools/checks/anwerben_pruefen.py",
     "src/selfaware/tools/checks/ausweichen_pruefen.py",
@@ -155,6 +157,7 @@ extend-exclude = [
     "src/selfaware/tools/checks/zielwaechter_pruefen.py",
     "src/selfaware/tools/checks/zuweisung_pruefen.py",
     "src/selfaware/tools/experiments/abriss_messen.py",
+    "src/selfaware/tools/experiments/absender_live_pruefen.py",
     "src/selfaware/tools/experiments/arbeit_pruefen.py",
     "src/selfaware/tools/experiments/arbeitsgang_messen.py",
     "src/selfaware/tools/experiments/arbeitsgang_nahrung.py",
@@ -173,6 +176,7 @@ extend-exclude = [
     "src/selfaware/tools/experiments/gruppe_halten.py",
     "src/selfaware/tools/experiments/haertetest.py",
     "src/selfaware/tools/experiments/karten_holen.py",
+    "src/selfaware/tools/experiments/kern_pruefen.py",
     "src/selfaware/tools/experiments/klettertest.py",
     "src/selfaware/tools/experiments/lage_mitschnitt.py",
     "src/selfaware/tools/experiments/lord_sturm.py",
@@ -208,6 +212,7 @@ extend-exclude = [
     "src/selfaware/tools/experiments/wirkung.py",
     "src/selfaware/tools/experiments/zickzack.py",
     "src/selfaware/tools/experiments/zielfeld_suchen.py",
+    "src/selfaware/tools/planning/backlog.py",
     "src/selfaware/tools/setup/config.py",
     "src/selfaware/tools/setup/gui.py",
     "src/selfaware/tools/setup/samurai_einrichten.py",

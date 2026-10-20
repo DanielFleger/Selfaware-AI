@@ -78,7 +78,7 @@ this can temporarily under-allocate. Budget optimization is a later step.
   or predicts a new policy's match outcome. The CLI's replay mode is observation-only.
 - No legacy economy/attack policy has silently been replaced. Port one engine
   at a time, with recorded-decision checks and separate actual-match evaluation.
-- No native address/calling convention has been validated by this branch.
+- No native address/calling convention has been revalidated by this organization work.
 - IDs/records are retained for the runtime's game epoch. Long-running sessions
   will need measured retention/trace policies without forgetting pending work.
 
@@ -105,3 +105,11 @@ controllers and long-lived tasks as those implementations migrate to `Engine`.
 Keep lifecycle/configuration code in the runtime, protocol/native details in
 the game adapter, decisions in policies, and experiments in explicit profiles.
 Preserve Crusader's worker logistics and native climbing/pathing behavior.
+
+The existing B-115 Rust core is in `crates/samurai-kern/`. It retains the current
+C ABI and direct game-memory reads; the Lua loader remains in the dated bridge
+snapshot. The paired 1v1 learner and post-match collector are in `learning/`,
+and gold accounting is in `telemetry/`. These are the latest upstream
+implementations, including B-132 army budgeting. Compiling the DLL and testing
+Python launch paths does not validate a deployed native session or a policy's
+match strength.

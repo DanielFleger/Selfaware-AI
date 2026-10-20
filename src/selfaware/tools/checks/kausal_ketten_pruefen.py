@@ -53,6 +53,14 @@ def main():
     r5 = [x[1] for x in h5 if x[1] != 1]
     pruefe(5, "15 Holz, Eisen blockiert: Reihenfolge %s (Holzfaeller zuerst) | %s" % (r5, [x[3][-45:] for x in h5 if x[1] == 3][:1]),
            r5 and r5[0] == 3)
+    # 6. (B-122, Partie 20261019_2240: Eisenmine wartete 27.000 Ticks, 35 Apfelplantagen nahmen das Holz) 20 Holz, Eisenmine
+    #    (40 Holz) ist je Arbeiter am meisten wert -> es wird fuer sie gespart: Holzfaeller ja (behebt den Mangel), Apfelplantage
+    #    (8 Holz, waere bezahlbar) NEIN. Mit viel Holz kommen alle drei. Gegenprobe: das alte Modell nahm die Apfelplantage.
+    k6 = [(5, (90, 100), {"holz": 40}, K.arbeiter(5, 10)), (32, (100, 160), {"holz": 8}, K.arbeiter(32, 60)), (3, (130, 100), {"holz": 5}, 1)]
+    ab6 = {3: lager, 32: lager, 5: lager}
+    r6 = [x[1] for x in K.entscheide(1000, 17000, dict(st, holz=20), k6, (100, 100), ab6, 6) if x[1] != 1]
+    r6v = [x[1] for x in K.entscheide(1000, 17000, st, k6, (100, 100), ab6, 6) if x[1] != 1]
+    pruefe(6, "20 Holz, Eisen zuerst gespart: %s (viel Holz: %s)" % (r6, r6v), r6 == [3] and set(r6v) == {3, 5, 32})
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

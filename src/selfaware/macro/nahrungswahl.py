@@ -156,7 +156,9 @@ def waehle(kurz, plan, bev_ziel=90, ration="doppelt", horizont=16000):
     hd = herden(info, K, feinde)
     jaeger_max = sum(min(JAEGER_JE_HERDE, n // JAGD_MIN) for _, n in hd)
     t_brot = M.BROT_ERSTE
-    bedarf = lambda r, a, b: max(leute(t, bev_ziel) * VERBRAUCH[r] for t in range(a, b + 1, 500))
+    # 19.10. (B-120-Test, bis_tick=6000): endet die Partie vor dem ersten Brot (horizont < t_brot), war der Bereich leer und
+    # max() brach ab - dann gilt der Bedarf am Startpunkt des Abschnitts
+    bedarf = lambda r, a, b: max(leute(t, bev_ziel) * VERBRAUCH[r] for t in range(a, max(a, b) + 1, 500))
     grund = {"plaetze_eigene_seite": len(plaetze), "herden": [(list(m), n) for m, n in hd], "jaeger_moeglich": jaeger_max,
              "ration": ration, "bev_ziel": bev_ziel, "rehe_gezaehlt": "rehe" in info}
 

@@ -2212,13 +2212,13 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 3
+   "rang": 9
   },
   {
    "nr": "B-95",
    "titel": "Grundverstaendnis des Spiels per Reverse Engineering (Ghidra), bevor gebaut wird",
    "bereich": "Framework",
-   "status": "offen",
+   "status": "in_arbeit",
    "seit": "2026-10-19",
    "herkunft": "Krari ueber Daniel 19.10. 21:52",
    "gebaut": null,
@@ -2233,7 +2233,7 @@
     "docs/BACKLOG.md"
    ],
    "belege": [],
-   "notiz": "Vorhanden: Ghidra-Projekt OpenSHC-ref (4.765 benannte Funktionen), VillageStudio doku/ghidra | Spielkarte.md angelegt, Abschnitt 1 (Befehle) fertig; offen: Spielerdaten, Einheiten/Gebaeude, Karte, Takt | Abschnitt 2 fertig: Einheiten, Gebaeude, Spielerdaten, Zeit - alle gelesenen Felder benannt und bestaetigt; offen: Karte, Takt | Abschnitt 1+2 fertig; Karte und Takt folgen beim Rust-Grundmodul | DATA-01: preserve and investigate the mixed-tick sample at data/research/lage_20261018_162313_i1.jsonl.gz:37; docs/BACKLOG.md.",
+   "notiz": "Vorhanden: Ghidra-Projekt OpenSHC-ref (4.765 benannte Funktionen), VillageStudio doku/ghidra | Spielkarte.md angelegt, Abschnitt 1 (Befehle) fertig; offen: Spielerdaten, Einheiten/Gebaeude, Karte, Takt | Abschnitt 2 fertig: Einheiten, Gebaeude, Spielerdaten, Zeit - alle gelesenen Felder benannt und bestaetigt; offen: Karte, Takt | Abschnitt 1+2 fertig; Karte und Takt folgen beim Rust-Grundmodul | Abschnitt 3 Takt (20.10.): Hauptschleife und Reihenfolge in processGameTick abgelesen (DumpAufrufer.java). Offen: Karte (Gelaende, Begehbarkeit, Bauplatzpruefung), UCP3-everyTick-Stelle | DATA-01: preserve and investigate the mixed-tick sample at data/research/lage_20261018_162313_i1.jsonl.gz:37; docs/BACKLOG.md.",
    "verlauf": [
     {
      "zeit": "2026-10-19 21:58",
@@ -2256,12 +2256,16 @@
      "was": "in Arbeit -> offen: Abschnitt 1+2 fertig; Karte und Takt folgen beim Rust-Grundmodul"
     },
     {
+     "zeit": "2026-10-20 00:08",
+     "was": "offen -> in Arbeit: Abschnitt 3 Takt (20.10.): Hauptschleife und Reihenfolge in processGameTick abgelesen (DumpAufrufer.java). Offen: Karte (Gelaende, Begehbarkeit, Bauplatzpruefung), UCP3-everyTick-Stelle"
+    },
+    {
      "zeit": "2026-10-19 22:27",
      "was": "Engineering acceptance details linked during repository organization (B-102); gameplay status unchanged."
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 5
+   "rang": 11
   },
   {
    "nr": "B-96",
@@ -2294,7 +2298,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 6
+   "rang": 12
   },
   {
    "nr": "B-97",
@@ -2329,7 +2333,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 7
+   "rang": 13
   },
   {
    "nr": "B-98",
@@ -2360,7 +2364,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 8
+   "rang": 14
   },
   {
    "nr": "B-99",
@@ -2391,7 +2395,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 9
+   "rang": 15
   },
   {
    "nr": "B-100",
@@ -2416,7 +2420,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 10
+   "rang": 16
   },
   {
    "nr": "B-101",
@@ -2449,7 +2453,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 14
+   "rang": 20
   },
   {
    "nr": "B-102",
@@ -2458,7 +2462,7 @@
    "status": "in_arbeit",
    "seit": "2026-10-19",
    "herkunft": "Audit_Sharky.html Punkt 2 (177 .py in einem Ordner)",
-   "gebaut": "2026-10-19 22:33",
+   "gebaut": null,
    "commits": [
     "a429e28",
     "3008e6c",
@@ -2525,7 +2529,7 @@
     "src/selfaware/runtime/live/samurai_wache.py"
    ],
    "belege": [],
-   "notiz": "",
+   "notiz": "22:40: Uebernahme bei Tick 0 - mit Neustart ueber das Menue klappt es; schneller Neustart aus der Partie noch ungeprueft",
    "verlauf": [
     {
      "zeit": "2026-10-19 21:58",
@@ -2534,10 +2538,14 @@
     {
      "zeit": "2026-10-19 22:03",
      "was": "Rang - -> 10"
+    },
+    {
+     "zeit": "2026-10-19 22:48",
+     "was": "offen -> offen: 22:40: Uebernahme bei Tick 0 - mit Neustart ueber das Menue klappt es; schneller Neustart aus der Partie noch ungeprueft"
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 11
+   "rang": 17
   },
   {
    "nr": "B-104",
@@ -2572,7 +2580,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 12
+   "rang": 18
   },
   {
    "nr": "B-105",
@@ -2599,7 +2607,7 @@
     }
    ],
    "quelle": "Commits seit 11.10. / Sitzung 19.10.",
-   "rang": 13
+   "rang": 19
   },
   {
    "nr": "B-106",
@@ -2815,20 +2823,25 @@
      "was": "in Arbeit -> gebaut (Commit 47dc5b6): Ursache belegt (abgelesen): im Einzelspieler gilt jeder Befehl fuer 'ich' bei der Ausfuehrung; VillageStudio Wissensstand 13i-2 (aff005f)"
     }
    ],
-   "rang": 4
+   "rang": 10
   },
   {
    "nr": "B-115",
    "titel": "Rust-Grundmodul im Spiel: laedt als UCP3-Modul, liest jeden Takt die eigenen Einheiten, schreibt ein Protokoll",
    "bereich": "Framework",
-   "status": "in_arbeit",
+   "status": "gebaut",
    "seit": "2026-10-19 22:03",
    "herkunft": "Vorschlag 19.10. 22:00 (nach B-96)",
-   "gebaut": null,
-   "commits": [],
-   "wo": [],
+   "gebaut": "2026-10-19 22:58",
+   "commits": [
+    "59ec7fd"
+   ],
+   "wo": [
+    "crates/samurai-kern/src/lib.rs",
+    "src/selfaware/tools/experiments/kern_pruefen.py"
+   ],
    "belege": [],
-   "notiz": "",
+   "notiz": "19.10. 22:58: Rust installiert (rustc 1.99.1, Host i686-pc-windows-gnu, ~/.cargo/bin, PATH unveraendert; rustup-init sha256 gegen static.rust-lang.org geprueft). Probe-DLL gebaut: PE32 i386, Exporte samurai_version/samurai_lies_int, nur System-Importe. PLAN: (1) Cargo-Projekt Selfaware-AI/samurai_kern (cdylib, edition 2024: #[unsafe(no_mangle)], panic=abort); (2) Exporte samurai_version, samurai_takt(tick, spieler) -> liest Einheiten aus 0x0138854C+i*1168 (Felder Spielkarte 2: owner +0x96, unitType +0x8E, x/y +0xB6/+0xB8 /8, health +0x3C8, dying +0x2A0) und schreibt alle N Takte eine Protokollzeile; (3) Laden aus logik.lua mit core.openLibraryHandle + Funktionsadresse + core.exposeCode (cdecl), Aufruf in everyTick; (4) Pruefung: Zahl eigener Einheiten aus der DLL = Zahl im Lagebild, Gegenprobe falscher Spieler | im Spiel 4/4: DLL = Lagebild je Spieler, Gegenprobe +1; Stufe 1 (lesen + Protokoll); naechste Stufe: Lagebild ganz im Kern, dann Sharky-Geruest in Rust (B-97)",
    "verlauf": [
     {
      "zeit": "2026-10-19 22:03",
@@ -2845,9 +2858,17 @@
     {
      "zeit": "2026-10-19 22:36",
      "was": "Rang 5 -> 1"
+    },
+    {
+     "zeit": "2026-10-19 22:56",
+     "was": "in Arbeit -> in Arbeit: 19.10. 22:58: Rust installiert (rustc 1.99.1, Host i686-pc-windows-gnu, ~/.cargo/bin, PATH unveraendert; rustup-init sha256 gegen static.rust-lang.org geprueft). Probe-DLL gebaut: PE32 i386, Exporte samurai_version/samurai_lies_int, nur System-Importe. PLAN: (1) Cargo-Projekt Selfaware-AI/samurai_kern (cdylib, edition 2024: #[unsafe(no_mangle)], panic=abort); (2) Exporte samurai_version, samurai_takt(tick, spieler) -> liest Einheiten aus 0x0138854C+i*1168 (Felder Spielkarte 2: owner +0x96, unitType +0x8E, x/y +0xB6/+0xB8 /8, health +0x3C8, dying +0x2A0) und schreibt alle N Takte eine Protokollzeile; (3) Laden aus logik.lua mit core.openLibraryHandle + Funktionsadresse + core.exposeCode (cdecl), Aufruf in everyTick; (4) Pruefung: Zahl eigener Einheiten aus der DLL = Zahl im Lagebild, Gegenprobe falscher Spieler"
+    },
+    {
+     "zeit": "2026-10-19 22:58",
+     "was": "in Arbeit -> gebaut (Commit 59ec7fd): im Spiel 4/4: DLL = Lagebild je Spieler, Gegenprobe +1; Stufe 1 (lesen + Protokoll); naechste Stufe: Lagebild ganz im Kern, dann Sharky-Geruest in Rust (B-97)"
     }
    ],
-   "rang": 2
+   "rang": 8
   },
   {
    "nr": "B-116",
@@ -2879,7 +2900,8 @@
    "herkunft": "Daniel 19.10. 22:33 'das Spiel haengt'; 21:25 'wenn ich Markt oder Soeldnerposten benutze, haengt er'",
    "gebaut": "2026-10-19",
    "commits": [
-    "4e8812d"
+    "4e8812d",
+    "612421c"
    ],
    "wo": [
     "src/selfaware/runtime/live/samurai_wache.py",
@@ -2887,10 +2909,450 @@
     "data/research/enum_ansicht.txt"
    ],
    "belege": [],
-   "notiz": "Ansicht 16 = MVT_BUILDING_AND_STATUS_MENU; Waechter beendete SamurAI und stellte die Tick-Pause scharf; jetzt im Spiel = 14 oder 16; im Spiel noch nicht gesehen",
+   "notiz": "Ansicht 16 = MVT_BUILDING_AND_STATUS_MENU; Waechter beendete SamurAI und stellte die Tick-Pause scharf; jetzt im Spiel = 14 oder 16; im Spiel noch nicht gesehen | im Spiel bestaetigt: Partie 22:40 lief bis Tick 27.785 ohne Abbruch, Daniel nutzte Gebaeude (Sieg Daniel)",
    "verlauf": [
     {
      "zeit": "2026-10-19 22:36",
+     "was": "angelegt (gebaut)"
+    },
+    {
+     "zeit": "2026-10-19 22:48",
+     "was": "gebaut -> gebaut (Commit 612421c): im Spiel bestaetigt: Partie 22:40 lief bis Tick 27.785 ohne Abbruch, Daniel nutzte Gebaeude (Sieg Daniel)"
+    }
+   ]
+  },
+  {
+   "nr": "B-118",
+   "titel": "SamurAI gegen Menschen: zu wenig Druck - Daniel gewann, weil er mehr Druck machte",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-19 22:48",
+   "herkunft": "Daniel 19.10. 22:47: 'hab ihn besiegt, weil er nicht genug gepressured hat wie ich - aber stark gespielt von ihm'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [],
+   "notiz": "Partie 22:40 (Instanz 4, Lobby): Ende Tick 27.785 SamurAI 4 Leute, 1/18 Holzfaeller besetzt, Beliebtheit 50, Gold 30; Daten daten/samurai_20261019_224026_sp2_konsole.txt + lage_20261019_224031_i4_sp2.jsonl.gz - auswerten mit partie_vergleich.py",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 22:48",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-119",
+   "titel": "Partie Daniel gegen SamurAI 22:40 als Trainingsdaten auswerten",
+   "bereich": "Lernen",
+   "status": "gebaut",
+   "seit": "2026-10-19 22:48",
+   "herkunft": "Daniel 19.10. 22:48: 'in Zukunft kann so eine Partie gerne auch fuer mehr Trainingsdaten genutzt werden - mache jetzt erstmal daraus, was du kannst'",
+   "gebaut": "2026-10-19 22:52",
+   "commits": [
+    "84a0039"
+   ],
+   "wo": [
+    "data/research/samurai_20261019_224026_sp2_konsole.txt",
+    "data/research/lage_20261019_224031_i4_sp2.jsonl.gz",
+    "src/selfaware/learning/partie_lernen.py",
+    "data/research/lernen/partien.jsonl"
+   ],
+   "belege": [
+    "L144"
+   ],
+   "notiz": "Wache startet die Auswertung am Partieende selbst (lernen_starten)",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 22:48",
+     "was": "angelegt (in Arbeit)"
+    },
+    {
+     "zeit": "2026-10-19 22:48",
+     "was": "Rang - -> 1"
+    },
+    {
+     "zeit": "2026-10-19 22:52",
+     "was": "in Arbeit -> gebaut (Commit 84a0039): Wache startet die Auswertung am Partieende selbst (lernen_starten)"
+    }
+   ],
+   "rang": 6
+  },
+  {
+   "nr": "B-120",
+   "titel": "Gold-Einnahme fuer Truppen: SamurAI hatte die ganze Partie kein Gold zum Anwerben (L144)",
+   "bereich": "Wirtschaft",
+   "status": "gebaut",
+   "seit": "2026-10-19 22:52",
+   "herkunft": "Partie Daniel gegen SamurAI 19.10. 22:40, Auswertung B-119",
+   "gebaut": "2026-10-19 23:26",
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "L144"
+   ],
+   "notiz": "erst messen, wohin sein Gold ging (Plantagen, Seasoning, Planer) und woher Daniels Gold kam; dann Steuern/Verkauf fuer ein stehendes Heer | Messung fertig (L145): 0 Steuer, kaum Verkaeufliches, Eisenmine verhungert; Daniel: Stein/Eisen horten und verkaufen. Folgen B-121 (gebaut), B-122/123 (gebaut, Lobby-Pruefung offen), B-124, B-125",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 22:52",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-19 22:52",
+     "was": "Rang - -> 2"
+    },
+    {
+     "zeit": "2026-10-19 22:58",
+     "was": "Rang 2 -> 1"
+    },
+    {
+     "zeit": "2026-10-19 23:01",
+     "was": "offen -> in Arbeit"
+    },
+    {
+     "zeit": "2026-10-19 23:26",
+     "was": "in Arbeit -> gebaut: Messung fertig (L145): 0 Steuer, kaum Verkaeufliches, Eisenmine verhungert; Daniel: Stein/Eisen horten und verkaufen. Folgen B-121 (gebaut), B-122/123 (gebaut, Lobby-Pruefung offen), B-124, B-125"
+    }
+   ],
+   "rang": 5
+  },
+  {
+   "nr": "B-121",
+   "titel": "Steuer: ohne Kasse endete das Wachstum nie - Stufe 2 (0 Gold) die ganze Partie",
+   "bereich": "Wirtschaft",
+   "status": "gebaut",
+   "seit": "2026-10-19 23:15",
+   "herkunft": "Gold-Bilanz B-120, Partie 19.10. 22:40 (L145)",
+   "gebaut": "2026-10-19 23:20",
+   "commits": [],
+   "wo": [
+    "src/selfaware/runtime/live/erstes_spiel.py"
+   ],
+   "belege": [
+    "L145"
+   ],
+   "notiz": "Ab Ziel-Bevoelkerung gilt jetzt die Beliebtheitsregel; Live-Test Instanz 5 (bevoelkerung_ziel=12) laeuft. Offen fuer Daniel: auch ab Bevoelkerungs-Stillstand? | live Instanz 5: Ziel 12 -> STEUER FREI ab Tick 1200, Stufe 2->6->4, 73 Gold an 3 Monatswechseln; Gegenprobe Ziel 500: 0 Aenderungen, 0 Gold",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 23:15",
+     "was": "angelegt (in Arbeit)"
+    },
+    {
+     "zeit": "2026-10-19 23:20",
+     "was": "in Arbeit -> gebaut: live Instanz 5: Ziel 12 -> STEUER FREI ab Tick 1200, Stufe 2->6->4, 73 Gold an 3 Monatswechseln; Gegenprobe Ziel 500: 0 Aenderungen, 0 Gold"
+    }
+   ]
+  },
+  {
+   "nr": "B-122",
+   "titel": "Bau-Haushalt: Planers bester Bau (Eisenmine, ~14.000) wartete 27.000 Ticks auf 40 Holz - Kausalmodell verbaute jedes Holz in Apfelplantagen",
+   "bereich": "Wirtschaft",
+   "status": "gebaut",
+   "seit": "2026-10-19 23:15",
+   "herkunft": "Gold-Bilanz B-120, Partie 19.10. 22:40 (L145)",
+   "gebaut": "2026-10-19 23:26",
+   "commits": [],
+   "wo": [
+    "src/selfaware/learning/kausal.py"
+   ],
+   "belege": [
+    "L145"
+   ],
+   "notiz": "eine Stelle baut, Ruecklage fuer den wertvollsten Bau - gehoert zu B-99 (Sharky MacroManager) | kausal.entscheide spart fuer den besten Betrieb (Test 6 gruen, altes Modell rot); Schalter kausal_sparen; Live-Vergleich alt/neu folgt | offline Test 6 gruen (alt rot). Live Green Haven bis Tick 12.000, je 1 Lauf: neu 823 Gold Einnahmen / 29 Stein / 0 Eisen / 17 Hopfen- statt 16 Apfelplantagen, alt 862 / 29 / 0 - KEIN messbarer Gewinn; dort war Holz nie knapp. Pruefung auf der Lobby-Karte (wo die Eisenmine verhungerte) offen - Kartenname unbekannt (B-127)",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 23:15",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-19 23:20",
+     "was": "offen -> in Arbeit: kausal.entscheide spart fuer den besten Betrieb (Test 6 gruen, altes Modell rot); Schalter kausal_sparen; Live-Vergleich alt/neu folgt"
+    },
+    {
+     "zeit": "2026-10-19 23:26",
+     "was": "in Arbeit -> gebaut: offline Test 6 gruen (alt rot). Live Green Haven bis Tick 12.000, je 1 Lauf: neu 823 Gold Einnahmen / 29 Stein / 0 Eisen / 17 Hopfen- statt 16 Apfelplantagen, alt 862 / 29 / 0 - KEIN messbarer Gewinn; dort war Holz nie knapp. Pruefung auf der Lobby-Karte (wo die Eisenmine verhungerte) offen - Kartenname unbekannt (B-127)"
+    }
+   ]
+  },
+  {
+   "nr": "B-123",
+   "titel": "Rechenhorizont des Kausalmodells = Tick 900.000 in der 1v1-Wache (L19: muss das echte Ende sein)",
+   "bereich": "Wirtschaft",
+   "status": "gebaut",
+   "seit": "2026-10-19 23:15",
+   "herkunft": "Gold-Bilanz B-120, Partie 19.10. 22:40 (L145)",
+   "gebaut": "2026-10-19 23:26",
+   "commits": [],
+   "wo": [
+    "src/selfaware/runtime/live/erstes_spiel.py"
+   ],
+   "belege": [
+    "L145",
+    "L19"
+   ],
+   "notiz": "ziel_tick=900000 haelt die Partie offen, ist aber zugleich der Horizont: jede Apfelplantage 'wert' Tausende (erste Lieferung oft 5.000 Ticks spaeter) | ziel_tick=offen: Kausalmodell mitlaufend jetzt + 16.000; Wache auf ziel_tick=offen umgestellt (greift nach Neustart der Wache) | Wache neu gestartet mit ziel_tick=offen (23:21); live Green Haven siehe B-122",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 23:15",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-19 23:20",
+     "was": "offen -> in Arbeit: ziel_tick=offen: Kausalmodell mitlaufend jetzt + 16.000; Wache auf ziel_tick=offen umgestellt (greift nach Neustart der Wache)"
+    },
+    {
+     "zeit": "2026-10-19 23:26",
+     "was": "in Arbeit -> gebaut: Wache neu gestartet mit ziel_tick=offen (23:21); live Green Haven siehe B-122"
+    }
+   ]
+  },
+  {
+   "nr": "B-124",
+   "titel": "Holzfaeller-Ertrag 1,4 statt 5,3 je Huette und 1.000 Ticks - Ursache suchen (4 je Baum? Wege?)",
+   "bereich": "Wirtschaft",
+   "status": "in_arbeit",
+   "seit": "2026-10-19 23:15",
+   "herkunft": "Gold-Bilanz B-120, Partie 19.10. 22:40 (L145)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "src/selfaware/macro/eroeffnung.py"
+   ],
+   "belege": [
+    "L145",
+    "L3"
+   ],
+   "notiz": "gemessen 19.10. 23:24 (Lage 2240): Abstand Holzfaellerhuette -> naechstes Lager (Schach) Median SamurAI 44-45 Felder (bis 186, 4 Lagerteile), Daniel 17-25 (8 Lagerteile). Bei ~26 Ticks je Feld (L1) ist allein der Weg 2,5x laenger. Naechster Schritt: Holzfaeller nur nah am Lager oder Lager zu den Holzfaellern | Ursache v. a. die Karte: SamurAI-Seite 1 faellbarer Baum im Umkreis 60 (Daniel 24). Knopf lager_max (45 Standard); Modell fuer 2240: 45 -> 60 Holz/1.000 Ticks, 75 -> 84, 90 -> 93. Wirkung misst der 1v1-Lernkreis",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 23:15",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-19 23:22",
+     "was": "offen -> offen: gemessen 19.10. 23:24 (Lage 2240): Abstand Holzfaellerhuette -> naechstes Lager (Schach) Median SamurAI 44-45 Felder (bis 186, 4 Lagerteile), Daniel 17-25 (8 Lagerteile). Bei ~26 Ticks je Feld (L1) ist allein der Weg 2,5x laenger. Naechster Schritt: Holzfaeller nur nah am Lager oder Lager zu den Holzfaellern"
+    },
+    {
+     "zeit": "2026-10-19 23:44",
+     "was": "Rang - -> 2"
+    },
+    {
+     "zeit": "2026-10-19 23:54",
+     "was": "offen -> in Arbeit: Ursache v. a. die Karte: SamurAI-Seite 1 faellbarer Baum im Umkreis 60 (Daniel 24). Knopf lager_max (45 Standard); Modell fuer 2240: 45 -> 60 Holz/1.000 Ticks, 75 -> 84, 90 -> 93. Wirkung misst der 1v1-Lernkreis"
+    }
+   ],
+   "rang": 2
+  },
+  {
+   "nr": "B-125",
+   "titel": "Kein Steinbruch und kaum Eisen in der Lobby-Partie - Daniel hatte 5 Steinbrueche + 5 Minen und verkaufte Stein/Eisen fuer Soeldner",
+   "bereich": "Wirtschaft",
+   "status": "gebaut",
+   "seit": "2026-10-19 23:15",
+   "herkunft": "Gold-Bilanz B-120, Partie 19.10. 22:40 (L145)",
+   "gebaut": "2026-10-19 23:54",
+   "commits": [],
+   "wo": [
+    "src/selfaware/runtime/live/erstes_spiel.py"
+   ],
+   "belege": [
+    "L145"
+   ],
+   "notiz": "gemessen 19.10. 23:26 (Konsole 2240): der Eroeffnungsplan hatte einen Steinbruch bei (145,88) - 'nicht gebaut' bei Tick 242 (16 von 20 Holzbauten, 14 Holzfaeller zuerst), Ersatzplatz = derselbe Platz, danach kein neuer Versuch; Planer wartete auf die Eisenmine (Steinbruch nur Platz 2), Kausalmodell waehlte Art 20 nie | Eroeffnung: Steinbruch + Joch vor den Holzfaellern; Phase 2 Steinpflicht (steinbrueche_frueh=2) mit Holz-Ruecklage. Live Green Haven Platz 3 bis 7.000: mit 3 Brueche/7 Joche/24 Stein, Gegenprobe 1/2/12 und 0 STEINPFLICHT-Zeilen; Einnahmen bis dahin 86 gegen 140 (Holz in Stein gesteckt) - Nutzen ueber laengere Partien misst der 1v1-Lernkreis",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 23:15",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-19 23:22",
+     "was": "offen -> offen: gemessen 19.10. 23:26 (Konsole 2240): der Eroeffnungsplan hatte einen Steinbruch bei (145,88) - 'nicht gebaut' bei Tick 242 (16 von 20 Holzbauten, 14 Holzfaeller zuerst), Ersatzplatz = derselbe Platz, danach kein neuer Versuch; Planer wartete auf die Eisenmine (Steinbruch nur Platz 2), Kausalmodell waehlte Art 20 nie"
+    },
+    {
+     "zeit": "2026-10-19 23:44",
+     "was": "Rang - -> 1"
+    },
+    {
+     "zeit": "2026-10-19 23:44",
+     "was": "offen -> in Arbeit"
+    },
+    {
+     "zeit": "2026-10-19 23:54",
+     "was": "in Arbeit -> gebaut: Eroeffnung: Steinbruch + Joch vor den Holzfaellern; Phase 2 Steinpflicht (steinbrueche_frueh=2) mit Holz-Ruecklage. Live Green Haven Platz 3 bis 7.000: mit 3 Brueche/7 Joche/24 Stein, Gegenprobe 1/2/12 und 0 STEINPFLICHT-Zeilen; Einnahmen bis dahin 86 gegen 140 (Holz in Stein gesteckt) - Nutzen ueber laengere Partien misst der 1v1-Lernkreis"
+    }
+   ],
+   "rang": 1
+  },
+  {
+   "nr": "B-126",
+   "titel": "nahrungswahl brach ab, wenn die Partie vor dem ersten Brot endet (bis_tick < BROT_ERSTE)",
+   "bereich": "Wirtschaft",
+   "status": "gebaut",
+   "seit": "2026-10-19 23:15",
+   "herkunft": "B-120-Test Instanz 5",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "src/selfaware/macro/nahrungswahl.py"
+   ],
+   "belege": [],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 23:15",
+     "was": "angelegt (gebaut)"
+    }
+   ]
+  },
+  {
+   "nr": "B-127",
+   "titel": "Lobby-Partie: Kartenname mitschreiben, damit eine Partie gegen Daniel nachgespielt werden kann",
+   "bereich": "Werkzeug",
+   "status": "gebaut",
+   "seit": "2026-10-19 23:26",
+   "herkunft": "B-122 Live-Pruefung 19.10. 23:28",
+   "gebaut": "2026-10-20 00:03",
+   "commits": [],
+   "wo": [
+    "src/selfaware/runtime/live/samurai_wache.py"
+   ],
+   "belege": [],
+   "notiz": "Startdateien heissen nur Lobby_sp2_bf_212_85, spielstand 'live' - die Karte von 22:40 ist nicht bekannt | Kartenname = GameSynchronyState.shortMapName (0x0191D768 + 0x1057B8, OpenSHC); Wache schreibt ihn bei 'Partie erkannt' und gibt ihn partie_lernen als Anmerkung. Entschluesselung offline geprueft ('Green Haven'); Lesen im Spiel noch UNGEPRUEFT (naechste Partie)",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 23:26",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-20 00:03",
+     "was": "offen -> gebaut: Kartenname = GameSynchronyState.shortMapName (0x0191D768 + 0x1057B8, OpenSHC); Wache schreibt ihn bei 'Partie erkannt' und gibt ihn partie_lernen als Anmerkung. Entschluesselung offline geprueft ('Green Haven'); Lesen im Spiel noch UNGEPRUEFT (naechste Partie)"
+    }
+   ]
+  },
+  {
+   "nr": "B-128",
+   "titel": "Daniels Siegerweg als Partie-Vorlage: Holz, frueh 2 Steinbrueche, Aepfel, dann Stein + Eisen, alles verkaufen fuer Einheiten - keine Steuer",
+   "bereich": "Strategie",
+   "status": "in_arbeit",
+   "seit": "2026-10-19 23:32",
+   "herkunft": "Daniel 19.10. 23:32 + Lage 2240 (L147)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "src/selfaware/learning/lernen_1v1.py"
+   ],
+   "belege": [
+    "L147"
+   ],
+   "notiz": "nicht als fester Plan (Endziel: KI waehlt selbst), sondern als Vorlage aus einer echten Partie, die der Entscheider vergleicht (Sharky BuildDecisionService); haengt an B-124 (Lager nah an Holzfaellern), B-125 (Steinbruch frueh) | Knopf produktion ja/nein im 1v1-Lernkreis: nein = Stein/Eisen werden verkauft (keine Waffenkette), Soeldner ueber HEER-WERBUNG; Metrik 2 zaehlt den Truppenwert mit, damit beide Wege vergleichbar sind | Lernkreis Schritt 4 (Close Encounters 3,2, 20.10. 00:23): produktion=nein -22,7 % - aber in BEIDEN Laeufen 0 HEER-WERBUNG (Gold nie ueber Ruecklage + 150) und nie Eisen verkauft trotz 10-12 Eisenminen. Der Vergleich misst noch nicht Daniels Rezept; zuerst: warum kommt kein Eisen ins Lager/zum Verkauf, und Soeldner auch unterhalb von 150 Rand",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 23:32",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-19 23:44",
+     "was": "Rang - -> 3"
+    },
+    {
+     "zeit": "2026-10-19 23:57",
+     "was": "offen -> in Arbeit: Knopf produktion ja/nein im 1v1-Lernkreis: nein = Stein/Eisen werden verkauft (keine Waffenkette), Soeldner ueber HEER-WERBUNG; Metrik 2 zaehlt den Truppenwert mit, damit beide Wege vergleichbar sind"
+    },
+    {
+     "zeit": "2026-10-20 00:23",
+     "was": "in Arbeit -> in Arbeit: Lernkreis Schritt 4 (Close Encounters 3,2, 20.10. 00:23): produktion=nein -22,7 % - aber in BEIDEN Laeufen 0 HEER-WERBUNG (Gold nie ueber Ruecklage + 150) und nie Eisen verkauft trotz 10-12 Eisenminen. Der Vergleich misst noch nicht Daniels Rezept; zuerst: warum kommt kein Eisen ins Lager/zum Verkauf, und Soeldner auch unterhalb von 150 Rand"
+    }
+   ],
+   "rang": 3
+  },
+  {
+   "nr": "B-129",
+   "titel": "Dauerdruck: frueh und ohne Pause raiden - Bogenschuetzen vorn, Sklaven zum Abfackeln (Daniel: nie lockerlassen)",
+   "bereich": "Kampf",
+   "status": "in_arbeit",
+   "seit": "2026-10-19 23:32",
+   "herkunft": "Daniel 19.10. 23:32 + Lage 2240 (L147)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "src/selfaware/micro/tasks/raids.py"
+   ],
+   "belege": [
+    "L147"
+   ],
+   "notiz": "SamurAIs 48 Brand-Sklaven allein richteten wenig aus (Daniel verlor bis 22.000 nur 3 Plantagen, 3 Holzfaeller) - Daniel deckte die Sklaven mit Bogenschuetzen | Deckung: Schleuderer (72) gehen vor, greifen Kaempfer vor Arbeitern an; von ihnen gedeckte Feinde sperren kein Sklaven-Ziel mehr (Tuerme/Gruben weiter). Knopf deckung_soll (Lernkreis 0/4/8). raids_pruefen 13/13, Gegenprobe Fall 11 rot. Lernkreis-Metrik 3 zaehlt Feindschaden (verlorene feindliche Gebaeude zu Baukosten)",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 23:32",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-19 23:44",
+     "was": "Rang - -> 4"
+    },
+    {
+     "zeit": "2026-10-20 00:01",
+     "was": "offen -> in Arbeit: Deckung: Schleuderer (72) gehen vor, greifen Kaempfer vor Arbeitern an; von ihnen gedeckte Feinde sperren kein Sklaven-Ziel mehr (Tuerme/Gruben weiter). Knopf deckung_soll (Lernkreis 0/4/8). raids_pruefen 13/13, Gegenprobe Fall 11 rot. Lernkreis-Metrik 3 zaehlt Feindschaden (verlorene feindliche Gebaeude zu Baukosten)"
+    }
+   ],
+   "rang": 4
+  },
+  {
+   "nr": "B-130",
+   "titel": "1v1-Lernkreis: SamurAI lernt selbst gegen KI 7 - gepaarte Laeufe je Startposition, Wert = Gold-Einnahmen + Lagerwert",
+   "bereich": "Lernen",
+   "status": "in_arbeit",
+   "seit": "2026-10-19 23:56",
+   "herkunft": "Daniel 19.10. 23:43: 'mache das Lernen selbststaendig bis ich sage stopp'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "src/selfaware/learning/lernen_1v1.py"
+   ],
+   "belege": [],
+   "notiz": "laeuft auf Instanz 5 ab 23:58; Knoepfe lager_max, steinbrueche_frueh, kausal_sparen, kausal_horizont, holzfaeller_je_baum, holz_spam; Stopp: daten/STOP_LERNEN, Pause fuer Code: daten/PAUSE_LERNEN",
+   "verlauf": [
+    {
+     "zeit": "2026-10-19 23:56",
+     "was": "angelegt (in Arbeit)"
+    }
+   ]
+  },
+  {
+   "nr": "B-131",
+   "titel": "Bauplaetze ohne eigene Einheiten waehlen: fuer die SamurAI (menschlicher Spieler) blockiert jede Einheit auf dem Feld den Bau",
+   "bereich": "Wirtschaft",
+   "status": "offen",
+   "seit": "2026-10-20 00:10",
+   "herkunft": "B-95 Spielkarte Abschnitt 4 (isBuildingPlacementAllowedAtTile, abgelesen 20.10.)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [],
+   "notiz": "erst messen: wie oft scheitert ein Bau an einer Einheit (Einheitenliste vs. Bauplatz im Moment der Ablehnung)",
+   "verlauf": [
+    {
+     "zeit": "2026-10-20 00:10",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-132",
+   "titel": "Heereskasse: ein Anteil jeder Gold-Einnahme liegt fuer Truppen zurueck, Bauten geben ihn nicht aus",
+   "bereich": "Wirtschaft",
+   "status": "gebaut",
+   "seit": "2026-10-20 00:25",
+   "herkunft": "Lernkreis 20.10. 00:23: Gold 10-30 die ganze Partie, 0 Soeldner trotz HEER-WERBUNG; Daniel: 'alles verkauft, um Einheiten auszubilden'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "src/selfaware/macro/wirtschaft.py"
+   ],
+   "belege": [],
+   "notiz": "Knopf heer_anteil (0 = aus = altes Verhalten), offline 5/5; Lernkreis prueft 0/0,3/0,6 bis Tick 24.000",
+   "verlauf": [
+    {
+     "zeit": "2026-10-20 00:25",
      "was": "angelegt (gebaut)"
     }
    ]
