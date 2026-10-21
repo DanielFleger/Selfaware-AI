@@ -79,11 +79,16 @@ def anfrage_und_blick(kachel):
     return None
 
 
-def main():
+def main(wand_typen=None):
+    """wand_typen: nur diese Einheitentypen brechen durch die Mauer, alle anderen greifen gleich den Lord an (Fix nach Ausloeser).
+    Gibt (Ausloeser ja/nein, Typen, die gehauen haben) zurueck."""
     # (Daniel 21.10. 23:38 "jedes Mal 2-3 Minuten, bis die Streitkolben da sind"): Stoppuhr je Aufbau-Schritt;
     # "aufbau" als Argument haelt nach dem Aufstellen an (Messung des Aufbaus ohne den Angriff)
     uhr = [("start", time.time())]
-    print("OK:", shc.sandkasten(nur_soldaten="ja"), flush=True)
+    # "armee" (Daniel 21.10. 23:55): Grundstand mit beiden Heeren - unsere Soldaten brechen durch, Franz behaelt seine Einheiten
+    armee = "armee" in sys.argv[1:]
+    # (22.10. 00:00: Kippen beim Laden weiter ungeklaert - Fix A und B widerlegt; NOTLOESUNG, ausdruecklich: ein zweiter Ladeversuch)
+    print("OK:", shc.laden(shc.STANDARD_STAND, versuche=2) if armee else shc.sandkasten(nur_soldaten="ja"), flush=True)
     uhr.append(("geladen", time.time()))
     befehl({"lagebild": True}, 2.0, bis="LAGEBILD")
     L = lies_lagebild(neu_holen=False)
@@ -107,8 +112,21 @@ def main():
         print("  WEG %s logik %s hoehe-boden %d gebiet %d link 0x%02X%s" % (
             q, hex(int(e_["logik"][q])), int(e_["hoehe"][q]) - int(e_["boden"][q]), int(e_["gebiet"][q]), int(e_["link"][q]),
             " MAUER(Plan)" if q in wand else ""), flush=True)
-    t = shc.setze(spieler=1, typ=26, x=zugang[0] - 1, y=zugang[1] - 1, anzahl=ZAHL)
-    nrs = [int(x) for x in re.search(r"Nummern \[([0-9, ]+)\]", t).group(1).split(",")]
+    if armee:
+        roh = speicher.lies(E0, 3000 * ES)
+        nrs = [n for n in range(1, 3000) if einheit(roh, n)["leben"] > 0 and einheit(roh, n)["typ"] in shc.SOLDATEN
+               and int.from_bytes(roh[n * ES + 0x96:n * ES + 0x98], "little") == 1 and int.from_bytes(roh[n * ES + 0x8C:n * ES + 0x8E], "little") != 0]
+        print("ARMEE: %d eigene Soldaten" % len(nrs), flush=True)
+        if wand_typen:
+            andere = [n for n in nrs if einheit(roh, n)["typ"] not in wand_typen]
+            nrs = [n for n in nrs if einheit(roh, n)["typ"] in wand_typen]
+            print("FIX: Mauer nur Typen %s (%d Mann), %d andere direkt auf den Lord" % (sorted(wand_typen), len(nrs), len(andere)),
+                  flush=True)
+            if andere:
+                befehl({"angriff": {"einheiten": sorted(andere), "ziel": lnr, "trupp": 1}}, 1.0)
+    else:
+        t = shc.setze(spieler=1, typ=26, x=zugang[0] - 1, y=zugang[1] - 1, anzahl=ZAHL)
+        nrs = [int(x) for x in re.search(r"Nummern \[([0-9, ]+)\]", t).group(1).split(",")]
     uhr.append(("aufgestellt", time.time()))
     print("AUFBAU-ZEITEN: " + ", ".join("%s +%.1f s" % (n_, b_ - a_) for (_, a_), (n_, b_) in zip(uhr, uhr[1:])) +
           " | gesamt %.1f s" % (uhr[-1][1] - uhr[0][1]), flush=True)
@@ -120,6 +138,10 @@ def main():
     kvon = {v: k for k, v in kxy.items()}
     tick0 = int.from_bytes(lies(shc.TICK, 4), "little")
     phase, kachel, ereignisse, spur = "mauer", None, [], []
+    # Sofort-Ausloeser (Daniel 21.10. 23:58 "es braucht einen instant trigger, warum es nicht klappt"): je Kachel die Frist aus dem
+    # Code - Weg in Takten (Plan, 12 Takte je Feld gemessen) + 2 Trefferrunden (takte_je_treffer). Kein Hoehenverlust bis dahin =
+    # Abbruch mit Grund (wer haut, wer steht, wer fiel - je Typ)
+    frist, hk_alt, typen0, hauen_typen = None, None, {}, set()
     letzt_t, still, zustand_alt, neu_planen, gesendet = None, 0, None, True, {}
     befehl({"pause": False, "tempo": 40}, 0.2)
     while True:
@@ -130,7 +152,7 @@ def main():
         t_ = tk - tick0
         raw = lies(E0, (max(nrs + [lnr]) + 1) * ES)
         leute = {n: einheit(raw, n) for n in nrs}
-        leute = {n: e for n, e in leute.items() if e["leben"] > 0 and e["typ"] == 26}
+        leute = {n: e for n, e in leute.items() if e["leben"] > 0 and e["typ"] in shc.SOLDATEN}
         lord = einheit(raw, lnr)
         if lord["leben"] <= 0 or lord["typ"] != 55:
             ereignisse.append((t_, "LORD TOT"))
@@ -173,6 +195,11 @@ def main():
                 # erst der Mauer-Angriffsbefehl des Spiels versetzt sie in den Mauerangriff. Darum: Angriffsbefehl wie im Lauf mit
                 # 5.090 Takten (je Mann einzeln, Anfrage + Blick so, dass das Spiel genau diese Kachel waehlt) UND logik.lua haelt
                 # die Zielkachel in jedem Takt fest - kein Ausweichen auf andere Ziele)
+                # Weg bis zur Kachel: Felder davor x 12 Takte (gemessen, augen_laufen) - nicht die Gesamtzeit des Plans
+                zug_ = pl["weg"][pl["weg"].index(kachel) - 1]
+                weit = max(max(abs(e["x"] - zug_[0]), abs(e["y"] - zug_[1])) for e in leute.values())
+                frist = t_ + max(pl["weg"].index(kachel), weit) * mechanik.TAKTE_JE_FELD + 2 * mk["takte_je_treffer"]
+                hk_alt = None
                 ab = anfrage_und_blick(kachel)
                 ereignisse.append((t_, "ANFRAGE %s fuer Kachel %s" % (ab, kachel)))
                 anf, blick_k = ab if ab else (kachel, 0)
@@ -192,6 +219,24 @@ def main():
                 for n in ohne:
                     gesendet[n] = (leute[n]["zustand"], leute[n]["ziel"])
         hk = lies(speicher.HOEHE + kvon[kachel], 1)[0] if kachel is not None else -1
+        if not typen0:
+            for e in leute.values():
+                typen0[e["typ"]] = typen0.get(e["typ"], 0) + 1
+        if phase == "mauer" and kachel is not None:
+            if hk_alt is not None and hk < hk_alt:
+                frist = t_ + 2 * mk["takte_je_treffer"]          # Schaden kam: naechste Frist = 2 Trefferrunden
+            hk_alt = hk
+            if frist is not None and t_ > frist:
+                hauen, stehen, jetzt = {}, {}, {}
+                for e in leute.values():
+                    (hauen if e["lage"] == 107 else stehen)[e["typ"]] = (hauen if e["lage"] == 107 else stehen).get(e["typ"], 0) + 1
+                    jetzt[e["typ"]] = jetzt.get(e["typ"], 0) + 1
+                gefallen = {t: n - jetzt.get(t, 0) for t, n in typen0.items() if n - jetzt.get(t, 0) > 0}
+                hauen_typen = set(hauen)
+                ereignisse.append((t_, "AUSLOESER: kein Schaden an Kachel %s bis Takt %d (Frist aus Weg + 2x%d) | haut je Typ %s | "
+                                   "steht je Typ %s | gefallen je Typ %s" % (kachel, frist, mk["takte_je_treffer"], hauen, stehen,
+                                                                             gefallen)))
+                break
         # (Code: wer im Mauerangriff steht, schwingt alle takte_je_schwung - nextAttackHurtsWall wechselt; wer schwingt, steht
         # nicht still. Stillstand = 96 Takte kein Schwung, kein Feldwechsel, keine Kachel niedriger, kein Lord-Schaden)
         # Code (UpdateMaceman, state.generic +0x2C0): 107 = US_MELEE_ATTACK_WALL - wer darin steht, arbeitet (erster Schwung ohne
@@ -226,7 +271,19 @@ def main():
     print("Takte %s, Luecken %d, Lebende am Ende %s" % (erg["takte"], luecken, spur[-1][5] if spur else None), flush=True)
     with open(AUS, "a", encoding="utf-8") as fh:
         fh.write(json.dumps(erg, ensure_ascii=False, default=lambda o: o.item() if isinstance(o, np.generic) else str(o)) + "\n")
+    return any("AUSLOESER" in e[1] for e in ereignisse), hauen_typen
 
 
 if __name__ == "__main__":
-    main()
+    # nach einem Ausloeser sofort neu laden und noch einmal (hoechstens 2 Laeufe) - ohne Neustart der Instanz
+    # (Daniel 23:59 "mit Fixes, nicht den gleichen Run"): der zweite Lauf nimmt die Typen, die im ersten gehauen haben, fuer die
+    # Mauer - alle anderen gleich auf den Lord. Hat keiner gehauen, gibt es keinen Fix aus der Messung -> Abbruch mit Grund
+    ausgeloest, hauen = main()
+    if ausgeloest and hauen:
+        print("NEUSTART DES TESTS mit Fix: Mauer nur Typen %s" % sorted(hauen), flush=True)
+        main(wand_typen=hauen)
+    elif ausgeloest:
+        # keiner hat gehauen: Mauer nur fuer Streitkolben (Typ 26 - Mauerangriff belegt in UpdateMaceman 0x00560700, Fall
+        # US_MELEE_ATTACK_WALL), alle anderen gleich auf den Lord
+        print("NEUSTART DES TESTS mit Fix: keiner hat gehauen -> Mauer nur Streitkolben (Typ 26, Code UpdateMaceman)", flush=True)
+        main(wand_typen={26})

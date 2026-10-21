@@ -71,6 +71,7 @@ def bild(datei):
 PLATZ_ICH = 0x01A275DC       # GameSynchronyState.currentPlayerSlotID (0x0191D768 + 0x109E74)
 MENSCH = 0x0191DE10          # GameSynchronyState.currentPlayerFullIDArray int[9] (-1 = kein Mensch auf dem Platz)
 KI = 0x0191DE7C              # GameSynchronyState.currentAIArray int[9]
+SPIELMODUS = 0x0191DD84      # GameSynchronyState +0x61C: 99 nach jedem Laden/Gefecht, 0 nach einem Spielstart (gemessen 23:58)
 
 
 def lade_stand(ziel, mit_bild=True, platz=None, platz_vorher=True):
@@ -95,8 +96,10 @@ def lade_stand(ziel, mit_bild=True, platz=None, platz_vorher=True):
         # von VOR dem Laden - Platz und Mensch-Eintraege (nach einem Spielstart Platz 0, Mensch alle -1 -> Niederlage-Pruefung
         # ohne Menschen). Jedes Laden nach einer gespielten Partie (Platz 1, Mensch[1] 1) kippte nicht. Darum beides vorher
         # setzen - OHNE "player", sonst legt alsSpieler den alten Platz gleich wieder zurueck (Spur 233820: 16.800 ms)
-        + ([{"id": neue_id(), "poke": PLATZ_ICH, "wert": platz},
-            {"id": neue_id(), "poke": MENSCH + 4 * platz, "wert": 1}] if platz and platz_vorher else [])
+        # 21.10. 23:56: Platz + Mensch vorher (Fix A) kippte nach einem echten Neustart trotzdem -> widerlegt. Fix B: Spielmodus
+        # 0x0191DD84 = 99 (Einzelspieler-Gefecht; nach jedem Laden 99, nach einem Spielstart 0 - abbild_menue_*.npz). Der Ladecode
+        # traegt den Menschen nur bei diesem Spielmodus selbst ein (LoadAndSaveGameButtonLogic 0x00495704)
+        + ([{"id": neue_id(), "poke": SPIELMODUS, "wert": 99}] if platz and platz_vorher else [])
         + [{"id": neue_id(), "player": 1, "laden": 2}]}, 4.0, bis="LADEPAUSE: Laden erkannt")
     # 06.10.: auf die Lade-Meldung warten, nicht auf die Quittung - die kommt im selben Tick wie der Knopfdruck, das
     # Laden selbst erst danach (seit der Quittung 05.10. 23:01 meldete jedes Laden "kein Laden erkannt")
