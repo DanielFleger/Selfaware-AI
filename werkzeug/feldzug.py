@@ -468,6 +468,7 @@ class Feldzug:
                 self.weg, self.weg_i, self.weg_ziel = [tuple(p) for p in wp], 0, lp
                 aus.append("FELDZUG Weg zum Lord %d: %d Wegpunkte %s" % (self.ziel, len(self.weg), self.weg[:6]))
             spitze = min(schach(o, lp) for o in orte)
+            self.heerweg = (mitte, lp, t)        # B-150: fuer den Brandtrupp (nicht auf dem eigenen Weg anzuenden)
             if self._stau[0] is None or spitze < self._stau[0]:
                 self._stau = (spitze, t)
             elif t - self._stau[1] >= self.STAU_TICKS:

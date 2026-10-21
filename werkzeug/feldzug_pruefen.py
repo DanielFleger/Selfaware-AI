@@ -662,6 +662,17 @@ def main():
     pruefe(31, "Umweg %s (frei %s) | ohne Feuer %s | Feldzug: %d Laufbefehle, davon im Feuer %s, Meldungen %s" % (
         w31, frei31, w31g, len(laeufe31), nah31, [m[:50] for m in m31 if "FEUER" in m][:2]),
         frei31 and w31g == [(201, 75)] and laeufe31 and not nah31 and any("FEUER MEIDEN" in m for m in m31))
+    # 32 (B-150, Daniel 19:45): Brandtrupp zuendet nichts auf dem eigenen Heerweg an, wenn es bei Ankunft des Heeres noch
+    #    brennt. Heer bei (201,125) -> Lord (201,70): Plantage 19 (Leben 100) bei (201,99) liegt am Weg, 26 Felder entfernt
+    #    (Ankunft ~312 Takte, Feuer aus ~1.100) -> nein; dieselbe Plantage 60 Felder seitlich -> ja; Gegenprobe ohne Heerweg -> ja.
+    import raids as RA
+    g32 = {"typ": 32, "besitzer": 2, "x": 201, "y": 99, "leben": 100}
+    a32 = RA.brennt_noch_bei_ankunft(g32, ((201, 125), (201, 70), 12000), 12000)
+    b32 = RA.brennt_noch_bei_ankunft(dict(g32, x=261), ((201, 125), (201, 70), 12000), 12000)
+    c32 = RA.brennt_noch_bei_ankunft(g32, None, 12000)
+    weit32 = RA.brennt_noch_bei_ankunft(dict(g32, leben=10), ((201, 400), (201, 70), 12000), 12000)
+    pruefe(32, "am Weg: brennt noch %s | seitlich: %s | ohne Heerweg: %s | weit weg + fast abgebrannt: %s" % (a32, b32, c32, weit32),
+           a32 and not b32 and not c32 and not weit32)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

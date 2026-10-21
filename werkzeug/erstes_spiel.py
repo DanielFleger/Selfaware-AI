@@ -3359,6 +3359,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         # 19.10. Raids: steuern jede Runde; werben nur aus Gold ueber der Ruecklage, nicht im Endspurt
                         try:
                             brand.schutz = deckung.orte(L)
+                            brand.heerweg = getattr(feldzug, "heerweg", None) if feldzug else None   # B-150
                             ereignis += deckung.schritt(L, G, befehl, brand)
                             ereignis += brand.schritt(L, G, befehl)
                             ereignis += reiter.schritt(L, G, befehl)

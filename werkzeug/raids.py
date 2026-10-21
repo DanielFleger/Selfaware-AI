@@ -92,6 +92,32 @@ def gefaehrlich(ort, L, G, sp, schutz=()):
     return None
 
 
+# B-150 (Daniel 21.10.2026 18:29 Bild: eigene Sklaven zuendeten eine Mine an, das Heer lief durch das Feuer; 19:45: "es muss
+# auch berechnet werden, ob das Feuer bis dahin schon geloescht wurde oder das Gebaeude zerstoert oder das Feuer aus einem
+# anderen Grund nicht mehr brennt"). Gemessen L177/L179: eine Plantage (Leben 100) brannte in ~500 Takten ab (~5 Takte je
+# Lebenspunkt), ihr Boden brennt danach weiter; Sklave ~12 Takte je Feld (L80), Streitkolben aehnlich. Ein Ziel naeher als
+# sein Feuer-Abstand (feldzug.FEUER_*_R) an der Strecke Heer -> Lord wird nur angezuendet, wenn das Feuer nach dieser
+# Schaetzung samt NACHGLUT aus ist, bevor das Heer dort ankommt. Die eigentliche Reaktion bleibt beim Auge: der Feldzug
+# rechnet seinen Weg jede Runde aus den Feuern, die wirklich brennen - ist eins frueher aus, geht es geradeaus weiter.
+TAKTE_JE_LEBEN = 5          # Abbrennen (L177: Plantage 100 Leben -> ~500 Takte)
+NACHGLUT = 600              # Bodenfeuer nach dem Abbrennen (L179: Boden brannte weiter) - Schaetzung, ungemessen
+HEER_TAKTE_JE_FELD = 12     # L80 (Sklave); Streitkolben gleich angenommen - ungemessen
+
+
+def brennt_noch_bei_ankunft(g, heerweg, t):
+    """Schaetzung: brennt Gebaeude g (angezuendet jetzt, Takt t), wenn das Heer auf heerweg dort ankommt?"""
+    import feldzug as FZ
+    if not heerweg:
+        return False
+    mitte, ziel = heerweg[0], heerweg[1]
+    r = FZ.FEUER_FELD_R if g.get("typ") in FZ.FELD_TYPEN else FZ.FEUER_GEBAEUDE_R
+    if FZ._abstand_strecke((g["x"], g["y"]), mitte, ziel) > r:
+        return False                                          # liegt nicht am Weg
+    ankunft = schach(mitte, (g["x"], g["y"])) * HEER_TAKTE_JE_FELD
+    aus_nach = max(g.get("leben", 0), 1) * TAKTE_JE_LEBEN + NACHGLUT
+    return aus_nach > ankunft
+
+
 class Brandtrupp:
     def __init__(self, sp, feuer):
         """feuer(nr) -> fireDuration des Gebaeudes nr (0 = brennt nicht)."""
@@ -102,6 +128,8 @@ class Brandtrupp:
         self.angezuendet = 0
         self.runde = 0
         self.schutz = []            # B-129: Orte der Deckungs-Schuetzen, setzt der Lenker je Runde
+        self.heerweg = None         # B-150: (Mitte, Lord, Takt) des eigenen Heeres, setzt der Lenker je Runde
+        self.t = 0
 
     def einheiten(self, L):
         return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] == SKLAVE and e.get("leben", 1) > 0}
@@ -114,6 +142,8 @@ class Brandtrupp:
             p = (g["x"], g["y"])
             if gefaehrlich(p, L, G, self.sp, self.schutz):
                 continue
+            if brennt_noch_bei_ankunft(g, self.heerweg, self.t):
+                continue                                      # B-150: wuerde auf dem eigenen Heerweg noch brennen
             kand.append((WERT[g["typ"]] / float(max(schach(ort, p), 1)), n))
         return [n for _, n in sorted(kand, reverse=True)]
 
