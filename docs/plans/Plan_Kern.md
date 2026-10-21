@@ -155,7 +155,7 @@ Pruefpunkt "Laufziel = Auftrag" muss die Formation zulassen (Abstand statt Gleic
 ## Bauplan S3 Wege (20.10.2026, 23:45) - vor dem ersten Bau
 
 - **Erreichbarkeit ohne Nebenwirkung:** nicht der Wegtest von logik.lua (setzt das Laufziel der Einheit um und zurueck), sondern
-  die reine Abfrage, die schon das Lagebild fuer "erreichbar" nutzt: Gebiet je Feld (PathConnectionLayer 0x01DF6FD8, short je
+  die reine Abfrage, die schon das Lagebild fuer "erreichbar" nutzt: Gebiet je Feld (PathConnectionLayer 0x01DF70D8 - bis Kern 15 faelschlich 0x01DF6FD8, L174 -, short je
   Feld, Feld = addXgetTile(y) + x) und calculateCanPlayerUnitsNavigateToAreaFromArea 0x004A5320 (thiscall, this =
   PathFindingState 0x012BB8C8; Spieler, Gebiet von, Gebiet nach, 0) - dieselbe Pruefung nutzt der Holzfaeller (findTree).
 - **Pruefpunkt:** der Kern fuellt im Weltbild die Spalte "erreichbar" genau wie logik.lua (Start (165,111), Spieler "ich",

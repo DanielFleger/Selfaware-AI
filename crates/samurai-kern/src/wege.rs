@@ -3,8 +3,10 @@
 //! ring_suche ist reine Logik und offline geprueft.
 
 const ZEILEN: usize = 0x0233_72F8;
-/// PathConnectionLayer (TileMapState +0x363DD0): Gebiet je Feld, short
-const WEGNETZ: usize = 0x01DF_6FD8;
+/// Gebiet je Feld (short).
+/// PathConnectionLayer = TileMapState +0x363ED0 (abgelesen findFreeSpaceNextToEnemyDefensiveStructureInSameAreaWithinDistance
+/// 0x004A80CA, 228 Stellen im Spielcode). Bis Version 15 stand hier 0x01DF_6FD8 = 128 Felder daneben (L174).
+const WEGNETZ: usize = 0x01DF_70D8;
 /// calculateCanPlayerUnitsNavigateToAreaFromArea, thiscall auf PathFindingState
 const KANN_HIN: usize = 0x004A_5320;
 const PFS: usize = 0x012B_B8C8;
