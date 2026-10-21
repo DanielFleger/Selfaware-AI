@@ -43,7 +43,7 @@ def einheit(raw, nr):
 
 def ebenen():
     wk = speicher.wegkarte()
-    return {"link": wk["link"], "bau": wk["gebaeude"], "logik": speicher.ebene(speicher.LOGIK, 4),
+    return {"link": wk["link"], "bau": wk["gebaeude"], "gebiet": wk["gebiet"], "logik": speicher.ebene(speicher.LOGIK, 4),
             "besitz": speicher.ebene(speicher.BESITZ), "hoehe": speicher.ebene(speicher.HOEHE).astype(int),
             "boden": speicher.ebene(speicher.BODEN).astype(int)}
 
@@ -80,7 +80,11 @@ def anfrage_und_blick(kachel):
 
 
 def main():
+    # (Daniel 21.10. 23:38 "jedes Mal 2-3 Minuten, bis die Streitkolben da sind"): Stoppuhr je Aufbau-Schritt;
+    # "aufbau" als Argument haelt nach dem Aufstellen an (Messung des Aufbaus ohne den Angriff)
+    uhr = [("start", time.time())]
     print("OK:", shc.sandkasten(nur_soldaten="ja"), flush=True)
+    uhr.append(("geladen", time.time()))
     befehl({"lagebild": True}, 2.0, bis="LAGEBILD")
     L = lies_lagebild(neu_holen=False)
     lnr, le = next((k, e) for k, e in L.items() if e["typ"] == 55 and e["besitzer"] == 2 and e["leben"] > 0)
@@ -96,8 +100,20 @@ def main():
     print("Lord %d bei %s (Leben %d) | Durchbruch-Weg: %d Mauerkacheln %s | Zugang %s" % (
         lnr, lp, le["leben"], len(wand), wand, zugang), flush=True)
     print("VORHERSAGE (Code + gemessene 12 Takte je Feld, %d Mann):" % ZAHL, vor, flush=True)
+    # Weg je Feld (21.10. 23:35: der Plan sah jedes Mal nur 1 Mauerkachel, in Wahrheit lagen 4 hintereinander - nachsehen, was
+    # der Planer an den Feldern hinter der ersten Kachel liest)
+    e_ = ebenen()
+    for q in pl["weg"][max(0, pl["weg"].index(zugang) - 1):pl["weg"].index(zugang) + 8]:
+        print("  WEG %s logik %s hoehe-boden %d gebiet %d link 0x%02X%s" % (
+            q, hex(int(e_["logik"][q])), int(e_["hoehe"][q]) - int(e_["boden"][q]), int(e_["gebiet"][q]), int(e_["link"][q]),
+            " MAUER(Plan)" if q in wand else ""), flush=True)
     t = shc.setze(spieler=1, typ=26, x=zugang[0] - 1, y=zugang[1] - 1, anzahl=ZAHL)
     nrs = [int(x) for x in re.search(r"Nummern \[([0-9, ]+)\]", t).group(1).split(",")]
+    uhr.append(("aufgestellt", time.time()))
+    print("AUFBAU-ZEITEN: " + ", ".join("%s +%.1f s" % (n_, b_ - a_) for (_, a_), (n_, b_) in zip(uhr, uhr[1:])) +
+          " | gesamt %.1f s" % (uhr[-1][1] - uhr[0][1]), flush=True)
+    if "aufbau" in sys.argv[1:]:
+        return
     lies = speicher.lies
     xs_, ys_, ks_ = speicher.felder()
     kxy = {int(kk): (int(xx), int(yy)) for xx, yy, kk in zip(xs_, ys_, ks_)}
@@ -151,28 +167,24 @@ def main():
             else:
                 ereignisse.append((t_, "KACHEL %s (Hoehe ueber Boden %d), noch %d Mauerkacheln auf dem Weg, Weg %s Takte" % (
                     kachel, h[kachel], len(pl["mauern"]), pl["takte"])))
+                # B-167 (Daniel 23:23): Ziel DIREKT setzen - alle auf das gerade Zugangsfeld des Wegs, targetedBuildingTile +
+                # attackAtTileX/Y geschrieben (logik.lua mauerziel); beim Ankommen beginnt laut Code der Angriff auf genau diese Kachel
+                # (Test C 23:38: nur Laufbefehl + geschriebenes Ziel -> alle 20 mit richtigem Ziel, aber keiner haut (Zustand 2):
+                # erst der Mauer-Angriffsbefehl des Spiels versetzt sie in den Mauerangriff. Darum: Angriffsbefehl wie im Lauf mit
+                # 5.090 Takten (je Mann einzeln, Anfrage + Blick so, dass das Spiel genau diese Kachel waehlt) UND logik.lua haelt
+                # die Zielkachel in jedem Takt fest - kein Ausweichen auf andere Ziele)
                 ab = anfrage_und_blick(kachel)
                 ereignisse.append((t_, "ANFRAGE %s fuer Kachel %s" % (ab, kachel)))
-                if ab is None:
-                    ereignisse.append((t_, "KEINE ANFRAGE fuer Kachel %s - kein Befehl (sonst verteilt das Spiel die Leute)" % (kachel,)))
-                    break
-                anf, blick_k = ab
+                anf, blick_k = ab if ab else (kachel, 0)
+                befehl({"mauerziel": {"einheiten": sorted(leute), "feld": kvon[kachel], "x": kachel[0], "y": kachel[1],
+                                      "halten": True}}, 0.5)
                 befehl({"angriff": {"einheiten": sorted(leute), "mauer": [lp[0], lp[1], 2, 30, anf[0], anf[1], blick_k],
                                     "trupp": 1}}, 1.0)
                 gesendet = {n: (leute[n]["zustand"], leute[n]["ziel"]) for n in leute}
         # Neu senden nur, wenn das Spiel den letzten Befehl dieses Manns sichtbar verarbeitet hat (Zustand oder Ziel anders als
         # beim Senden) und es trotzdem nicht passt - kein fester Takt
         verarbeitet = lambda n: gesendet.get(n) is None or gesendet[n] != (leute[n]["zustand"], leute[n]["ziel"])
-        if phase == "mauer" and kachel is not None:
-            # Regelung ueber die Messung: wer nicht DIESE Kachel als Ziel hat, bekommt den Befehl neu - je Mann hoechstens einmal
-            # je takte_je_treffer (Code: ein Treffer je 96 Takte)
-            k = kvon[kachel]
-            falsch = [n for n, e in leute.items() if e["ziel"] != k and verarbeitet(n)]
-            if falsch:
-                befehl({"angriff": {"einheiten": sorted(falsch), "mauer": [lp[0], lp[1], 2, 30, anf[0], anf[1], blick_k],
-                                    "trupp": 1}}, 1.0)
-                for n in falsch:
-                    gesendet[n] = (leute[n]["zustand"], leute[n]["ziel"])
+        # (Phase mauer: das Ziel haelt logik.lua mauerzielTick in jedem Takt fest - hier kein zweiter Weg zum selben Ziel)
         if phase == "lord":
             ohne = [n for n, e in leute.items() if e["zustand"] in (0, 1) and verarbeitet(n)]
             if ohne:

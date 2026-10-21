@@ -146,6 +146,7 @@ end
 -- das Spiel zerstoert die Kachel trotz gehaltener Hoehe.
 --============================================================================
 
+local mauerziel   = nil  -- B-167: { einheiten, feld, x, y, seit, neu } - Mauerziel je Takt festhalten, bis die Kachel faellt
 local mauerwacht = {}   -- schluessel -> { kacheln, ziel, anzahl, wieder, modus }
 
 local function mauerwachtStart(schluessel, besitzer, zielHoehe, modus)
@@ -2720,6 +2721,34 @@ local function einzelbefehl(cmd)
     return true
   end
 
+  -- B-167 (Daniel 21.10. 23:23 "alle gebuendelt auf das richtige Mauerstueck, nicht random andere Ziele"): Ziel direkt setzen
+  -- statt ueber die Suche des Spiels (findFreeSpaceNextToEnemyDefensiveStructure... waehlt je Mann nach Blickrichtung/Gebiet).
+  -- handleUnitMovementWhenTargetingBuildings 0x0054C4F0: steht der Mann gerade neben targetedBuildingTile (+0x3A8), beginnt der
+  -- Mauerangriff; attackAtTileX/Y (+0x3E8/+0x3EA) sind die Kachelkoordinaten (Schadensaufruf in UpdateMaceman).
+  -- { "mauerziel": { "einheiten": [...], "feld": k, "x": x, "y": y } }
+  if cmd.mauerziel ~= nil and type(cmd.mauerziel) == "table" then
+    local mz = cmd.mauerziel
+    local k, mx, my = tonumber(mz.feld), tonumber(mz.x), tonumber(mz.y)
+    if not (k and mx and my) then
+      log(WARNING, "MAUERZIEL: feld/x/y fehlt")
+      return false
+    end
+    local n = 0
+    for _, nrM in ipairs(mz.einheiten or {}) do
+      local u0 = 0x0138854C + nrM * 1168
+      core.writeInteger(u0 + 0x3A8, k)
+      core.writeSmallInteger(u0 + 0x3E8, mx)
+      core.writeSmallInteger(u0 + 0x3EA, my)
+      n = n + 1
+    end
+    -- (Test C 23:35: jeder eingereihte Laufbefehl loescht beim Abarbeiten targetedBuildingTile - 19 von 20 standen mit Ziel 0.
+    -- Darum haelt mauerzielTick das Ziel in jedem Takt fest, bis die Kachel faellt (LogicLayer-Bit 0x100 weg) oder ein neues kommt)
+    mauerziel = (mz.halten == true) and { einheiten = mz.einheiten or {}, feld = k, x = mx, y = my, seit = tick(), neu = 0 } or nil
+    log(INFO, string.format("MAUERZIEL Tick %d: %d Einheiten -> Kachel (%d,%d) Feld %d%s", tick(), n, mx, my, k,
+      mauerziel and " (festgehalten bis die Kachel faellt)" or ""))
+    return true
+  end
+
   if cmd.baue ~= nil and type(cmd.baue) == "table" then
     local b = cmd.baue
     local ok, err = befehlAbsetzen(28, { b.x, b.y, b.mapper, b.groesse, b.richtung or 0, b.trupp or 0 })
@@ -3678,7 +3707,10 @@ local function handleCommand(cmd)
         log(INFO, string.format("SPIELER %s: Befehl aufgeschoben (Platz haelt Spieler %d bis zum naechsten Takt)",
           tostring(c.player), platzFest.sp))
         gut, err = true, true
-      elseif type(c) == "table" and c.player ~= nil and c.eigenerPlatz == nil and c.eigenesGefecht == nil then
+      -- B-159 (21.10. 23:45): Laden ersetzt die ganze Partie - den Platz von vor dem Laden danach zurueckzulegen waere falsch,
+      -- darum kein Platz-Tausch drumherum. (Das allein behob das Kippen NICHT - laden_spur_20261021_234313; den Platz setzt
+      -- laden.lade_stand ohne "player" vor dem Knopfdruck)
+      elseif type(c) == "table" and c.player ~= nil and c.eigenerPlatz == nil and c.eigenesGefecht == nil and c.laden == nil then
         gut, err = pcall(alsSpieler, c.player, einzelbefehl, c)      -- 19.10.: Befehl wirkt fuer "player"
       else
         gut, err = pcall(einzelbefehl, c)
@@ -4008,6 +4040,10 @@ local function ladePauseTick()
   -- schon gesetztes gameOver zurueck, solange noch kein Endbildschirm da ist (Ansicht 14).
   local sp = ladePause.platz
   if sp and sp >= 1 and sp <= 8 then
+    -- B-159 (21.10. 23:35): Werte VOR dem Eingriff mitschreiben - zeigt, ob das Spiel den Menschen schon selbst eingetragen hat
+    -- (loadMap 0x004C6484 merkt sich currentPlayerSlotID vor dem Lesen und traegt nur diesen Platz als Mensch ein)
+    log(INFO, string.format("LADEPAUSE: vorher Platz %d, Mensch[%d] %d, gameOver %d", core.readInteger(0x0191D768 + 0x109E74) or -9,
+      sp, core.readInteger(0x0191DE10 + sp * 4) or -9, core.readInteger(0x0117D500) or -9))
     core.writeInteger(0x0191D768 + 0x109E74, sp)
     if (core.readInteger(0x0191DE7C + sp * 4) or 0) == 0 then core.writeInteger(0x0191DE10 + sp * 4, 1) end
     local vorbei = core.readInteger(0x0117D500) or 0
@@ -4120,6 +4156,26 @@ local function einheitWachtTick()
     if alle then table.insert(teile, string.format("%d@(%d,%d)", nr, x, y)) end
   end
   if alle then log(INFO, "EW Orte Tick " .. t .. ": " .. table.concat(teile, " ")) end
+end
+
+local function mauerzielTick()
+  if mauerziel == nil then return end
+  local m = mauerziel
+  if ((core.readInteger(0x01BF8368 + 4 * m.feld) or 0) & 0x100) == 0 then
+    log(INFO, string.format("MAUERZIEL: Kachel (%d,%d) gefallen bei Tick %d (seit Tick %d, %d mal nachgeschrieben)", m.x, m.y,
+      tick(), m.seit, m.neu))
+    mauerziel = nil
+    return
+  end
+  for _, nrM in ipairs(m.einheiten) do
+    local u0 = 0x0138854C + nrM * 1168
+    if (core.readSmallInteger(u0 + 0x8C) or 0) ~= 0 and (core.readInteger(u0 + 0x3A8) or 0) ~= m.feld then
+      core.writeInteger(u0 + 0x3A8, m.feld)
+      core.writeSmallInteger(u0 + 0x3E8, m.x)
+      core.writeSmallInteger(u0 + 0x3EA, m.y)
+      m.neu = m.neu + 1
+    end
+  end
 end
 
 local function festhaltenTick()
@@ -4299,6 +4355,7 @@ local function everyTick()
   pcall(einheitWachtTick)
   pcall(tickProtokollTick)
   pcall(festhaltenTick)
+  pcall(mauerzielTick)        -- B-167: Mauerziel festhalten
   pcall(angriffSchlangeTick)
   pcall(wegketteTick)         -- B-150: Wegpunkte um Feuer herum ohne Pause
   pcall(mauerwachtTick)

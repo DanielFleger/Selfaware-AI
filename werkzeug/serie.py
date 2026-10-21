@@ -118,8 +118,12 @@ def zuruecksetzen():
         # Pause auf, die Niederlage-Pruefung setzte gameOver 1; aus dem Hauptmenue lief es bisher jedes Mal)
         if ansicht != HAUPTMENUE:
             befehl({"menue": HAUPTMENUE}, 2.0, bis="MENUE")
-            time.sleep(2.0)
+            # (21.10. 23:45: statt fest 2 s warten, bis die Ansicht wirklich das Hauptmenue ist - 10 s nur als Notbremse)
+            ende = time.time() + 10
             neu = peek(ANSICHT)[0]
+            while neu != HAUPTMENUE and time.time() < ende:
+                time.sleep(0.05)
+                neu = peek(ANSICHT)[0]
             if neu != HAUPTMENUE:
                 raise RuntimeError("Hauptmenue nicht erreicht (Ansicht %d -> %d)" % (ansicht, neu))
             text = "Ansicht %d (Partie vorbei: %d) -> Hauptmenue" % (ansicht, vorbei)

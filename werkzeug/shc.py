@@ -121,26 +121,26 @@ def menue():
     return text
 
 
-def laden(name=STANDARD_STAND, platz=1):
-    """Laedt den Stand; endet die Partie gleich nach dem Laden (21.10. 21:08: das Spiel setzt dabei "Partie vorbei" und oeffnet das
-    Sieg/Niederlage-Fenster - das bleibt, auch wenn die Flags zurueckgesetzt werden; tritt nur manchmal auf), wird bis zu
-    3-mal neu geladen."""
-    for versuch in (1, 2, 3):
+def laden(name=STANDARD_STAND, platz=1, versuche=1, platz_vorher=True):
+    """Laedt den Stand EINMAL (Daniel 21.10. 23:46 "warum laedst du nicht einfach direkt das Richtige"): endet die Partie gleich
+    nach dem Laden, ist das ein Fehler, der gemeldet wird - kein stilles Neuladen mehr (vorher bis zu 3 Versuche, B-159).
+    versuche > 1 nur, wenn ein Aufrufer das ausdruecklich will."""
+    for versuch in range(1, versuche + 1):
         try:
-            return _laden_einmal(name, platz) + ("" if versuch == 1 else " (Versuch %d)" % versuch)
+            return _laden_einmal(name, platz, platz_vorher) + ("" if versuch == 1 else " (Versuch %d)" % versuch)
         except Fehler as e:
-            if "Partie endete im Probelauf" not in str(e) and "keine bespielbare Partie" not in str(e) or versuch == 3:
+            if "Partie endete im Probelauf" not in str(e) and "keine bespielbare Partie" not in str(e) or versuch == versuche:
                 raise
             print("WARNUNG: Partie endete gleich nach dem Laden (Versuch %d) - noch einmal laden | %s" % (versuch, str(e)[:160]),
                   flush=True)
 
 
-def _laden_einmal(name=STANDARD_STAND, platz=1):
+def _laden_einmal(name=STANDARD_STAND, platz=1, platz_vorher=True):
     """Spielstand IMMER ueber das Hauptmenue laden, dann uns auf platz eintragen; prueft danach die Partie."""
     from laden import lade_stand, befehl
     menue()
     try:
-        tick = lade_stand(name, mit_bild=False, platz=platz)
+        tick = lade_stand(name, mit_bild=False, platz=platz, platz_vorher=platz_vorher)
     except RuntimeError as e:
         if "kein Laden erkannt" not in str(e):
             raise
@@ -152,38 +152,23 @@ def _laden_einmal(name=STANDARD_STAND, platz=1):
         menue()
         tick = lade_stand(name, mit_bild=False, platz=platz)
     befehl({"eigenerPlatz": platz}, 0.8)
-    # (21.10. 19:02 gemessen: die Ladepause trug den Menschen im ersten Takt ein - danach ueberschrieb das Laden selbst den
-    # Eintrag wieder mit -1 und die Niederlage-Pruefung setzte gameOver 1, noch bevor eigenerPlatz kam. Steht die Partie-
-    # Ansicht noch (14), wird gameOver zurueckgesetzt; ob die Partie dann wirklich weiterlaeuft, zeigt der Probelauf unten)
     z = zustand()
-    zurueck = ""
-    if z.get("ansicht") == IN_PARTIE and z.get("gameover") == 1:
-        # B-154 (21.10. 20:39, Melder-Anlass): gameOver allein zuruecksetzen reichte nicht - das Spiel merkt sich beim
-        # "Spiel vorbei" die Rechneruhr in gameOverTime und zeigt 9-10 s spaeter den Endbildschirm (Meilensteine M4.04).
-        # Darum beide zuruecksetzen.
-        befehl({"poke": GAMEOVER, "wert": 0}, 0.5)
-        befehl({"poke": GAMEOVER_ZEIT, "wert": 0}, 0.5)
-        zurueck = ", gameOver nach dem Laden 1 -> zurueckgesetzt (mit Endbildschirm-Uhr)"
-    partie_sicher()
-    # Gegenprobe im Lauf: mindestens 200 Takte UND 15 s Rechnerzeit (der Endbildschirm kommt 9-10 s nach "Spiel vorbei" -
-    # die alte Probe war nach ~5 s fertig und damit hohl) - Ansicht und gameOver muessen die ganze Zeit stimmen
-    # (21.10. 21:06: 15 s bei Tempo 40 liefen 5.017 Takte - der Stand war danach nicht mehr der gespeicherte. Darum nur 200
-    #  Takte laufen, dann angehalten bis 15 s um sind - Ansicht und gameOver werden die ganze Zeit geprueft)
-    befehl({"pause": False, "tempo": 40}, 0.3)
+    # B-159 (21.10. 23:45): steht gameOver schon auf 1, ist das Sieg/Niederlage-Fenster an - checkSkirmishGameDefeat (0x00486600)
+    # setzt beides zusammen, und Zuruecksetzen der Flags half nicht (21.10. 21:08, das Fenster blieb). Darum neu laden statt flicken
+    if z.get("ansicht") != IN_PARTIE or z.get("gameover") != 0:
+        raise Fehler("Partie endete im Probelauf nach dem Laden: %s | Melder: %s" % (z, letztes_spielende()))
+    # Gegenprobe: genau EIN Spieltakt. checkSkirmishGameDefeat laeuft in jedem processGameTick ohne Bedingung davor (Aufruf bei
+    # 0x0045CFAF) und schaltet das Endfenster nur zusammen mit gameOver ein - steht nach einem Takt gameOver 0, kommt kein
+    # Endbildschirm. (Vorher 200 Takte + 15 s Rechnerzeit, abgeleitet aus den 9-10 s bis zum Endbildschirm nach gameOver 1.)
     t0, beginn = zustand()["tick"], time.time()
-    angehalten = False
-    while time.time() < beginn + 60:
-        z = zustand()
-        if z.get("ansicht") != IN_PARTIE or z.get("gameover") != 0:
-            raise Fehler("Partie endete im Probelauf nach dem Laden: %s | Melder: %s" % (z, letztes_spielende()))
-        if not angehalten and z["tick"] >= t0 + 200:
-            befehl({"pause": True}, 0.3)
-            angehalten = True
-        if angehalten and time.time() >= beginn + 15:
-            break
-        time.sleep(0.3)
+    befehl({"pause": False, "tempo": 40}, 0.3)
+    while zustand()["tick"] < t0 + 1 and time.time() < beginn + 10:
+        time.sleep(0.02)
     befehl({"pause": True}, 0.3)
     z = partie_sicher()
+    if z.get("gameover") != 0 or z["tick"] < t0 + 1:
+        raise Fehler("Partie endete im Probelauf nach dem Laden: %s | Melder: %s" % (z, letztes_spielende()))
+    zurueck = ""
     return "'%s' geladen bei Tick %d%s, Probelauf %d Takte / %.0f s: %s (Tick %d)" % (
         name, tick, zurueck, z["tick"] - t0, time.time() - beginn, z["text"], z["tick"])
 

@@ -21,7 +21,7 @@ Aufruf:  python laden.py "<Name>"      (Name wie in der Liste, ohne .sav)
          python laden.py --liste       (nur die Liste zeigen)
 Als Baustein:  from laden import lade_stand; tick = lade_stand("M7-01 ...")
 """
-import os, sys, time
+import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from befehl import sende, neue_id, SPIEL
 
@@ -68,8 +68,14 @@ def bild(datei):
     Image.open(os.path.join(SPIEL, "ucp", "villagestudio", "vs_karte.bmp")).save(os.path.join(BILDER, datei))
     return os.path.join(BILDER, datei)
 
-def lade_stand(ziel, mit_bild=True, platz=None):
-    """Laedt den Stand, haelt beim ersten Tick an und gibt diese Spielzeit zurueck."""
+PLATZ_ICH = 0x01A275DC       # GameSynchronyState.currentPlayerSlotID (0x0191D768 + 0x109E74)
+MENSCH = 0x0191DE10          # GameSynchronyState.currentPlayerFullIDArray int[9] (-1 = kein Mensch auf dem Platz)
+KI = 0x0191DE7C              # GameSynchronyState.currentAIArray int[9]
+
+
+def lade_stand(ziel, mit_bild=True, platz=None, platz_vorher=True):
+    """Laedt den Stand, haelt beim ersten Tick an und gibt diese Spielzeit zurueck.
+    platz_vorher=False nur fuer den Gegenlauf in pruef_laden.py (Pruef-Modus: Platz NICHT vorher setzen)."""
     oeffne_dialog()
     namen = liste()
     if ziel not in namen:
@@ -84,21 +90,29 @@ def lade_stand(ziel, mit_bild=True, platz=None):
     print(befehl(dict({"ladepause": True}, **({"platz": platz} if platz else {}))))   # haelt beim ersten Tick nach dem Laden
     antwort = sende({"befehle": [
         {"id": neue_id(), "player": 1, "poke": SCROLL, "wert": scroll},
-        {"id": neue_id(), "player": 1, "poke": MARKIERT, "wert": zeile},
-        {"id": neue_id(), "player": 1, "laden": 2}]}, 4.0, bis="LADEPAUSE: Laden erkannt")
+        {"id": neue_id(), "player": 1, "poke": MARKIERT, "wert": zeile}]
+        # B-159 (21.10. 23:55, laden_spur_20261021_233820 + _234313): kurz vor dem Wechsel in die Partie stehen wieder die Werte
+        # von VOR dem Laden - Platz und Mensch-Eintraege (nach einem Spielstart Platz 0, Mensch alle -1 -> Niederlage-Pruefung
+        # ohne Menschen). Jedes Laden nach einer gespielten Partie (Platz 1, Mensch[1] 1) kippte nicht. Darum beides vorher
+        # setzen - OHNE "player", sonst legt alsSpieler den alten Platz gleich wieder zurueck (Spur 233820: 16.800 ms)
+        + ([{"id": neue_id(), "poke": PLATZ_ICH, "wert": platz},
+            {"id": neue_id(), "poke": MENSCH + 4 * platz, "wert": 1}] if platz and platz_vorher else [])
+        + [{"id": neue_id(), "player": 1, "laden": 2}]}, 4.0, bis="LADEPAUSE: Laden erkannt")
     # 06.10.: auf die Lade-Meldung warten, nicht auf die Quittung - die kommt im selben Tick wie der Knopfdruck, das
     # Laden selbst erst danach (seit der Quittung 05.10. 23:01 meldete jedes Laden "kein Laden erkannt")
     print(antwort)
     befehl({"pause": True})                                       # Sicherheitsnetz
     befehl({"ladepause": "aus"})                                  # nichts scharf zuruecklassen
     erkannt = [z for z in antwort if "LADEPAUSE: Laden erkannt" in z]
-    t1 = peek(TICK)[0]; time.sleep(1.0); t2 = peek(TICK)[0]
+    # (21.10. 23:45, Daniel: "jedes Mal 2-3 Minuten"): keine Sekunde mehr fest warten - die Pause-Marke ist der Zustand, der die
+    # Spielzeit anhaelt (gemessen 30.09.: der Taktgeber laeuft in der Pause weiter, die Spielzeit steht)
+    t2 = peek(TICK)[0]
     pause = peek(PAUSE)[0]
-    print("Spielzeit nachher %d / %d, Pause %d" % (t1, t2, pause))
+    print("Spielzeit nachher %d, Pause %d" % (t2, pause))
     if not erkannt:
         raise RuntimeError("die Lade-Pause hat kein Laden erkannt (Tick jetzt %d) - Stand unsicher" % t2)
-    if t1 != t2 or pause != 1:
-        raise RuntimeError("Spiel steht nicht still (Tick %d / %d, Pause %d)" % (t1, t2, pause))
+    if pause != 1:
+        raise RuntimeError("Spiel steht nicht still (Tick %d, Pause %d)" % (t2, pause))
     if mit_bild:
         print("Bild:", bild("m7-02_%s_t%d.png" % (ziel.replace(" ", "_"), t2)))
     return t2
