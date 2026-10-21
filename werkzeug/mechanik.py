@@ -143,9 +143,11 @@ def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner
                         frei=None, frei_kosten=0.0):
     """Billigster Weg (Takte) von start zum ziel ueber Laufen und Hacken; Rueckgabe {"weg", "mauern" (in Reihenfolge), "takte"}.
     Ohne Weg: weg = None. sperre: Felder, die fuer uns kein Weg sind (feindliche Tore/Tuerme mit Rand, B-164).
-    gefahr: Schuetzen je Feld (gefahr.Karte.g) - nur bei gleicher Zeit entscheidend (Daniel 22.10. 00:25: "laufen erst hinten-
-    rum, dann vornerum" - Gefahr vor Zeit erzwang Umwege; "jeder Tick zaehlt"). Der Faktor ist 1 / (Summe aller Gefahr + 1),
-    damit die ganze Gefahr eines Wegs nie einen Takt aufwiegt.
+    gefahr: Schuetzen je Feld (gefahr.Karte.g). Rangfolge nach Daniels Regel "maximale Sicherheit, dann minimaler Widerstand"
+    (22.10. 00:40: "kompletter Frontalangriff ist bei den ganzen Schuetzen bescheuert ... dort angreifen, wo nur eine Mauer dick
+    ist - das muss die KI selbst rausfinden"): zuerst die BESCHUSS-TAKTE (Schuetzen am Zielfeld x Takte der Kante - Laufen 12,
+    Hauen/Torhaus die ganze Hackzeit), erst bei Gleichstand die Takte. (Frueher: nur Schuetzen je Feld ohne die Zeit dort -> Umwege;
+    danach Zeit vor Gefahr -> Frontalangriff.) Vorrang-Faktor: groesser als jede Takt-Summe eines Wegs (Felder x teuerste Kante).
     frei / frei_kosten (Daniel 22.10. 00:31 "das Torhaus vorne rechts schlagen waere viel leichter gewesen"): ein Gebiet, das
     nach dem Einschlagen begehbar ist (Torhaus mit Rand) - wer von aussen hineingeht, zahlt einmal frei_kosten Takte."""
     import numpy as np
@@ -192,7 +194,8 @@ def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner
     takt_k = k.copy()
     if gefahr is not None:
         gf = np.asarray(gefahr, float)
-        k = k + gf.ravel()[z] / (gf.sum() + 1.0)
+        vorrang = float(n) * float(k.max())                     # > Takte eines Wegs (hoechstens n Felder lang x teuerste Kante)
+        k = k + vorrang * gf.ravel()[z] * k / float(k.max())    # Beschuss-Takte, auf die teuerste Kante normiert
     g = coo_matrix((k, (v, z)), shape=(n * n, n * n)).tocsr()
     dist, vor = dijkstra(g, directed=True, indices=idx(*start), return_predecessors=True)
     zi = idx(*ziel)
