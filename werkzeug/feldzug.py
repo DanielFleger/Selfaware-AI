@@ -175,6 +175,7 @@ def feuerfreier_weg(start, ziel, orte, gefahr=None):
 
 class Feldzug:
     N = 30                    # je Nomade (Daniel)
+    TRUPP = 5                 # B-158: Angriffe auf Bresche und Lord in Trueppchen zu 5 (gemessen: halbe Zeit gegenueber der Gruppe)
     MAUER_R = 30              # B-147: so weit um den Lord sucht logik.lua die Mauerkachel (Burgradius wie BURG_R-Groessenordnung)
     SICHER = 50               # Felder Abstand des Sammelpunkts zu feindlichen Fernkaempfern (Reichweite 44 + Rand)
     GEB_ABSTAND = 30          # ... und zu feindlichen Gebaeuden (Tuerme, Mauern mit Schuetzen)
@@ -833,7 +834,9 @@ class Feldzug:
                     # ueberhaupt einen Torbefehl)
                     neu_b = [n for n in am_tor if befohlen.get(n) != ("bresche", bresche) or L[n]["zustand"] in (0, 1)]
                     if neu_b:
-                        befehl({"angriff": {"einheiten": neu_b, "gebaeude": bresche}}, 1.0, bis="ANGRIFF")
+                        # B-158 (Daniel 21:26 "alle in ein Feld stacken und einzeln auf die Mauer schicken"; Sandkasten 21:33:
+                        # Torhaus 2.000 Leben - als Gruppe 559 Takte, in Fuenfern 280, einzeln 281): Trueppchen zu TRUPP
+                        befehl({"angriff": {"einheiten": neu_b, "gebaeude": bresche, "trupp": self.TRUPP}}, 1.0, bis="ANGRIFF")
                         for n in neu_b:
                             befohlen[n] = ("bresche", bresche)
                     am_lord = []
@@ -876,7 +879,7 @@ class Feldzug:
                 self.mauer_seit = None
             neu_lord = [n for n in am_lord if befohlen.get(n) != ("lord", self.ziel) or L[n]["zustand"] in (0, 1)]
             if neu_lord and self.runde - self.letzter_befehl >= self.WIEDERHOLEN:
-                befehl({"angriff": {"einheiten": neu_lord, "ziel": self.ziel}}, 1.0, bis="ANGRIFF")
+                befehl({"angriff": {"einheiten": neu_lord, "ziel": self.ziel, "trupp": self.TRUPP}}, 1.0, bis="ANGRIFF")   # B-153/B-158
                 self.letzter_befehl = self.runde
                 for n in neu_lord:
                     befohlen[n] = ("lord", self.ziel)
