@@ -30,7 +30,7 @@ use haende::{Annahme, Auftrag, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 18;
+pub const VERSION: u32 = 19;
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -263,7 +263,8 @@ fn feuer_takt(z: &mut Zustand, tick: i32) {
     let eigene: Vec<(i32, i32, i32, i32)> = welt.einheiten.iter()
         .filter(|e| e.besitzer as i32 == ich && KAEMPFER.contains(&e.typ))
         .map(|e| (e.nr, e.leben, e.x, e.y)).collect();
-    for m in w.sieh(&haeuser, &eigene) {
+    let boden = welt::Welt::bodenfeuer(&welt::Welt::zeilen());
+    for m in w.sieh(&haeuser, &boden, &eigene) {
         let text = match m {
             feuer::Meldung::Brennt { nr, wert } => {
                 let g = welt.gebaeude.iter().find(|g| g.nr == nr);
@@ -273,10 +274,13 @@ fn feuer_takt(z: &mut Zustand, tick: i32) {
             feuer::Meldung::Aus { nr } => format!("Gebaeude {} brennt nicht mehr", nr),
             feuer::Meldung::ImFeuer { nr, haus } => {
                 let e = welt.einheiten.iter().find(|e| e.nr == nr);
-                e.map_or(String::new(), |e| format!("IM FEUER - Einheit {} (Typ {}) bei ({},{}) neben brennendem Gebaeude {}, Leben {} [r {}]",
-                                                      nr, e.typ, e.x, e.y, haus, e.leben, feuer::FEUER_R))
+                let wo = if haus == feuer::BODEN { "auf/neben Bodenfeuer".to_string() } else { format!("neben brennendem Gebaeude {}", haus) };
+                e.map_or(String::new(), |e| format!("IM FEUER - Einheit {} (Typ {}) bei ({},{}) {}, Leben {} [r {}/{}]",
+                                                      nr, e.typ, e.x, e.y, wo, e.leben, feuer::FEUER_R, feuer::BODEN_R))
             }
             feuer::Meldung::Raus { nr } => format!("Einheit {} raus aus dem Feuer", nr),
+            feuer::Meldung::BodenAn { anzahl, bei } => format!("Bodenfeuer: {} Felder brennen, z. B. ({},{})", anzahl, bei.0, bei.1),
+            feuer::Meldung::BodenAus => "Bodenfeuer aus".to_string(),
         };
         if !text.is_empty() {
             schreibe(&format!("feuer tick {}: {}", tick, text));

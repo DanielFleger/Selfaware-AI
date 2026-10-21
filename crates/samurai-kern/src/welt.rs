@@ -293,6 +293,30 @@ impl Welt {
         false
     }
 
+    /// B-150 Bodenfeuer: Feuer als eigene Objekte auf Feldern (EntityState 0x02350300: Anzahl +4, Eintraege je 0xE8 Byte,
+    /// Zustand +0x3C == 2, Typ +0x3E == ET_FIRE 9, Feld +0x60; abgelesen getFireEntityIDAtTile 0x00401540 und
+    /// recountActiveFires 0x00401620). Gibt die (x, y) aller brennenden Felder.
+    pub fn bodenfeuer(zeilen: &[(i32, i32)]) -> Vec<(i32, i32)> {
+        const ES: usize = 0x0235_0300;
+        let anz = unsafe { i32_bei(ES + 4) };
+        let mut aus = Vec::new();
+        if !(1..=3000).contains(&anz) {
+            return aus;
+        }
+        for i in 1..anz as usize {
+            let e = ES + i * 0xE8;
+            if unsafe { i16_bei(e + 0x3C) } == 2 && unsafe { i16_bei(e + 0x3E) } == 9 {
+                let feld = unsafe { i32_bei(e + 0x60) };
+                if (0..FELDER as i32).contains(&feld) {
+                    if let Some(p) = feld_xy_aus(zeilen, feld as usize) {
+                        aus.push(p);
+                    }
+                }
+            }
+        }
+        aus
+    }
+
     /// Zeilentabelle (erstes x, erstes Feld) je Kartenzeile
     pub fn zeilen() -> Vec<(i32, i32)> {
         (0..KARTE_ZEILEN).map(|y| unsafe { (i32_bei(ZEILEN + y * 12), i32_bei(ZEILEN + y * 12 + 4)) }).collect()

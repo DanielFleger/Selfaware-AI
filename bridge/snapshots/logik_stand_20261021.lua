@@ -1071,7 +1071,8 @@ local function einzelbefehl(cmd)
       log(INFO, "LADEPAUSE: aus.")
       return true
     end
-    ladePause = { letzter = tick(), nachlauf = 0, pausiert = (core.readInteger(PAUSE) or 0) ~= 0 }
+    ladePause = { letzter = tick(), nachlauf = 0, pausiert = (core.readInteger(PAUSE) or 0) ~= 0,
+                  platz = tonumber(cmd.platz) }   -- B-150: { "ladepause": true, "platz": 1 } - Mensch im ersten Takt eintragen
     log(INFO, string.format("LADEPAUSE: scharf (jetzt Tick %d, %s).", ladePause.letzter,
       ladePause.pausiert and "pausiert" or "NICHT pausiert - nur der Zeitsprung zaehlt"))
     return true
@@ -1377,6 +1378,41 @@ local function einzelbefehl(cmd)
     return true
   end
   if cmd.toeteAlle ~= nil then
+    -- B-149 Sandkasten (21.10.2026): { "toeteAlle": {"spieler": 2, "ohneLord": true} } - wie killUnits, aber der Lord (Typ 55)
+    -- bleibt, sonst ist die Partie vorbei (killUnits 0x00530390 nimmt jeden mit Besitzer = Spieler). Geschrieben werden genau
+    -- die Werte von killUnits (abgelesen 0x005303D4-0x005303E8): Zustand +0x2C0 = 0x72 (Steintod), +0x2B0 = 0, +0x2A0 = 1,
+    -- +0x3F0 = 1; nur Einheiten mit logicalState +0x8C = 2, +0x2A0 = 0 und Byte +0x32C = 0 (dieselben Bedingungen).
+    if type(cmd.toeteAlle) == "table" then
+      local t = cmd.toeteAlle
+      local sp, n, lords = tonumber(t.spieler) or -1, 0, 0
+      -- (21.10. 19:07, Daniel "nur Soldaten abraeumen"): { ..., "typen": [22, 23, ...] } - nur diese Typen
+      local nurTyp = nil
+      if type(t.typen) == "table" then
+        nurTyp = {}
+        for _, ty in ipairs(t.typen) do nurTyp[tonumber(ty)] = true end
+      end
+      local maxN = core.readInteger(0x01387F38) or 0
+      for i = 1, math.min(maxN, 2999) do
+        local u = 0x0138854C + i * 1168
+        if (core.readSmallInteger(u + 0x8C) or 0) == 2 and (core.readSmallInteger(u + 0x2A0) or 1) == 0
+            and (core.readByte(u + 0x32C) or 1) == 0 and (core.readSmallInteger(u + 0x96) or -1) == sp then
+          local ty = core.readSmallInteger(u + 0x8E) or 0
+          if t.ohneLord and ty == 55 then
+            lords = lords + 1
+          elseif nurTyp ~= nil and not nurTyp[ty] then
+            -- (andere Typen bleiben)
+          else
+            core.writeSmallInteger(u + 0x2C0, 0x72)
+            core.writeInteger(u + 0x2B0, 0)
+            core.writeSmallInteger(u + 0x2A0, 1)
+            core.writeSmallInteger(u + 0x3F0, 1)
+            n = n + 1
+          end
+        end
+      end
+      log(INFO, string.format("TOETE ALLE: Spieler %d, %d Einheiten, Lord verschont: %d", sp, n, lords))
+      return true
+    end
     local sp = tonumber(cmd.toeteAlle)
     if sp == nil then return false end
     local ok, err = pcall(core.exposeCode(0x00530390, 2, 1), UNITS_STATE, sp)
@@ -2128,7 +2164,7 @@ local function einzelbefehl(cmd)
     f:close()
     -- dazu alle Gebaeude (eigene UND fremde): nr besitzer typ x y leben uid -> abzug/gebaeude.txt
     local fg = io.open(abzugPfad("gebaeude.txt"), "w")
-    fg:write("nr besitzer typ x y leben uid erreichbar vorrat grenze verbund ware" .. NL)
+    fg:write("nr besitzer typ x y leben uid erreichbar vorrat grenze verbund ware feuer" .. NL)
     -- erreichbar (04.10., Daniel: zugebaute Gebaeude erkennen): irgendein Feld rund um den Grundriss liegt in einem
     -- Wegnetz-Gebiet (PathConnectionLayer, TileMapState +0x363ED0 = 0x01DF70D8, ushort je Feld; bis 21.10.2026 stand hier
     -- 0x01DF6FD8 = 128 Felder daneben, Selfaware L174), das Spieler 1 vom
@@ -2162,14 +2198,41 @@ local function einzelbefehl(cmd)
         -- verbund: Building +0x192 quarryStockpileID - der Steinbruch zeigt auf seinen Steinhaufen (gemessen nr+1).
         -- ware (06.10. 20:45, Aufbau: der Schmied holt Eisen am Teil MIT Eisen): Building +0x18C Warenart des Lagerteils
         -- (gemessen 19:58: 2 Holz, 4 Stein) - hier b + 0x1A0
-        fg:write(string.format("%d %d %d %d %d %d %d %d %d %d %d %d", i, core.readSmallInteger(b + G_BESITZER) or -1,
+        -- feuer (B-150, 21.10.2026 L177/L178): fireDuration b + 0x2D2, > 0 = brennt
+        fg:write(string.format("%d %d %d %d %d %d %d %d %d %d %d %d %d", i, core.readSmallInteger(b + G_BESITZER) or -1,
           core.readSmallInteger(b + G_TYP) or -1, bx, by, core.readSmallInteger(b + G_LEBEN) or -1,
           core.readInteger(b + 0xEC) or 0, erreichbar, core.readInteger(b + 0x198) or -1, core.readInteger(b + 0x19C) or -1,
-          core.readSmallInteger(b + 0x1A6) or -1, core.readInteger(b + 0x1A0) or -1) .. NL)
+          core.readSmallInteger(b + 0x1A6) or -1, core.readInteger(b + 0x1A0) or -1, core.readSmallInteger(b + 0x2D2) or 0) .. NL)
       end
     end
     fg:close()
-    log(INFO, string.format("LAGEBILD Tick %d: %d Einheiten, %d Gebaeude -> abzug/lagebild.txt, gebaeude.txt", tick(), n, ng))
+    -- B-150 Bodenfeuer (21.10.2026, L178): Feuer-Objekte auf Feldern (EntityState 0x02350300, je 0xE8 Byte, Zustand +0x3C == 2,
+    -- Typ +0x3E == 9 ET_FIRE, Feld +0x60) -> abzug/feuer.txt, eine Zeile "x y" je brennendem Feld
+    local ff = io.open(abzugPfad("feuer.txt"), "w")
+    local nf = 0
+    if ff then
+      ff:write("x y" .. NL)
+      local anzE = core.readInteger(0x02350304) or 0
+      if anzE > 3000 then anzE = 3000 end
+      for i = 1, anzE - 1 do
+        local e = 0x02350300 + i * 0xE8
+        if (core.readSmallInteger(e + 0x3C) or 0) == 2 and (core.readSmallInteger(e + 0x3E) or 0) == 9 then
+          local k = core.readInteger(e + 0x60) or -1
+          for y = 0, 399 do
+            local x0, start = core.readInteger(0x023372F8 + y * 12) or 0, core.readInteger(0x023372F8 + y * 12 + 4) or 0
+            local ende = y < 399 and (core.readInteger(0x023372F8 + (y + 1) * 12 + 4) or 80400) or 80400
+            if k >= start and k < ende then
+              ff:write(string.format("%d %d", x0 + k - start, y) .. NL)
+              nf = nf + 1
+              break
+            end
+          end
+        end
+      end
+      ff:close()
+    end
+    log(INFO, string.format("LAGEBILD Tick %d: %d Einheiten, %d Gebaeude, %d Bodenfeuer -> abzug/lagebild.txt, gebaeude.txt, feuer.txt",
+      tick(), n, ng, nf))
     return true
   end
 
@@ -3834,6 +3897,19 @@ local function ladePauseTick()
   ladePause.nachlauf = 3
   log(INFO, string.format("LADEPAUSE: Laden erkannt (%s) bei Tick %d - angehalten.",
     (d ~= 0 and d ~= 1) and ("Spielzeit sprang um " .. d) or "Pause aufgehoben", t))
+  -- B-150 (21.10.2026, Daniel 18:42 "idiotensicher"): ein geladener Stand traegt den Menschen nicht ein (eigenerPlatz,
+  -- 04.10.) - checkSkirmishGameDefeat sieht im ersten Takt nur die KI und setzt gameOver 1; eigenerPlatz von aussen kam
+  -- einen Takt zu spaet (21.10. 18:46: Tick 40470 gameOver 1). Darum hier im selben Takt: Platz + Mensch-Eintrag, und ein
+  -- schon gesetztes gameOver zurueck, solange noch kein Endbildschirm da ist (Ansicht 14).
+  local sp = ladePause.platz
+  if sp and sp >= 1 and sp <= 8 then
+    core.writeInteger(0x0191D768 + 0x109E74, sp)
+    if (core.readInteger(0x0191DE7C + sp * 4) or 0) == 0 then core.writeInteger(0x0191DE10 + sp * 4, 1) end
+    local vorbei = core.readInteger(0x0117D500) or 0
+    if vorbei ~= 0 and (core.readInteger(0x01FE7D1C) or 0) == 14 then core.writeInteger(0x0117D500, 0) end
+    log(INFO, string.format("LADEPAUSE: Platz %d eingetragen, Mensch %s, gameOver %d -> %d", sp,
+      tostring(core.readInteger(0x0191DE10 + sp * 4)), vorbei, core.readInteger(0x0117D500) or -1))
+  end
 end
 
 local function lordWachtTick()
