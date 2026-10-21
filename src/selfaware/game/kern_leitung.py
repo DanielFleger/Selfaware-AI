@@ -65,7 +65,15 @@ EINHEIT_FELDER = (
     "zielgebaeude",
     "nahziel",
 )
-GEBAEUDE_FELDER = ("nr", "typ", "besitzer", "x", "y", "leben", "feuer")  # feuer ab Kern 18 (B-150), vorher 0
+GEBAEUDE_FELDER = (
+    "nr",
+    "typ",
+    "besitzer",
+    "x",
+    "y",
+    "leben",
+    "feuer",
+)  # feuer ab Kern 18 (B-150), vorher 0
 
 
 class FalscherAufbau(RuntimeError):
@@ -159,3 +167,6 @@ class Leitung:
             return None
         o = RING_START + RING_KOPF + (nummer % RING_N) * RING_EINTRAG
         return struct.unpack_from("<i", self.speicher, o + 16)[0]
+
+
+X = (1, 2)

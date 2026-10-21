@@ -33,7 +33,9 @@ def _puffer(aufbau=KL.AUFBAU):
         -1,
     )
     start = KL.KOPF + KL.MAX_EINHEITEN * KL.EINHEIT
-    struct.pack_into(KL.GEBAEUDE_FORMAT, b, start, 239, 46, 2, 149, 104, 1500, 46)  # B-150: Feuerwert 46 = brennt
+    struct.pack_into(
+        KL.GEBAEUDE_FORMAT, b, start, 239, 46, 2, 149, 104, 1500, 46
+    )  # B-150: Feuerwert 46 = brennt
     struct.pack_into("<i", b, KL.VORRAT_START + (1 * KL.WAREN + 15) * 4, 5000)
     struct.pack_into("<i", b, KL.VORRAT_START + (1 * KL.WAREN + 2) * 4, 120)
     return bytes(b)
