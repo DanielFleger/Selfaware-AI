@@ -176,7 +176,9 @@ def main(wand_typen=None):
     # (Lauf 00:17: 6 angeworben = 6 Bauern am Feuer verbraucht, danach wartete die Regel nur auf Gold - das stieg nie; Einzeltest
     # 00:20: Werben klappt, -20 Gold, -1 Keule, +1 Streitkolben)
     from waechter import lies_gebaeude
-    kaserne = min([nr for nr, g_ in lies_gebaeude().items() if g_["besitzer"] == 1 and g_["typ"] == 9] or [None])
+    _G = lies_gebaeude()
+    kaserne = min([nr for nr, g_ in _G.items() if g_["besitzer"] == 1 and g_["typ"] == 9] or [None])
+    kaserne_xy = (_G[kaserne]["x"], _G[kaserne]["y"]) if kaserne is not None else None
     GOLD1 = 0x0115BDF8 + 1 * 0x39F4 + 0x4D0 + 15 * 4
     gold_bei_versuch, bekannt, feuer_bei_versuch, erwartet = None, set(nrs) | set(andere), None, 0
     FEUER1 = 0x0115BDF8 + 1 * 0x39F4 + 136              # Bauern am Lagerfeuer (erstes_spiel: PD + 136)
@@ -243,6 +245,10 @@ def main(wand_typen=None):
         if phase == "mauer" and neu_planen:
             neu_planen = False
             mitte = (sorted(q[0] for q in felder)[len(felder) // 2], sorted(q[1] for q in felder)[len(felder) // 2])
+            # (Daniel 22.10. 00:22: nach dem Anwerben verlegte sich der Angriff auf (176,112)/(176,111) und lief viel besser - die
+            # Neuen kommen aus der Kaserne): mit Anwerben ab dem Mann, der der Kaserne am naechsten steht, planen
+            if armee and kaserne_xy is not None:
+                mitte = kaserne_xy
             beginn = min(felder, key=lambda q: max(abs(q[0] - mitte[0]), abs(q[1] - mitte[1])))
             befehl({"lagebild": True}, 2.0, bis="LAGEBILD")      # Schuetzen von jetzt fuer die Gefahrenkarte
             pl = plane(beginn, lp, len(leute), mk)
