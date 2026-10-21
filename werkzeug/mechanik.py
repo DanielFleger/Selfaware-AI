@@ -139,12 +139,15 @@ RICHT_BITS = [((0, -1), 0x01), ((1, -1), 0x02), ((1, 0), 0x04), ((1, 1), 0x08), 
               ((-1, 0), 0x40), ((-1, -1), 0x80)]
 
 
-def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner, start, ziel, mk=None, sperre=None, gefahr=None):
+def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner, start, ziel, mk=None, sperre=None, gefahr=None,
+                        frei=None, frei_kosten=0.0):
     """Billigster Weg (Takte) von start zum ziel ueber Laufen und Hacken; Rueckgabe {"weg", "mauern" (in Reihenfolge), "takte"}.
     Ohne Weg: weg = None. sperre: Felder, die fuer uns kein Weg sind (feindliche Tore/Tuerme mit Rand, B-164).
     gefahr: Schuetzen je Feld (gefahr.Karte.g) - nur bei gleicher Zeit entscheidend (Daniel 22.10. 00:25: "laufen erst hinten-
     rum, dann vornerum" - Gefahr vor Zeit erzwang Umwege; "jeder Tick zaehlt"). Der Faktor ist 1 / (Summe aller Gefahr + 1),
-    damit die ganze Gefahr eines Wegs nie einen Takt aufwiegt."""
+    damit die ganze Gefahr eines Wegs nie einen Takt aufwiegt.
+    frei / frei_kosten (Daniel 22.10. 00:31 "das Torhaus vorne rechts schlagen waere viel leichter gewesen"): ein Gebiet, das
+    nach dem Einschlagen begehbar ist (Torhaus mit Rand) - wer von aussen hineingeht, zahlt einmal frei_kosten Takte."""
     import numpy as np
     from scipy.sparse import coo_matrix
     from scipy.sparse.csgraph import dijkstra
@@ -167,8 +170,14 @@ def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner
         ok = (x2 >= 0) & (x2 < n) & (y2 >= 0) & (y2 < n)
         x2c, y2c = np.clip(x2, 0, n - 1), np.clip(y2, 0, n - 1)
         lauf = ok & ((link & bit) != 0) & ~wand & ~wand[x2c, y2c] & ~sp & ~sp[x2c, y2c]
+        if frei is not None:
+            lauf = lauf | (ok & (frei | frei[x2c, y2c]) & ~wand & ~wand[x2c, y2c] & ((link != 0) | frei) &
+                           ((link[x2c, y2c] != 0) | frei[x2c, y2c]))
         von.append(idx(xs[lauf], ys[lauf])); nach.append(idx(x2c[lauf], y2c[lauf]))
-        kosten.append(np.full(int(lauf.sum()), float(TAKTE_JE_FELD)))
+        kl = np.full(int(lauf.sum()), float(TAKTE_JE_FELD))
+        if frei is not None:
+            kl = kl + np.where(~frei[xs[lauf], ys[lauf]] & frei[x2c[lauf], y2c[lauf]], float(frei_kosten), 0.0)
+        kosten.append(kl)
         if dx == 0 or dy == 0:
             frei = ((link != 0) & ~sp) | wand                           # von einem freien oder gehackten Feld gerade weiter
             rein = ok & frei & wand[x2c, y2c]
