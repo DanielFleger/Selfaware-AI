@@ -1071,7 +1071,8 @@ local function einzelbefehl(cmd)
       log(INFO, "LADEPAUSE: aus.")
       return true
     end
-    ladePause = { letzter = tick(), nachlauf = 0, pausiert = (core.readInteger(PAUSE) or 0) ~= 0 }
+    ladePause = { letzter = tick(), nachlauf = 0, pausiert = (core.readInteger(PAUSE) or 0) ~= 0,
+                  platz = tonumber(cmd.platz) }   -- B-150: { "ladepause": true, "platz": 1 } - Mensch im ersten Takt eintragen
     log(INFO, string.format("LADEPAUSE: scharf (jetzt Tick %d, %s).", ladePause.letzter,
       ladePause.pausiert and "pausiert" or "NICHT pausiert - nur der Zeitsprung zaehlt"))
     return true
@@ -1377,6 +1378,32 @@ local function einzelbefehl(cmd)
     return true
   end
   if cmd.toeteAlle ~= nil then
+    -- B-149 Sandkasten (21.10.2026): { "toeteAlle": {"spieler": 2, "ohneLord": true} } - wie killUnits, aber der Lord (Typ 55)
+    -- bleibt, sonst ist die Partie vorbei (killUnits 0x00530390 nimmt jeden mit Besitzer = Spieler). Geschrieben werden genau
+    -- die Werte von killUnits (abgelesen 0x005303D4-0x005303E8): Zustand +0x2C0 = 0x72 (Steintod), +0x2B0 = 0, +0x2A0 = 1,
+    -- +0x3F0 = 1; nur Einheiten mit logicalState +0x8C = 2, +0x2A0 = 0 und Byte +0x32C = 0 (dieselben Bedingungen).
+    if type(cmd.toeteAlle) == "table" then
+      local t = cmd.toeteAlle
+      local sp, n, lords = tonumber(t.spieler) or -1, 0, 0
+      local maxN = core.readInteger(0x01387F38) or 0
+      for i = 1, math.min(maxN, 2999) do
+        local u = 0x0138854C + i * 1168
+        if (core.readSmallInteger(u + 0x8C) or 0) == 2 and (core.readSmallInteger(u + 0x2A0) or 1) == 0
+            and (core.readByte(u + 0x32C) or 1) == 0 and (core.readSmallInteger(u + 0x96) or -1) == sp then
+          if t.ohneLord and (core.readSmallInteger(u + 0x8E) or 0) == 55 then
+            lords = lords + 1
+          else
+            core.writeSmallInteger(u + 0x2C0, 0x72)
+            core.writeInteger(u + 0x2B0, 0)
+            core.writeSmallInteger(u + 0x2A0, 1)
+            core.writeSmallInteger(u + 0x3F0, 1)
+            n = n + 1
+          end
+        end
+      end
+      log(INFO, string.format("TOETE ALLE: Spieler %d, %d Einheiten, Lord verschont: %d", sp, n, lords))
+      return true
+    end
     local sp = tonumber(cmd.toeteAlle)
     if sp == nil then return false end
     local ok, err = pcall(core.exposeCode(0x00530390, 2, 1), UNITS_STATE, sp)
@@ -3834,6 +3861,19 @@ local function ladePauseTick()
   ladePause.nachlauf = 3
   log(INFO, string.format("LADEPAUSE: Laden erkannt (%s) bei Tick %d - angehalten.",
     (d ~= 0 and d ~= 1) and ("Spielzeit sprang um " .. d) or "Pause aufgehoben", t))
+  -- B-150 (21.10.2026, Daniel 18:42 "idiotensicher"): ein geladener Stand traegt den Menschen nicht ein (eigenerPlatz,
+  -- 04.10.) - checkSkirmishGameDefeat sieht im ersten Takt nur die KI und setzt gameOver 1; eigenerPlatz von aussen kam
+  -- einen Takt zu spaet (21.10. 18:46: Tick 40470 gameOver 1). Darum hier im selben Takt: Platz + Mensch-Eintrag, und ein
+  -- schon gesetztes gameOver zurueck, solange noch kein Endbildschirm da ist (Ansicht 14).
+  local sp = ladePause.platz
+  if sp and sp >= 1 and sp <= 8 then
+    core.writeInteger(0x0191D768 + 0x109E74, sp)
+    if (core.readInteger(0x0191DE7C + sp * 4) or 0) == 0 then core.writeInteger(0x0191DE10 + sp * 4, 1) end
+    local vorbei = core.readInteger(0x0117D500) or 0
+    if vorbei ~= 0 and (core.readInteger(0x01FE7D1C) or 0) == 14 then core.writeInteger(0x0117D500, 0) end
+    log(INFO, string.format("LADEPAUSE: Platz %d eingetragen, Mensch %s, gameOver %d -> %d", sp,
+      tostring(core.readInteger(0x0191DE10 + sp * 4)), vorbei, core.readInteger(0x0117D500) or -1))
+  end
 end
 
 local function lordWachtTick()
