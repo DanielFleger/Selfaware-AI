@@ -41,6 +41,69 @@ def schach(a, b):
     return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
 
 
+# B-150 Feuer meiden (Daniel 21.10.2026 18:29 Bild: das Heer lief durch das Feuer der eigenen Brandstiftung; 19:29 "Feldzug soll
+# Feuer meiden und dann teste auch wirklich mit Augen, ob es gemieden wird"). Gemessen L177/L178: Gebaeudefeuer schadet bis 3
+# Felder, Bodenfeuer auf dem Feld und daneben, der Boden einer Plantage brennt weiter, wenn das Gebaeude aus ist.
+FEUER_GEBAEUDE_R = 4       # Sicherheitsabstand um ein brennendes Gebaeude (3 gemessen + 1)
+FEUER_BODEN_R = 3          # Sicherheitsabstand um jedes brennende Feld (1 gemessen + 2 fuers Ausbreiten)
+# Augen-Test 19:38 (WIDERLEGT mit 4/2): bei einer Plantage brennen Baeume und Boden grossflaechig - das Bodenfeuer lief bis 8
+# Felder ueber den Umweg-Punkt hinaus. Felder-Betriebe (Getreide 30, Hopfen 31, Apfel 32, Milch 33) bekommen darum 10.
+FEUER_FELD_R = 10
+FELD_TYPEN = {30, 31, 32, 33}
+
+
+def feuerorte(G, boden):
+    """[(x, y, r)] aller Feuer: brennende Gebaeude (feuer > 0) und brennende Felder."""
+    orte = [(g["x"], g["y"], FEUER_FELD_R if g.get("typ") in FELD_TYPEN else FEUER_GEBAEUDE_R)
+            for g in G.values() if g.get("feuer", 0) > 0]
+    return orte + [(x, y, FEUER_BODEN_R) for x, y in boden]
+
+
+def _abstand_strecke(p, a, b):
+    """kuerzester Abstand (euklidisch) von Punkt p zur Strecke a-b."""
+    ax, ay, bx, by, px, py = a[0], a[1], b[0], b[1], p[0], p[1]
+    dx, dy = bx - ax, by - ay
+    l2 = dx * dx + dy * dy
+    t = 0.0 if l2 == 0 else max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / l2))
+    qx, qy = ax + t * dx, ay + t * dy
+    return ((px - qx) ** 2 + (py - qy) ** 2) ** 0.5
+
+
+def _frei(a, b, orte):
+    return all(_abstand_strecke((x, y), a, b) > r for x, y, r in orte)
+
+
+def feuerfreier_weg(start, ziel, orte):
+    """Wegpunkte von start nach ziel, die an keinem Feuer naeher als sein Sicherheitsabstand vorbeifuehren: [ziel], wenn die
+    gerade Strecke frei ist; sonst [Umweg, ziel] - der Umweg liegt seitlich neben dem Feuer, das der Strecke am naechsten ist,
+    auf der Seite mit dem kuerzeren freien Weg. Liegt das Ziel selbst im Feuer, wird es aus dem Feuer heraus verschoben.
+    Findet sich kein freier Umweg, bleibt [ziel] (lieber ankommen als stehen - die Wache meldet dann IM FEUER)."""
+    if not orte:
+        return [ziel]
+    for x, y, r in orte:                       # Ziel im Feuer -> auf den Rand des Sicherheitsabstands schieben, weg vom Feuer
+        if max(abs(ziel[0] - x), abs(ziel[1] - y)) <= r:
+            dx, dy = ziel[0] - x or (start[0] - x), ziel[1] - y or (start[1] - y)
+            n = max(abs(dx), abs(dy)) or 1
+            ziel = (int(round(x + dx * (r + 2) / n)), int(round(y + dy * (r + 2) / n)))
+    if _frei(start, ziel, orte):
+        return [ziel]
+    x, y, r = min(orte, key=lambda f: _abstand_strecke((f[0], f[1]), start, ziel) - f[2])
+    dx, dy = ziel[0] - start[0], ziel[1] - start[1]
+    lang = (dx * dx + dy * dy) ** 0.5 or 1.0
+    nx, ny = -dy / lang, dx / lang             # Normale zur Strecke
+    beste = None
+    for abst in (r + 3, r + 6, r + 10, r + 15):
+        for s in (1, -1):
+            u = (int(round(x + s * nx * abst)), int(round(y + s * ny * abst)))
+            if _frei(start, u, orte) and _frei(u, ziel, orte):
+                weg = ((u[0] - start[0]) ** 2 + (u[1] - start[1]) ** 2) ** 0.5 + ((ziel[0] - u[0]) ** 2 + (ziel[1] - u[1]) ** 2) ** 0.5
+                if beste is None or weg < beste[0]:
+                    beste = (weg, u)
+        if beste:
+            return [beste[1], ziel]
+    return [ziel]
+
+
 class Feldzug:
     N = 30                    # je Nomade (Daniel)
     MAUER_R = 30              # B-147: so weit um den Lord sucht logik.lua die Mauerkachel (Burgradius wie BURG_R-Groessenordnung)
@@ -267,6 +330,37 @@ class Feldzug:
         self.runde += 1
         self._lagebild = L
         aus = []
+        # B-150 Feuer meiden: jeder Laufbefehl dieser Runde geht ueber feuerfreier_weg - fuehrt die Strecke von der Mitte
+        # der befohlenen Einheiten zum Ziel am Feuer vorbei, wird zuerst der Umweg befohlen (die naechste Runde schickt die
+        # Ankommenden weiter, weil ihr Laufziel nicht das Ziel ist)
+        orte_f = feuerorte(G, st.get("bodenfeuer", []))
+        if orte_f:
+            roh = befehl
+
+            def befehl(b, *a, **k):
+                an = b.get("angriff", {}) if isinstance(b, dict) else {}
+                if "lauf" in an and an.get("einheiten"):
+                    da = [L[n] for n in an["einheiten"] if n in L]
+                    if da:
+                        m = (sorted(e["x"] for e in da)[len(da) // 2], sorted(e["y"] for e in da)[len(da) // 2])
+                        weg = feuerfreier_weg(m, tuple(an["lauf"]), orte_f)
+                        if list(weg[0]) != list(an["lauf"]):
+                            aus.append("FELDZUG FEUER MEIDEN: %d Einheiten nicht nach %s, sondern ueber %s (%d Feuer)" % (
+                                len(da), tuple(an["lauf"]), weg[0], len(orte_f)))
+                            b = dict(b, angriff=dict(an, lauf=[weg[0][0], weg[0][1]]))
+                return roh(b, *a, **k)
+
+            # (Augen-Test 19:38: der Weg wurde nur einmal berechnet, das Feuer wuchs weiter) - jede Runde: eigene Truppen, die
+            # gerade laufen und deren Laufziel durchs Feuer fuehrt, bekommen den Umweg neu
+            ziele = {}
+            for n, e in L.items():
+                if (e.get("besitzer") == self.sp and e.get("typ") in HEER and e.get("zustand") not in (0, 1)
+                        and e.get("laufx", 0) > 0 and e.get("laufy", 0) > 0):
+                    ziele.setdefault((e["laufx"], e["laufy"]), []).append(n)
+            for z_, ns in ziele.items():
+                m = (sorted(L[n]["x"] for n in ns)[len(ns) // 2], sorted(L[n]["y"] for n in ns)[len(ns) // 2])
+                if not _frei(m, z_, orte_f):
+                    befehl({"angriff": {"einheiten": sorted(ns), "lauf": [z_[0], z_[1]]}}, 1.0, bis="ANGRIFF")
         t = st.get("t", 0)
         lords = self._lords(L)
         kolben = sorted(self.einheiten(L))

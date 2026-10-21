@@ -763,6 +763,8 @@ def runde_lesen():
     L = lies_lagebild(neu_holen=False)
     import lordschutz                    # Stand fuer die Lord-Sperre in befehl.sende (Tick, Lord-Nummern)
     lordschutz.aktualisieren(st.get("t"), L, SP)
+    from waechter import lies_bodenfeuer
+    st["bodenfeuer"] = lies_bodenfeuer()      # B-150: Feuer meiden im Feldzug
     return st, L, lies_gebaeude()
 
 def eigene_gebaeude():

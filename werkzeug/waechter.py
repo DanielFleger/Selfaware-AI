@@ -44,8 +44,19 @@ def lies_gebaeude():
                             "vorrat": int(w[8]) if len(w) >= 11 else None, "grenze": int(w[9]) if len(w) >= 11 else None,
                             "verbund": int(w[10]) if len(w) >= 11 else None,
                             # Warenart des Lagerteils (+0x18C, 2 Holz, 4 Stein, 6 Eisen ...); seit 06.10. 20:45
-                            "ware": int(w[11]) if len(w) >= 12 else None}
+                            "ware": int(w[11]) if len(w) >= 12 else None,
+                            # fireDuration > 0 = brennt (B-150, 21.10.2026)
+                            "feuer": int(w[12]) if len(w) >= 13 else 0}
     return G
+
+
+def lies_bodenfeuer():
+    """B-150: brennende Felder (Feuer-Objekte, abzug/feuer.txt vom Modulbefehl lagebild) als Liste (x, y)."""
+    try:
+        zeilen = open(GEBAEUDEDATEI.replace("gebaeude.txt", "feuer.txt")).read().splitlines()[1:]
+    except OSError:
+        return []
+    return [tuple(int(v) for v in z.split()[:2]) for z in zeilen if len(z.split()) >= 2]
 
 def lies_lagebild(neu_holen=True):
     if neu_holen:

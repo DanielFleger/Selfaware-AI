@@ -638,6 +638,30 @@ def main():
     r30, w30 = hacker(107)
     r30g, w30g = hacker(1)
     pruefe(30, "hacken (Zustand 107): Rueckzug %s, Mauer %s | untaetig (1): Rueckzug %s" % (r30, w30, r30g), not r30 and r30g)
+    # 31 (B-150, Daniel 19:29 "Feldzug soll Feuer meiden"): Plantage brennt bei (201,99), Laufbefehl von (201,125) nach
+    #    (201,75) quer hindurch -> feuerfreier_weg legt einen Umweg, der mehr als 4 Felder am Feuer vorbeifuehrt; Gegenprobe:
+    #    ohne Feuer -> geradeaus. Dazu im Feldzug: ein Laufbefehl wird durch den Umweg ersetzt (Meldung FEUER MEIDEN).
+    orte31 = F.feuerorte({19: {"x": 201, "y": 99, "feuer": 50}}, [(201, 98), (203, 102)])
+    w31 = F.feuerfreier_weg((201, 125), (201, 75), orte31)
+    w31g = F.feuerfreier_weg((201, 125), (201, 75), [])
+    frei31 = len(w31) == 2 and all(F._abstand_strecke((x, y), a, b) > r for x, y, r in orte31
+                                   for a, b in (((201, 125), w31[0]), (w31[0], (201, 75))))
+    f31 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+    L31, G31 = lage(0, heim)
+    for i in range(10):
+        L31[10 + i] = einheit(26, 1, 201 + i % 3, 125 + i // 5, 28000)
+    L31[500]["x"], L31[500]["y"] = 201, 70          # Franz' Lord noerdlich - der Marsch fuehrt quer durch die Plantage
+    G31[19] = {"typ": 32, "besitzer": 2, "x": 201, "y": 99, "leben": 80, "feuer": 50}
+    b31 = Befehle()
+    m31 = []
+    f31.phase = "angriff"
+    for t_ in (12000, 12050):
+        m31 += f31.schritt({"t": t_, "bodenfeuer": [(201, 98)]}, L31, G31, b31)
+    laeufe31 = [x["angriff"]["lauf"] for x in b31.liste if "lauf" in x.get("angriff", {})]
+    nah31 = [l for l in laeufe31 if max(abs(l[0] - 201), abs(l[1] - 99)) <= 4]
+    pruefe(31, "Umweg %s (frei %s) | ohne Feuer %s | Feldzug: %d Laufbefehle, davon im Feuer %s, Meldungen %s" % (
+        w31, frei31, w31g, len(laeufe31), nah31, [m[:50] for m in m31 if "FEUER" in m][:2]),
+        frei31 and w31g == [(201, 75)] and laeufe31 and not nah31 and any("FEUER MEIDEN" in m for m in m31))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

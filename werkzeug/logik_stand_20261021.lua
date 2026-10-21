@@ -2164,7 +2164,7 @@ local function einzelbefehl(cmd)
     f:close()
     -- dazu alle Gebaeude (eigene UND fremde): nr besitzer typ x y leben uid -> abzug/gebaeude.txt
     local fg = io.open(abzugPfad("gebaeude.txt"), "w")
-    fg:write("nr besitzer typ x y leben uid erreichbar vorrat grenze verbund ware" .. NL)
+    fg:write("nr besitzer typ x y leben uid erreichbar vorrat grenze verbund ware feuer" .. NL)
     -- erreichbar (04.10., Daniel: zugebaute Gebaeude erkennen): irgendein Feld rund um den Grundriss liegt in einem
     -- Wegnetz-Gebiet (PathConnectionLayer, TileMapState +0x363ED0 = 0x01DF70D8, ushort je Feld; bis 21.10.2026 stand hier
     -- 0x01DF6FD8 = 128 Felder daneben, Selfaware L174), das Spieler 1 vom
@@ -2198,14 +2198,41 @@ local function einzelbefehl(cmd)
         -- verbund: Building +0x192 quarryStockpileID - der Steinbruch zeigt auf seinen Steinhaufen (gemessen nr+1).
         -- ware (06.10. 20:45, Aufbau: der Schmied holt Eisen am Teil MIT Eisen): Building +0x18C Warenart des Lagerteils
         -- (gemessen 19:58: 2 Holz, 4 Stein) - hier b + 0x1A0
-        fg:write(string.format("%d %d %d %d %d %d %d %d %d %d %d %d", i, core.readSmallInteger(b + G_BESITZER) or -1,
+        -- feuer (B-150, 21.10.2026 L177/L178): fireDuration b + 0x2D2, > 0 = brennt
+        fg:write(string.format("%d %d %d %d %d %d %d %d %d %d %d %d %d", i, core.readSmallInteger(b + G_BESITZER) or -1,
           core.readSmallInteger(b + G_TYP) or -1, bx, by, core.readSmallInteger(b + G_LEBEN) or -1,
           core.readInteger(b + 0xEC) or 0, erreichbar, core.readInteger(b + 0x198) or -1, core.readInteger(b + 0x19C) or -1,
-          core.readSmallInteger(b + 0x1A6) or -1, core.readInteger(b + 0x1A0) or -1) .. NL)
+          core.readSmallInteger(b + 0x1A6) or -1, core.readInteger(b + 0x1A0) or -1, core.readSmallInteger(b + 0x2D2) or 0) .. NL)
       end
     end
     fg:close()
-    log(INFO, string.format("LAGEBILD Tick %d: %d Einheiten, %d Gebaeude -> abzug/lagebild.txt, gebaeude.txt", tick(), n, ng))
+    -- B-150 Bodenfeuer (21.10.2026, L178): Feuer-Objekte auf Feldern (EntityState 0x02350300, je 0xE8 Byte, Zustand +0x3C == 2,
+    -- Typ +0x3E == 9 ET_FIRE, Feld +0x60) -> abzug/feuer.txt, eine Zeile "x y" je brennendem Feld
+    local ff = io.open(abzugPfad("feuer.txt"), "w")
+    local nf = 0
+    if ff then
+      ff:write("x y" .. NL)
+      local anzE = core.readInteger(0x02350304) or 0
+      if anzE > 3000 then anzE = 3000 end
+      for i = 1, anzE - 1 do
+        local e = 0x02350300 + i * 0xE8
+        if (core.readSmallInteger(e + 0x3C) or 0) == 2 and (core.readSmallInteger(e + 0x3E) or 0) == 9 then
+          local k = core.readInteger(e + 0x60) or -1
+          for y = 0, 399 do
+            local x0, start = core.readInteger(0x023372F8 + y * 12) or 0, core.readInteger(0x023372F8 + y * 12 + 4) or 0
+            local ende = y < 399 and (core.readInteger(0x023372F8 + (y + 1) * 12 + 4) or 80400) or 80400
+            if k >= start and k < ende then
+              ff:write(string.format("%d %d", x0 + k - start, y) .. NL)
+              nf = nf + 1
+              break
+            end
+          end
+        end
+      end
+      ff:close()
+    end
+    log(INFO, string.format("LAGEBILD Tick %d: %d Einheiten, %d Gebaeude, %d Bodenfeuer -> abzug/lagebild.txt, gebaeude.txt, feuer.txt",
+      tick(), n, ng, nf))
     return true
   end
 
