@@ -21,6 +21,11 @@ ZEILEN = 0x023372F8         # translationMatrix
 WEGLINKS = 0x01E1E4F8       # PathLinkageLayer, 1 Byte je Feld: erlaubte Schritte zum Nachbarn (Bits im Uhrzeigersinn ab N)
 GEBIETE = 0x01DF70D8        # PathConnectionLayer, ushort je Feld: Gebiet (zusammenhaengend begehbar), 0 = keins
 GEBAEUDE_EBENE = 0x01C95BB8  # BuildingLayer, ushort je Feld: Gebaeudenummer
+HOEHE = 0x01D32C38          # HeightLayer, 1 Byte je Feld (logik.lua mauer: Mauerkachel = hoeher als der Boden)
+BODEN = 0x01D46648          # Bodenhoehe, 1 Byte je Feld
+LOGIK = 0x01BF8368          # LogicLayer, 4 Byte je Feld
+BESITZ = 0x01D5A058         # Besitzer-Ebene, 1 Byte je Feld (Spieler - 1)
+MAUERBITS = 0x100 | 0x200 | 0x800 | 0x10000 | 0x400000      # wie logik.lua (B-147, VillageStudio Wissensstand 5d)
 GROESSE = 400
 
 _k = ctypes.WinDLL("kernel32", use_last_error=True)
@@ -83,6 +88,24 @@ def felder():
             ks.append(z[y, 2] + x)
         _felder.update(xs=np.concatenate(xs), ys=np.concatenate(ys), ks=np.concatenate(ks))
     return _felder["xs"], _felder["ys"], _felder["ks"]
+
+
+def ebene(adr, groesse=1, dtype=None):
+    """Eine Kartenebene als Feld [x, y] (400 x 400, ausserhalb der Raute 0); groesse = Byte je Feld."""
+    xs, ys, ks = felder()
+    n = int(ks.max()) + 1
+    roh = np.frombuffer(lies(adr, groesse * n), dtype=dtype or {1: np.uint8, 2: "<u2", 4: "<u4"}[groesse])
+    aus = np.zeros((GROESSE, GROESSE), roh.dtype)
+    aus[xs, ys] = roh[ks]
+    return aus
+
+
+def mauern(spieler):
+    """bool [x, y]: Mauerkacheln von spieler (Mauerbit, Besitzer, hoeher als der Boden - wie logik.lua mauer) und die
+    Hoehe ueber dem Boden je Feld (int [x, y])."""
+    hoch = ebene(HOEHE).astype(np.int32) - ebene(BODEN).astype(np.int32)
+    m = ((ebene(LOGIK, 4) & MAUERBITS) != 0) & (ebene(BESITZ) == spieler - 1) & (hoch > 0)
+    return m, hoch
 
 
 def wegkarte():

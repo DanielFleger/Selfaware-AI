@@ -333,6 +333,9 @@ def main():
     # 19 (B-138, 20.10. gegen Franz: Zugbruecke 420 blieb trotz Sturm bei 100 Leben): 20 Nahkaempfer stehen am Tor, sein Leben
     #    sinkt BRESCHE_ZAEH Ticks lang nicht -> "ZAEH", verworfen, sofort die naechste Schwachstelle.
     #    Gegenprobe: sinkt das Leben zwischendurch, wird nichts verworfen.
+    #    (B-165, 21.10. 22:15: seit dem Wirkungswaechter reicht "alle 1.000 Takte 5 Leben" nicht mehr als Fortschritt - nach
+    #    WIRKUNG_TAKTE ohne Schaden kommt "KEINE WIRKUNG"; die Gegenprobe senkt das Leben darum alle 200 Takte, und ohne Schaden
+    #    laeuft die Pruefung nur WIRKUNG_TAKTE + 200 Takte - danach waere auch 901 ohne Wirkung verworfen, richtig so)
     def zaeh(sinkt):
         f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=20)
         f.schritt({"t": 12000}, *lage(10, heim), Befehle())
@@ -342,8 +345,9 @@ def main():
         for i in range(20):
             L_[10 + i] = einheit(75, 1, 300 + i % 3, 108 + i // 10, 28000)
         m_ = []
-        for k, t in enumerate(range(12050, 12050 + F.Feldzug.BRESCHE_ZAEH + 300, 100)):
-            if sinkt and k % 10 == 9:
+        dauer = F.Feldzug.BRESCHE_ZAEH + 300 if sinkt else F.Feldzug.WIRKUNG_TAKTE + 200
+        for k, t in enumerate(range(12050, 12050 + dauer, 100)):
+            if sinkt and k % 2 == 1:
                 G_[900]["leben"] -= 5
             f._stau = (0, t)                          # kein Stau in dieser Pruefung
             m_ += f.schritt({"t": t}, L_, G_, Befehle())
@@ -351,8 +355,8 @@ def main():
     m19, f19 = zaeh(False)
     m19g, f19g = zaeh(True)
     pruefe(19, "Zaehe Bresche: %s, danach Ziel %s | Leben sinkt: verworfen %s, Ziel %s" % (
-        [m[:50] for m in m19 if "ZAEH" in m], f19.bresche, sorted(f19g.verworfen), f19g.bresche),
-        any("ZAEH" in m for m in m19) and f19.verworfen == {900} and f19.bresche == 901
+        [m[:50] for m in m19 if "ZAEH" in m or "KEINE WIRKUNG" in m], f19.bresche, sorted(f19g.verworfen), f19g.bresche),
+        any("ZAEH" in m or "KEINE WIRKUNG" in m for m in m19) and f19.verworfen == {900} and f19.bresche == 901
         and not f19g.verworfen and f19g.bresche == 900)
     # 20 (B-139/B-140): 30 arab. Schwertkaempfer irgendwo (nicht am Sammelpunkt), der Lord mit 2 Schuetzen, Lord-Schutz vorbei
     #    -> die Gefechtsrechnung mit dem ganzen Heer gewinnt -> sofort ANGRIFF (kein Rueckweg zum Sammelpunkt).
@@ -841,6 +845,86 @@ def main():
         erst42, [m[:50] for m in m42], len(b42b.liste), sorted(ab42c), len(b42o.liste)),
            len(erst42) == 1 and erst42[0].get("ziel") == 801 and erst42[0]["einheiten"] == [10] and ab42 == {10}
            and not b42b.liste and ab42b == {10} and not ab42c and not b42o.liste and not ab42o)
+    # 43-45 (B-163/B-164/B-165, Daniel 21.10. 21:59 + 22:04 + 22:07). Vorher festgelegt (22:15), Lord (300,100), Heer am
+    #    Sammelpunkt (Gebiet 1), Angriff beginnt im Schritt 12.050:
+    #  43. Wegkarte: alles Gebiet 1 (Lord frei), Turm 901 am Lord -> keine SCHWACHSTELLE, Meldung "zu Fuss erreichbar", die
+    #      Laufbefehle enden bis 3 Felder am Lord; danach Bresche 901 von Hand gesetzt -> naechste Runde "FREIE FAHRT", Bresche
+    #      weg. Gegenprobe: ohne Wegkarte SCHWACHSTELLE (Angriff) auf 901.
+    #  44. Wegkarte mit Mauerring (Gebiet 0, 275-325 / 75-125) um den Hof (Gebiet 39) mit dem Lord, Mauerkarte = der Ring,
+    #      Turm 901 draussen (330,100) -> "SCHREDDER", ein Mauerbefehl [300,100,2,30] mit trupp 1 fuer alle 30, kein
+    #      Gebaeudebefehl, keine SCHWACHSTELLE. Gegenprobe: ohne Mauerkarte SCHWACHSTELLE auf 901, kein Mauerbefehl.
+    #  45. wie 44, die 30 stehen an der Mauer (hacken, Zustand 107): Mauerhoehe bleibt WIRKUNG_TAKTE + 200 Takte gleich ->
+    #      "KEINE WIRKUNG: Schredder", Schredder aus, SCHWACHSTELLE auf 901. Gegenprobe: Hoehe sinkt jede Runde -> Schredder an.
+    def burg43(wk=None, mk=None, runden=(), stand=None, turm=(306, 106)):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+        f.schritt({"t": 12000}, *lage(10, heim), Befehle())
+        L_, G_ = lage(30, f.punkt)
+        G_[901] = {"typ": 46, "besitzer": 2, "x": turm[0], "y": turm[1], "leben": 1500}
+        f.wegkarte = (lambda: {"gebiet": wk}) if wk is not None else None
+        f.mauerkarte = mk
+        b = Befehle()
+        m_ = f.schritt({"t": 12050}, L_, G_, b)
+        weitere = []
+        for k, t in enumerate(runden):
+            if stand:
+                stand(k, f, L_, G_)
+            b2 = Befehle()
+            weitere.append((f.schritt({"t": t}, L_, G_, b2), b2.liste))
+        return f, m_, b.liste, weitere
+
+    geb43 = np41.ones((400, 400), np41.int32)
+    f43, m43, b43, _ = burg43(geb43)
+    enden43 = [ende_(x["angriff"]) for x in b43 if "lauf" in x.get("angriff", {})]
+    f43.bresche = 901
+    L43, G43 = lage(30, f43.punkt)
+    G43[901] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 1500}
+    m43b = f43.schritt({"t": 12150}, L43, G43, Befehle())
+    _, m43o, _, _ = burg43(None)
+    pruefe(43, "frei: %s, Laufziele %s | Bresche gesetzt -> %s, Bresche %s | ohne Wegkarte: %s" % (
+        [m[:45] for m in m43 if "LORD" in m or "SCHWACHSTELLE" in m], enden43[:3], [m[:45] for m in m43b if "FREIE" in m],
+        f43.bresche, [m[:45] for m in m43o if "SCHWACHSTELLE" in m]),
+           not any("SCHWACHSTELLE" in m for m in m43) and any("zu Fuss erreichbar" in m for m in m43) and enden43
+           and all(F.schach(tuple(e), (300, 100)) <= 3 for e in enden43) and any("FREIE FAHRT" in m for m in m43b)
+           and f43.bresche is None and any("SCHWACHSTELLE (Angriff): Gebaeude 901" in m for m in m43o))
+    geb44 = np41.ones((400, 400), np41.int32)
+    geb44[275:326, 75:126] = 0
+    geb44[285:316, 85:116] = 39
+    ring44 = (geb44 == 0)
+    ring44[:275, :] = False
+    ring44[326:, :] = False
+    hoehe44 = {"h": np41.where(ring44, 10, 0)}
+    mk44 = lambda sp: (ring44.copy(), hoehe44["h"]) if sp == 2 else (np41.zeros((400, 400), bool), np41.zeros((400, 400), int))
+    f44, m44, b44, _ = burg43(geb44, mk44, turm=(330, 100))
+    mauer44 = [x["angriff"] for x in b44 if "mauer" in x.get("angriff", {})]
+    _, m44o, b44o, _ = burg43(geb44, None, turm=(330, 100))
+    pruefe(44, "Schredder: %s, Mauerbefehle %s | ohne Mauerkarte: %s, Mauerbefehle %d" % (
+        [m[:40] for m in m44 if "SCHREDDER" in m or "SCHWACHSTELLE" in m],
+        [(a_["mauer"], a_.get("trupp"), len(a_["einheiten"])) for a_ in mauer44],
+        [m[:45] for m in m44o if "SCHWACHSTELLE" in m], sum(1 for x in b44o if "mauer" in x.get("angriff", {}))),
+           any("SCHREDDER" in m for m in m44) and not any("SCHWACHSTELLE" in m for m in m44)
+           and [(a_["mauer"], a_.get("trupp"), len(a_["einheiten"])) for a_ in mauer44] == [([300, 100, 2, 30], 1, 30)]
+           and not any("gebaeude" in x.get("angriff", {}) for x in b44)
+           and any("SCHWACHSTELLE (Angriff): Gebaeude 901" in m for m in m44o)
+           and not any("mauer" in x.get("angriff", {}) for x in b44o))
+
+    def an_der_mauer(sinkt):
+        def stand(k, f, L_, G_):
+            for i in range(30):
+                L_[10 + i].update(x=272 + i % 3, y=95 + i // 3, zustand=107)
+            if sinkt:
+                hoehe44["h"] = np41.where(ring44, 10 - (k + 1) * 0.01, 0)
+        hoehe44["h"] = np41.where(ring44, 10, 0)
+        runden = list(range(12150, 12150 + F.Feldzug.WIRKUNG_TAKTE + 300, 100))
+        f, _, _, weitere = burg43(geb44, mk44, runden, stand, turm=(330, 100))
+        return f, [m for ms, _ in weitere for m in ms]
+    f45, m45 = an_der_mauer(False)
+    f45g, m45g = an_der_mauer(True)
+    pruefe(45, "Mauer bleibt: %s, Schredder %s | Mauer sinkt: %s, Schredder %s" % (
+        [m[:60] for m in m45 if "KEINE WIRKUNG" in m or "SCHWACHSTELLE" in m], f45.schredder,
+        [m[:40] for m in m45g if "KEINE WIRKUNG" in m], f45g.schredder),
+           any("KEINE WIRKUNG: Schredder" in m for m in m45) and not f45.schredder
+           and any("SCHWACHSTELLE (Schredder ohne Wirkung): Gebaeude 901" in m for m in m45)
+           and not any("KEINE WIRKUNG" in m for m in m45g) and f45g.schredder)
     # 39 (B-150, Pruefstand 20:32: die Umleitung schickte je Einheit einen Befehl zum naechsten Wegknoten des Spiels): 10
     #    Streitkolben laufen (Zustand 2) zum befohlenen Vorposten (150,133), ihr naechstes Wegstueck fuehrt durch ein Feuer
     #    -> EIN Befehl fuer alle 10, Ziel am Ende der Vorposten (nicht ihr Wegknoten); Gegenprobe: ein Angreifer (Bresche) mit
