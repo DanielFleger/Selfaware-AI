@@ -2081,7 +2081,7 @@ local function einzelbefehl(cmd)
     local E = 0x0138854C
     local f = io.open(abzugPfad("lagebild.txt"), "w")
     f:write(string.format("tick %d", tick()) .. NL .. "nr besitzer typ x y leben zustand zielart zieleinheit zieluid zielgebaeude ziel zielx ziely laufx laufy auswahlvon auswahlmarke gruppe gruppenuid ladung arbeitsplatz erreichbar nahziel nahangreifer" .. NL)
-    local WEGNETZ = 0x01DF6FD8
+    local WEGNETZ = 0x01DF70D8          -- (L174: vorher 0x01DF6FD8, 128 Felder daneben)
     local kannHin = core.exposeCode(0x004A5320, 5, 1)
     local function feld(x, y) return (core.readInteger(0x023372F8 + y * 12 + 8) or 0) + x end
     local ex, ey = (lagebildVon or {})[1] or 165, (lagebildVon or {})[2] or 111
@@ -2130,7 +2130,8 @@ local function einzelbefehl(cmd)
     local fg = io.open(abzugPfad("gebaeude.txt"), "w")
     fg:write("nr besitzer typ x y leben uid erreichbar vorrat grenze verbund ware" .. NL)
     -- erreichbar (04.10., Daniel: zugebaute Gebaeude erkennen): irgendein Feld rund um den Grundriss liegt in einem
-    -- Wegnetz-Gebiet (PathConnectionLayer, TileMapState +0x363DD0 = 0x01DF6FD8, ushort je Feld), das Spieler 1 vom
+    -- Wegnetz-Gebiet (PathConnectionLayer, TileMapState +0x363ED0 = 0x01DF70D8, ushort je Feld; bis 21.10.2026 stand hier
+    -- 0x01DF6FD8 = 128 Felder daneben, Selfaware L174), das Spieler 1 vom
     -- Gebiet seines Bergfried-Eingangs aus erreichen kann (calculateCanPlayerUnitsNavigateToAreaFromArea 0x004A5320,
     -- thiscall PathFindingState 0x012BB8C8 - dieselbe Pruefung nimmt der Holzfaeller in findTree).
     local ng, anzG = 0, gebaeudeAnzahl() or 0
@@ -2196,7 +2197,7 @@ local function einzelbefehl(cmd)
         local geb = core.readSmallInteger(0x01C95BB8 + k * 2) or 0
         local gtyp = (geb > 0) and (core.readSmallInteger(GEBAEUDE + geb * G_SCHRITT + G_TYP) or -1) or 0
         zeile[#zeile + 1] = string.format("%x:%d:%d:%x:%d:%d", link, geb,
-          core.readSmallInteger(0x01DF6FD8 + k * 2) or 0, (core.readInteger(0x01BF8368 + k * 4) or 0) & 0xFFFFFFFF,
+          core.readSmallInteger(0x01DF70D8 + k * 2) or 0, (core.readInteger(0x01BF8368 + k * 4) or 0) & 0xFFFFFFFF,
           core.readByte(0x01D32C38 + k) or 0, gtyp)
         n = n + 1
         if link ~= 0 then offen = offen + 1 end
@@ -2266,8 +2267,8 @@ local function einzelbefehl(cmd)
     local owner = core.readSmallInteger(u + 0x96) or -1
     local ux, uy = math.floor((core.readSmallInteger(u + 0xB6) or 0) / 8), math.floor((core.readSmallInteger(u + 0xB8) or 0) / 8)
     local function feld(fx, fy) return (core.readInteger(0x023372F8 + fy * 12 + 8) or 0) + fx end
-    local von = core.readSmallInteger(0x01DF6FD8 + feld(ux, uy) * 2) or -1
-    local zu = core.readSmallInteger(0x01DF6FD8 + feld(x, y) * 2) or -1
+    local von = core.readSmallInteger(0x01DF70D8 + feld(ux, uy) * 2) or -1
+    local zu = core.readSmallInteger(0x01DF70D8 + feld(x, y) * 2) or -1
     local kannHin = core.exposeCode(0x004A5320, 5, 1)
     local kannNav = core.exposeCode(0x004A6DF0, 5, 1)
     local aus = {}
@@ -2461,7 +2462,7 @@ local function einzelbefehl(cmd)
       end
       local function gebiet(x, y)
         local k = feldM(x, y)
-        return k and (core.readSmallInteger(0x01DF6FD8 + k * 2) or 0) or 0
+        return k and (core.readSmallInteger(0x01DF70D8 + k * 2) or 0) or 0
       end
       -- (Probe 21.10. 00:56: die erste Einheit stand auf einem Feld mit Gebiet 0 - darum das haeufigste Gebiet aller
       -- gewaehlten Einheiten, bei Gebiet 0 das eines Nachbarfelds)
@@ -2481,6 +2482,28 @@ local function einzelbefehl(cmd)
           zaehl[g] = (zaehl[g] or 0) + 1
           if zaehl[g] > meinZahl then meinGebiet, meinZahl = g, zaehl[g] end
         end
+      end
+      -- (21.10. 01:30, abgelesen findFreeSpaceNextToEnemyDefensiveStructureInSameAreaWithinDistance 0x004A7F50: das Spiel
+      -- sucht die freien Felder neben der Mauer NUR im Gebiet der Leiteinheit der Gruppe (selectionTargetUnitID = die erste
+      -- aufgenommene Einheit, addUnitToTribe 0x00522590), die Entfernung der Einheiten spielt keine Rolle. Darum bleiben nur
+      -- Einheiten ausgewaehlt, die selbst in meinGebiet stehen - sonst kann die Leiteinheit auf Gebiet 0 oder in der eigenen
+      -- Burg stehen, und der Befehl laeuft ins Leere: Probe 00:53-00:58, 12 Einheiten, 6.600 Takte, keine bewegte sich)
+      local raus = 0
+      for i = #gewaehlt, 1, -1 do
+        local nr = gewaehlt[i]
+        local ue = 0x0138854C + nr * 1168
+        if gebiet((core.readSmallInteger(ue + 0xB6) or 0) // 8, (core.readSmallInteger(ue + 0xB8) or 0) // 8) ~= meinGebiet then
+          local b = BITS + (nr // 8)
+          core.writeByte(b, (core.readByte(b) or 0) & ~(1 << (nr % 8)) & 0xFF)
+          table.remove(gewaehlt, i)
+          raus = raus + 1
+        end
+      end
+      n = #gewaehlt
+      if n == 0 then
+        log(INFO, string.format("ANGRIFF abgelehnt: keine der Einheiten steht im Gebiet %d (Mauerbefehl)", meinGebiet))
+        auswahlZurueck()
+        return true
       end
       local MB = 0x100 | 0x200 | 0x800 | 0x10000 | 0x400000
       local beste, besteWert, zahl = nil, nil, 0
@@ -2510,8 +2533,8 @@ local function einzelbefehl(cmd)
         auswahlZurueck()
         return true
       end
-      log(INFO, string.format("MAUER Tick %d: Kachel (%d,%d) Feld %d Hoehe %d gewaehlt - %d Mauerkacheln von Spieler %d bis %d Felder um den Lord (%d,%d)",
-        tick(), beste[1], beste[2], beste[3], core.readByte(0x01D32C38 + beste[3]) or -1, zahl, besitzer0 + 1, r, lx, ly))
+      log(INFO, string.format("MAUER Tick %d: Kachel (%d,%d) Feld %d Hoehe %d gewaehlt - %d Mauerkacheln von Spieler %d bis %d Felder um den Lord (%d,%d); Gebiet %d, %d Einheiten, %d ausserhalb abgewaehlt",
+        tick(), beste[1], beste[2], beste[3], core.readByte(0x01D32C38 + beste[3]) or -1, zahl, besitzer0 + 1, r, lx, ly, meinGebiet, n, raus))
       art, zielNr, zielUid = 23, beste[3], 0
     end
     local ok1 = befehlAbsetzen(16, { gruppe })
