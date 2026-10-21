@@ -38,7 +38,7 @@ def einheit(raw, nr):
     b = nr * ES
     g = lambda o, n=2: int.from_bytes(raw[b + o:b + o + n], "little", signed=True)
     return {"x": g(0xC4), "y": g(0xC6), "zustand": g(0x8C), "leben": g(0x3C8, 4), "typ": g(0x8E), "besitzer": g(0x96),
-            "ziel": g(0x3A8, 4), "schalter": raw[b + mechanik.E_TREFFER]}
+            "ziel": g(0x3A8, 4), "schalter": raw[b + mechanik.E_TREFFER], "lage": g(0x2C0)}
 
 
 def ebenen():
@@ -169,8 +169,11 @@ def main():
         hk = lies(speicher.HOEHE + kvon[kachel], 1)[0] if kachel is not None else -1
         # (Code: wer im Mauerangriff steht, schwingt alle takte_je_schwung - nextAttackHurtsWall wechselt; wer schwingt, steht
         # nicht still. Stillstand = 96 Takte kein Schwung, kein Feldwechsel, keine Kachel niedriger, kein Lord-Schaden)
-        zustand = (tuple(sorted(felder)), tuple(sorted(e["schalter"] for e in leute.values())), hk, lord["leben"])
-        still = still + 1 if zustand == zustand_alt else 0
+        # Code (UpdateMaceman, state.generic +0x2C0): 107 = US_MELEE_ATTACK_WALL - wer darin steht, arbeitet (erster Schwung ohne
+        # Schaden, Treffer alle 96 Takte). Stillstand nur, wenn niemand in 107 ist, niemand das Feld wechselt und nichts Schaden nimmt
+        hacken = any(e["lage"] == 107 for e in leute.values())
+        zustand = (tuple(sorted(felder)), hk, lord["leben"])
+        still = still + 1 if zustand == zustand_alt and not hacken else 0
         zustand_alt = zustand
         zz = {}
         for e in leute.values():
