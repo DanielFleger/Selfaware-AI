@@ -43,6 +43,7 @@ GOLD1, KEULE1, LEDER1, HOLZ1 = PD1 + 0x4D0 + 15 * 4, PD1 + 0x4D0 + 21 * 4, PD1 +
 FEUER1 = PD1 + 136                                   # Bauern am Lagerfeuer (erstes_spiel: PD + 136)
 GOLD2 = 0x0115BDF8 + FEIND * 0x39F4 + 0x4D0 + 15 * 4
 STREITKOLBEN, BALLISTE, TORHAUS, KASERNE, HUETTE = 26, 77, 75, 9, 1
+AUSBILDUNG = {8, 9, 24}                               # Soeldnerposten, Kaserne, Ingenieursgilde (bauen.NACH_TYP)
 FERN = set(gefecht.FERN_REICH)
 
 
@@ -184,9 +185,11 @@ def main():
     # 96 Takte je Runde), Rueckzug zum Sammelfeld - erneut gestuermt wird erst mit noetig Mann (kleinste Zahl, die bei dieser Rate
     # das Ziel noch bricht); der Nachschub fuellt auf
     sturm_t, tote_sturm, noetig, tor_leben = None, 0, None, None
-    geschickt, angesetzt, jaeger, fern_ziel = set(), set(), {}, {}
+    geschickt, angesetzt, jaeger = set(), set(), {}
     ballisten_pruefen = True                             # nur bei Anlass suchen: Anfang, Jaeger frei, neues Ziel
-    versuche_ballista = {}                               # Ballista -> geschickte Jaeger (hoechstens 2 je Ballista)
+    steht = {}                                           # Nummer -> (Feld, seit Takt) - fuer die Nachzuegler-Regel
+    versuche_ballista = {}                               # Ballista -> geschickte Jaeger (hoechstens 4 je Ballista)
+    jaeger_frei = []                                     # Jaeger, deren Ziel gerade erledigt ist
     offen, erwartet, kauf_aus = None, 0, False
     haus_stellen = [(kaserne_xy[0] + dx, kaserne_xy[1] + dy) for r_ in (6, 9, 12) for dx, dy in
                     ((-r_, 0), (r_, 0), (0, -r_), (0, r_), (-r_, -r_), (r_, r_), (-r_, r_), (r_, -r_))] if kaserne_xy else []
@@ -203,6 +206,8 @@ def main():
             befehl({"angriff": {"einheiten": sorted(wer), "gebaeude": plan["ziel"]}}, 0.5)
         else:
             befehl({"angriff": {"einheiten": sorted(wer), "ziel": lnr}}, 0.5)
+            if fern:                                      # Lord-Phase: Fernkaempfer an den Lord (sie schiessen auf die Leibwache)
+                befehl({"angriff": {"einheiten": sorted(fern), "lauf": [lord_xy[0], lord_xy[1]]}}, 0.5)
         w_ = plan["weg"]
         zug_ = tuple(plan["zug"]) if plan["zug"] else tuple(w_[-1])
         frist = t_ + max(0, w_.index(zug_) if zug_ in w_ else len(w_)) * mechanik.TAKTE_JE_FELD + 2 * mk["takte_je_treffer"]
@@ -234,19 +239,16 @@ def main():
             tote_sturm += len(welle - lebend)
         for grp in (mauer, nah, fern, welle, angesetzt, geschickt):
             grp &= lebend
-        for j in [j for j, b in jaeger.items() if j not in lebend or AD.einheit(roh, b)["leben"] <= 0]:
+        def ziel_lebt(z_):
+            if z_[0] == "einheit":
+                return AD.einheit(roh, z_[1])["leben"] > 0 and AD.einheit(roh, z_[1])["zustand"] != 0
+            g_ = G.get(z_[1])
+            return g_ is not None and speicher.wegkarte()["gebaeude"][g_["x"], g_["y"]] == z_[1]
+        for j in [j for j, b in jaeger.items() if j not in lebend or not ziel_lebt(b)]:
             jaeger.pop(j)
             ballisten_pruefen = True
             if j in lebend:
-                mauer.add(j)                              # Ballista erledigt: zurueck zu den Streitkolben
-                if phase == "sturm" and plan is not None:
-                    welle.add(j)
-                    if plan["art"] == "mauer":
-                        befehl({"angriff": {"einheiten": [j], "lauf": [plan["zug"][0], plan["zug"][1]], "trupp": 1}}, 0.3)
-                    elif plan["art"] == "tor":
-                        befehl({"angriff": {"einheiten": [j], "gebaeude": plan["ziel"], "trupp": 1}}, 0.3)
-                    else:
-                        befehl({"angriff": {"einheiten": [j], "ziel": lnr, "trupp": 1}}, 0.3)
+                jaeger_frei.append(j)                     # Ziel erledigt: naechstes Ziel aus der Liste (oder zur Truppe)
         if s32(GOLD2) > 0:                                # Daniel 21.10. 23:20: Franz wirbt sonst nach
             befehl({"player": FEIND, "gold": 0}, 0.3)
 
@@ -298,42 +300,83 @@ def main():
                     melde((t_, "ANGEWORBEN %s" % neu))
 
         # --- Jaeger auf Feuerballisten ---
-        # (Daniel 00:42 "nur 1 Streitkolben pro Feuerballiste ist zu wenig, mindestens 2"): 2 je Ballista; hoechstens 4 je Ballista
-        # (fallen zwei Paare, ohne dass sie stirbt, werden dort keine weiteren verheizt)
-        if ballisten_pruefen and mauer - welle - set(jaeger):
+        # Jaeger (Daniel 00:42 "mindestens 2 je Feuerballiste", 00:55 "die auf die Feuerballisten gehen, koennten auf dem Boden
+        # stehende Fernkaempfer oder Ausbildungsgebaeude angreifen"): Zielliste nach Vorrang - 1. Feuerballisten (2 je Ballista,
+        # hoechstens 4 Versuche je Ballista), 2. Fernkaempfer auf dem Boden (Feldhoehe = Bodenhoehe, also nicht auf Mauer/Turm),
+        # 3. Ausbildungsgebaeude. Wird ein Ziel erledigt, nimmt der Jaeger das naechste; gibt es keins mehr, geht er zur Truppe
+        if ballisten_pruefen:
             ballisten_pruefen = False
-            bedarf = []
+            ziele = []
+            hoehe_, boden_ = speicher.ebene(speicher.HOEHE), speicher.ebene(speicher.BODEN)
             for b_n in range(1, 3000):
                 e_b = AD.einheit(roh, b_n)
-                if e_b["typ"] == BALLISTE and e_b["leben"] > 0 and e_b["besitzer"] == FEIND and e_b["zustand"] != 0:
-                    aktiv = sum(1 for z_ in jaeger.values() if z_ == b_n)
-                    bedarf += [b_n] * max(0, min(2 - aktiv, 4 - versuche_ballista.get(b_n, 0)))
-            ballisten = bedarf
-            frei_ = [n for n in mauer - welle if n not in jaeger]
-            while ballisten and frei_:
-                b_ = ballisten.pop(0)
-                bxy = (AD.einheit(roh, b_)["x"], AD.einheit(roh, b_)["y"])
-                f = min(frei_, key=lambda m_: abstand((jetzt[m_]["x"], jetzt[m_]["y"]), bxy))
+                if e_b["besitzer"] != FEIND or e_b["leben"] <= 0 or e_b["zustand"] == 0:
+                    continue
+                aktiv = sum(1 for z_ in jaeger.values() if z_ == ("einheit", b_n))
+                if e_b["typ"] == BALLISTE:
+                    ziele += [(0, ("einheit", b_n), (e_b["x"], e_b["y"]))] * max(0, min(2 - aktiv, 4 - versuche_ballista.get(b_n, 0)))
+                elif e_b["typ"] in FERN and int(hoehe_[e_b["x"], e_b["y"]]) <= int(boden_[e_b["x"], e_b["y"]]) and aktiv == 0:
+                    ziele.append((1, ("einheit", b_n), (e_b["x"], e_b["y"])))
+            for g_nr, g_ in G.items():
+                if g_["besitzer"] == FEIND and g_["typ"] in AUSBILDUNG and ("gebaeude", g_nr) not in jaeger.values():
+                    ziele.append((2, ("gebaeude", g_nr), (g_["x"], g_["y"])))
+            ziele.sort(key=lambda z_: z_[0])
+            # wer schon jagt und kein Ziel hat (frisch erledigt), bekommt zuerst eins; dann neue Jaeger bis 2 je Ballista
+            ohne_ziel = [j for j in jaeger_frei if j in lebend]
+            jaeger_frei = []
+            frei_ = ohne_ziel + [n for n in mauer - welle if n not in jaeger and n not in ohne_ziel]
+            n_jaeger_ziel = max(2, len(jaeger) + sum(1 for z_ in ziele if z_[0] == 0))   # 2 je Ballista, sonst 2
+            while ziele and frei_ and (len(jaeger) < n_jaeger_ziel or ohne_ziel):
+                _, z_, zxy = ziele.pop(0)
+                f = min(frei_, key=lambda m_: abstand((jetzt[m_]["x"], jetzt[m_]["y"]), zxy))
                 frei_.remove(f)
+                if f in ohne_ziel:
+                    ohne_ziel.remove(f)
                 mauer.discard(f)
-                jaeger[f] = b_
-                versuche_ballista[b_] = versuche_ballista.get(b_, 0) + 1
-                befehl({"angriff": {"einheiten": [f], "ziel": b_, "trupp": 1}}, 0.3)
-                melde((t_, "JAEGER %d auf Feuerballiste %d" % (f, b_)))
+                welle.discard(f)
+                jaeger[f] = z_
+                if z_[0] == "einheit":
+                    versuche_ballista[z_[1]] = versuche_ballista.get(z_[1], 0) + 1
+                    befehl({"angriff": {"einheiten": [f], "ziel": z_[1], "trupp": 1}}, 0.3)
+                else:
+                    befehl({"angriff": {"einheiten": [f], "gebaeude": z_[1], "trupp": 1}}, 0.3)
+                melde((t_, "JAEGER %d auf %s %d" % (f, "Einheit" if z_[0] == "einheit" else "Gebaeude", z_[1])))
+            for j in ohne_ziel:                         # nichts mehr zu jagen: zur Truppe
+                mauer.add(j)
+                if phase == "sturm" and plan is not None:
+                    welle.add(j)
+                    if plan["art"] == "mauer":
+                        befehl({"angriff": {"einheiten": [j], "lauf": [plan["zug"][0], plan["zug"][1]], "trupp": 1}}, 0.3)
+                    elif plan["art"] == "tor":
+                        befehl({"angriff": {"einheiten": [j], "gebaeude": plan["ziel"]}}, 0.3)
+                    else:
+                        befehl({"angriff": {"einheiten": [j], "ziel": lnr}}, 0.3)
 
-        # --- Fernkaempfer: feindliche Soldaten nahe dem Lord ---
-        tot_ziel = [n for n, z in fern_ziel.items() if n not in fern or AD.einheit(roh, z)["leben"] <= 0]
-        for n in tot_ziel:
-            fern_ziel.pop(n)
-        ohne = [n for n in fern if n not in fern_ziel]
-        if ohne:
-            feinde = [m for m in range(1, 3000) if AD.einheit(roh, m)["besitzer"] == FEIND and AD.einheit(roh, m)["leben"] > 0
-                      and AD.einheit(roh, m)["zustand"] != 0 and AD.einheit(roh, m)["typ"] in shc.SOLDATEN]
-            if feinde:
-                z = min(feinde, key=lambda m: abstand((AD.einheit(roh, m)["x"], AD.einheit(roh, m)["y"]), lord_xy))
-                befehl({"angriff": {"einheiten": sorted(ohne), "ziel": z, "trupp": 1}}, 0.3)
-                for n in ohne:
-                    fern_ziel[n] = z
+        # --- Jede Einheit mit (Daniel 00:57 "wirklich jede Einheit soll mit rein, nicht nur ein paar"; Siegerlauf 00:54: 12
+        # Fernkaempfer standen untaetig weit weg - der Angriff auf einen Soldaten am Lord setzte sie aus der Ferne nicht in Gang).
+        # Fernkaempfer ziehen mit: beim Sammeln und im Mauer-/Torhaus-Sturm aufs Sammelfeld (von dort reichen sie gut 40 Felder,
+        # L82/L91, und stehen selbst ausserhalb des Nahbereichs der Verteidiger), in der Lord-Phase zum Lord. Fuer ALLE gilt:
+        # wer weiter als NAH (15) Felder vom eigenen Ziel steht und sich eine Trefferrunde (96 Takte) nicht bewegt hat, bekommt
+        # den Laufbefehl neu.
+        if plan is not None and sammel is not None:
+            vorn_nah = sammel if phase == "sammeln" else (tuple(plan["zug"]) if plan["zug"] else lord_xy)
+            vorn_fern = lord_xy if (phase == "sturm" and plan["art"] == "lord") else sammel
+            nachzuegler = {}
+            for n in (mauer | nah | fern) - set(jaeger):
+                if n not in jetzt:
+                    continue
+                pos = (jetzt[n]["x"], jetzt[n]["y"])
+                alt_ = steht.get(n)
+                if alt_ is None or alt_[0] != pos:
+                    steht[n] = (pos, t_)
+                    continue
+                ziel_n = vorn_fern if n in fern else vorn_nah
+                if t_ - alt_[1] >= mk["takte_je_treffer"] and abstand(pos, ziel_n) > NAH:
+                    nachzuegler.setdefault(ziel_n, []).append(n)
+                    steht[n] = (pos, t_)
+            for ziel_n, wer in nachzuegler.items():
+                befehl({"angriff": {"einheiten": sorted(wer), "lauf": [ziel_n[0], ziel_n[1]]}}, 0.3)
+                melde((t_, "NACHZUEGLER %d Mann (%s) -> %s" % (len(wer), sorted({jetzt[w]["typ"] for w in wer}), ziel_n)))
 
         stuermer = (mauer | nah) - set(jaeger)
         if not stuermer and erwartet == 0 and (kaserne is None or s32(FEUER1) <= 0):
@@ -369,6 +412,8 @@ def main():
                 continue
             geschickt, welle = set(), set()
             befehl({"angriff": {"einheiten": sorted(stuermer), "lauf": [sammel[0], sammel[1]], "trupp": 1}}, 0.5)
+            if fern:                                      # Fernkaempfer ziehen mit (Gruppenbefehl - sie hauen keine Mauer)
+                befehl({"angriff": {"einheiten": sorted(fern), "lauf": [sammel[0], sammel[1]]}}, 0.5)
             geschickt = set(stuermer)
             # echte Laufzeit je Mann zum Sammelfeld (Schrittbits) - die Luftlinie unterschaetzte (Lauf 00:39: 11 von 51 da)
             zum_sammel = mechanik.lauf_takte_zu(plan["e"]["link"], sammel, AD.sperre_feindbau(plan["e"]["bau"]))
