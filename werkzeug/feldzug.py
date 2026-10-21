@@ -263,6 +263,8 @@ class Feldzug:
         self.mauerkarte = None      # B-164: besitzer -> (Mauerkacheln bool [x, y], Hoehe ueber Boden [x, y]); setzt erstes_spiel
         self.schredder = False      # B-164: der Lord liegt hinter Mauern - Einer-Stapel hacken die Mauer am Lord auf
         self.schredder_aus_bis = 0  # B-165: bis zu diesem Takt kein Schredder (er hatte keine Wirkung)
+        self.mauer_kachel = None    # B-164: die EINE Mauerkachel, auf die alle Einer-Befehle gehen (Daniel 22:15 "keine Kompression")
+        self.mauer_verworfen = set()  # B-165: Kacheln ohne Wirkung - die naechste kommt dran, nicht Torhaus/Turm
         self._wirkung_stand = {}    # B-165: Ziel -> (Wert, Takt seit dem letzten Fortschritt)
         self._lord_frei_alt = None  # B-163: letzter gemeldeter Stand "Lord zu Fuss erreichbar"
         self.vorposten = None       # B-139: (Bresche, erreichbarer Punkt vor ihr)
@@ -320,7 +322,7 @@ class Feldzug:
                     aus |= np.roll(np.roll(b, dx, 0), dy, 1)
         return aus
 
-    def _lage_lord(self, L, lp, nah_kampf, besitzer):
+    def _lage_lord(self, L, lp, nah_kampf, besitzer, mitte=None):
         """B-163/B-164: mit Wegkarte (Gebiete des Spiels) - None ohne. Gebiet unseres Heeres = das haeufigste der Nahkaempfer.
         frei: Feld bis LORD_RINGE am Lord in unserem Gebiet, wenn der Lord selbst in unserem Gebiet steht (oder auf einem Feld
         ohne Gebiet) - sonst None. Ohne freie Fahrt mit Mauerkarte: Mauerkacheln seines Besitzers bis MAUER_R um ihn, die ein
@@ -350,7 +352,7 @@ class Feldzug:
                     break
             if frei is None and g_lord == g:
                 frei = tuple(lp)
-        aus = {"gebiet": g, "gebiet_lord": g_lord, "frei": frei, "mauern": 0, "hoehe": None, "nah": None}
+        aus = {"gebiet": g, "gebiet_lord": g_lord, "frei": frei, "mauern": 0, "hoehe": None, "kachel": None, "hoehe_kachel": None}
         if frei is None and self.mauerkarte is not None:
             try:
                 m, h = self.mauerkarte(besitzer)
@@ -360,8 +362,45 @@ class Feldzug:
             fen = np.zeros(m.shape, bool)
             fen[max(0, lp[0] - self.MAUER_R):lp[0] + self.MAUER_R + 1, max(0, lp[1] - self.MAUER_R):lp[1] + self.MAUER_R + 1] = True
             ziel_m = m & fen & self._breit(geb == g, 1)
-            aus.update(mauern=int(ziel_m.sum()), hoehe=int(np.asarray(h)[m & fen].sum()), nah=self._breit(ziel_m, 3))
+            for q in self.mauer_verworfen:
+                ziel_m[q[0], q[1]] = False
+            # B-164 (Daniel 22:15 "nicht zusammen, sondern chaotisch auf Mauern - keine Kompression auf eine Mauer"): EINE Kachel
+            # fuer alle - die dem Lord naechste, bei Gleichstand die naechste an unserem Heer; sie bleibt, solange sie steht
+            kachel = self.mauer_kachel if self.mauer_kachel is not None and ziel_m[self.mauer_kachel] else None
+            if kachel is None:
+                xs, ys = np.nonzero(ziel_m)
+                if len(xs):
+                    mi = mitte or lp
+                    i = np.lexsort((ys, xs, np.maximum(abs(xs - mi[0]), abs(ys - mi[1])),
+                                    np.maximum(abs(xs - lp[0]), abs(ys - lp[1]))))[0]
+                    kachel = (int(xs[i]), int(ys[i]))
+            self.mauer_kachel = kachel
+            aus.update(mauern=int(ziel_m.sum()), hoehe=int(np.asarray(h)[m & fen].sum()), kachel=kachel,
+                       hoehe_kachel=int(np.asarray(h)[kachel]) if kachel else None)
         return aus
+
+    def _ohne_feindtore(self, geb, bau, G):
+        """B-164 (Pruefstand 22:13, Daniel 22:15 "zuerst aufs Torhaus, das war logischerweise zu, als die Einheiten da waren"):
+        das Spiel zaehlt ein OFFENES feindliches Tor als Durchgang - Hof und offenes Feld waren dasselbe Gebiet, die gewaehlte
+        Mauerkachel lag innen. Fuer uns ist kein feindliches Tor und kein Turm ein Weg: ihre Felder (Gebaeude-Ebene) werden aus
+        den Gebieten geschnitten; zerfaellt ein Gebiet dadurch, bekommt jeder weitere Teil eine eigene Nummer ab 60000."""
+        nrs = [nr for nr, g_ in G.items() if g_.get("besitzer") not in freunde_von(self.sp) and g_.get("typ") in BURG_TEILE]
+        if bau is None or not nrs:
+            return geb
+        schnitt = np.isin(bau, nrs)
+        if not schnitt.any():
+            return geb
+        from scipy import ndimage
+        neu = np.array(geb, np.int32, copy=True)
+        betroffen = np.unique(neu[schnitt & (neu > 0)])
+        neu[schnitt] = 0
+        nr_frei = 60000
+        for g_ in betroffen:
+            teile, n = ndimage.label(neu == g_, structure=np.ones((3, 3), int))
+            for c in range(2, n + 1):
+                neu[teile == c] = nr_frei
+                nr_frei += 1
+        return neu
 
     def _wirkung(self, ziel, wert, nah, t):
         """B-165 Wirkungswaechter: Fortschritt am Ziel je Runde (wert sinkt = Wirkung: Leben, Mauerhoehe). Stehen mindestens
@@ -382,12 +421,14 @@ class Feldzug:
             z[L[n].get("zustand")] = z.get(L[n].get("zustand"), 0) + 1
         return ", ".join("%s: %d" % (k, v) for k, v in sorted(z.items(), key=lambda kv: -kv[1]))
 
-    def _neue_karte(self, bed):
-        """B-157/B-161: Gefahrenkarte dieser Runde - mit den Gebieten des Spiels, wenn die Wegkarte lesbar ist."""
+    def _neue_karte(self, bed, G=None):
+        """B-157/B-161: Gefahrenkarte dieser Runde - mit den Gebieten des Spiels, wenn die Wegkarte lesbar ist (B-164: ohne
+        feindliche Tore und Tuerme als Durchgang)."""
         geb = None
         if self.wegkarte is not None:
             try:
-                geb = self.wegkarte()["gebiet"]
+                wk = self.wegkarte()
+                geb = wk["gebiet"] if G is None else self._ohne_feindtore(wk["gebiet"], wk.get("gebaeude"), G)
                 self.wegkarte_fehler = None
             except Exception as ex:                      # Spiel nicht lesbar: wie vorher ohne Gebiete, Grund merken
                 self.wegkarte_fehler = str(ex)[:120]
@@ -458,7 +499,7 @@ class Feldzug:
             bed_ = getattr(self, "_bed", None)
             if bed_ or self.wegkarte is not None:       # B-161: mit Wegkarte auch ohne Bedrohung (alle Schuetzen tot)
                 if self._karte is None:
-                    self._karte = self._neue_karte(bed_ or [])
+                    self._karte = self._neue_karte(bed_ or [], G)
                 weg_ = GF.sicherer_weg(spitze_o, ort, self._karte)
                 if weg_ is None and self._karte.gebiete is not None:
                     # B-161 (Franz' Burg 21.10. Takt 74.036: 4 von 9 Stellen liegen hinter Mauern - von aussen kein Feld
@@ -612,7 +653,7 @@ class Feldzug:
         self._bed = GF.bedrohungen(L, G, lambda b: b not in freunde_von(self.sp), gefecht.FERN_REICH)
         # 21.10. (Pruefstand 21:34: Runden bis 4.472 Takte blind, "ruestung" bis 11 s): die Karte einmal je Runde, jede Wegsuche
         # dieser Runde liest daraus (0,02-0,06 s je Ziel statt 0,2-1,2 s am Lagebild Tick 59.105)
-        self._karte = self._neue_karte(self._bed) if self._bed or self.wegkarte is not None else None
+        self._karte = self._neue_karte(self._bed, G) if self._bed or self.wegkarte is not None else None
         if not orte_f and not self._bed:
             return befehl
         roh = befehl
@@ -852,7 +893,7 @@ class Feldzug:
                 self.bresche, self.bresche_leben, self.lord_versuch, self._stau = None, None, t, (None, t)
             # B-163/B-164 (Daniel 21:59): mit Wegkarte JEDE Runde, auch mit gewaehlter Bresche - steht der Lord in unserem Gebiet,
             # geht er allem vor; sonst der Schredder (Einer-Stapel auf seine Mauer), solange er Wirkung hat (B-165)
-            ll = self._lage_lord(L, lp, [n for n in kolben if L[n]["typ"] not in FERN_REICH], lord["besitzer"])
+            ll = self._lage_lord(L, lp, [n for n in kolben if L[n]["typ"] not in FERN_REICH], lord["besitzer"], mitte)
             if ll is not None:
                 if (ll["frei"] is not None) != self._lord_frei_alt:
                     self._lord_frei_alt = ll["frei"] is not None
@@ -865,11 +906,13 @@ class Feldzug:
                             self.ziel, "Bresche %d" % self.bresche if self.bresche is not None else "Schredder"))
                     self.bresche, self.bresche_leben, self.vorposten, self.schredder = None, None, None, False
                     self.lord_versuch = self.lord_versuch or t
-                elif ll["mauern"] and t >= self.schredder_aus_bis:
-                    if not self.schredder:
-                        aus.append("FELDZUG SCHREDDER: Lord %d hinter Mauern - %d seiner Mauerkacheln bis %d Felder um ihn sind "
-                                   "erreichbar, die Nahkaempfer hacken einzeln (Trupp %d) die naechste am Lord auf%s" % (
-                                       self.ziel, ll["mauern"], self.MAUER_R, self.MAUER_TRUPP,
+                elif ll["kachel"] is not None and t >= self.schredder_aus_bis:
+                    if not self.schredder or ll["kachel"] != getattr(self, "_kachel_gemeldet", None):
+                        self._kachel_gemeldet = ll["kachel"]
+                        aus.append("FELDZUG SCHREDDER: Lord %d hinter Mauern - alle Nahkaempfer einzeln (Trupp %d) auf DIE Kachel %s "
+                                   "(Hoehe %d, %d Felder vom Lord; %d erreichbare Kacheln bis %d Felder um ihn)%s" % (
+                                       self.ziel, self.MAUER_TRUPP, ll["kachel"], ll["hoehe_kachel"], schach(ll["kachel"], lp),
+                                       ll["mauern"], self.MAUER_R,
                                        " - Bresche %d fallen gelassen" % self.bresche if self.bresche is not None else ""))
                     self.schredder = True
                     self.bresche, self.bresche_leben, self.vorposten = None, None, None
@@ -1072,16 +1115,25 @@ class Feldzug:
             if (lord_ziel is None and (self.schredder or self.lord_vp is not None) and (self.bresche is None or self.bresche not in G)
                     and self.ziel in L):
                 wand = [n for n in nah_kampf if L[n]["typ"] in MAUER_TYPEN]
-                if wand and self.schredder and ll is not None and ll["nah"] is not None:
-                    # B-165: Wirkung des Schredders = die Mauern des Lord-Besitzers bis MAUER_R werden niedriger
-                    nah_w = [n for n in wand if ll["nah"][L[n]["x"], L[n]["y"]]]
-                    ohne_w = self._wirkung(("schredder", self.ziel), ll["hoehe"], len(nah_w), t)
+                kq = ll["kachel"] if self.schredder and ll is not None else None
+                if wand and kq is not None:
+                    # B-165: Wirkung des Schredders = die Hoehe DER Kachel sinkt (Hoehe = Leben der Mauerkachel, VillageStudio
+                    # Wissensstand 5d belegt). Ohne Wirkung: Kachel verwerfen, die naechste - Torhaus/Turm erst, wenn keine mehr da
+                    # ist (Daniel 22:15: das Torhaus "war logischerweise zu, als die Einheiten da waren")
+                    nah_w = [n for n in wand if schach((L[n]["x"], L[n]["y"]), kq) <= 3]
+                    ohne_w = self._wirkung(("kachel", kq), ll["hoehe_kachel"], len(nah_w), t)
                     if ohne_w is not None:
-                        self.schredder, self.schredder_aus_bis = False, t + self.SCHREDDER_PAUSE
-                        aus.append("FELDZUG KEINE WIRKUNG: Schredder %d Takte ohne niedrigere Mauer (Hoehe %d), %d Mann an der Mauer "
-                                   "(Zustaende %s) - %d Takte Bresche statt Mauer" % (ohne_w, ll["hoehe"], len(nah_w),
-                                                                                    self._zustaende(L, nah_w), self.SCHREDDER_PAUSE))
-                        self._schwachstelle(G, lp, orte, aus, "Schredder ohne Wirkung")
+                        self.mauer_verworfen.add(kq)
+                        self.mauer_kachel = None
+                        rest = ll["mauern"] - 1
+                        aus.append("FELDZUG KEINE WIRKUNG: Mauerkachel %s %d Takte bei Hoehe %d, %d Mann bis 3 daneben (Zustaende %s) - "
+                                   "verworfen, %s" % (kq, ohne_w, ll["hoehe_kachel"], len(nah_w), self._zustaende(L, nah_w),
+                                                      "naechste Kachel (%d uebrig)" % rest if rest > 0 else
+                                                      "keine Kachel mehr - %d Takte Bresche" % self.SCHREDDER_PAUSE))
+                        if rest <= 0:
+                            self.schredder, self.schredder_aus_bis = False, t + self.SCHREDDER_PAUSE
+                            self.mauer_verworfen.clear()
+                            self._schwachstelle(G, lp, orte, aus, "Schredder ohne Wirkung")
                         wand = []
                 if wand:
                     if self.mauer_seit is None:
@@ -1089,12 +1141,15 @@ class Feldzug:
                         aus.append("FELDZUG MAUER: Lord %d eingemauert%s - %d Nahkaempfer hacken die Mauer bis %d Felder um den Lord "
                                    "auf, je %d" % (self.ziel, " (Schredder)" if self.schredder else ", kein Turm erreichbar", len(wand),
                                                    self.MAUER_R, self.MAUER_TRUPP))
-                    neu_w = [n for n in wand if befohlen.get(n) != ("mauer", lp) or L[n]["zustand"] in (0, 1)]
+                    ziel_w = kq if kq is not None else lp
+                    neu_w = [n for n in wand if befohlen.get(n) != ("mauer", ziel_w) or L[n]["zustand"] in (0, 1)]
                     if neu_w:
-                        befehl({"angriff": {"einheiten": neu_w, "mauer": [lp[0], lp[1], L[self.ziel]["besitzer"], self.MAUER_R],
-                                            "trupp": self.MAUER_TRUPP}}, 1.0, bis="ANGRIFF")
+                        # B-164: mit gewaehlter Kachel bekommt logik.lua sie mit (5./6. Wert) - alle Einer-Befehle auf DIESE
+                        befehl({"angriff": {"einheiten": neu_w, "mauer": [lp[0], lp[1], L[self.ziel]["besitzer"], self.MAUER_R]
+                                            + ([kq[0], kq[1]] if kq is not None else []), "trupp": self.MAUER_TRUPP}},
+                               1.0, bis="ANGRIFF")
                         for n in neu_w:
-                            befohlen[n] = ("mauer", lp)
+                            befohlen[n] = ("mauer", ziel_w)
                     belegt |= set(wand)
                     am_lord = [n for n in am_lord if n not in wand]
             elif self.mauer_seit is not None:

@@ -2645,7 +2645,28 @@ local function einzelbefehl(cmd)
       end
       local MB = 0x100 | 0x200 | 0x800 | 0x10000 | 0x400000
       local beste, besteWert, zahl = nil, nil, 0
-      for y = ly - r, ly + r do
+      local vorgabe = ""
+      local kx, ky = tonumber(a.mauer[5]), tonumber(a.mauer[6])
+      if kx and ky then
+        local k = feldM(kx, ky)
+        local frei = false
+        if k then
+          for dy = -1, 1 do
+            for dx = -1, 1 do
+              if (dx ~= 0 or dy ~= 0) and meinGebiet ~= 0 and gebiet(kx + dx, ky + dy) == meinGebiet then frei = true end
+            end
+          end
+        end
+        if k and frei and ((core.readInteger(0x01BF8368 + k * 4) or 0) & MB) ~= 0
+            and (core.readByte(0x01D5A058 + k) or 255) == besitzer0
+            and (core.readByte(0x01D32C38 + k) or 0) > (core.readByte(0x01D46648 + k) or 0) then
+          beste, vorgabe = { kx, ky, k }, " (vorgegeben)"
+        else
+          vorgabe = string.format(" (Vorgabe (%d,%d) nicht nutzbar: Feld %s, freies Nachbarfeld %s - selbst gesucht)", kx, ky,
+            tostring(k), tostring(frei))
+        end
+      end
+      for y = (beste and ly + r + 1 or ly - r), ly + r do
         for x = lx - r, lx + r do
           local k = feldM(x, y)
           if k and ((core.readInteger(0x01BF8368 + k * 4) or 0) & MB) ~= 0
@@ -2671,8 +2692,8 @@ local function einzelbefehl(cmd)
         auswahlZurueck()
         return true
       end
-      log(INFO, string.format("MAUER Tick %d: Kachel (%d,%d) Feld %d Hoehe %d gewaehlt - %d Mauerkacheln von Spieler %d bis %d Felder um den Lord (%d,%d); Gebiet %d, %d Einheiten, %d ausserhalb abgewaehlt",
-        tick(), beste[1], beste[2], beste[3], core.readByte(0x01D32C38 + beste[3]) or -1, zahl, besitzer0 + 1, r, lx, ly, meinGebiet, n, raus))
+      log(INFO, string.format("MAUER Tick %d: Kachel (%d,%d) Feld %d Hoehe %d gewaehlt%s - %d Mauerkacheln von Spieler %d bis %d Felder um den Lord (%d,%d); Gebiet %d, %d Einheiten, %d ausserhalb abgewaehlt",
+        tick(), beste[1], beste[2], beste[3], core.readByte(0x01D32C38 + beste[3]) or -1, vorgabe, zahl, besitzer0 + 1, r, lx, ly, meinGebiet, n, raus))
       art, zielNr, zielUid = 23, beste[3], 0
     end
     local ok1 = befehlAbsetzen(16, { gruppe })
