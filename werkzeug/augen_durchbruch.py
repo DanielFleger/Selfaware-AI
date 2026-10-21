@@ -147,9 +147,11 @@ def main(wand_typen=None):
         if wand_typen:
             andere = [n for n in nrs if einheit(roh, n)["typ"] not in wand_typen]
             nrs = [n for n in nrs if einheit(roh, n)["typ"] in wand_typen]
-            # (Daniel 22.10. 00:06 "alle auf den Lord, sobald Zugang besteht"): die anderen warten, bis der Weg frei ist
-            print("FIX: Mauer nur Typen %s (%d Mann), %d andere warten auf den freien Weg" % (sorted(wand_typen), len(nrs),
-                                                                                          len(andere)), flush=True)
+            # (Daniel 22.10. 00:15 "schick alles vor"): die anderen greifen sofort den Lord an
+            print("FIX: Mauer nur Typen %s (%d Mann), %d andere sofort auf den Lord" % (sorted(wand_typen), len(nrs), len(andere)),
+                  flush=True)
+            if andere:
+                befehl({"angriff": {"einheiten": sorted(andere), "ziel": lnr, "trupp": 1}}, 1.0)
     else:
         t = shc.setze(spieler=1, typ=26, x=zugang[0] - 1, y=zugang[1] - 1, anzahl=ZAHL)
         nrs = [int(x) for x in re.search(r"Nummern \[([0-9, ]+)\]", t).group(1).split(",")]
@@ -168,6 +170,16 @@ def main(wand_typen=None):
     # Code - Weg in Takten (Plan, 12 Takte je Feld gemessen) + 2 Trefferrunden (takte_je_treffer). Kein Hoehenverlust bis dahin =
     # Abbruch mit Grund (wer haut, wer steht, wer fiel - je Typ)
     frist, hk_alt, typen0, hauen_typen = None, None, {}, set()
+    zug_akt, angesetzt, anf, blick_k = None, set(), None, 0
+    # Anwerben (Daniel 00:15 "er soll auch weiter rekrutieren"): Streitkolben (26) in unserer Kaserne (Gebaeudetyp 9). Erfolg =
+    # Gold sinkt; dann gleich der naechste. Ohne Erfolg erst wieder, wenn das Gold steigt ODER wieder Bauern am Lagerfeuer stehen
+    # (Lauf 00:17: 6 angeworben = 6 Bauern am Feuer verbraucht, danach wartete die Regel nur auf Gold - das stieg nie; Einzeltest
+    # 00:20: Werben klappt, -20 Gold, -1 Keule, +1 Streitkolben)
+    from waechter import lies_gebaeude
+    kaserne = min([nr for nr, g_ in lies_gebaeude().items() if g_["besitzer"] == 1 and g_["typ"] == 9] or [None])
+    GOLD1 = 0x0115BDF8 + 1 * 0x39F4 + 0x4D0 + 15 * 4
+    gold_bei_versuch, bekannt, feuer_bei_versuch, erwartet = None, set(nrs) | set(andere), None, 0
+    FEUER1 = 0x0115BDF8 + 1 * 0x39F4 + 136              # Bauern am Lagerfeuer (erstes_spiel: PD + 136)
     letzt_t, still, zustand_alt, neu_planen, gesendet = None, 0, None, True, {}
     befehl({"pause": False, "tempo": 40}, 0.2)
     while True:
@@ -184,11 +196,44 @@ def main(wand_typen=None):
             ereignisse.append((t_, "LORD TOT"))
             break
         if not leute:
-            ereignisse.append((t_, "ALLE TOT"))
-            break
+            # (Armee mit Anwerben: nur Ende, wenn auch keiner mehr kommt - keiner unterwegs, keine Bauern am Lagerfeuer)
+            if not armee or kaserne is None or (erwartet == 0 and int.from_bytes(lies(FEUER1, 4), "little", signed=True) <= 0):
+                ereignisse.append((t_, "ALLE TOT"))
+                break
         gold2 = int.from_bytes(lies(0x0115BDF8 + 2 * 0x39F4 + 0x4D0 + 15 * 4, 4), "little", signed=True)
         if gold2 > 0:                         # (Daniel 23:20 "der Gegner bildet Einheiten aus") - ohne Gold keine Anwerbung
             befehl({"player": 2, "gold": 0}, 0.3)
+        if armee and kaserne is not None:
+            gold1 = int.from_bytes(lies(GOLD1, 4), "little", signed=True)
+            feuer1 = int.from_bytes(lies(FEUER1, 4), "little", signed=True)
+            if gold_bei_versuch is None or gold1 > gold_bei_versuch or (feuer1 > (feuer_bei_versuch or 0) and gold1 == gold_bei_versuch):
+                befehl({"werbe": {"typ": 26, "gebaeude": kaserne}}, 0.3)
+                gold_bei_versuch, feuer_bei_versuch = gold1, feuer1
+            elif gold1 < gold_bei_versuch:                  # angeworben (20 Gold je Mann, Einzeltest 00:20): gleich der naechste
+                erwartet += (gold_bei_versuch - gold1) // 20
+                befehl({"werbe": {"typ": 26, "gebaeude": kaserne}}, 0.3)
+                gold_bei_versuch, feuer_bei_versuch = gold1, feuer1
+            if erwartet > 0:                                # die Neuen erscheinen spaeter - jeden Takt nachsehen, bis alle da sind
+                roh = speicher.lies(E0, 3000 * ES)
+                neu = [n for n in range(1, 3000) if n not in bekannt and einheit(roh, n)["leben"] > 0 and
+                       einheit(roh, n)["typ"] in shc.SOLDATEN and einheit(roh, n)["besitzer"] == 1 and einheit(roh, n)["zustand"] != 0]
+                bekannt |= set(neu)
+                erwartet = max(0, erwartet - len(neu))
+                for n in neu:
+                    if wand_typen and einheit(roh, n)["typ"] not in wand_typen or phase == "lord":
+                        andere.append(n)
+                        befehl({"angriff": {"einheiten": [n], "ziel": lnr, "trupp": 1}}, 0.3)
+                    else:
+                        nrs.append(n)
+                        if zug_akt is not None:
+                            befehl({"angriff": {"einheiten": [n], "lauf": [zug_akt[0], zug_akt[1]], "trupp": 1}}, 0.3)
+                            e_n = einheit(roh, n)
+                            weg_n = max(abs(e_n["x"] - zug_akt[0]), abs(e_n["y"] - zug_akt[1]))
+                            frist = max(frist or 0, t_ + weg_n * mechanik.TAKTE_JE_FELD + 2 * mk["takte_je_treffer"])
+                if neu:
+                    ereignisse.append((t_, "ANGEWORBEN: %s" % neu))
+        if not leute:                                       # alle an der Mauer tot, Neue unterwegs: warten, nicht planen
+            continue
         felder = [(e["x"], e["y"]) for e in leute.values()]
         if phase == "mauer" and kachel is not None:
             k = kvon[kachel]
@@ -230,15 +275,24 @@ def main(wand_typen=None):
                 ab = anfrage_und_blick(kachel)
                 ereignisse.append((t_, "ANFRAGE %s fuer Kachel %s" % (ab, kachel)))
                 anf, blick_k = ab if ab else (kachel, 0)
-                befehl({"mauerziel": {"einheiten": sorted(leute), "feld": kvon[kachel], "x": kachel[0], "y": kachel[1],
-                                      "halten": True}}, 0.5)
-                befehl({"angriff": {"einheiten": sorted(leute), "mauer": [lp[0], lp[1], 2, 30, anf[0], anf[1], blick_k],
-                                    "trupp": 1}}, 1.0)
+                # (Armee-Lauf 22.10. 00:12: Angriffsbefehl + Ziel festhalten auf ~100 Felder Entfernung -> alle 9 blieben 8-10 Felder
+                # vor der Kachel stehen. Daniel 00:01 "jede einzelne Einheit soll sofort bei Mauerberuehrung reinhacken"): jeder laeuft
+                # einzeln auf das gerade Zugangsfeld; wer DORT ankommt, bekommt sofort den Mauer-Angriff + festgehaltenes Ziel
+                zug_akt, angesetzt = zug_, set()
+                befehl({"angriff": {"einheiten": sorted(leute), "lauf": [zug_[0], zug_[1]], "trupp": 1}}, 1.0)
                 gesendet = {n: (leute[n]["zustand"], leute[n]["ziel"]) for n in leute}
         # Neu senden nur, wenn das Spiel den letzten Befehl dieses Manns sichtbar verarbeitet hat (Zustand oder Ziel anders als
         # beim Senden) und es trotzdem nicht passt - kein fester Takt
         verarbeitet = lambda n: gesendet.get(n) is None or gesendet[n] != (leute[n]["zustand"], leute[n]["ziel"])
-        # (Phase mauer: das Ziel haelt logik.lua mauerzielTick in jedem Takt fest - hier kein zweiter Weg zum selben Ziel)
+        # Phase mauer: wer auf dem Zugangsfeld steht, wird sofort angesetzt (Angriff + Ziel, das logik.lua mauerzielTick festhaelt)
+        if phase == "mauer" and kachel is not None and zug_akt is not None:
+            da = [n for n, e in leute.items() if (e["x"], e["y"]) == tuple(zug_akt) and n not in angesetzt]
+            if da:
+                angesetzt |= set(da)
+                befehl({"mauerziel": {"einheiten": sorted(angesetzt), "feld": kvon[kachel], "x": kachel[0], "y": kachel[1],
+                                      "halten": True}}, 0.3)
+                befehl({"angriff": {"einheiten": sorted(da), "mauer": [lp[0], lp[1], 2, 30, anf[0], anf[1], blick_k],
+                                    "trupp": 1}}, 0.5)
         if phase == "lord":
             ohne = [n for n, e in leute.items() if e["zustand"] in (0, 1) and verarbeitet(n)]
             if ohne:
