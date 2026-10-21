@@ -2462,6 +2462,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 befehl({"pause": True}, 0.5)
             if bis_tick and st.get("t", 0) >= bis_tick:
                 ende_grund = ("ende", "bis_tick %d erreicht" % bis_tick)
+                # 21.10. (Pruefstand 21:34: letzte Zeile Tick 65.854, dann still Schluss - die Runde davor dauerte 4.472 Takte,
+                # der naechste gelesene Takt lag schon ueber bis_tick): jeder Ausstieg nennt seinen Grund
+                schreib("ENDE: bis_tick %d erreicht bei Tick %d (letzte Runde ab Tick %s)" % (bis_tick, st["t"], letzter_tick))
                 break
             # Goldmarken (Daniel 06.10.: "wie man am schnellsten 10k Gold bekommt") - jede 1.000 einmal, am Ziel Schluss
             while gold_ziel and st.get("gold", 0) >= gold_marke and gold_marke <= gold_ziel:

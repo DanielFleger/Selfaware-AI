@@ -220,6 +220,7 @@ class Feldzug:
     def __init__(self, sp, heim, lord_schutz_bis=0, n=None):
         self.sp, self.heim, self.schutz_bis = sp, tuple(heim), lord_schutz_bis
         self._orte_f = []           # B-150: Feuer dieser Runde [(x, y, Sicherheitsabstand)]
+        self._karte = None          # B-157: Gefahrenkarte dieser Runde (gefahr.Karte) - eine Wegsuche je Startpunkt
         self.heerweg = None         # B-150: (Mitte, Lord, Takt) im Angriff
         self.heerwege = []          # B-150: [(von, nach)] wo das Heer steht und wohin es laeuft - fuer den Brandtrupp
         if n:
@@ -312,8 +313,10 @@ class Feldzug:
             # Widerstand an der Stelle: so lange steht man dort unter Beschuss - Schuetzen an der Stelle x Leben/100 (UNGEMESSEN)
             bed_ = getattr(self, "_bed", None)
             if bed_:
-                weg_ = GF.sicherer_weg(spitze_o, ort, bed_, feuer=self._orte_f) or [ort]
-                gefahr = GF.weg_gefahr(spitze_o, weg_, bed_) + GF.gefahr(ort, bed_) * g.get("leben", 0) // 100
+                if self._karte is None:
+                    self._karte = GF.Karte(bed_, feuer=self._orte_f)
+                weg_ = GF.sicherer_weg(spitze_o, ort, self._karte) or [ort]
+                gefahr = GF.weg_gefahr(spitze_o, weg_, self._karte) + GF.gefahr(ort, self._karte) * g.get("leben", 0) // 100
             else:
                 gefahr = sum(1 for q, r in schuetzen_f if schach(ort, q) <= r)
             kand.append((gefahr, g.get("leben", 0), schach(ort, spitze_o), nr))
@@ -458,6 +461,9 @@ class Feldzug:
         # Gefahrenkarte jede Runde neu - jeder Laufbefehl geht ueber den Weg mit der kleinsten Gefahr (gefahr.sicherer_weg)
         import gefecht
         self._bed = GF.bedrohungen(L, G, lambda b: b not in freunde_von(self.sp), gefecht.FERN_REICH)
+        # 21.10. (Pruefstand 21:34: Runden bis 4.472 Takte blind, "ruestung" bis 11 s): die Karte einmal je Runde, jede Wegsuche
+        # dieser Runde liest daraus (0,02-0,06 s je Ziel statt 0,2-1,2 s am Lagebild Tick 59.105)
+        self._karte = GF.Karte(self._bed, feuer=orte_f) if self._bed else None
         if not orte_f and not self._bed:
             return befehl
         roh = befehl
@@ -497,9 +503,9 @@ class Feldzug:
                 weg = None
                 if self._bed and not (orte_f and im_feuer(m, orte_f)):
                     z2 = (feuerfrei_punkt(z, orte_f, nach=m) or z) if orte_f else z
-                    weg = GF.sicherer_weg(m, z2, self._bed, feuer=orte_f)
+                    weg = GF.sicherer_weg(m, z2, self._karte)
                     if weg and weg != [z]:
-                        g_neu, g_alt = GF.weg_gefahr(m, weg, self._bed), GF.weg_gefahr(m, [z], self._bed)
+                        g_neu, g_alt = GF.weg_gefahr(m, weg, self._karte), GF.weg_gefahr(m, [z], self._karte)
                         aus.append("FELDZUG SICHERER WEG: %d Einheiten nach %s ueber %s - Gefahr %d statt %d (gerade)" % (
                             len(ns), z, weg[:4], g_neu, g_alt))
                 if weg is None:

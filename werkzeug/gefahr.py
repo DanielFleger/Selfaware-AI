@@ -6,20 +6,28 @@ Einheiten zu besiegen, die auf dem Weg sind, z.B. Fernkaempfer - dann nur die mi
 Bausteine, ohne Spiel pruefbar (gefahr_pruefen.py):
   bedrohungen    - wer schiesst wohin: feindliche Fernkaempfer (Reichweite gefecht.FERN_REICH, Gewicht 1) und Todeszonen
                    (Burgteil Typ 75: Verlustkarte Pruefstand 21.10. - 58 von 275 eigenen Toten hoechstens 8 Felder daneben)
+  Karte          - Gefahr je Feld fuer die ganze Karte, einmal je Runde gerechnet; gesperrte Felder (Feuer); je Startpunkt EINE
+                   Kostensuche (skimage MCP), aus der die Wege zu beliebig vielen Zielen abgelesen werden
   gefahr         - Summe der Gewichte, die einen Punkt erreichen
-  sicherer_weg   - A* auf einem 2er-Raster, jeder Schritt kostet 1 + K * Gefahr; Feuer ist gesperrt; danach geglaettet, aber
-                   nur so weit, dass keine Abkuerzung gefaehrlicher ist als das Stueck, das sie ersetzt
+  sicherer_weg   - kleinste Summe aus Weglaenge und K * Gefahr je Feld; Feuer ist gesperrt; danach geglaettet, aber nur so
+                   weit, dass keine Abkuerzung gefaehrlicher ist als das Stueck, das sie ersetzt
   weg_gefahr     - Gefahr eines Weges (alle 2 Felder abgetastet) - damit werden Angriffsstellen verglichen
   schuetzen_am_weg / mindestzahl - Fernkaempfer, die den Weg bestreichen, und wie viele Nahkaempfer sie sicher toeten
+21.10. 21:50 neu geschrieben (Pruefstand 21:34: Runden bis 4.472 Takte, Zeit "ruestung" bis 11 s - gemessen am Lagebild Tick
+59.105: 9 Angriffsstellen x eigener A*-Suche mit 46 Bedrohungen je Feld = 4,8 s): Gefahr einmal je Runde als Feld, eine Suche
+je Startpunkt statt je Ziel.
 UNGEMESSEN (Startwerte, Daniel bekommt sie so gesagt): TODESZONE-Radius 8 und Gewicht 10, K = 6, Nahkampf-Schaden je Takt.
 """
-import heapq
 import math
+
+import numpy as np
 
 TODESZONE = {75: (8, 10)}       # Burgteil-Typ -> (Radius, Gewicht); Typ 75 aus der Verlustkarte 21.10. - UNGEMESSEN
 K = 6                           # Gewicht der Gefahr gegenueber 1 Feld Weg - UNGEMESSEN
-NAHKAMPF_SCHADEN = 200          # Leben je Nahkaempfer und Takt gegen einen Schuetzen - UNGEMESSEN (Assassinen-Raten L-Register)
+NAHKAMPF_SCHADEN = 200          # Leben je Nahkaempfer und Takt gegen einen Schuetze - UNGEMESSEN (Assassinen-Raten L-Register)
 SICHERHEIT = 1.5                # so viel mehr als rechnerisch noetig wird geschickt
+GROESSE = 400                   # Kartenfelder je Seite (groesste Koordinate im Lagebild 21.10.: 388)
+ZIEL_UMKREIS = 3                # ist das Ziel selbst gesperrt, gilt das billigste erreichbare Feld bis so weit daneben
 
 
 def schach(a, b):
@@ -39,8 +47,85 @@ def bedrohungen(L, G, ist_feind, fern_reich):
     return aus
 
 
-def gefahr(p, bed):
+def _gefahr_einzeln(p, bed):
     return sum(w for x, y, r, w, _ in bed if schach(p, (x, y)) <= r)
+
+
+class Karte:
+    """Gefahr und Sperren fuer die ganze Karte. Je Feld: Gefahr = Summe der Gewichte, deren Quadrat (Schach-Abstand <= r) das
+    Feld trifft - ueber ein Differenzfeld in einem Schritt fuer alle Bedrohungen. Kosten je Feld 1 + k * Gefahr; Feuer (x, y, r)
+    und gesperrt (Feld bool [x, y]) sind nicht begehbar. Die Kostensuche je Startpunkt wird zwischengespeichert."""
+
+    def __init__(self, bed, feuer=(), gesperrt=None, k=K, n=GROESSE):
+        self.bed, self.feuer, self.k, self.n = list(bed), list(feuer), k, n
+        d = np.zeros((n + 1, n + 1), np.int64)
+        for x, y, r, w, _ in self.bed:
+            x0, x1, y0, y1 = max(0, x - r), min(n - 1, x + r), max(0, y - r), min(n - 1, y + r)
+            if x0 > x1 or y0 > y1:
+                continue
+            d[x0, y0] += w
+            d[x1 + 1, y0] -= w
+            d[x0, y1 + 1] -= w
+            d[x1 + 1, y1 + 1] += w
+        self.g = d.cumsum(0).cumsum(1)[:n, :n]
+        self.sperre = np.zeros((n, n), bool) if gesperrt is None else np.array(gesperrt, bool, copy=True)
+        for x, y, r in self.feuer:
+            self.sperre[max(0, x - r):max(0, x + r + 1), max(0, y - r):max(0, y + r + 1)] = True
+        self.kosten = 1.0 + k * self.g.astype(float)
+        self.kosten[self.sperre] = -1.0
+        self._suche = {}
+
+    def drin(self, p):
+        return 0 <= p[0] < self.n and 0 <= p[1] < self.n
+
+    def gefahr(self, p):
+        return int(self.g[p[0], p[1]]) if self.drin(p) else _gefahr_einzeln(p, self.bed)
+
+    def gesperrt(self, p):
+        return bool(self.sperre[p[0], p[1]]) if self.drin(p) else any(schach(p, (x, y)) <= r for x, y, r in self.feuer)
+
+    def linie(self, a, b):
+        """Alle Felder der geraden Strecke a -> b (jedes Feld, nicht nur jedes zweite)."""
+        n = max(1, schach(a, b))
+        return [(a[0] + (b[0] - a[0]) * i // n, a[1] + (b[1] - a[1]) * i // n) for i in range(n + 1)]
+
+    def suche(self, start):
+        """(MCP, Kostenfeld) ab start - einmal je Startpunkt und Runde."""
+        start = tuple(start)
+        if start not in self._suche:
+            from skimage.graph import MCP
+            kosten = self.kosten
+            if self.drin(start) and kosten[start] < 0:      # wer im Feuer steht, darf hinaus
+                kosten = kosten.copy()
+                kosten[start] = 1.0
+            m = MCP(kosten, fully_connected=True)
+            kum, _ = m.find_costs([start])
+            self._suche[start] = (m, kum)
+        return self._suche[start]
+
+    def ankunft(self, start, ziel):
+        """Das erreichbare Feld am Ziel: das Ziel selbst oder, wenn es gesperrt/unerreichbar ist, das billigste bis
+        ZIEL_UMKREIS daneben; None ohne solches Feld."""
+        _, kum = self.suche(start)
+        bester = None
+        for r in range(ZIEL_UMKREIS + 1):
+            for x in range(ziel[0] - r, ziel[0] + r + 1):
+                for y in range(ziel[1] - r, ziel[1] + r + 1):
+                    if schach((x, y), ziel) != r or not self.drin((x, y)) or not np.isfinite(kum[x, y]):
+                        continue
+                    if bester is None or kum[x, y] < kum[bester]:
+                        bester = (x, y)
+            if bester is not None:
+                return bester
+        return None
+
+
+def _als_karte(bed, feuer=(), k=K):
+    return bed if isinstance(bed, Karte) else Karte(bed, feuer=feuer, k=k)
+
+
+def gefahr(p, bed):
+    return bed.gefahr(tuple(p)) if isinstance(bed, Karte) else _gefahr_einzeln(p, bed)
 
 
 def _strecke(a, b, schritt=2):
@@ -57,87 +142,48 @@ def weg_gefahr(start, weg, bed):
     return s
 
 
-def sicherer_weg(start, ziel, bed, feuer=(), k=K, schritt=2, rand=None):
+def sicherer_weg(start, ziel, bed, feuer=(), k=K, schritt=None, rand=None):
     """Wegpunkte von start nach ziel mit der kleinsten Summe aus Weglaenge und k * Gefahr; Feuer (x, y, r) ist gesperrt.
-    Gibt [ziel], wenn die gerade Strecke ohne Gefahr und Feuer ist; None ohne Weg im Suchfeld. Das Suchfeld waechst in Stufen
-    (30, 60, 90 Felder um die Strecke - Franz' Bogen schiessen 44 weit), bis ein Weg ohne Gefahr gefunden ist."""
-    if rand is None:
-        bester = None
-        for r_ in (30, 60, 90):
-            w = sicherer_weg(start, ziel, bed, feuer, k, schritt, r_)
-            if w is not None and (bester is None or weg_gefahr(start, w, bed) < weg_gefahr(start, bester, bed)):
-                bester = w
-            if bester is not None and weg_gefahr(start, bester, bed) == 0:
-                break
-        return bester
-
-    def im_feuer(p):
-        return any(schach(p, (x, y)) <= r for x, y, r in feuer)
-    gerade = _strecke(start, ziel)
-    if all(gefahr(p, bed) == 0 and not im_feuer(p) for p in gerade):
-        return [tuple(ziel)]
-    x0, x1 = min(start[0], ziel[0]) - rand, max(start[0], ziel[0]) + rand
-    y0, y1 = min(start[1], ziel[1]) - rand, max(start[1], ziel[1]) + rand
-    nah = [b for b in bed if x0 - b[2] <= b[0] <= x1 + b[2] and y0 - b[2] <= b[1] <= y1 + b[2]]
-    sx, sy = start
-    punkt = lambda q: (sx + q[0] * schritt, sy + q[1] * schritt)
-    # Gefahr einmal je Rasterpunkt vorrechnen (je Schuetze sein Quadrat), statt je Punkt alle Schuetzen durchzugehen
-    gef = {}
-    for x, y, r, w, _ in nah:
-        for i in range(-((sx - (x - r)) // schritt), (x + r - sx) // schritt + 1):
-            for j in range(-((sy - (y - r)) // schritt), (y + r - sy) // schritt + 1):
-                gef[(i, j)] = gef.get((i, j), 0) + w
-    kosten_cache = {}
-
-    def kosten(q):
-        if q not in kosten_cache:
-            kosten_cache[q] = None if im_feuer(punkt(q)) else 1 + k * gef.get(q, 0)
-        return kosten_cache[q]
-    h = lambda q: schach(punkt(q), ziel) / float(schritt)
-    offen, her, g_best, am_ziel = [(h((0, 0)), 0.0, (0, 0))], {(0, 0): None}, {(0, 0): 0.0}, None
-    while offen:
-        _, g, q = heapq.heappop(offen)
-        if g > g_best[q]:
-            continue
-        if schach(punkt(q), ziel) <= schritt:
-            am_ziel = q
-            break
-        for di in (-1, 0, 1):
-            for dj in (-1, 0, 1):
-                r = (q[0] + di, q[1] + dj)
-                p = punkt(r)
-                if r == q or not (x0 <= p[0] <= x1 and y0 <= p[1] <= y1):
-                    continue
-                c = kosten(r)
-                if c is None:
-                    continue
-                if g + c < g_best.get(r, 1e18):
-                    g_best[r], her[r] = g + c, q
-                    heapq.heappush(offen, (g + c + h(r), g + c, r))
-    if am_ziel is None:
+    bed ist eine Liste aus bedrohungen() oder eine fertige Karte (dann gelten deren Feuer und k). Gibt [ziel], wenn die gerade
+    Strecke ohne Gefahr und Sperre ist; None, wenn das Ziel nicht erreichbar ist. (schritt/rand: frueher Raster und Suchfeld
+    des A*, heute ohne Wirkung - die Suche deckt die ganze Karte.)"""
+    karte = _als_karte(bed, feuer, k)
+    start, ziel = tuple(start), tuple(ziel)
+    if all(karte.gefahr(p) == 0 and not karte.gesperrt(p) for p in karte.linie(start, ziel)):
+        return [ziel]
+    an = karte.ankunft(start, ziel)
+    if an is None:
         return None
-    pfad = [am_ziel]
-    while her[pfad[-1]] is not None:
-        pfad.append(her[pfad[-1]])
-    pfad = [punkt(q) for q in reversed(pfad)] + [tuple(ziel)]
-    # glaetten: von jedem Punkt der weiteste, dessen gerade Strecke nicht gefaehrlicher ist als das ersetzte Stueck und
-    # durch kein Feuer fuehrt
+    m, _ = karte.suche(start)
+    pfad = [tuple(int(v) for v in q) for q in m.traceback(an)]
+    if pfad[-1] != ziel and not karte.gesperrt(ziel):
+        pfad.append(ziel)
+    # glaetten: nur Eckpunkte (Richtungswechsel) und jedes dritte Feld kommen als Wegpunkt in Frage; von jedem Punkt der
+    # weiteste, dessen gerade Strecke durch kein gesperrtes Feld fuehrt und nicht gefaehrlicher ist als das ersetzte Stueck -
+    # beides Feld fuer Feld gezaehlt (21.10.: mit "alle 2 Felder" gegen Stuecke von 3 Feldern blieb ein gerader Schraegweg in
+    # 11 Wegpunkte zerlegt)
+    summe = [0]
+    for q in pfad[1:]:
+        summe.append(summe[-1] + karte.gefahr(q))
+    kand = [0] + [i for i in range(1, len(pfad) - 1)
+                  if i % 3 == 0 or (pfad[i][0] - pfad[i - 1][0], pfad[i][1] - pfad[i - 1][1])
+                  != (pfad[i + 1][0] - pfad[i][0], pfad[i + 1][1] - pfad[i][1])] + ([len(pfad) - 1] if len(pfad) > 1 else [])
     weg, i = [], 0
-    while i < len(pfad) - 1:
-        j = len(pfad) - 1
+    while i < len(kand) - 1:
+        j = len(kand) - 1
         while j > i + 1:
-            gerade = _strecke(pfad[i], pfad[j])
-            if not any(im_feuer(p) for p in gerade) and \
-                    sum(gefahr(p, nah) for p in gerade) <= weg_gefahr(pfad[i], pfad[i + 1:j + 1], nah):
+            gerade = karte.linie(pfad[kand[i]], pfad[kand[j]])
+            if not any(karte.gesperrt(p) for p in gerade) and                     sum(karte.gefahr(p) for p in gerade[1:]) <= summe[kand[j]] - summe[kand[i]]:
                 break
             j -= 1
-        weg.append(pfad[j])
+        weg.append(pfad[kand[j]])
         i = j
-    return weg
+    return weg or [ziel]
 
 
 def schuetzen_am_weg(start, weg, bed):
     """Die Schuetzen (art "schuetze"), deren Reichweite den Weg trifft - mit der Zahl der Wegpunkte, die sie treffen."""
+    bed = bed.bed if isinstance(bed, Karte) else bed
     punkte, a = [], tuple(start)
     for b in weg:
         punkte += _strecke(a, tuple(b))[1:]
