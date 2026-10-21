@@ -194,12 +194,15 @@ def main():
     def sturm_befehl(wer):
         """Alle in wer gleichzeitig auf das Ziel des Plans; Frist = Wegfelder bis zum Zugang x 12 Takte + 2 Trefferrunden."""
         nonlocal frist, wirk_alt, t_107, phase
+        # Laufen an die Mauer einzeln (trupp 1 - sonst Formation, Lauf 23:27); Torhaus und Lord als EIN Gruppenbefehl (Daniel 00:52
+        # "die Streitkolben laufen zurueck": die Lua-Schlange arbeitet Einzelbefehle nacheinander ab, bis der letzte von 70 seinen
+        # Befehl hat, vergehen viele Takte - wessen Ziel gerade gefallen war, lief so lange ins Lager zurueck)
         if plan["art"] == "mauer":
             befehl({"angriff": {"einheiten": sorted(wer), "lauf": [plan["zug"][0], plan["zug"][1]], "trupp": 1}}, 0.5)
         elif plan["art"] == "tor":
-            befehl({"angriff": {"einheiten": sorted(wer), "gebaeude": plan["ziel"], "trupp": 1}}, 0.5)
+            befehl({"angriff": {"einheiten": sorted(wer), "gebaeude": plan["ziel"]}}, 0.5)
         else:
-            befehl({"angriff": {"einheiten": sorted(wer), "ziel": lnr, "trupp": 1}}, 0.5)
+            befehl({"angriff": {"einheiten": sorted(wer), "ziel": lnr}}, 0.5)
         w_ = plan["weg"]
         zug_ = tuple(plan["zug"]) if plan["zug"] else tuple(w_[-1])
         frist = t_ + max(0, w_.index(zug_) if zug_ in w_ else len(w_)) * mechanik.TAKTE_JE_FELD + 2 * mk["takte_je_treffer"]
