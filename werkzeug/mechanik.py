@@ -208,8 +208,14 @@ def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner
     weg = [tuple(start)] + weg[::-1]
     tk = {(int(a), int(b)): float(c) for a, b, c in zip(v, z, takt_k)}
     takte = sum(tk.get((idx(*a), idx(*b)), 0.0) for a, b in zip(weg, weg[1:]))
+    # Beschuss-Last des Wegs: Schaden je Takt am Zielfeld x Takte der Kante (Laufen, Hauen, Torhaus) - damit Kandidaten
+    # (Mauerweg, Torhaeuser) mit DEMSELBEN Mass verglichen werden wie die Felder im Weg (Lauf 00:50: Wahl nur nach Zeit)
+    belastung = None
+    if gefahr is not None:
+        gfl = np.asarray(gefahr, float).ravel()
+        belastung = sum(gfl[idx(*b)] * tk.get((idx(*a), idx(*b)), 0.0) for a, b in zip(weg, weg[1:]))
     gef = float(sum(np.asarray(gefahr)[q] for q in weg[1:])) if gefahr is not None else None
-    return {"weg": weg, "mauern": [q for q in weg if wand[q]], "takte": takte, "gefahr": gef}
+    return {"weg": weg, "mauern": [q for q in weg if wand[q]], "takte": takte, "gefahr": gef, "belastung": belastung}
 
 
 def lauf_takte_zu(link, ziel, sperre=None):

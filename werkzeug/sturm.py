@@ -90,12 +90,14 @@ def plane_ziel(start, maenner, mk, lnr_xy):
                 kand.append(("tor", nr, rt, rand))
     if not kand:
         return None
-    art, nr, r, rand = min(kand, key=lambda k: k[2]["takte"])
+    # Daniels Regel "maximale Sicherheit, dann minimaler Widerstand" auch ZWISCHEN den Kandidaten: Beschuss-Last, dann Zeit
+    art, nr, r, rand = min(kand, key=lambda k: (k[2]["belastung"] or 0.0, k[2]["takte"]))
     weg = r["weg"]
-    i_wand = next((i for i, q in enumerate(weg) if q in set(map(tuple, r["mauern"]))), None)
-    i_tor = next((i for i, q in enumerate(weg) if rand is not None and rand[q]), None)
+    # ab dem ZWEITEN Wegfeld suchen (Lauf 00:49: der Start lag selbst auf einem Mauerfeld -> Zugang = weg[-1] = der Lord)
+    i_wand = next((i for i, q in enumerate(weg) if i >= 1 and q in set(map(tuple, r["mauern"]))), None)
+    i_tor = next((i for i, q in enumerate(weg) if i >= 1 and rand is not None and rand[q] and not rand[weg[0]]), None)
     gemein = {"weg": weg, "takte": r["takte"], "gefahr": gf, "nah": nah, "e": e,
-              "kandidaten": [(k[0], k[1], k[2]["takte"]) for k in kand]}     # EINE Stelle fuer alle Felder (Absturz 00:46: "nah" fehlte)
+              "kandidaten": [(k[0], k[1], round(k[2]["belastung"] or 0), k[2]["takte"]) for k in kand]}     # EINE Stelle fuer alle Felder (Absturz 00:46: "nah" fehlte)
     if i_tor is not None and (i_wand is None or i_tor < i_wand):
         return dict(gemein, art="tor", ziel=nr, zug=weg[i_tor - 1])
     if i_wand is not None:
@@ -345,7 +347,10 @@ def main():
             else:
                 start = min(((jetzt[n]["x"], jetzt[n]["y"]) for n in stuermer),
                             key=lambda q: abstand(q, kaserne_xy) if kaserne_xy else 0)   # Neue kommen aus der Kaserne
+            # (Lauf 00:49: waehrend der 1-3 s Planung lief das Spiel weiter, die Maenner ohne Befehl liefen zurueck): Spiel anhalten
+            befehl({"pause": True}, 0.3)
             plan = plane_ziel(start, len(stuermer), mk, lord_xy)
+            befehl({"pause": False}, 0.3)
             ballisten_pruefen = True
             if plan is None:
                 melde((t_, "KEIN WEG zum Lord von %s" % (start,)))
