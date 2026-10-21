@@ -78,6 +78,7 @@ local tickLog      = nil   -- 17.10. Testing: Feldprotokoll je Tick (tickProtoko
 -- Festhalten (04.10.2026): nr -> { x, y, gesetzt, letzter } - Ziel gegen KI/Arbeit/Lord-Logik halten
 local festhalten   = {}
 local angriffReserve = nil   -- Gruppen je Takt reserviert (modul-lokal: UCP verbietet globale Variablen - 04.10.)
+local spielende = { bild = 0 }  -- B-154: Spielende-Melder (letzter Stand, letzter eigener Ende-Befehl)
 local wegketten = {}         -- B-150: Wegpunkte je Truppe um ein Feuer herum ("danach"), wegketteTick schickt weiter
 local angriffSchlange = {}   -- Angriffsbefehle, die nacheinander abgesetzt werden (je einer, bis seine Gruppe steht)
 local angriffWarten = nil    -- { gruppe, einheiten, tick } des zuletzt abgesetzten Angriffs
@@ -1009,6 +1010,10 @@ end
 
 local function einzelbefehl(cmd)
   if type(cmd) ~= "table" then return false end
+  -- B-154 Spielende-Melder: eigene Befehle, die eine Partie beenden oder verlassen, merken - damit ein Ende als BEWUSST gilt
+  for _, k in ipairs({ "menue", "laden", "beenden", "eigenesGefecht", "hauptmenue" }) do
+    if cmd[k] ~= nil then spielende.befehl = { art = k, wert = tostring(cmd[k]), bild = spielende.bild } end
+  end
   local spieler = cmd.player
 
   -- { "absender": "an" | "aus" | "status" }  (19.10.2026, B-94) Absender je Befehl ein-/ausbauen, siehe oben bei SLOT_ICH
@@ -4248,6 +4253,7 @@ local function everyTick()
   pcall(fensterWachtTick)
   pcall(ketteTick)
   pcall(regelwachtTick)
+  pcall(spielendeWacht, "Takt")
 end
 
 log(INFO, "logik.lua (31.08.2026): + Bauwacht, + Durchreichen an init.lua.")
@@ -4267,7 +4273,87 @@ end
 -- Im Hauptmenue laeuft processGameTick nicht, also auch everyTick nicht.
 -- Kette und Fenster-Wacht muessen dort trotzdem arbeiten - beide fassen nur
 -- Menue- und Fensterzustand an, nichts aus einem laufenden Gefecht.
+-- B-154 Spielende-Melder (Daniel 21.10. 20:40: "du hast offensichtlich noch keinen Melder, wenn das Match aus ist - sofort
+-- erkennen, warum es endet, und ob es bewusst war oder nicht"). Laeuft in jedem Spieltakt UND im Menue-Takt (auf dem
+-- Endbildschirm stehen die Spieltakte). Meldet, sobald gameOver 0 -> 1 kippt, der Endbildschirm (Ansicht 30/58) kommt oder
+-- die Partie (Ansicht 14) verlassen wird: Grund aus dem Speicher - Lords je Spieler (lebt/tot), playerIsAlive (0x0117EF40,
+-- checkSkirmishGameDefeat), Mensch-Eintrag unseres Platzes (0x0191DE10, -1 = leer -> die Niederlage-Pruefung beendet die
+-- Partie), Endbildschirm-Uhr gameOverTime (0x0117C888) und der letzte eigene Ende-Befehl (hoechstens 600 Aufrufe her).
+-- BEWUSST = eigener Befehl oder Sieg; UNBEWUSST = Niederlage, leerer Spielerplatz oder unbekannt. Log + spielende.txt.
+local function spielendeWacht(quelle)
+  local s = spielende
+  s.bild = s.bild + 1
+  local over = core.readInteger(0x0117D500) or -1
+  local ansicht = core.readInteger(0x01FE7D1C) or -1
+  if s.over == nil then s.over, s.ansicht = over, ansicht; return end
+  local kipp = s.over == 0 and over == 1
+  local endbild = (ansicht == 29 or ansicht == 30 or ansicht == 58) and s.ansicht ~= ansicht   -- 29 Sieg (gemessen 20:49), 30 verloren
+  local inPartie = function(a) return a == 14 or a == 16 end        -- 16 = Menue in der Partie (erstes_spiel: (14, 16))
+  local raus = inPartie(s.ansicht) and not inPartie(ansicht) and not endbild
+  local vorher_o, vorher_a = s.over, s.ansicht
+  s.over, s.ansicht = over, ansicht
+  if not (kipp or endbild or raus) then return end
+  local ich = core.readInteger(SLOT_ICH) or -1
+  local t = core.readInteger(0x0117CADC) or -1
+  local lords, meiner, feinde, feindeTot = {}, nil, 0, 0
+  local n = core.readInteger(E_MAX) or 0
+  if n < 1 or n > 2500 then n = 2500 end
+  for i = 1, n do
+    local b = EINHEITEN + i * E_SCHRITT
+    if (core.readSmallInteger(b + E_ZUSTAND) or 0) ~= 0 and (core.readSmallInteger(b + E_TYP) or -1) == 55 then
+      local sp = core.readSmallInteger(b + E_BESITZER) or -1
+      local hp = core.readInteger(b + E_LEBEN) or 0
+      lords[#lords + 1] = string.format("%d:%d", sp, hp)
+      if sp == ich then meiner = hp elseif sp >= 1 then feinde = feinde + 1; if hp <= 0 then feindeTot = feindeTot + 1 end end
+    end
+  end
+  local lebt = {}
+  for sp = 1, 8 do lebt[#lebt + 1] = tostring(core.readSmallInteger(0x0117EF40 + sp * 2) or -1) end
+  local mensch = (ich >= 1 and ich <= 8) and (core.readInteger(0x0191DE10 + ich * 4) or -9) or -9
+  local uhr = core.readInteger(0x0117C888) or 0
+  local b = s.befehl
+  local eigener = b ~= nil and s.bild - b.bild <= 600
+  -- (Augen-Test 20:49: toeteAlle entfernt den Lord ganz - "kein Lord gefunden"/"unbekannt". Massgeblich ist, was das Spiel
+  -- selbst entschieden hat: playerIsAlive aus checkSkirmishGameDefeat, darum zuerst das)
+  local lebtIch = (ich >= 1 and ich <= 8) and tonumber(lebt[ich]) or -1
+  local andere = {}
+  for sp = 1, 8 do if sp ~= ich and tonumber(lebt[sp]) == 1 then andere[#andere + 1] = tostring(sp) end end
+  local art, grund
+  if raus and eigener then
+    art, grund = "BEWUSST", string.format("eigener Befehl %s=%s", b.art, b.wert)
+  elseif over == 1 and lebtIch == 1 and #andere == 0 then
+    art, grund = "BEWUSST", "SIEG - nur wir leben noch (playerIsAlive), alle feindlichen Lords tot"
+  elseif over == 1 and lebtIch == 0 and #andere > 0 then
+    art, grund = "UNBEWUSST", "NIEDERLAGE - unser Lord ist tot, es leben noch Spieler " .. table.concat(andere, ",")
+  elseif meiner ~= nil and meiner <= 0 then
+    art, grund = "UNBEWUSST", "unser Lord ist tot (Niederlage)"
+  elseif meiner == nil and ich >= 1 then
+    art, grund = "UNBEWUSST", "kein Lord fuer unseren Platz gefunden (Niederlage?)"
+  elseif feinde > 0 and feindeTot == feinde then
+    art, grund = "BEWUSST", "alle feindlichen Lords tot (Sieg)"
+  elseif mensch == -1 then
+    art, grund = "UNBEWUSST", "Spielerplatz leer (Mensch-Eintrag -1) - die Niederlage-Pruefung beendet die Partie (Werkzeugfehler beim Laden?)"
+  elseif eigener then
+    art, grund = "BEWUSST", string.format("eigener Befehl %s=%s", b.art, b.wert)
+  elseif endbild and vorher_o == 0 and over == 0 and uhr ~= 0 then
+    art, grund = "UNBEWUSST", "Endbildschirm aus einer frueheren Spiel-vorbei-Meldung (gameOverTime gesetzt, gameOver zurueckgesetzt)"
+  else
+    art, grund = "UNBEWUSST", "unbekannt"
+  end
+  local stufe = kipp and "Spiel vorbei" or (endbild and "Endbildschirm" or "Partie verlassen")
+  local zeile = string.format("SPIELENDE %s Takt %d (%s, %s): %s | gameOver %d->%d, Ansicht %d->%d, Platz %d, Mensch %d, " ..
+    "gameOverTime %d, lebt [%s], Lords [%s]", art, t, stufe, quelle, grund, vorher_o, over, vorher_a, ansicht, ich, mensch, uhr,
+    table.concat(lebt, ","), table.concat(lords, " "))
+  log(WARNING, zeile)
+  local f = io.open("ucp/villagestudio/spielende.txt", "a")
+  local okd, jetzt = pcall(function() return os.date("%Y-%m-%d %H:%M:%S") end)
+  if not okd then jetzt = "?" end
+  if f then f:write(jetzt .. " " .. zeile .. "\n"); f:close() end
+  if art == "BEWUSST" and b ~= nil then s.befehl = nil end
+end
+
 local function menuTick()
+  pcall(spielendeWacht, "Menue")
   pcall(fensterWachtTick)
   pcall(ketteTick)
 end

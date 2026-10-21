@@ -55,9 +55,21 @@ def gebiet(x, y):
 
 
 def laufen(takte, tempo=100):
+    """takte Spieltakte laufen lassen. B-154 (Daniel 20:40): endet die Partie dabei (Endbildschirm, Menue, gameOver) oder
+    steht die Uhr 30 s still, sofort abbrechen - mit dem Grund des Spielende-Melders (vorher wartete das hier ewig)."""
     t0 = shc.zustand()["tick"]
     befehl({"pause": False, "tempo": tempo}, 0.2)
-    while shc.zustand()["tick"] < t0 + takte:
+    letzt, seit = t0, time.time()
+    while True:
+        z = shc.zustand()
+        if z.get("ansicht") not in (shc.IN_PARTIE, 16) or z.get("gameover") != 0:
+            raise shc.Fehler("SPIELENDE waehrend des Versuchs: %s | Melder: %s" % (z, shc.letztes_spielende()))
+        if z["tick"] >= t0 + takte:
+            break
+        if z["tick"] != letzt:
+            letzt, seit = z["tick"], time.time()
+        elif time.time() - seit > 30:
+            raise shc.Fehler("Spieluhr steht seit 30 s bei Takt %d: %s | Melder: %s" % (letzt, z, shc.letztes_spielende()))
         time.sleep(0.2)
     befehl({"pause": True}, 0.3)
     return shc.zustand()["tick"]

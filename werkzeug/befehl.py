@@ -52,6 +52,16 @@ SENDE  = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".sende" + _EN
 _LETZTE = 0
 
 
+def letztes_spielende(n=1):
+    """B-154: die letzten n Zeilen des Spielende-Melders (logik.lua schreibt ucp/villagestudio/spielende.txt: BEWUSST/UNBEWUSST,
+    Grund, gameOver, Ansicht, Lords) - [] ohne Datei."""
+    try:
+        with open(os.path.join(SPIEL, "ucp", "villagestudio", "spielende.txt"), encoding="utf-8", errors="replace") as f:
+            return [z.rstrip("\n") for z in f.readlines()[-n:]]
+    except OSError:
+        return []
+
+
 def neue_id():
     """Befehlsnummer. 18.10. (1v1-Lauf 1018a): beide Lenker zaehlten im selben Merker ohne Sperre hoch - gleiche Nummern,
     das Modul hielt den zweiten Befehl fuer "schon erledigt" und antwortete nicht (Spieler 1: Spieltakt None, Absturz).

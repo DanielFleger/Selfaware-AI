@@ -2493,7 +2493,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     if getoetet[SP] > 0:     # 19.10. (1v1): unser Lord = Spieler SP (vorher fest Spieler 1)
                         ende_grund = ("niederlage", "unser Lord getoetet durch Spieler %d" % getoetet[SP])
                         schreib("NIEDERLAGE bei Tick %d: unser Lord getoetet durch Spieler %d" % (st["t"], getoetet[SP])); break
-                schreib("ABBRUCH - Testbedingung weg: %s" % {k: st.get(k) for k in ("ansicht", "over", "pause", "t")}); break
+                from befehl import letztes_spielende
+                schreib("ABBRUCH - Testbedingung weg: %s | SPIELENDE-MELDER: %s" % (
+                    {k: st.get(k) for k in ("ansicht", "over", "pause", "t")}, letztes_spielende())); break
             if letzter_tick is not None and st["t"] - letzter_tick > 400:
                 schreib("WARNUNG: Runde dauerte %d Ticks (%d -> %d) - Waechter war so lange blind; Zeit der Runde davor: %s" % (
                     st["t"] - letzter_tick, letzter_tick, st["t"], ", ".join("%s %.2f s" % kv for kv in sorted(diese_runde.items(), key=lambda kv: -kv[1]))))

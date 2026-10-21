@@ -36,6 +36,7 @@ sys.path.insert(0, HIER)
 
 ANSICHT, GAMEOVER, PAUSE, TICK = 0x01FE7D1C, 0x0117D500, 0x01FEA054, 0x0117CADC
 PLATZ, MENSCH = 0x01A275DC, 0x0191DE10
+GAMEOVER_ZEIT = 0x0117C888       # gameOverTime: Rechneruhr beim "Spiel vorbei", Endbildschirm 9-10 s spaeter (M4.04)
 IN_PARTIE, HAUPTMENUE, ENDBILD = 14, 41, 30
 STANDARD_STAND = "B140 Burg Franz T40126"
 # Alles, was kaempft oder schiesst (aus dem Typen-Verzeichnis des Spiels, UnitType, 21.10.2026): Truppen 22-28, Moench 37,
@@ -143,18 +144,28 @@ def laden(name=STANDARD_STAND):
     z = zustand()
     zurueck = ""
     if z.get("ansicht") == IN_PARTIE and z.get("gameover") == 1:
+        # B-154 (21.10. 20:39, Melder-Anlass): gameOver allein zuruecksetzen reichte nicht - das Spiel merkt sich beim
+        # "Spiel vorbei" die Rechneruhr in gameOverTime und zeigt 9-10 s spaeter den Endbildschirm (Meilensteine M4.04).
+        # Darum beide zuruecksetzen.
         befehl({"poke": GAMEOVER, "wert": 0}, 0.5)
-        zurueck = ", gameOver nach dem Laden 1 -> zurueckgesetzt"
+        befehl({"poke": GAMEOVER_ZEIT, "wert": 0}, 0.5)
+        zurueck = ", gameOver nach dem Laden 1 -> zurueckgesetzt (mit Endbildschirm-Uhr)"
     partie_sicher()
-    # Gegenprobe im Lauf: 200 Takte laufen lassen - die Niederlage-Pruefung darf die Partie dabei nicht beenden
+    # Gegenprobe im Lauf: mindestens 200 Takte UND 15 s Rechnerzeit (der Endbildschirm kommt 9-10 s nach "Spiel vorbei" -
+    # die alte Probe war nach ~5 s fertig und damit hohl) - Ansicht und gameOver muessen die ganze Zeit stimmen
     befehl({"pause": False, "tempo": 40}, 0.3)
-    t0 = zustand()["tick"]
-    ende = time.time() + 60
-    while zustand()["tick"] < t0 + 200 and time.time() < ende:
-        time.sleep(0.2)
+    t0, beginn = zustand()["tick"], time.time()
+    while time.time() < beginn + 60:
+        z = zustand()
+        if z.get("ansicht") != IN_PARTIE or z.get("gameover") != 0:
+            raise Fehler("Partie endete im Probelauf nach dem Laden: %s | Melder: %s" % (z, letztes_spielende()))
+        if z["tick"] >= t0 + 200 and time.time() >= beginn + 15:
+            break
+        time.sleep(0.3)
     befehl({"pause": True}, 0.3)
     z = partie_sicher()
-    return "'%s' geladen bei Tick %d%s, nach 200 Takten Probelauf: %s (Tick %d)" % (name, tick, zurueck, z["text"], z["tick"])
+    return "'%s' geladen bei Tick %d%s, Probelauf %d Takte / %.0f s: %s (Tick %d)" % (
+        name, tick, zurueck, z["tick"] - t0, time.time() - beginn, z["text"], z["tick"])
 
 
 def speichern(name):
@@ -303,9 +314,20 @@ def zustand_text():
     return "%s | %s" % (z["text"], z)
 
 
+def letztes_spielende(n=1):
+    from befehl import letztes_spielende as lese
+    return lese(n)
+
+
+def spielende(n="5"):
+    """B-154: die letzten Meldungen des Spielende-Melders (logik.lua) - warum endete die Partie, bewusst oder nicht?"""
+    z = letztes_spielende(int(n))
+    return "\n".join(z) if z else "noch kein Spielende gemeldet"
+
+
 BEFEHLE = {"zustand": zustand_text, "start": start, "menue": menue,
            "gefecht": gefecht, "speichern": speichern, "laden": laden, "sandkasten": sandkasten, "editor": editor,
-           "setze": setze}
+           "setze": setze, "spielende": spielende}
 
 
 def main(argv):
