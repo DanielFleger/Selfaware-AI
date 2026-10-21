@@ -667,12 +667,83 @@ def main():
     #    (Ankunft ~312 Takte, Feuer aus ~1.100) -> nein; dieselbe Plantage 60 Felder seitlich -> ja; Gegenprobe ohne Heerweg -> ja.
     import raids as RA
     g32 = {"typ": 32, "besitzer": 2, "x": 201, "y": 99, "leben": 100}
-    a32 = RA.brennt_noch_bei_ankunft(g32, ((201, 125), (201, 70), 12000), 12000)
-    b32 = RA.brennt_noch_bei_ankunft(dict(g32, x=261), ((201, 125), (201, 70), 12000), 12000)
-    c32 = RA.brennt_noch_bei_ankunft(g32, None, 12000)
-    weit32 = RA.brennt_noch_bei_ankunft(dict(g32, leben=10), ((201, 400), (201, 70), 12000), 12000)
+    a32 = RA.brennt_noch_bei_ankunft(g32, [((201, 125), (201, 70))])
+    b32 = RA.brennt_noch_bei_ankunft(dict(g32, x=261), [((201, 125), (201, 70))])
+    c32 = RA.brennt_noch_bei_ankunft(g32, [])
+    weit32 = RA.brennt_noch_bei_ankunft(dict(g32, leben=10), [((201, 400), (201, 70))])
     pruefe(32, "am Weg: brennt noch %s | seitlich: %s | ohne Heerweg: %s | weit weg + fast abgebrannt: %s" % (a32, b32, c32, weit32),
            a32 and not b32 and not c32 and not weit32)
+    # 33 (B-150): ein Ziel im Feuer wird auf den naechsten Punkt verschoben, der in KEINEM Feuer liegt. Zwei Feuer (100,100)
+    #    und (100,106), Ziel (100,102) dazwischen, Start (100,80): das alte Verschieben schob es aus dem ersten Feuer mitten
+    #    ins zweite und von dort zurueck ins erste (100,100). Der neue Punkt liegt hoechstens 8 Felder vom Ziel (der naechste
+    #    freie ist 5 weg) - nicht etwa am Start (Sabotage 21.10.: ohne Verschieben blieb man am Start stehen, und die
+    #    Pruefung war trotzdem gruen). Gegenprobe: ein freies Ziel bleibt, wie es ist.
+    orte33 = [(100, 100, 4), (100, 106, 4)]
+    w33 = F.feuerfreier_weg((100, 80), (100, 102), orte33)
+    g33 = F.feuerfreier_weg((100, 80), (100, 120), orte33)
+    pruefe(33, "Ziel zwischen zwei Feuern -> %s (im Feuer: %s) | freies Ziel (100,120) -> %s" % (
+        w33, F.im_feuer(w33[-1], orte33), g33), not F.im_feuer(w33[-1], orte33) and F.schach(w33[-1], (100, 102)) <= 8
+        and g33[-1] == (100, 120))
+    # 34 (B-150, Pruefstand 21.10. 19:50: Sklave 208 zuendete Gebaeude 291 bei (130,155) an, waehrend das Heer zum Vorposten
+    #    (128,151) befohlen war - die Linie Heer -> Lord (151,218)->(173,114) lag 30 Felder daneben): mit den Heerwegen des
+    #    Feldzugs (wer steht, wohin er befohlen ist) gilt 291 als "brennt noch bei Ankunft"; Gegenprobe nur mit der Linie zum
+    #    Lord -> nicht. Dazu im Brandtrupp: ein schon vergebenes Ziel, an dem jetzt das Heer steht, wird fallen gelassen und
+    #    der Sklave angehalten.
+    g34 = {"typ": 5, "besitzer": 2, "x": 130, "y": 155, "leben": 300}
+    f34 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+    L34 = {500: einheit(55, 2, 173, 114, 30000)}
+    for i in range(10):
+        L34[10 + i] = einheit(26, 1, 132 + i % 3, 153 + i // 5)
+    f34._befohlen = {10 + i: ("vorposten", (128, 151)) for i in range(10)}
+    f34.heerweg = ((151, 218), (173, 114), 45000)
+    wege34 = f34._heerwege(L34)
+    a34 = RA.brennt_noch_bei_ankunft(g34, wege34)
+    b34 = RA.brennt_noch_bei_ankunft(g34, [((151, 218), (173, 114))])
+    bt34 = RA.Brandtrupp(1, lambda nr: 0)
+    L34[800] = einheit(71, 1, 100, 200)
+    bt34.ziel, bt34.befohlen, bt34.heerwege = {800: 291}, {800: 0}, wege34
+    bf34 = Befehle()
+    m34 = bt34.schritt(L34, {291: g34}, bf34)
+    halt34 = [x for x in bf34.liste if x["angriff"].get("einheiten") == [800] and "lauf" in x["angriff"]]
+    pruefe(34, "Heerwege %d: brennt noch bei Ankunft %s | nur Linie zum Lord: %s | Brandtrupp: Ziel %s, angehalten %s, %s" % (
+        len(wege34), a34, b34, bt34.ziel.get(800), bool(halt34), [m[:45] for m in m34]),
+        a34 and not b34 and 800 not in bt34.ziel and halt34 and any("laesst" in m for m in m34))
+    # 35 (B-150, Pruefstand: Vorposten (128,151) lag 4 Felder neben dem brennenden Gebaeude 298): brennt es am Punkt, den
+    #    die Vorposten-Wahl ohne Feuer nimmt, waehlt sie einen anderen, der nicht im Feuer liegt.
+    f35 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+    f35.wegtest = lambda nr, punkte: [True] * len(punkte)
+    L35 = {10: einheit(26, 1, 140, 170), 500: einheit(55, 2, 173, 114, 30000)}
+    ohne35 = f35._vorposten(L35, (150, 129), [10], (140, 170))
+    f35._orte_f = [(ohne35[0], ohne35[1], 4)] if ohne35 else []
+    mit35 = f35._vorposten(L35, (150, 129), [10], (140, 170))
+    pruefe(35, "Vorposten ohne Feuer %s | dort brennt es -> %s (im Feuer: %s)" % (
+        ohne35, mit35, mit35 is not None and F.im_feuer(mit35, f35._orte_f)),
+        ohne35 and mit35 and not F.im_feuer(mit35, f35._orte_f))
+    # 36 (B-150, Daniel 19:45 "darauf muss man reagieren koennen"): Gebaeude 291 brennt bei (130,155). Streitkolben 10 steht
+    #    1 Feld daneben, 11 weit weg, Bogen 12 weit weg. Runde 1: 10 wird an einen freien Punkt geholt und steckt in keinem
+    #    anderen Befehl dieser Runde; der Angriff von 10, 11, 12 auf Turm 241 bei (133,152) (im Feuer) wird fuer 11 zu
+    #    "daneben warten", der Bogen 12 behaelt den Angriff. Runde 2: das Feuer ist aus (egal warum) -> niemand wird geholt,
+    #    derselbe Angriffsbefehl geht unveraendert durch.
+    f36 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+    L36 = {10: einheit(26, 1, 130, 154), 11: einheit(26, 1, 160, 160), 12: einheit(22, 1, 165, 160),
+           500: einheit(55, 2, 173, 114, 30000)}
+    G36 = {291: {"typ": 5, "besitzer": 2, "x": 130, "y": 155, "leben": 300, "feuer": 40},
+           241: {"typ": 76, "besitzer": 2, "x": 133, "y": 152, "leben": 2000}}
+    an36 = {"angriff": {"einheiten": [10, 11, 12], "gebaeude": 241}}
+    b36, m36 = Befehle(), []
+    f36._feuer_lenken({"t": 12000, "bodenfeuer": []}, L36, G36, b36, m36)(an36, 1.0, bis="ANGRIFF")
+    orte36 = F.feuerorte(G36, [])
+    raus36 = [x["angriff"]["lauf"] for x in b36.liste if x["angriff"]["einheiten"] == [10] and "lauf" in x["angriff"]]
+    warte36 = [x["angriff"]["lauf"] for x in b36.liste if x["angriff"]["einheiten"] == [11] and "lauf" in x["angriff"]]
+    schuss36 = [x for x in b36.liste if x["angriff"]["einheiten"] == [12] and x["angriff"].get("gebaeude") == 241]
+    mit10 = [x for x in b36.liste if 10 in x["angriff"]["einheiten"] and "lauf" not in x["angriff"]]
+    G36[291]["feuer"] = 0
+    b36b = Befehle()
+    f36._feuer_lenken({"t": 12100, "bodenfeuer": []}, L36, G36, b36b, [])(an36, 1.0, bis="ANGRIFF")
+    pruefe(36, "Feuer: raus %s, warten %s, Bogen schiesst %s, 10 sonst %d Befehle | Feuer aus: %s" % (
+        raus36, warte36, bool(schuss36), len(mit10), b36b.liste),
+        raus36 and not F.im_feuer(tuple(raus36[0]), orte36) and warte36
+        and not F.im_feuer(tuple(warte36[0]), orte36, rand=2) and schuss36 and not mit10 and b36b.liste == [an36])
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

@@ -104,18 +104,15 @@ NACHGLUT = 600              # Bodenfeuer nach dem Abbrennen (L179: Boden brannte
 HEER_TAKTE_JE_FELD = 12     # L80 (Sklave); Streitkolben gleich angenommen - ungemessen
 
 
-def brennt_noch_bei_ankunft(g, heerweg, t):
-    """Schaetzung: brennt Gebaeude g (angezuendet jetzt, Takt t), wenn das Heer auf heerweg dort ankommt?"""
+def brennt_noch_bei_ankunft(g, heerwege):
+    """Schaetzung: brennt Gebaeude g (angezuendet jetzt), wenn das eigene Heer dort ankommt? heerwege: [(von, nach)] aus
+    Feldzug._heerwege - wo das Heer steht (von == nach, Ankunft sofort) und wohin es befohlen ist."""
     import feldzug as FZ
-    if not heerweg:
-        return False
-    mitte, ziel = heerweg[0], heerweg[1]
+    p = (g["x"], g["y"])
     r = FZ.FEUER_FELD_R if g.get("typ") in FZ.FELD_TYPEN else FZ.FEUER_GEBAEUDE_R
-    if FZ._abstand_strecke((g["x"], g["y"]), mitte, ziel) > r:
-        return False                                          # liegt nicht am Weg
-    ankunft = schach(mitte, (g["x"], g["y"])) * HEER_TAKTE_JE_FELD
     aus_nach = max(g.get("leben", 0), 1) * TAKTE_JE_LEBEN + NACHGLUT
-    return aus_nach > ankunft
+    return any(FZ._abstand_strecke(p, von, nach) <= r and schach(von, p) * HEER_TAKTE_JE_FELD < aus_nach
+               for von, nach in heerwege or ())
 
 
 class Brandtrupp:
@@ -128,8 +125,7 @@ class Brandtrupp:
         self.angezuendet = 0
         self.runde = 0
         self.schutz = []            # B-129: Orte der Deckungs-Schuetzen, setzt der Lenker je Runde
-        self.heerweg = None         # B-150: (Mitte, Lord, Takt) des eigenen Heeres, setzt der Lenker je Runde
-        self.t = 0
+        self.heerwege = []          # B-150: [(von, nach)] des eigenen Heeres (Feldzug._heerwege), setzt der Lenker je Runde
 
     def einheiten(self, L):
         return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] == SKLAVE and e.get("leben", 1) > 0}
@@ -142,7 +138,7 @@ class Brandtrupp:
             p = (g["x"], g["y"])
             if gefaehrlich(p, L, G, self.sp, self.schutz):
                 continue
-            if brennt_noch_bei_ankunft(g, self.heerweg, self.t):
+            if brennt_noch_bei_ankunft(g, self.heerwege):
                 continue                                      # B-150: wuerde auf dem eigenen Heerweg noch brennen
             kand.append((WERT[g["typ"]] / float(max(schach(ort, p), 1)), n))
         return [n for _, n in sorted(kand, reverse=True)]
@@ -165,6 +161,17 @@ class Brandtrupp:
                     self.ziel.pop(s)
                     aus.append("BRANDTRUPP: Sklave %d hat Gebaeude %d (Typ %d) angezuendet (Feuer %d) - weiter" % (
                         s, nr, G[nr]["typ"], f))
+        # B-150 (Pruefstand 21.10.: Sklave 208 nahm Gebaeude 291 bei Takt 45.079 ins Ziel, 4 Felder neben dem Vorposten, zu
+        # dem das Heer befohlen war - das Ziel wurde nur beim Vergeben geprueft): ein noch nicht brennendes Ziel wird jede Runde
+        # gegen die Heerwege geprueft; liegt es jetzt am Heer, wird es fallen gelassen - der Sklave bekommt ein anderes oder
+        # bleibt stehen
+        halt = set()
+        for s, nr in list(self.ziel.items()):
+            if nr not in self.brennt and brennt_noch_bei_ankunft(G[nr], self.heerwege):
+                self.ziel.pop(s)
+                self.befohlen[s] = -99
+                halt.add(s)
+                aus.append("BRANDTRUPP: Sklave %d laesst Gebaeude %d - es liegt jetzt am eigenen Heer" % (s, nr))
         belegt = set(self.ziel.values())
         for s in sorted(meine):
             if s in self.ziel and self.runde - self.befohlen.get(s, -99) < NEU_ALLE:
@@ -173,6 +180,8 @@ class Brandtrupp:
             if s not in self.ziel:
                 z = self._ziele(L, G, (e["x"], e["y"]), belegt)
                 if not z:
+                    if s in halt:
+                        befehl({"angriff": {"einheiten": [s], "lauf": [e["x"], e["y"]]}}, 1.0, bis="ANGRIFF")
                     continue
                 self.ziel[s] = z[0]
                 belegt.add(z[0])

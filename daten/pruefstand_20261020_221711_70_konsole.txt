@@ -1,0 +1,23 @@
+CODE-KENNUNG 5a337a14 (49 Dateien: ablaufanalyse.py 044bf9, assassinen.py 830db4, aufbau_planer.py e47d65, auftragsbuch.py 0c17ed, bauen.py 653eba, bedrohung.py d0833f, befehl.py 4935c7, bierkette.py 619398, bilanz.py 33d335, brotbau.py 9c91ec, endspurt.py 75ad57, eroeffnung.py 4e4c12, erstes_spiel.py f7e95f, ertrag_startwerte_M19.json c8d390, ertragsplaner.py 0fc1d5, fallenwache.py b3db6e, farmen_mischen.py 39fea3, feldzug.py 4bc48c, gefahrenzone.py 944899, gefecht.py 0204aa, gegner_pruefen.py ffc108, haushalt.py 989720, karten_holen.py d4c82e, kausal.py edf278, kennung.py c1d186, kornring.py 643cca, laden.py f8c499, lageprotokoll.py 613569, logik.lua 3c5470, lordschutz.py 99ed39, lordwache.py 250c1c, nahrungsmodell.py 462245, nahrungswahl.py d2c1d2, parteien.py a69b08, partie_vergleich.py bf2d06, partner.py fa1287, raids.py 272ca9, schussfeld.py b61ca8, serie.py 665cfa, sicht.py ab4e56, speichern.py 00a42e, steuerkarte.py 57bd5a, stillstand.py e33c6a, uebersicht.py 03d1b9, waechter.py d53b06, wegkarte.py 29ee1f, wirtschaft.py 8d244e, zielwaechter.py 63a435, zuweisung.py d2a1e9)
+START-BEFEHL Instanz 5: python erstes_spiel.py leere_ki=nein experiment=ja regel50=nein tempo=40 bis_tick=900000 ziel_tick=offen streitkolben=30 weg=feldzug produktion=ja bier=ja abriss=nein assassinen=20 aufloesen=ende b_versatz=600 bevoelkerung_ziel=90 einzelkauf=nein entscheider=kausal gute_dinge=0 haushalt_rand=650 holz_kaufen=ja holz_spam=20 holzfaeller_je_baum=4 holzfaeller_max=30 holzfaeller_vorab=4 huetten_voraus=nein je_arbeiter=ja joch_nach_stein=ja kasse=nein kasse_grenze=0 kasse_stufe=11 nahrung_ausbau=nein notwerbung=ja penner=20 rationen=doppelt schub=nein stein_max=nein stein_parallel=ja steinbruch_zuerst=nein steuer_ende=nein steuer_runter=90 umzug=frueh v14=nein vollbeschaeftigung=ja wachstum_boden=9500 waechter=ja stopp_tote=0 tempo=300 minuten=40 bis_tick=100000 gegner=1 gegner_ki=3 "karte=Liga_Grumpy Neighbors" plaetze=0,2 stellung=nein "start=B140 Burg Franz T40126" angriff_ab=70
+NAHRUNGSWAHL M19_pl0-2: 0 Jaeger + 0 Brotkette(n) + 11 Apfelplantagen, Kornspeicher an den Aepfeln | {"plaetze_eigene_seite": 28, "herden": [[[113, 204], 12], [[87, 284], 11], [[73, 236], 9], [[207, 210], 8]], "jaeger_moeglich": 6, "ration": "doppelt", "bev_ziel": 90, "rehe_gezaehlt": true, "ration_frueh": "doppelt", "bedarf_frueh_1000": 30.4, "bedarf_spaet_1000": 35.1, "entscheidung": "0 Jaeger + 0 Brotkette(n) + 11 Apfelplantagen, Kornspeicher an den Aepfeln", "kornspeicher_zum_bergfried": 59, "kornspeicher_zum_lager": 40}
+Traceback (most recent call last):
+  File "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI\werkzeug\erstes_spiel.py", line 3824, in <module>
+    main()
+  File "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI\werkzeug\erstes_spiel.py", line 3779, in main
+    print("Tick", lade_stand(arg["start"], mit_bild=False))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI\werkzeug\laden.py", line 74, in lade_stand
+    namen = liste()
+            ^^^^^^^
+  File "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI\werkzeug\laden.py", line 60, in liste
+    roh = b"".join(w.to_bytes(4, "little") for w in peek(NAMEN + k * NAMENSLAENGE, 10))
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI\werkzeug\laden.py", line 44, in peek
+    for z in sende({"player": 1, "peek": adr, "worte": n}, 0.6, bis="PEEK 0x%08X" % adr):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI\werkzeug\befehl.py", line 158, in sende
+    _kanal_frei()
+  File "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI\werkzeug\befehl.py", line 111, in _kanal_frei
+    raise RuntimeError("KANAL BELEGT: ein Lauf (Prozess %s) benutzt den Befehlskanal von Instanz %d gerade (vor %.0f s gemeldet)" % (pid, INSTANZ, alter))
+RuntimeError: KANAL BELEGT: ein Lauf (Prozess 4968) benutzt den Befehlskanal von Instanz 5 gerade (vor 0 s gemeldet)
