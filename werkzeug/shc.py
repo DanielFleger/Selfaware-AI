@@ -17,6 +17,8 @@ Aufruf (Instanz ueber SHC_INSTANZ, ohne Angabe 5):
         gold        = Gold je Spieler nach dem Start: eine Zahl fuer alle oder Liste (wir, Gegner 1, ...)
   python werkzeug/shc.py speichern name="S1 Sandkasten Franz T40470"      (hoechstens 32 Zeichen)
   python werkzeug/shc.py laden name="B140 Burg Franz T40126"
+  python werkzeug/shc.py editor [groesse=4]       Sandbox im Spiel: leere Karte im Landschaftseditor, Zeit laeuft
+  python werkzeug/shc.py setze spieler=2 typ=22 x=240 y=200 [anzahl=1]
   python werkzeug/shc.py sandkasten [name="B140 Burg Franz T40126"] [franz_heer=nein]
         laedt ueber das Hauptmenue, raeumt beide Heere ab (Lords bleiben), Franz' KI ohne Waren, haelt an
 
@@ -219,13 +221,58 @@ def sandkasten(name=STANDARD_STAND, franz_heer="nein"):
             % (name, z["tick"], soldaten or "keine", volk))
 
 
+def editor(groesse="4"):
+    """Sandbox im Spiel (Daniel 18:51 "Eigene Szenarien -> Neue Karte: eine leere Karte"): Rezept aus dem Handbuch,
+    Abschnitt "Testen im Karteneditor" (17.10.) - jeder Schritt an der Menueansicht geprueft. Im Editor laeuft die Zeit,
+    Einheiten handeln und kaempfen, es gibt keine Arbeiter und keine KI. groesse: Knopf der Kartengroesse (1 = 160x160,
+    4 = 400x400)."""
+    from laden import befehl
+    menue()
+    schritte = [({"hauptmenue": 9}, 44, "Eigene Szenarien"),
+                ({"knopf": "CustomScenarios_Main", "nr": 2}, 18, "Kartentyp"),
+                ({"knopf": "NewMapMaptype_Buttons", "nr": 3}, 31, "Kartengroesse"),
+                ({"knopf": "NewMapMapsize_Buttons", "nr": int(groesse)}, 17, "Karteneigenschaften"),
+                ({"menue": 12}, None, "Landschaftseditor")]
+    weg = []
+    for b, soll, name in schritte:
+        befehl(b, 1.5)
+        time.sleep(1.0)
+        a = zustand().get("ansicht")
+        weg.append("%s=%s" % (name, a))
+        if soll is not None and a != soll:
+            raise Fehler("Editor-Weg haengt bei '%s': Ansicht %s statt %s (%s)" % (name, a, soll, ", ".join(weg)))
+    befehl({"pause": False}, 0.5)
+    t0 = zustand()["tick"]
+    time.sleep(2.0)
+    z = zustand()
+    if z["tick"] <= t0:
+        raise Fehler("im Editor laeuft die Zeit nicht (Tick %d -> %d, %s)" % (t0, z["tick"], ", ".join(weg)))
+    return "Editor offen (Ansicht %d), Zeit laeuft (Tick %d -> %d); Weg: %s" % (z["ansicht"], t0, z["tick"], ", ".join(weg))
+
+
+def setze(spieler="1", typ="26", x="200", y="200", anzahl="1"):
+    """Einheiten setzen (Editor oder Partie). Gemessen 17.10.: sie stehen 1 Feld weiter als angegeben (x/y +1)."""
+    import re
+    from laden import befehl
+    for z in befehl({"setzeEinheit": {"spieler": int(spieler), "typ": int(typ), "x": int(x), "y": int(y),
+                                      "anzahl": int(anzahl)}}, 1.5):
+        m = re.search(r"Nummern ([0-9,]+)", z)
+        if m:
+            nrs = [int(n) for n in m.group(1).split(",") if int(n) > 0]
+            if len(nrs) != int(anzahl):
+                raise Fehler("nur %d von %s gesetzt: %s" % (len(nrs), anzahl, z))
+            return "Spieler %s Typ %s x%s bei (%s,%s): Nummern %s" % (spieler, typ, anzahl, x, y, nrs)
+    raise Fehler("setzeEinheit ohne Antwort")
+
+
 def zustand_text():
     z = zustand()
     return "%s | %s" % (z["text"], z)
 
 
 BEFEHLE = {"zustand": zustand_text, "start": start, "menue": menue,
-           "gefecht": gefecht, "speichern": speichern, "laden": laden, "sandkasten": sandkasten}
+           "gefecht": gefecht, "speichern": speichern, "laden": laden, "sandkasten": sandkasten, "editor": editor,
+           "setze": setze}
 
 
 def main(argv):
