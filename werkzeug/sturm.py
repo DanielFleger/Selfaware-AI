@@ -36,6 +36,20 @@ from laden import befehl  # noqa: E402
 from waechter import lies_gebaeude, lies_lagebild  # noqa: E402
 
 AUS = os.path.join(HIER, "..", "daten", "sturm.jsonl")
+# gemessene Verlustraten je Ziel ("art:ziel" -> Tote, Takte im Sturm) - jeder Sturm schreibt nach (Daniel 01:11 "so wie du
+# vorschlaegst einbauen": losgehen, wenn es reicht, statt auf den Letzten zu warten)
+RATEN = os.path.join(HIER, "..", "daten", "sturm_raten.json")
+
+
+def raten_laden():
+    try:
+        return json.load(open(RATEN, encoding="utf-8")).get("raten", {})
+    except (OSError, ValueError):
+        return {}
+
+
+def raten_schreiben(raten, quelle):
+    json.dump({"quelle": quelle, "raten": raten}, open(RATEN, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 E0, ES = AD.E0, AD.ES
 SP, FEIND = 1, 2
 PD1 = 0x0115BDF8 + SP * 0x39F4
@@ -180,6 +194,7 @@ def main():
     # (Daniel 00:42 "die Streitkolben gehen und kommen dann wieder, dann kommen Wellen - sie sollen doch alle auf einmal"):
     # gesammelt wird EINMAL (und erst wieder, wenn die ganze Truppe gefallen ist); danach geht die Truppe von Ziel zu Ziel weiter
     gesammelt = False
+    sturm_grund = None
     # Staerke-Regel (Daniel 00:46 "ja so eine Staerke-Regel"): im Sturm wird die Verlustrate gemessen (Tote der Truppe je Takt);
     # reicht die Truppe bei dieser Rate nicht bis zum Bruch des Ziels (Restarbeit aus Hoehe/Leben, Schaden je Treffer aus dem Code,
     # 96 Takte je Runde), Rueckzug zum Sammelfeld - erneut gestuermt wird erst mit noetig Mann (kleinste Zahl, die bei dieser Rate
@@ -189,6 +204,7 @@ def main():
     ballisten_pruefen = True                             # nur bei Anlass suchen: Anfang, Jaeger frei, neues Ziel
     steht = {}                                           # Nummer -> (Feld, seit Takt) - fuer die Nachzuegler-Regel
     wartepunkt = {}                                      # Nummer -> Feld, an dem er vor dem Sturm wartet (ohne Beschuss)
+    abst_alt = {}                                        # Nummer -> Abstand zum Zugang bei der letzten Messung
     angestossen = {}                                     # Nummer -> wie oft ohne Bewegung neu geschickt
     versuche_ballista = {}                               # Ballista -> geschickte Jaeger (hoechstens 4 je Ballista)
     jaeger_frei = []                                     # Jaeger, deren Ziel gerade erledigt ist
@@ -196,12 +212,51 @@ def main():
     haus_stellen = [(kaserne_xy[0] + dx, kaserne_xy[1] + dy) for r_ in (6, 9, 12) for dx, dy in
                     ((-r_, 0), (r_, 0), (0, -r_), (0, r_), (-r_, -r_), (r_, r_), (-r_, r_), (r_, -r_))] if kaserne_xy else []
     frist, wirk_alt, sammel_frist, t_107 = None, None, None, None
+    raten = raten_laden()
+    letzter_befehl = {}                                  # Nummer -> (Takt, Befehl) - fuer den Rueckwaerts-Melder
+
+    def merke(wer, text):
+        for w in wer:
+            letzter_befehl[w] = (t_, text)
+
+    def rest_treffer():
+        """Treffer, die das Ziel noch braucht (Mauer: Hoehe ueber Boden / Schaden je Treffer nach Nachbarn; Torhaus: Leben / 15)."""
+        if plan["art"] == "mauer":
+            k_ = kvon[plan["ziel"]]
+            nb = sum(1 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                     if s32(speicher.LOGIK + 4 * kvon.get((plan["ziel"][0] + dx, plan["ziel"][1] + dy), k_)) & 0x10000100)
+            punkte = int(speicher.lies(speicher.HOEHE + k_, 1)[0]) - int(plan["e"]["boden"][plan["ziel"]]) + 1
+            return math.ceil(max(punkte, 1) / float(max(mechanik.kachel_schaden(mk["mauer"], nb), 1)))
+        if plan["art"] == "tor":
+            return math.ceil(max(tor_leben or 0, 1) / float(mk["tor_turm"]))
+        return None
+
+    def bedarf(rate, weg_takte):
+        """Kleinste Mannzahl, die das Ziel bei dieser Verlustrate bricht (Weg zum Zugang + Hacken, ein Treffer je Mann und Runde)."""
+        tr = rest_treffer()
+        if tr is None or rate is None:
+            return None
+        dauer = lambda m_: weg_takte + math.ceil(tr / float(max(1, m_))) * mk["takte_je_treffer"]
+        return next((m_ for m_ in range(1, 1000) if m_ - rate * dauer(m_) >= 1), None)
+
+    def rate_speichern():
+        """Tote und Takte dieses Sturms je Ziel nachtragen (die naechste Planung rechnet damit)."""
+        if plan is None or sturm_t is None or t_ <= sturm_t:
+            return
+        key = "%s:%s" % (plan["art"], plan["ziel"])
+        r_ = raten.setdefault(key, {"tote": 0, "takte": 0})
+        r_["tote"] += tote_sturm
+        r_["takte"] += t_ - sturm_t
+        raten_schreiben(raten, "sturm.py, je Sturm nachgetragen (zuletzt %s)" % time.strftime("%Y-%m-%d %H:%M"))
+        melde((t_, "RATE %s: %d Tote in %d Takten (gesamt %d / %d)" % (key, tote_sturm, t_ - sturm_t, r_["tote"], r_["takte"])))
+
     def sturm_befehl(wer):
         """Alle in wer gleichzeitig auf das Ziel des Plans; Frist = Wegfelder bis zum Zugang x 12 Takte + 2 Trefferrunden."""
         nonlocal frist, wirk_alt, t_107, phase
         # Laufen an die Mauer einzeln (trupp 1 - sonst Formation, Lauf 23:27); Torhaus und Lord als EIN Gruppenbefehl (Daniel 00:52
         # "die Streitkolben laufen zurueck": die Lua-Schlange arbeitet Einzelbefehle nacheinander ab, bis der letzte von 70 seinen
         # Befehl hat, vergehen viele Takte - wessen Ziel gerade gefallen war, lief so lange ins Lager zurueck)
+        merke(wer, "Sturm %s %s" % (plan["art"], plan["ziel"]))
         if plan["art"] == "mauer":
             befehl({"angriff": {"einheiten": sorted(wer), "lauf": [plan["zug"][0], plan["zug"][1]], "trupp": 1}}, 0.5)
         elif plan["art"] == "tor":
@@ -234,6 +289,8 @@ def main():
         lord = AD.einheit(roh, lnr)
         if lord["leben"] <= 0 or lord["typ"] != 55:
             melde((t_, "LORD TOT"))
+            if phase == "sturm":
+                rate_speichern()
             break
         jetzt = eigene_soldaten(roh)
         # gleiche Nummer, andere Kennung = neuer Mann auf dem Platz eines Gefallenen
@@ -311,6 +368,8 @@ def main():
             ballisten_pruefen = False
             ziele = []
             hoehe_, boden_ = speicher.ebene(speicher.HOEHE), speicher.ebene(speicher.BODEN)
+            # (Daniel 01:11 "die Jaeger gingen auf Fernkaempfer auf Mauern/Tuermen - fruchtlos"): Boden = keine Mauer, kein Gebaeude
+            logik_, bau_ = speicher.ebene(speicher.LOGIK, 4), speicher.wegkarte()["gebaeude"]
             for b_n in range(1, 3000):
                 e_b = AD.einheit(roh, b_n)
                 if e_b["besitzer"] != FEIND or e_b["leben"] <= 0 or e_b["zustand"] == 0:
@@ -318,7 +377,8 @@ def main():
                 aktiv = sum(1 for z_ in jaeger.values() if z_ == ("einheit", b_n))
                 if e_b["typ"] == BALLISTE:
                     ziele += [(0, ("einheit", b_n), (e_b["x"], e_b["y"]))] * max(0, min(2 - aktiv, 4 - versuche_ballista.get(b_n, 0)))
-                elif e_b["typ"] in FERN and int(hoehe_[e_b["x"], e_b["y"]]) <= int(boden_[e_b["x"], e_b["y"]]) and aktiv == 0:
+                elif e_b["typ"] in FERN and int(hoehe_[e_b["x"], e_b["y"]]) <= int(boden_[e_b["x"], e_b["y"]]) and aktiv == 0 \
+                        and not (int(logik_[e_b["x"], e_b["y"]]) & 0x100) and bau_[e_b["x"], e_b["y"]] == 0:
                     ziele.append((1, ("einheit", b_n), (e_b["x"], e_b["y"])))
             for g_nr, g_ in G.items():
                 if g_["besitzer"] == FEIND and g_["typ"] in AUSBILDUNG and ("gebaeude", g_nr) not in jaeger.values():
@@ -384,6 +444,7 @@ def main():
                         melde((t_, "KOMMT NICHT AN: %d (Typ %d) bei %s -> %s" % (n, jetzt[n]["typ"], pos, ziel_n)))
             for ziel_n, wer in nachzuegler.items():
                 befehl({"angriff": {"einheiten": sorted(wer), "lauf": [ziel_n[0], ziel_n[1]]}}, 0.3)
+                merke(wer, "Nachzuegler nach %s" % (ziel_n,))
                 melde((t_, "NACHZUEGLER %d Mann (%s) -> %s" % (len(wer), sorted({jetzt[w]["typ"] for w in wer}), ziel_n)))
 
         # (Daniel 01:06 "es braucht alle Einheiten beim Stacken schon fuer das Zerstoeren", 01:07 "jede Einheit kann Nahkampf"):
@@ -445,6 +506,7 @@ def main():
                     nach_punkt.setdefault(wp, []).append(n)
             for wp, wer in nach_punkt.items():
                 befehl({"angriff": {"einheiten": sorted(wer), "lauf": [wp[0], wp[1]], "trupp": 1}}, 0.3)
+                merke(wer, "Warten bei %s" % (wp,))
             melde((t_, "WARTEN: %d zum Sammelfeld, %d bleiben vorn stehen, %d zum naechsten Feld ohne Beschuss" % (
                 sum(1 for wp in wartepunkt.values() if wp == sammel),
                 sum(1 for n, wp in wartepunkt.items() if wp == (jetzt[n]["x"], jetzt[n]["y"])),
@@ -472,19 +534,44 @@ def main():
                 kein_nachschub = s32(GOLD1) < 20 or s32(FEUER1) <= 0 and not haus_stellen
                 bereit = len(da) >= noetig or (da == stuermer and kein_nachschub)
             else:
-                bereit = bool(da) and (da == stuermer or t_ >= sammel_frist)
+                key = "%s:%s" % (plan["art"], plan["ziel"])
+                r_ = raten.get(key)
+                w_ = plan["weg"]
+                zug_ = tuple(plan["zug"]) if plan["zug"] else tuple(w_[-1])
+                weg_takte = max(0, w_.index(zug_) - w_.index(sammel)) * mechanik.TAKTE_JE_FELD if zug_ in w_ and sammel in w_ else 0
+                m_noetig = bedarf(r_["tote"] / float(r_["takte"]), weg_takte) if r_ and r_["takte"] > 0 else None
+                if m_noetig is not None:
+                    # gemessene Rate fuer dieses Ziel: los, sobald genug da sind - alle anderen gehen gleich mit (welle = alle)
+                    bereit = len(da) >= m_noetig or da == stuermer or t_ >= sammel_frist
+                    if bereit and not sturm_grund:
+                        sturm_grund = "Bedarf %d Mann (Rate %.4f Tote/Takt gemessen), %d am Wartepunkt" % (m_noetig, r_["tote"] / float(r_["takte"]), len(da))
+                else:
+                    bereit = bool(da) and (da == stuermer or t_ >= sammel_frist)
             if bereit:
                 gesammelt, noetig = True, None
                 welle = set(stuermer)                     # alle auf einmal - wer noch unterwegs ist, geht direkt mit
                 sturm_befehl(welle)
-                ereignisse[-1] = (t_, ereignisse[-1][1] + " (%d am Sammelfeld)" % len(da))
+                ereignisse[-1] = (t_, ereignisse[-1][1] + " (%d am Wartepunkt%s)" % (len(da), ", " + sturm_grund if sturm_grund else ""))
+                sturm_grund = None
             continue
 
         # phase == "sturm"
+        # Rueckwaerts-Melder (Daniel 01:11 "teilweise sind sie wieder zurueckgegangen" - belegen statt raten): alle 96 Takte der
+        # Schach-Abstand jedes Sturm-Manns zum Zugang; ist er um 3 Felder oder mehr gewachsen, Meldung mit letztem Befehl
+        if t_ % mk["takte_je_treffer"] == 0:
+            zug_m = tuple(plan["zug"]) if plan["zug"] else lord_xy
+            for n in welle:
+                d_ = abstand((jetzt[n]["x"], jetzt[n]["y"]), zug_m)
+                alt_d = abst_alt.get(n)
+                if alt_d is not None and d_ >= alt_d + 3:
+                    melde((t_, "RUECKWAERTS %d (Typ %d) %d -> %d Felder vom Zugang, Zustand %d, letzter Befehl %s" % (
+                        n, jetzt[n]["typ"], alt_d, d_, jetzt[n]["lage"], letzter_befehl.get(n))))
+                abst_alt[n] = d_
         if plan["art"] == "mauer":
             k = kvon[plan["ziel"]]
             if not s32(speicher.LOGIK + 4 * k) & 0x100:
                 melde((t_, "MAUER %s GEFALLEN" % (plan["ziel"],)))
+                rate_speichern()
                 phase = "planen"
                 continue
             wirkung = speicher.lies(speicher.HOEHE + k, 1)[0]
@@ -500,6 +587,7 @@ def main():
             fp = list(zip(*np.nonzero(plan["e"]["bau"] == plan["ziel"])))
             if not fp or speicher.wegkarte()["gebaeude"][fp[0]] != plan["ziel"]:
                 melde((t_, "TORHAUS %s GEFALLEN" % plan["ziel"]))
+                rate_speichern()
                 phase = "planen"
                 continue
             wirkung = None                                # Leben des Torhauses nur ueber das Lagebild - bei der Frist
@@ -535,6 +623,7 @@ def main():
                 noetig = next((m_ for m_ in range(m + 1, 1000) if m_ - rate * rest_takte(m_) > 0), None)
                 melde((t_, "RUECKZUG: %d Mann, %.4f Tote/Takt gemessen, Ziel braucht noch %d Treffer (%d Takte) - es braucht %s Mann" % (
                     m, rate, treffer, rest_takte(m), noetig)))
+                rate_speichern()
                 befehl({"angriff": {"einheiten": sorted(welle), "lauf": [sammel[0], sammel[1]], "trupp": 1}}, 0.5)
                 gesammelt, welle, angesetzt = False, set(), set()
                 if plan["art"] == "mauer":                # festgehaltenes Mauerziel loesen (logik.lua: ohne halten -> aus)
