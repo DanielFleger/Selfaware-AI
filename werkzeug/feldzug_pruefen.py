@@ -640,12 +640,13 @@ def main():
     pruefe(30, "hacken (Zustand 107): Rueckzug %s, Mauer %s | untaetig (1): Rueckzug %s" % (r30, w30, r30g), not r30 and r30g)
     # 31 (B-150, Daniel 19:29 "Feldzug soll Feuer meiden"): Plantage brennt bei (201,99), Laufbefehl von (201,125) nach
     #    (201,75) quer hindurch -> feuerfreier_weg legt einen Umweg, der mehr als 4 Felder am Feuer vorbeifuehrt; Gegenprobe:
-    #    ohne Feuer -> geradeaus. Dazu im Feldzug: ein Laufbefehl wird durch den Umweg ersetzt (Meldung FEUER MEIDEN).
+    #    ohne Feuer -> geradeaus. Dazu im Feldzug: ein Laufbefehl wird durch den Umweg ersetzt (Meldung FEUER MEIDEN), die
+    #    Punkte danach gehen als "danach" mit (logik.lua schickt die Truppe ohne Pause weiter - Daniel 20:23).
     orte31 = F.feuerorte({19: {"x": 201, "y": 99, "feuer": 50}}, [(201, 98), (203, 102)])
     w31 = F.feuerfreier_weg((201, 125), (201, 75), orte31)
     w31g = F.feuerfreier_weg((201, 125), (201, 75), [])
-    frei31 = len(w31) == 2 and all(F._abstand_strecke((x, y), a, b) > r for x, y, r in orte31
-                                   for a, b in (((201, 125), w31[0]), (w31[0], (201, 75))))
+    kette31 = [(201, 125)] + list(w31)
+    frei31 = len(w31) >= 2 and w31[-1] == (201, 75) and all(F._frei(a, b, orte31) for a, b in zip(kette31, kette31[1:]))
     f31 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
     L31, G31 = lage(0, heim)
     for i in range(10):
@@ -661,7 +662,8 @@ def main():
     nah31 = [l for l in laeufe31 if max(abs(l[0] - 201), abs(l[1] - 99)) <= 4]
     pruefe(31, "Umweg %s (frei %s) | ohne Feuer %s | Feldzug: %d Laufbefehle, davon im Feuer %s, Meldungen %s" % (
         w31, frei31, w31g, len(laeufe31), nah31, [m[:50] for m in m31 if "FEUER" in m][:2]),
-        frei31 and w31g == [(201, 75)] and laeufe31 and not nah31 and any("FEUER MEIDEN" in m for m in m31))
+        frei31 and w31g == [(201, 75)] and laeufe31 and not nah31 and any("FEUER MEIDEN" in m for m in m31)
+        and any((x["angriff"].get("danach") or [[0, 0]])[-1] == [201, 70] for x in b31.liste if "lauf" in x.get("angriff", {})))
     # 32 (B-150, Daniel 19:45): Brandtrupp zuendet nichts auf dem eigenen Heerweg an, wenn es bei Ankunft des Heeres noch
     #    brennt. Heer bei (201,125) -> Lord (201,70): Plantage 19 (Leben 100) bei (201,99) liegt am Weg, 26 Felder entfernt
     #    (Ankunft ~312 Takte, Feuer aus ~1.100) -> nein; dieselbe Plantage 60 Felder seitlich -> ja; Gegenprobe ohne Heerweg -> ja.
@@ -721,9 +723,9 @@ def main():
         ohne35 and mit35 and not F.im_feuer(mit35, f35._orte_f))
     # 36 (B-150, Daniel 19:45 "darauf muss man reagieren koennen"): Gebaeude 291 brennt bei (130,155). Streitkolben 10 steht
     #    1 Feld daneben, 11 weit weg, Bogen 12 weit weg. Runde 1: 10 wird an einen freien Punkt geholt und steckt in keinem
-    #    anderen Befehl dieser Runde; der Angriff von 10, 11, 12 auf Turm 241 bei (133,152) (im Feuer) wird fuer 11 zu
-    #    "daneben warten", der Bogen 12 behaelt den Angriff. Runde 2: das Feuer ist aus (egal warum) -> niemand wird geholt,
-    #    derselbe Angriffsbefehl geht unveraendert durch.
+    #    anderen Befehl dieser Runde; der Angriff von 10, 11, 12 auf Turm 241 geht fuer 11 und 12 unveraendert durch (Daniel
+    #    20:23: niemand wartet daneben - brennt die Bresche selbst, wechselt der Feldzug, Pruefung 38). Runde 2: das Feuer ist
+    #    aus (egal warum) -> niemand wird geholt, derselbe Angriffsbefehl geht unveraendert durch.
     f36 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
     L36 = {10: einheit(26, 1, 130, 154), 11: einheit(26, 1, 160, 160), 12: einheit(22, 1, 165, 160),
            500: einheit(55, 2, 173, 114, 30000)}
@@ -734,16 +736,71 @@ def main():
     f36._feuer_lenken({"t": 12000, "bodenfeuer": []}, L36, G36, b36, m36)(an36, 1.0, bis="ANGRIFF")
     orte36 = F.feuerorte(G36, [])
     raus36 = [x["angriff"]["lauf"] for x in b36.liste if x["angriff"]["einheiten"] == [10] and "lauf" in x["angriff"]]
-    warte36 = [x["angriff"]["lauf"] for x in b36.liste if x["angriff"]["einheiten"] == [11] and "lauf" in x["angriff"]]
-    schuss36 = [x for x in b36.liste if x["angriff"]["einheiten"] == [12] and x["angriff"].get("gebaeude") == 241]
+    weiter36 = [x for x in b36.liste if x["angriff"]["einheiten"] == [11, 12] and x["angriff"].get("gebaeude") == 241]
     mit10 = [x for x in b36.liste if 10 in x["angriff"]["einheiten"] and "lauf" not in x["angriff"]]
     G36[291]["feuer"] = 0
     b36b = Befehle()
     f36._feuer_lenken({"t": 12100, "bodenfeuer": []}, L36, G36, b36b, [])(an36, 1.0, bis="ANGRIFF")
-    pruefe(36, "Feuer: raus %s, warten %s, Bogen schiesst %s, 10 sonst %d Befehle | Feuer aus: %s" % (
-        raus36, warte36, bool(schuss36), len(mit10), b36b.liste),
-        raus36 and not F.im_feuer(tuple(raus36[0]), orte36) and warte36
-        and not F.im_feuer(tuple(warte36[0]), orte36, rand=2) and schuss36 and not mit10 and b36b.liste == [an36])
+    pruefe(36, "Feuer: raus %s, Angriff 11+12 unveraendert %s, 10 sonst %d Befehle | Feuer aus: %s" % (
+        raus36, bool(weiter36), len(mit10), b36b.liste),
+        raus36 and not F.im_feuer(tuple(raus36[0]), orte36) and weiter36 and not mit10 and b36b.liste == [an36])
+    # 37 (B-150, Daniel 20:23 "aussen herum laufen"): eine Feuerwand 47 Felder breit (Bodenfeuer x 80-120 bei y 100) zwischen
+    #    (100,80) und (100,120) - der Weg fuehrt um die Wand herum, jede Strecke frei, am Ende das Ziel (der alte Umweg mit
+    #    einem Punkt seitlich fand hier nichts und blieb stehen). Abwaegen (Daniel 20:27), wenn es KEINEN Weg gibt (Ziel in
+    #    einem geschlossenen Feuerring): ausser Reichweite der Schuetzen -> warten am Start; unter Beschuss -> direkt durch.
+    wand37 = [(x, 100, 3) for x in range(80, 121, 2)]
+    w37 = F.feuerfreier_weg((100, 80), (100, 120), wand37)
+    k37 = [(100, 80)] + list(w37)
+    frei37 = w37[-1] == (100, 120) and all(F._frei(a, b, wand37) for a, b in zip(k37, k37[1:]))
+    ring37 = [(100 + dx, 140 + dy, 2) for dx in range(-8, 9, 2) for dy in range(-8, 9, 2) if max(abs(dx), abs(dy)) == 8]
+    sicher37 = F.feuerfreier_weg((100, 100), (100, 140), ring37, gefahr=lambda q: 0)
+    beschuss37 = F.feuerfreier_weg((100, 100), (100, 140), ring37, gefahr=lambda q: 5)
+    pruefe(37, "Feuerwand: Weg %s (frei %s) | geschlossener Ring: sicher -> %s, unter Beschuss -> %s" % (
+        w37, frei37, sicher37, beschuss37), frei37 and sicher37 == [(100, 100)] and beschuss37 == [(100, 140)])
+    # 38 (B-150, Daniel 20:23): die Bresche (Turm 900, 100 Leben) beginnt zu brennen -> "BRESCHE BRENNT", sofort die naechste
+    #    Schwachstelle 901, niemand bekommt einen Befehl auf 900; ist das Feuer aus, darf 900 wieder gewaehlt werden.
+    f38 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=20)
+    f38.schritt({"t": 12000}, *lage(10, heim), Befehle())
+    L38, G38 = lage(0, heim)
+    G38[900] = {"typ": 46, "besitzer": 2, "x": 306, "y": 106, "leben": 100}
+    G38[901] = {"typ": 46, "besitzer": 2, "x": 301, "y": 116, "leben": 1500}
+    for i in range(20):
+        L38[10 + i] = einheit(75, 1, 300 + i % 3, 118 + i // 10, 28000)
+    f38._stau = (0, 12050)
+    f38.schritt({"t": 12050, "bodenfeuer": []}, L38, G38, Befehle())
+    erst38 = f38.bresche
+    G38[900]["feuer"] = 30
+    b38 = Befehle()
+    f38._stau = (0, 12150)
+    m38 = f38.schritt({"t": 12150, "bodenfeuer": []}, L38, G38, b38)
+    dann38 = f38.bresche
+    auf900 = [x for x in b38.liste if x.get("angriff", {}).get("gebaeude") == 900]
+    G38[900]["feuer"] = 0
+    f38._stau = (0, 12250)
+    f38.schritt({"t": 12250, "bodenfeuer": []}, L38, G38, Befehle())
+    wieder38 = f38._beste_stelle(G38, (300, 100), [(L38[n]["x"], L38[n]["y"]) for n in range(10, 30)])
+    pruefe(38, "Bresche erst %s, brennt -> %s %s, Befehle auf 900: %d | Feuer aus: beste Stelle %s" % (
+        erst38, dann38, [m[:40] for m in m38 if "BRENNT" in m], len(auf900), wieder38 and wieder38[3]),
+        erst38 == 900 and dann38 == 901 and any("BRESCHE BRENNT" in m for m in m38) and not auf900
+        and wieder38 and wieder38[3] == 900)
+    # 39 (B-150, Pruefstand 20:32: die Umleitung schickte je Einheit einen Befehl zum naechsten Wegknoten des Spiels): 10
+    #    Streitkolben laufen (Zustand 2) zum befohlenen Vorposten (150,133), ihr naechstes Wegstueck fuehrt durch ein Feuer
+    #    -> EIN Befehl fuer alle 10, Ziel am Ende der Vorposten (nicht ihr Wegknoten); Gegenprobe: ein Angreifer (Bresche) mit
+    #    demselben Wegstueck wird nicht umgeleitet.
+    f39 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+    L39 = {500: einheit(55, 2, 173, 114, 30000), 30: dict(einheit(26, 1, 140, 160), zustand=2, laufx=140, laufy=140)}
+    for i in range(10):
+        L39[10 + i] = dict(einheit(26, 1, 140 + i % 3, 160 + i // 5), zustand=2, laufx=140, laufy=140)
+    f39._befohlen = {10 + i: ("vorposten", (150, 133)) for i in range(10)}
+    f39._befohlen[30] = ("bresche", 900)
+    G39 = {291: {"typ": 5, "besitzer": 2, "x": 140, "y": 150, "leben": 300, "feuer": 40}}
+    b39 = Befehle()
+    f39._feuer_lenken({"t": 12000, "bodenfeuer": []}, L39, G39, b39, [])
+    um39 = [x["angriff"] for x in b39.liste if "lauf" in x["angriff"]]
+    ziel39 = [(a_.get("danach") or [a_["lauf"]])[-1] for a_ in um39]
+    pruefe(39, "Umleitungen %d %s, Ziele am Ende %s, Angreifer 30 dabei: %s" % (
+        len(um39), [len(a_["einheiten"]) for a_ in um39], ziel39, any(30 in a_["einheiten"] for a_ in um39)),
+        len(um39) == 1 and len(um39[0]["einheiten"]) == 10 and ziel39 == [[150, 133]] and not any(30 in a_["einheiten"] for a_ in um39))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

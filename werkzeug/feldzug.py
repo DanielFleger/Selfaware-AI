@@ -94,37 +94,82 @@ def feuerfrei_punkt(p, orte, nach=None, bis=25):
     return None
 
 
-def feuerfreier_weg(start, ziel, orte):
+def feuerweg(start, ziel, orte, schritt=2, rand=12):
+    """B-150 (Daniel 21.10. 20:23: "warum sollten sie neben dem Feuer warten? dann verbrennen sie - sie sollten aussen herum
+    laufen, gerade beim Angriff zaehlt jede Sekunde"): kuerzester Weg um alle Feuer herum - A* auf einem Raster mit `schritt`
+    Feldern (gesperrt ist jeder Rasterpunkt im Feuer), Suchfeld = Rechteck um Start und Ziel plus `rand` und den groessten
+    Sicherheitsabstand. Danach geglaettet: von jedem Punkt der weiteste, zu dem die gerade Strecke frei ist.
+    Gibt die Wegpunkte bis ziel (ohne start); None, wenn im Suchfeld kein Weg ist."""
+    import heapq
+    rmax = max(f[2] for f in orte)
+    x0, x1 = min(start[0], ziel[0]) - rand - rmax, max(start[0], ziel[0]) + rand + rmax
+    y0, y1 = min(start[1], ziel[1]) - rand - rmax, max(start[1], ziel[1]) + rand + rmax
+    nah = [f for f in orte if x0 - f[2] <= f[0] <= x1 + f[2] and y0 - f[2] <= f[1] <= y1 + f[2]]
+    sx, sy = start
+    gesperrt = set()                           # Rasterpunkte (i, j) im Feuer: Punkt = (sx + i*schritt, sy + j*schritt)
+    for x, y, r in nah:
+        for i in range(-((sx - (x - r)) // schritt), (x + r - sx) // schritt + 1):
+            for j in range(-((sy - (y - r)) // schritt), (y + r - sy) // schritt + 1):
+                gesperrt.add((i, j))
+    i0, i1 = -((sx - x0) // schritt), (x1 - sx) // schritt
+    j0, j1 = -((sy - y0) // schritt), (y1 - sy) // schritt
+    punkt = lambda k: (sx + k[0] * schritt, sy + k[1] * schritt)
+    h = lambda k: schach(punkt(k), ziel) / float(schritt)
+    offen, her, kosten, am_ziel = [(h((0, 0)), 0, (0, 0))], {(0, 0): None}, {(0, 0): 0}, None
+    while offen:
+        _, g, k = heapq.heappop(offen)
+        if g > kosten[k]:
+            continue
+        if schach(punkt(k), ziel) <= schritt and _frei(punkt(k), ziel, nah):
+            am_ziel = k
+            break
+        for di in (-1, 0, 1):
+            for dj in (-1, 0, 1):
+                q = (k[0] + di, k[1] + dj)
+                if q == k or q in gesperrt or not (i0 <= q[0] <= i1 and j0 <= q[1] <= j1):
+                    continue
+                if g + 1 < kosten.get(q, 1 << 30):
+                    kosten[q], her[q] = g + 1, k
+                    heapq.heappush(offen, (g + 1 + h(q), g + 1, q))
+    if am_ziel is None:
+        return None
+    pfad = [am_ziel]
+    while her[pfad[-1]] is not None:
+        pfad.append(her[pfad[-1]])
+    pfad = [punkt(k) for k in reversed(pfad)] + [tuple(ziel)]
+    weg, i = [], 0
+    while i < len(pfad) - 1:
+        j = len(pfad) - 1
+        while j > i + 1 and not _frei(pfad[i], pfad[j], nah):
+            j -= 1
+        weg.append(pfad[j])
+        i = j
+    return weg
+
+
+def feuerfreier_weg(start, ziel, orte, gefahr=None):
     """Wegpunkte von start nach ziel, die an keinem Feuer naeher als sein Sicherheitsabstand vorbeifuehren: [ziel], wenn die
-    gerade Strecke frei ist; sonst [Umweg, ziel] - der Umweg liegt seitlich neben dem Feuer, das der Strecke am naechsten ist,
-    auf der Seite mit dem kuerzeren freien Weg. Liegt das Ziel selbst im Feuer, gilt der naechste feuerfreie Punkt daneben.
-    Findet sich kein freier Umweg, wird nicht mehr durchs Feuer gelaufen (B-150, Daniel 19:45 "darauf muss man auch reagieren
-    koennen"), sondern am naechsten freien Punkt beim Start gewartet - der Lenker schickt jede Runde neu, und ist das Feuer
-    aus (geloescht, abgebrannt, Gebaeude weg - egal warum), geht der Befehl unveraendert durch."""
+    gerade Strecke frei ist; sonst der Weg AUSSEN HERUM (feuerweg; Daniel 20:23: nicht neben dem Feuer warten). Liegt das
+    Ziel selbst im Feuer, gilt der naechste feuerfreie Punkt daneben; steht der Start im Feuer, geht es zuerst hinaus.
+    Gibt es keinen Weg herum, wird abgewogen (Daniel 20:27: "warten und schuetzen, aber potentiell abgeschossen werden,
+    oder Schaden durch Feuer"): gefahr(p) = Zahl der Feindschuetzen, die p erreichen - ist der Platz davor sicher, wird
+    dort gewartet, bis das Feuer aus ist; sonst (oder ohne gefahr) direkt durch."""
     if not orte:
         return [ziel]
-    warten = feuerfrei_punkt(start, orte, nach=ziel) or start
-    z = feuerfrei_punkt(ziel, orte, nach=start)
-    if z is None:
-        return [warten]
-    ziel = z
-    if _frei(start, ziel, orte):
-        return [ziel]
-    x, y, r = min(orte, key=lambda f: _abstand_strecke((f[0], f[1]), start, ziel) - f[2])
-    dx, dy = ziel[0] - start[0], ziel[1] - start[1]
-    lang = (dx * dx + dy * dy) ** 0.5 or 1.0
-    nx, ny = -dy / lang, dx / lang             # Normale zur Strecke
-    beste = None
-    for abst in (r + 3, r + 6, r + 10, r + 15):
-        for s in (1, -1):
-            u = (int(round(x + s * nx * abst)), int(round(y + s * ny * abst)))
-            if _frei(start, u, orte) and _frei(u, ziel, orte):
-                weg = ((u[0] - start[0]) ** 2 + (u[1] - start[1]) ** 2) ** 0.5 + ((ziel[0] - u[0]) ** 2 + (ziel[1] - u[1]) ** 2) ** 0.5
-                if beste is None or weg < beste[0]:
-                    beste = (weg, u)
-        if beste:
-            return [beste[1], ziel]
-    return [warten]
+    z = feuerfrei_punkt(ziel, orte, nach=start) or tuple(ziel)
+    s, vorweg = start, []
+    if im_feuer(start, orte):
+        s = feuerfrei_punkt(start, orte, nach=z) or start
+        vorweg = [s] if s != start else []
+    if _frei(s, z, orte):
+        return vorweg + [z]
+    for rand in (12, 30, 60):                  # breite Feuerwand: Suchfeld in Stufen groesser (Pruefung 37)
+        weg = feuerweg(s, z, orte, rand=rand)
+        if weg:
+            return vorweg + weg
+    if gefahr is not None and gefahr(s) == 0:
+        return vorweg or [start]                # in Deckung warten, bis das Feuer aus ist
+    return vorweg + [z]
 
 
 class Feldzug:
@@ -253,6 +298,8 @@ class Feldzug:
         kand = []
         for nr, g in G.items():
             if g["besitzer"] in freunde_von(self.sp) or g["typ"] not in BURG_TEILE or nr in self.verworfen:
+                continue
+            if self._orte_f and g.get("feuer", 0) > 0:          # B-150: eine brennende Bresche wird nicht gewaehlt
                 continue
             ort = (g["x"], g["y"])
             if schach(ort, lp) > self.BURG_R:
@@ -387,9 +434,10 @@ class Feldzug:
           - wer im Feuer steht, wird zuerst an den naechsten freien Punkt geholt und bekommt in dieser Runde keinen anderen
             Befehl (Pruefstand 21.10.: 22 Heer-Meldungen IM FEUER am Vorposten, als daneben Gebaeude 291 zu brennen begann -
             wer stand, wurde vorher nie bewegt)
-          - Laufbefehle gehen ueber feuerfreier_weg (Umweg; Ziel im Feuer -> daneben warten; kein Umweg -> beim Start warten)
-          - Angriffe der Nahkaempfer auf ein Gebaeude oder eine Einheit im Feuer (2 Felder Rand fuer die Angreifer) werden zu
-            "daneben warten"; Schuetzen schiessen weiter
+          - Laufbefehle gehen ueber feuerfreier_weg AUSSEN HERUM (Daniel 20:23 "nicht neben dem Feuer warten, jede Sekunde
+            zaehlt"); die Wegpunkte nach dem ersten bekommt logik.lua als "danach" und schickt die Truppe ohne Pause weiter;
+            nur ohne jeden Weg herum wird abgewogen: ausser Reichweite der Schuetzen warten, sonst durch
+          - brennt die Bresche selbst, kommt sofort die naechste Schwachstelle (in schritt)
           - wer gerade laeuft und dessen Laufziel durchs Feuer fuehrt, bekommt den Umweg neu (Augen-Test 19:38)
         Mauer-Befehle (B-147) bleiben - ihr Feld waehlt logik.lua. (Gegenprobe im Pruefstand: FEUER_MEIDEN=nein)"""
         orte_f = feuerorte(G, st.get("bodenfeuer", [])) if os.environ.get("FEUER_MEIDEN", "ja") != "nein" else []
@@ -415,6 +463,11 @@ class Feldzug:
             raus |= set(ns)
             aus.append("FELDZUG AUS DEM FEUER: %d Einheiten bei %s -> %s (%d Feuer)" % (len(ns), m, w, len(orte_f)))
 
+        import gefecht
+        schuetzen = [((e["x"], e["y"]), gefecht.FERN_REICH[e["typ"]]) for e in L.values()
+                     if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in gefecht.FERN_REICH and e.get("leben", 1) > 0]
+        gefahr = lambda q: sum(1 for f, r in schuetzen if schach(q, f) <= r)
+
         def befehl(b, *a, **k):
             an = b.get("angriff", {}) if isinstance(b, dict) else {}
             if not an.get("einheiten"):
@@ -425,35 +478,37 @@ class Feldzug:
             an = dict(an, einheiten=ns)
             da = [n for n in ns if n in L]
             if da and "lauf" in an:
-                weg = feuerfreier_weg(mitte(da), tuple(an["lauf"]), orte_f)
-                if list(weg[0]) != list(an["lauf"]):
-                    aus.append("FELDZUG FEUER MEIDEN: %d Einheiten nicht nach %s, sondern ueber %s (%d Feuer)" % (
-                        len(ns), tuple(an["lauf"]), weg[0], len(orte_f)))
+                m, z = mitte(da), tuple(an["lauf"])
+                weg = feuerfreier_weg(m, z, orte_f, gefahr)
+                if weg != [z]:
+                    if weg == [m]:
+                        aus.append("FELDZUG FEUER WARTEN: %d Einheiten - kein Weg um das Feuer nach %s, bei %s ausser Reichweite "
+                                   "der Schuetzen bis es aus ist (%d Feuer)" % (len(ns), z, m, len(orte_f)))
+                    else:
+                        aus.append("FELDZUG FEUER MEIDEN: %d Einheiten nicht direkt nach %s, sondern aussen herum %s (%d Feuer)" % (
+                            len(ns), z, weg[:4], len(orte_f)))
                     an = dict(an, lauf=[weg[0][0], weg[0][1]])
-            elif da and ("gebaeude" in an or "ziel" in an):
-                q = G.get(an["gebaeude"]) if "gebaeude" in an else L.get(an["ziel"])
-                nah = [n for n in ns if L.get(n, {}).get("typ") not in FERN]
-                if q and nah and im_feuer((q["x"], q["y"]), orte_f, rand=2):
-                    w = feuerfrei_punkt((q["x"], q["y"]), [(x, y, r + 2) for x, y, r in orte_f], nach=mitte(da))
-                    if w is not None:
-                        aus.append("FELDZUG FEUER WARTEN: %d Nahkaempfer greifen %s %d nicht an, es liegt im Feuer - warten "
-                                   "bei %s" % (len(nah), "Gebaeude" if "gebaeude" in an else "Einheit",
-                                               an.get("gebaeude", an.get("ziel")), w))
-                        fern_ = [n for n in ns if n not in nah]
-                        if fern_:
-                            roh(dict(b, angriff=dict(an, einheiten=fern_)), *a, **k)
-                        an = {"einheiten": nah, "lauf": [w[0], w[1]]}
+                    if len(weg) > 1:
+                        an["danach"] = [[q[0], q[1]] for q in weg[1:]]    # logik.lua schickt weiter (Wegkette)
             return roh(dict(b, angriff=an), *a, **k)
 
-        # 2. wer gerade laeuft und dessen Laufziel durchs Feuer fuehrt, bekommt den Umweg neu
+        # 2. wer gerade laeuft und dessen naechstes Wegstueck (Laufziel des Spiels = naechster Wegknoten) durchs Feuer fuehrt,
+        #    bekommt den Weg zu SEINEM befohlenen Punkt neu - je befohlenem Punkt und 8x8-Feld ein Befehl. (Pruefstand 20:32: hier
+        #    ging je Einheit ein Befehl zum naechsten Wegknoten des Spiels - 126 Wegketten meist fuer 1 Einheit, und am Knoten
+        #    blieben sie bis zur naechsten Runde stehen.) Wer einen Angriffsbefehl hat, wird nicht umgeleitet (raus holt Punkt 1)
+        bef = getattr(self, "_befohlen", {})
         ziele = {}
         for n, e in L.items():
-            if (n not in raus and e.get("besitzer") == self.sp and e.get("typ") in HEER and e.get("zustand") not in (0, 1)
-                    and e.get("laufx", 0) > 0 and e.get("laufy", 0) > 0):
-                ziele.setdefault((e["laufx"], e["laufy"]), []).append(n)
-        for z_, ns in ziele.items():
-            if not _frei(mitte(ns), z_, orte_f):
-                befehl({"angriff": {"einheiten": sorted(ns), "lauf": [z_[0], z_[1]]}}, 1.0, bis="ANGRIFF")
+            if (n in raus or e.get("besitzer") != self.sp or e.get("typ") not in HEER or e.get("zustand") in (0, 1)
+                    or not (e.get("laufx", 0) > 0 and e.get("laufy", 0) > 0)):
+                continue
+            art, z_ = bef.get(n, (None, None))
+            if art not in ("lauf", "vorposten", "zum_lord", "rueckzug") or not (isinstance(z_, (tuple, list)) and len(z_) == 2):
+                continue
+            if not _frei((e["x"], e["y"]), (e["laufx"], e["laufy"]), orte_f):
+                ziele.setdefault((tuple(z_), e["x"] // 8, e["y"] // 8), []).append(n)
+        for (z_, _, _), ns in ziele.items():
+            befehl({"angriff": {"einheiten": sorted(ns), "lauf": [z_[0], z_[1]]}}, 1.0, bis="ANGRIFF")
         return befehl
 
     def schritt(self, st, L, G, befehl):
@@ -599,6 +654,14 @@ class Feldzug:
                 else:
                     aus.append("FELDZUG STAU %d: kein Weg zum Lord und kein feindliches Tor/Turm gefunden" % self.staus)
                 self._stau = (spitze, t)
+            # B-150 (Daniel 20:23 "warum sollten sie neben dem Feuer warten? ... jede Sekunde zaehlt"): brennt die Bresche
+            # selbst, wartet niemand daneben - sofort die naechste Schwachstelle; ist das Feuer aus, darf sie wieder gewaehlt werden
+            if self._orte_f and self.bresche is not None and G.get(self.bresche, {}).get("feuer", 0) > 0:
+                aus.append("FELDZUG BRESCHE BRENNT: Gebaeude %d - nicht daneben warten, sofort die naechste Schwachstelle" % (
+                    self.bresche))
+                self.bresche, self.bresche_leben, self.vorposten = None, None, None
+                if not self._schwachstelle(G, lp, orte, aus, "Bresche brennt"):
+                    self.lord_versuch = t
             if self.bresche is not None and self.bresche not in G:
                 aus.append("FELDZUG BRESCHE: Gebaeude %d ist gefallen - auf den Lord" % self.bresche)
                 self.bresche, self.bresche_leben, self.lord_versuch, self._stau = None, None, t, (None, t)

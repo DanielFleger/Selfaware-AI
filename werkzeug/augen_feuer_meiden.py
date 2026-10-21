@@ -53,25 +53,37 @@ def lauf(art, takte):
     print("%s: %d Feuer (z. B. %s), Weg %s" % (art, len(orte), orte[:3], weg), flush=True)
     t_start = shc.zustand()["tick"]
     from waechter import lies_lagebild
-    befehl({"angriff": {"einheiten": k_nrs, "lauf": [weg[0][0], weg[0][1]]}}, 1.0)
-    wege = [weg]
-    # wie der Lenker je Runde (19:38: einmal berechnet reichte nicht, das Feuer waechst): alle 100 Takte von der Mitte der
-    # Gruppe neu rechnen - bei "meiden" mit den Feuern dieser Runde, bei "gerade" bleibt es Z
+
+    def schicke(w):
+        b = {"einheiten": k_nrs, "lauf": [w[0][0], w[0][1]]}
+        if len(w) > 1:
+            b["danach"] = [[q[0], q[1]] for q in w[1:]]      # Daniel 20:23: aussen herum ohne Pause (Wegkette in logik.lua)
+        befehl({"angriff": b}, 1.0)
+    schicke(weg)
+    wege, aktuell, ankunft = [weg], list(weg), None
+    # alle 100 Takte: Ankunft messen (8 von 10 hoechstens 4 Felder an Z - "jede Sekunde zaehlt"); bei "meiden" neu rechnen,
+    # wenn der restliche Weg nicht mehr frei ist (das Feuer waechst) - sonst laeuft die Wegkette in logik.lua ungestoert
     while shc.zustand()["tick"] < t_start + takte:
         laufen(100)
-        if art == "gerade":
-            continue
         befehl({"lagebild": True}, 2.0, bis="LAGEBILD")
         L = lies_lagebild(neu_holen=False)
         da = [L[n] for n in k_nrs if n in L]
         if not da:
             break
+        if ankunft is None and sum(1 for e in da if max(abs(e["x"] - Z[0]), abs(e["y"] - Z[1])) <= 4) >= 8:
+            ankunft = shc.zustand()["tick"] - t_start
+        if art == "gerade":
+            continue
         m = (sorted(e["x"] for e in da)[len(da) // 2], sorted(e["y"] for e in da)[len(da) // 2])
         orte = F.feuerorte(lies_gebaeude(), lies_bodenfeuer())
-        w = F.feuerfreier_weg(m, Z, orte)
-        if w != wege[-1]:
+        while len(aktuell) > 1 and max(abs(m[0] - aktuell[0][0]), abs(m[1] - aktuell[0][1])) <= 4:
+            aktuell = aktuell[1:]
+        kette = [m] + aktuell
+        if not all(F._frei(a, b, orte) for a, b in zip(kette, kette[1:])):
+            w = F.feuerfreier_weg(m, Z, orte)
             wege.append(w)
-            befehl({"angriff": {"einheiten": k_nrs, "lauf": [w[0][0], w[0][1]]}}, 1.0)
+            aktuell = list(w)
+            schicke(w)
     weg = wege
     zeilen = open(KERNLOG, encoding="utf-8", errors="replace").read().splitlines()[log_ab:]
     im_feuer = sorted({int(m.group(1)) for z in zeilen for m in [re.search(r"IM FEUER - Einheit (\d+)", z)] if m
@@ -80,14 +92,15 @@ def lauf(art, takte):
     from waechter import lies_lagebild
     L = lies_lagebild(neu_holen=False)
     ende = sorted((n, L[n]["x"], L[n]["y"], L[n]["leben"]) for n in k_nrs if n in L)
-    return {"art": art, "weg": weg, "feuer": len(orte), "im_feuer": im_feuer, "einheiten": k_nrs, "ende": ende,
+    return {"art": art, "weg": weg, "feuer": len(orte), "im_feuer": im_feuer, "einheiten": k_nrs, "ende": ende, "ankunft": ankunft,
             "kernzeilen": [z for z in zeilen if "IM FEUER" in z][:20]}
 
 
 def main(laeufe=("gerade", "meiden"), takte=1500):
     erg = {art: lauf(art, takte) for art in laeufe}
     for art, r in erg.items():
-        print("%s: IM FEUER %d von 10 %s, Weg %s" % (art, len(r["im_feuer"]), r["im_feuer"], r["weg"]), flush=True)
+        print("%s: IM FEUER %d von 10 %s, 8 von 10 am Ziel nach %s Takten, Weg %s" % (
+            art, len(r["im_feuer"]), r["im_feuer"], r["ankunft"], r["weg"]), flush=True)
     urteil = None
     if "gerade" in erg and "meiden" in erg:
         if not erg["gerade"]["im_feuer"]:

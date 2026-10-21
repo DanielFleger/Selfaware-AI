@@ -101,6 +101,15 @@ def start():
     raise Fehler("Instanz %s antwortet 120 s nach dem Start nicht" % inst)
 
 
+def neustart():
+    """Instanz beenden (spiel.py: Stufe 1 = unser Modul beendet das Spiel, dann Fenster schliessen, dann hart) und starten."""
+    r = subprocess.run([sys.executable, os.path.join(HIER, "spiel.py"), "beenden"], capture_output=True, text=True, timeout=120,
+                       env=dict(os.environ))
+    if r.returncode != 0:
+        raise Fehler("Instanz liess sich nicht beenden: %s" % (r.stdout.strip().splitlines() or ["?"])[-1])
+    return start()
+
+
 def menue():
     """Laufende oder beendete Partie -> Hauptmenue, angehalten (serie.zuruecksetzen, gemessen seit 05.10.)."""
     from serie import zuruecksetzen
@@ -115,7 +124,18 @@ def laden(name=STANDARD_STAND):
     """Spielstand IMMER ueber das Hauptmenue laden, dann uns auf Platz 1 eintragen; prueft danach die Partie."""
     from laden import lade_stand, befehl
     menue()
-    tick = lade_stand(name, mit_bild=False, platz=1)
+    try:
+        tick = lade_stand(name, mit_bild=False, platz=1)
+    except RuntimeError as e:
+        if "kein Laden erkannt" not in str(e):
+            raise
+        # 21.10. 20:06 und 20:33 (L183): nach einer Sandkasten-Partie drueckte das Modul den Laden-Knopf (ok=true), das Spiel
+        # lud aber nichts - auch andere Spielstaende nicht; ein Neustart der Instanz half jedes Mal. Darum EINMAL neu starten
+        # und noch einmal laden (Daniel 18:42: "idiotensicher und instant")
+        print("WARNUNG: Laden hing (%s) - Instanz wird neu gestartet" % e, flush=True)
+        neustart()
+        menue()
+        tick = lade_stand(name, mit_bild=False, platz=1)
     befehl({"eigenerPlatz": 1}, 0.8)
     # (21.10. 19:02 gemessen: die Ladepause trug den Menschen im ersten Takt ein - danach ueberschrieb das Laden selbst den
     # Eintrag wieder mit -1 und die Niederlage-Pruefung setzte gameOver 1, noch bevor eigenerPlatz kam. Steht die Partie-

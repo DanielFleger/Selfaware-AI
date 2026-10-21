@@ -78,6 +78,7 @@ local tickLog      = nil   -- 17.10. Testing: Feldprotokoll je Tick (tickProtoko
 -- Festhalten (04.10.2026): nr -> { x, y, gesetzt, letzter } - Ziel gegen KI/Arbeit/Lord-Logik halten
 local festhalten   = {}
 local angriffReserve = nil   -- Gruppen je Takt reserviert (modul-lokal: UCP verbietet globale Variablen - 04.10.)
+local wegketten = {}         -- B-150: Wegpunkte je Truppe um ein Feuer herum ("danach"), wegketteTick schickt weiter
 local angriffSchlange = {}   -- Angriffsbefehle, die nacheinander abgesetzt werden (je einer, bis seine Gruppe steht)
 local angriffWarten = nil    -- { gruppe, einheiten, tick } des zuletzt abgesetzten Angriffs
 -- Zickzack (04.10.2026): { nr, a, b, alle, bis, t0, n } - Richtungswechsel je K Ticks, Feinposition je Tick
@@ -2408,12 +2409,56 @@ local function einzelbefehl(cmd)
     local a = cmd.angriff
     if not cmd.ausSchlange then
       a._als = core.readInteger(SLOT_ICH)       -- 19.10.: Spieler des Befehls (alsSpieler), gilt beim Abarbeiten
+      -- B-150 (Daniel 21.10. 20:23 "aussen herum laufen, gerade beim Angriff zaehlt jede Sekunde"): ein neuer Befehl loest
+      -- seine Einheiten aus jeder Wegkette; bringt er "danach" mit (weitere Wegpunkte um ein Feuer herum), schickt
+      -- wegketteTick die Truppe selbst zum naechsten Punkt, sobald die Mehrheit da ist - ohne auf die Python-Runde zu warten
+      do
+        local neu = {}
+        for _, nr in ipairs(a.einheiten or {}) do neu[tonumber(nr) or -1] = true end
+        for i = #wegketten, 1, -1 do
+          local rest = {}
+          for _, nr in ipairs(wegketten[i].einheiten) do if not neu[nr] then rest[#rest + 1] = nr end end
+          wegketten[i].einheiten = rest
+          if #rest == 0 then table.remove(wegketten, i) end
+        end
+        if type(a.lauf) == "table" and type(a.danach) == "table" and #a.danach > 0 then
+          local ein, uid = {}, {}
+          for _, nr in ipairs(a.einheiten or {}) do
+            local n = tonumber(nr)
+            if n then
+              ein[#ein + 1] = n
+              uid[n] = core.readInteger(EINHEITEN + n * E_SCHRITT + E_UID)
+            end
+          end
+          wegketten[#wegketten + 1] = { einheiten = ein, uid = uid, punkte = a.danach, i = 0, als = a._als,
+            x = tonumber(a.lauf[1]) or 0, y = tonumber(a.lauf[2]) or 0, seit = tick() }
+          log(INFO, string.format("WEGKETTE Tick %d: %d Einheiten nach (%s,%s), danach %d Punkte", tick(), #ein,
+            tostring(a.lauf[1]), tostring(a.lauf[2]), #a.danach))
+        end
+      end
       -- Warteschlange (gemessen 04.10. nachts, pruefe_einzelbefehl.py): drei Angriffe im selben Takt landeten alle
       -- in der letzten Gruppe und liefen zum letzten Ziel - das Spiel arbeitet die Auswahl (Befehl 16) erst spaeter
       -- ab und liest dann die Auswahl-Bits des letzten Befehls. Darum setzt angriffSchlangeTick je Befehl ab und
       -- wartet, bis dessen Einheiten in ihrer Gruppe stehen (Einheit +728 tribeID), bevor der naechste kommt.
       -- 19.10. (Partie 1018u: der Fluchtbefehl fuer Assassine 207 lief erst ~100 Ticks spaeter - hinter 5 bis 15 Routine-
       -- Befehlen in der Schlange): "vorrang" (Flucht) kommt nach vorn
+      -- B-153 (Daniel 21.10. 20:23: "man kommt nur auf das Keep, wenn man dort drauf geht ... wenn du sie in Trueppchen
+      -- draufschickst bzw. alle einzeln, koennen sie sich unendlich stacken; 100 auf einmal: nur ca. 30 gehen hoch"):
+      -- "trupp": n teilt den Befehl in Trueppchen zu je n Einheiten - jedes kommt einzeln in die Schlange
+      local tn = tonumber(a.trupp)
+      if tn and tn >= 1 and #(a.einheiten or {}) > tn then
+        local alle = a.einheiten
+        for i = 1, #alle, tn do
+          local b = {}
+          for k2, v in pairs(a) do b[k2] = v end
+          b.einheiten, b.trupp = {}, nil
+          for j = i, math.min(i + tn - 1, #alle) do b.einheiten[#b.einheiten + 1] = alle[j] end
+          table.insert(angriffSchlange, b)
+        end
+        log(INFO, string.format("ANGRIFF in Trueppchen Tick %d: %d Einheiten zu je %d, Schlange %d", tick(), #alle, tn,
+          #angriffSchlange))
+        return true
+      end
       if a.vorrang then
         table.insert(angriffSchlange, 1, a)
       else
@@ -4071,6 +4116,44 @@ local function angriffSchlangeTick()
   if not gut then log(WARNING, "logik: " .. tostring(err)) end
 end
 
+-- B-150: Wegketten - alle 10 Takte: ist die Mehrheit der Truppe hoechstens 4 Felder am aktuellen Punkt (oder 300 Takte
+-- vorbei), kommt der Laufbefehl zum naechsten Punkt vorn in die Angriffs-Schlange; nach dem letzten ist die Kette fertig
+local function wegketteTick()
+  if #wegketten == 0 then return end
+  if (core.readInteger(PAUSE) or 1) ~= 0 then return end
+  local t = tick()
+  if t % 10 ~= 0 then return end
+  for i = #wegketten, 1, -1 do
+    local k = wegketten[i]
+    local lebend, da = {}, 0
+    for _, nr in ipairs(k.einheiten) do
+      local b = EINHEITEN + nr * E_SCHRITT
+      if (core.readSmallInteger(b + E_ZUSTAND) or 0) ~= 0 and core.readInteger(b + E_UID) == k.uid[nr]
+         and (core.readInteger(b + E_LEBEN) or 0) > 0 then
+        lebend[#lebend + 1] = nr
+        local ux, uy = core.readSmallInteger(b + E_X) or -999, core.readSmallInteger(b + E_Y) or -999
+        if math.max(math.abs(ux - k.x), math.abs(uy - k.y)) <= 4 then da = da + 1 end
+      end
+    end
+    k.einheiten = lebend
+    if #lebend == 0 then
+      table.remove(wegketten, i)
+    elseif 2 * da >= #lebend or t - k.seit >= 300 then
+      k.i = k.i + 1
+      local p = k.punkte[k.i]
+      local px, py = tonumber(p[1]) or 0, tonumber(p[2]) or 0
+      table.insert(angriffSchlange, 1, { einheiten = lebend, lauf = { px, py }, _als = k.als })
+      log(INFO, string.format("WEGKETTE Tick %d: %d Einheiten (%d da) weiter nach (%d,%d), Punkt %d von %d%s", t, #lebend,
+        da, px, py, k.i, #k.punkte, (2 * da >= #lebend) and "" or " - nach 300 Takten"))
+      if k.i >= #k.punkte then
+        table.remove(wegketten, i)
+      else
+        k.x, k.y, k.seit = px, py, t
+      end
+    end
+  end
+end
+
 local function zickzackTick()
   local z = zickzack
   if z == nil then return end
@@ -4157,6 +4240,7 @@ local function everyTick()
   pcall(tickProtokollTick)
   pcall(festhaltenTick)
   pcall(angriffSchlangeTick)
+  pcall(wegketteTick)         -- B-150: Wegpunkte um Feuer herum ohne Pause
   pcall(mauerwachtTick)
   pcall(gebaeudewachtTick)
   pcall(bauwachtTick)
