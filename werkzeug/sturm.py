@@ -94,14 +94,13 @@ def plane_ziel(start, maenner, mk, lnr_xy):
     weg = r["weg"]
     i_wand = next((i for i, q in enumerate(weg) if q in set(map(tuple, r["mauern"]))), None)
     i_tor = next((i for i, q in enumerate(weg) if rand is not None and rand[q]), None)
+    gemein = {"weg": weg, "takte": r["takte"], "gefahr": gf, "nah": nah, "e": e,
+              "kandidaten": [(k[0], k[1], k[2]["takte"]) for k in kand]}     # EINE Stelle fuer alle Felder (Absturz 00:46: "nah" fehlte)
     if i_tor is not None and (i_wand is None or i_tor < i_wand):
-        return {"art": "tor", "ziel": nr, "zug": weg[i_tor - 1], "weg": weg, "takte": r["takte"], "gefahr": gf, "nah": nah, "e": e,
-                "kandidaten": [(k[0], k[1], k[2]["takte"]) for k in kand]}
+        return dict(gemein, art="tor", ziel=nr, zug=weg[i_tor - 1])
     if i_wand is not None:
-        return {"art": "mauer", "ziel": weg[i_wand], "zug": weg[i_wand - 1], "weg": weg, "takte": r["takte"], "gefahr": gf,
-                "e": e, "kandidaten": [(k[0], k[1], k[2]["takte"]) for k in kand]}
-    return {"art": "lord", "ziel": None, "zug": None, "weg": weg, "takte": r["takte"], "gefahr": gf, "nah": nah, "e": e,
-            "kandidaten": [(k[0], k[1], k[2]["takte"]) for k in kand]}
+        return dict(gemein, art="mauer", ziel=weg[i_wand], zug=weg[i_wand - 1])
+    return dict(gemein, art="lord", ziel=None, zug=None)
 
 
 # Schaden je Schuetze und Takt nach Schach-Abstand, offenes Feld (Wissensregister L73, gemessen an Assassinen, ~6.900 Runden):
@@ -178,6 +177,11 @@ def main():
     # (Daniel 00:42 "die Streitkolben gehen und kommen dann wieder, dann kommen Wellen - sie sollen doch alle auf einmal"):
     # gesammelt wird EINMAL (und erst wieder, wenn die ganze Truppe gefallen ist); danach geht die Truppe von Ziel zu Ziel weiter
     gesammelt = False
+    # Staerke-Regel (Daniel 00:46 "ja so eine Staerke-Regel"): im Sturm wird die Verlustrate gemessen (Tote der Truppe je Takt);
+    # reicht die Truppe bei dieser Rate nicht bis zum Bruch des Ziels (Restarbeit aus Hoehe/Leben, Schaden je Treffer aus dem Code,
+    # 96 Takte je Runde), Rueckzug zum Sammelfeld - erneut gestuermt wird erst mit noetig Mann (kleinste Zahl, die bei dieser Rate
+    # das Ziel noch bricht); der Nachschub fuellt auf
+    sturm_t, tote_sturm, noetig, tor_leben = None, 0, None, None
     geschickt, angesetzt, jaeger, fern_ziel = set(), set(), {}, {}
     ballisten_pruefen = True                             # nur bei Anlass suchen: Anfang, Jaeger frei, neues Ziel
     versuche_ballista = {}                               # Ballista -> geschickte Jaeger (hoechstens 2 je Ballista)
@@ -198,6 +202,8 @@ def main():
         zug_ = tuple(plan["zug"]) if plan["zug"] else tuple(w_[-1])
         frist = t_ + max(0, w_.index(zug_) if zug_ in w_ else len(w_)) * mechanik.TAKTE_JE_FELD + 2 * mk["takte_je_treffer"]
         wirk_alt, t_107 = None, None
+        nonlocal sturm_t, tote_sturm
+        sturm_t, tote_sturm = t_, 0
         melde((t_, "STURM %d Mann auf %s %s" % (len(wer), plan["art"], plan["ziel"])))
         phase = "sturm"
 
@@ -219,6 +225,8 @@ def main():
         jetzt = eigene_soldaten(roh)
         # gleiche Nummer, andere Kennung = neuer Mann auf dem Platz eines Gefallenen
         lebend = {n for n in jetzt if uid_von.get(n) == kennung(roh, n)}
+        if phase == "sturm":
+            tote_sturm += len(welle - lebend)
         for grp in (mauer, nah, fern, welle, angesetzt, geschickt):
             grp &= lebend
         for j in [j for j, b in jaeger.items() if j not in lebend or AD.einheit(roh, b)["leben"] <= 0]:
@@ -343,6 +351,7 @@ def main():
                 melde((t_, "KEIN WEG zum Lord von %s" % (start,)))
                 break
             sammel = sammelfeld(plan["weg"], plan["zug"] if plan["zug"] else plan["weg"][-2], plan["nah"])
+            tor_leben = lies_gebaeude().get(plan["ziel"], {}).get("leben") if plan["art"] == "tor" else None
             melde((t_, "ZIEL %s %s ueber Zugang %s, Sammelfeld %s, Weg %.0f Takte | Kandidaten %s" % (
                 plan["art"], plan["ziel"], plan["zug"], sammel, plan["takte"], plan["kandidaten"])))
             angesetzt = set()
@@ -368,8 +377,15 @@ def main():
 
         if phase == "sammeln":
             da = {n for n in stuermer if abstand((jetzt[n]["x"], jetzt[n]["y"]), sammel) <= 1}
-            if da and (da == stuermer or t_ >= sammel_frist):
-                gesammelt = True
+            if noetig is not None:
+                # nach einem Rueckzug: erst mit noetig Mann; sind alle da und kommt kein Nachschub mehr (kein Gold fuer einen Mann,
+                # keine Bauern), mit allen, die es gibt
+                kein_nachschub = s32(GOLD1) < 20 or s32(FEUER1) <= 0 and not haus_stellen
+                bereit = len(da) >= noetig or (da == stuermer and kein_nachschub)
+            else:
+                bereit = bool(da) and (da == stuermer or t_ >= sammel_frist)
+            if bereit:
+                gesammelt, noetig = True, None
                 welle = set(stuermer)                     # alle auf einmal - wer noch unterwegs ist, geht direkt mit
                 sturm_befehl(welle)
                 ereignisse[-1] = (t_, ereignisse[-1][1] + " (%d am Sammelfeld)" % len(da))
@@ -408,6 +424,31 @@ def main():
         if any(jetzt[n]["lage"] == 107 for n in welle):
             t_107 = t_ if t_107 is None else t_107
             frist = max(frist, t_107 + 2 * mk["takte_je_treffer"])
+        if plan["art"] in ("mauer", "tor") and t_107 is not None and t_ - t_107 >= mk["takte_je_treffer"] and tote_sturm > 0 \
+                and welle and t_ > sturm_t:
+            rate = tote_sturm / float(t_ - sturm_t)                     # Tote je Takt, gemessen in diesem Sturm
+            if plan["art"] == "mauer":
+                k_ = kvon[plan["ziel"]]
+                nb = sum(1 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                         if s32(speicher.LOGIK + 4 * kvon.get((plan["ziel"][0] + dx, plan["ziel"][1] + dy), k_)) & 0x10000100)
+                schaden = mechanik.kachel_schaden(mk["mauer"], nb)
+                punkte = int(speicher.lies(speicher.HOEHE + k_, 1)[0]) - int(plan["e"]["boden"][plan["ziel"]]) + 1
+            else:
+                schaden, punkte = mk["tor_turm"], (tor_leben or 0)
+            treffer = math.ceil(max(punkte, 1) / float(max(schaden, 1)))
+            rest_takte = lambda m_: math.ceil(treffer / float(max(1, m_))) * mk["takte_je_treffer"]
+            m = len(welle)
+            if m - rate * rest_takte(m) <= 0:
+                noetig = next((m_ for m_ in range(m + 1, 1000) if m_ - rate * rest_takte(m_) > 0), None)
+                melde((t_, "RUECKZUG: %d Mann, %.4f Tote/Takt gemessen, Ziel braucht noch %d Treffer (%d Takte) - es braucht %s Mann" % (
+                    m, rate, treffer, rest_takte(m), noetig)))
+                befehl({"angriff": {"einheiten": sorted(welle), "lauf": [sammel[0], sammel[1]], "trupp": 1}}, 0.5)
+                gesammelt, welle, angesetzt = False, set(), set()
+                if plan["art"] == "mauer":                # festgehaltenes Mauerziel loesen (logik.lua: ohne halten -> aus)
+                    befehl({"mauerziel": {"einheiten": [], "feld": k_, "x": plan["ziel"][0], "y": plan["ziel"][1]}}, 0.3)
+                phase = "sammeln"
+                sammel_frist = t_
+                continue
         if not welle:
             melde((t_, "TRUPPE GEFALLEN - neu sammeln"))
             gesammelt = False
@@ -418,7 +459,7 @@ def main():
                 befehl({"lagebild": True}, 2.0, bis="LAGEBILD")
                 leben = lies_gebaeude().get(plan["ziel"], {}).get("leben", 0)
                 if wirk_alt is None or leben < wirk_alt:
-                    wirk_alt, frist = leben, t_ + 2 * mk["takte_je_treffer"]
+                    wirk_alt, frist, tor_leben = leben, t_ + 2 * mk["takte_je_treffer"], leben
                     continue
             lage = {}
             for n in welle:
