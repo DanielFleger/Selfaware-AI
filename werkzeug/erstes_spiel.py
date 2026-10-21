@@ -636,6 +636,28 @@ def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
         BUCH.vormerken(typ, frei[0], zweck)
     return rueckgabe(frei[0], "gebaut")
 
+def baue_aus_liste(typ, kandidaten, zweck="", spiel_hoechstens=4):
+    """B-151 (Daniel 21.10.2026 20:07 zur Schenke: "sie prueft einfach den naechsten oder mehrere gleichzeitig und nimmt
+    sofort den freien"; Pruefstand 21.10.: 12 Schenke-Versuche, das Spiel meldete den Platz jedes Mal frei, platz_sauber
+    strich ihn - je Runde kam nur EIN Platz dran). Erst die eigene Laufweg-Pruefung ueber alle Plaetze auf einmal, dann je
+    sauberen Platz der Bau genau dort (mit der Platzsuche des Spiels, hoechstens spiel_hoechstens Anfragen - jede wartet bis
+    1 s auf das Spiel), bis einer abgesetzt ist. Gibt (Platz oder None, [gepruefte Plaetze]); fehlt Material, ist kein Platz
+    verbraucht."""
+    kandidaten = [tuple(p) for p in kandidaten]
+    sauber = kandidaten
+    if BUCH is not None and typ not in (30, 31, 32, 33):
+        sauber = [tuple(p) for p in platz_sauber(typ, list(kandidaten))]
+    geprueft = [p for p in kandidaten if p not in sauber]
+    for p in sauber[:spiel_hoechstens]:
+        ort, grund = baue_schnell(typ, p[0], p[1], 0, zweck=zweck, mit_grund=True)
+        if grund == "rohstoff":
+            return None, []
+        geprueft.append(p)
+        if ort:
+            return ort, geprueft
+    return None, geprueft
+
+
 def baue_haus():
     return baue_schnell(1, BERGFRIED[0] - 7, BERGFRIED[1] - 2, 20)    # nahe am Bergfried (frueher fest 158,109 = 165-7, 111-2)
 
@@ -2326,7 +2348,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 sperr = [s for s in (getattr(ausbau, "sperr", None) or []) if not (typ == 31 and s in hopfen_sperr)]
                 return [q for q in plaetze_live(typ, kern, r)
                         if not any(q[0] <= s[2] and q[0] + b - 1 >= s[0] and q[1] <= s[3] and q[1] + b - 1 >= s[1] for s in sperr)]
-            bier = Bierkette(SP, lambda typ, x, y, r: baue_schnell(typ, x, y, r, zweck="Bierkette"), bier_plaetze, preis)
+            bier = Bierkette(SP, lambda typ, kand: baue_aus_liste(typ, kand, zweck="Bierkette"), bier_plaetze, preis)
             belegt = [q for _t, q in reserve]
             hopfen = [q for q in plaetze_live(31, BERGFRIED, 80)
                       if all(abs(q[0] - o[0]) >= 10 or abs(q[1] - o[1]) >= 10 for o in belegt)][:bier.RESERVE]

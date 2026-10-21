@@ -12,6 +12,9 @@ Vorher festgelegt:
   5. ein Bau scheitert (Spiel setzt nicht) -> in derselben Runde kommt das naechste Glied dran
   6. (1019b: das Wirtshaus scheiterte 7-mal an "fehlt stein 8") Schenke faellig, Stein 3 statt 10 -> kein Bauversuch,
      die Kette meldet 10 Stein Bedarf (der Lenker haelt ihn vom Verkauf zurueck)
+  7. (B-151, Pruefstand 21.10.: 12 Schenke-Versuche, immer dieselben 2-3 Plaetze, jeder von der Laufweg-Pruefung
+     gestrichen) die ersten 5 Plaetze der Liste sind belegt, der 6. frei -> die Schenke steht in DERSELBEN Runde auf dem
+     6.; sind alle 12 Plaetze einer Runde belegt, nimmt die naechste Runde die Plaetze ab dem 13. (nicht wieder die ersten)
 Aufruf: python werkzeug/bierkette_pruefen.py [<alte bierkette.py>]   (Rueckgabe 0 = gruen)
 """
 import importlib.util
@@ -38,7 +41,7 @@ def geb(typ, x, y, sp=1):
     return {"typ": typ, "besitzer": sp, "x": x, "y": y, "leben": 100}
 
 
-def kette(hopfen, brauerei, schenke, plaetze, setzt=lambda typ: True):
+def kette(hopfen, brauerei, schenke, plaetze, setzt=lambda typ: True, frei=lambda typ, p: True):
     G = {1: geb(B.LAGER, 100, 100), 2: geb(B.KORNSPEICHER, 110, 100)}
     i = 10
     for typ, zahl in ((B.HOPFEN, hopfen), (B.BRAUEREI, brauerei), (B.SCHENKE, schenke)):
@@ -46,9 +49,13 @@ def kette(hopfen, brauerei, schenke, plaetze, setzt=lambda typ: True):
             G[i] = geb(typ, 60 + 12 * k, 60 + typ); i += 1
     gebaut = []
 
-    def baue(typ, x, y, r):
-        gebaut.append((typ, (x, y)))
-        return (x, y) if setzt(typ) else None
+    def baue(typ, kand):
+        # wie erstes_spiel.baue_aus_liste: der erste freie Platz wird gebaut, die davor sind geprueft
+        for i, p in enumerate(kand):
+            if frei(typ, p):
+                gebaut.append((typ, p))
+                return (p if setzt(typ) else None), list(kand[:i + 1])
+        return None, list(kand)
     b = B.Bierkette(1, baue, plaetze, lambda typ, ware: 10)
     return b, G, gebaut
 
@@ -107,6 +114,21 @@ def main():
     b.schritt(dict(ST, stein=3), G, RL)
     sb = b.stein_bedarf() if hasattr(b, "stein_bedarf") else None
     pruefe(6, "Schenke faellig, 3 Stein (braucht 10): bestellt %s, Steinbedarf gemeldet %s" % (gebaut, sb), not gebaut and sb == 10)
+    # 7
+    liste7 = [(120 + i, 120) for i in range(20)]
+    belegt7 = set(liste7[:5])
+    b, G, gebaut = kette(1, 1, 0, lambda typ, kern, r: list(liste7) if typ == B.SCHENKE else [],
+                         frei=lambda typ, p: p not in belegt7)
+    aus7 = b.schritt(ST, G, RL)
+    b2, G2, gebaut2 = kette(1, 1, 0, lambda typ, kern, r: list(liste7) if typ == B.SCHENKE else [],
+                            frei=lambda typ, p: p not in liste7[:12])
+    b2.schritt(ST, G2, RL)
+    vorher2 = len(gebaut2)
+    b2.schritt(dict(ST, t=ST["t"] + 700), G2, RL)
+    pruefe(7, "5 belegt, 6. frei: gebaut %s %s | alle 12 belegt: Runde 1 %s, Runde 2 %s" % (
+        gebaut, [a for a in aus7 if "Schenke" in a][:1], gebaut2[:vorher2], gebaut2[vorher2:]),
+        gebaut and gebaut[0] == (B.SCHENKE, liste7[5]) and gebaut2[:vorher2] == []
+        and gebaut2[vorher2:] == [(B.SCHENKE, liste7[12])])
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

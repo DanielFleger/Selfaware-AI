@@ -27,12 +27,17 @@ class Bierkette:
     PRO_KETTE = 30            # Einwohner je Kette (Daniel: "30 Bevoelkerung ... bei einer Schenke")
     HOECHSTENS = 4
     NEU_PLAETZE = 3000        # Ticks, nach denen die Platzliste neu vom Spiel geholt wird
+    # B-151 (Daniel 21.10.2026 20:07: "sie prueft einfach den naechsten oder mehrere gleichzeitig und nimmt sofort den
+    # freien"; Pruefstand 21.10.: 12 Schenke-Versuche ohne Schenke - je Runde kam EIN Platz dran, die eigene Laufweg-
+    # Pruefung strich ihn, nach 3.000 Ticks begann die Liste von vorn): ein Bauversuch bekommt die naechsten MEHRERE Plaetze
+    MEHRERE = 12
     RADIUS = {HOPFEN: 45, BRAUEREI: 20, SCHENKE: 20}
     WEITER = (2, 10.0 / 3)    # 19.10. (1019a): findet das Spiel im Umkreis nichts, Umkreis x2, dann x3,3 (Hopfen 90, 150)
     RESERVE = 2               # Hopfenplaetze, die gleich beim Start fuer andere Bauten gesperrt werden (fruchtbarer Boden)
 
     def __init__(self, sp, baue, plaetze, preis):
-        """baue(typ, x, y, r) -> Bauergebnis (wahr = gesetzt); plaetze(typ, kern, r) -> [(x, y)] vom Spiel;
+        """baue(typ, [Plaetze]) -> (Platz oder None, [gepruefte Plaetze]) (B-151: mehrere auf einmal, der erste freie wird
+        gebaut); plaetze(typ, kern, r) -> [(x, y)] vom Spiel;
         preis(typ, ware) -> Baukosten."""
         self.sp, self.baue, self.plaetze, self.preis = sp, baue, plaetze, preis
         self.merk = {}            # typ -> (Tick, [Plaetze])
@@ -48,12 +53,13 @@ class Bierkette:
             return None
         return (sum(g["x"] for g in wahl) // len(wahl), sum(g["y"] for g in wahl) // len(wahl))
 
-    def _platz(self, typ, G, t):
+    def _plaetze(self, typ, G, t):
+        """Die naechsten MEHRERE noch nicht verworfenen Plaetze (B-151); ein reservierter Hopfenplatz kommt allein."""
         if typ == HOPFEN and self.reserviert:
-            return self.reserviert.pop(0)    # 19.10. (1019a: (52, 205) trug Hopfenfarm 1 und wurde 20-mal wieder versucht)
+            return [self.reserviert.pop(0)]  # 19.10. (1019a: (52, 205) trug Hopfenfarm 1 und wurde 20-mal wieder versucht)
         kern = self._kern(G, typ)
         if kern is None:
-            return None
+            return []
         weg = self.verworfen.setdefault(typ, set())
         m = self.merk.get(typ)
         if m is None or t - m[0] >= self.NEU_PLAETZE or not [p for p in m[1] if p not in weg]:
@@ -64,8 +70,7 @@ class Bierkette:
                     break
             self.merk[typ] = (t, liste)
             weg.clear()                  # 19.10.: neue Platzliste vom Spiel - frueher Abgelehntes darf wieder (Laufwege wandern)
-        frei = [p for p in self.merk[typ][1] if p not in weg]
-        return frei[0] if frei else None
+        return [p for p in self.merk[typ][1] if p not in weg][:self.MEHRERE]
 
     def stein_bedarf(self):
         """19.10. (1019b: das Wirtshaus scheiterte 7-mal an 5-8 fehlendem Stein): Stein fuer den naechsten faelligen Bau -
@@ -97,15 +102,16 @@ class Bierkette:
             # 19.10. (1019b): auch Stein - das Wirtshaus braucht ihn, das Spiel lehnte sonst jeden Bau ab ("fehlt stein 8")
             if st.get("holz", 0) - ruecklage.get("holz", 0) < holz or st.get("gold", 0) - ruecklage.get("gold", 0) < gold                     or st.get("stein", 0) < stein:
                 return aus                   # die Reihe wartet auf das dringendste Glied
-            p = self._platz(typ, G, st.get("t", 0))
-            if p is None:
+            kand = self._plaetze(typ, G, st.get("t", 0))
+            if not kand:
                 aus.append("BIER: kein Platz fuer %s (vom Spiel geprueft)" % name)
                 continue
-            ergebnis = self.baue(typ, p[0], p[1], 0)
-            # 19.10. (1018w: der zweite Hopfenbau nahm denselben reservierten Platz noch einmal): gesetzt oder nicht - der
-            # Platz ist fuer den naechsten Bau verbraucht
-            self.verworfen.setdefault(typ, set()).add(p)
-            aus.append("BIER: %s %d/%d bei %s (Einwohner %d) -> %s" % (name, zahl[typ] + 1, n, p, st.get("leute", 0), ergebnis))
+            ergebnis, geprueft = self.baue(typ, kand)
+            # 19.10. (1018w: der zweite Hopfenbau nahm denselben reservierten Platz noch einmal): gesetzt oder nicht - jeder
+            # gepruefte Platz ist fuer den naechsten Bau verbraucht, die naechste Runde nimmt die naechsten
+            self.verworfen.setdefault(typ, set()).update(geprueft)
+            aus.append("BIER: %s %d/%d - %d von %d Plaetzen geprueft -> %s (Einwohner %d)" % (
+                name, zahl[typ] + 1, n, len(geprueft), len(kand), ergebnis, st.get("leute", 0)))
             if ergebnis:
                 return aus                   # hoechstens ein gesetzter Bau je Runde
         return aus
