@@ -188,6 +188,7 @@ def main():
     geschickt, angesetzt, jaeger = set(), set(), {}
     ballisten_pruefen = True                             # nur bei Anlass suchen: Anfang, Jaeger frei, neues Ziel
     steht = {}                                           # Nummer -> (Feld, seit Takt) - fuer die Nachzuegler-Regel
+    wartepunkt = {}                                      # Nummer -> Feld, an dem er vor dem Sturm wartet (ohne Beschuss)
     angestossen = {}                                     # Nummer -> wie oft ohne Bewegung neu geschickt
     versuche_ballista = {}                               # Ballista -> geschickte Jaeger (hoechstens 4 je Ballista)
     jaeger_frei = []                                     # Jaeger, deren Ziel gerade erledigt ist
@@ -209,8 +210,6 @@ def main():
             befehl({"angriff": {"einheiten": sorted(wer), "gebaeude": plan["ziel"], "trupp": 1}}, 0.5)
         else:
             befehl({"angriff": {"einheiten": sorted(wer), "ziel": lnr}}, 0.5)
-            if fern:                                      # Lord-Phase: Fernkaempfer an den Lord (sie schiessen auf die Leibwache)
-                befehl({"angriff": {"einheiten": sorted(fern), "lauf": [lord_xy[0], lord_xy[1]]}}, 0.5)
         w_ = plan["weg"]
         zug_ = tuple(plan["zug"]) if plan["zug"] else tuple(w_[-1])
         frist = t_ + max(0, w_.index(zug_) if zug_ in w_ else len(w_)) * mechanik.TAKTE_JE_FELD + 2 * mk["takte_je_treffer"]
@@ -288,7 +287,7 @@ def main():
                 for n in neu:
                     uid_von[n] = kennung(roh, n)
                     (mauer if jetzt[n]["typ"] == STREITKOLBEN else fern if jetzt[n]["typ"] in FERN else nah).add(n)
-                    if jetzt[n]["typ"] not in FERN and phase == "sturm":
+                    if phase == "sturm":
                         welle.add(n)
                         if plan["art"] == "mauer":
                             befehl({"angriff": {"einheiten": [n], "lauf": [plan["zug"][0], plan["zug"][1]], "trupp": 1}}, 0.3)
@@ -296,7 +295,7 @@ def main():
                             befehl({"angriff": {"einheiten": [n], "gebaeude": plan["ziel"], "trupp": 1}}, 0.3)
                         else:
                             befehl({"angriff": {"einheiten": [n], "ziel": lnr, "trupp": 1}}, 0.3)
-                    elif sammel is not None and jetzt[n]["typ"] not in FERN:
+                    elif sammel is not None:
                         befehl({"angriff": {"einheiten": [n], "lauf": [sammel[0], sammel[1]], "trupp": 1}}, 0.3)
                         geschickt.add(n)
                 erwartet = max(0, erwartet - len(neu))
@@ -364,7 +363,7 @@ def main():
         # den Laufbefehl neu.
         if plan is not None and sammel is not None:
             vorn_nah = sammel if phase == "sammeln" else (tuple(plan["zug"]) if plan["zug"] else lord_xy)
-            vorn_fern = lord_xy if (phase == "sturm" and plan["art"] == "lord") else sammel
+            vorn_fern = vorn_nah
             nachzuegler = {}
             for n in (mauer | nah | fern) - set(jaeger):
                 if n not in jetzt:
@@ -374,7 +373,7 @@ def main():
                 if alt_ is None or alt_[0] != pos:
                     steht[n] = (pos, t_)
                     continue
-                ziel_n = vorn_fern if n in fern else vorn_nah
+                ziel_n = wartepunkt.get(n, sammel) if phase == "sammeln" else (vorn_fern if n in fern else vorn_nah)
                 if t_ - alt_[1] >= mk["takte_je_treffer"] and abstand(pos, ziel_n) > NAH:
                     angestossen[n] = angestossen.get(n, 0) + 1
                     steht[n] = (pos, t_)
@@ -387,7 +386,9 @@ def main():
                 befehl({"angriff": {"einheiten": sorted(wer), "lauf": [ziel_n[0], ziel_n[1]]}}, 0.3)
                 melde((t_, "NACHZUEGLER %d Mann (%s) -> %s" % (len(wer), sorted({jetzt[w]["typ"] for w in wer}), ziel_n)))
 
-        stuermer = (mauer | nah) - set(jaeger)
+        # (Daniel 01:06 "es braucht alle Einheiten beim Stacken schon fuer das Zerstoeren", 01:07 "jede Einheit kann Nahkampf"):
+        # die Sturm-Truppe ist jede eigene Einheit ausser den Jaegern - auch die Fernkaempfer stacken mit
+        stuermer = (mauer | nah | fern) - set(jaeger)
         if not stuermer and erwartet == 0 and (kaserne is None or s32(FEUER1) <= 0):
             melde((t_, "ALLE TOT - keiner mehr anwerbbar"))
             break
@@ -420,15 +421,41 @@ def main():
                 sturm_befehl(welle)
                 continue
             geschickt, welle = set(), set()
-            befehl({"angriff": {"einheiten": sorted(stuermer), "lauf": [sammel[0], sammel[1]], "trupp": 1}}, 0.5)
-            if fern:                                      # Fernkaempfer ziehen mit (Gruppenbefehl - sie hauen keine Mauer)
-                befehl({"angriff": {"einheiten": sorted(fern), "lauf": [sammel[0], sammel[1]]}}, 0.5)
+            # Schlau warten (Daniel 01:04 "die Streitkolben nicht zuruecklaufen", "es macht keinen Sinn, im Beschuss zu warten"):
+            # wer hinter dem Sammelfeld steht, laeuft vor zum Sammelfeld; wer schon weiter vorn steht, laeuft NICHT zurueck - er
+            # bleibt stehen, wenn ihn dort kein Schuetze naeher als NAH trifft, sonst geht er zum naechsten Feld ohne solchen Beschuss
+            zum_zug = mechanik.lauf_takte_zu(plan["e"]["link"], tuple(plan["zug"]) if plan["zug"] else tuple(plan["weg"][-1]),
+                                             AD.sperre_feindbau(plan["e"]["bau"]))
+            sxs, sys_ = np.nonzero((plan["nah"] == 0) & np.isfinite(zum_zug))
+            wartepunkt = {}
+            for n in stuermer:
+                pos = (jetzt[n]["x"], jetzt[n]["y"])
+                if not np.isfinite(zum_zug[pos]) or zum_zug[pos] > zum_zug[sammel]:
+                    wartepunkt[n] = sammel
+                elif plan["nah"][pos] == 0:
+                    wartepunkt[n] = pos                   # schon vorn und ohne Beschuss: stehen bleiben
+                elif len(sxs):
+                    i_ = int(np.argmin(np.maximum(np.abs(sxs - pos[0]), np.abs(sys_ - pos[1]))))
+                    wartepunkt[n] = (int(sxs[i_]), int(sys_[i_]))
+                else:
+                    wartepunkt[n] = sammel
+            nach_punkt = {}
+            for n, wp in wartepunkt.items():
+                if wp != (jetzt[n]["x"], jetzt[n]["y"]):
+                    nach_punkt.setdefault(wp, []).append(n)
+            for wp, wer in nach_punkt.items():
+                befehl({"angriff": {"einheiten": sorted(wer), "lauf": [wp[0], wp[1]], "trupp": 1}}, 0.3)
+            melde((t_, "WARTEN: %d zum Sammelfeld, %d bleiben vorn stehen, %d zum naechsten Feld ohne Beschuss" % (
+                sum(1 for wp in wartepunkt.values() if wp == sammel),
+                sum(1 for n, wp in wartepunkt.items() if wp == (jetzt[n]["x"], jetzt[n]["y"])),
+                sum(1 for n, wp in wartepunkt.items() if wp != sammel and wp != (jetzt[n]["x"], jetzt[n]["y"])))))
             geschickt = set(stuermer)
             # echte Laufzeit je Mann zum Sammelfeld (Schrittbits) - die Luftlinie unterschaetzte (Lauf 00:39: 11 von 51 da)
             zum_sammel = mechanik.lauf_takte_zu(plan["e"]["link"], sammel, AD.sperre_feindbau(plan["e"]["bau"]))
             # Felder x Takte je Feld des Typs: Streitkolben 12 (gemessen, augen_laufen), sonst 16 - UNGEMESSEN fuer Soldaten, geliehen
             # von den Arbeitern (Wissensregister L68). Lauf 00:40: mit 12 fuer alle waren beim Sturm erst 11 von 53 da
-            wege_ = [zum_sammel[jetzt[n]["x"], jetzt[n]["y"]] / mechanik.TAKTE_JE_FELD *
+            wege_ = [(zum_sammel[jetzt[n]["x"], jetzt[n]["y"]] if wartepunkt[n] == sammel else
+                      abstand((jetzt[n]["x"], jetzt[n]["y"]), wartepunkt[n]) * mechanik.TAKTE_JE_FELD) / mechanik.TAKTE_JE_FELD *
                      (mechanik.TAKTE_JE_FELD if jetzt[n]["typ"] == STREITKOLBEN else 16) for n in stuermer]
             erreichbar = [w for w in wege_ if np.isfinite(w)]
             sammel_frist = t_ + (max(erreichbar) if erreichbar else 0)
@@ -438,7 +465,7 @@ def main():
             continue
 
         if phase == "sammeln":
-            da = {n for n in stuermer if abstand((jetzt[n]["x"], jetzt[n]["y"]), sammel) <= 1}
+            da = {n for n in stuermer if abstand((jetzt[n]["x"], jetzt[n]["y"]), wartepunkt.get(n, sammel)) <= 1}
             if noetig is not None:
                 # nach einem Rueckzug: erst mit noetig Mann; sind alle da und kommt kein Nachschub mehr (kein Gold fuer einen Mann,
                 # keine Bauern), mit allen, die es gibt
