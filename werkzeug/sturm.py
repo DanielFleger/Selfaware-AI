@@ -61,6 +61,19 @@ AUSBILDUNG = {8, 9, 24}                               # Soeldnerposten, Kaserne,
 FERN = set(gefecht.FERN_REICH)
 
 
+# Stellschrauben (Daniel 22.10. 01:24 "das Wichtigste ist, dass nichts davon hart codiert ist, sondern die KI selbst draufkommt"):
+# jede Entscheidung, die vorher eine feste Regel war, ist eine Wahl - sturm_lernen.py waehlt je Lauf und bewertet das Ergebnis
+STELLSCHRAUBEN = {
+    "lord": ["einzeln", "gruppe", "kette"],      # Angriff auf den Lord: Einzelbefehle / ein Gruppenbefehl / Wegkette bis vor den Lord
+    "tor": ["einzeln", "gruppe"],                # Torhaus: Einzelbefehle / ein Gruppenbefehl
+    "losgehen": ["alle", "bedarf"],              # erster Sturm: wenn alle da sind / sobald der Bedarf aus der Verlustrate da ist
+    "jaeger": ["aus", "wirkung"],                # Jaeger: keine / nur auf Feinde, die gerade einen von uns angreifen
+    "wegweiser": ["aus", "an"],                  # Sammeln/Nachschub/Sturm: direkt / Wegkette entlang des sicheren Plans
+}
+STANDARD = {"lord": "einzeln", "tor": "einzeln", "losgehen": "alle", "jaeger": "wirkung", "wegweiser": "an"}
+ZIELEINHEIT = 926                                    # Einheit +926 (short): wen sie gerade angreift (logik.lua lagebild "zieleinheit")
+
+
 def s32(a):
     return int.from_bytes(speicher.lies(a, 4), "little", signed=True)
 
@@ -162,7 +175,9 @@ def sammelfeld(weg, zug, nah):
     return tuple(weg[max(sicher)]) if sicher else tuple(weg[0])
 
 
-def main():
+def main(wahl=None):
+    """Ein Sturm mit der Wahl der Stellschrauben (fehlende Schrauben: STANDARD). Rueckgabe: Ergebnis fuer sturm_lernen.py."""
+    wahl = dict(STANDARD, **(wahl or {}))
     t_start = time.time()
     print("OK:", shc.laden(shc.STANDARD_STAND), flush=True)
     befehl({"lagebild": True}, 2.0, bis="LAGEBILD")
@@ -179,6 +194,7 @@ def main():
     mauer = {n for n, e in alle.items() if e["typ"] == STREITKOLBEN}
     fern = {n for n, e in alle.items() if e["typ"] in FERN}
     nah = set(alle) - mauer - fern
+    print("WAHL:", wahl, flush=True)
     print("ARMEE: %d Streitkolben, %d Nahkaempfer, %d Fernkaempfer | Lord %d bei %s | Kaserne %s" % (
         len(mauer), len(nah), len(fern), lnr, lord_xy, kaserne_xy), flush=True)
     kxy = {int(k): (int(x), int(y)) for x, y, k in zip(*speicher.felder())}
@@ -284,12 +300,15 @@ def main():
         # "die Streitkolben laufen zurueck": die Lua-Schlange arbeitet Einzelbefehle nacheinander ab, bis der letzte von 70 seinen
         # Befehl hat, vergehen viele Takte - wessen Ziel gerade gefallen war, lief so lange ins Lager zurueck)
         merke(wer, "Sturm %s %s" % (plan["art"], plan["ziel"]))
-        if plan["art"] == "mauer":
+        if plan["art"] == "mauer" and wahl["wegweiser"] == "an" and tuple(plan["zug"]) in plan["weg"]:
+            kette(wer, plan["weg"].index(tuple(plan["zug"])), "Sturm Mauer")
+        elif plan["art"] == "mauer":
             befehl({"angriff": {"einheiten": sorted(wer), "lauf": [plan["zug"][0], plan["zug"][1]], "trupp": 1}}, 0.5)
         elif plan["art"] == "tor":
             # Torhaus EINZELN (Lauf 01:00: als Gruppenbefehl verteilte das Spiel sie in Formation, nach 529 Takten standen 50 von 72
             # noch in 101; im Siegerlauf 00:54 einzeln: Torhaus nach 589 Takten gefallen)
-            befehl({"angriff": {"einheiten": sorted(wer), "gebaeude": plan["ziel"], "trupp": 1}}, 0.5)
+            befehl({"angriff": dict({"einheiten": sorted(wer), "gebaeude": plan["ziel"]},
+                                    **({"trupp": 1} if wahl["tor"] == "einzeln" else {}))}, 0.5)
         else:
             # Lord EINZELN, die Vordersten zuerst (Lauf 01:16: als Gruppenbefehl liefen die Maenner in Formation am Lord vorbei -
             # Rueckwaerts-Melder: 22 -> 42 Felder; im ersten Sieg mit Einzelbefehlen fiel der Lord am schnellsten, 1.192 Takte)
@@ -297,9 +316,16 @@ def main():
             # vor den Lord; wer dort ankommt (<= 4 Felder, wie logik.lua wegkette), greift sofort einzeln an
             # (Lauf 01:22: die Wegkette bis vor den Lord war langsamer - Lord tot 6.980 statt 5.967, 137 Rueckwaerts-Meldungen auf der
             # Kette, 10 Mann blieben an einem Wegpunkt haengen): zurueck zum schnellsten gemessenen Weg - Einzelangriff, Vorderste zuerst
-            reihe = sorted(wer, key=lambda n_: abstand((jetzt[n_]["x"], jetzt[n_]["y"]), lord_xy) if n_ in jetzt else 999)
-            befehl({"angriff": {"einheiten": reihe, "ziel": lnr, "trupp": 1}}, 0.5)
-            lord_an.update(wer)
+            if wahl["lord"] == "kette":
+                kette(wer, len(plan["weg"]) - 2, "Weg zum Lord")
+                lord_an.clear()
+            elif wahl["lord"] == "gruppe":
+                befehl({"angriff": {"einheiten": sorted(wer), "ziel": lnr}}, 0.5)
+                lord_an.update(wer)
+            else:
+                reihe = sorted(wer, key=lambda n_: abstand((jetzt[n_]["x"], jetzt[n_]["y"]), lord_xy) if n_ in jetzt else 999)
+                befehl({"angriff": {"einheiten": reihe, "ziel": lnr, "trupp": 1}}, 0.5)
+                lord_an.update(wer)
         w_ = plan["weg"]
         zug_ = tuple(plan["zug"]) if plan["zug"] else tuple(w_[-1])
         frist = t_ + max(0, w_.index(zug_) if zug_ in w_ else len(w_)) * mechanik.TAKTE_JE_FELD + 2 * mk["takte_je_treffer"]
@@ -328,6 +354,8 @@ def main():
                 rate_speichern()
             break
         jetzt = eigene_soldaten(roh)
+        if wahl["jaeger"] == "wirkung" and t_ % mk["takte_je_treffer"] == 0:
+            ballisten_pruefen = True                      # wer uns angreift, kann sich jederzeit aendern
         # gleiche Nummer, andere Kennung = neuer Mann auf dem Platz eines Gefallenen
         lebend = {n for n in jetzt if uid_von.get(n) == kennung(roh, n)}
         if phase == "sturm":
@@ -379,7 +407,7 @@ def main():
                 for n in neu:
                     uid_von[n] = kennung(roh, n)
                     (mauer if jetzt[n]["typ"] == STREITKOLBEN else fern if jetzt[n]["typ"] in FERN else nah).add(n)
-                    if phase == "sturm" and plan["art"] in ("mauer", "lord"):
+                    if phase == "sturm" and plan["art"] in ("mauer", "lord") and wahl["wegweiser"] == "an":
                         welle.add(n)
                         bis_ = plan["weg"].index(tuple(plan["zug"])) if plan["zug"] and tuple(plan["zug"]) in plan["weg"] else len(plan["weg"]) - 2
                         kette([n], bis_, "Nachschub")
@@ -391,7 +419,7 @@ def main():
                             befehl({"angriff": {"einheiten": [n], "gebaeude": plan["ziel"], "trupp": 1}}, 0.3)
                         else:
                             befehl({"angriff": {"einheiten": [n], "ziel": lnr, "trupp": 1}}, 0.3)
-                    elif sammel is not None and plan is not None and sammel in plan["weg"]:
+                    elif sammel is not None and plan is not None and sammel in plan["weg"] and wahl["wegweiser"] == "an":
                         kette([n], plan["weg"].index(sammel), "Nachschub zum Sammeln")
                     elif sammel is not None:
                         befehl({"angriff": {"einheiten": [n], "lauf": [sammel[0], sammel[1]], "trupp": 1}}, 0.3)
@@ -405,6 +433,8 @@ def main():
         # stehende Fernkaempfer oder Ausbildungsgebaeude angreifen"): Zielliste nach Vorrang - 1. Feuerballisten (2 je Ballista,
         # hoechstens 4 Versuche je Ballista), 2. Fernkaempfer auf dem Boden (Feldhoehe = Bodenhoehe, also nicht auf Mauer/Turm),
         # 3. Ausbildungsgebaeude. Wird ein Ziel erledigt, nimmt der Jaeger das naechste; gibt es keins mehr, geht er zur Truppe
+        if ballisten_pruefen and wahl["jaeger"] == "aus":
+            ballisten_pruefen = False
         if ballisten_pruefen:
             ballisten_pruefen = False
             ziele = []
@@ -415,15 +445,18 @@ def main():
                 e_b = AD.einheit(roh, b_n)
                 if e_b["besitzer"] != FEIND or e_b["leben"] <= 0 or e_b["zustand"] == 0:
                     continue
+                # nach Wirkung: nur wer gerade einen von uns angreift (Daniel 01:23 "keinen Sinn, auf eine Ballista zu gehen, die
+                # literally nicht angreift")
+                ziel_e = int.from_bytes(roh[b_n * ES + ZIELEINHEIT:b_n * ES + ZIELEINHEIT + 2], "little", signed=True)
+                if ziel_e not in jetzt:
+                    continue
                 aktiv = sum(1 for z_ in jaeger.values() if z_ == ("einheit", b_n))
                 if e_b["typ"] == BALLISTE:
                     ziele += [(0, ("einheit", b_n), (e_b["x"], e_b["y"]))] * max(0, min(2 - aktiv, 4 - versuche_ballista.get(b_n, 0)))
                 elif e_b["typ"] in FERN and int(hoehe_[e_b["x"], e_b["y"]]) <= int(boden_[e_b["x"], e_b["y"]]) and aktiv == 0 \
                         and not (int(logik_[e_b["x"], e_b["y"]]) & 0x100) and bau_[e_b["x"], e_b["y"]] == 0:
                     ziele.append((1, ("einheit", b_n), (e_b["x"], e_b["y"])))
-            for g_nr, g_ in G.items():
-                if g_["besitzer"] == FEIND and g_["typ"] in AUSBILDUNG and ("gebaeude", g_nr) not in jaeger.values():
-                    ziele.append((2, ("gebaeude", g_nr), (g_["x"], g_["y"])))
+            # (Ausbildungsgebaeude greifen niemanden an - nach Wirkung keine Jaeger-Ziele mehr)
             ziele.sort(key=lambda z_: z_[0])
             # wer schon jagt und kein Ziel hat (frisch erledigt), bekommt zuerst eins; dann neue Jaeger bis 2 je Ballista
             ohne_ziel = [j for j in jaeger_frei if j in lebend]
@@ -546,7 +579,7 @@ def main():
                 if wp != (jetzt[n]["x"], jetzt[n]["y"]):
                     nach_punkt.setdefault(wp, []).append(n)
             for wp, wer in nach_punkt.items():
-                if wp == sammel and sammel in plan["weg"]:
+                if wp == sammel and sammel in plan["weg"] and wahl["wegweiser"] == "an":
                     kette(wer, plan["weg"].index(sammel), "Sammeln")
                 else:
                     befehl({"angriff": {"einheiten": sorted(wer), "lauf": [wp[0], wp[1]], "trupp": 1}}, 0.3)
@@ -588,7 +621,7 @@ def main():
                     # (Daniel 01:16 "ohne das Buendeln und Warten auf den Rest ist nicht genug Kraft dabei - das ist falsch"; Lauf 01:16:
                     # frueher Start mit 62 -> Torhaus 12 Tote in 982 Takten, gebuendelt vorher 0-2 Tote in ~580): gewartet wird auf ALLE
                     # (oder die Frist des Langsamsten); der Bedarf aus der gemessenen Rate steht nur noch in der Meldung
-                    bereit = da == stuermer or t_ >= sammel_frist
+                    bereit = da == stuermer or t_ >= sammel_frist or (wahl["losgehen"] == "bedarf" and len(da) >= m_noetig)
                     if bereit and not sturm_grund:
                         sturm_grund = "Bedarf %d Mann (Rate %.4f Tote/Takt gemessen), %d am Wartepunkt" % (m_noetig, r_["tote"] / float(r_["takte"]), len(da))
                 else:
@@ -707,9 +740,15 @@ def main():
     befehl({"pause": True}, 0.3)
     erg = {"zeit": time.strftime("%Y-%m-%d %H:%M:%S"), "takte": t_, "sekunden": round(time.time() - t_start), "ereignisse": ereignisse,
            "spur": spur[::10]}
+    erg["wahl"] = wahl
+    erg["lord_tot"] = any(e[1] == "LORD TOT" for e in ereignisse)
+    erg["rueckwaerts"] = sum(1 for e in ereignisse if e[1].startswith("RUECKWAERTS"))
+    erg["angeworben"] = sum(len(e[1].split("[")[1].split(",")) for e in ereignisse if e[1].startswith("ANGEWORBEN"))
+    erg["tote"] = len(alle) + erg["angeworben"] - len(eigene_soldaten(speicher.lies(E0, 3000 * ES)))
     with open(AUS, "a", encoding="utf-8") as fh:
         fh.write(json.dumps(erg, ensure_ascii=False, default=str) + "\n")
     print("Takte %d" % t_, flush=True)
+    return {"takte": t_, "lord_tot": erg["lord_tot"], "tote": erg["tote"], "rueckwaerts": erg["rueckwaerts"], "wahl": wahl}
 
 
 if __name__ == "__main__":
