@@ -54,22 +54,28 @@ def plane(start, ziel, maenner, mk):
                                         start, ziel, mk)
 
 
-def blick_fuer(kachel):
-    """Blickrichtung 0-7, bei der das Spiel fuer die Anfrage kachel genau kachel waehlt (Nachbildung mechanik.spiel_wahl); None ohne."""
+def anfrage_und_blick(kachel):
+    """(Anfrage-Kachel, Blickrichtung), bei denen das Spiel GENAU kachel als Ziel waehlt (Nachbildung mechanik.spiel_wahl von
+    findFreeSpaceNextToEnemyDefensiveStructureInSameAreaWithinDistance): kachel selbst zuerst, dann jede Mauerkachel bis 2 Felder
+    daneben, je 8 Blickrichtungen. None, wenn es keine gibt - dann geht KEIN Befehl raus (Daniel 23:20 "alle auf eine Mauer,
+    nicht random andere Ziele")."""
     acht, blick = mechanik.richtungen()
     wk = speicher.wegkarte()
     logik, besitz = speicher.ebene(speicher.LOGIK, 4), speicher.ebene(speicher.BESITZ)
-    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-        f = (kachel[0] + dx, kachel[1] + dy)
-        if wk["gebiet"][f] and not logik[f] & 0x10000300:
-            g_mann = int(wk["gebiet"][f])
-            break
-    else:
-        return None
-    for i in range(8):
-        _, w = mechanik.spiel_wahl(kachel, g_mann, wk["gebiet"], logik, wk["gebaeude"], {}, besitz, 1, acht, blick[i])
-        if w == tuple(kachel):
-            return i
+    kand = [tuple(kachel)] + [(kachel[0] + dx, kachel[1] + dy) for dx in range(-2, 3) for dy in range(-2, 3)
+                              if (dx or dy) and logik[kachel[0] + dx, kachel[1] + dy] & 0x10000300]
+    for r in kand:
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            f = (r[0] + dx, r[1] + dy)
+            if wk["gebiet"][f] and not logik[f] & 0x10000300:
+                g_mann = int(wk["gebiet"][f])
+                break
+        else:
+            continue
+        for i in range(8):
+            _, w = mechanik.spiel_wahl(r, g_mann, wk["gebiet"], logik, wk["gebaeude"], {}, besitz, 1, acht, blick[i])
+            if w == tuple(kachel):
+                return r, i
     return None
 
 
@@ -116,6 +122,9 @@ def main():
         if not leute:
             ereignisse.append((t_, "ALLE TOT"))
             break
+        gold2 = int.from_bytes(lies(0x0115BDF8 + 2 * 0x39F4 + 0x4D0 + 15 * 4, 4), "little", signed=True)
+        if gold2 > 0:                         # (Daniel 23:20 "der Gegner bildet Einheiten aus") - ohne Gold keine Anwerbung
+            befehl({"player": 2, "gold": 0}, 0.3)
         felder = [(e["x"], e["y"]) for e in leute.values()]
         if phase == "mauer" and kachel is not None:
             k = kvon[kachel]
@@ -142,10 +151,14 @@ def main():
             else:
                 ereignisse.append((t_, "KACHEL %s (Hoehe ueber Boden %d), noch %d Mauerkacheln auf dem Weg, Weg %s Takte" % (
                     kachel, h[kachel], len(pl["mauern"]), pl["takte"])))
-                blick_k = blick_fuer(kachel)
-                ereignisse.append((t_, "BLICK %s fuer Kachel %s (Nachbildung findFreeSpace...)" % (blick_k, kachel)))
-                befehl({"angriff": {"einheiten": sorted(leute), "mauer": [lp[0], lp[1], 2, 30, kachel[0], kachel[1]]
-                                    + ([blick_k] if blick_k is not None else []), "trupp": 1}}, 1.0)
+                ab = anfrage_und_blick(kachel)
+                ereignisse.append((t_, "ANFRAGE %s fuer Kachel %s" % (ab, kachel)))
+                if ab is None:
+                    ereignisse.append((t_, "KEINE ANFRAGE fuer Kachel %s - kein Befehl (sonst verteilt das Spiel die Leute)" % (kachel,)))
+                    break
+                anf, blick_k = ab
+                befehl({"angriff": {"einheiten": sorted(leute), "mauer": [lp[0], lp[1], 2, 30, anf[0], anf[1], blick_k],
+                                    "trupp": 1}}, 1.0)
                 gesendet = {n: (leute[n]["zustand"], leute[n]["ziel"]) for n in leute}
         # Neu senden nur, wenn das Spiel den letzten Befehl dieses Manns sichtbar verarbeitet hat (Zustand oder Ziel anders als
         # beim Senden) und es trotzdem nicht passt - kein fester Takt
@@ -156,8 +169,8 @@ def main():
             k = kvon[kachel]
             falsch = [n for n, e in leute.items() if e["ziel"] != k and verarbeitet(n)]
             if falsch:
-                befehl({"angriff": {"einheiten": sorted(falsch), "mauer": [lp[0], lp[1], 2, 30, kachel[0], kachel[1]]
-                                    + ([blick_k] if blick_k is not None else []), "trupp": 1}}, 1.0)
+                befehl({"angriff": {"einheiten": sorted(falsch), "mauer": [lp[0], lp[1], 2, 30, anf[0], anf[1], blick_k],
+                                    "trupp": 1}}, 1.0)
                 for n in falsch:
                     gesendet[n] = (leute[n]["zustand"], leute[n]["ziel"])
         if phase == "lord":
