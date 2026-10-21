@@ -2695,6 +2695,14 @@ local function einzelbefehl(cmd)
       end
       log(INFO, string.format("MAUER Tick %d: Kachel (%d,%d) Feld %d Hoehe %d gewaehlt%s - %d Mauerkacheln von Spieler %d bis %d Felder um den Lord (%d,%d); Gebiet %d, %d Einheiten, %d ausserhalb abgewaehlt",
         tick(), beste[1], beste[2], beste[3], core.readByte(0x01D32C38 + beste[3]) or -1, vorgabe, zahl, besitzer0 + 1, r, lx, ly, meinGebiet, n, raus))
+      -- B-167 (21.10. 23:12, findFreeSpaceNextToEnemyDefensiveStructureInSameAreaWithinDistance 0x004A7F50): das Spiel nimmt
+      -- am freien Feld die erste Mauer in der Reihenfolge der BLICKRICHTUNG des Manns (Tabelle 0x00B39238) - mauer[7] setzt die
+      -- Blickrichtung (Einheit +0x2B4, 2 Byte), fuer die genau die vorgegebene Kachel zuerst kommt
+      local blick = tonumber(a.mauer[7])
+      if blick and vorgabe == " (vorgegeben)" then
+        for _, nrB in ipairs(gewaehlt) do core.writeSmallInteger(0x0138854C + nrB * 1168 + 0x2B4, blick) end
+        vorgabe = vorgabe .. string.format(" Blick %d", blick)
+      end
       art, zielNr, zielUid = 23, beste[3], 0
     end
     local ok1 = befehlAbsetzen(16, { gruppe })

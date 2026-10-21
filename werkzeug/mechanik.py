@@ -58,3 +58,130 @@ def treffer_bis_zerstoert(hoehe, boden, schaden, unbeschaedigt=True, bit_10000=F
     """Zahl der Treffer, bis die Kachel faellt (je Treffer schaden Punkte; erster Treffer evtl. zusaetzlich -20)."""
     h = hoehe - (20 if unbeschaedigt and not bit_10000 and boden + 0x3C < hoehe else 0)
     return int(math.ceil((h - boden + 1) / float(schaden)))
+
+
+# --- B-167 Welche Mauerkachel greift das Spiel an? (abgelesen 21.10. 23:05) ---------------------------------------------------
+# setDestinationNearTargetedBuilding 0x0053DCC0 setzt das Gebiet der angefragten Kachel R auf das Gebiet des Manns und ruft
+# findFreeSpaceNextToEnemyDefensiveStructureInSameAreaWithinDistance 0x004A7F50 mit seiner BLICKRICHTUNG: Breitensuche ab R ueber
+# Felder seines Gebiets (Richtungen Tabelle 0x00B49048: N, NO, O, SO, S, SW, W, NW), hoechstens 10 Schritte (3 bei "verkuerzt").
+# In Suchreihenfolge das erste Feld ohne Mauer/Turm/Tor/Bergfried (LogicLayer & 0x10000300 == 0), das in der Reihenfolge
+# 0x00B39238[Blickrichtung] (je 4 gerade Richtungen, 32 Byte) ein feindliches Ziel neben sich hat: LogicLayer & 0x10000300, nicht
+# & 2, kein Gebaeude oder Gebaeudetyp nicht 10 und nicht 40-42. Der Mann laeuft auf dieses Feld und hackt DIESES Ziel
+# (targetedBuildingTile wird ueberschrieben). Test B 22:53: angefragt (149,129), gehackt (148,128) und (149,128); Test C 22:55:
+# 20 Mann, Mehrheit auf (169,122) statt der angefragten (170,120) - je nach Blickrichtung ein anderes Ziel.
+ADR_RICHT8, ADR_BLICK = 0x00B49048, 0x00B39238
+
+
+def richtungen():
+    """(8 Richtungen der Breitensuche, je Blickrichtung 0-7 die 4 Richtungen der Zielwahl) aus dem laufenden Spiel."""
+    import struct
+    a, b = speicher.lies(ADR_RICHT8, 64), speicher.lies(ADR_BLICK, 8 * 32)
+    acht = [(struct.unpack_from("<h", a, 8 * i)[0], struct.unpack_from("<h", a, 8 * i + 4)[0]) for i in range(8)]
+    blick = [[struct.unpack_from("<ii", b, 32 * r + 8 * i) for i in range(4)] for r in range(8)]
+    return acht, blick
+
+
+def ist_ziel(q, logik, bau, bautyp, besitz, spieler):
+    """Feindliches Mauerziel laut Code (findFreeSpace...: LogicLayer & 0x10000300, nicht & 2, Gebaeudetyp nicht 10/40-42)."""
+    if not logik[q] & 0x10000300 or logik[q] & 2:
+        return False
+    b = int(bau[q])
+    if b and (bautyp.get(b) == 10 or 40 <= (bautyp.get(b) or 0) <= 42):
+        return False
+    return (int(besitz[q]) & 7) + 1 != spieler
+
+
+def spiel_wahl(r, gebiet_mann, gebiet, logik, bau, bautyp, besitz, spieler, acht, reihenfolge, weit=10):
+    """(freies Feld, Ziel), die das Spiel fuer die Anfrage r bei dieser Ziel-Reihenfolge (Blickrichtung) waehlt."""
+    from collections import deque
+    schlange, gesehen, reihe = deque([(tuple(r), 1)]), {tuple(r)}, []
+    while schlange:
+        t, d = schlange.popleft()
+        if d > weit:
+            break
+        reihe.append(t)
+        for dx, dy in acht:
+            n = (t[0] + dx, t[1] + dy)
+            if n not in gesehen and int(gebiet[n]) == gebiet_mann:
+                gesehen.add(n)
+                schlange.append((n, d + 1))
+    for t in reihe:
+        if logik[t] & 0x10000300:
+            continue
+        for dx, dy in reihenfolge:
+            w = (t[0] + dx, t[1] + dy)
+            if ist_ziel(w, logik, bau, bautyp, besitz, spieler):
+                return t, w
+    return None, None
+
+
+def anfrage_fuer(ziel, gebiet_mann, gebiet, logik, bau, bautyp, besitz, spieler, acht, blick, kandidaten):
+    """Die Anfrage-Kachel (ziel selbst zuerst, dann kandidaten), fuer die das Spiel bei JEDER Blickrichtung genau ziel waehlt -
+    (Anfrage, Zugangsfeld); sonst (None, {Blickrichtung: Wahl fuer ziel})."""
+    for r in [tuple(ziel)] + [tuple(k) for k in kandidaten if tuple(k) != tuple(ziel)]:
+        wahl = [spiel_wahl(r, gebiet_mann, gebiet, logik, bau, bautyp, besitz, spieler, acht, blick[i]) for i in range(8)]
+        if all(w == tuple(ziel) for _, w in wahl):
+            return r, wahl[0][0]
+    return None, {i: spiel_wahl(ziel, gebiet_mann, gebiet, logik, bau, bautyp, besitz, spieler, acht, blick[i])
+                  for i in range(8)}
+
+
+# --- B-167 Durchbruch-Weg ueber die Schrittbits (21.10. 23:08) ------------------------------------------------------------------
+# Test C 23:02: nach zwei gehackten Kacheln "Weg frei", aber der Bergfried ist ein eigenes Gebiet (38) ohne Schritt vom Hof aus -
+# der alte Weg sah jedes begehbare Feld als Nachbarn. Jetzt nur, was das Spiel erlaubt:
+#   Laufen  t -> t+d, wenn PathLinkageLayer[t] das Bit der Richtung d hat (Bits im Uhrzeigersinn ab N: 1,2,4,...,0x80);
+#           Kosten TAKTE_JE_FELD (gemessen 23:06, augen_laufen.py: 12 Takte je Feld, gerade und schraeg gleich).
+#   Hacken  t -> w nur gerade (handleUnitMovementWhenTargetingBuildings), w = Mauerkachel, die processDamageToBuilding als Mauer
+#           behandelt (LogicLayer & 0x100, nicht & 0x10000400, kein Gebaeude) und nicht dem Spieler gehoert; Kosten =
+#           ceil(Treffer bis zur Zerstoerung / Maenner) x takte_je_treffer + ein Feld Laufen hinein; danach von w gerade weiter.
+TAKTE_JE_FELD = 12
+RICHT_BITS = [((0, -1), 0x01), ((1, -1), 0x02), ((1, 0), 0x04), ((1, 1), 0x08), ((0, 1), 0x10), ((-1, 1), 0x20),
+              ((-1, 0), 0x40), ((-1, -1), 0x80)]
+
+
+def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner, start, ziel, mk=None):
+    """Billigster Weg (Takte) von start zum ziel ueber Laufen und Hacken; Rueckgabe {"weg", "mauern" (in Reihenfolge), "takte"}.
+    Ohne Weg: weg = None."""
+    import numpy as np
+    from scipy.sparse import coo_matrix
+    from scipy.sparse.csgraph import dijkstra
+    mk = mk or streitkolben()
+    n = link.shape[0]
+    idx = lambda x, y: x * n + y
+    wand = ((logik & 0x100) != 0) & ((logik & 0x10000400) == 0) & (bau == 0) & ((besitz & 7) + 1 != spieler) & (hoehe > boden)
+    nb = np.zeros(link.shape, int)
+    for (dx, dy), _ in RICHT_BITS[::2]:
+        nb += (np.roll(np.roll(logik, -dx, 0), -dy, 1) & 0x10000100) != 0
+    schaden = np.where(nb < 2, mk["mauer"] + mk["mauer"] // 2, np.where(nb > 2, mk["mauer"] // 2, mk["mauer"]))
+    punkte = hoehe.astype(int) - np.where(((logik & 0x10000) == 0) & (boden.astype(int) + 0x3C < hoehe), 20, 0) - boden + 1
+    treffer = np.ceil(np.maximum(punkte, 1) / np.maximum(schaden, 1))
+    hack = np.ceil(treffer / max(1, maenner)) * mk["takte_je_treffer"] + TAKTE_JE_FELD
+    xs, ys = np.meshgrid(np.arange(n), np.arange(n), indexing="ij")
+    von, nach, kosten = [], [], []
+    for (dx, dy), bit in RICHT_BITS:
+        x2, y2 = xs + dx, ys + dy
+        ok = (x2 >= 0) & (x2 < n) & (y2 >= 0) & (y2 < n)
+        x2c, y2c = np.clip(x2, 0, n - 1), np.clip(y2, 0, n - 1)
+        lauf = ok & ((link & bit) != 0) & ~wand & ~wand[x2c, y2c]
+        von.append(idx(xs[lauf], ys[lauf])); nach.append(idx(x2c[lauf], y2c[lauf]))
+        kosten.append(np.full(int(lauf.sum()), float(TAKTE_JE_FELD)))
+        if dx == 0 or dy == 0:
+            frei = (link != 0) | wand                                   # von einem freien oder gehackten Feld gerade weiter
+            rein = ok & frei & wand[x2c, y2c]
+            von.append(idx(xs[rein], ys[rein])); nach.append(idx(x2c[rein], y2c[rein]))
+            kosten.append(hack[x2c[rein], y2c[rein]].astype(float))
+            raus = ok & wand & (link[x2c, y2c] != 0) & ~wand[x2c, y2c]
+            von.append(idx(xs[raus], ys[raus])); nach.append(idx(x2c[raus], y2c[raus]))
+            kosten.append(np.full(int(raus.sum()), float(TAKTE_JE_FELD)))
+    v, z, k = np.concatenate(von), np.concatenate(nach), np.concatenate(kosten)
+    g = coo_matrix((k, (v, z)), shape=(n * n, n * n)).tocsr()
+    dist, vor = dijkstra(g, directed=True, indices=idx(*start), return_predecessors=True)
+    zi = idx(*ziel)
+    if not np.isfinite(dist[zi]):
+        return {"weg": None, "mauern": [], "takte": None}
+    weg, p = [], zi
+    while p != idx(*start) and p >= 0:
+        weg.append((int(p // n), int(p % n)))
+        p = vor[p]
+    weg = [tuple(start)] + weg[::-1]
+    return {"weg": weg, "mauern": [q for q in weg if wand[q]], "takte": float(dist[zi])}

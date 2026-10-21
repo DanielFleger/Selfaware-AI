@@ -245,13 +245,25 @@ def gefecht(karte="Liga_Grumpy Neighbors", gegner="1", plaetze="", verbuendete="
     return "Gefecht auf '%s' gegen KI %s (Teams %s), Tick %d, %s" % (karte, kis, g["teams"], zst["tick"], zst["text"])
 
 
-def sandkasten(name=STANDARD_STAND, franz_heer="nein", nur_soldaten="nein"):
+def sandkasten(name=STANDARD_STAND, franz_heer="nein", nur_soldaten="nein", frisch="nein"):
     """Laden (ueber das Hauptmenue), beide Heere ohne Lord abraeumen, Spieler 2 ohne Waren, kurz laufen lassen, anhalten.
-    Prueft danach: Partie bespielbar und beide Lords leben."""
+    Prueft danach: Partie bespielbar und beide Lords leben.
+    21.10. 23:07 (Daniel: "jedes Mal locker 2 Minuten, ohne dass du eine einzige Sache testen kannst"): der fertig abgeraeumte
+    Sandkasten wird EINMAL als eigener Spielstand gespeichert ("SK <Stand> <Heer> <Soldaten>"); jeder weitere Aufruf laedt ihn
+    direkt - ohne Abraeumen und ohne die 400-Takte-Wartezeiten. frisch=ja baut ihn neu."""
     from laden import befehl
     from befehl import SPIEL
     sys.path.insert(0, os.path.join(HIER, "..", "..", "Selfaware-AI-kern", "src"))
     from selfaware.game.kern_leitung import Leitung
+    # (Spielstandnamen hoechstens 32 Zeichen - speichern.speichere): mH/oH = mit/ohne Franz' Heer, nS/aS = nur Soldaten/alle
+    kurz = "SK %s %s %s" % (name, "mH" if franz_heer == "ja" else "oH", "nS" if nur_soldaten == "ja" else "aS")
+    if frisch != "ja":
+        t_a = time.time()
+        try:
+            text = laden(kurz)
+            return "Sandkasten aus Spielstand '%s' in %.0f s: %s" % (kurz, time.time() - t_a, text)
+        except Exception as e:                       # noch kein gespeicherter Sandkasten: wie bisher bauen und dann speichern
+            print("Sandkasten-Spielstand '%s' nicht ladbar (%s) - baue ihn" % (kurz, str(e)[:100]), flush=True)
     laden(name)
     befehl({"pause": False, "tempo": 40}, 0.3)            # ein paar Takte, damit Kern und Lagebild die neue Welt haben
     t0 = zustand()["tick"]
@@ -288,8 +300,12 @@ def sandkasten(name=STANDARD_STAND, franz_heer="nein", nur_soldaten="nein"):
         print("WARNUNG: nach Abraeumen %d stehen noch Soldaten %s - noch einmal" % (durchgang, soldaten), flush=True)
     else:
         raise Fehler("nach 3-mal Abraeumen stehen noch Soldaten: %s" % soldaten)
-    return ("Sandkasten '%s' bereit bei Tick %d, Lords 1+2 leben, Soldaten %s, Arbeiter/Stadtvolk (bleiben) %s"
-            % (name, z["tick"], soldaten or "keine", volk))
+    try:
+        gespeichert = speichern(kurz)
+    except Exception as e:
+        gespeichert = "NICHT gespeichert (%s)" % str(e)[:100]
+    return ("Sandkasten '%s' bereit bei Tick %d, Lords 1+2 leben, Soldaten %s, Arbeiter/Stadtvolk (bleiben) %s | %s"
+            % (name, z["tick"], soldaten or "keine", volk, gespeichert))
 
 
 def editor(groesse="4"):

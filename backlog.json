@@ -4167,6 +4167,39 @@
      "was": "gebaut -> gebaut (Commit 824642d)"
     }
    ]
+  },
+  {
+   "nr": "B-167",
+   "titel": "Test C: 20 Streitkolben von der Mauer zum Lord - Durchbruch-Weg ueber Schrittbits, Zielwahl des Spiels (Blickrichtung) nachgebildet und per Blick gesetzt, Regelung ueber tatsaechliches Ziel, Sandkasten als Spielstand (37 s statt ~2 min)",
+   "bereich": "angriff",
+   "status": "in_arbeit",
+   "seit": "2026-10-21 23:15",
+   "herkunft": "Daniel 21.10. 22:48 'Tests mit den 20 Streitkolben, so schnell wie moeglich von der Mauer zum Lord, kuerzester Weg durch die Mauern, direkt auf den Keep sobald zugaenglich, gesehen im Code'; 23:06 Ladezeiten",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "werkzeug/mechanik.py (spiel_wahl",
+    "durchbruch_schritte",
+    "TAKTE_JE_FELD)",
+    "werkzeug/augen_durchbruch.py",
+    "augen_laufen.py",
+    "shc.sandkasten (Spielstand-Cache)",
+    "logik.lua mauer[7] Blick"
+   ],
+   "belege": [
+    "Messungen: Laufen 12 Takte/Feld (gerade=schraeg); Test B: -27 erster Treffer",
+    "dann -7 bzw. -2 wie Code; Test C: Kachel 1 in 222 Takten (20 gestapelt)",
+    "mit Blick 4 alle 20 auf der gewollten Kachel; offen: Einheiten haengen nach dem ersten Schwung (Animation steht",
+    "Gebiet 36)",
+    "B-159 Ladekipper"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-21 23:15",
+     "was": "angelegt (in Arbeit)"
+    }
+   ]
   }
  ]
 }
