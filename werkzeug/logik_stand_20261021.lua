@@ -1385,13 +1385,22 @@ local function einzelbefehl(cmd)
     if type(cmd.toeteAlle) == "table" then
       local t = cmd.toeteAlle
       local sp, n, lords = tonumber(t.spieler) or -1, 0, 0
+      -- (21.10. 19:07, Daniel "nur Soldaten abraeumen"): { ..., "typen": [22, 23, ...] } - nur diese Typen
+      local nurTyp = nil
+      if type(t.typen) == "table" then
+        nurTyp = {}
+        for _, ty in ipairs(t.typen) do nurTyp[tonumber(ty)] = true end
+      end
       local maxN = core.readInteger(0x01387F38) or 0
       for i = 1, math.min(maxN, 2999) do
         local u = 0x0138854C + i * 1168
         if (core.readSmallInteger(u + 0x8C) or 0) == 2 and (core.readSmallInteger(u + 0x2A0) or 1) == 0
             and (core.readByte(u + 0x32C) or 1) == 0 and (core.readSmallInteger(u + 0x96) or -1) == sp then
-          if t.ohneLord and (core.readSmallInteger(u + 0x8E) or 0) == 55 then
+          local ty = core.readSmallInteger(u + 0x8E) or 0
+          if t.ohneLord and ty == 55 then
             lords = lords + 1
+          elseif nurTyp ~= nil and not nurTyp[ty] then
+            -- (andere Typen bleiben)
           else
             core.writeSmallInteger(u + 0x2C0, 0x72)
             core.writeInteger(u + 0x2B0, 0)

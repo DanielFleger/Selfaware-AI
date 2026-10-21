@@ -38,8 +38,11 @@ ANSICHT, GAMEOVER, PAUSE, TICK = 0x01FE7D1C, 0x0117D500, 0x01FEA054, 0x0117CADC
 PLATZ, MENSCH = 0x01A275DC, 0x0191DE10
 IN_PARTIE, HAUPTMENUE, ENDBILD = 14, 41, 30
 STANDARD_STAND = "B140 Burg Franz T40126"
-# Kaempfer (wie feldzug.TRUPPE ohne Lord 55): Bogen, Armbrust, Speer, Pike, Streitkolben, Schwert, Ritter, Moench, arab. Truppen
-SOLDATEN = {22, 23, 24, 25, 26, 27, 28, 37, 70, 71, 72, 73, 74, 75, 76}
+# Alles, was kaempft oder schiesst (aus dem Typen-Verzeichnis des Spiels, UnitType, 21.10.2026): Truppen 22-28, Moench 37,
+# arab. Truppen 70-76, Belagerung/Turmwaffen 39-41 58-61 77 (Feuerballiste 77 toetete in Feuer-Test 4 alle Streitkolben),
+# Zelt 50, Ingenieur 30, Leiter 29, Tunnelgraeber 5, Kampfhunde 67. Lord 55 nicht. NICHT dabei (gemessen 19:14, Arbeiter):
+# Typ 52 UT_HUNTERDOG = unsere Jaeger aus den Jagdhuetten, Typ 10 Pechmann (arbeitet in der Pechgrube).
+SOLDATEN = {5, 22, 23, 24, 25, 26, 27, 28, 29, 30, 37, 39, 40, 41, 50, 58, 59, 60, 61, 67, 70, 71, 72, 73, 74, 75, 76, 77}
 
 
 class Fehler(RuntimeError):
@@ -114,6 +117,14 @@ def laden(name=STANDARD_STAND):
     menue()
     tick = lade_stand(name, mit_bild=False, platz=1)
     befehl({"eigenerPlatz": 1}, 0.8)
+    # (21.10. 19:02 gemessen: die Ladepause trug den Menschen im ersten Takt ein - danach ueberschrieb das Laden selbst den
+    # Eintrag wieder mit -1 und die Niederlage-Pruefung setzte gameOver 1, noch bevor eigenerPlatz kam. Steht die Partie-
+    # Ansicht noch (14), wird gameOver zurueckgesetzt; ob die Partie dann wirklich weiterlaeuft, zeigt der Probelauf unten)
+    z = zustand()
+    zurueck = ""
+    if z.get("ansicht") == IN_PARTIE and z.get("gameover") == 1:
+        befehl({"poke": GAMEOVER, "wert": 0}, 0.5)
+        zurueck = ", gameOver nach dem Laden 1 -> zurueckgesetzt"
     partie_sicher()
     # Gegenprobe im Lauf: 200 Takte laufen lassen - die Niederlage-Pruefung darf die Partie dabei nicht beenden
     befehl({"pause": False, "tempo": 40}, 0.3)
@@ -123,7 +134,7 @@ def laden(name=STANDARD_STAND):
         time.sleep(0.2)
     befehl({"pause": True}, 0.3)
     z = partie_sicher()
-    return "'%s' geladen bei Tick %d, nach 200 Takten Probelauf: %s (Tick %d)" % (name, tick, z["text"], z["tick"])
+    return "'%s' geladen bei Tick %d%s, nach 200 Takten Probelauf: %s (Tick %d)" % (name, tick, zurueck, z["text"], z["tick"])
 
 
 def speichern(name):
@@ -183,7 +194,7 @@ def gefecht(karte="Liga_Grumpy Neighbors", gegner="1", plaetze="", verbuendete="
     return "Gefecht auf '%s' gegen KI %s (Teams %s), Tick %d, %s" % (karte, kis, g["teams"], zst["tick"], zst["text"])
 
 
-def sandkasten(name=STANDARD_STAND, franz_heer="nein"):
+def sandkasten(name=STANDARD_STAND, franz_heer="nein", nur_soldaten="nein"):
     """Laden (ueber das Hauptmenue), beide Heere ohne Lord abraeumen, Spieler 2 ohne Waren, kurz laufen lassen, anhalten.
     Prueft danach: Partie bespielbar und beide Lords leben."""
     from laden import befehl
@@ -197,9 +208,11 @@ def sandkasten(name=STANDARD_STAND, franz_heer="nein"):
         time.sleep(0.1)
     befehl({"pause": True}, 0.3)
     befehl({"leereKI": [2]}, 0.5)
-    befehl({"toeteAlle": {"spieler": 1, "ohneLord": True}}, 0.8)
+    # nur_soldaten=ja (Daniel 19:07): Arbeiter, Brunnen-Loescher und Stadtvolk bleiben - nur Kaempfer werden abgeraeumt
+    welche = {"typen": sorted(SOLDATEN)} if nur_soldaten == "ja" else {}
+    befehl({"toeteAlle": dict({"spieler": 1, "ohneLord": True}, **welche)}, 0.8)
     if franz_heer != "ja":
-        befehl({"toeteAlle": {"spieler": 2, "ohneLord": True}}, 0.8)
+        befehl({"toeteAlle": dict({"spieler": 2, "ohneLord": True}, **welche)}, 0.8)
     befehl({"pause": False, "tempo": 100}, 0.3)            # Steintod abwarten
     t0 = zustand()["tick"]
     while zustand()["tick"] < t0 + 400:
