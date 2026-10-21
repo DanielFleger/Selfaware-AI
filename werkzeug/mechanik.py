@@ -142,9 +142,9 @@ RICHT_BITS = [((0, -1), 0x01), ((1, -1), 0x02), ((1, 0), 0x04), ((1, 1), 0x08), 
 def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner, start, ziel, mk=None, sperre=None, gefahr=None):
     """Billigster Weg (Takte) von start zum ziel ueber Laufen und Hacken; Rueckgabe {"weg", "mauern" (in Reihenfolge), "takte"}.
     Ohne Weg: weg = None. sperre: Felder, die fuer uns kein Weg sind (feindliche Tore/Tuerme mit Rand, B-164).
-    gefahr: Schuetzen je Feld (gefahr.Karte.g) - Daniels Regel "maximale Sicherheit, dann minimaler Widerstand" als Rangfolge:
-    zuerst die Summe der Gefahr auf dem Weg, erst dann die Takte. Der Vorrang-Faktor ist groesser als jede moegliche Takt-Summe
-    (Felder x teuerste Kante), damit eine Einheit Gefahr mehr wiegt als jeder Zeitgewinn."""
+    gefahr: Schuetzen je Feld (gefahr.Karte.g) - nur bei gleicher Zeit entscheidend (Daniel 22.10. 00:25: "laufen erst hinten-
+    rum, dann vornerum" - Gefahr vor Zeit erzwang Umwege; "jeder Tick zaehlt"). Der Faktor ist 1 / (Summe aller Gefahr + 1),
+    damit die ganze Gefahr eines Wegs nie einen Takt aufwiegt."""
     import numpy as np
     from scipy.sparse import coo_matrix
     from scipy.sparse.csgraph import dijkstra
@@ -182,8 +182,8 @@ def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner
     v, z, k = np.concatenate(von), np.concatenate(nach), np.concatenate(kosten)
     takt_k = k.copy()
     if gefahr is not None:
-        vorrang = float(n * n) * float(max(k.max(), TAKTE_JE_FELD))
-        k = k + vorrang * np.asarray(gefahr, float).ravel()[z]
+        gf = np.asarray(gefahr, float)
+        k = k + gf.ravel()[z] / (gf.sum() + 1.0)
     g = coo_matrix((k, (v, z)), shape=(n * n, n * n)).tocsr()
     dist, vor = dijkstra(g, directed=True, indices=idx(*start), return_predecessors=True)
     zi = idx(*ziel)
