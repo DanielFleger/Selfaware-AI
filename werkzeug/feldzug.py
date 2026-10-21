@@ -19,6 +19,7 @@ Ablauf je Runde (schritt):
 Anwerben/Kaufen macht erstes_spiel.ruestung_kaufen (Ziel N lebende Streitkolben, nur Gold ueber der Ruecklage).
 """
 import os
+import gefahr as GF                # B-157: maximale Sicherheit, dann minimaler Widerstand
 from parteien import freunde_von   # B-133: Freund/Feind aus den Mannschaften des Spiels (2v2)
 
 STREITKOLBEN = 26
@@ -304,7 +305,16 @@ class Feldzug:
             ort = (g["x"], g["y"])
             if schach(ort, lp) > self.BURG_R:
                 continue
-            gefahr = sum(1 for q, r in schuetzen_f if schach(ort, q) <= r)
+            # B-157 (Daniel 21:11 "maximale Sicherheit, dann minimaler Widerstand"): Widerstand = Gefahr auf dem SICHERSTEN Weg
+            # von unserer Spitze bis zur Stelle (Schuetzen-Reichweiten + Todeszone Torhaus); ohne Gefahrenkarte wie bisher die
+            # Zahl der Schuetzen an der Stelle
+            # Widerstand an der Stelle: so lange steht man dort unter Beschuss - Schuetzen an der Stelle x Leben/100 (UNGEMESSEN)
+            bed_ = getattr(self, "_bed", None)
+            if bed_:
+                weg_ = GF.sicherer_weg(spitze_o, ort, bed_, feuer=self._orte_f) or [ort]
+                gefahr = GF.weg_gefahr(spitze_o, weg_, bed_) + GF.gefahr(ort, bed_) * g.get("leben", 0) // 100
+            else:
+                gefahr = sum(1 for q, r in schuetzen_f if schach(ort, q) <= r)
             kand.append((gefahr, g.get("leben", 0), schach(ort, spitze_o), nr))
         # B-140 (Daniel 22:11/22:16, Bilder: Truppen standen vor der Mauer und liessen sich abschiessen; Lauf 40: 35 Mann
         # 3.330 Takte vor Torhaus 239, kein Schaden): nur Gebaeude, an die ein Nachbarfeld erreichbar ist - ein Wegtest fuer
@@ -337,7 +347,7 @@ class Feldzug:
         g = G[nr]
         self.bresche, self.bresche_leben = nr, None
         self._bresche_pruef = (nr, self.runde)      # (die Wahl hat gerade selbst geprueft)
-        aus.append("FELDZUG SCHWACHSTELLE (%s): Gebaeude %d (Typ %d, Leben %d, %d Feindschuetzen in Reichweite) bei (%d, %d), %d Felder "
+        aus.append("FELDZUG SCHWACHSTELLE (%s): Gebaeude %d (Typ %d, Leben %d, Gefahr auf dem sichersten Weg %d) bei (%d, %d), %d Felder "
                    "vom Lord - alle Nahkaempfer darauf" % (anlass, nr, g["typ"], leben, gefahr, g["x"], g["y"], schach((g["x"], g["y"]), lp)))
         return True
 
@@ -443,7 +453,11 @@ class Feldzug:
         orte_f = feuerorte(G, st.get("bodenfeuer", [])) if os.environ.get("FEUER_MEIDEN", "ja") != "nein" else []
         self._orte_f = orte_f
         self.heerwege = self._heerwege(L)
-        if not orte_f:
+        # B-157 (Daniel 21.10. 21:11 "du laeufst frontal mit maximalem Beschuss - maximale Sicherheit, dann minimaler Widerstand"):
+        # Gefahrenkarte jede Runde neu - jeder Laufbefehl geht ueber den Weg mit der kleinsten Gefahr (gefahr.sicherer_weg)
+        import gefecht
+        self._bed = GF.bedrohungen(L, G, lambda b: b not in freunde_von(self.sp), gefecht.FERN_REICH)
+        if not orte_f and not self._bed:
             return befehl
         roh = befehl
         mitte = lambda ns: (sorted(L[n]["x"] for n in ns)[len(ns) // 2], sorted(L[n]["y"] for n in ns)[len(ns) // 2])
@@ -479,14 +493,24 @@ class Feldzug:
             da = [n for n in ns if n in L]
             if da and "lauf" in an:
                 m, z = mitte(da), tuple(an["lauf"])
-                weg = feuerfreier_weg(m, z, orte_f, gefahr)
+                weg = None
+                if self._bed and not (orte_f and im_feuer(m, orte_f)):
+                    z2 = (feuerfrei_punkt(z, orte_f, nach=m) or z) if orte_f else z
+                    weg = GF.sicherer_weg(m, z2, self._bed, feuer=orte_f)
+                    if weg and weg != [z]:
+                        g_neu, g_alt = GF.weg_gefahr(m, weg, self._bed), GF.weg_gefahr(m, [z], self._bed)
+                        aus.append("FELDZUG SICHERER WEG: %d Einheiten nach %s ueber %s - Gefahr %d statt %d (gerade)" % (
+                            len(ns), z, weg[:4], g_neu, g_alt))
+                if weg is None:
+                    weg = feuerfreier_weg(m, z, orte_f, gefahr) if orte_f else [z]
+                    if weg != [z]:
+                        if weg == [m]:
+                            aus.append("FELDZUG FEUER WARTEN: %d Einheiten - kein Weg um das Feuer nach %s, bei %s ausser Reichweite "
+                                       "der Schuetzen bis es aus ist (%d Feuer)" % (len(ns), z, m, len(orte_f)))
+                        else:
+                            aus.append("FELDZUG FEUER MEIDEN: %d Einheiten nicht direkt nach %s, sondern aussen herum %s (%d Feuer)" % (
+                                len(ns), z, weg[:4], len(orte_f)))
                 if weg != [z]:
-                    if weg == [m]:
-                        aus.append("FELDZUG FEUER WARTEN: %d Einheiten - kein Weg um das Feuer nach %s, bei %s ausser Reichweite "
-                                   "der Schuetzen bis es aus ist (%d Feuer)" % (len(ns), z, m, len(orte_f)))
-                    else:
-                        aus.append("FELDZUG FEUER MEIDEN: %d Einheiten nicht direkt nach %s, sondern aussen herum %s (%d Feuer)" % (
-                            len(ns), z, weg[:4], len(orte_f)))
                     an = dict(an, lauf=[weg[0][0], weg[0][1]])
                     if len(weg) > 1:
                         an["danach"] = [[q[0], q[1]] for q in weg[1:]]    # logik.lua schickt weiter (Wegkette)

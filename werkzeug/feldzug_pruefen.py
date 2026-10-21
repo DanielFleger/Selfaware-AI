@@ -35,6 +35,7 @@ import parteien
 parteien.setzen(1, {1})   # B-133: ohne Spiel - nur Spieler 1 ist Freund
 
 ok = []
+ende_ = lambda a: (a.get("danach") or [a["lauf"]])[-1]     # B-157: Laufziel = Ende der Wegkette (sicherster Weg ueber Wegpunkte)
 
 
 def pruefe(nr, text, bed):
@@ -267,7 +268,7 @@ def main():
         f16.schritt({"t": t}, L16, G16, b16)
         for x in b16.liste:
             if "lauf" in x.get("angriff", {}) and set(x["angriff"]["einheiten"]) & set(range(40, 46)):
-                ziele16[t] = x["angriff"]["lauf"]
+                ziele16[t] = ende_(x["angriff"])
         for n in range(40, 46):
             L16[n]["zustand"] = 1                   # stehen still -> jede Runde neu befehlbar
     vor16 = [z for t, z in sorted(ziele16.items()) if not f16.direkt or t < 15000][:1]
@@ -294,15 +295,15 @@ def main():
     tor17 = [x for x in b17.liste if "gebaeude" in x.get("angriff", {})]
     lauf17 = [x for x in b17.liste if "lauf" in x.get("angriff", {})]
     nk17 = [x for x in lauf17 if set(x["angriff"]["einheiten"]) & set(range(10, 20))]
-    bogen17 = [x["angriff"]["lauf"] for x in lauf17 if 60 in x["angriff"]["einheiten"]]
+    bogen17 = [ende_(x["angriff"]) for x in lauf17 if 60 in x["angriff"]["einheiten"]]
     for i in range(10):
         L17[10 + i]["zustand"] = 105                 # 21:31 gemessen: so sehen sie nach dem Laufbefehl aus
     b17b = Befehle()
     f17.schritt({"t": 12150}, L17, G17, b17b)
     nochmal17 = [x for x in b17b.liste if "lauf" in x.get("angriff", {}) and set(x["angriff"]["einheiten"]) & set(range(10, 20))]
     pruefe(17, "Schwaechste Stelle: Ziel %s, Torangriffe %d, Laufbefehle an Nahkaempfer %s (naechste Runde nochmal: %d), Bogen laeuft nach %s" % (
-        f17.bresche, len(tor17), [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in nk17], len(nochmal17), bogen17),
-           f17.bresche == 902 and not tor17 and [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in nk17] == [([300, 100], 11)]
+        f17.bresche, len(tor17), [(ende_(x["angriff"]), len(x["angriff"]["einheiten"])) for x in nk17], len(nochmal17), bogen17),
+           f17.bresche == 902 and not tor17 and [(ende_(x["angriff"]), len(x["angriff"]["einheiten"])) for x in nk17] == [([300, 100], 11)]
            and bogen17 == [[300, 100]] and not nochmal17)
     # 18 (B-138): ein Stau, waehrend die gewaehlte Bresche noch steht, waehlt kein anderes Tor - auch wenn eines schwaecher ist.
     #    Gegenprobe: ist die Bresche gefallen und kommt danach niemand weiter, waehlt schon der erste Stau danach das andere
@@ -411,13 +412,13 @@ def main():
         f.phase = "angriff"                          # (B-140: der Zeitpunkt ist Sache von Pruefung 20)
         b = Befehle()
         m_ = f.schritt({"t": 12050}, L_, G_, b)
-        lauf_ = [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in b.liste if "lauf" in x.get("angriff", {})]
+        lauf_ = [(ende_(x["angriff"]), len(x["angriff"]["einheiten"])) for x in b.liste if "lauf" in x.get("angriff", {})]
         for i in range(10):
             L_[10 + i]["zustand"] = 105
         b2 = Befehle()
         f.schritt({"t": 12100}, L_, G_, b2)
         nochmal = [x for x in b2.liste if "lauf" in x.get("angriff", {}) and set(x["angriff"]["einheiten"]) & set(range(10, 20))]
-        bogen2 = [x["angriff"]["lauf"] for x in b2.liste if "lauf" in x.get("angriff", {}) and 60 in x["angriff"]["einheiten"]]
+        bogen2 = [ende_(x["angriff"]) for x in b2.liste if "lauf" in x.get("angriff", {}) and 60 in x["angriff"]["einheiten"]]
         vp = f.vorposten[1] if f.vorposten else None
         for i in range(10):
             L_[10 + i]["x"], L_[10 + i]["y"], L_[10 + i]["zustand"] = 306, 110, 1
@@ -459,7 +460,7 @@ def main():
             L_[10 + i]["x"], L_[10 + i]["y"] = 250 + i % 3, 160 + i // 5
         b = Befehle()
         m_ = f.schritt({"t": 12100}, L_, G_, b)
-        lauf_ = [(x["angriff"]["lauf"], len(x["angriff"]["einheiten"])) for x in b.liste if "lauf" in x.get("angriff", {})]
+        lauf_ = [(ende_(x["angriff"]), len(x["angriff"]["einheiten"])) for x in b.liste if "lauf" in x.get("angriff", {})]
         for i in range(10):
             L_[10 + i]["x"], L_[10 + i]["y"], L_[10 + i]["zustand"] = 300 + i % 3, 102 + i // 5, 1
         lord_ = []
@@ -662,7 +663,7 @@ def main():
     nah31 = [l for l in laeufe31 if max(abs(l[0] - 201), abs(l[1] - 99)) <= 4]
     pruefe(31, "Umweg %s (frei %s) | ohne Feuer %s | Feldzug: %d Laufbefehle, davon im Feuer %s, Meldungen %s" % (
         w31, frei31, w31g, len(laeufe31), nah31, [m[:50] for m in m31 if "FEUER" in m][:2]),
-        frei31 and w31g == [(201, 75)] and laeufe31 and not nah31 and any("FEUER MEIDEN" in m for m in m31)
+        frei31 and w31g == [(201, 75)] and laeufe31 and not nah31 and any("FEUER MEIDEN" in m or "SICHERER WEG" in m for m in m31)
         and any((x["angriff"].get("danach") or [[0, 0]])[-1] == [201, 70] for x in b31.liste if "lauf" in x.get("angriff", {})))
     # 32 (B-150, Daniel 19:45): Brandtrupp zuendet nichts auf dem eigenen Heerweg an, wenn es bei Ankunft des Heeres noch
     #    brennt. Heer bei (201,125) -> Lord (201,70): Plantage 19 (Leben 100) bei (201,99) liegt am Weg, 26 Felder entfernt
@@ -801,6 +802,22 @@ def main():
     pruefe(39, "Umleitungen %d %s, Ziele am Ende %s, Angreifer 30 dabei: %s" % (
         len(um39), [len(a_["einheiten"]) for a_ in um39], ziel39, any(30 in a_["einheiten"] for a_ in um39)),
         len(um39) == 1 and len(um39[0]["einheiten"]) == 10 and ziel39 == [[150, 133]] and not any(30 in a_["einheiten"] for a_ in um39))
+    # 40 (B-157, Daniel 21:11 "maximale Sicherheit, dann minimaler Widerstand"): 10 Streitkolben bei (100,200), ein feindlicher
+    #    Bogen (Reichweite 44) bei (100,120), Laufbefehl nach (100,40) quer durchs Schussfeld -> der Befehl geht ueber die
+    #    Wegkette ("SICHERER WEG"), die Gefahr ist kleiner als auf der Geraden. Gegenprobe (Sabotage): gefahr.K = 0 -> rot.
+    import gefahr as GF40
+    f40 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+    L40 = {500: einheit(55, 2, 300, 300, 30000), 600: einheit(22, 2, 100, 120)}
+    for i in range(10):
+        L40[10 + i] = einheit(26, 1, 100 + i % 3, 200 + i // 5)
+    b40, m40 = Befehle(), []
+    f40._feuer_lenken({"t": 12000, "bodenfeuer": []}, L40, {}, b40, m40)({"angriff": {"einheiten": list(range(10, 20)),
+                                                                                    "lauf": [100, 40]}}, 1.0, bis="ANGRIFF")
+    a40 = [x["angriff"] for x in b40.liste if "lauf" in x["angriff"]]
+    weg40 = [tuple(a40[0]["lauf"])] + [tuple(q) for q in a40[0].get("danach", [])] if a40 else []
+    g_neu, g_alt = (GF40.weg_gefahr((101, 200), weg40, f40._bed) if weg40 else -1), GF40.weg_gefahr((101, 200), [(100, 40)], f40._bed)
+    pruefe(40, "Weg %s, Gefahr %d statt %d (gerade), Meldung %s" % (weg40[:5], g_neu, g_alt, [m[:40] for m in m40][:1]),
+           weg40 and weg40[-1] == (100, 40) and 0 <= g_neu < g_alt and any("SICHERER WEG" in m for m in m40))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

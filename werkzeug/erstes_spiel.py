@@ -1789,13 +1789,16 @@ class Produktion:
             a = waffenlager[-1]
             o = baue_schnell(11, a["x"], a["y"], 10, zweck="Waffenlager nie voll")
             aus.append("PRODUKTION Waffenlager %d dazu (%d von %d belegt): %s" % (len(waffenlager) + 1, drin, platz, o))
-        if frei < self.UEBERLAUF_AB:
+        # B-156 (Daniel 21.10.2026 21:12 "so viel Holz Gold Stein Eisen ohne Grund"; Pruefstand 21.10.: Keulen 25-47 und Leder
+        # 17-23 lagen herum, angeworben wurde nur bei fast vollem Lager und nur bis zur Zielzahl - Gold im Mittel 1.965): jedes
+        # vollstaendige Paar wird angeworben, sobald Kaserne, Gold und Bauern da sind - nicht erst bei vollem Lager, ohne Zielzahl
+        if min(v.get("keule", 0), v.get("leder", 0)) >= 1:
             kas = [n for n, g in eig.items() if g["typ"] == 9]
-            paare = min(v.get("keule", 0), v.get("leder", 0), max(0, self.ziel - st.get("T26", 0)))
+            paare = min(v.get("keule", 0), v.get("leder", 0))
             if not kas and paare >= 1 and stein >= preis(9, "stein") and not any(a["typ"] == 9 for a in BUCH.offen):
                 aus.append("PRODUKTION Kaserne fuer Ueberlauf %s" % (kaserne_am_feuer(G={n: g for n, g in eig.items()}),))
             elif kas:
-                werben = anwerbe_menge(self.ziel, st.get("T26", 0), v.get("keule", 0), v.get("leder", 0), feuer, gold)
+                werben = anwerbe_menge(st.get("T26", 0) + paare, st.get("T26", 0), v.get("keule", 0), v.get("leder", 0), feuer, gold)
                 if werben:
                     aus.append("PRODUKTION Ueberlauf: Waffenlager %d/%d - %d Paare anwerben" % (drin, platz, min(5, werben)))
                     anwerbewelle(st, L, self.marken, aus, kas[0], werben)
@@ -3359,8 +3362,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     elif posten_h is not None:
                         # B-141 (Daniel 21:54, gemessen Pruefstand: Gold 6.409 -> 10.938 bei 2 Soeldnern je zweiter Runde): jede
                         # Runde alles Gold ueber Ruecklage + Rand ins Heer, so weit Bauern am Feuer stehen, bis HEER_JE_RUNDE
-                        if HEER_ANTEIL > 0:      # B-132: die Heereskasse zahlt (ohne Rand - sie ist der Rand)
-                            frei_h = min(getattr(wirt, "heer_kasse", 0.0), st["gold"] - wirt.ruecklage(G, ohne_heer=True)["gold"])
+                        if HEER_ANTEIL > 0:
+                            # B-156 (Pruefstand 21.10.: Gold im Mittel 1.965, ueber 1.000 in 53 % der Zeit - die Heereskasse
+                            # B-132 bremste, der Rest lag herum): alles Gold ueber der Ruecklage der Wirtschaft + Rand ins Heer
+                            frei_h = st["gold"] - wirt.ruecklage(G, ohne_heer=True)["gold"] - HEER_GOLD_RAND
                         else:
                             frei_h = st["gold"] - wirt.ruecklage(G)["gold"] - HEER_GOLD_RAND
                         heer_n, n_h, feuer_h = len(feldzug.einheiten(L)), 0, st.get("feuer", 0)

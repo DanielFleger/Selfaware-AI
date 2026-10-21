@@ -32,15 +32,19 @@ def fall(name, drin_keule, drin_leder, lager, kaserne, gold=500, holz=20, stein=
     return ok
 
 
+# B-156 (Daniel 21.10.2026 21:12 "so viel ... ohne Grund"; Pruefstand: Keulen 25-47 und Leder 17-23 lagen herum, angeworben wurde
+# nur bei fast vollem Lager und nur bis zur Zielzahl): jedes vollstaendige Paar wird angeworben, sobald Gold und Bauern da sind
 erg = [
-    fall("1 Lager, 30 belegt: nichts tun", 15, 15, 1, True),
-    fall("1 Lager, 36 belegt (14 frei): zweites Lager, kein Gold", 18, 18, 1, True, soll_lager=True),
+    fall("1 Lager, 30 belegt: 5 Paare anwerben (nie horten)", 15, 15, 1, True, soll_werben=5),
+    fall("1 Lager, 36 belegt (14 frei): zweites Lager + anwerben", 18, 18, 1, True, soll_lager=True, soll_werben=5),
     fall("1 Lager, 47 belegt (3 frei): Lager + 5 Paare anwerben", 24, 23, 1, True, soll_lager=True, soll_werben=5),
-    fall("2 Lager, 47 belegt (53 frei): nichts tun", 24, 23, 2, True),
+    fall("2 Lager, 47 belegt (53 frei): anwerben", 24, 23, 2, True, soll_werben=5),
     fall("1 Lager voll, ohne Kaserne: Kaserne bauen", 25, 25, 1, False, soll_lager=True, soll_kaserne=True),
     fall("1 Lager voll, Lager schon im Bau: nur anwerben", 25, 25, 1, True, im_bau=True, soll_werben=5),
     fall("1 Lager voll, nur 1 Bauer frei: 1 anwerben", 25, 25, 1, True, feuer=1, soll_lager=True, soll_werben=1),
-    fall("1 Lager voll, Ziel schon erreicht: nicht anwerben", 25, 25, 1, True, t26=100, soll_lager=True),
+    fall("Zielzahl schon erreicht: trotzdem anwerben (B-156)", 25, 25, 1, True, t26=100, soll_lager=True, soll_werben=5),
+    fall("Gegenprobe: Keulen, aber kein Leder -> niemand", 30, 0, 1, True),
+    fall("Gegenprobe: Paare, aber nur 10 Gold -> niemand", 20, 20, 2, True, gold=10),
 ]
 print("%d von %d gruen" % (sum(erg), len(erg)))
 raise SystemExit(0 if all(erg) else 1)
