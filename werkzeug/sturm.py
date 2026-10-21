@@ -104,16 +104,16 @@ def plane_ziel(start, maenner, mk, lnr_xy):
             "kandidaten": [(k[0], k[1], k[2]["takte"]) for k in kand]}
 
 
-def sammelfeld(zug, gf, gebiet):
-    """Naechstes Feld ohne Beschuss (Gefahr 0) im Gebiet des Zugangs - sonst der Zugang selbst."""
-    if zug is None:
-        return None
-    ok = (gf == 0) & (gebiet == gebiet[zug]) & (gebiet > 0)
-    xs, ys = np.nonzero(ok)
-    if len(xs) == 0:
-        return tuple(zug)
-    i = int(np.argmin(np.maximum(np.abs(xs - zug[0]), np.abs(ys - zug[1]))))
-    return (int(xs[i]), int(ys[i]))
+def sammelfeld(weg, zug, gf):
+    """Das letzte Feld OHNE Beschuss (Gefahr 0) auf dem geplanten Weg vor dem Zugang - dort beginnt das Vorpreschen
+    (Lauf 00:37: das naechste beschussfreie Feld irgendwo lag 48 Felder vom Zugang und nicht auf dem Weg - Bogen/Armbrust
+    reichen 35-45 Felder, Wissensregister L82/L91). Ist der ganze Weg unter Beschuss: der Startpunkt."""
+    ende = weg.index(tuple(zug)) if zug is not None and tuple(zug) in weg else len(weg) - 1
+    sicher = [q for q in weg[:ende + 1] if gf[q] == 0]
+    if not sicher:
+        return tuple(weg[0])
+    letzt = max(i for i, q in enumerate(weg[:ende + 1]) if gf[q] == 0)
+    return tuple(weg[letzt])
 
 
 def main():
@@ -142,6 +142,7 @@ def main():
     phase, plan, sammel, welle = "planen", None, None, set()
     geschickt, angesetzt, jaeger, fern_ziel = set(), set(), {}, {}
     ballisten_pruefen = True                             # nur bei Anlass suchen: Anfang, Jaeger frei, neues Ziel
+    versuche_ballista = {}                               # Ballista -> geschickte Jaeger (hoechstens 2 je Ballista)
     offen, erwartet, kauf_aus = None, 0, False
     haus_stellen = [(kaserne_xy[0] + dx, kaserne_xy[1] + dy) for r_ in (6, 9, 12) for dx, dy in
                     ((-r_, 0), (r_, 0), (0, -r_), (0, r_), (-r_, -r_), (r_, r_), (-r_, r_), (r_, -r_))] if kaserne_xy else []
@@ -217,7 +218,7 @@ def main():
             ballisten_pruefen = False
             ballisten = [n for n in range(1, 3000) if AD.einheit(roh, n)["typ"] == BALLISTE and AD.einheit(roh, n)["leben"] > 0
                          and AD.einheit(roh, n)["besitzer"] == FEIND and AD.einheit(roh, n)["zustand"] != 0
-                         and n not in jaeger.values()]
+                         and n not in jaeger.values() and versuche_ballista.get(n, 0) < 2]
             frei_ = [n for n in mauer - welle if n not in jaeger]
             while ballisten and frei_ and len(jaeger) < 2:
                 b_ = ballisten.pop(0)
@@ -226,6 +227,7 @@ def main():
                 frei_.remove(f)
                 mauer.discard(f)
                 jaeger[f] = b_
+                versuche_ballista[b_] = versuche_ballista.get(b_, 0) + 1
                 befehl({"angriff": {"einheiten": [f], "ziel": b_, "trupp": 1}}, 0.3)
                 ereignisse.append((t_, "JAEGER %d auf Feuerballiste %d" % (f, b_)))
 
@@ -259,7 +261,7 @@ def main():
             if plan is None:
                 ereignisse.append((t_, "KEIN WEG zum Lord von %s" % (start,)))
                 break
-            sammel = sammelfeld(plan["zug"] if plan["zug"] else plan["weg"][-2], plan["gefahr"], plan["e"]["gebiet"])
+            sammel = sammelfeld(plan["weg"], plan["zug"] if plan["zug"] else plan["weg"][-2], plan["gefahr"])
             ereignisse.append((t_, "ZIEL %s %s ueber Zugang %s, Sammelfeld %s, Weg %.0f Takte | Kandidaten %s" % (
                 plan["art"], plan["ziel"], plan["zug"], sammel, plan["takte"], plan["kandidaten"])))
             geschickt, angesetzt, welle = set(), set(), set()
