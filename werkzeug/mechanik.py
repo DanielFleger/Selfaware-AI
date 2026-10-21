@@ -139,9 +139,12 @@ RICHT_BITS = [((0, -1), 0x01), ((1, -1), 0x02), ((1, 0), 0x04), ((1, 1), 0x08), 
               ((-1, 0), 0x40), ((-1, -1), 0x80)]
 
 
-def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner, start, ziel, mk=None):
+def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner, start, ziel, mk=None, sperre=None, gefahr=None):
     """Billigster Weg (Takte) von start zum ziel ueber Laufen und Hacken; Rueckgabe {"weg", "mauern" (in Reihenfolge), "takte"}.
-    Ohne Weg: weg = None."""
+    Ohne Weg: weg = None. sperre: Felder, die fuer uns kein Weg sind (feindliche Tore/Tuerme mit Rand, B-164).
+    gefahr: Schuetzen je Feld (gefahr.Karte.g) - Daniels Regel "maximale Sicherheit, dann minimaler Widerstand" als Rangfolge:
+    zuerst die Summe der Gefahr auf dem Weg, erst dann die Takte. Der Vorrang-Faktor ist groesser als jede moegliche Takt-Summe
+    (Felder x teuerste Kante), damit eine Einheit Gefahr mehr wiegt als jeder Zeitgewinn."""
     import numpy as np
     from scipy.sparse import coo_matrix
     from scipy.sparse.csgraph import dijkstra
@@ -157,23 +160,30 @@ def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner
     treffer = np.ceil(np.maximum(punkte, 1) / np.maximum(schaden, 1))
     hack = np.ceil(treffer / max(1, maenner)) * mk["takte_je_treffer"] + TAKTE_JE_FELD
     xs, ys = np.meshgrid(np.arange(n), np.arange(n), indexing="ij")
+    sp = np.zeros(link.shape, bool) if sperre is None else sperre
     von, nach, kosten = [], [], []
     for (dx, dy), bit in RICHT_BITS:
         x2, y2 = xs + dx, ys + dy
         ok = (x2 >= 0) & (x2 < n) & (y2 >= 0) & (y2 < n)
         x2c, y2c = np.clip(x2, 0, n - 1), np.clip(y2, 0, n - 1)
-        lauf = ok & ((link & bit) != 0) & ~wand & ~wand[x2c, y2c]
+        lauf = ok & ((link & bit) != 0) & ~wand & ~wand[x2c, y2c] & ~sp & ~sp[x2c, y2c]
         von.append(idx(xs[lauf], ys[lauf])); nach.append(idx(x2c[lauf], y2c[lauf]))
         kosten.append(np.full(int(lauf.sum()), float(TAKTE_JE_FELD)))
         if dx == 0 or dy == 0:
-            frei = (link != 0) | wand                                   # von einem freien oder gehackten Feld gerade weiter
+            frei = ((link != 0) & ~sp) | wand                           # von einem freien oder gehackten Feld gerade weiter
             rein = ok & frei & wand[x2c, y2c]
             von.append(idx(xs[rein], ys[rein])); nach.append(idx(x2c[rein], y2c[rein]))
             kosten.append(hack[x2c[rein], y2c[rein]].astype(float))
-            raus = ok & wand & (link[x2c, y2c] != 0) & ~wand[x2c, y2c]
+            # (22.10. 00:03, Test C: hinter (176,113) lag (175,113) = Bergfried, Logik 0x10000000 - der Plan sah 1 Mauer, es waren 4
+            # hintereinander): aus dem Schutt nur auf ebenen Boden, nicht auf Bergfried/Gebaeude/erhoehte Flaechen
+            raus = ok & wand & (link[x2c, y2c] != 0) & ~wand[x2c, y2c] & ((logik[x2c, y2c] & 0x10000000) == 0) &                 (bau[x2c, y2c] == 0) & (hoehe[x2c, y2c] <= boden[x2c, y2c]) & ~sp[x2c, y2c]
             von.append(idx(xs[raus], ys[raus])); nach.append(idx(x2c[raus], y2c[raus]))
             kosten.append(np.full(int(raus.sum()), float(TAKTE_JE_FELD)))
     v, z, k = np.concatenate(von), np.concatenate(nach), np.concatenate(kosten)
+    takt_k = k.copy()
+    if gefahr is not None:
+        vorrang = float(n * n) * float(max(k.max(), TAKTE_JE_FELD))
+        k = k + vorrang * np.asarray(gefahr, float).ravel()[z]
     g = coo_matrix((k, (v, z)), shape=(n * n, n * n)).tocsr()
     dist, vor = dijkstra(g, directed=True, indices=idx(*start), return_predecessors=True)
     zi = idx(*ziel)
@@ -184,4 +194,7 @@ def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner
         weg.append((int(p // n), int(p % n)))
         p = vor[p]
     weg = [tuple(start)] + weg[::-1]
-    return {"weg": weg, "mauern": [q for q in weg if wand[q]], "takte": float(dist[zi])}
+    tk = {(int(a), int(b)): float(c) for a, b, c in zip(v, z, takt_k)}
+    takte = sum(tk.get((idx(*a), idx(*b)), 0.0) for a, b in zip(weg, weg[1:]))
+    gef = float(sum(np.asarray(gefahr)[q] for q in weg[1:])) if gefahr is not None else None
+    return {"weg": weg, "mauern": [q for q in weg if wand[q]], "takte": takte, "gefahr": gef}

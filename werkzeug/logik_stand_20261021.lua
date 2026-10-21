@@ -1562,6 +1562,17 @@ local function einzelbefehl(cmd)
   -- Gegenstueck zu peek. Liest den alten Wert mit, damit im Log steht, was
   -- ueberschrieben wurde - ohne das ist ein Fehlgriff spaeter nicht mehr
   -- nachvollziehbar.
+  -- B-159 (22.10. 00:08): Niederlage-Pruefung waehrend des Ladens AUS. checkSkirmishGameDefeat (0x00486600, aus processGameTick
+  -- 0x0045CFAF, jeden Takt) sah in den ersten Bildern nach dem Laden noch keinen Menschen, setzte gameOver und schaltete das
+  -- Sieg/Niederlage-Fenster ein (laden_spur_20261021_233820/_234313). Erstes Byte 0x83 (SUB ESP,0x68) -> 0xC3 (RET, thiscall
+  -- ohne Stapel-Argumente); live gegen die Referenz geprueft (83 EC 68 53 56). { "niederlagePruefung": false } aus, true an
+  if cmd.niederlagePruefung ~= nil then
+    local an = cmd.niederlagePruefung == true
+    core.writeCode(0x00486600, { an and 0x83 or 0xC3 })
+    log(INFO, string.format("NIEDERLAGE-PRUEFUNG %s (Byte 0x00486600 = %02X)", an and "an" or "AUS", core.readByte(0x00486600) or -1))
+    return true
+  end
+
   if cmd.poke ~= nil then
     local adr = tonumber(cmd.poke)
     local wert = tonumber(cmd.wert)

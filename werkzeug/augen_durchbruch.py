@@ -48,10 +48,37 @@ def ebenen():
             "boden": speicher.ebene(speicher.BODEN).astype(int)}
 
 
+def sperre_feindbau(bau):
+    """B-164 wie feldzug._ohne_feindtore (gemessen 22:13/22:27): feindliche Burgteile (Tore, Tuerme, Bergfried) sind fuer uns kein
+    Weg; der Durchgang eines Torhauses liegt NEBEN seinem Grundriss ohne Gebaeudenummer - darum Tore mit 2 Feldern Rand.
+    (22.10. 00:05: ohne das fand der Plan einen Weg ganz ohne Mauer, die Truppe stand nach 1.035 Takten fest)"""
+    from scipy import ndimage
+    from feldzug import BURG_TEILE
+    from parteien import freunde_von
+    from waechter import lies_gebaeude
+    G = lies_gebaeude()
+    feind = [nr for nr, g_ in G.items() if g_["besitzer"] not in freunde_von(1) and g_["typ"] in BURG_TEILE]
+    tore = [nr for nr in feind if G[nr]["typ"] == 75]
+    s = np.isin(bau, feind)
+    if tore:
+        s |= ndimage.binary_dilation(np.isin(bau, tore), structure=np.ones((3, 3), bool), iterations=2)
+    return s
+
+
+def gefahr_feld():
+    """Schuetzen je Feld (gefahr.Karte.g) aus dem letzten Lagebild - Reichweiten gefecht.FERN_REICH, Todeszonen gefahr.TODESZONE."""
+    import gefahr as GF
+    import gefecht
+    from parteien import freunde_von
+    from waechter import lies_gebaeude
+    return GF.Karte(GF.bedrohungen(lies_lagebild(neu_holen=False), lies_gebaeude(), lambda b: b not in freunde_von(1),
+                                   gefecht.FERN_REICH)).g
+
+
 def plane(start, ziel, maenner, mk):
     e = ebenen()
     return mechanik.durchbruch_schritte(e["link"], e["logik"], e["bau"], e["besitz"], e["hoehe"], e["boden"], 1, maenner,
-                                        start, ziel, mk)
+                                        start, ziel, mk, sperre=sperre_feindbau(e["bau"]), gefahr=gefahr_feld())
 
 
 def anfrage_und_blick(kachel):
@@ -87,8 +114,7 @@ def main(wand_typen=None):
     uhr = [("start", time.time())]
     # "armee" (Daniel 21.10. 23:55): Grundstand mit beiden Heeren - unsere Soldaten brechen durch, Franz behaelt seine Einheiten
     armee = "armee" in sys.argv[1:]
-    # (22.10. 00:00: Kippen beim Laden weiter ungeklaert - Fix A und B widerlegt; NOTLOESUNG, ausdruecklich: ein zweiter Ladeversuch)
-    print("OK:", shc.laden(shc.STANDARD_STAND, versuche=2) if armee else shc.sandkasten(nur_soldaten="ja"), flush=True)
+    print("OK:", shc.laden(shc.STANDARD_STAND) if armee else shc.sandkasten(nur_soldaten="ja"), flush=True)
     uhr.append(("geladen", time.time()))
     befehl({"lagebild": True}, 2.0, bis="LAGEBILD")
     L = lies_lagebild(neu_holen=False)
@@ -112,6 +138,7 @@ def main(wand_typen=None):
         print("  WEG %s logik %s hoehe-boden %d gebiet %d link 0x%02X%s" % (
             q, hex(int(e_["logik"][q])), int(e_["hoehe"][q]) - int(e_["boden"][q]), int(e_["gebiet"][q]), int(e_["link"][q]),
             " MAUER(Plan)" if q in wand else ""), flush=True)
+    andere = []
     if armee:
         roh = speicher.lies(E0, 3000 * ES)
         nrs = [n for n in range(1, 3000) if einheit(roh, n)["leben"] > 0 and einheit(roh, n)["typ"] in shc.SOLDATEN
@@ -120,10 +147,9 @@ def main(wand_typen=None):
         if wand_typen:
             andere = [n for n in nrs if einheit(roh, n)["typ"] not in wand_typen]
             nrs = [n for n in nrs if einheit(roh, n)["typ"] in wand_typen]
-            print("FIX: Mauer nur Typen %s (%d Mann), %d andere direkt auf den Lord" % (sorted(wand_typen), len(nrs), len(andere)),
-                  flush=True)
-            if andere:
-                befehl({"angriff": {"einheiten": sorted(andere), "ziel": lnr, "trupp": 1}}, 1.0)
+            # (Daniel 22.10. 00:06 "alle auf den Lord, sobald Zugang besteht"): die anderen warten, bis der Weg frei ist
+            print("FIX: Mauer nur Typen %s (%d Mann), %d andere warten auf den freien Weg" % (sorted(wand_typen), len(nrs),
+                                                                                          len(andere)), flush=True)
     else:
         t = shc.setze(spieler=1, typ=26, x=zugang[0] - 1, y=zugang[1] - 1, anzahl=ZAHL)
         nrs = [int(x) for x in re.search(r"Nummern \[([0-9, ]+)\]", t).group(1).split(",")]
@@ -173,6 +199,7 @@ def main(wand_typen=None):
             neu_planen = False
             mitte = (sorted(q[0] for q in felder)[len(felder) // 2], sorted(q[1] for q in felder)[len(felder) // 2])
             beginn = min(felder, key=lambda q: max(abs(q[0] - mitte[0]), abs(q[1] - mitte[1])))
+            befehl({"lagebild": True}, 2.0, bis="LAGEBILD")      # Schuetzen von jetzt fuer die Gefahrenkarte
             pl = plane(beginn, lp, len(leute), mk)
             kachel = pl["mauern"][0] if pl["weg"] and pl["mauern"] else None
             h = speicher.ebene(speicher.HOEHE).astype(int) - speicher.ebene(speicher.BODEN).astype(int)
@@ -183,12 +210,12 @@ def main(wand_typen=None):
                 # B-167 (Test C 22:55: Weg frei, aber der Lord stand nie "im Gebiet der Truppe" - Bergfried eigenes Gebiet):
                 # keine Mauer mehr auf dem Durchbruch-Weg = auf den Lord
                 phase = "lord"
-                ereignisse.append((t_, "WEG FREI - alle einzeln auf den Lord"))
-                befehl({"angriff": {"einheiten": sorted(leute), "ziel": lnr, "trupp": 1}}, 1.0)
+                ereignisse.append((t_, "WEG FREI - alle einzeln auf den Lord (%d an der Mauer + %d wartende)" % (len(leute), len(andere))))
+                befehl({"angriff": {"einheiten": sorted(leute) + sorted(andere), "ziel": lnr, "trupp": 1}}, 1.0)
                 gesendet = {n: (leute[n]["zustand"], leute[n]["ziel"]) for n in leute}
             else:
-                ereignisse.append((t_, "KACHEL %s (Hoehe ueber Boden %d), noch %d Mauerkacheln auf dem Weg, Weg %s Takte" % (
-                    kachel, h[kachel], len(pl["mauern"]), pl["takte"])))
+                ereignisse.append((t_, "KACHEL %s (Hoehe ueber Boden %d), noch %d Mauerkacheln auf dem Weg, Weg %s Takte, Gefahr %s" % (
+                    kachel, h[kachel], len(pl["mauern"]), pl["takte"], pl.get("gefahr"))))
                 # B-167 (Daniel 23:23): Ziel DIREKT setzen - alle auf das gerade Zugangsfeld des Wegs, targetedBuildingTile +
                 # attackAtTileX/Y geschrieben (logik.lua mauerziel); beim Ankommen beginnt laut Code der Angriff auf genau diese Kachel
                 # (Test C 23:38: nur Laufbefehl + geschriebenes Ziel -> alle 20 mit richtigem Ziel, aber keiner haut (Zustand 2):
@@ -276,14 +303,10 @@ def main(wand_typen=None):
 
 if __name__ == "__main__":
     # nach einem Ausloeser sofort neu laden und noch einmal (hoechstens 2 Laeufe) - ohne Neustart der Instanz
-    # (Daniel 23:59 "mit Fixes, nicht den gleichen Run"): der zweite Lauf nimmt die Typen, die im ersten gehauen haben, fuer die
-    # Mauer - alle anderen gleich auf den Lord. Hat keiner gehauen, gibt es keinen Fix aus der Messung -> Abbruch mit Grund
-    ausgeloest, hauen = main()
-    if ausgeloest and hauen:
-        print("NEUSTART DES TESTS mit Fix: Mauer nur Typen %s" % sorted(hauen), flush=True)
-        main(wand_typen=hauen)
-    elif ausgeloest:
-        # keiner hat gehauen: Mauer nur fuer Streitkolben (Typ 26 - Mauerangriff belegt in UpdateMaceman 0x00560700, Fall
-        # US_MELEE_ATTACK_WALL), alle anderen gleich auf den Lord
-        print("NEUSTART DES TESTS mit Fix: keiner hat gehauen -> Mauer nur Streitkolben (Typ 26, Code UpdateMaceman)", flush=True)
-        main(wand_typen={26})
+    # EIN Lauf (Daniel 22.10. 00:11: "nur einen Lauf, daraus lernen, fixen, dann neu starten, wenn das Problem erkannt und gefixt
+    # ist") - kein automatischer zweiter Lauf; der Ausloeser nennt den Grund, der Fix kommt von Hand.
+    # Armee: nur Streitkolben an die Mauer (Lauf 22.10. 00:00: von 55 Soldaten aller Typen hieb keiner; Mauerangriff ist fuer
+    # Typ 26 im Code belegt, UpdateMaceman 0x00560700, US_MELEE_ATTACK_WALL), alle anderen warten auf den freien Weg
+    ausgeloest, hauen = main(wand_typen={26} if "armee" in sys.argv[1:] else None)
+    if ausgeloest:
+        print("AUSLOESER - Lauf beendet; gehauen haben die Typen %s" % sorted(hauen), flush=True)

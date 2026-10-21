@@ -140,18 +140,22 @@ def _laden_einmal(name=STANDARD_STAND, platz=1, platz_vorher=True):
     from laden import lade_stand, befehl
     menue()
     try:
-        tick = lade_stand(name, mit_bild=False, platz=platz, platz_vorher=platz_vorher)
-    except RuntimeError as e:
-        if "kein Laden erkannt" not in str(e):
-            raise
-        # 21.10. 20:06 und 20:33 (L183): nach einer Sandkasten-Partie drueckte das Modul den Laden-Knopf (ok=true), das Spiel
-        # lud aber nichts - auch andere Spielstaende nicht; ein Neustart der Instanz half jedes Mal. Darum EINMAL neu starten
-        # und noch einmal laden (Daniel 18:42: "idiotensicher und instant")
-        print("WARNUNG: Laden hing (%s) - Instanz wird neu gestartet" % e, flush=True)
-        neustart()
-        menue()
-        tick = lade_stand(name, mit_bild=False, platz=platz)
-    befehl({"eigenerPlatz": platz}, 0.8)
+        try:
+            tick = lade_stand(name, mit_bild=False, platz=platz, platz_vorher=platz_vorher)
+        except RuntimeError as e:
+            if "kein Laden erkannt" not in str(e):
+                raise
+            # 21.10. 20:06 und 20:33 (L183): nach einer Sandkasten-Partie drueckte das Modul den Laden-Knopf (ok=true), das Spiel
+            # lud aber nichts - auch andere Spielstaende nicht; ein Neustart der Instanz half jedes Mal. Darum EINMAL neu starten
+            # und noch einmal laden (Daniel 18:42: "idiotensicher und instant")
+            print("WARNUNG: Laden hing (%s) - Instanz wird neu gestartet" % e, flush=True)
+            neustart()
+            menue()
+            tick = lade_stand(name, mit_bild=False, platz=platz, platz_vorher=platz_vorher)
+        befehl({"eigenerPlatz": platz}, 0.8)
+    finally:
+        # B-159 (22.10. 00:08): Niederlage-Pruefung erst wieder an, wenn unser Platz steht - und nie ausgeschaltet zuruecklassen
+        befehl({"niederlagePruefung": True}, 0.5)
     z = zustand()
     # B-159 (21.10. 23:45): steht gameOver schon auf 1, ist das Sieg/Niederlage-Fenster an - checkSkirmishGameDefeat (0x00486600)
     # setzt beides zusammen, und Zuruecksetzen der Flags half nicht (21.10. 21:08, das Fenster blieb). Darum neu laden statt flicken
