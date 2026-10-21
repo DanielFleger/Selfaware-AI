@@ -12,6 +12,7 @@
 //! Beschusswache: eigene Kaempfer, die stehen und Leben verlieren, werden im Takt gemeldet (beschuss.rs) - Auge, kein Verhalten.
 
 mod beschuss;
+mod feuer;
 mod haende;
 mod leitung;
 mod waechter;
@@ -29,7 +30,7 @@ use haende::{Annahme, Auftrag, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 17;
+pub const VERSION: u32 = 18;
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -87,6 +88,7 @@ struct Zustand {
     leitung: Option<Option<leitung::Leitung>>,
     graben_zahl: (u32, u32),
     beschuss: Option<beschuss::Wache>,
+    feuer: Option<feuer::Wache>,
     letzte_zeile: i32,
     letzter_takt: Option<Instant>,
     m: Messung,
@@ -99,6 +101,7 @@ static ZUSTAND: Mutex<Zustand> = Mutex::new(Zustand {
     leitung: None,
     graben_zahl: (0, 0),
     beschuss: None,
+    feuer: None,
     letzte_zeile: -1,
     letzter_takt: None,
     m: Messung::neu(),
@@ -250,6 +253,37 @@ fn beschuss_takt(z: &mut Zustand, tick: i32) {
     }
 }
 
+/// B-150 Feuer-Auge: brennende Gebaeude (Beginn/Ende) und eigene Kaempfer im Feuer ins Protokoll (feuer.rs, L177).
+fn feuer_takt(z: &mut Zustand, tick: i32) {
+    let ich = unsafe { i32_bei(SLOT_ICH) };
+    let welt = &z.welt;
+    let w = z.feuer.get_or_insert_with(feuer::Wache::default);
+    let haeuser: Vec<(i32, i32, i32, i16)> =
+        welt.gebaeude.iter().map(|g| (g.nr, g.x as i32, g.y as i32, g.feuer)).collect();
+    let eigene: Vec<(i32, i32, i32, i32)> = welt.einheiten.iter()
+        .filter(|e| e.besitzer as i32 == ich && KAEMPFER.contains(&e.typ))
+        .map(|e| (e.nr, e.leben, e.x, e.y)).collect();
+    for m in w.sieh(&haeuser, &eigene) {
+        let text = match m {
+            feuer::Meldung::Brennt { nr, wert } => {
+                let g = welt.gebaeude.iter().find(|g| g.nr == nr);
+                g.map_or(String::new(), |g| format!("Gebaeude {} (Typ {}, Spieler {}) bei ({},{}) brennt (Wert {})",
+                                                      nr, g.typ, g.besitzer, g.x, g.y, wert))
+            }
+            feuer::Meldung::Aus { nr } => format!("Gebaeude {} brennt nicht mehr", nr),
+            feuer::Meldung::ImFeuer { nr, haus } => {
+                let e = welt.einheiten.iter().find(|e| e.nr == nr);
+                e.map_or(String::new(), |e| format!("IM FEUER - Einheit {} (Typ {}) bei ({},{}) neben brennendem Gebaeude {}, Leben {} [r {}]",
+                                                      nr, e.typ, e.x, e.y, haus, e.leben, feuer::FEUER_R))
+            }
+            feuer::Meldung::Raus { nr } => format!("Einheit {} raus aus dem Feuer", nr),
+        };
+        if !text.is_empty() {
+            schreibe(&format!("feuer tick {}: {}", tick, text));
+        }
+    }
+}
+
 /// S4b: Auftraege aus dem Ring - Art 1 uebernehmen, 2 freigeben, 17/4/9 Auftrag (wie samurai_auftrag). Ergebnis je Eintrag.
 fn ring_abarbeiten(z: &mut Zustand, tick: i32) {
     let Some(Some(l)) = &z.leitung else { return };
@@ -337,6 +371,7 @@ fn takt(tick: i32, spieler: i32) -> i32 {
                 grabenreflex(&mut z, tick, &neu);
             }
             beschuss_takt(&mut z, tick);
+            feuer_takt(&mut z, tick);
             ring_abarbeiten(&mut z, tick);
             haende_takt(&mut z, tick);
             leitung_schreiben(&mut z, tick);
@@ -349,6 +384,9 @@ fn takt(tick: i32, spieler: i32) -> i32 {
             z.letzte_zeile = -1;
             z.welt.epoche();
             if let Some(w) = z.beschuss.as_mut() {
+                w.leeren();
+            }
+            if let Some(w) = z.feuer.as_mut() {
                 w.leeren();
             }
             z.welt.lesen();

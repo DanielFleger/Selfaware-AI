@@ -65,7 +65,7 @@ EINHEIT_FELDER = (
     "zielgebaeude",
     "nahziel",
 )
-GEBAEUDE_FELDER = ("nr", "typ", "besitzer", "x", "y", "leben", "_frei")
+GEBAEUDE_FELDER = ("nr", "typ", "besitzer", "x", "y", "leben", "feuer")  # feuer ab Kern 18 (B-150), vorher 0
 
 
 class FalscherAufbau(RuntimeError):
@@ -104,7 +104,6 @@ def entpacken(puffer):
     for i in range(min(ng, MAX_GEBAEUDE)):
         werte = struct.unpack_from(GEBAEUDE_FORMAT, puffer, start + i * GEBAEUDE)
         g = dict(zip(GEBAEUDE_FELDER, werte, strict=True))
-        g.pop("_frei")
         gebaeude[g["nr"]] = g
     vorrat = {}
     for sp in range(1, SPIELER):

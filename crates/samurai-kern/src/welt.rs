@@ -84,6 +84,8 @@ pub struct Gebaeude {
     pub groesse: i32,
     /// S3: ein Feld am Rand des Grundrisses vom Startpunkt aus erreichbar 1/0; -9 = nicht berechnet
     pub erreichbar: i32,
+    /// B-150 Feuer-Auge: fireDuration (Gebaeude +0x14+702 = +0x2D2), > 0 = brennt (L177)
+    pub feuer: i16,
 }
 
 /// Was die Grabenwache in einem Takt gesehen hat
@@ -186,6 +188,7 @@ impl Welt {
                         ware: i32_bei(b + 0x1A0),
                         groesse: i32_bei(b + 0x10C),
                         erreichbar: -9,
+                        feuer: i16_bei(b + 0x2D2),
                     });
                 }
             }

@@ -146,7 +146,7 @@ impl Leitung {
             for (i, b) in welt.gebaeude.iter().take(ng).enumerate() {
                 let o = gb + i * GEBAEUDE;
                 self.setze::<i32>(o, b.nr);
-                for (k, w) in [b.typ, b.besitzer, b.x, b.y, b.leben, 0].iter().enumerate() {
+                for (k, w) in [b.typ, b.besitzer, b.x, b.y, b.leben, b.feuer].iter().enumerate() {   // (B-150: frei -> Feuerwert)
                     self.setze::<i16>(o + 4 + 2 * k, *w);
                 }
             }
