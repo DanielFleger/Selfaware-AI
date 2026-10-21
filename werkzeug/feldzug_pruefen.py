@@ -808,6 +808,39 @@ def main():
         wahl41[mit] = (w41 and w41[3], f41._karte is not None and f41._karte.gebiete is not None)
     pruefe(41, "mit Wegkarte: Stelle %s (Gebiete %s) | ohne: Stelle %s" % (wahl41[True][0], wahl41[True][1], wahl41[False][0]),
            wahl41[True] == (901, True) and wahl41[False][0] == 900)
+    # 42 (B-162 Abfangen, Daniel 21:16/21:40). Vorher festgelegt: 12 Streitkolben bei (150,200), Ziel (150,100). Schuetze A
+    #    (150,160) im Gebiet 1 auf dem Weg, Schuetze B (170,110) auf einer Mauer (Gebiet 31) - das Ziel liegt in seiner
+    #    Reichweite, kein Weg fuehrt an ihm vorbei (erste Fassung mit B seitlich blieb im Gegenlauf gruen: der Weg umging B),
+    #    Schuetze C (300,300) weit weg. -> genau EIN Abfangbefehl: auf A, mit gefahr.mindestzahl Mann (10.000 Leben in 100
+    #    Takten -> 1), der naechste Streitkolben; B und C nichts. Zweite Runde (Abfaenger laeuft, Zustand 2): kein neuer Befehl.
+    #    A tot -> Auftrag weg, niemand mehr belegt. Gegenprobe im selben Test: ohne Gebiete (Karte ohne Wegkarte) kein Abfangen.
+    geb42 = np41.ones((400, 400), np41.int32)
+    geb42[169:172, 109:112] = 31
+    L42 = {10 + i: dict(einheit(26, 1, 150 + i % 3, 200 + i // 3), zustand=2) for i in range(12)}
+    L42[801] = einheit(22, 2, 150, 160)
+    L42[802] = einheit(22, 2, 170, 110)
+    L42[803] = einheit(22, 2, 300, 300)
+    nah42 = sorted(n for n in L42 if n < 800)
+    bed42 = GF41.bedrohungen(L42, {}, lambda b: b == 2, __import__("gefecht").FERN_REICH)
+    f42 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=12)
+    f42._karte = GF41.Karte(bed42, gebiete=geb42)
+    b42, m42, bef42 = Befehle(), [], {}
+    ab42 = f42._abfangen(L42, nah42, (151, 201), (150, 100), bef42, b42, m42)
+    erst42 = [x["angriff"] for x in b42.liste]
+    for n in ab42:
+        L42[n]["zustand"] = 2
+    b42b = Befehle()
+    ab42b = f42._abfangen(L42, nah42, (151, 201), (150, 100), bef42, b42b, [])
+    del L42[801]
+    ab42c = f42._abfangen(L42, nah42, (151, 201), (150, 100), bef42, Befehle(), [])
+    f42o = F.Feldzug(1, heim, lord_schutz_bis=9600, n=12)
+    f42o._karte = GF41.Karte(bed42)
+    b42o = Befehle()
+    ab42o = f42o._abfangen(L42 | {801: einheit(22, 2, 150, 160)}, nah42, (151, 201), (150, 100), {}, b42o, [])
+    pruefe(42, "Abfangen: %s %s | 2. Runde %d Befehle | A tot: belegt %s | ohne Gebiete: %d Befehle" % (
+        erst42, [m[:50] for m in m42], len(b42b.liste), sorted(ab42c), len(b42o.liste)),
+           len(erst42) == 1 and erst42[0].get("ziel") == 801 and erst42[0]["einheiten"] == [10] and ab42 == {10}
+           and not b42b.liste and ab42b == {10} and not ab42c and not b42o.liste and not ab42o)
     # 39 (B-150, Pruefstand 20:32: die Umleitung schickte je Einheit einen Befehl zum naechsten Wegknoten des Spiels): 10
     #    Streitkolben laufen (Zustand 2) zum befohlenen Vorposten (150,133), ihr naechstes Wegstueck fuehrt durch ein Feuer
     #    -> EIN Befehl fuer alle 10, Ziel am Ende der Vorposten (nicht ihr Wegknoten); Gegenprobe: ein Angreifer (Bresche) mit

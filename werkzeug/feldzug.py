@@ -216,6 +216,11 @@ class Feldzug:
     # (Zugbruecke gegen Franz: Leben blieb bei 100) - verwerfen, naechste Schwachstelle
     BRESCHE_ZAEH = 1000       # (B-140 22:16: 3.000 liess 35 Mann unter Beschuss stehen)
     TOR_MIN = 5
+    # B-162 Abfangen (Daniel 21.10. 21:16 "Einheiten besiegen, die auf dem Weg sind, z.B. Fernkaempfer - dann nur die minimale
+    # Anzahl, die zum Toeten reicht"; 21:40 "erkannt werden, welche Schuetzen ueberhaupt erreichbar sind - viele stehen auf
+    # Mauern"): so viele Takte darf das Toeten eines Schuetzen dauern (gefahr.mindestzahl) - UNGEMESSEN
+    ABFANG_TAKTE = 100
+    ABFANG_ANTEIL = 3         # hoechstens jeder dritte Nahkaempfer faengt ab, der Rest bleibt beim Angriff
 
     def __init__(self, sp, heim, lord_schutz_bis=0, n=None):
         self.sp, self.heim, self.schutz_bis = sp, tuple(heim), lord_schutz_bis
@@ -302,6 +307,47 @@ class Feldzug:
             except Exception as ex:                      # Spiel nicht lesbar: wie vorher ohne Gebiete, Grund merken
                 self.wegkarte_fehler = str(ex)[:120]
         return GF.Karte(bed, feuer=self._orte_f, gebiete=geb)
+
+    def _abfangen(self, L, nah_kampf, start, ziel, befohlen, befehl, aus):
+        """B-162: Schuetzen, deren Reichweite den sichersten Weg start -> ziel trifft UND die zu Fuss erreichbar sind (gleiches
+        Gebiet laut Wegkarte des Spiels), bekommen je die kleinste Zahl Nahkaempfer, die sie in ABFANG_TAKTE toetet - die
+        naechsten zuerst, zusammen hoechstens jeder ABFANG_ANTEIL-te. Ein Auftrag bleibt, bis der Schuetze tot ist. Ohne
+        Wegkarte nichts (dann ist "erreichbar" nicht bekannt). Gibt die Nahkaempfer mit Abfangauftrag zurueck."""
+        auftraege = getattr(self, "_abfang", {})
+        self._abfang = auftraege
+        nah = set(nah_kampf)
+        for k in list(auftraege):                       # tot oder ohne Leute -> Auftrag aus, die Leute sind wieder frei
+            auftraege[k] = [n for n in auftraege[k] if n in nah]
+            if k not in L or L[k].get("leben", 1) <= 0 or not auftraege[k]:
+                del auftraege[k]
+        if self._karte is None or self._karte.gebiete is None or not nah_kampf:
+            return set().union(*auftraege.values()) if auftraege else set()
+        weg = GF.sicherer_weg(start, ziel, self._karte) or [ziel]
+        er = {b[4] for b in GF.erreichbare_schuetzen(start, self._karte)}
+        frei = [n for n in nah_kampf if not any(n in v for v in auftraege.values())]
+        rest = len(nah_kampf) // self.ABFANG_ANTEIL - sum(len(v) for v in auftraege.values())
+        for treffer, art, ort in GF.schuetzen_am_weg(start, weg, self._karte):
+            k = int(art.split()[1])
+            if art not in er or k in auftraege or k not in L:
+                continue
+            noetig = GF.mindestzahl(L[k].get("leben", 1), self.ABFANG_TAKTE)
+            if noetig > rest or noetig > len(frei):
+                aus.append("FELDZUG ABFANG ZU TEUER: Schuetze %d bei %s braucht %d, frei %d (Anteil-Rest %d)" % (
+                    k, ort, noetig, len(frei), rest))
+                continue
+            frei.sort(key=lambda n: schach((L[n]["x"], L[n]["y"]), ort))
+            auftraege[k], frei, rest = frei[:noetig], frei[noetig:], rest - noetig
+            aus.append("FELDZUG ABFANG: %d Nahkaempfer auf Schuetze %d (Typ %d, Leben %d) bei %s - bestreicht %d Wegfelder, zu "
+                       "Fuss erreichbar (Gebiet %d); Mindestzahl bei %d Takten (Schaden je Takt %d UNGEMESSEN)" % (
+                           noetig, k, L[k]["typ"], L[k].get("leben", 0), ort, treffer, self._karte.gebiet_bei(start),
+                           self.ABFANG_TAKTE, GF.NAHKAMPF_SCHADEN))
+        for k, ns in auftraege.items():
+            neu = [n for n in ns if befohlen.get(n) != ("abfang", k) or L[n].get("zustand") in (0, 1)]
+            if neu:
+                befehl({"angriff": {"einheiten": neu, "ziel": k}}, 1.0, bis="ANGRIFF")
+                for n in neu:
+                    befohlen[n] = ("abfang", k)
+        return set().union(*auftraege.values()) if auftraege else set()
 
     def _beste_stelle(self, G, lp, orte, nr_test=None):
         """B-140 (Daniel 21:47 "nicht nur stupide drauf gehen, sondern die beste Position auswaehlen"): (Gefahr, Leben, Abstand,
@@ -817,8 +863,16 @@ class Feldzug:
             am_lord = [n for n in nah_kampf if schluss or schach((L[n]["x"], L[n]["y"]), lp) <= self.ANGRIFF_NAH]
             befohlen = getattr(self, "_befohlen", {})
             self._befohlen = befohlen
+            # B-162: erreichbare Schuetzen am Weg der Spitze zum Ziel dieser Runde (Vorposten/Bresche, sonst Wegpunkt/Lord) -
+            # die kleinste noetige Zahl faengt sie ab, alle anderen machen weiter wie geplant
+            ziel_w = self.vorposten[1] if (self.bresche is not None and self.vorposten and self.vorposten[0] == self.bresche
+                                           and self.vorposten[1]) else p
+            abfang = self._abfangen(L, nah_kampf, mitte_v, ziel_w, befohlen, befehl, aus)
+            if abfang:
+                nah_kampf = [n for n in nah_kampf if n not in abfang]
+                am_lord = [n for n in am_lord if n not in abfang]
             bresche = self.bresche
-            belegt = set()        # B-138: Nahkaempfer mit Torauftrag - kein Laufbefehl zum Lord darueber (der hob bis 20.10.
+            belegt = set(abfang)  # B-138: Nahkaempfer mit Torauftrag - kein Laufbefehl zum Lord darueber (der hob bis 20.10.
             #                       jeden Torangriff in derselben Runde wieder auf: Torhaus 264 blieb 6 Staus bei 1.500)
             if bresche is not None and bresche in G:
                 tor = (G[bresche]["x"], G[bresche]["y"])

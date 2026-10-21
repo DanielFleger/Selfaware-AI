@@ -3998,6 +3998,83 @@
      "was": "gebaut -> gebaut (Commit db6b717)"
     }
    ]
+  },
+  {
+   "nr": "B-162",
+   "titel": "Abfangtrupp: erreichbare Schuetzen am sichersten Weg bekommen je die kleinste noetige Zahl der naechsten Nahkaempfer (gefahr.mindestzahl, hoechstens jeder dritte), Auftrag bis der Schuetze tot ist",
+   "bereich": "angriff",
+   "status": "gebaut",
+   "seit": "2026-10-21 22:00",
+   "herkunft": "Daniel 21.10. 21:16 'nur die minimale Anzahl, die zum Toeten reicht'; 21:40 'welche Schuetzen ueberhaupt erreichbar sind'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "werkzeug/feldzug.py (_abfangen",
+    "ABFANG_TAKTE",
+    "ABFANG_ANTEIL)",
+    "werkzeug/feldzug_pruefen.py 42"
+   ],
+   "belege": [
+    "feldzug_pruefen 42/42; Gegenlauf 'Erreichbarkeit egal' -> 42 rot (erste Fassung blieb gruen",
+    "Test nachgeschaerft); Siegpartie 21:57: bis 30 Schuetzen am Weg zu Fuss erreichbar - im Spiel noch NICHT gelaufen"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-21 22:00",
+     "was": "angelegt (gebaut)"
+    }
+   ]
+  },
+  {
+   "nr": "B-163",
+   "titel": "Freie Fahrt zum Lord hat Vorrang: Erreichbarkeit des Lords jede Runde pruefen (Wegkarte), auch waehrend eine Bresche gewaehlt ist - ist er erreichbar, Bresche fallen lassen und auf den Lord",
+   "bereich": "angriff",
+   "status": "offen",
+   "seit": "2026-10-21 22:00",
+   "herkunft": "Daniel 21.10. 21:59 Bild 'literally freie Fahrt auf den Koenig, aber lieber aufs Torhaus'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "werkzeug/feldzug.py:841 (Lord-Pruefung nur ohne Bresche)"
+   ],
+   "belege": [
+    "Siegpartie 21:57: Torhaus 195 ab Takt 59.066",
+    "verworfen 60.269",
+    "erst 60.517 'Lord erreichbar'"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-21 22:00",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-164",
+   "titel": "Schredder: Einer-Stapel direkt auf die Mauerkacheln Richtung Lord - Weg durch die Mauern mit Kosten = Zeit zum Durchhacken gegen Gefahr, statt Torhaus/Turm",
+   "bereich": "angriff",
+   "status": "offen",
+   "seit": "2026-10-21 22:00",
+   "herkunft": "Daniel 21.10. 21:59 'mit jeweils 1er Stacks gestackt auf eine Mauer, mit einem Schredder durch alle Mauern durchraspeln, dann direkt drinnen'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "werkzeug/feldzug.py",
+    "logik.lua mauer"
+   ],
+   "belege": [
+    "Sandkasten 21:33: Torhaus als Gruppe 559 Takte",
+    "einzeln 281; Mauer-Hackrate je Kachel noch ungemessen"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-21 22:00",
+     "was": "angelegt (offen)"
+    }
+   ]
   }
  ]
 }
