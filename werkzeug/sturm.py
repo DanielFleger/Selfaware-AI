@@ -420,7 +420,11 @@ def main():
                 continue
             wirkung = None                                # Leben des Torhauses nur ueber das Lagebild - bei der Frist
         else:
-            wirkung = lord["leben"]
+            # Lord-Phase: Wirkung = Leben des Lords UND seiner Soldaten (Lauf 00:52: 30 Mann im Nahkampf (106) gegen die Leibwache,
+            # der Lord selbst noch unberuehrt -> falscher Abbruch "keine Wirkung")
+            wirkung = lord["leben"] + sum(AD.einheit(roh, m)["leben"] for m in range(1, 3000)
+                                          if AD.einheit(roh, m)["besitzer"] == FEIND and AD.einheit(roh, m)["zustand"] != 0
+                                          and AD.einheit(roh, m)["typ"] in shc.SOLDATEN and AD.einheit(roh, m)["leben"] > 0)
         if wirkung is not None and wirk_alt is not None and wirkung < wirk_alt:
             frist = t_ + 2 * mk["takte_je_treffer"]       # Wirkung: naechste Frist 2 Trefferrunden
             t_107 = None
