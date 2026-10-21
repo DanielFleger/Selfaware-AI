@@ -18,6 +18,7 @@ Ablauf je Runde (schritt):
            Ist der Lord tot: naechstes Ziel, die Ueberlebenden sammeln neu, aufgefuellt wird auf N.
 Anwerben/Kaufen macht erstes_spiel.ruestung_kaufen (Ziel N lebende Streitkolben, nur Gold ueber der Ruecklage).
 """
+import os
 from parteien import freunde_von   # B-133: Freund/Feind aus den Mannschaften des Spiels (2v2)
 
 STREITKOLBEN = 26
@@ -333,7 +334,8 @@ class Feldzug:
         # B-150 Feuer meiden: jeder Laufbefehl dieser Runde geht ueber feuerfreier_weg - fuehrt die Strecke von der Mitte
         # der befohlenen Einheiten zum Ziel am Feuer vorbei, wird zuerst der Umweg befohlen (die naechste Runde schickt die
         # Ankommenden weiter, weil ihr Laufziel nicht das Ziel ist)
-        orte_f = feuerorte(G, st.get("bodenfeuer", []))
+        # (Gegenprobe im Pruefstand: FEUER_MEIDEN=nein schaltet das Meiden ab)
+        orte_f = feuerorte(G, st.get("bodenfeuer", [])) if os.environ.get("FEUER_MEIDEN", "ja") != "nein" else []
         if orte_f:
             roh = befehl
 
