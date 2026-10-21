@@ -269,8 +269,8 @@ def main():
             geschickt = set(stuermer)
             # echte Laufzeit je Mann zum Sammelfeld (Schrittbits) - die Luftlinie unterschaetzte (Lauf 00:39: 11 von 51 da)
             zum_sammel = mechanik.lauf_takte_zu(plan["e"]["link"], sammel, AD.sperre_feindbau(plan["e"]["bau"]))
-            # Felder x Takte je Feld des Typs: Streitkolben 12 (gemessen, augen_laufen), sonst 16 (Wissensregister L68) - Lauf 00:40:
-            # mit 12 fuer alle waren beim Sturm erst 11 von 53 da
+            # Felder x Takte je Feld des Typs: Streitkolben 12 (gemessen, augen_laufen), sonst 16 - UNGEMESSEN fuer Soldaten, geliehen
+            # von den Arbeitern (Wissensregister L68). Lauf 00:40: mit 12 fuer alle waren beim Sturm erst 11 von 53 da
             wege_ = [zum_sammel[jetzt[n]["x"], jetzt[n]["y"]] / mechanik.TAKTE_JE_FELD *
                      (mechanik.TAKTE_JE_FELD if jetzt[n]["typ"] == STREITKOLBEN else 16) for n in stuermer]
             erreichbar = [w for w in wege_ if np.isfinite(w)]
