@@ -1051,6 +1051,17 @@ def main():
                                                     [m[:50] for m in m48g if "KOMMT NICHT AN" in m]),
            any("KOMMT NICHT AN" in m for m in m48) and len(k48) >= 2 and k48[0] in f48.mauer_verworfen
            and not any("KOMMT NICHT AN" in m for m in m48g))
+    # 49 (B-166, 21.10. 22:45 im Spielcode abgelesen: handleUnitMovementWhenTargetingBuildings prueft bei einer Mauerkachel nur
+    #    N/O/S/W - schraeg daneben beginnt nie ein Mauerangriff; Messung 22:41: 1 Mann schraeg an Kachel (171,121), 5.945 Takte
+    #    kein Schlag). Vorher festgelegt: Ring aus Test 44, das Heer kommt schraeg (Suedwest, (240,170)) - auf dem Durchbruch-Weg ist
+    #    der Schritt vom Feld vor JEDER Mauerkachel gerade (|dx|+|dy| = 1). Gegenlauf (8 Nachbarn erlaubt) -> rot.
+    f49 = F.Feldzug(1, heim, n=10)
+    plan49 = f49._durchbruch(geb44, ring44, np41.where(ring44, 50, 0), (240, 170), (300, 100))
+    weg49 = plan49["weg"]
+    schritte49 = [(abs(weg49[i][0] - weg49[i - 1][0]) + abs(weg49[i][1] - weg49[i - 1][1])) for i in range(1, len(weg49))
+                  if ring44[weg49[i]]]
+    pruefe(49, "Durchbruch von Suedwest: erste Kachel %s, Schritte auf Mauerkacheln %s" % (plan49["kachel"], schritte49),
+           plan49["kachel"] is not None and schritte49 and all(s_ == 1 for s_ in schritte49))
     # 39 (B-150, Pruefstand 20:32: die Umleitung schickte je Einheit einen Befehl zum naechsten Wegknoten des Spiels): 10
     #    Streitkolben laufen (Zustand 2) zum befohlenen Vorposten (150,133), ihr naechstes Wegstueck fuehrt durch ein Feuer
     #    -> EIN Befehl fuer alle 10, Ziel am Ende der Vorposten (nicht ihr Wegknoten); Gegenprobe: ein Angreifer (Bresche) mit

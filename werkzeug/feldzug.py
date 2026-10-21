@@ -402,7 +402,10 @@ class Feldzug:
         start, lp = tuple(start), tuple(lp)
         kosten[start] = max(float(kosten[start]), 1.0)
         kosten[lp] = 1.0
-        mcp = MCP(kosten, fully_connected=True)
+        # (B-166, 21.10. 22:45 abgelesen: handleUnitMovementWhenTargetingBuildings 0x0054C4F0 prueft bei einer MAUERKACHEL nur jede
+        # zweite der 8 Richtungen - N, O, S, W; schraeg daneben beginnt nie ein Mauerangriff, Messung 22:41: 5.945 Takte kein Schlag.
+        # Darum nur gerade Schritte - jede Kachel auf dem Weg hat ein gerades Zugangsfeld)
+        mcp = MCP(kosten, fully_connected=False)
         kum, _ = mcp.find_costs([start], [lp])
         if not np.isfinite(kum[lp]):
             return {"kachel": None, "n": 0, "hoehe": 0, "weg": []}

@@ -2653,7 +2653,8 @@ local function einzelbefehl(cmd)
         if k then
           for dy = -1, 1 do
             for dx = -1, 1 do
-              if (dx ~= 0 or dy ~= 0) and meinGebiet ~= 0 and gebiet(kx + dx, ky + dy) == meinGebiet then frei = true end
+              -- B-166 (21.10. 22:45, handleUnitMovementWhenTargetingBuildings 0x0054C4F0): an eine Mauerkachel nur N/O/S/W
+              if (dx == 0) ~= (dy == 0) and meinGebiet ~= 0 and gebiet(kx + dx, ky + dy) == meinGebiet then frei = true end
             end
           end
         end
@@ -2676,7 +2677,7 @@ local function einzelbefehl(cmd)
             local frei = false
             for dy = -1, 1 do
               for dx = -1, 1 do
-                if (dx ~= 0 or dy ~= 0) and meinGebiet ~= 0 and gebiet(x + dx, y + dy) == meinGebiet then frei = true end
+                if (dx == 0) ~= (dy == 0) and meinGebiet ~= 0 and gebiet(x + dx, y + dy) == meinGebiet then frei = true end
               end
             end
             if frei then

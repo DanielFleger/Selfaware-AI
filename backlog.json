@@ -4126,6 +4126,41 @@
      "was": "gebaut -> gebaut (Commit 10ef468)"
     }
    ]
+  },
+  {
+   "nr": "B-166",
+   "titel": "Mechanik aus dem Spielcode statt geschaetzt: Mauerschlag des Streitkolbens (mechanik.py liest Schaden/Takt live), Messung 1 Mann gegen 1 Kachel, Mauern nur gerade (N/O/S/W) angreifbar",
+   "bereich": "angriff",
+   "status": "gebaut",
+   "seit": "2026-10-21 22:46",
+   "herkunft": "Daniel 21.10. 22:35 'im Code genau rauslesen, wie viel die Einheit pro Tick haut; Messung abgleichen, Differenzen erklaeren, weitere Extremtests'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "werkzeug/mechanik.py",
+    "werkzeug/augen_schlag.py",
+    "feldzug._durchbruch (4 Nachbarn)",
+    "logik.lua mauer (gerade Nachbarn)",
+    "feldzug_pruefen 49"
+   ],
+   "belege": [
+    "Code: Bild je 4 Takte",
+    "Schwung 48",
+    "nur jeder 2. trifft -> 96; Mauer 5 (laufendes Spiel",
+    "Referenz 6)",
+    "Tor/Turm 15 (Ref. 4)",
+    "Gebaeude 80 (Ref. 35). Messung 22:45: Schwung 48 (alle)",
+    "Treffer 96 (alle)",
+    "Schaden 2 bei 3 Nachbarnn (alle)",
+    "Luecken 0; 22:41: schraeg an der Kachel 5.945 Takte kein Schlag"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-21 22:46",
+     "was": "angelegt (gebaut)"
+    }
+   ]
   }
  ]
 }
