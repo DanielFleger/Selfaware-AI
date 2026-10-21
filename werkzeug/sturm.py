@@ -264,7 +264,10 @@ def main():
             # noch in 101; im Siegerlauf 00:54 einzeln: Torhaus nach 589 Takten gefallen)
             befehl({"angriff": {"einheiten": sorted(wer), "gebaeude": plan["ziel"], "trupp": 1}}, 0.5)
         else:
-            befehl({"angriff": {"einheiten": sorted(wer), "ziel": lnr}}, 0.5)
+            # Lord EINZELN, die Vordersten zuerst (Lauf 01:16: als Gruppenbefehl liefen die Maenner in Formation am Lord vorbei -
+            # Rueckwaerts-Melder: 22 -> 42 Felder; im ersten Sieg mit Einzelbefehlen fiel der Lord am schnellsten, 1.192 Takte)
+            reihe = sorted(wer, key=lambda n_: abstand((jetzt[n_]["x"], jetzt[n_]["y"]), lord_xy) if n_ in jetzt else 999)
+            befehl({"angriff": {"einheiten": reihe, "ziel": lnr, "trupp": 1}}, 0.5)
         w_ = plan["weg"]
         zug_ = tuple(plan["zug"]) if plan["zug"] else tuple(w_[-1])
         frist = t_ + max(0, w_.index(zug_) if zug_ in w_ else len(w_)) * mechanik.TAKTE_JE_FELD + 2 * mk["takte_je_treffer"]
@@ -541,8 +544,10 @@ def main():
                 weg_takte = max(0, w_.index(zug_) - w_.index(sammel)) * mechanik.TAKTE_JE_FELD if zug_ in w_ and sammel in w_ else 0
                 m_noetig = bedarf(r_["tote"] / float(r_["takte"]), weg_takte) if r_ and r_["takte"] > 0 else None
                 if m_noetig is not None:
-                    # gemessene Rate fuer dieses Ziel: los, sobald genug da sind - alle anderen gehen gleich mit (welle = alle)
-                    bereit = len(da) >= m_noetig or da == stuermer or t_ >= sammel_frist
+                    # (Daniel 01:16 "ohne das Buendeln und Warten auf den Rest ist nicht genug Kraft dabei - das ist falsch"; Lauf 01:16:
+                    # frueher Start mit 62 -> Torhaus 12 Tote in 982 Takten, gebuendelt vorher 0-2 Tote in ~580): gewartet wird auf ALLE
+                    # (oder die Frist des Langsamsten); der Bedarf aus der gemessenen Rate steht nur noch in der Meldung
+                    bereit = da == stuermer or t_ >= sammel_frist
                     if bereit and not sturm_grund:
                         sturm_grund = "Bedarf %d Mann (Rate %.4f Tote/Takt gemessen), %d am Wartepunkt" % (m_noetig, r_["tote"] / float(r_["takte"]), len(da))
                 else:
