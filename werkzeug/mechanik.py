@@ -207,3 +207,25 @@ def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner
     takte = sum(tk.get((idx(*a), idx(*b)), 0.0) for a, b in zip(weg, weg[1:]))
     gef = float(sum(np.asarray(gefahr)[q] for q in weg[1:])) if gefahr is not None else None
     return {"weg": weg, "mauern": [q for q in weg if wand[q]], "takte": takte, "gefahr": gef}
+
+
+def lauf_takte_zu(link, ziel, sperre=None):
+    """Takte, die jedes Feld zu Fuss bis ziel braucht (Schrittbits, 12 Takte je Feld gemessen - augen_laufen), np.inf = nicht
+    erreichbar. B-167 (22.10. 00:39): die Luftlinie unterschaetzte die Wege zum Sammelfeld - nach ihrer Frist waren 11 von 51 da."""
+    import numpy as np
+    from scipy.sparse import coo_matrix
+    from scipy.sparse.csgraph import dijkstra
+    n = link.shape[0]
+    sp = np.zeros(link.shape, bool) if sperre is None else sperre
+    xs, ys = np.meshgrid(np.arange(n), np.arange(n), indexing="ij")
+    von, nach = [], []
+    for (dx, dy), bit in RICHT_BITS:
+        x2, y2 = xs + dx, ys + dy
+        ok = (x2 >= 0) & (x2 < n) & (y2 >= 0) & (y2 < n)
+        x2c, y2c = np.clip(x2, 0, n - 1), np.clip(y2, 0, n - 1)
+        lauf = ok & ((link & bit) != 0) & ~sp & ~sp[x2c, y2c]
+        # rueckwaerts eintragen: Abstand VON jedem Feld ZUM Ziel = Abstand vom Ziel im umgedrehten Netz
+        von.append(x2c[lauf] * n + y2c[lauf]); nach.append(xs[lauf] * n + ys[lauf])
+    v, z = np.concatenate(von), np.concatenate(nach)
+    g = coo_matrix((np.full(len(v), float(TAKTE_JE_FELD)), (v, z)), shape=(n * n, n * n)).tocsr()
+    return dijkstra(g, directed=True, indices=ziel[0] * n + ziel[1]).reshape(n, n)

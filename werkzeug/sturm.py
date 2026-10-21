@@ -146,7 +146,7 @@ def main():
     offen, erwartet, kauf_aus = None, 0, False
     haus_stellen = [(kaserne_xy[0] + dx, kaserne_xy[1] + dy) for r_ in (6, 9, 12) for dx, dy in
                     ((-r_, 0), (r_, 0), (0, -r_), (0, r_), (-r_, -r_), (r_, r_), (-r_, r_), (r_, -r_))] if kaserne_xy else []
-    frist, wirk_alt, sammel_frist = None, None, None
+    frist, wirk_alt, sammel_frist, t_107 = None, None, None, None
     tick0 = s32(shc.TICK)
     letzt = None
     befehl({"pause": False, "tempo": 40}, 0.2)
@@ -267,8 +267,13 @@ def main():
             geschickt, angesetzt, welle = set(), set(), set()
             befehl({"angriff": {"einheiten": sorted(stuermer), "lauf": [sammel[0], sammel[1]], "trupp": 1}}, 0.5)
             geschickt = set(stuermer)
-            weit = max(abstand((jetzt[n]["x"], jetzt[n]["y"]), sammel) for n in stuermer)
-            sammel_frist = t_ + weit * mechanik.TAKTE_JE_FELD        # laengster Weg zum Sammelfeld, 12 Takte je Feld
+            # echte Laufzeit je Mann zum Sammelfeld (Schrittbits) - die Luftlinie unterschaetzte (Lauf 00:39: 11 von 51 da)
+            zum_sammel = mechanik.lauf_takte_zu(plan["e"]["link"], sammel, AD.sperre_feindbau(plan["e"]["bau"]))
+            wege_ = [zum_sammel[jetzt[n]["x"], jetzt[n]["y"]] for n in stuermer]
+            erreichbar = [w for w in wege_ if np.isfinite(w)]
+            sammel_frist = t_ + (max(erreichbar) if erreichbar else 0)
+            if len(erreichbar) < len(wege_):
+                ereignisse.append((t_, "SAMMELN: %d von %d erreichen das Sammelfeld nicht" % (len(wege_) - len(erreichbar), len(wege_))))
             phase = "sammeln"
             continue
 
@@ -282,9 +287,12 @@ def main():
                     befehl({"angriff": {"einheiten": sorted(welle), "gebaeude": plan["ziel"], "trupp": 1}}, 0.5)
                 else:
                     befehl({"angriff": {"einheiten": sorted(welle), "ziel": lnr, "trupp": 1}}, 0.5)
-                zug = plan["zug"] or lord_xy
-                frist = t_ + abstand(sammel, zug) * mechanik.TAKTE_JE_FELD + 2 * mk["takte_je_treffer"]
-                wirk_alt = None
+                # Frist: Wegfelder des Plans vom Sammelfeld bis zum Zugang x 12 Takte + 2 Trefferrunden (nicht die Luftlinie)
+                w_ = plan["weg"]
+                zug = tuple(plan["zug"]) if plan["zug"] else tuple(w_[-1])
+                felder_ = (w_.index(zug) - w_.index(sammel)) if zug in w_ and sammel in w_ else abstand(sammel, zug)
+                frist = t_ + max(0, felder_) * mechanik.TAKTE_JE_FELD + 2 * mk["takte_je_treffer"]
+                wirk_alt, t_107 = None, None
                 ereignisse.append((t_, "STURM %d Mann auf %s %s (%d noch unterwegs)" % (len(welle), plan["art"], plan["ziel"],
                                                                                     len(stuermer - da))))
                 phase = "sturm"
@@ -317,7 +325,12 @@ def main():
             wirkung = lord["leben"]
         if wirkung is not None and wirk_alt is not None and wirkung < wirk_alt:
             frist = t_ + 2 * mk["takte_je_treffer"]       # Wirkung: naechste Frist 2 Trefferrunden
+            t_107 = None
         wirk_alt = wirkung if wirkung is not None else wirk_alt
+        # wer im Mauerangriff steht (107, Code UpdateMaceman), arbeitet - Abbruch fruehestens 2 Trefferrunden nach Beginn
+        if any(jetzt[n]["lage"] == 107 for n in welle):
+            t_107 = t_ if t_107 is None else t_107
+            frist = max(frist, t_107 + 2 * mk["takte_je_treffer"])
         if not welle:
             ereignisse.append((t_, "WELLE GEFALLEN - neu sammeln"))
             phase = "planen"
