@@ -74,7 +74,7 @@ def plane_ziel(start, maenner, mk, lnr_xy):
     e = AD.ebenen()
     G = lies_gebaeude()
     sperre = AD.sperre_feindbau(e["bau"])
-    gf = AD.gefahr_feld()
+    gf, nah = schaden_feld(e["link"].shape[0])
     args = (e["link"], e["logik"], e["bau"], e["besitz"], e["hoehe"], e["boden"], SP, maenner, start, lnr_xy, mk)
     kand = []
     r = mechanik.durchbruch_schritte(*args, sperre=sperre, gefahr=gf)
@@ -95,25 +95,55 @@ def plane_ziel(start, maenner, mk, lnr_xy):
     i_wand = next((i for i, q in enumerate(weg) if q in set(map(tuple, r["mauern"]))), None)
     i_tor = next((i for i, q in enumerate(weg) if rand is not None and rand[q]), None)
     if i_tor is not None and (i_wand is None or i_tor < i_wand):
-        return {"art": "tor", "ziel": nr, "zug": weg[i_tor - 1], "weg": weg, "takte": r["takte"], "gefahr": gf, "e": e,
+        return {"art": "tor", "ziel": nr, "zug": weg[i_tor - 1], "weg": weg, "takte": r["takte"], "gefahr": gf, "nah": nah, "e": e,
                 "kandidaten": [(k[0], k[1], k[2]["takte"]) for k in kand]}
     if i_wand is not None:
         return {"art": "mauer", "ziel": weg[i_wand], "zug": weg[i_wand - 1], "weg": weg, "takte": r["takte"], "gefahr": gf,
                 "e": e, "kandidaten": [(k[0], k[1], k[2]["takte"]) for k in kand]}
-    return {"art": "lord", "ziel": None, "zug": None, "weg": weg, "takte": r["takte"], "gefahr": gf, "e": e,
+    return {"art": "lord", "ziel": None, "zug": None, "weg": weg, "takte": r["takte"], "gefahr": gf, "nah": nah, "e": e,
             "kandidaten": [(k[0], k[1], k[2]["takte"]) for k in kand]}
 
 
-def sammelfeld(weg, zug, gf):
-    """Das letzte Feld OHNE Beschuss (Gefahr 0) auf dem geplanten Weg vor dem Zugang - dort beginnt das Vorpreschen
-    (Lauf 00:37: das naechste beschussfreie Feld irgendwo lag 48 Felder vom Zugang und nicht auf dem Weg - Bogen/Armbrust
-    reichen 35-45 Felder, Wissensregister L82/L91). Ist der ganze Weg unter Beschuss: der Startpunkt."""
+# Schaden je Schuetze und Takt nach Schach-Abstand, offenes Feld (Wissensregister L73, gemessen an Assassinen, ~6.900 Runden):
+# <=3: 2,10 | 4-8: 1,37 | 9-15: 0,56 | ueber 15 bis zur Reichweite: 0,06
+SCHADEN_BAENDER = ((3, 2.10), (8, 1.37), (15, 0.56))
+SCHADEN_WEIT = 0.06
+NAH = 15                                              # ab hier faellt der Schaden auf ein Zehntel (L73) - Sammeln erlaubt
+
+
+def schaden_feld(n):
+    """(Schaden je Takt je Feld, Schuetzen naeher als NAH je Feld) aus dem letzten Lagebild - nur feindliche Fernkaempfer.
+    (22.10. 00:42, Daniel: "er sucht das kleine Tuermchen aus und nicht die Luecke mit 1 Mauer" - mit 44 Feldern Reichweite zaehlte
+    jeder Schuetze ueberall gleich, die ganze Burg war gleich gefaehrlich)"""
+    L = lies_lagebild(neu_holen=False)
+    d_s = np.zeros((n + 1, n + 1))
+    d_n = np.zeros((n + 1, n + 1))
+
+    def quadrat(d, x, y, r, w):
+        x0, x1, y0, y1 = max(0, x - r), min(n - 1, x + r), max(0, y - r), min(n - 1, y + r)
+        d[x0, y0] += w
+        d[x1 + 1, y0] -= w
+        d[x0, y1 + 1] -= w
+        d[x1 + 1, y1 + 1] += w
+    for e in L.values():
+        if e.get("besitzer") == FEIND and e.get("typ") in FERN and e.get("leben", 1) > 0:
+            x, y = e["x"], e["y"]
+            quadrat(d_s, x, y, gefecht.FERN_REICH[e["typ"]], SCHADEN_WEIT)
+            vorher = SCHADEN_WEIT
+            for r, w in reversed(SCHADEN_BAENDER):
+                quadrat(d_s, x, y, r, w - vorher)
+                vorher = w
+            quadrat(d_n, x, y, NAH, 1.0)
+    return d_s.cumsum(0).cumsum(1)[:n, :n], d_n.cumsum(0).cumsum(1)[:n, :n]
+
+
+def sammelfeld(weg, zug, nah):
+    """Das letzte Feld auf dem geplanten Weg vor dem Zugang, an das kein Schuetze naeher als NAH Felder herankommt - dort beginnt
+    das Vorpreschen (L73: dahinter ein Zehntel des Schadens; Lauf 00:42: "beschussfrei" = ausser 44 Feldern lag viel zu weit weg).
+    Ist der ganze Weg naeher: der Startpunkt."""
     ende = weg.index(tuple(zug)) if zug is not None and tuple(zug) in weg else len(weg) - 1
-    sicher = [q for q in weg[:ende + 1] if gf[q] == 0]
-    if not sicher:
-        return tuple(weg[0])
-    letzt = max(i for i, q in enumerate(weg[:ende + 1]) if gf[q] == 0)
-    return tuple(weg[letzt])
+    sicher = [i for i, q in enumerate(weg[:ende + 1]) if nah[q] == 0]
+    return tuple(weg[max(sicher)]) if sicher else tuple(weg[0])
 
 
 def main():
@@ -139,7 +169,15 @@ def main():
     kvon = {v: k for k, v in kxy.items()}
 
     ereignisse, spur = [], []
+
+    def melde(e_):
+        """Ereignis festhalten UND sofort ausgeben (der Lauf ist so von aussen live zu verfolgen)."""
+        ereignisse.append(e_)
+        print("  Takt %6d  %s" % e_, flush=True)
     phase, plan, sammel, welle = "planen", None, None, set()
+    # (Daniel 00:42 "die Streitkolben gehen und kommen dann wieder, dann kommen Wellen - sie sollen doch alle auf einmal"):
+    # gesammelt wird EINMAL (und erst wieder, wenn die ganze Truppe gefallen ist); danach geht die Truppe von Ziel zu Ziel weiter
+    gesammelt = False
     geschickt, angesetzt, jaeger, fern_ziel = set(), set(), {}, {}
     ballisten_pruefen = True                             # nur bei Anlass suchen: Anfang, Jaeger frei, neues Ziel
     versuche_ballista = {}                               # Ballista -> geschickte Jaeger (hoechstens 2 je Ballista)
@@ -147,8 +185,25 @@ def main():
     haus_stellen = [(kaserne_xy[0] + dx, kaserne_xy[1] + dy) for r_ in (6, 9, 12) for dx, dy in
                     ((-r_, 0), (r_, 0), (0, -r_), (0, r_), (-r_, -r_), (r_, r_), (-r_, r_), (r_, -r_))] if kaserne_xy else []
     frist, wirk_alt, sammel_frist, t_107 = None, None, None, None
+    def sturm_befehl(wer):
+        """Alle in wer gleichzeitig auf das Ziel des Plans; Frist = Wegfelder bis zum Zugang x 12 Takte + 2 Trefferrunden."""
+        nonlocal frist, wirk_alt, t_107, phase
+        if plan["art"] == "mauer":
+            befehl({"angriff": {"einheiten": sorted(wer), "lauf": [plan["zug"][0], plan["zug"][1]], "trupp": 1}}, 0.5)
+        elif plan["art"] == "tor":
+            befehl({"angriff": {"einheiten": sorted(wer), "gebaeude": plan["ziel"], "trupp": 1}}, 0.5)
+        else:
+            befehl({"angriff": {"einheiten": sorted(wer), "ziel": lnr, "trupp": 1}}, 0.5)
+        w_ = plan["weg"]
+        zug_ = tuple(plan["zug"]) if plan["zug"] else tuple(w_[-1])
+        frist = t_ + max(0, w_.index(zug_) if zug_ in w_ else len(w_)) * mechanik.TAKTE_JE_FELD + 2 * mk["takte_je_treffer"]
+        wirk_alt, t_107 = None, None
+        melde((t_, "STURM %d Mann auf %s %s" % (len(wer), plan["art"], plan["ziel"])))
+        phase = "sturm"
+
     tick0 = s32(shc.TICK)
     letzt = None
+    t_ = 0
     befehl({"pause": False, "tempo": 40}, 0.2)
     while True:
         tk = s32(shc.TICK)
@@ -159,7 +214,7 @@ def main():
         roh = speicher.lies(E0, 3000 * ES)
         lord = AD.einheit(roh, lnr)
         if lord["leben"] <= 0 or lord["typ"] != 55:
-            ereignisse.append((t_, "LORD TOT"))
+            melde((t_, "LORD TOT"))
             break
         jetzt = eigene_soldaten(roh)
         # gleiche Nummer, andere Kennung = neuer Mann auf dem Platz eines Gefallenen
@@ -171,6 +226,14 @@ def main():
             ballisten_pruefen = True
             if j in lebend:
                 mauer.add(j)                              # Ballista erledigt: zurueck zu den Streitkolben
+                if phase == "sturm" and plan is not None:
+                    welle.add(j)
+                    if plan["art"] == "mauer":
+                        befehl({"angriff": {"einheiten": [j], "lauf": [plan["zug"][0], plan["zug"][1]], "trupp": 1}}, 0.3)
+                    elif plan["art"] == "tor":
+                        befehl({"angriff": {"einheiten": [j], "gebaeude": plan["ziel"], "trupp": 1}}, 0.3)
+                    else:
+                        befehl({"angriff": {"einheiten": [j], "ziel": lnr, "trupp": 1}}, 0.3)
         if s32(GOLD2) > 0:                                # Daniel 21.10. 23:20: Franz wirbt sonst nach
             befehl({"player": FEIND, "gold": 0}, 0.3)
 
@@ -187,7 +250,7 @@ def main():
                 elif t_ - t_off >= 2:                     # Befehle wirken im naechsten Takt (logik.lua befehlAbsetzen)
                     if art_ == "kauf":
                         kauf_aus = True
-                        ereignisse.append((t_, "KAUF GESCHEITERT - kein weiterer Kauf"))
+                        melde((t_, "KAUF GESCHEITERT - kein weiterer Kauf"))
                     offen = None
             if offen is None:
                 if keule1 > 0 and leder1 > 0 and feuer1 > 0 and gold1 >= 20:
@@ -206,21 +269,35 @@ def main():
                 for n in neu:
                     uid_von[n] = kennung(roh, n)
                     (mauer if jetzt[n]["typ"] == STREITKOLBEN else fern if jetzt[n]["typ"] in FERN else nah).add(n)
-                    if sammel is not None and jetzt[n]["typ"] not in FERN:
+                    if jetzt[n]["typ"] not in FERN and phase == "sturm":
+                        welle.add(n)
+                        if plan["art"] == "mauer":
+                            befehl({"angriff": {"einheiten": [n], "lauf": [plan["zug"][0], plan["zug"][1]], "trupp": 1}}, 0.3)
+                        elif plan["art"] == "tor":
+                            befehl({"angriff": {"einheiten": [n], "gebaeude": plan["ziel"], "trupp": 1}}, 0.3)
+                        else:
+                            befehl({"angriff": {"einheiten": [n], "ziel": lnr, "trupp": 1}}, 0.3)
+                    elif sammel is not None and jetzt[n]["typ"] not in FERN:
                         befehl({"angriff": {"einheiten": [n], "lauf": [sammel[0], sammel[1]], "trupp": 1}}, 0.3)
                         geschickt.add(n)
                 erwartet = max(0, erwartet - len(neu))
                 if neu:
-                    ereignisse.append((t_, "ANGEWORBEN %s" % neu))
+                    melde((t_, "ANGEWORBEN %s" % neu))
 
         # --- Jaeger auf Feuerballisten ---
-        if ballisten_pruefen and len(jaeger) < 2 and mauer - welle - set(jaeger):
+        # (Daniel 00:42 "nur 1 Streitkolben pro Feuerballiste ist zu wenig, mindestens 2"): 2 je Ballista; hoechstens 4 je Ballista
+        # (fallen zwei Paare, ohne dass sie stirbt, werden dort keine weiteren verheizt)
+        if ballisten_pruefen and mauer - welle - set(jaeger):
             ballisten_pruefen = False
-            ballisten = [n for n in range(1, 3000) if AD.einheit(roh, n)["typ"] == BALLISTE and AD.einheit(roh, n)["leben"] > 0
-                         and AD.einheit(roh, n)["besitzer"] == FEIND and AD.einheit(roh, n)["zustand"] != 0
-                         and n not in jaeger.values() and versuche_ballista.get(n, 0) < 2]
+            bedarf = []
+            for b_n in range(1, 3000):
+                e_b = AD.einheit(roh, b_n)
+                if e_b["typ"] == BALLISTE and e_b["leben"] > 0 and e_b["besitzer"] == FEIND and e_b["zustand"] != 0:
+                    aktiv = sum(1 for z_ in jaeger.values() if z_ == b_n)
+                    bedarf += [b_n] * max(0, min(2 - aktiv, 4 - versuche_ballista.get(b_n, 0)))
+            ballisten = bedarf
             frei_ = [n for n in mauer - welle if n not in jaeger]
-            while ballisten and frei_ and len(jaeger) < 2:
+            while ballisten and frei_:
                 b_ = ballisten.pop(0)
                 bxy = (AD.einheit(roh, b_)["x"], AD.einheit(roh, b_)["y"])
                 f = min(frei_, key=lambda m_: abstand((jetzt[m_]["x"], jetzt[m_]["y"]), bxy))
@@ -229,7 +306,7 @@ def main():
                 jaeger[f] = b_
                 versuche_ballista[b_] = versuche_ballista.get(b_, 0) + 1
                 befehl({"angriff": {"einheiten": [f], "ziel": b_, "trupp": 1}}, 0.3)
-                ereignisse.append((t_, "JAEGER %d auf Feuerballiste %d" % (f, b_)))
+                melde((t_, "JAEGER %d auf Feuerballiste %d" % (f, b_)))
 
         # --- Fernkaempfer: feindliche Soldaten nahe dem Lord ---
         tot_ziel = [n for n, z in fern_ziel.items() if n not in fern or AD.einheit(roh, z)["leben"] <= 0]
@@ -247,24 +324,33 @@ def main():
 
         stuermer = (mauer | nah) - set(jaeger)
         if not stuermer and erwartet == 0 and (kaserne is None or s32(FEUER1) <= 0):
-            ereignisse.append((t_, "ALLE TOT - keiner mehr anwerbbar"))
+            melde((t_, "ALLE TOT - keiner mehr anwerbbar"))
             break
 
         # --- Phasen ---
         if phase == "planen":
             if not stuermer:
                 continue
-            start = min(((jetzt[n]["x"], jetzt[n]["y"]) for n in stuermer),
-                        key=lambda q: abstand(q, kaserne_xy) if kaserne_xy else 0)   # Neue kommen aus der Kaserne
+            if gesammelt and welle:                       # weiter ab der Spitze der Truppe
+                bezug = tuple(plan["zug"]) if plan and plan["zug"] else lord_xy
+                start = min(((jetzt[n]["x"], jetzt[n]["y"]) for n in welle), key=lambda q: abstand(q, bezug))
+            else:
+                start = min(((jetzt[n]["x"], jetzt[n]["y"]) for n in stuermer),
+                            key=lambda q: abstand(q, kaserne_xy) if kaserne_xy else 0)   # Neue kommen aus der Kaserne
             plan = plane_ziel(start, len(stuermer), mk, lord_xy)
             ballisten_pruefen = True
             if plan is None:
-                ereignisse.append((t_, "KEIN WEG zum Lord von %s" % (start,)))
+                melde((t_, "KEIN WEG zum Lord von %s" % (start,)))
                 break
-            sammel = sammelfeld(plan["weg"], plan["zug"] if plan["zug"] else plan["weg"][-2], plan["gefahr"])
-            ereignisse.append((t_, "ZIEL %s %s ueber Zugang %s, Sammelfeld %s, Weg %.0f Takte | Kandidaten %s" % (
+            sammel = sammelfeld(plan["weg"], plan["zug"] if plan["zug"] else plan["weg"][-2], plan["nah"])
+            melde((t_, "ZIEL %s %s ueber Zugang %s, Sammelfeld %s, Weg %.0f Takte | Kandidaten %s" % (
                 plan["art"], plan["ziel"], plan["zug"], sammel, plan["takte"], plan["kandidaten"])))
-            geschickt, angesetzt, welle = set(), set(), set()
+            angesetzt = set()
+            if gesammelt and welle:
+                welle = set(stuermer)                     # alle zusammen sofort aufs naechste Ziel - kein Rueckweg
+                sturm_befehl(welle)
+                continue
+            geschickt, welle = set(), set()
             befehl({"angriff": {"einheiten": sorted(stuermer), "lauf": [sammel[0], sammel[1]], "trupp": 1}}, 0.5)
             geschickt = set(stuermer)
             # echte Laufzeit je Mann zum Sammelfeld (Schrittbits) - die Luftlinie unterschaetzte (Lauf 00:39: 11 von 51 da)
@@ -276,36 +362,24 @@ def main():
             erreichbar = [w for w in wege_ if np.isfinite(w)]
             sammel_frist = t_ + (max(erreichbar) if erreichbar else 0)
             if len(erreichbar) < len(wege_):
-                ereignisse.append((t_, "SAMMELN: %d von %d erreichen das Sammelfeld nicht" % (len(wege_) - len(erreichbar), len(wege_))))
+                melde((t_, "SAMMELN: %d von %d erreichen das Sammelfeld nicht" % (len(wege_) - len(erreichbar), len(wege_))))
             phase = "sammeln"
             continue
 
         if phase == "sammeln":
             da = {n for n in stuermer if abstand((jetzt[n]["x"], jetzt[n]["y"]), sammel) <= 1}
             if da and (da == stuermer or t_ >= sammel_frist):
-                welle = set(da)
-                if plan["art"] == "mauer":
-                    befehl({"angriff": {"einheiten": sorted(welle), "lauf": [plan["zug"][0], plan["zug"][1]], "trupp": 1}}, 0.5)
-                elif plan["art"] == "tor":
-                    befehl({"angriff": {"einheiten": sorted(welle), "gebaeude": plan["ziel"], "trupp": 1}}, 0.5)
-                else:
-                    befehl({"angriff": {"einheiten": sorted(welle), "ziel": lnr, "trupp": 1}}, 0.5)
-                # Frist: Wegfelder des Plans vom Sammelfeld bis zum Zugang x 12 Takte + 2 Trefferrunden (nicht die Luftlinie)
-                w_ = plan["weg"]
-                zug = tuple(plan["zug"]) if plan["zug"] else tuple(w_[-1])
-                felder_ = (w_.index(zug) - w_.index(sammel)) if zug in w_ and sammel in w_ else abstand(sammel, zug)
-                frist = t_ + max(0, felder_) * mechanik.TAKTE_JE_FELD + 2 * mk["takte_je_treffer"]
-                wirk_alt, t_107 = None, None
-                ereignisse.append((t_, "STURM %d Mann auf %s %s (%d noch unterwegs)" % (len(welle), plan["art"], plan["ziel"],
-                                                                                    len(stuermer - da))))
-                phase = "sturm"
+                gesammelt = True
+                welle = set(stuermer)                     # alle auf einmal - wer noch unterwegs ist, geht direkt mit
+                sturm_befehl(welle)
+                ereignisse[-1] = (t_, ereignisse[-1][1] + " (%d am Sammelfeld)" % len(da))
             continue
 
         # phase == "sturm"
         if plan["art"] == "mauer":
             k = kvon[plan["ziel"]]
             if not s32(speicher.LOGIK + 4 * k) & 0x100:
-                ereignisse.append((t_, "MAUER %s GEFALLEN" % (plan["ziel"],)))
+                melde((t_, "MAUER %s GEFALLEN" % (plan["ziel"],)))
                 phase = "planen"
                 continue
             wirkung = speicher.lies(speicher.HOEHE + k, 1)[0]
@@ -320,7 +394,7 @@ def main():
         elif plan["art"] == "tor":
             fp = list(zip(*np.nonzero(plan["e"]["bau"] == plan["ziel"])))
             if not fp or speicher.wegkarte()["gebaeude"][fp[0]] != plan["ziel"]:
-                ereignisse.append((t_, "TORHAUS %s GEFALLEN" % plan["ziel"]))
+                melde((t_, "TORHAUS %s GEFALLEN" % plan["ziel"]))
                 phase = "planen"
                 continue
             wirkung = None                                # Leben des Torhauses nur ueber das Lagebild - bei der Frist
@@ -335,7 +409,8 @@ def main():
             t_107 = t_ if t_107 is None else t_107
             frist = max(frist, t_107 + 2 * mk["takte_je_treffer"])
         if not welle:
-            ereignisse.append((t_, "WELLE GEFALLEN - neu sammeln"))
+            melde((t_, "TRUPPE GEFALLEN - neu sammeln"))
+            gesammelt = False
             phase = "planen"
             continue
         if t_ > frist:
@@ -348,7 +423,7 @@ def main():
             lage = {}
             for n in welle:
                 lage[jetzt[n]["lage"]] = lage.get(jetzt[n]["lage"], 0) + 1
-            ereignisse.append((t_, "AUSLOESER: keine Wirkung an %s %s bis Takt %d | Welle %d Mann, Zustaende %s" % (
+            melde((t_, "AUSLOESER: keine Wirkung an %s %s bis Takt %d | Welle %d Mann, Zustaende %s" % (
                 plan["art"], plan["ziel"], frist, len(welle), lage)))
             break
         spur.append((t_, phase, plan["art"], str(plan["ziel"]), lord["leben"], len(stuermer), len(welle)))
@@ -358,8 +433,6 @@ def main():
            "spur": spur[::10]}
     with open(AUS, "a", encoding="utf-8") as fh:
         fh.write(json.dumps(erg, ensure_ascii=False, default=str) + "\n")
-    for e in ereignisse:
-        print("  Takt %6d  %s" % e, flush=True)
     print("Takte %d" % t_, flush=True)
 
 
