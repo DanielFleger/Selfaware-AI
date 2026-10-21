@@ -295,8 +295,11 @@ def main():
             # Rueckwaerts-Melder: 22 -> 42 Felder; im ersten Sieg mit Einzelbefehlen fiel der Lord am schnellsten, 1.192 Takte)
             # (Lauf 01:19: auch einzeln liefen sie aussen herum - Rueckwaerts-Melder 66x bis 45 Felder): Wegkette entlang des Plans bis
             # vor den Lord; wer dort ankommt (<= 4 Felder, wie logik.lua wegkette), greift sofort einzeln an
-            kette(wer, len(plan["weg"]) - 2, "Weg zum Lord")
-            lord_an.clear()
+            # (Lauf 01:22: die Wegkette bis vor den Lord war langsamer - Lord tot 6.980 statt 5.967, 137 Rueckwaerts-Meldungen auf der
+            # Kette, 10 Mann blieben an einem Wegpunkt haengen): zurueck zum schnellsten gemessenen Weg - Einzelangriff, Vorderste zuerst
+            reihe = sorted(wer, key=lambda n_: abstand((jetzt[n_]["x"], jetzt[n_]["y"]), lord_xy) if n_ in jetzt else 999)
+            befehl({"angriff": {"einheiten": reihe, "ziel": lnr, "trupp": 1}}, 0.5)
+            lord_an.update(wer)
         w_ = plan["weg"]
         zug_ = tuple(plan["zug"]) if plan["zug"] else tuple(w_[-1])
         frist = t_ + max(0, w_.index(zug_) if zug_ in w_ else len(w_)) * mechanik.TAKTE_JE_FELD + 2 * mk["takte_je_treffer"]
