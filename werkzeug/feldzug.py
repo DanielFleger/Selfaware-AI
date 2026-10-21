@@ -1121,6 +1121,10 @@ class Feldzug:
                     # Wissensstand 5d belegt). Ohne Wirkung: Kachel verwerfen, die naechste - Torhaus/Turm erst, wenn keine mehr da
                     # ist (Daniel 22:15: das Torhaus "war logischerweise zu, als die Einheiten da waren")
                     nah_w = [n for n in wand if schach((L[n]["x"], L[n]["y"]), kq) <= 3]
+                    if self.runde % 2 == 0:              # Messreihe Hackrate je Kachel (fuer den Durchbruch-Planer)
+                        aus.append("FELDZUG SCHREDDER STAND Tick %d: Kachel %s Hoehe %d, %d Mann bis 3 daneben (Zustaende %s), "
+                                   "Mauerhoehe bis %d um den Lord %d" % (t, kq, ll["hoehe_kachel"], len(nah_w),
+                                                                       self._zustaende(L, nah_w), self.MAUER_R, ll["hoehe"]))
                     ohne_w = self._wirkung(("kachel", kq), ll["hoehe_kachel"], len(nah_w), t)
                     if ohne_w is not None:
                         self.mauer_verworfen.add(kq)
