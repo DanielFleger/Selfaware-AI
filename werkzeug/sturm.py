@@ -205,6 +205,7 @@ def main():
     steht = {}                                           # Nummer -> (Feld, seit Takt) - fuer die Nachzuegler-Regel
     wartepunkt = {}                                      # Nummer -> Feld, an dem er vor dem Sturm wartet (ohne Beschuss)
     abst_alt = {}                                        # Nummer -> Abstand zum Zugang bei der letzten Messung
+    lord_an = set()                                      # Lord-Phase: wer schon den Angriff auf den Lord bekommen hat
     angestossen = {}                                     # Nummer -> wie oft ohne Bewegung neu geschickt
     versuche_ballista = {}                               # Ballista -> geschickte Jaeger (hoechstens 4 je Ballista)
     jaeger_frei = []                                     # Jaeger, deren Ziel gerade erledigt ist
@@ -250,6 +251,32 @@ def main():
         raten_schreiben(raten, "sturm.py, je Sturm nachgetragen (zuletzt %s)" % time.strftime("%Y-%m-%d %H:%M"))
         melde((t_, "RATE %s: %d Tote in %d Takten (gesamt %d / %d)" % (key, tote_sturm, t_ - sturm_t, r_["tote"], r_["takte"])))
 
+    def wegpunkte(von, bis_i):
+        """Wegpunkte entlang des geplanten (sicheren) Wegs ab dem Wegfeld, das von am naechsten liegt, bis Index bis_i - alle NAH
+        Felder einer (Daniel 01:19 "teilweise laufen die Streitis vorne rum und werden unnoetig abgeschossen": nur mit dem Endpunkt
+        nahm der Pfadsucher des Spiels den kuerzesten Weg an den Schuetzen vorbei)."""
+        w_ = plan["weg"][:bis_i + 1]
+        i0 = min(range(len(w_)), key=lambda i: abstand(w_[i], von))
+        pkt = [tuple(q) for q in w_[i0::NAH]]
+        if not pkt or pkt[-1] != tuple(w_[-1]):
+            pkt.append(tuple(w_[-1]))
+        return pkt
+
+    def kette(wer, bis_i, text):
+        """Jeder in wer laeuft die Wegkette bis Wegfeld bis_i; Maenner mit gleichem Einstieg als eine Kette (logik.lua wegkette:
+        naechster Punkt, sobald die Mehrheit am aktuellen ist - die Gruppe bleibt gebuendelt)."""
+        gruppen = {}
+        for w in wer:
+            if w in jetzt:
+                pk = tuple(wegpunkte((jetzt[w]["x"], jetzt[w]["y"]), bis_i))
+                gruppen.setdefault(pk, []).append(w)
+        for pk, ws in gruppen.items():
+            a_ = {"einheiten": sorted(ws), "lauf": [pk[0][0], pk[0][1]], "trupp": 1}
+            if len(pk) > 1:
+                a_["danach"] = [[q[0], q[1]] for q in pk[1:]]
+            befehl({"angriff": a_}, 0.3)
+            merke(ws, "%s ueber %d Wegpunkte" % (text, len(pk)))
+
     def sturm_befehl(wer):
         """Alle in wer gleichzeitig auf das Ziel des Plans; Frist = Wegfelder bis zum Zugang x 12 Takte + 2 Trefferrunden."""
         nonlocal frist, wirk_alt, t_107, phase
@@ -266,8 +293,10 @@ def main():
         else:
             # Lord EINZELN, die Vordersten zuerst (Lauf 01:16: als Gruppenbefehl liefen die Maenner in Formation am Lord vorbei -
             # Rueckwaerts-Melder: 22 -> 42 Felder; im ersten Sieg mit Einzelbefehlen fiel der Lord am schnellsten, 1.192 Takte)
-            reihe = sorted(wer, key=lambda n_: abstand((jetzt[n_]["x"], jetzt[n_]["y"]), lord_xy) if n_ in jetzt else 999)
-            befehl({"angriff": {"einheiten": reihe, "ziel": lnr, "trupp": 1}}, 0.5)
+            # (Lauf 01:19: auch einzeln liefen sie aussen herum - Rueckwaerts-Melder 66x bis 45 Felder): Wegkette entlang des Plans bis
+            # vor den Lord; wer dort ankommt (<= 4 Felder, wie logik.lua wegkette), greift sofort einzeln an
+            kette(wer, len(plan["weg"]) - 2, "Weg zum Lord")
+            lord_an.clear()
         w_ = plan["weg"]
         zug_ = tuple(plan["zug"]) if plan["zug"] else tuple(w_[-1])
         frist = t_ + max(0, w_.index(zug_) if zug_ in w_ else len(w_)) * mechanik.TAKTE_JE_FELD + 2 * mk["takte_je_treffer"]
@@ -347,7 +376,11 @@ def main():
                 for n in neu:
                     uid_von[n] = kennung(roh, n)
                     (mauer if jetzt[n]["typ"] == STREITKOLBEN else fern if jetzt[n]["typ"] in FERN else nah).add(n)
-                    if phase == "sturm":
+                    if phase == "sturm" and plan["art"] in ("mauer", "lord"):
+                        welle.add(n)
+                        bis_ = plan["weg"].index(tuple(plan["zug"])) if plan["zug"] and tuple(plan["zug"]) in plan["weg"] else len(plan["weg"]) - 2
+                        kette([n], bis_, "Nachschub")
+                    elif phase == "sturm":
                         welle.add(n)
                         if plan["art"] == "mauer":
                             befehl({"angriff": {"einheiten": [n], "lauf": [plan["zug"][0], plan["zug"][1]], "trupp": 1}}, 0.3)
@@ -355,6 +388,8 @@ def main():
                             befehl({"angriff": {"einheiten": [n], "gebaeude": plan["ziel"], "trupp": 1}}, 0.3)
                         else:
                             befehl({"angriff": {"einheiten": [n], "ziel": lnr, "trupp": 1}}, 0.3)
+                    elif sammel is not None and plan is not None and sammel in plan["weg"]:
+                        kette([n], plan["weg"].index(sammel), "Nachschub zum Sammeln")
                     elif sammel is not None:
                         befehl({"angriff": {"einheiten": [n], "lauf": [sammel[0], sammel[1]], "trupp": 1}}, 0.3)
                         geschickt.add(n)
@@ -508,8 +543,11 @@ def main():
                 if wp != (jetzt[n]["x"], jetzt[n]["y"]):
                     nach_punkt.setdefault(wp, []).append(n)
             for wp, wer in nach_punkt.items():
-                befehl({"angriff": {"einheiten": sorted(wer), "lauf": [wp[0], wp[1]], "trupp": 1}}, 0.3)
-                merke(wer, "Warten bei %s" % (wp,))
+                if wp == sammel and sammel in plan["weg"]:
+                    kette(wer, plan["weg"].index(sammel), "Sammeln")
+                else:
+                    befehl({"angriff": {"einheiten": sorted(wer), "lauf": [wp[0], wp[1]], "trupp": 1}}, 0.3)
+                    merke(wer, "Warten bei %s" % (wp,))
             melde((t_, "WARTEN: %d zum Sammelfeld, %d bleiben vorn stehen, %d zum naechsten Feld ohne Beschuss" % (
                 sum(1 for wp in wartepunkt.values() if wp == sammel),
                 sum(1 for n, wp in wartepunkt.items() if wp == (jetzt[n]["x"], jetzt[n]["y"])),
@@ -597,6 +635,12 @@ def main():
                 continue
             wirkung = None                                # Leben des Torhauses nur ueber das Lagebild - bei der Frist
         else:
+            vor_lord = tuple(plan["weg"][-2]) if len(plan["weg"]) >= 2 else lord_xy
+            ankunft_l = [n for n in welle if n not in lord_an and abstand((jetzt[n]["x"], jetzt[n]["y"]), vor_lord) <= 4]
+            if ankunft_l:
+                lord_an.update(ankunft_l)
+                befehl({"angriff": {"einheiten": sorted(ankunft_l), "ziel": lnr, "trupp": 1}}, 0.3)
+                merke(ankunft_l, "Angriff Lord")
             # Lord-Phase: Wirkung = Leben des Lords UND seiner Soldaten (Lauf 00:52: 30 Mann im Nahkampf (106) gegen die Leibwache,
             # der Lord selbst noch unberuehrt -> falscher Abbruch "keine Wirkung")
             wirkung = lord["leben"] + sum(AD.einheit(roh, m)["leben"] for m in range(1, 3000)
