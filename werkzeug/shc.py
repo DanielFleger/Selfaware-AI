@@ -121,13 +121,13 @@ def menue():
     return text
 
 
-def laden(name=STANDARD_STAND):
+def laden(name=STANDARD_STAND, platz=1):
     """Laedt den Stand; endet die Partie gleich nach dem Laden (21.10. 21:08: das Spiel setzt dabei "Partie vorbei" und oeffnet das
     Sieg/Niederlage-Fenster - das bleibt, auch wenn die Flags zurueckgesetzt werden; tritt nur manchmal auf), wird bis zu
     3-mal neu geladen."""
     for versuch in (1, 2, 3):
         try:
-            return _laden_einmal(name) + ("" if versuch == 1 else " (Versuch %d)" % versuch)
+            return _laden_einmal(name, platz) + ("" if versuch == 1 else " (Versuch %d)" % versuch)
         except Fehler as e:
             if "Partie endete im Probelauf" not in str(e) and "keine bespielbare Partie" not in str(e) or versuch == 3:
                 raise
@@ -135,12 +135,12 @@ def laden(name=STANDARD_STAND):
                   flush=True)
 
 
-def _laden_einmal(name=STANDARD_STAND):
-    """Spielstand IMMER ueber das Hauptmenue laden, dann uns auf Platz 1 eintragen; prueft danach die Partie."""
+def _laden_einmal(name=STANDARD_STAND, platz=1):
+    """Spielstand IMMER ueber das Hauptmenue laden, dann uns auf platz eintragen; prueft danach die Partie."""
     from laden import lade_stand, befehl
     menue()
     try:
-        tick = lade_stand(name, mit_bild=False, platz=1)
+        tick = lade_stand(name, mit_bild=False, platz=platz)
     except RuntimeError as e:
         if "kein Laden erkannt" not in str(e):
             raise
@@ -150,8 +150,8 @@ def _laden_einmal(name=STANDARD_STAND):
         print("WARNUNG: Laden hing (%s) - Instanz wird neu gestartet" % e, flush=True)
         neustart()
         menue()
-        tick = lade_stand(name, mit_bild=False, platz=1)
-    befehl({"eigenerPlatz": 1}, 0.8)
+        tick = lade_stand(name, mit_bild=False, platz=platz)
+    befehl({"eigenerPlatz": platz}, 0.8)
     # (21.10. 19:02 gemessen: die Ladepause trug den Menschen im ersten Takt ein - danach ueberschrieb das Laden selbst den
     # Eintrag wieder mit -1 und die Niederlage-Pruefung setzte gameOver 1, noch bevor eigenerPlatz kam. Steht die Partie-
     # Ansicht noch (14), wird gameOver zurueckgesetzt; ob die Partie dann wirklich weiterlaeuft, zeigt der Probelauf unten)

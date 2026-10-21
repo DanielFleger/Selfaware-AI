@@ -229,6 +229,13 @@ class Feldzug:
     WIRKUNG_TAKTE = 300       # B-165: so lange ohne Fortschritt am Ziel, obwohl TOR_MIN daneben stehen -> umplanen (UNGEMESSEN)
     WIRKUNG_NAH = 8           # B-165: "daneben" = so nah am Gebaeude (bis 7x7) bzw. bis 3 Felder an einer erreichbaren Mauer
     SCHREDDER_PAUSE = 1500    # B-165: Schredder ohne Wirkung -> so lange Bresche (Turm/Torhaus) statt Mauer
+    # B-164 Durchbruch (Daniel 22:24 "er muss wirklich durch die ganze Mauer, nicht nur durch eine Schicht"; "rennt wieder aufs
+    # Torhaus und laesst sich von der Feuerballiste abschiessen"):
+    TORE = {75}               # gemessen 22:27 an Franz' Burg: nur Typ 75 hat einen Durchgang (4x4, Durchgang daneben ohne
+    #                           Gebaeudenummer); Typ 46 und 76 sind Tuerme (5x5)
+    TOR_RAND = 2              # so weit um den Torhaus-Grundriss ist fuer uns kein Weg (der Durchgang liegt am Rand)
+    WAND_KOSTEN = 5           # Kosten je Hoehenpunkt einer Mauerkachel gegen 1 je gelaufenem Feld - UNGEMESSEN
+    ANKUNFT_TAKTE = 1500      # so lange niemand bis 3 an der gewaehlten Kachel -> "KOMMT NICHT AN", verworfen (L80: ~77 Felder)
 
     def __init__(self, sp, heim, lord_schutz_bis=0, n=None):
         self.sp, self.heim, self.schutz_bis = sp, tuple(heim), lord_schutz_bis
@@ -265,6 +272,9 @@ class Feldzug:
         self.schredder_aus_bis = 0  # B-165: bis zu diesem Takt kein Schredder (er hatte keine Wirkung)
         self.mauer_kachel = None    # B-164: die EINE Mauerkachel, auf die alle Einer-Befehle gehen (Daniel 22:15 "keine Kompression")
         self.mauer_verworfen = set()  # B-165: Kacheln ohne Wirkung - die naechste kommt dran, nicht Torhaus/Turm
+        self._bau = None            # B-164: Gebaeude-Ebene dieser Runde (speicher.wegkarte) - Burgteile sind fuer uns gesperrt
+        self._feindbau = []         # B-164: Nummern feindlicher Burgteile dieser Runde
+        self._kachel_an = None      # B-164: (Kachel, Takt, seit dem sie gewaehlt ist oder zuletzt jemand bis 3 daneben stand)
         self._wirkung_stand = {}    # B-165: Ziel -> (Wert, Takt seit dem letzten Fortschritt)
         self._lord_frei_alt = None  # B-163: letzter gemeldeter Stand "Lord zu Fuss erreichbar"
         self.vorposten = None       # B-139: (Bresche, erreichbarer Punkt vor ihr)
@@ -359,25 +369,46 @@ class Feldzug:
             except Exception as ex:                      # Spiel nicht lesbar: ohne Schredder wie vorher
                 self.wegkarte_fehler = "Mauerkarte: %s" % str(ex)[:100]
                 return aus
+            h = np.asarray(h)
             fen = np.zeros(m.shape, bool)
             fen[max(0, lp[0] - self.MAUER_R):lp[0] + self.MAUER_R + 1, max(0, lp[1] - self.MAUER_R):lp[1] + self.MAUER_R + 1] = True
-            ziel_m = m & fen & self._breit(geb == g, 1)
-            for q in self.mauer_verworfen:
-                ziel_m[q[0], q[1]] = False
-            # B-164 (Daniel 22:15 "nicht zusammen, sondern chaotisch auf Mauern - keine Kompression auf eine Mauer"): EINE Kachel
-            # fuer alle - die dem Lord naechste, bei Gleichstand die naechste an unserem Heer; sie bleibt, solange sie steht
-            kachel = self.mauer_kachel if self.mauer_kachel is not None and ziel_m[self.mauer_kachel] else None
-            if kachel is None:
-                xs, ys = np.nonzero(ziel_m)
-                if len(xs):
-                    mi = mitte or lp
-                    i = np.lexsort((ys, xs, np.maximum(abs(xs - mi[0]), abs(ys - mi[1])),
-                                    np.maximum(abs(xs - lp[0]), abs(ys - lp[1]))))[0]
-                    kachel = (int(xs[i]), int(ys[i]))
+            # B-164 (Daniel 22:15 "keine Kompression auf eine Mauer"; 22:24 "durch die ganze Mauer"): EINE Kachel fuer alle - die
+            # erste auf dem Durchbruch-Weg vom Heer zum Lord; sie bleibt, solange sie steht und nicht verworfen ist
+            plan = self._durchbruch(geb, m, h, mitte or lp, lp)
+            kachel = self.mauer_kachel
+            if kachel is None or not m[kachel] or kachel in self.mauer_verworfen:
+                kachel = plan["kachel"]
             self.mauer_kachel = kachel
-            aus.update(mauern=int(ziel_m.sum()), hoehe=int(np.asarray(h)[m & fen].sum()), kachel=kachel,
-                       hoehe_kachel=int(np.asarray(h)[kachel]) if kachel else None)
+            aus.update(mauern=plan["n"], hoehe=int(h[m & fen].sum()), kachel=kachel,
+                       hoehe_kachel=int(h[kachel]) if kachel else None, weg_hoehe=plan["hoehe"])
         return aus
+
+    def _durchbruch(self, geb, m, h, start, lp):
+        """B-164 Durchbruch-Planer: der billigste Weg vom Heer (start) zum Lord, auf dem die Mauerkacheln seines Besitzers (m)
+        gehackt werden duerfen - je Kachel WAND_KOSTEN x Hoehe (Hoehe = Leben der Kachel, VillageStudio 5d belegt) plus Gefahr,
+        je begehbares Feld 1 + K x Gefahr. Gesperrt: Wasser und alles ohne Gebiet (auch die Tor-Durchgaenge, schon aus geb
+        geschnitten), feindliche Burgteile, verworfene Kacheln. Rueckgabe: erste Mauerkachel auf dem Weg (das Ziel), Zahl der
+        Mauerkacheln auf dem Weg (Schichten), ihre Hoehe zusammen, der Weg. Ohne Weg: kachel None."""
+        from skimage.graph import MCP
+        k = self._karte
+        boden = k.kosten if k is not None else np.ones(m.shape)
+        gefahr_k = (k.k * k.g) if k is not None else 0
+        kosten = np.where(geb > 0, boden, -1.0)
+        kosten = np.where(m, self.WAND_KOSTEN * np.maximum(h, 1) + gefahr_k, kosten)
+        if self._bau is not None and self._feindbau:
+            kosten[np.isin(self._bau, self._feindbau)] = -1.0
+        for q in self.mauer_verworfen:
+            kosten[q[0], q[1]] = -1.0
+        start, lp = tuple(start), tuple(lp)
+        kosten[start] = max(float(kosten[start]), 1.0)
+        kosten[lp] = 1.0
+        mcp = MCP(kosten, fully_connected=True)
+        kum, _ = mcp.find_costs([start], [lp])
+        if not np.isfinite(kum[lp]):
+            return {"kachel": None, "n": 0, "hoehe": 0, "weg": []}
+        weg = [tuple(int(v) for v in q) for q in mcp.traceback(lp)]
+        wand = [q for q in weg if m[q]]
+        return {"kachel": wand[0] if wand else None, "n": len(wand), "hoehe": int(sum(h[q] for q in wand)), "weg": weg}
 
     def _ohne_feindtore(self, geb, bau, G):
         """B-164 (Pruefstand 22:13, Daniel 22:15 "zuerst aufs Torhaus, das war logischerweise zu, als die Einheiten da waren"):
@@ -385,9 +416,13 @@ class Feldzug:
         Mauerkachel lag innen. Fuer uns ist kein feindliches Tor und kein Turm ein Weg: ihre Felder (Gebaeude-Ebene) werden aus
         den Gebieten geschnitten; zerfaellt ein Gebiet dadurch, bekommt jeder weitere Teil eine eigene Nummer ab 60000."""
         nrs = [nr for nr, g_ in G.items() if g_.get("besitzer") not in freunde_von(self.sp) and g_.get("typ") in BURG_TEILE]
+        self._bau, self._feindbau = bau, nrs
         if bau is None or not nrs:
             return geb
-        schnitt = np.isin(bau, nrs)
+        # (22:27 gemessen: der Durchgang eines Torhauses liegt NEBEN seinem Grundriss und traegt keine Gebaeudenummer - der
+        # erste Schnitt nur ueber die Gebaeude-Ebene liess ihn offen, das Heer lief aufs Tor und unter die Feuerballiste)
+        tore = [nr for nr in nrs if G[nr].get("typ") in self.TORE]
+        schnitt = np.isin(bau, nrs) | (self._breit(np.isin(bau, tore), self.TOR_RAND) if tore else False)
         if not schnitt.any():
             return geb
         from scipy import ndimage
@@ -910,9 +945,9 @@ class Feldzug:
                     if not self.schredder or ll["kachel"] != getattr(self, "_kachel_gemeldet", None):
                         self._kachel_gemeldet = ll["kachel"]
                         aus.append("FELDZUG SCHREDDER: Lord %d hinter Mauern - alle Nahkaempfer einzeln (Trupp %d) auf DIE Kachel %s "
-                                   "(Hoehe %d, %d Felder vom Lord; %d erreichbare Kacheln bis %d Felder um ihn)%s" % (
+                                   "(Hoehe %d, %d Felder vom Lord; Durchbruch-Weg: %d Mauerkacheln, Hoehe zusammen %d)%s" % (
                                        self.ziel, self.MAUER_TRUPP, ll["kachel"], ll["hoehe_kachel"], schach(ll["kachel"], lp),
-                                       ll["mauern"], self.MAUER_R,
+                                       ll["mauern"], ll.get("weg_hoehe") or 0,
                                        " - Bresche %d fallen gelassen" % self.bresche if self.bresche is not None else ""))
                     self.schredder = True
                     self.bresche, self.bresche_leben, self.vorposten = None, None, None
@@ -1121,11 +1156,21 @@ class Feldzug:
                     # Wissensstand 5d belegt). Ohne Wirkung: Kachel verwerfen, die naechste - Torhaus/Turm erst, wenn keine mehr da
                     # ist (Daniel 22:15: das Torhaus "war logischerweise zu, als die Einheiten da waren")
                     nah_w = [n for n in wand if schach((L[n]["x"], L[n]["y"]), kq) <= 3]
-                    if self.runde % 2 == 0:              # Messreihe Hackrate je Kachel (fuer den Durchbruch-Planer)
+                    # B-164 (Pruefstand 22:22: 20.000 Takte "0 Mann bis 3 daneben" - der Waechter zaehlte Nicht-Ankommen nicht): kommt
+                    # ANKUNFT_TAKTE lang niemand an die Kachel, ist sie fuer uns nicht erreichbar - verwerfen
+                    if nah_w or self._kachel_an is None or self._kachel_an[0] != kq:
+                        self._kachel_an = (kq, t)
+                    elif t - self._kachel_an[1] >= self.ANKUNFT_TAKTE:
+                        self.mauer_verworfen.add(kq)
+                        self.mauer_kachel, self._kachel_an = None, None
+                        aus.append("FELDZUG KOMMT NICHT AN: Mauerkachel %s - %d Takte niemand bis 3 daneben (%d Mann mit Mauerauftrag) - "
+                                   "verworfen, neuer Durchbruch-Weg" % (kq, self.ANKUNFT_TAKTE, len(wand)))
+                        wand = []
+                    if wand and self.runde % 2 == 0:     # Messreihe Hackrate je Kachel (fuer den Durchbruch-Planer)
                         aus.append("FELDZUG SCHREDDER STAND Tick %d: Kachel %s Hoehe %d, %d Mann bis 3 daneben (Zustaende %s), "
                                    "Mauerhoehe bis %d um den Lord %d" % (t, kq, ll["hoehe_kachel"], len(nah_w),
                                                                        self._zustaende(L, nah_w), self.MAUER_R, ll["hoehe"]))
-                    ohne_w = self._wirkung(("kachel", kq), ll["hoehe_kachel"], len(nah_w), t)
+                    ohne_w = self._wirkung(("kachel", kq), ll["hoehe_kachel"], len(nah_w), t) if wand else None
                     if ohne_w is not None:
                         self.mauer_verworfen.add(kq)
                         self.mauer_kachel = None

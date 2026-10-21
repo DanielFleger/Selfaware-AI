@@ -19,7 +19,7 @@ Stop von aussen: Datei werkzeug/STOP anlegen.
 from parteien import freunde_von   # B-133: Freund/Feind aus den Mannschaften des Spiels (2v2)
 import json, math, os, re, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from laden import lade_stand, befehl, peek
+from laden import befehl, peek
 from steuerkarte import laufe, tick, spielzustand
 from bauen import NACH_TYP, gebaeude_von, vorrat, baue_irgendwo
 from waechter import Waechter, lies_lagebild, lies_gebaeude
@@ -3814,8 +3814,11 @@ def main():
                 json.dumps({k: v for k, v in b_n.items() if k != "optionen"}, ensure_ascii=False)))
     try:
         if arg.get("start"):
-            print("Tick", lade_stand(arg["start"], mit_bild=False))
-            befehl({"eigenerPlatz": SP}, 0.8)
+            # B-159 (21.10. 22:21: Pruefstand vom Siegerbildschirm aus geladen - Endbildschirm Ansicht 29 blieb offen, Abbruch
+            # "TESTBEDINGUNG FEHLT" vor dem ersten Zug): EIN Ladeweg - shc.laden (immer ueber das Hauptmenue, Flags zurueck,
+            # Probelauf 200 Takte, bis zu 3 Versuche) statt des alten lade_stand direkt
+            import shc
+            print(shc.laden(arg["start"], platz=SP))
         elif arg.get("nur_phase2", "nein") != "ja":
             phase1(plan, int(arg.get("tempo", 40)), mit_posten=int(arg.get("assassinen", 0)) != 0)   # Daniel 22:52: jede Partie ab Tick 0
     except (Exception, SystemExit) as e:

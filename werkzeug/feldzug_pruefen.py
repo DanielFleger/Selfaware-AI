@@ -860,6 +860,8 @@ def main():
     #  46. offenes feindliches Tor (Daniel 22:15 "zuerst aufs Torhaus, das war zu, als die Einheiten da waren"): der Ring hat
     #      eine Luecke (298-302 / 116-125) mit Torhaus 905 darauf, Hof und Feld sind beide Gebiet 1 -> mit Gebaeude-Ebene ist
     #      der Lord NICHT frei, Schredder auf eine Aussenkachel. Gegenprobe: ohne Gebaeude-Ebene "zu Fuss erreichbar".
+    #      46b (22:27 gemessen: der Durchgang liegt NEBEN dem 4x4-Grundriss, ohne Gebaeudenummer): Grundriss 298-301/119-122,
+    #      Durchgang x 302 ohne Nummer -> trotzdem nicht frei (Rand TOR_RAND um den Grundriss).
     def burg43(wk=None, mk=None, runden=(), stand=None, turm=(306, 106)):
         f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
         f.schritt({"t": 12000}, *lage(10, heim), Befehle())
@@ -948,17 +950,21 @@ def main():
     ring46[326:, :] = False
     mk46 = lambda sp: (ring46.copy(), np41.where(ring46, 10, 0)) if sp == 2 else (np41.zeros((400, 400), bool), np41.zeros((400, 400), int))
 
-    def tor46(mit_bau):
+    bau46b = np41.zeros((400, 400), np41.int32)
+    bau46b[298:302, 119:123] = 905
+
+    def tor46(mit_bau, bau=None):
         f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
         f.schritt({"t": 12000}, *lage(10, heim), Befehle())
         L_, G_ = lage(30, f.punkt)
         G_[905] = {"typ": 75, "besitzer": 2, "x": 300, "y": 120, "leben": 1500}
-        f.wegkarte = lambda: dict({"gebiet": geb46}, **({"gebaeude": bau46} if mit_bau else {}))
+        f.wegkarte = lambda: dict({"gebiet": geb46}, **({"gebaeude": bau46 if bau is None else bau} if mit_bau else {}))
         f.mauerkarte = mk46
         b = Befehle()
         return f, f.schritt({"t": 12050}, L_, G_, b), b.liste
     f46, m46, b46 = tor46(True)
     f46o, m46o, _ = tor46(False)
+    f46b, m46b, _ = tor46(True, bau46b)
     mauer46 = [x["angriff"]["mauer"] for x in b46 if "mauer" in x.get("angriff", {})]
     pruefe(46, "offenes Tor, mit Gebaeude-Ebene: %s, Mauerbefehle %s | ohne: %s" % (
         [m[:50] for m in m46 if "LORD" in m or "SCHREDDER" in m], mauer46, [m[:50] for m in m46o if "LORD" in m]),
@@ -966,7 +972,85 @@ def main():
            and len(mauer46[0]) == 6 and ring46[tuple(mauer46[0][4:])] and geb46[mauer46[0][4] - 1:mauer46[0][4] + 2,
                                                                                  mauer46[0][5] - 1:mauer46[0][5] + 2].any()
            and not (285 <= mauer46[0][4] <= 315 and 85 <= mauer46[0][5] <= 115)
-           and any("zu Fuss erreichbar" in m for m in m46o))
+           and any("zu Fuss erreichbar" in m for m in m46o) and any("hinter Mauern" in m for m in m46b)
+           and not any("zu Fuss erreichbar" in m for m in m46b))
+    # 47/48 (B-164 Durchbruch, Daniel 22:24 "er muss wirklich durch die ganze Mauer, nicht nur durch eine Schicht"; "rennt
+    #    wieder aufs Torhaus"). Vorher festgelegt (22:30), Lord (300,100):
+    #  47. zwei Mauerbaender (Schach-Abstand 23-25 und 13-15 vom Lord, Hoehe 50), dazwischen Hof (Gebiet 41), innen Gebiet 39.
+    #      SCHREDDER meldet einen Durchbruch-Weg mit 6 Mauerkacheln; faellt die gewaehlte Kachel (Hoehe 0, begehbar), kommt die
+    #      naechste AUF DER LINIE: Abstaende zum Lord 25, 24, 23, dann 15, 14, 13 und jede neue Kachel hoechstens 1 Feld neben
+    #      der alten (der Sprung durch den Hof hoechstens 8). Gegenlauf (Sabotage im Gegenlauf-Skript): alte Wahl "naechste
+    #      Kachel am Lord mit Nachbarfeld in unserem Gebiet" -> rot.
+    #  48. Kachel gewaehlt, das Heer bleibt weit weg (Zustand 2, kommt nie bis 3 heran): nach ANKUNFT_TAKTE "KOMMT NICHT AN",
+    #      die Kachel ist verworfen, eine andere wird gewaehlt. Gegenprobe: 30 Mann bis 3 an der Kachel, Hoehe sinkt -> keine
+    #      Meldung.
+    def baender47():
+        dx = np41.abs(np41.arange(400)[:, None] - 300)
+        dy = np41.abs(np41.arange(400)[None, :] - 100)
+        d = np41.maximum(dx, dy)
+        geb = np41.ones((400, 400), np41.int32)
+        wand = ((d >= 23) & (d <= 25)) | ((d >= 13) & (d <= 15))
+        geb[wand] = 0
+        geb[(d >= 16) & (d <= 22)] = 41
+        geb[d <= 12] = 39
+        return geb, wand
+    geb47, wand47 = baender47()
+    zust47 = {"m": wand47.copy(), "h": np41.where(wand47, 50, 0), "geb": geb47.copy()}
+    mk47 = lambda sp: (zust47["m"].copy(), zust47["h"]) if sp == 2 else (np41.zeros((400, 400), bool), np41.zeros((400, 400), int))
+    folge47 = []
+
+    def faellt47(k, f, L_, G_):
+        f._stau = (0, 12150 + 100 * k)
+        kq = f.mauer_kachel
+        if kq is None:
+            return
+        folge47.append(kq)
+        zust47["m"][kq] = False
+        zust47["h"][kq] = 0
+        zust47["geb"][kq] = 1
+    f47 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f47.schritt({"t": 12000}, *lage(10, heim), Befehle())
+    L47, G47 = lage(30, f47.punkt)
+    G47[901] = {"typ": 46, "besitzer": 2, "x": 340, "y": 100, "leben": 1500}
+    f47.wegkarte = lambda: {"gebiet": zust47["geb"]}
+    f47.mauerkarte = mk47
+    m47 = f47.schritt({"t": 12050}, L47, G47, Befehle())
+    for k, t in enumerate(range(12150, 12150 + 100 * 8, 100)):
+        faellt47(k, f47, L47, G47)
+        m47 += f47.schritt({"t": t}, L47, G47, Befehle())
+    abst47 = [F.schach(q, (300, 100)) for q in folge47]
+    schritte47 = [F.schach(a_, b_) for a_, b_ in zip(folge47, folge47[1:])]
+    pruefe(47, "Durchbruch: %s | Kacheln %s, Abstaende %s, Schritte %s" % (
+        [m[m.find("Durchbruch-Weg"):m.find("Durchbruch-Weg") + 40] for m in m47 if "SCHREDDER: " in m][:1], folge47, abst47,
+        schritte47),
+           any("Durchbruch-Weg: 6 Mauerkacheln" in m for m in m47) and abst47[:6] == [25, 24, 23, 15, 14, 13]
+           and all(s_ <= 1 for i, s_ in enumerate(schritte47[:5]) if i != 2) and schritte47[2] <= 8)
+
+    def kommt48(nah):
+        def stand(k, f, L_, G_):
+            f._stau = (0, 12150 + 100 * k)
+            kq = f.mauer_kachel or kacheln48[-1]
+            kacheln48.append(kq)
+            for i in range(30):
+                if nah:
+                    L_[10 + i].update(x=kq[0] - 1 - i % 3, y=kq[1] - 1 + (i // 3) % 3, zustand=107)
+                else:
+                    L_[10 + i].update(zustand=2)
+            if nah:
+                hoehe44["h"] = np41.where(ring44, 20 - k, 0)
+        hoehe44["h"] = np41.where(ring44, 20, 0)
+        runden = list(range(12150, 12150 + F.Feldzug.ANKUNFT_TAKTE + 400, 100))
+        f, _, _, weitere = burg43(geb44, mk44, runden, stand, turm=(330, 100))
+        return f, [m for ms, _ in weitere for m in ms]
+    kacheln48 = [(275, 100)]
+    f48, m48 = kommt48(False)
+    k48 = list(dict.fromkeys(kacheln48[1:]))
+    kacheln48 = [(275, 100)]
+    f48g, m48g = kommt48(True)
+    pruefe(48, "fern: %s, Kacheln %s | nah: %s" % ([m[:70] for m in m48 if "KOMMT NICHT AN" in m], k48,
+                                                    [m[:50] for m in m48g if "KOMMT NICHT AN" in m]),
+           any("KOMMT NICHT AN" in m for m in m48) and len(k48) >= 2 and k48[0] in f48.mauer_verworfen
+           and not any("KOMMT NICHT AN" in m for m in m48g))
     # 39 (B-150, Pruefstand 20:32: die Umleitung schickte je Einheit einen Befehl zum naechsten Wegknoten des Spiels): 10
     #    Streitkolben laufen (Zustand 2) zum befohlenen Vorposten (150,133), ihr naechstes Wegstueck fuehrt durch ein Feuer
     #    -> EIN Befehl fuer alle 10, Ziel am Ende der Vorposten (nicht ihr Wegknoten); Gegenprobe: ein Angreifer (Bresche) mit
