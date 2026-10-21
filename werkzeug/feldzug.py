@@ -245,6 +245,8 @@ class Feldzug:
         self.bresche = None         # B-134: Nr des Tors/Turms, das zuerst fallen muss
         self.lord_versuch = None    # B-139: Tick, seit dem nach einer gefallenen Bresche direkt auf den Lord gegangen wird
         self.wegtest = None         # B-139: (nr, punkte) -> [bool] - der Wegfinder des Spiels; setzt erstes_spiel
+        self.wegkarte = None        # B-161: () -> speicher.wegkarte() (Gebiete aus dem Spielspeicher); setzt erstes_spiel
+        self.wegkarte_fehler = None  # B-161: letzter Lesefehler der Wegkarte (dann ohne Gebiete wie vorher)
         self.vorposten = None       # B-139: (Bresche, erreichbarer Punkt vor ihr)
         self.lord_vp = None         # B-139: (Lord-Ort, erreichbarer Punkt am Lord oder None, Runde der Pruefung)
         self._lagebild = None       # B-140: Lagebild der laufenden Runde (Schuetzen fuer die Wahl der Angriffsstelle)
@@ -290,6 +292,17 @@ class Feldzug:
         return [(gx + dx * r, gy + dy * r) for r in self.NACHBAR_RINGE
                 for dx, dy in ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1))]
 
+    def _neue_karte(self, bed):
+        """B-157/B-161: Gefahrenkarte dieser Runde - mit den Gebieten des Spiels, wenn die Wegkarte lesbar ist."""
+        geb = None
+        if self.wegkarte is not None:
+            try:
+                geb = self.wegkarte()["gebiet"]
+                self.wegkarte_fehler = None
+            except Exception as ex:                      # Spiel nicht lesbar: wie vorher ohne Gebiete, Grund merken
+                self.wegkarte_fehler = str(ex)[:120]
+        return GF.Karte(bed, feuer=self._orte_f, gebiete=geb)
+
     def _beste_stelle(self, G, lp, orte, nr_test=None):
         """B-140 (Daniel 21:47 "nicht nur stupide drauf gehen, sondern die beste Position auswaehlen"): (Gefahr, Leben, Abstand,
         Nr) des Torhauses/Turms bis BURG_R vom Lord, auf das die wenigsten feindlichen Schuetzen schiessen koennen (Reichweiten
@@ -312,10 +325,15 @@ class Feldzug:
             # Zahl der Schuetzen an der Stelle
             # Widerstand an der Stelle: so lange steht man dort unter Beschuss - Schuetzen an der Stelle x Leben/100 (UNGEMESSEN)
             bed_ = getattr(self, "_bed", None)
-            if bed_:
+            if bed_ or self.wegkarte is not None:       # B-161: mit Wegkarte auch ohne Bedrohung (alle Schuetzen tot)
                 if self._karte is None:
-                    self._karte = GF.Karte(bed_, feuer=self._orte_f)
-                weg_ = GF.sicherer_weg(spitze_o, ort, self._karte) or [ort]
+                    self._karte = self._neue_karte(bed_ or [])
+                weg_ = GF.sicherer_weg(spitze_o, ort, self._karte)
+                if weg_ is None and self._karte.gebiete is not None:
+                    # B-161 (Franz' Burg 21.10. Takt 74.036: 4 von 9 Stellen liegen hinter Mauern - von aussen kein Feld
+                    # daneben im Gebiet unserer Spitze; die alte Wahl nahm eine davon als "sicherste")
+                    continue
+                weg_ = weg_ or [ort]
                 gefahr = GF.weg_gefahr(spitze_o, weg_, self._karte) + GF.gefahr(ort, self._karte) * g.get("leben", 0) // 100
             else:
                 gefahr = sum(1 for q, r in schuetzen_f if schach(ort, q) <= r)
@@ -463,7 +481,7 @@ class Feldzug:
         self._bed = GF.bedrohungen(L, G, lambda b: b not in freunde_von(self.sp), gefecht.FERN_REICH)
         # 21.10. (Pruefstand 21:34: Runden bis 4.472 Takte blind, "ruestung" bis 11 s): die Karte einmal je Runde, jede Wegsuche
         # dieser Runde liest daraus (0,02-0,06 s je Ziel statt 0,2-1,2 s am Lagebild Tick 59.105)
-        self._karte = GF.Karte(self._bed, feuer=orte_f) if self._bed else None
+        self._karte = self._neue_karte(self._bed) if self._bed or self.wegkarte is not None else None
         if not orte_f and not self._bed:
             return befehl
         roh = befehl
@@ -506,8 +524,13 @@ class Feldzug:
                     weg = GF.sicherer_weg(m, z2, self._karte)
                     if weg and weg != [z]:
                         g_neu, g_alt = GF.weg_gefahr(m, weg, self._karte), GF.weg_gefahr(m, [z], self._karte)
-                        aus.append("FELDZUG SICHERER WEG: %d Einheiten nach %s ueber %s - Gefahr %d statt %d (gerade)" % (
-                            len(ns), z, weg[:4], g_neu, g_alt))
+                        am = GF.schuetzen_am_weg(m, weg, self._karte)
+                        er = {b[4] for b in GF.erreichbare_schuetzen(m, self._karte)}
+                        aus.append("FELDZUG SICHERER WEG: %d Einheiten nach %s ueber %s - Gefahr %d statt %d (gerade); Schuetzen "
+                                   "am Weg %d, davon zu Fuss erreichbar %d; %s" % (
+                                       len(ns), z, weg[:4], g_neu, g_alt, len(am), sum(1 for a in am if a[1] in er),
+                                       "Gebiet %d" % self._karte.gebiet_bei(m) if self._karte.gebiete is not None else
+                                       "OHNE Wegkarte (%s)" % (self.wegkarte_fehler or "nicht gesetzt")))
                 if weg is None:
                     weg = feuerfreier_weg(m, z, orte_f, gefahr) if orte_f else [z]
                     if weg != [z]:

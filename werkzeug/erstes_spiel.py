@@ -2324,6 +2324,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             return list(wp) if wp else [ziel]
         feldzug.wegplaner = feldzug_weg
         feldzug.wegtest = wegtest           # B-139: erreichbarer Vorposten vor der Bresche (Wegfinder des Spiels)
+        import speicher                     # B-161: Gebiete (Mauer, Turm, Hof, offenes Feld) direkt aus dem Spielspeicher, nur lesen
+        feldzug.wegkarte = speicher.wegkarte
         if arg_global.get("angriff_ab"):
             feldzug.angriff_ab = int(arg_global["angriff_ab"])     # B-140 Versuchsreihe
         # 19.10. (Daniel: "warum wird keine Waffenproduktion gebaut? Wenn die Streitis es nicht schaffen, muesste teuer

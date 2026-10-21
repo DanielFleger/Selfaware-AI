@@ -3962,6 +3962,36 @@
     }
    ],
    "rang": 1
+  },
+  {
+   "nr": "B-161",
+   "titel": "Wegkarte des Spiels: Gebiete (Mauer/Turm/Hof/offenes Feld) direkt aus dem Speicher (speicher.py, nur lesen); Wegsuche nur im eigenen Gebiet, unerreichbare Angriffsstellen fallen weg, erreichbare Schuetzen erkannt",
+   "bereich": "angriff",
+   "status": "gebaut",
+   "seit": "2026-10-21 21:56",
+   "herkunft": "Daniel 21.10. 21:40 'es muss erkannt werden, welche Schuetzen ueberhaupt erreichbar sind ... warum findet er nicht den sichersten Weg?'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "werkzeug/speicher.py",
+    "werkzeug/gefahr.py (gebiete",
+    "erreichbare_schuetzen)",
+    "werkzeug/feldzug.py (_neue_karte",
+    "_beste_stelle)",
+    "werkzeug/erstes_spiel.py (feldzug.wegkarte)"
+   ],
+   "belege": [
+    "Franz' Burg Takt 74.036: alte Wege 17-77 Felder durch Mauern; 4 von 9 Stellen unerreichbar (darunter die alte 'sicherste' 239); 0 von 39 Schuetzen zu Fuss erreichbar; Lord Gebiet 39",
+    "Heer Gebiet 1. gefahr_pruefen 8/8 (ohne Gebiete 6-8 rot)",
+    "feldzug_pruefen 41/41 (ohne Ueberspringen 41 rot); Leser: falsche Instanz abgewiesen"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-21 21:56",
+     "was": "angelegt (gebaut)"
+    }
+   ]
   }
  ]
 }

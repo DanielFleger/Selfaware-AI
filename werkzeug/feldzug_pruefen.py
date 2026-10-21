@@ -784,6 +784,30 @@ def main():
         erst38, dann38, [m[:40] for m in m38 if "BRENNT" in m], len(auf900), wieder38 and wieder38[3]),
         erst38 == 900 and dann38 == 901 and any("BRESCHE BRENNT" in m for m in m38) and not auf900
         and wieder38 and wieder38[3] == 900)
+    # 41 (B-161, Franz' Burg 21.10. Takt 74.036: 4 von 9 Angriffsstellen lagen hinter Mauern, die alte Wahl nahm eine davon):
+    #    Lord (300,100) im Hof (Gebiet 39) hinter einem 10 Felder dicken Mauerring (Gebiet 0, 275-325); Turm 900 im Hof
+    #    (300,112), Turm 901 draussen (330,100); Spitze bei (300,140) im Gebiet 1. Mit Wegkarte -> 901, 900 faellt weg.
+    #    Ohne Schuetzen (Gefahr ueberall 0), damit nur die Erreichbarkeit entscheidet. Gegenprobe im selben Test: ohne Wegkarte
+    #    nimmt die Wahl 900 (gleiche Leben, naeher an der Spitze).
+    import numpy as np41
+    import gefahr as GF41
+    geb41 = np41.ones((400, 400), np41.int32)
+    geb41[275:326, 75:126] = 0
+    geb41[285:316, 85:116] = 39
+    L41, G41 = lage(0, heim)
+    del L41[600], L41[601]
+    G41[900] = {"typ": 46, "besitzer": 2, "x": 300, "y": 112, "leben": 1500}
+    G41[901] = {"typ": 46, "besitzer": 2, "x": 330, "y": 100, "leben": 1500}
+    wahl41 = {}
+    for mit in (True, False):
+        f41 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+        f41.wegkarte = (lambda: {"gebiet": geb41}) if mit else None
+        f41._bed = GF41.bedrohungen(L41, G41, lambda b: b == 2, __import__("gefecht").FERN_REICH)
+        f41._karte = None
+        w41 = f41._beste_stelle(G41, (300, 100), [(300, 140)])
+        wahl41[mit] = (w41 and w41[3], f41._karte is not None and f41._karte.gebiete is not None)
+    pruefe(41, "mit Wegkarte: Stelle %s (Gebiete %s) | ohne: Stelle %s" % (wahl41[True][0], wahl41[True][1], wahl41[False][0]),
+           wahl41[True] == (901, True) and wahl41[False][0] == 900)
     # 39 (B-150, Pruefstand 20:32: die Umleitung schickte je Einheit einen Befehl zum naechsten Wegknoten des Spiels): 10
     #    Streitkolben laufen (Zustand 2) zum befohlenen Vorposten (150,133), ihr naechstes Wegstueck fuehrt durch ein Feuer
     #    -> EIN Befehl fuer alle 10, Ziel am Ende der Vorposten (nicht ihr Wegknoten); Gegenprobe: ein Angreifer (Bresche) mit

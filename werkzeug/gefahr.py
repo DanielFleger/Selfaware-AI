@@ -27,7 +27,8 @@ K = 6                           # Gewicht der Gefahr gegenueber 1 Feld Weg - UNG
 NAHKAMPF_SCHADEN = 200          # Leben je Nahkaempfer und Takt gegen einen Schuetze - UNGEMESSEN (Assassinen-Raten L-Register)
 SICHERHEIT = 1.5                # so viel mehr als rechnerisch noetig wird geschickt
 GROESSE = 400                   # Kartenfelder je Seite (groesste Koordinate im Lagebild 21.10.: 388)
-ZIEL_UMKREIS = 3                # ist das Ziel selbst gesperrt, gilt das billigste erreichbare Feld bis so weit daneben
+ZIEL_UMKREIS = 8                # ist das Ziel nicht begehbar (Gebaeude, Mauer, anderes Gebiet), gilt das naechste erreichbare
+                                # Feld bis so weit daneben (Torhaus-Mitte bis vor das Tor: 4-5 Felder)
 
 
 def schach(a, b):
@@ -54,9 +55,10 @@ def _gefahr_einzeln(p, bed):
 class Karte:
     """Gefahr und Sperren fuer die ganze Karte. Je Feld: Gefahr = Summe der Gewichte, deren Quadrat (Schach-Abstand <= r) das
     Feld trifft - ueber ein Differenzfeld in einem Schritt fuer alle Bedrohungen. Kosten je Feld 1 + k * Gefahr; Feuer (x, y, r)
-    und gesperrt (Feld bool [x, y]) sind nicht begehbar. Die Kostensuche je Startpunkt wird zwischengespeichert."""
+    und gesperrt (Feld bool [x, y]) sind nicht begehbar; gebiete (Feld int [x, y], 0 = nicht begehbar, aus speicher.wegkarte)
+    beschraenkt jede Suche auf das Gebiet ihres Startpunkts. Die Kostensuche je Startpunkt wird zwischengespeichert."""
 
-    def __init__(self, bed, feuer=(), gesperrt=None, k=K, n=GROESSE):
+    def __init__(self, bed, feuer=(), gesperrt=None, k=K, n=GROESSE, gebiete=None):
         self.bed, self.feuer, self.k, self.n = list(bed), list(feuer), k, n
         d = np.zeros((n + 1, n + 1), np.int64)
         for x, y, r, w, _ in self.bed:
@@ -73,7 +75,8 @@ class Karte:
             self.sperre[max(0, x - r):max(0, x + r + 1), max(0, y - r):max(0, y + r + 1)] = True
         self.kosten = 1.0 + k * self.g.astype(float)
         self.kosten[self.sperre] = -1.0
-        self._suche = {}
+        self.gebiete = None if gebiete is None else np.asarray(gebiete)
+        self._suche, self._frei = {}, {}
 
     def drin(self, p):
         return 0 <= p[0] < self.n and 0 <= p[1] < self.n
@@ -83,6 +86,27 @@ class Karte:
 
     def gesperrt(self, p):
         return bool(self.sperre[p[0], p[1]]) if self.drin(p) else any(schach(p, (x, y)) <= r for x, y, r in self.feuer)
+
+    def gebiet_bei(self, p):
+        """Gebiet am Feld p; steht dort keins (Gebaeudekante), das haeufigste bis 2 Felder daneben; 0 = keins/ohne Wegkarte."""
+        if self.gebiete is None or not self.drin(p):
+            return 0
+        g = int(self.gebiete[p[0], p[1]])
+        if g:
+            return g
+        fen = self.gebiete[max(0, p[0] - 2):p[0] + 3, max(0, p[1] - 2):p[1] + 3]
+        werte, zahl = np.unique(fen[fen > 0], return_counts=True)
+        return int(werte[zahl.argmax()]) if len(werte) else 0
+
+    def frei(self, start):
+        """bool-Feld [x, y]: wohin, wer bei start steht, gehen darf - nicht gesperrt und (mit Wegkarte) in seinem Gebiet."""
+        g = self.gebiet_bei(tuple(start))
+        if g not in self._frei:
+            self._frei[g] = ~self.sperre & (self.gebiete == g) if self.gebiete is not None and g else ~self.sperre
+        return self._frei[g]
+
+    def offen(self, start, p):
+        return bool(self.frei(start)[p[0], p[1]]) if self.drin(p) else not self.gesperrt(p)
 
     def linie(self, a, b):
         """Alle Felder der geraden Strecke a -> b (jedes Feld, nicht nur jedes zweite)."""
@@ -94,9 +118,8 @@ class Karte:
         start = tuple(start)
         if start not in self._suche:
             from skimage.graph import MCP
-            kosten = self.kosten
-            if self.drin(start) and kosten[start] < 0:      # wer im Feuer steht, darf hinaus
-                kosten = kosten.copy()
+            kosten = np.where(self.frei(start), self.kosten, -1.0)
+            if self.drin(start) and kosten[start] < 0:      # wer im Feuer oder auf einer Gebaeudekante steht, darf hinaus
                 kosten[start] = 1.0
             m = MCP(kosten, fully_connected=True)
             kum, _ = m.find_costs([start])
@@ -149,14 +172,14 @@ def sicherer_weg(start, ziel, bed, feuer=(), k=K, schritt=None, rand=None):
     des A*, heute ohne Wirkung - die Suche deckt die ganze Karte.)"""
     karte = _als_karte(bed, feuer, k)
     start, ziel = tuple(start), tuple(ziel)
-    if all(karte.gefahr(p) == 0 and not karte.gesperrt(p) for p in karte.linie(start, ziel)):
+    if all(karte.gefahr(p) == 0 and karte.offen(start, p) for p in karte.linie(start, ziel)[1:]):
         return [ziel]
     an = karte.ankunft(start, ziel)
     if an is None:
         return None
     m, _ = karte.suche(start)
     pfad = [tuple(int(v) for v in q) for q in m.traceback(an)]
-    if pfad[-1] != ziel and not karte.gesperrt(ziel):
+    if pfad[-1] != ziel and karte.offen(start, ziel):
         pfad.append(ziel)
     # glaetten: nur Eckpunkte (Richtungswechsel) und jedes dritte Feld kommen als Wegpunkt in Frage; von jedem Punkt der
     # weiteste, dessen gerade Strecke durch kein gesperrtes Feld fuehrt und nicht gefaehrlicher ist als das ersetzte Stueck -
@@ -173,7 +196,8 @@ def sicherer_weg(start, ziel, bed, feuer=(), k=K, schritt=None, rand=None):
         j = len(kand) - 1
         while j > i + 1:
             gerade = karte.linie(pfad[kand[i]], pfad[kand[j]])
-            if not any(karte.gesperrt(p) for p in gerade) and                     sum(karte.gefahr(p) for p in gerade[1:]) <= summe[kand[j]] - summe[kand[i]]:
+            if all(karte.offen(start, p) for p in gerade[1:]) and \
+                    sum(karte.gefahr(p) for p in gerade[1:]) <= summe[kand[j]] - summe[kand[i]]:
                 break
             j -= 1
         weg.append(pfad[kand[j]])
@@ -195,6 +219,17 @@ def schuetzen_am_weg(start, weg, bed):
             if n:
                 aus.append((n, art, (x, y)))
     return sorted(aus, reverse=True)
+
+
+def erreichbare_schuetzen(start, bed):
+    """Die Bedrohungen "schuetze", deren Feld im Gebiet von start liegt - zu Fuss erreichbar. Wer auf Mauer, Turm oder Bergfried
+    steht, ist in einem eigenen Gebiet (gemessen 21.10. Takt 74.036: von Franz' 159 Einheiten 36 im Gebiet 1 vor der Burg, 90 im
+    Gebiet 39 um den Lord, die uebrigen in 31/36/41/45). Ohne Wegkarte (Liste statt Karte) zaehlt jeder als erreichbar."""
+    if not isinstance(bed, Karte) or bed.gebiete is None:
+        return [b for b in (bed.bed if isinstance(bed, Karte) else bed) if b[4].startswith("schuetze")]
+    g = bed.gebiet_bei(tuple(start))
+    return [b for b in bed.bed if b[4].startswith("schuetze") and g and bed.drin((b[0], b[1]))
+            and int(bed.gebiete[b[0], b[1]]) == g]
 
 
 def mindestzahl(gegner_leben, takte, schaden=NAHKAMPF_SCHADEN, sicherheit=SICHERHEIT):
