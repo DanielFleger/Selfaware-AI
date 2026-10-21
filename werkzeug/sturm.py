@@ -184,10 +184,11 @@ def main():
     # reicht die Truppe bei dieser Rate nicht bis zum Bruch des Ziels (Restarbeit aus Hoehe/Leben, Schaden je Treffer aus dem Code,
     # 96 Takte je Runde), Rueckzug zum Sammelfeld - erneut gestuermt wird erst mit noetig Mann (kleinste Zahl, die bei dieser Rate
     # das Ziel noch bricht); der Nachschub fuellt auf
-    sturm_t, tote_sturm, noetig, tor_leben = None, 0, None, None
+    sturm_t, tote_sturm, noetig, tor_leben, tor_pruef = None, 0, None, None, None
     geschickt, angesetzt, jaeger = set(), set(), {}
     ballisten_pruefen = True                             # nur bei Anlass suchen: Anfang, Jaeger frei, neues Ziel
     steht = {}                                           # Nummer -> (Feld, seit Takt) - fuer die Nachzuegler-Regel
+    angestossen = {}                                     # Nummer -> wie oft ohne Bewegung neu geschickt
     versuche_ballista = {}                               # Ballista -> geschickte Jaeger (hoechstens 4 je Ballista)
     jaeger_frei = []                                     # Jaeger, deren Ziel gerade erledigt ist
     offen, erwartet, kauf_aus = None, 0, False
@@ -203,7 +204,9 @@ def main():
         if plan["art"] == "mauer":
             befehl({"angriff": {"einheiten": sorted(wer), "lauf": [plan["zug"][0], plan["zug"][1]], "trupp": 1}}, 0.5)
         elif plan["art"] == "tor":
-            befehl({"angriff": {"einheiten": sorted(wer), "gebaeude": plan["ziel"]}}, 0.5)
+            # Torhaus EINZELN (Lauf 01:00: als Gruppenbefehl verteilte das Spiel sie in Formation, nach 529 Takten standen 50 von 72
+            # noch in 101; im Siegerlauf 00:54 einzeln: Torhaus nach 589 Takten gefallen)
+            befehl({"angriff": {"einheiten": sorted(wer), "gebaeude": plan["ziel"], "trupp": 1}}, 0.5)
         else:
             befehl({"angriff": {"einheiten": sorted(wer), "ziel": lnr}}, 0.5)
             if fern:                                      # Lord-Phase: Fernkaempfer an den Lord (sie schiessen auf die Leibwache)
@@ -212,7 +215,8 @@ def main():
         zug_ = tuple(plan["zug"]) if plan["zug"] else tuple(w_[-1])
         frist = t_ + max(0, w_.index(zug_) if zug_ in w_ else len(w_)) * mechanik.TAKTE_JE_FELD + 2 * mk["takte_je_treffer"]
         wirk_alt, t_107 = None, None
-        nonlocal sturm_t, tote_sturm
+        nonlocal sturm_t, tote_sturm, tor_pruef
+        tor_pruef = None
         sturm_t, tote_sturm = t_, 0
         melde((t_, "STURM %d Mann auf %s %s" % (len(wer), plan["art"], plan["ziel"])))
         phase = "sturm"
@@ -372,8 +376,13 @@ def main():
                     continue
                 ziel_n = vorn_fern if n in fern else vorn_nah
                 if t_ - alt_[1] >= mk["takte_je_treffer"] and abstand(pos, ziel_n) > NAH:
-                    nachzuegler.setdefault(ziel_n, []).append(n)
+                    angestossen[n] = angestossen.get(n, 0) + 1
                     steht[n] = (pos, t_)
+                    if angestossen[n] <= 2:
+                        nachzuegler.setdefault(ziel_n, []).append(n)
+                    elif angestossen[n] == 3:            # 2 neue Befehle ohne Bewegung: nicht weiter anstossen (Lauf 01:00: zwei Bogen
+                        # bekamen 25 Befehle und standen trotzdem)
+                        melde((t_, "KOMMT NICHT AN: %d (Typ %d) bei %s -> %s" % (n, jetzt[n]["typ"], pos, ziel_n)))
             for ziel_n, wer in nachzuegler.items():
                 befehl({"angriff": {"einheiten": sorted(wer), "lauf": [ziel_n[0], ziel_n[1]]}}, 0.3)
                 melde((t_, "NACHZUEGLER %d Mann (%s) -> %s" % (len(wer), sorted({jetzt[w]["typ"] for w in wer}), ziel_n)))
@@ -515,14 +524,15 @@ def main():
             if plan["art"] == "tor":
                 befehl({"lagebild": True}, 2.0, bis="LAGEBILD")
                 leben = lies_gebaeude().get(plan["ziel"], {}).get("leben", 0)
-                if wirk_alt is None or leben < wirk_alt:
-                    wirk_alt, frist, tor_leben = leben, t_ + 2 * mk["takte_je_treffer"], leben
+                # eigener Zaehler fuer das Torhaus-Leben (Lauf 01:00: Abbruch schon an der ersten Pruefung, Ursache ungeklaert)
+                if tor_pruef is None or leben < tor_pruef:
+                    tor_pruef, frist, tor_leben = leben, t_ + 2 * mk["takte_je_treffer"], leben
                     continue
             lage = {}
             for n in welle:
                 lage[jetzt[n]["lage"]] = lage.get(jetzt[n]["lage"], 0) + 1
-            melde((t_, "AUSLOESER: keine Wirkung an %s %s bis Takt %d | Welle %d Mann, Zustaende %s" % (
-                plan["art"], plan["ziel"], frist, len(welle), lage)))
+            melde((t_, "AUSLOESER: keine Wirkung an %s %s bis Takt %d | Welle %d Mann, Zustaende %s | Wirkung zuletzt %s, Torhaus %s" % (
+                plan["art"], plan["ziel"], frist, len(welle), lage, wirk_alt, tor_pruef)))
             break
         spur.append((t_, phase, plan["art"], str(plan["ziel"]), lord["leben"], len(stuermer), len(welle)))
 
