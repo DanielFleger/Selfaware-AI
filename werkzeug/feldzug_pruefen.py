@@ -616,6 +616,28 @@ def main():
     w29g, m29g = mauer(True)
     pruefe(29, "eingemauert: %s %s | erreichbar: %s %s" % (w29, m29, w29g, m29g),
            w29 == [([300, 100, 2, F.Feldzug.MAUER_R], list(range(10, 18)))] and m29 and not w29g and not m29g)
+    # 30 (B-147, L175: im Pruefstand zog die Rueckzugsregel die Mauerhacker 4-mal ab - wer hackt, hat zielart 0 und kein Nahziel):
+    #    Lord eingemauert, kein Turm, 10 Streitkolben mit Mauerauftrag stehen > RUECKZUG_TAKTE an der Mauer und verlieren Leben,
+    #    Zustand 107 (beschaeftigt) -> kein Rueckzug. Gegenprobe: dieselben untaetig (Zustand 1) -> Rueckzug.
+    def hacker(zustand):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=10)
+        f.wegtest = lambda nr, punkte: [False for q in punkte]
+        f.schritt({"t": 12000}, *lage(5, heim), Befehle())
+        L_, G_ = lage(0, heim)
+        for i in range(10):
+            L_[10 + i] = einheit(26, 1, 300 + i % 3, 108 + i // 5, 28000)
+        f.phase = "angriff"
+        f.schritt({"t": 12050}, L_, G_, Befehle())          # Mauerauftrag
+        m_ = []
+        for t_ in (12400, 12800, 13200):
+            for i in range(10):
+                L_[10 + i]["leben"] -= 500
+                L_[10 + i]["zustand"] = zustand
+            m_ += f.schritt({"t": t_}, L_, G_, Befehle())
+        return [m[:40] for m in m_ if "RUECKZUG" in m], [m[:30] for m in m_ if "MAUER" in m]
+    r30, w30 = hacker(107)
+    r30g, w30g = hacker(1)
+    pruefe(30, "hacken (Zustand 107): Rueckzug %s, Mauer %s | untaetig (1): Rueckzug %s" % (r30, w30, r30g), not r30 and r30g)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

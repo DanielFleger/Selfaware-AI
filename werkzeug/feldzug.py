@@ -129,6 +129,7 @@ class Feldzug:
         """B-146: Nahkaempfer, die seit RUECKZUG_TAKTE auf demselben Feld stehen, in den letzten RUECKZUG_SCHADEN Takten
         Leben verloren und weder Ziel noch Nahkampfgegner haben - "STEHT NUR" der Kern-Beschusswache (L169/L170)."""
         neu, stehen = {}, []
+        befohlen = getattr(self, "_befohlen", {})
         for n in nah_kampf:
             e = L[n]
             ort = (e["x"], e["y"])
@@ -138,8 +139,11 @@ class Feldzug:
             if alt and e["leben"] < alt[1]:
                 schaden = t
             neu[n] = (ort, e["leben"], still_seit, schaden)
+            # (B-147, L175: wer eine Mauer aufhackt, hat zielart 0 und kein Nahziel - mit Mauerauftrag und nicht untaetig ist er
+            # beschaeftigt, kein "steht nur"; in Pruefstand-Lauf 4 zog die Regel die Hacker 4-mal ab)
+            hackt = befohlen.get(n, (None,))[0] == "mauer" and e.get("zustand") not in (0, 1)
             if (t - still_seit >= self.RUECKZUG_TAKTE and schaden is not None and t - schaden <= self.RUECKZUG_SCHADEN
-                    and not e.get("zielart", 0) and e.get("nahziel", 0) <= 0):
+                    and not e.get("zielart", 0) and e.get("nahziel", 0) <= 0 and not hackt):
                 stehen.append(n)
         self._spur = neu
         return stehen
