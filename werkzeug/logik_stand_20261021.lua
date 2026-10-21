@@ -78,7 +78,8 @@ local tickLog      = nil   -- 17.10. Testing: Feldprotokoll je Tick (tickProtoko
 -- Festhalten (04.10.2026): nr -> { x, y, gesetzt, letzter } - Ziel gegen KI/Arbeit/Lord-Logik halten
 local festhalten   = {}
 local angriffReserve = nil   -- Gruppen je Takt reserviert (modul-lokal: UCP verbietet globale Variablen - 04.10.)
-local spielende = { bild = 0 }  -- B-154: Spielende-Melder (letzter Stand, letzter eigener Ende-Befehl)
+local spielende = { bild = 0 }
+local spielendeWacht, verlaufTick   -- B-154/B-155: vorwaerts deklariert, everyTick steht weiter oben als die Definitionen  -- B-154: Spielende-Melder (letzter Stand, letzter eigener Ende-Befehl)
 local wegketten = {}         -- B-150: Wegpunkte je Truppe um ein Feuer herum ("danach"), wegketteTick schickt weiter
 local angriffSchlange = {}   -- Angriffsbefehle, die nacheinander abgesetzt werden (je einer, bis seine Gruppe steht)
 local angriffWarten = nil    -- { gruppe, einheiten, tick } des zuletzt abgesetzten Angriffs
@@ -1970,7 +1971,31 @@ local function einzelbefehl(cmd)
     if sp >= 1 and sp <= 8 and (core.readInteger(0x0191DE7C + sp * 4) or 0) == 0 then
       core.writeInteger(0x0191DE10 + sp * 4, 1)
     end
-    log(INFO, string.format("EIGENER PLATZ: %s -> %s; Mensch-Eintrag Platz %d: %s -> %s; gameOver %s",
+    -- B-154 (21.10. 20:39 und 21:03, Melder): die Niederlage-Pruefung ohne Menschen setzt gameOver = 1, gameOverTime = Uhr und
+    -- playerIsAlive[sp] = 0 - jedes davon allein holt den Endbildschirm (Ansicht 30 kam 2 s nach dem Laden, obwohl gameOver
+    -- und gameOverTime schon zurueckgesetzt waren). Lebt unser Lord, wird alles drei zurueckgesetzt - hier, im selben Schritt,
+    -- in dem wir uns als Mensch eintragen
+    local zurueck = ""
+    if (core.readInteger(0x0117D500) or 0) == 1 and sp >= 1 and sp <= 8 then
+      local lordLebt = false
+      local n = core.readInteger(E_MAX) or 0
+      if n < 1 or n > 2500 then n = 2500 end
+      for i = 1, n do
+        local b = EINHEITEN + i * E_SCHRITT
+        if (core.readSmallInteger(b + E_ZUSTAND) or 0) ~= 0 and (core.readSmallInteger(b + E_TYP) or -1) == 55
+           and (core.readSmallInteger(b + E_BESITZER) or -1) == sp and (core.readInteger(b + E_LEBEN) or 0) > 0 then
+          lordLebt = true
+          break
+        end
+      end
+      if lordLebt then
+        core.writeInteger(0x0117D500, 0)
+        core.writeInteger(0x0117C888, 0)
+        core.writeSmallInteger(0x0117EF40 + sp * 2, 1)
+        zurueck = " -> zurueckgesetzt (gameOver, gameOverTime, playerIsAlive), unser Lord lebt"
+      end
+    end
+    log(INFO, string.format("EIGENER PLATZ: %s -> %s; Mensch-Eintrag Platz %d: %s -> %s; gameOver %s" .. zurueck,
       tostring(alt), tostring(core.readInteger(0x0191D768 + 0x109E74)), sp, tostring(fullAlt),
       tostring(core.readInteger(0x0191DE10 + sp * 4)), tostring(core.readInteger(0x0117D500))))
     return true
@@ -4254,6 +4279,7 @@ local function everyTick()
   pcall(ketteTick)
   pcall(regelwachtTick)
   pcall(spielendeWacht, "Takt")
+  pcall(verlaufTick)          -- B-155: Partie-Verlauf alle 250 Takte
 end
 
 log(INFO, "logik.lua (31.08.2026): + Bauwacht, + Durchreichen an init.lua.")
@@ -4273,6 +4299,96 @@ end
 -- Im Hauptmenue laeuft processGameTick nicht, also auch everyTick nicht.
 -- Kette und Fenster-Wacht muessen dort trotzdem arbeiten - beide fassen nur
 -- Menue- und Fensterzustand an, nichts aus einem laufenden Gefecht.
+-- B-155 Partie-Verlauf (Daniel 21.10.2026 20:54: "schau im Spiel, wie die Endbildschirm-Werte erzeugt werden, lies sie
+-- waehrend des ganzen Spiels aus und zeig mir daraus wie bei AoE2 eine Entwicklung ueber das ganze Spiel per Graph -
+-- Einheiten/Ressourcen/Gebaeude/Trades"). Abgelesen 21.10.: der Endbildschirm zeigt GameSynchronyState.finalResults
+-- (SkirmishStatistics, 0x0191D768 + 1086916 = 0x01A26D2C; Werte Stueck fuer Stueck gegen Daniels Bild geprueft).
+-- Alle 250 Takte je aktivem Spieler eine JSON-Zeile nach ucp/villagestudio/verlauf.jsonl: Statistik-Summen (Gold, Nahrung,
+-- Holz, Stein, Eisen, Pech, Waffen, Truppen ausgebildet, Gebaeude abgebrannt/zerstoert, Handel erhalten/gesendet,
+-- Abschuesse/Verluste aus der Kill-Matrix), dazu der Stand jetzt (Vorraete, Beliebtheit, Bevoelkerung, Soldaten,
+-- Arbeiter, Gebaeude). Springt die Spieluhr zurueck (neue Partie/Laden), kommt zuerst eine Zeile {"neu": ...}.
+local STAT = 0x01A26D2C
+local VERLAUF_SOLDATEN = { [5]=1, [22]=1, [23]=1, [24]=1, [25]=1, [26]=1, [27]=1, [28]=1, [29]=1, [30]=1, [37]=1, [39]=1,
+  [40]=1, [41]=1, [50]=1, [58]=1, [59]=1, [60]=1, [61]=1, [67]=1, [70]=1, [71]=1, [72]=1, [73]=1, [74]=1, [75]=1, [76]=1, [77]=1 }
+local verlaufLetzter = nil
+verlaufTick = function()
+  if (core.readInteger(PAUSE) or 1) ~= 0 then return end
+  local a = core.readInteger(0x01FE7D1C) or -1
+  if a ~= 14 and a ~= 16 then return end
+  local t = tick()
+  if t % 250 ~= 0 then return end
+  local f = io.open("ucp/villagestudio/verlauf.jsonl", "a")
+  if not f then return end
+  if verlaufLetzter == nil or t < verlaufLetzter then
+    local namen = {}
+    for sp = 1, 8 do
+      if (core.readByte(STAT + 810 + sp) or 0) ~= 0 then
+        local n = {}
+        for i = 0, 89 do
+          local c = core.readByte(STAT + 90 * sp + i) or 0
+          if c == 0 then break end
+          if c >= 32 and c < 127 and c ~= 34 and c ~= 92 then n[#n + 1] = string.char(c) else n[#n + 1] = "?" end
+        end
+        namen[#namen + 1] = string.format('"%d":"%s"', sp, table.concat(n))
+      end
+    end
+    local okd, jetzt = pcall(function() return os.date("%Y-%m-%d %H:%M:%S") end)
+    f:write(string.format('{"neu":"%s","t":%d,"ich":%d,"namen":{%s}}\n', okd and jetzt or "?", t,
+      core.readInteger(SLOT_ICH) or -1, table.concat(namen, ",")))
+  end
+  verlaufLetzter = t
+  -- Einheiten und Gebaeude je Spieler (eine Runde ueber beide Listen)
+  local sold, arb, geb = {}, {}, {}
+  for sp = 0, 8 do sold[sp], arb[sp], geb[sp] = 0, 0, 0 end
+  local n = core.readInteger(E_MAX) or 0
+  if n < 1 or n > 2500 then n = 2500 end
+  for i = 1, n do
+    local b = EINHEITEN + i * E_SCHRITT
+    if (core.readSmallInteger(b + E_ZUSTAND) or 0) ~= 0 and (core.readInteger(b + E_LEBEN) or 0) > 0 then
+      local sp = core.readSmallInteger(b + E_BESITZER) or -1
+      local typ = core.readSmallInteger(b + E_TYP) or -1
+      if sp >= 1 and sp <= 8 and typ ~= 55 then
+        if VERLAUF_SOLDATEN[typ] then sold[sp] = sold[sp] + 1 else arb[sp] = arb[sp] + 1 end
+      end
+    end
+  end
+  local gn = gebaeudeAnzahl() or 0
+  for i = 1, gn - 1 do
+    local b = GEBAEUDE + i * G_SCHRITT
+    local z = core.readSmallInteger(b + G_ZUSTAND) or 0
+    local sp = core.readSmallInteger(b + G_BESITZER) or -1
+    if z ~= 0 and z ~= 3 and sp >= 1 and sp <= 8 then geb[sp] = geb[sp] + 1 end
+  end
+  local function s32(v) v = v or 0; if v > 0x7FFFFFFF then return v - 0x100000000 end return v end
+  local function st(off, sp) return s32(core.readInteger(STAT + off + 4 * sp)) end
+  local teile = {}
+  for sp = 1, 8 do
+    if (core.readByte(STAT + 810 + sp) or 0) ~= 0 then
+      local kills, verl = 0, 0
+      for j = 0, 8 do
+        if j ~= sp then
+          kills = kills + s32(core.readInteger(STAT + 920 + 36 * sp + 4 * j))
+          verl = verl + s32(core.readInteger(STAT + 920 + 36 * j + 4 * sp))
+        end
+      end
+      local PDs = SPIELERDATEN + sp * SD_SCHRITT
+      local nahrung = (ware(sp, 10) or 0) + (ware(sp, 11) or 0) + (ware(sp, 12) or 0) + (ware(sp, 13) or 0)
+      local waffen = 0
+      for w = 17, 24 do waffen = waffen + (ware(sp, w) or 0) end
+      teile[#teile + 1] = string.format('"%d":{"gold":%d,"holz":%d,"stein":%d,"eisen":%d,"pech":%d,"nahrung":%d,"bier":%d,' ..
+        '"waffen":%d,"beliebt":%d,"leute":%d,"soldaten":%d,"arbeiter":%d,"gebaeude":%d,"s_gold":%d,"s_nahrung":%d,' ..
+        '"s_holz":%d,"s_stein":%d,"s_eisen":%d,"s_pech":%d,"s_waffen":%d,"s_truppen":%d,"s_verbrannt":%d,' ..
+        '"s_zerstoert":%d,"s_erhalten":%d,"s_gesendet":%d,"s_maxleute":%d,"kills":%d,"verluste":%d}', sp,
+        ware(sp, 15) or 0, ware(sp, 2) or 0, ware(sp, 4) or 0, ware(sp, 6) or 0, ware(sp, 7) or 0, nahrung, ware(sp, 14) or 0,
+        waffen, s32(core.readInteger(PDs + 0x60)), s32(core.readInteger(PDs + 8576)), sold[sp], arb[sp], geb[sp],
+        st(820, sp), st(1280, sp), st(1388, sp), st(1352, sp), st(1316, sp), st(1424, sp), st(1480, sp), st(1624, sp),
+        st(1244, sp), st(1516, sp), st(1660, sp), st(1696, sp), core.readSmallInteger(STAT + 856 + 2 * sp) or 0, kills, verl)
+    end
+  end
+  f:write(string.format('{"t":%d,"sp":{%s}}\n', t, table.concat(teile, ",")))
+  f:close()
+end
+
 -- B-154 Spielende-Melder (Daniel 21.10. 20:40: "du hast offensichtlich noch keinen Melder, wenn das Match aus ist - sofort
 -- erkennen, warum es endet, und ob es bewusst war oder nicht"). Laeuft in jedem Spieltakt UND im Menue-Takt (auf dem
 -- Endbildschirm stehen die Spieltakte). Meldet, sobald gameOver 0 -> 1 kippt, der Endbildschirm (Ansicht 30/58) kommt oder
@@ -4280,7 +4396,7 @@ end
 -- checkSkirmishGameDefeat), Mensch-Eintrag unseres Platzes (0x0191DE10, -1 = leer -> die Niederlage-Pruefung beendet die
 -- Partie), Endbildschirm-Uhr gameOverTime (0x0117C888) und der letzte eigene Ende-Befehl (hoechstens 600 Aufrufe her).
 -- BEWUSST = eigener Befehl oder Sieg; UNBEWUSST = Niederlage, leerer Spielerplatz oder unbekannt. Log + spielende.txt.
-local function spielendeWacht(quelle)
+spielendeWacht = function(quelle)
   local s = spielende
   s.bild = s.bild + 1
   local over = core.readInteger(0x0117D500) or -1
@@ -4321,6 +4437,12 @@ local function spielendeWacht(quelle)
   local art, grund
   if raus and eigener then
     art, grund = "BEWUSST", string.format("eigener Befehl %s=%s", b.art, b.wert)
+  elseif endbild and s.ladeKipp and s.bild - s.ladeKipp <= 600 then
+    art, grund = "UNBEWUSST", "Endbildschirm als Folge des Kippens beim Laden (Sieg/Niederlage-Fenster war schon offen)"
+  elseif kipp and (ich < 1 or mensch == -1) then
+    s.ladeKipp = s.bild
+    art, grund = "UNBEWUSST", "Spiel vorbei direkt nach dem Laden - Spielerplatz noch nicht gesetzt (Niederlage-Pruefung " ..
+      "ohne Menschen; shc.laden setzt gameOver und gameOverTime zurueck)"
   elseif over == 1 and lebtIch == 1 and #andere == 0 then
     art, grund = "BEWUSST", "SIEG - nur wir leben noch (playerIsAlive), alle feindlichen Lords tot"
   elseif over == 1 and lebtIch == 0 and #andere > 0 then

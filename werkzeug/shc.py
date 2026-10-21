@@ -122,6 +122,20 @@ def menue():
 
 
 def laden(name=STANDARD_STAND):
+    """Laedt den Stand; endet die Partie gleich nach dem Laden (21.10. 21:08: das Spiel setzt dabei "Partie vorbei" und oeffnet das
+    Sieg/Niederlage-Fenster - das bleibt, auch wenn die Flags zurueckgesetzt werden; tritt nur manchmal auf), wird bis zu
+    3-mal neu geladen."""
+    for versuch in (1, 2, 3):
+        try:
+            return _laden_einmal(name) + ("" if versuch == 1 else " (Versuch %d)" % versuch)
+        except Fehler as e:
+            if "Partie endete im Probelauf" not in str(e) and "keine bespielbare Partie" not in str(e) or versuch == 3:
+                raise
+            print("WARNUNG: Partie endete gleich nach dem Laden (Versuch %d) - noch einmal laden | %s" % (versuch, str(e)[:160]),
+                  flush=True)
+
+
+def _laden_einmal(name=STANDARD_STAND):
     """Spielstand IMMER ueber das Hauptmenue laden, dann uns auf Platz 1 eintragen; prueft danach die Partie."""
     from laden import lade_stand, befehl
     menue()
@@ -153,13 +167,19 @@ def laden(name=STANDARD_STAND):
     partie_sicher()
     # Gegenprobe im Lauf: mindestens 200 Takte UND 15 s Rechnerzeit (der Endbildschirm kommt 9-10 s nach "Spiel vorbei" -
     # die alte Probe war nach ~5 s fertig und damit hohl) - Ansicht und gameOver muessen die ganze Zeit stimmen
+    # (21.10. 21:06: 15 s bei Tempo 40 liefen 5.017 Takte - der Stand war danach nicht mehr der gespeicherte. Darum nur 200
+    #  Takte laufen, dann angehalten bis 15 s um sind - Ansicht und gameOver werden die ganze Zeit geprueft)
     befehl({"pause": False, "tempo": 40}, 0.3)
     t0, beginn = zustand()["tick"], time.time()
+    angehalten = False
     while time.time() < beginn + 60:
         z = zustand()
         if z.get("ansicht") != IN_PARTIE or z.get("gameover") != 0:
             raise Fehler("Partie endete im Probelauf nach dem Laden: %s | Melder: %s" % (z, letztes_spielende()))
-        if z["tick"] >= t0 + 200 and time.time() >= beginn + 15:
+        if not angehalten and z["tick"] >= t0 + 200:
+            befehl({"pause": True}, 0.3)
+            angehalten = True
+        if angehalten and time.time() >= beginn + 15:
             break
         time.sleep(0.3)
     befehl({"pause": True}, 0.3)
@@ -241,26 +261,33 @@ def sandkasten(name=STANDARD_STAND, franz_heer="nein", nur_soldaten="nein"):
     befehl({"leereKI": [2]}, 0.5)
     # nur_soldaten=ja (Daniel 19:07): Arbeiter, Brunnen-Loescher und Stadtvolk bleiben - nur Kaempfer werden abgeraeumt
     welche = {"typen": sorted(SOLDATEN)} if nur_soldaten == "ja" else {}
-    befehl({"toeteAlle": dict({"spieler": 1, "ohneLord": True}, **welche)}, 0.8)
-    if franz_heer != "ja":
-        befehl({"toeteAlle": dict({"spieler": 2, "ohneLord": True}, **welche)}, 0.8)
-    befehl({"pause": False, "tempo": 100}, 0.3)            # Steintod abwarten
-    t0 = zustand()["tick"]
-    while zustand()["tick"] < t0 + 400:
-        time.sleep(0.2)
-    befehl({"pause": True}, 0.3)
-    z = partie_sicher()
-    w = Leitung(SPIEL).lesen()
-    lords = {e["besitzer"] for e in w.einheiten.values() if e["typ"] == 55 and e["leben"] > 0}
-    if not {1, 2} <= lords:
-        raise Fehler("Lords fehlen nach dem Abraeumen (leben: Spieler %s)" % sorted(lords))
-    soldaten, volk = {}, {}
-    for e in w.einheiten.values():
-        if e["leben"] > 0 and e["typ"] != 55 and e["besitzer"] in (1, 2):
-            ziel = soldaten if e["typ"] in SOLDATEN else volk
-            ziel[e["besitzer"]] = ziel.get(e["besitzer"], 0) + 1
-    if soldaten.get(1) or (franz_heer != "ja" and soldaten.get(2)):
-        raise Fehler("nach dem Abraeumen stehen noch Soldaten: %s" % soldaten)
+    # 21.10. 21:00: nach einem Abraeumen stand bei Franz noch 1 Soldat (nachrekrutiert oder nicht erwischt) - bis zu 3 Durchgaenge,
+    # jeder geprueft; erst wenn auch der dritte nicht reicht, bricht der Sandkasten ab
+    for durchgang in (1, 2, 3):
+        befehl({"toeteAlle": dict({"spieler": 1, "ohneLord": True}, **welche)}, 0.8)
+        if franz_heer != "ja":
+            befehl({"toeteAlle": dict({"spieler": 2, "ohneLord": True}, **welche)}, 0.8)
+        befehl({"pause": False, "tempo": 100}, 0.3)            # Steintod abwarten
+        t0 = zustand().get("tick", 0)
+        ende = time.time() + 60
+        while zustand().get("tick", 0) < t0 + 400 and time.time() < ende:
+            time.sleep(0.2)
+        befehl({"pause": True}, 0.3)
+        z = partie_sicher()
+        w = Leitung(SPIEL).lesen()
+        lords = {e["besitzer"] for e in w.einheiten.values() if e["typ"] == 55 and e["leben"] > 0}
+        if not {1, 2} <= lords:
+            raise Fehler("Lords fehlen nach dem Abraeumen (leben: Spieler %s)" % sorted(lords))
+        soldaten, volk = {}, {}
+        for e in w.einheiten.values():
+            if e["leben"] > 0 and e["typ"] != 55 and e["besitzer"] in (1, 2):
+                ziel = soldaten if e["typ"] in SOLDATEN else volk
+                ziel[e["besitzer"]] = ziel.get(e["besitzer"], 0) + 1
+        if not (soldaten.get(1) or (franz_heer != "ja" and soldaten.get(2))):
+            break
+        print("WARNUNG: nach Abraeumen %d stehen noch Soldaten %s - noch einmal" % (durchgang, soldaten), flush=True)
+    else:
+        raise Fehler("nach 3-mal Abraeumen stehen noch Soldaten: %s" % soldaten)
     return ("Sandkasten '%s' bereit bei Tick %d, Lords 1+2 leben, Soldaten %s, Arbeiter/Stadtvolk (bleiben) %s"
             % (name, z["tick"], soldaten or "keine", volk))
 
