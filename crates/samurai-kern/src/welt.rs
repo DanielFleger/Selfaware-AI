@@ -59,6 +59,11 @@ pub struct Einheit {
     pub arbeitsplatz: i16,
     pub nahziel: i16,
     pub nahangreifer: i16,
+    /// B-147: Mauerfeld, das die Einheit aufhacken soll (Unit +0x3A8 targetedBuildingTile, 0 = keins), und dessen x/y
+    /// (+0x3E8/+0x3EA attackAtTile) - beim Mauerangriff bleibt zielart (targetingType) 0, abgelesen giveTribeAnInstruction
+    pub mauerfeld: i32,
+    pub mauerx: i16,
+    pub mauery: i16,
     /// S3: wie logik.lua - fremde Einheit vom Startpunkt aus erreichbar 1/0, eigene -1; -9 = nicht berechnet
     pub erreichbar: i32,
 }
@@ -154,6 +159,9 @@ impl Welt {
                     arbeitsplatz: i16_bei(u + 824),
                     nahziel: i16_bei(u + 830),
                     nahangreifer: i16_bei(u + 942),
+                    mauerfeld: i32_bei(u + 0x3A8),
+                    mauerx: i16_bei(u + 0x3E8),
+                    mauery: i16_bei(u + 0x3EA),
                     erreichbar: -9,
                 });
             }

@@ -29,7 +29,7 @@ use haende::{Annahme, Auftrag, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 16;
+pub const VERSION: u32 = 17;
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -238,7 +238,7 @@ fn beschuss_takt(z: &mut Zustand, tick: i32) {
             beschuss::Meldung::Beginn { nr, still } => {
                 if let Some(e) = welt.einheiten.iter().find(|e| e.nr == nr) {
                     // (gemessen 00:07: die meisten Faelle sind Nahkaempfe - Nahziel = der Gegner; der Aergerfall ist "steht nur")
-                    let art = if e.nahziel > 0 { "KAEMPFT" } else if e.zielart != 0 { "HAT ZIEL" } else { "STEHT NUR" };
+                    let art = beschuss::art(e.nahziel, e.zielart, e.mauerfeld, (e.x, e.y), (e.mauerx, e.mauery));
                     schreibe(&format!(
                         "beschuss tick {}: {} - Einheit {} (Typ {}, Zustand {}, Zielart {}, Nahziel {}) bei ({},{}) steht seit {} Takten und verliert Leben ({}) [Fenster {} / still {}]",
                         tick, art, nr, e.typ, e.zustand, e.zielart, e.nahziel, e.x, e.y, still, e.leben,

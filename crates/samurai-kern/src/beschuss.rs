@@ -76,8 +76,32 @@ impl Wache {
     }
 }
 
+/// Art einer Meldung. B-147 (21.10., L175): wer eine Mauer aufhackt, hat zielart 0 und kein Nahziel - er zaehlt als "HAT ZIEL",
+/// wenn ein Mauerfeld eingetragen ist UND er hoechstens 2 Felder neben dieser Mauer steht (ein veralteter Eintrag nach einem
+/// spaeteren Laufbefehl zaehlt so nicht).
+pub fn art(nahziel: i16, zielart: i16, mauerfeld: i32, ort: (i32, i32), mauer: (i16, i16)) -> &'static str {
+    let an_der_mauer = mauerfeld != 0
+        && (ort.0 - mauer.0 as i32).abs().max((ort.1 - mauer.1 as i32).abs()) <= 2;
+    if nahziel > 0 {
+        "KAEMPFT"
+    } else if zielart != 0 || an_der_mauer {
+        "HAT ZIEL"
+    } else {
+        "STEHT NUR"
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn mauerhacker_an_der_mauer_hat_ziel_weit_weg_steht_nur() {
+        assert_eq!(super::art(0, 0, 14378, (178, 120), (178, 119)), "HAT ZIEL");
+        assert_eq!(super::art(0, 0, 14378, (150, 200), (178, 119)), "STEHT NUR");
+        assert_eq!(super::art(0, 0, 0, (178, 120), (178, 119)), "STEHT NUR");
+        assert_eq!(super::art(0, 3, 0, (1, 1), (0, 0)), "HAT ZIEL");
+        assert_eq!(super::art(681, 0, 0, (1, 1), (0, 0)), "KAEMPFT");
+    }
+
     use super::*;
 
     #[test]
