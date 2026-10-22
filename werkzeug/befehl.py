@@ -51,6 +51,20 @@ SENDE  = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".sende" + _EN
 
 
 _LETZTE = 0
+ACK_POLL = .002
+
+
+def _veroeffentlichen(temp, ziel):
+    """Nur VOR der Veroeffentlichung warten: Windows-Leser sperren kurz das Umbenennen."""
+    ende = time.monotonic() + .5
+    while True:
+        try:
+            os.replace(temp, ziel)
+            return
+        except PermissionError:
+            if time.monotonic() >= ende:
+                raise
+            time.sleep(.002)
 
 
 def letztes_spielende(n=1):
@@ -188,7 +202,7 @@ def sende(befehl, warte=3.0, bis=None):
         temp = BEFEHL + '.%s.tmp' % os.getpid()
         with io.open(temp, 'wb') as f:
             f.write(json.dumps(befehl).encode('utf-8'))
-        os.replace(temp, BEFEHL)
+        _veroeffentlichen(temp, BEFEHL)
         if bis is None:
             # Daniel 05.10. 23:01: "loesch das feste Zeit-Warten - Sekunden sind Killer". Die Logik quittiert jeden Befehl mit
             # "QUITTUNG <id>" (gleicher Tick); warte ist nur noch die Notbremse, falls keine Quittung kommt (z. B. Hauptmenue).
@@ -197,7 +211,7 @@ def sende(befehl, warte=3.0, bis=None):
         ende = time.monotonic() + (max(warte, 20.0) if PARTNER else warte)
         bestaetigt = False
         while time.monotonic() < ende:
-            time.sleep(0.02)
+            time.sleep(ACK_POLL)
             if os.path.getsize(LOG) > vorher:
                 with io.open(LOG, encoding="utf-8", errors="replace") as f:
                     f.seek(vorher)

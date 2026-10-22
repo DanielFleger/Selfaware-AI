@@ -11,6 +11,11 @@ import lordschutz
 
 
 class AntwortProbe(unittest.TestCase):
+    def test_publication_waits_for_reader_before_single_publish(self):
+        with patch.object(kanal.os, 'replace', side_effect=[PermissionError(), None]) as replace:
+            kanal._veroeffentlichen('temp', 'ziel')
+        self.assertEqual(replace.call_count, 2)
+
     def versuch(self, suffix):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)

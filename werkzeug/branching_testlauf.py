@@ -41,6 +41,9 @@ try:
   if time.monotonic()-last_lock>30:
    lockcall('holen');last_lock=time.monotonic()
   tick=struct.unpack('<I',speicher.lies(0x0117CADC,4))[0]
+  over=struct.unpack('<I',speicher.lies(0x0117D500,4))[0]
+  if gate and any(p.poll() is not None for p in ps) and not over:
+   manifest['status']='invalid';manifest['reason']='controller ended while match still active';break
   if tick!=last_tick:last_tick=tick;last_progress=time.monotonic()
   if time.monotonic()-last_progress>90:manifest['status']='invalid';manifest['reason']='tick stalled';break
   try:
