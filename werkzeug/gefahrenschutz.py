@@ -92,7 +92,9 @@ def takte_je_feld(raten, typ):
 
 # ---- Lage einer Runde ----------------------------------------------------------------------------------------------------
 class Lage:
-    def __init__(self, L, G, ist_feind, fern_reich, gebiete=None, n=GROESSE, raten=None):
+    def __init__(self, L, G, ist_feind, fern_reich, gebiete=None, n=GROESSE, raten=None, wegkarte=None):
+        """wegkarte (speicher.wegkarte(): gebiet, gebaeude, link) - 22.10. 2v2 082947: ohne Gebaeude-Ebene legte die Suche den
+        ersten Wegpunkt eines Reiters auf das Lagerfeuer (224,282, link 28, Gebaeude 10) - er stand 2.600 Takte still."""
         self.n = n
         d = np.zeros((n + 1, n + 1))
 
@@ -114,8 +116,11 @@ class Lage:
                 for r, w in reversed(SCHADEN_BAENDER):
                     quadrat(x, y, min(r, reich), w - vorher)       # kurze Reichweite (Schleuder 17, Feuer 11): Band endet dort
                     vorher = w
-        self.s = d.cumsum(0).cumsum(1)[:n, :n]                     # Schaden je Takt (Assassinen-Einheiten) je Feld
+        self.s = np.maximum(d.cumsum(0).cumsum(1)[:n, :n], 0.0)    # Schaden je Takt (Assassinen-Einheiten) je Feld
+        if wegkarte is not None:
+            gebiete = wegkarte["gebiet"]
         self.gebiete = None if gebiete is None else np.asarray(gebiete)
+        self.bau = None if wegkarte is None else np.asarray(wegkarte["gebaeude"])
         self.raten = raten_laden() if raten is None else raten
         mn = self.s[self.s > 1e-9].min() if (self.s > 1e-9).any() else SCHADEN_WEIT
         # Vorrang: jedes Feld unter Beschuss kostet mehr als jeder Umweg ohne Beschuss (2 x Kartenbreite Felder)
@@ -147,6 +152,10 @@ class Lage:
             g = self.gebiet_bei(start)
             if self.gebiete is not None and g:
                 kosten = np.where(self.gebiete == g, kosten, -1.0)
+            if self.bau is not None and self.drin(start):
+                # Gebaeudefelder sind gesperrt - ausser dem Gebaeude, auf dem die Einheit steht (Bergfried, Posten)
+                eigen = int(self.bau[start])
+                kosten = np.where((self.bau == 0) | ((self.bau == eigen) & (eigen != 0)), kosten, -1.0)
             if self.drin(start):
                 kosten[start] = max(kosten[start], 1.0)
             m = MCP(kosten, fully_connected=True)
@@ -190,6 +199,8 @@ class Lage:
             return [tuple(weg[-1])] if weg else []
         pkt, letzter = [], 0
         for i in range(1, len(weg) - 1):
+            if self.bau is not None and self.bau[weg[i][0], weg[i][1]] != 0:
+                continue                                     # kein Wegpunkt auf einem Gebaeude (auch nicht dem eigenen)
             knick = (weg[i][0] - weg[i - 1][0], weg[i][1] - weg[i - 1][1]) != (weg[i + 1][0] - weg[i][0], weg[i + 1][1] - weg[i][1])
             if (knick and i - letzter >= 3) or i - letzter >= WEGPUNKT_ABSTAND:
                 pkt.append(weg[i])

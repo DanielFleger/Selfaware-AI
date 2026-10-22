@@ -942,13 +942,15 @@ def werbung_freigegeben(st, marken, aus):
         # SAI 11.10. Nomade-Lauf 1011j (Tick 32.722): 4/5 angekommen, 10 feindliche Bogenschuetzen am Bergfried, alle
         # 17 Kaempfer verwundet - gegen einen echten Gegner koennen Rekruten unterwegs fallen (Daniel 15:46: Lord-Angriff
         # testen). Im Kampf (gegner_erwartet) wird die Welle mit Meldung freigegeben; gegen die leere KI bleibt Abbruch.
-        if st.get("feuer") == 0 or GEGNER_ERWARTET:   # Feuer nur, wenn das Spiel ausdruecklich 0 meldet
+        # 22.10. (2v2 082947, Spieler 2 ab Tick 24.266: 2/3 angekommen, danach jede Runde dieser Abbruch - das Heer wurde nie
+        # wieder aufgefuellt): gegen jede echte KI (leere_ki=nein) koennen Rekruten unterwegs fallen, nicht nur mit gegner_erwartet
+        if st.get("feuer") == 0 or GEGNER_ERWARTET or not LEERE_KI:   # Feuer nur, wenn das Spiel ausdruecklich 0 meldet
             # 11.10. Lauf 50,100 (Tick 27.267): Welle 2 bei 2 Bauern am Feuer, einer wurde vorher anderweitig vergeben -
             # das Spiel zog nur EINMAL 20 Gold ab (639 -> 619), Kaempfer 65 -> 66. Ohne Bauern am Feuer kostet ein
             # Anwerbebefehl nichts; die Welle wird mit Meldung freigegeben statt den Lauf abzubrechen.
             marken.pop("_werben_offen", None)
             grund = ("kein Bauer mehr am Feuer (Befehl ohne Bauer kostet nichts)" if st.get("feuer") == 0
-                     else "Kampf gegen %s, Rekruten koennen unterwegs fallen" % GEGNER_ERWARTET)
+                     else "Kampf gegen %s, Rekruten koennen unterwegs fallen" % (GEGNER_ERWARTET or "echte KI"))
             aus.append("ANWERBEN Welle %d/%d unvollstaendig freigegeben: %s" % (angekommen, offen["menge"], grund))
             return True
         raise RuntimeError("Anwerbewelle nach 1200 Ticks unvollstaendig: %d/%d angekommen; kein unsicherer Zweitversuch" % (
@@ -3435,7 +3437,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             # mitnehmen"): eine Gefahrenlage je Runde, mit den Gebieten der Wegkarte des Feldzugs (wer hinter
                             # einer Mauer steht, ist zu Fuss nicht erreichbar)
                             import gefecht as GE_r
-                            lage_r = GS_r.Lage(L, G, lambda b_: b_ not in freunde_von(SP), GE_r.FERN_REICH,
+                            try:
+                                wk_r = speicher.wegkarte()          # Gebiete + Gebaeude + Links, 5 ms (gemessen 22.10.)
+                            except Exception:
+                                wk_r = None
+                            lage_r = GS_r.Lage(L, G, lambda b_: b_ not in freunde_von(SP), GE_r.FERN_REICH, wegkarte=wk_r,
                                                gebiete=getattr(getattr(feldzug, "_karte", None), "gebiete", None))
                             gs_lerner.runde(st["t"], L, lage_r)
                             ereignis += brand.schritt(L, G, befehl, lage_r)

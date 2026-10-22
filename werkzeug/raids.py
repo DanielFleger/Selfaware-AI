@@ -115,13 +115,13 @@ def brennt_noch_bei_ankunft(g, heerwege):
                for von, nach in heerwege or ())
 
 
-def _lage_fuer(sp, L, G, raten=None, ohne=()):
+def _lage_fuer(sp, L, G, raten=None, ohne=(), wegkarte=None):
     """B-168: Gefahrenlage aus dem Lagebild, wenn der Lenker keine mitgibt (Pruefungen); ohne = Einheiten, die nicht zaehlen
     (gedeckte Schuetzen, B-129)."""
     import gefecht
     import gefahrenschutz as GS
     L_ = {n: e for n, e in L.items() if n not in ohne} if ohne else L
-    return GS.Lage(L_, G, lambda b: b not in freunde_von(sp), gefecht.FERN_REICH, raten=raten)
+    return GS.Lage(L_, G, lambda b: b not in freunde_von(sp), gefecht.FERN_REICH, raten=raten, wegkarte=wegkarte)
 
 
 def _nahkampf_bei(p, L, sp):
@@ -315,6 +315,7 @@ class Reiterjagd:
             lage = _lage_fuer(self.sp, L, G, self.raten)
         arbeiter = [(k, a) for k, a in L.items() if a["besitzer"] not in freunde_von(self.sp) and a["typ"] in ARBEITER
                     and a.get("leben", 1) > 0]
+        arbeiter_nr = {k for k, _ in arbeiter}
         for r in reiter:
             e = L[r]
             o = (e["x"], e["y"])
@@ -332,8 +333,17 @@ class Reiterjagd:
                     self.befohlen[r] = ("flucht", ziel, self.runde)
                     aus.append("REITERJAGD: Reiter %d weicht Typ %d in %d Feldern aus -> %s" % (r, f["typ"], nah[0], ziel))
                 continue
+            # (22.10. 2v2 082947: auf dem langen Anritt wechselte der Reiter jede Runde zwischen gleich fernen Holzfaellern, jede
+            # Wahl schickte eine neue Wegkette) - unterwegs nur alle NEU_ALLE Runden neu ranken, ausser ein Arbeiter ist schon in
+            # Jagdweite (den nimmt er mit), das Ziel ist weg oder der Reiter steht
+            if alt is not None and alt[0] == "anritt" and alt[1] in arbeiter_nr \
+                    and self.runde - alt[2] < NEU_ALLE and e.get("zustand") not in (0, 1) \
+                    and not any(schach(o, (a["x"], a["y"])) <= JAGD_R for _, a in arbeiter):
+                continue
             naechste = sorted(arbeiter, key=lambda ka: schach(o, (ka[1]["x"], ka[1]["y"])))[:self.KANDIDATEN]
-            if alt is not None and alt[0] in ("jagd", "anritt") and alt[1] in L and all(k_ != alt[1] for k_, _ in naechste):
+            # (22.10. 2v2 082947: "RAIDS FEHLER KeyError(22)" - das Spiel vergibt Einheitennummern neu, die Nummer des Ziels
+            # gehoerte jetzt einem Bogenschuetzen) nur ein Ziel, das noch ein feindlicher Arbeiter ist
+            if alt is not None and alt[0] in ("jagd", "anritt") and alt[1] in arbeiter_nr and all(k_ != alt[1] for k_, _ in naechste):
                 naechste.append((alt[1], L[alt[1]]))         # das jetzige Ziel bleibt im Vergleich, auch wenn es fern ist
             rang = GS.bewerte(lage, o, PFERDEBOGEN, e.get("leben", 15000),
                               [(ARBEITER[a["typ"]], (a["x"], a["y"]), k) for k, a in naechste])
@@ -364,7 +374,8 @@ class Reiterjagd:
     def _abschuesse(self, L):
         """Ein gejagtes Ziel, das nicht mehr lebt, zaehlt genau einmal; der Reiter ist danach frei."""
         for r, v in list(self.befohlen.items()):
-            if v[0] in ("jagd", "anritt") and (v[1] not in L or L[v[1]].get("leben", 1) <= 0 or L[v[1]]["besitzer"] in freunde_von(self.sp)):
+            if v[0] in ("jagd", "anritt") and (v[1] not in L or L[v[1]].get("leben", 1) <= 0 or L[v[1]]["besitzer"] in freunde_von(self.sp)
+                                               or L[v[1]].get("typ") not in ARBEITER):          # Nummer neu vergeben = Ziel weg
                 if v[0] == "jagd":
                     self.getoetet += 1
                 self.befohlen.pop(r)

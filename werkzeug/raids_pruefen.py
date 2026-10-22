@@ -229,6 +229,43 @@ def main():
     pruefe(17, "Risiko: Befehle %s, Meldung %s, Endpunkt %s" % ([{k: (v if k != "danach" else len(v)) for k, v in a.items()} for a in a17],
                                                                [a[:70] for a in aus17], end17),
            a17 and "ziel" not in a17[0] and end17 and R.schach(end17, (112, 100)) > 44)
+    # 18. (22.10. 2v2 082947: Reiter auf dem Bergfried, erster Wegpunkt auf dem Lagerfeuer - 2.600 Takte Stillstand) Reiter auf
+    #     dem eigenen Gebaeude 14, fremdes Gebaeude 10 als Riegel dazwischen -> kein Wegfeld und kein Wegpunkt auf Gebaeude 10;
+    #     Gegenprobe ohne Gebaeude-Ebene: der Weg geht hindurch
+    import numpy as np
+    wk = {"gebiet": np.ones((400, 400), np.int32), "gebaeude": np.zeros((400, 400), np.int32),
+          "link": np.full((400, 400), 255, np.uint8)}
+    wk["gebaeude"][98:103, 98:103] = 14
+    wk["gebaeude"][104:108, 85:116] = 10
+    L18 = {20: einheit(74, 1, 100, 100), 700: einheit(3, 2, 130, 100)}
+    mit18 = GS.Lage(L18, {}, lambda b: b not in (0, 1), {}, raten=RATEN, wegkarte=wk).plan((100, 100), (130, 100), 74, 15000)
+    ohne18 = GS.Lage(L18, {}, lambda b: b not in (0, 1), {}, raten=RATEN).plan((100, 100), (130, 100), 74, 15000)
+    auf10 = lambda w: sum(1 for q in w if wk["gebaeude"][q[0], q[1]] == 10)
+    wp18 = GS.Lage(L18, {}, lambda b: b not in (0, 1), {}, raten=RATEN, wegkarte=wk).wegpunkte(mit18["weg"]) if mit18 else []
+    pruefe(18, "Gebaeudesperre: Wegfelder auf Gebaeude 10 mit %s, ohne Ebene %s; Wegpunkte auf Gebaeuden %d" % (
+        auf10(mit18["weg"]) if mit18 else None, auf10(ohne18["weg"]), sum(1 for q in wp18 if wk["gebaeude"][q[0], q[1]])),
+        mit18 and auf10(mit18["weg"]) == 0 and auf10(ohne18["weg"]) > 0 and all(wk["gebaeude"][q[0], q[1]] == 0 for q in wp18))
+
+    # 19. (22.10.: Reiter flackerte zwischen gleich fernen Holzfaellern) Anritt auf A (70 Felder); naechste Runde unterwegs taucht B
+    #     2 Felder naeher auf -> kein neuer Befehl, Ziel bleibt A
+    rj19 = RJ()
+    b19 = Befehle()
+    rj19.schritt({20: einheit(74, 1, 100, 100), 700: einheit(3, 2, 170, 100)}, {}, b19)
+    n1 = len(b19.liste)
+    rj19.schritt({20: einheit(74, 1, 102, 100, zustand=101), 700: einheit(3, 2, 170, 100), 701: einheit(3, 2, 168, 101)}, {}, b19)
+    pruefe(19, "Anritt: Befehle Runde 1 %d, Runde 2 %d, Ziel %s" % (n1, len(b19.liste) - n1, rj19.befohlen.get(20)),
+           n1 == 1 and len(b19.liste) == n1 and rj19.befohlen.get(20, (None, None))[1] == 700)
+    # 20. (22.10. RAIDS FEHLER KeyError(22)) die Nummer des gejagten Arbeiters gehoert jetzt einem feindlichen Bogenschuetzen
+    #     (Typ 22, weit weg) -> kein Fehler, der Reiter nimmt den anderen Arbeiter
+    rj20 = RJ()
+    rj20.schritt({20: einheit(74, 1, 100, 100), 700: einheit(3, 2, 170, 100)}, {}, Befehle())
+    try:
+        rj20.schritt({20: einheit(74, 1, 102, 100, zustand=0), 700: einheit(22, 2, 180, 180), 701: einheit(3, 2, 160, 100)}, {}, Befehle())
+        fehler20 = None
+    except Exception as ex:
+        fehler20 = repr(ex)
+    pruefe(20, "Zielnummer neu vergeben: Fehler %s, Ziel %s" % (fehler20, rj20.befohlen.get(20)),
+           fehler20 is None and rj20.befohlen.get(20, (None, None))[1] == 701)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
