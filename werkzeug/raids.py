@@ -62,6 +62,9 @@ WERT = {1: 12, 9: 11, 8: 11, 26: 11, 11: 10, 19: 10, 3: 5, 5: 5, 13: 4, 18: 3, 3
 # wird, ob man noch Bauern hat, um zu rekrutieren"; 17:58 "ja mach Punkt 8"): Bauern (Typ 1, am Lagerfeuer) zuerst - jeder tote
 # Bauer fehlt dem Gegner beim Anwerben und als Arbeiter
 ARBEITER = {1: 12, 3: 10, 13: 6, 31: 5, 8: 4, 7: 4, 14: 3, 19: 3, 21: 3, 6: 2, 12: 2, 11: 2}
+FEUER_NACHBAR_R = 3      # B-189: so nah stehende feindliche Gebaeude koennen mitbrennen (Startwert, UNGEMESSEN - 19.10. sprang
+                         # eine Huette mit Nachbarn bis 3 Felder NICHT ueber, Daniels Bild 1018n zeigte Ueberspringen im Huettenhof)
+FEUER_NACHBAR_ANTEIL = 0.5  # B-189: Anteil ihres Werts, der dem Ziel zugerechnet wird (Startwert, UNGEMESSEN)
 SCHUETZE_WERT = 10      # B-175: feindlicher Schuetze am Boden als Reiterziel - wie ein Holzfaeller (Startwert, UNGEMESSEN)
 
 
@@ -190,7 +193,11 @@ class Brandtrupp:
                 continue
             if brennt_noch_bei_ankunft(g, getattr(self, '_wege', self.heerwege)):
                 continue                                      # B-150: wuerde auf dem eigenen Heerweg noch brennen
-            kand.append((WERT[g["typ"]], p, n))
+            # B-189 (Daniel 18:14 "ein Feuer kann ueberspringen - ein perfekt platziertes Feuer kann eine komplette Wirtschaft
+            # abfackeln"): feindliche Nachbargebaeude bis FEUER_NACHBAR_R zaehlen mit FEUER_NACHBAR_ANTEIL ihres Werts dazu
+            nachbarn = sum(WERT.get(h["typ"], 1) for hn, h in G.items() if hn != n and h.get("besitzer") not in freunde_von(self.sp)
+                           and schach(p, (h["x"], h["y"])) <= FEUER_NACHBAR_R)
+            kand.append((WERT[g["typ"]] + FEUER_NACHBAR_ANTEIL * nachbarn, p, n))
         return kand
 
     def _ziele(self, L, G, ort, belegt, lage=None, leben=6000):
@@ -232,7 +239,9 @@ class Brandtrupp:
         # brennt ein Ziel, zieht der Sklave weiter (gemessen: es brennt allein ab). Gelesen wird nur, wenn der Sklave hoechstens
         # 4 Felder davor steht - jede Abfrage ist ein Weg durch den Kanal
         for s, nr in list(self.ziel.items()):
-            if schach((L[s]["x"], L[s]["y"]), (G[nr]["x"], G[nr]["y"])) <= 4:
+            # B-189 (Daniel 22.10. 18:13: "nachdem ein Sklave ein Ziel bekommen hat, hat er einfach nur gewartet"): auch wer gerade
+            # angreift (Zustand 106/107) wird geprueft - an groesseren Gebaeuden steht er weiter als 4 Felder von der Mitte
+            if schach((L[s]["x"], L[s]["y"]), (G[nr]["x"], G[nr]["y"])) <= 4 or L[s].get("zustand") in (106, 107):
                 f = self.feuer(nr)
                 if f > 0:
                     self.brennt.add(nr)

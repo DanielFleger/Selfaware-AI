@@ -301,6 +301,22 @@ def main():
     r23o.schritt(L23, {}, Befehle(), GS.Lage(L23, {}, lambda b: b not in (0, 1), {}, raten=RATEN))
     pruefe(23, "Ziel mit Gebaeude-Ebene %s | ohne %s" % (r23.befohlen.get(20), r23o.befohlen.get(20)),
            r23.befohlen.get(20, (None, None))[1] == 701 and r23o.befohlen.get(20, (None, None))[1] == 700)
+    # 24. (B-189) Huette allein 20 Felder weg, Huette mit 4 Nachbarhuetten (2 Felder) 25 Felder weg -> die Gruppe; ohne Nachbarn
+    #     die nahe
+    G24 = {1: geb(1, 2, 120, 100), 2: geb(1, 2, 100, 125)}
+    G24g = dict(G24)
+    G24g.update({10 + i: geb(1, 2, 100 + dx, 125 + dy) for i, (dx, dy) in enumerate(((2, 0), (-2, 0), (0, 2), (2, 2)))})
+    b24 = BT()
+    b24.schritt({10: einheit(71, 1, 100, 100)}, G24g, Befehle())
+    b24o = BT()
+    b24o.schritt({10: einheit(71, 1, 100, 100)}, G24, Befehle())
+    # 25. (B-189) Sklave greift an (Zustand 107) 6 Felder von der Gebaeudemitte, Ziel brennt -> "angezuendet" sofort
+    feuer25 = {1: 30}
+    b25 = R.Brandtrupp(1, lambda nr: feuer25.get(nr, 0), raten=RATEN)
+    b25.ziel = {10: 1}
+    m25 = b25.schritt({10: einheit(71, 1, 114, 100, zustand=107)}, {1: geb(11, 2, 120, 100), 2: geb(1, 2, 150, 100)}, Befehle())
+    pruefe(24, "Gruppe statt Einzelhaus: %s | ohne Nachbarn %s" % (b24.ziel, b24o.ziel), b24.ziel.get(10) == 2 and b24o.ziel.get(10) == 1)
+    pruefe(25, "Brand beim Angreifen erkannt: %s" % [m[:50] for m in m25], any("angezuendet" in m for m in m25))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
