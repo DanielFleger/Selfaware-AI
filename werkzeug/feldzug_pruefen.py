@@ -1249,6 +1249,22 @@ def main():
     a62f, _ = abfang62((220, 140))
     pruefe(62, "Ballista auf Gebaeude 10 Felder weit, 2 Nahkaempfer: %d Jaeger %s | 80 Felder weit: %d" % (
         len(a62), [m[:45] for m in m62], len(a62f)), len(a62) == 2 and len(a62f) == 0)
+    # 63 (B-207, Daniel 22.10. 18:49 "Sicherheitsabstand viel zu gross"; 2v2 184103: Sp1 13 gegen 20 wartete, Sp2 27 gegen 22):
+    #    13 eigene Streitkolben gegen 20 Speere am Lord verlieren; dazu 27 Streitkolben des Verbuendeten (Spieler 2) 20 Felder
+    #    vor der Stelle -> Sieg; Gegenprobe: dieselben 27 stehen 100 Felder weit weg (nicht beim Angriff) -> Niederlage
+    import parteien as P63
+    P63._FEST[1] = frozenset((0, 1, 2))
+    def lohnt63(abstand):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+        L_ = {10 + i: einheit(26, 1, 300, 300) for i in range(13)}
+        L_.update({100 + i: einheit(24, 3, 200 + i % 5, 100 + i // 5) for i in range(20)})
+        L_.update({300 + i: einheit(26, 2, 200 + i % 5, 100 + abstand + i // 5) for i in range(27)})
+        lord = einheit(55, 3, 200, 100, 150000)
+        return f._lohnt(L_, sorted(k for k in L_ if k < 100), lord, am_ziel=True, ort=(200, 100))
+    ok63, t63 = lohnt63(20)
+    ok63f, t63f = lohnt63(100)
+    del P63._FEST[1]
+    pruefe(63, "mit Verbuendetem 20 Felder vor: %s %s | 100 Felder weit: %s %s" % (ok63, t63[:70], ok63f, t63f[:50]), ok63 and not ok63f)
     # 57 (B-191): Heer 1 plant (275,100), Heer 2 mit derselben Absprache-Datei uebernimmt den Plan ohne eigenen Planer-Aufruf;
     #    ohne Datei plant Heer 2 selbst
     import tempfile

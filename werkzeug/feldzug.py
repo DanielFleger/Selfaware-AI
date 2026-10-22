@@ -188,6 +188,7 @@ class Feldzug:
     WEGPUNKT_NAH = 4          # so nah am Wegpunkt (Mitte des Haufens): naechster Wegpunkt
     MIN_ANGRIFF = 8           # 19.10.: so viele am Sammelpunkt mindestens, dann entscheidet die Gefechtsrechnung
     LORD_UMKREIS = 25         # 19.10.: feindliche Truppen so nah am Lord kaempfen mit (Gefechtsrechnung)
+    PARTNER_R = 60            # B-207: Truppen des Verbuendeten bis hierhin um die Angriffsstelle zaehlen mit (Startwert, UNGEMESSEN)
     RECHNEN_ALLE = 5          # 19.10.: Gefechtsrechnung beim Sammeln je so viele Runden
     # 19.10. (1019h, Daniel: "hier werden einfach 50 Einheiten gesammelt ohne anzugreifen - alle werden nach und nach
     # abgeschossen, ohne sich zu bewegen"; Feldzug-Stand: 79 Mann, naechster 6 Felder vom Lord, Wegpunkt 14/15, am Lord 0 -
@@ -1599,10 +1600,25 @@ class Feldzug:
         # ganze Rechenzeit, also kein Angriff): am_ziel=True rechnet den Kampf selbst, als stuende das Heer schon am Lord
         wir = [dict(typ=L[n]["typ"], leben=L[n]["leben"], x=mitte_k[0] if am_ziel else L[n]["x"],
                     y=mitte_k[1] if am_ziel else L[n]["y"]) for n in da]
+        # B-207 (Daniel 22.10. 18:49: "der Sicherheitsabstand ist viel zu gross, sie haetten viel frueher rausgehen koennen";
+        # gemessen 2v2 184103: Sp1 rechnete 13 gegen 20 und wartete, Sp2 27 gegen 22 - zusammen 40 gegen 22): am Ziel kaempfen
+        # die Truppen des Verbuendeten mit, die bis PARTNER_R um die Angriffsstelle stehen oder dorthin laufen - beide Lenker
+        # rechnen dieselbe Regel und brechen so gemeinsam los
+        partner = []
+        if am_ziel:
+            for e in L.values():
+                if (e.get("besitzer") in (0, self.sp) or e.get("besitzer") not in freunde_von(self.sp) or e.get("typ") not in HEER
+                        or e.get("leben", 0) <= 0):
+                    continue
+                lauf = (e.get("laufx", 0), e.get("laufy", 0))
+                if schach((e["x"], e["y"]), mitte_k) <= self.PARTNER_R or (lauf[0] > 0 and schach(lauf, mitte_k) <= self.PARTNER_R):
+                    partner.append(dict(typ=e["typ"], leben=e["leben"], x=mitte_k[0], y=mitte_k[1]))
+            wir = wir + partner
         if not sie and wir:
             return True, "keine Verteidiger an der Angriffsstelle (%d eigene)" % len(wir)   # B-140: dann lohnt es erst recht
         try:
             # B-140 (Pruefstand 22:04: 115 gegen 84 "offen nach 1500 Takten", mit 167 Sieg nach 1.460): am Ziel bis ZIEL_BIS rechnen
-            return gefecht.bewerte(wir, sie, bis=self.ZIEL_BIS if am_ziel else gefecht.BIS)
+            ok_, text_ = gefecht.bewerte(wir, sie, bis=self.ZIEL_BIS if am_ziel else gefecht.BIS)
+            return ok_, ("mit %d Truppen des Verbuendeten: " % len(partner) if partner else "") + text_
         except Exception as ex:
             return False, "Rechnung fehlgeschlagen (%s)" % ex
