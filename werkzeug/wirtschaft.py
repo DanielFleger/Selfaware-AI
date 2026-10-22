@@ -81,6 +81,8 @@ class Wirtschaft:
         self.bauern = []                          # (tick, Bauern, untaetig)
         self.versuche_B = 0
         self.a_versucht = {}                 # A-Platz -> Tick des letzten Bauversuchs (nachholen)
+        self.apfel_pause = {}               # (A/B, Sollort) -> naechster Versuch; keine Pflicht-Ruecklage
+        self.apfel_erwartet = {}            # erneuter Auftrag ist erst mit echtem Gebaeude erledigt
         self.holz_verbauen = None            # (st, L, G) -> (ergebnis, text): Holz verkaufen oder Holzfaeller (setzt der Lenker)
         self.baum_gesucht = -999             # Tick der letzten Baumsuche
         self.extra = {}                      # Ruecklage einer Pflicht (v14), vom Lenker gesetzt
@@ -170,6 +172,46 @@ class Wirtschaft:
         stehen = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] == self.sp and g["typ"] == APFEL]
         return [o for o in self.A if not any(schach(o, s) <= 2 for s in stehen)]
 
+    def _apfel_nachpruefen(self, st, G):
+        """Abgelehnte Geometrie gilt nur vorlaeufig: hoechstens ein freier Zusatzversuch pro Runde.
+
+        Dauerhaft unbaubare Stellen bleiben ausserhalb von A/B_offen und halten daher
+        weder Anwerben noch Seasoning auf. Nur das echte Lagebild bestaetigt einen Bau.
+        """
+        t = st.get("t", 0)
+        stehen = {n: (g["x"], g["y"]) for n, g in G.items()
+                  if g["besitzer"] == self.sp and g["typ"] == APFEL}
+        for key, ab in list(self.apfel_pause.items()):
+            art, o = key
+            erwartet = self.apfel_erwartet.get(key)
+            treffer = [n for n, s in stehen.items()
+                       if (art == "A" or n not in (self.b_vergeben or set()))
+                       and schach(erwartet if erwartet else o, s) <= 2]
+            if treffer:
+                if art == "A":
+                    if o not in self.A:
+                        self.A.append(o)
+                else:
+                    if self.b_vergeben is None:
+                        self.b_vergeben = set()
+                    self.b_vergeben.add(treffer[0])
+                del self.apfel_pause[key]
+                self.apfel_erwartet.pop(key, None)
+                return ["Apfelplantage %s %s nach erneuter Pruefung im Lagebild bestaetigt" % (art, o)]
+            if t < ab:
+                continue
+            reserve = self.ruecklage(G)
+            if st.get("holz", 0) < APFEL_HOLZ + reserve["holz"] or st.get("gold", 0) < APFEL_GOLD + reserve["gold"]:
+                continue
+            radius = 2 if art == "A" else max(2, SUCHRADIUS_BAUER - min(
+                (schach(o, a) for a in self.A), default=SUCHRADIUS_BAUER - 2))
+            ort, grund = self._baue_grund(APFEL, *o, radius, **({"zweck": "B"} if art == "B" else {}))
+            self.apfel_pause[key] = t + FEHL_TICKS
+            if ort is not None:
+                self.apfel_erwartet[key] = tuple(ort)
+            return ["Apfelplantage %s %s erneut geprueft: %s (%s)" % (art, o, ort, grund)]
+        return []
+
     def schritt(self, st, L, G):
         ev = []
         t = st.get("t", 0)
@@ -192,7 +234,8 @@ class Wirtschaft:
                 # Platzablehnungen ueber mindestens FEHL_TICKS aufgeben (fehlendes Holz/Gold zaehlt nicht - 1019c)
                 if self._platz_aufgeben("A", o, erg, grund, t) and o in self.A:
                     self.A.remove(o)
-                    ev.append("A-Platz %s nach %d Platzablehnungen aufgegeben - bremst Anwerben und Seasoning nicht mehr" % (
+                    self.apfel_pause[("A", o)] = t + FEHL_TICKS
+                    ev.append("A-Platz %s nach %d Platzablehnungen zurueckgestellt - spaetere Nachpruefung ohne Anwerbesperre" % (
                         o, self._fehl[("A", o)][0]))
                 break
         # A-Baum suchen, sobald eine A-Plantage steht. gewinn_2 (Daniel 23:29 "Seasoning zu langsam"): die Raid-Eroeffnung
@@ -238,6 +281,8 @@ class Wirtschaft:
                         ort, grund = self._baue_grund(APFEL, o[0], o[1], spielraum, zweck="B")
                         if ort is not None:
                             self.B_erwartet[o] = (tuple(ort), t)
+                            holz_frei -= APFEL_HOLZ
+                            gold_frei -= APFEL_GOLD
                             ev.append("Seasoning: B %s bestellt bei %s" % (o, tuple(ort)))
                             continue
                         # 19.10. (1019b, Green Haven: B (153, 153) ~260-mal "kein Bauplatz" - der live gesuchte Markt stand dort;
@@ -245,7 +290,8 @@ class Wirtschaft:
                         if self._platz_aufgeben("B", o, ort, grund, t, B_FEHL_MAX):
                             self.B_offen.remove(o)
                             self.B_erwartet.pop(o, None)
-                            ev.append("Seasoning: B %s nach %d Platzablehnungen aufgegeben - bremst Anwerben nicht mehr" % (
+                            self.apfel_pause[("B", o)] = t + FEHL_TICKS
+                            ev.append("Seasoning: B %s nach %d Platzablehnungen zurueckgestellt - spaetere Nachpruefung ohne Anwerbesperre" % (
                                 o, self._fehl[("B", o)][0]))
                             continue
                         if self.versuche_B % 10 == 0:
@@ -263,6 +309,9 @@ class Wirtschaft:
                     ev.append("Seasoning: alle %d B-Plantagen stehen (Tick %d, %d Ticks nach A-Reife)" % (len(self.B), t, t - self.A_reif_tick))
                 elif self.versuche_B % 10 == 0:
                     ev.append("Seasoning: %d B-Plantagen noch offen (Holz %d, Gold %d)" % (len(self.B_offen), st.get("holz", 0), st.get("gold", 0)))
+        # Zusatzversuche erst nach Pflicht-Auftraegen, ohne deren Mittel doppelt auszugeben.
+        if not any("nachgeholt" in e or "bestellt" in e or "gekauft" in e for e in ev):
+            ev.extend(self._apfel_nachpruefen(st, G))
         # 2. Altes Lager abreissen, wenn B steht (oder keins geplant) und es leer ist
         alt_da = [n for n in self.alt if n in eigen]
         # Daniel 05.10. 19:09: in 9q stand das alte Lager bis Tick 6.175 (B wartete auf Gold), die Holzfaeller trugen

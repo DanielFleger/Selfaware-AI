@@ -15,10 +15,10 @@ def wirt(bauen):
 
 def main():
     auftraege = []
-    def bauen(_typ, x, y, _r):
+    def bauen(_typ, x, y, _r, **_kw):
         ort = (x + 1, y + 1)
         auftraege.append(ort)
-        return ort
+        return (ort, "gebaut") if _kw.get("mit_grund") else ort
     x = wirt(bauen)
     st = {"t": 1000, "holz": 6, "gold": 30}
     G = {9: {"besitzer": 1, "typ": W.APFEL, "x": 10, "y": 10}}
