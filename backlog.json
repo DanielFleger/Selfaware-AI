@@ -4826,7 +4826,7 @@
    "belege": [
     "2v2 20261022_180844 um Tick ~10.000; Reiterjagd kennt nur Flucht vor Nahkaempfern (FLUCHT_R) und Angriffsbefehl auf ein Ziel - kein Hin-und-her im Schussfeld; ob der Pferdebogen im Spiel bei einem Laufbefehl selbst weiterschiesst: UNGEPRUEFT (raids.py 19.10.: 'nicht gemessen')"
    ],
-   "notiz": "nicht gebaut: erst messen, ob der Pferdebogen bei einem Laufbefehl selbst weiterschiesst (Kite haengt daran)",
+   "notiz": "nicht gebaut: erst messen, ob der Pferdebogen bei einem Laufbefehl selbst weiterschiesst (Kite haengt daran) | Messung 18:40 (3 Laeufe, 1.305 Proben in Bewegung): Ziel verlor in 6 Faellen Leben, waehrend der Reiter lief - nicht trennbar von anderen Schuetzen; Hauptursache des Stehens war B-196 (Ziele ohne Wirkung). Nach dem naechsten Lauf erneut messen",
    "verlauf": [
     {
      "zeit": "2026-10-22 18:12",
@@ -4835,6 +4835,10 @@
     {
      "zeit": "2026-10-22 18:27",
      "was": "offen -> offen: nicht gebaut: erst messen, ob der Pferdebogen bei einem Laufbefehl selbst weiterschiesst (Kite haengt daran)"
+    },
+    {
+     "zeit": "2026-10-22 18:39",
+     "was": "offen -> offen: Messung 18:40 (3 Laeufe, 1.305 Proben in Bewegung): Ziel verlor in 6 Faellen Leben, waehrend der Reiter lief - nicht trennbar von anderen Schuetzen; Hauptursache des Stehens war B-196 (Ziele ohne Wirkung). Nach dem naechsten Lauf erneut messen"
     }
    ]
   },
@@ -5037,6 +5041,38 @@
     {
      "zeit": "2026-10-22 18:37",
      "was": "in Arbeit -> gebaut (Commit 4ba5b08)"
+    }
+   ]
+  },
+  {
+   "nr": "B-196",
+   "titel": "Reiter schiessen tausende Takte auf Ziele ohne Wirkung (Arbeiter im Gebaeude) - Ziel sperren, wenn es unter Beschuss kein Leben verliert",
+   "bereich": "Raids",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:39",
+   "herkunft": "Messung 22.10. 18:40 zu Daniel 18:12/18:15 (Reiter stehen, schiessen auf Gebaeude)",
+   "gebaut": "2026-10-22 18:39",
+   "commits": [
+    "dc7ff90"
+   ],
+   "wo": [
+    "werkzeug/raids.py Reiterjagd._wirkung_messen"
+   ],
+   "belege": [
+    "lage 180914: Reiter 646 21.000 Takte Zustand 4 auf Arbeiter 516 (Typ 31) bei (137",
+    "164)",
+    "Leben blieb 2500; lage 182752: Reiter 661 auf 721 (Typ 31) 2.000 Takte",
+    "Leben 2500; Reiter standen 1.325 von 2.800 Proben in Zustand 4"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:39",
+     "was": "angelegt (in Arbeit)"
+    },
+    {
+     "zeit": "2026-10-22 18:39",
+     "was": "in Arbeit -> gebaut (Commit dc7ff90)"
     }
    ]
   }
