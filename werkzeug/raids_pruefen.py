@@ -277,6 +277,30 @@ def main():
     b21o.schritt({10: einheit(71, 1, 100, 100)}, G21, Befehle())
     parteien.setzen(1, {1})
     pruefe(21, "Partner-Heer an der Huette: Ziel %s | ohne: %s" % (b21.ziel, b21o.ziel), 10 not in b21.ziel and b21o.ziel.get(10) == 1)
+    # 22. (B-171) Sklave 600 Leben, Huette 3 Felder vor ihm, Armbrueste je 40 Felder links/rechts -> behaelt das Ziel ("bleibt");
+    #     ohne altes Ziel kein Ziel
+    L22 = {10: einheit(71, 1, 100, 100, zustand=101, leben=600), 960: einheit(23, 2, 60, 100), 961: einheit(23, 2, 140, 100)}
+    G22 = {1: geb(1, 2, 103, 100)}
+    b22 = BT()
+    b22.ziel = {10: 1}
+    m22 = b22.schritt(L22, G22, Befehle())
+    b22o = BT()
+    b22o.schritt(L22, G22, Befehle())
+    pruefe(22, "Rest kuerzer als Rueckzug: Ziel %s %s | ohne altes Ziel: %s" % (b22.ziel, [m[:60] for m in m22], b22o.ziel),
+           b22.ziel.get(10) == 1 and any("bleibt" in m for m in m22) and 10 not in b22o.ziel)
+    # 23. (B-175/B-178) Holzfaeller auf einem Gebaeudefeld 15 Felder weg, Bogenschuetze im Freien 30 weg -> Reiter nimmt den
+    #     Schuetzen; ohne Gebaeude-Ebene den Holzfaeller
+    import numpy as np
+    wk23 = {"gebiet": np.ones((400, 400), np.int32), "gebaeude": np.zeros((400, 400), np.int32)}
+    wk23["gebaeude"][114:117, 99:102] = 33
+    L23 = {20: einheit(74, 1, 100, 100), 700: einheit(3, 2, 115, 100), 701: einheit(22, 2, 130, 100)}
+    lage23 = GS.Lage(L23, {}, lambda b: b not in (0, 1), {}, raten=RATEN, wegkarte=wk23)
+    r23 = RJ()
+    r23.schritt(L23, {}, Befehle(), lage23)
+    r23o = RJ()
+    r23o.schritt(L23, {}, Befehle(), GS.Lage(L23, {}, lambda b: b not in (0, 1), {}, raten=RATEN))
+    pruefe(23, "Ziel mit Gebaeude-Ebene %s | ohne %s" % (r23.befohlen.get(20), r23o.befohlen.get(20)),
+           r23.befohlen.get(20, (None, None))[1] == 701 and r23o.befohlen.get(20, (None, None))[1] == 700)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

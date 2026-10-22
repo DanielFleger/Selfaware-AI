@@ -62,6 +62,7 @@ WERT = {1: 12, 9: 11, 8: 11, 26: 11, 11: 10, 19: 10, 3: 5, 5: 5, 13: 4, 18: 3, 3
 # wird, ob man noch Bauern hat, um zu rekrutieren"; 17:58 "ja mach Punkt 8"): Bauern (Typ 1, am Lagerfeuer) zuerst - jeder tote
 # Bauer fehlt dem Gegner beim Anwerben und als Arbeiter
 ARBEITER = {1: 12, 3: 10, 13: 6, 31: 5, 8: 4, 7: 4, 14: 3, 19: 3, 21: 3, 6: 2, 12: 2, 11: 2}
+SCHUETZE_WERT = 10      # B-175: feindlicher Schuetze am Boden als Reiterziel - wie ein Holzfaeller (Startwert, UNGEMESSEN)
 
 
 def schach(a, b):
@@ -256,6 +257,19 @@ class Brandtrupp:
             if neu_ranken:
                 belegt = {z for k, z in self.ziel.items() if k != s}
                 r = self._ziele(L, G, o, belegt, lage, e.get("leben", 6000))
+                alt_z = self.ziel.get(s)
+                if not r and alt_z is not None and alt_z in G and alt_z not in self.brennt:
+                    # B-171 (2v2 22.10. 17:48: Sklave 345 liess 8 Felder vor der Huette das Ziel fallen und starb auf dem Rueckweg
+                    # durch denselben Beschuss): ohne vertretbares NEUES Ziel bleibt das alte, solange der Rest des Wegs weniger
+                    # Verlust erwarten laesst als der Rueckzug
+                    p_c = lage.plan(o, (G[alt_z]["x"], G[alt_z]["y"]), SKLAVE, e.get("leben", 6000))
+                    q_r = _rueckzug(lage, o) if lage.schaden(o) > 0 else None
+                    p_r = lage.plan(o, q_r, SKLAVE, e.get("leben", 6000)) if q_r is not None and q_r != o else None
+                    if p_c is not None and p_r is not None and p_c["verlust"] <= p_r["verlust"]:
+                        r = [(alt_z, p_c)]
+                        self._rang = [(0.0, alt_z, p_c)]
+                        aus.append("BRANDTRUPP: Sklave %d bleibt bei Gebaeude %d - Rest %d Takte, erwarteter Verlust %d, Rueckzug "
+                                   "%d" % (s, alt_z, p_c["takte"], p_c["verlust"], p_r["verlust"]))
                 if not r:
                     alt = self.ziel.pop(s, None)
                     self.plan.pop(s, None)
@@ -331,9 +345,18 @@ class Reiterjagd:
             return aus
         if lage is None:
             lage = _lage_fuer(self.sp, L, G, self.raten)
-        arbeiter = [(k, a) for k, a in L.items() if a["besitzer"] not in freunde_von(self.sp) and a["typ"] in ARBEITER
-                    and a.get("leben", 1) > 0]
+        # B-175/B-178 (Daniel 22.10. 17:52/17:54: Reiter zielten auf eine Steinablage und eine Eisenmine): nur Arbeiter im
+        # FREIEN - wer auf einem Gebaeudefeld steht (Steinmetz am Haufen, Bergmann an der Mine), macht den Angriff zum
+        # Gebaeudeangriff. Dazu feindliche Schuetzen am Boden (kein Gebaeude, nicht auf der Mauer) - wer uns beschiesst, wird
+        # bekaempft statt ignoriert
+        bau = getattr(lage, "bau", None)
+        im_freien = lambda a: bau is None or not lage.drin((a["x"], a["y"])) or int(bau[a["x"], a["y"]]) == 0
+        import gefecht
+        arbeiter = [(k, a) for k, a in L.items() if a["besitzer"] not in freunde_von(self.sp) and a.get("leben", 1) > 0
+                    and ((a["typ"] in ARBEITER and im_freien(a))
+                         or (a["typ"] in gefecht.FERN_REICH and im_freien(a) and a["typ"] != PFERDEBOGEN))]
         arbeiter_nr = {k for k, _ in arbeiter}
+        self._ziel_nr = arbeiter_nr
         for r in reiter:
             e = L[r]
             o = (e["x"], e["y"])
@@ -364,7 +387,7 @@ class Reiterjagd:
             if alt is not None and alt[0] in ("jagd", "anritt") and alt[1] in arbeiter_nr and all(k_ != alt[1] for k_, _ in naechste):
                 naechste.append((alt[1], L[alt[1]]))         # das jetzige Ziel bleibt im Vergleich, auch wenn es fern ist
             rang = GS.bewerte(lage, o, PFERDEBOGEN, e.get("leben", 15000),
-                              [(ARBEITER[a["typ"]], (a["x"], a["y"]), k) for k, a in naechste])
+                              [(ARBEITER.get(a["typ"], SCHUETZE_WERT), (a["x"], a["y"]), k) for k, a in naechste])
             if not rang:
                 if lage.schaden(o) > 0 and (alt is None or alt[0] != "rueckzug" or self.runde - alt[2] >= NEU_ALLE):
                     q = _rueckzug(lage, o)
@@ -393,7 +416,7 @@ class Reiterjagd:
         """Ein gejagtes Ziel, das nicht mehr lebt, zaehlt genau einmal; der Reiter ist danach frei."""
         for r, v in list(self.befohlen.items()):
             if v[0] in ("jagd", "anritt") and (v[1] not in L or L[v[1]].get("leben", 1) <= 0 or L[v[1]]["besitzer"] in freunde_von(self.sp)
-                                               or L[v[1]].get("typ") not in ARBEITER):          # Nummer neu vergeben = Ziel weg
+                                               or v[1] not in getattr(self, "_ziel_nr", {v[1]})):   # Nummer neu vergeben/kein Ziel mehr
                 if v[0] == "jagd":
                     self.getoetet += 1
                 self.befohlen.pop(r)
