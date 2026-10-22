@@ -470,9 +470,15 @@ def phase1(plan, tempo, mit_posten=True):
     nr_posten = [n for n, _, _ in gebaeude_von(SP, 8)]
     while nr_posten and vorrat(SP)["gold"] >= 70 and s32(peek(PD + 136)[0]) >= 1:
         vorher = vorrat(SP)["gold"]
-        befehl({"werbe": {"typ": 73, "gebaeude": nr_posten[0]}}, 1.0, bis="WERBE")
+        antwort = befehl({"werbe": {"typ": 73, "gebaeude": nr_posten[0]}}, 1.0, bis="WERBE")
+        # B-186 (2v2 22.10. 18:08, Spieler 2: kein Gold abgebucht, "ZEIT UM" nach 10 s brach die ganze Eroeffnung bei Tick 1.491
+        # ab - der Lenker sprang ohne A-Plantagen-Nachbau in Phase 2): eine Werbung ohne Wirkung beendet nur das Werben, nicht
+        # Phase 1; die Antwort des Spiels steht in der Mitschrift, damit die Ursache beim naechsten Mal messbar ist
+        if warte_bis(lambda: vorrat(SP)["gold"] < vorher, "Gold fuer den Assassinen abgebucht", 10, pflicht=False) is None:
+            schreib("WERBUNG OHNE WIRKUNG bei Tick %s: Assassine am Posten %d, Gold %d, freie Leute %d, Antwort %r - weiter ohne "
+                    "Assassine" % (tick(), nr_posten[0], vorrat(SP)["gold"], s32(peek(PD + 136)[0]), str(antwort)[:200]))
+            break
         geworben += 1
-        warte_bis(lambda: vorrat(SP)["gold"] < vorher, "Gold fuer den Assassinen abgebucht", 10)
     v0 = vorrat(SP)
     schreib("RAID ZUERST: Nahrung da bei Tick %d, %s verkauft (Lose zu 5); Soeldnerposten %s; %d Assassinen angeworben "
             "(freie Leute am Feuer jetzt %d) -> Gold %d, Nahrung uebrig %s, Tick %d" % (t_essen, lose, posten, geworben,
