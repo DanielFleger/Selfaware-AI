@@ -638,6 +638,21 @@ def eigene_aepfel(plan):
         if len(meine) < len(alle):
             schreib("ABSPRACHE Apfelplaetze: %d von %d liegen naeher am Bergfried des Verbuendeten und fallen weg: %s" % (
                 len(alle) - len(meine), len(alle), sorted(set(alle) - set(meine))))
+        # B-202 (Daniel 22.10. 18:45: "sie teilen sich schon WIEDER den gleichen Kornspeicher-Aufbauplatz"; gemessen: der
+        # Plan-Kornspeicher von Spieler 1 bei (200, 242) lag 62 Felder vom eigenen, 48 vom Bergfried des Verbuendeten - die
+        # Absprache filterte nur Aepfel): liegt er auf dem Land des Verbuendeten, rueckt er in die Mitte der eigenen
+        # Apfelplaetze ("Kornspeicher an den Aepfeln") und von dort Schritt fuer Schritt zum eigenen Bergfried, bis er auf
+        # eigenem Land steht
+        ks = tuple(plan.get("kornspeicher") or ())
+        if ks and not mein_land(ks):
+            q = (sum(p[0] for p in meine) // len(meine), sum(p[1] for p in meine) // len(meine)) if meine else BERGFRIED
+            for i in range(21):
+                q_i = (q[0] + (BERGFRIED[0] - q[0]) * i // 20, q[1] + (BERGFRIED[1] - q[1]) * i // 20)
+                if mein_land(q_i):
+                    q = q_i
+                    break
+            plan["kornspeicher"] = list(q)
+            schreib("ABSPRACHE Kornspeicher: Planplatz %s liegt naeher am Bergfried des Verbuendeten - neu bei %s" % (ks, q))
 
 
 def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
@@ -671,7 +686,8 @@ def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
     if fern_ and BUCH is not None and not frei:
         BUCH.ablehnen(typ, (x, y), "Platzsuche nur ausserhalb des Umkreises %d (+%d): %s" % (r, PLATZ_RAND, fern_[:3]))
     platz_frei = bool(frei)
-    if typ in FELDER and frei:
+    # B-202: die Absprache gilt fuer jeden Bauplatz, nicht nur fuer Felder
+    if frei:
         partner_land = [q for q in frei if not mein_land(q)]
         frei = [q for q in frei if mein_land(q)]
         if not frei:
