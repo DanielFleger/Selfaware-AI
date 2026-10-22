@@ -1159,6 +1159,66 @@ def main():
            and mz51[0]["halten"] is True and len(mz51[0]["einheiten"]) == 30
            and [a_["mauer"] for a_ in mauer51b] == [[300, 100, 2, 30, 275, 100, 3]] and len(mauer51b[0]["einheiten"]) == 30
            and not any("mauerziel" in x for x in b51o + b51ob) and mauer51o and all(len(m_) == 6 for m_ in mauer51o))
+    # 52-55 (B-176/179/180/184/185, 2v2 22.10. 17:5x)
+    #  52. Plan bleibt: 12 Runden, die Kachel steht -> der Planer wird genau 1-mal gerufen; Kachel verworfen -> neu geplant
+    #  53. Stau mit aktivem Plan (Mauer): STAU_TICKS + 500 Takte ohne Fortschritt -> keine SCHWACHSTELLE, kein "alle direkt"
+    #  54. Lord zu Fuss erreichbar (Wegkarte Gebiet 1 ueberall) + _schwachstelle -> False, Meldung "KEINE SCHWACHSTELLE", keine
+    #      Bresche
+    #  55. mechanik.durchbruch_schritte: Mauerriegel, gesperrte Kachel auf der Geraden -> der Weg hackt sie nicht; Gegenprobe
+    #      ohne Sperre: er hackt genau sie
+    aufrufe52 = []
+
+    def planer52(sp, start, maenner, lord, verworfen=()):
+        aufrufe52.append(set(verworfen))
+        return dict(plan51)
+    f52 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f52.schritt({"t": 12000}, *lage(10, heim), Befehle())
+    L52, G52 = lage(30, f52.punkt)
+    f52.wegkarte, f52.mauerkarte = (lambda: {"gebiet": geb44}), mk44
+    f52.durchbruch, f52.blick, f52.feldnr = planer52, (lambda k, sp: ((275, 100), 3)), (lambda xy: 4242)
+    m53 = []
+    for i in range(12):
+        m53 += f52.schritt({"t": 12050 + 100 * i}, L52, G52, Befehle())
+    n52 = len(aufrufe52)
+    f52.mauer_verworfen.add((275, 100))
+    f52.schritt({"t": 13300}, L52, G52, Befehle())
+    for i in range(int(F.Feldzug.STAU_TICKS / 100) + 6):
+        m53 += f52.schritt({"t": 13400 + 100 * i}, L52, G52, Befehle())
+    pruefe(52, "Planer-Aufrufe in 12 Runden: %d, nach Verwerfen: %d (verworfen mitgegeben: %s)" % (
+        n52, len(aufrufe52), (275, 100) in (aufrufe52[n52] if len(aufrufe52) > n52 else set())),
+           n52 == 1 and len(aufrufe52) > n52 and (275, 100) in aufrufe52[n52])
+    pruefe(53, "Stau mit Plan: %s" % [m[:50] for m in m53 if "SCHWACHSTELLE" in m or "STAU" in m or "direkt" in m],
+           not any("SCHWACHSTELLE (" in m or "alle direkt" in m for m in m53))
+    f54 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f54._lord_frei_alt = True
+    m54 = []
+    L54, G54 = lage(30, (280, 100))
+    G54[901] = {"typ": 46, "besitzer": 2, "x": 330, "y": 100, "leben": 1500}
+    r54 = f54._schwachstelle(G54, (300, 100), [(280, 100)], m54, "Stau 1")
+    pruefe(54, "Lord frei: Schwachstelle %s, Bresche %s, %s" % (r54, f54.bresche, m54), r54 is False and f54.bresche is None
+           and any("KEINE SCHWACHSTELLE" in m for m in m54))
+    import mechanik as MK
+    n55 = 40
+    link55 = np41.full((n55, n55), 255, np41.uint8)
+    logik55 = np41.zeros((n55, n55), np41.int64)
+    logik55[20, 5:35] = 0x100
+    hoehe55 = np41.zeros((n55, n55), int)
+    hoehe55[20, 5:35] = 10
+    boden55 = np41.zeros((n55, n55), int)
+    besitz55 = np41.full((n55, n55), 1, np41.int64)            # (1 & 7) + 1 = Spieler 2
+    bau55 = np41.zeros((n55, n55), np41.int32)
+    sperre55 = np41.zeros((n55, n55), bool)
+    mk55 = {"mauer": 5, "tor_turm": 15, "takte_je_treffer": 96}       # gemessen (Streitkolben, Wissensregister) - ohne Spiel
+    arg55 = (link55, logik55, bau55, besitz55, hoehe55, boden55, 1, 10, (10, 20), (30, 20), mk55)
+    logik55[20, :] = 0x100                                      # durchgehender Riegel - ohne Hacken kein Weg
+    hoehe55[20, :] = 10
+    r55o = MK.durchbruch_schritte(*arg55)
+    k55 = tuple(r55o["mauern"][0]) if r55o.get("mauern") else None
+    if k55:
+        sperre55[k55] = True
+    r55 = MK.durchbruch_schritte(*arg55, sperre=sperre55)
+    pruefe(55, "ohne Sperre gehackt %s | mit dieser Kachel gesperrt: Mauern auf dem Weg %s" % (k55, r55.get("mauern")),
+           k55 and r55["weg"] and k55 not in [tuple(q) for q in r55["mauern"]])
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

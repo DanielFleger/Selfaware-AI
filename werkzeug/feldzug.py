@@ -322,7 +322,7 @@ class Feldzug:
             neu[n] = (ort, e["leben"], still_seit, schaden)
             # (B-147, L175: wer eine Mauer aufhackt, hat zielart 0 und kein Nahziel - mit Mauerauftrag und nicht untaetig ist er
             # beschaeftigt, kein "steht nur"; in Pruefstand-Lauf 4 zog die Regel die Hacker 4-mal ab)
-            hackt = befohlen.get(n, (None,))[0] == "mauer" and e.get("zustand") not in (0, 1)
+            hackt = befohlen.get(n, (None,))[0] in ("mauer", "zug") and e.get("zustand") not in (0, 1)
             if (t - still_seit >= self.RUECKZUG_TAKTE and schaden is not None and t - schaden <= self.RUECKZUG_SCHADEN
                     and not e.get("zielart", 0) and e.get("nahziel", 0) <= 0 and not hackt):
                 stehen.append(n)
@@ -411,7 +411,9 @@ class Feldzug:
         """B-170: Durchbruch-Plan (durchbruch.plane) - neu, wenn keiner da ist, das Ziel gefallen/verworfen ist, der Lord woanders
         steht oder DPLAN_RUNDEN um sind; sonst der alte (die Planung kostet Sekunden)."""
         dp = self.dplan
-        if dp is not None and tuple(dp["lord"]) == tuple(lp) and self.runde - dp["runde"] < self.DPLAN_RUNDEN:
+        # B-179 (2v2 22.10. 17:54: alle 10 Runden neu geplant vom wandernden Heer aus - (185,96) -> (147,123) -> (135,95), niemand
+        # kam zum Hacken): der Plan bleibt, solange sein Ziel steht und nicht verworfen ist - wie sturm.py (Neuplanung nur nach Fall)
+        if dp is not None and tuple(dp["lord"]) == tuple(lp):
             if dp["art"] == "mauer" and m[dp["ziel"]] and dp["ziel"] not in self.mauer_verworfen:
                 return dp
             if dp["art"] == "tor" and dp["ziel"] not in self.verworfen and (not self._feindbau or dp["ziel"] in self._feindbau):
@@ -434,6 +436,31 @@ class Feldzug:
         self.dplan = neu
         return neu
 
+    ZUG_STILL = 300            # B-180: so lange nicht naeher am Zugang (und kein Gegner) -> Weg neu (wie RUECKZUG_TAKTE, L170)
+    KETTE_ABSTAND = 15         # B-180: Wegpunkte entlang des Plans (wie sturm.py NAH)
+
+    def _kette_zum_zug(self, befehl, wer, L, zug):
+        """B-180 wie sturm.kette: Wegkette entlang des Durchbruch-Plans (der Weg mit der kleinsten Beschuss-Last) ab dem Wegfeld,
+        das jedem am naechsten liegt, bis zum Zugang - Maenner mit gleichem Einstieg als eine Kette. Ohne Plan-Weg direkt."""
+        weg = list((self.dplan or {}).get("weg") or [])
+        if zug not in weg:
+            befehl({"angriff": {"einheiten": sorted(wer), "lauf": [zug[0], zug[1]], "trupp": 1}}, 1.0, bis="ANGRIFF")
+            return
+        w_ = weg[:weg.index(zug) + 1]
+        gruppen = {}
+        for n in wer:
+            o = (L[n]["x"], L[n]["y"])
+            i0 = min(range(len(w_)), key=lambda i: schach(w_[i], o))
+            pk = [tuple(q) for q in w_[i0::self.KETTE_ABSTAND]]
+            if not pk or pk[-1] != tuple(zug):
+                pk.append(tuple(zug))
+            gruppen.setdefault(tuple(pk), []).append(n)
+        for pk, ns in gruppen.items():
+            a_ = {"einheiten": sorted(ns), "lauf": [pk[0][0], pk[0][1]], "trupp": 1}
+            if len(pk) > 1:
+                a_["danach"] = [[q[0], q[1]] for q in pk[1:]]
+            befehl({"angriff": a_}, 1.0, bis="ANGRIFF")
+
     def _mauerziel_los(self, befehl):
         """B-170: festgehaltenes Mauerziel dieses Lenkers loesen (logik.lua: mauerziel ohne halten -> aus)."""
         k_alt = self._angesetzt_kachel
@@ -443,7 +470,7 @@ class Feldzug:
                 befehl({"mauerziel": {"einheiten": [], "feld": k, "x": k_alt[0], "y": k_alt[1], "schluessel": "sp%d" % self.sp}}, 0.3)
         self.angesetzt, self._angesetzt_kachel = set(), None
 
-    def _mauer_am_zug(self, L, wand, kq, zug, lp, befohlen, befehl, aus):
+    def _mauer_am_zug(self, L, wand, kq, zug, lp, befohlen, befehl, aus, t=0):
         """B-170 wie sturm.py (Franz' Burg 5-mal gebrochen): alle zum Zugangsfeld genau vor der Kachel; wer dort steht (bis 1 Feld),
         bekommt die Kachel als festgehaltenes Ziel (logik.lua mauerziel halten, je Lenker ein Schluessel) und den Angriffsbefehl
         mit der Blickrichtung, bei der das Spiel genau diese Kachel waehlt (22.10.: am Lord gewaehlte Kacheln hatten 3-mal "keine
@@ -452,9 +479,24 @@ class Feldzug:
             self._mauerziel_los(befehl)
             self._angesetzt_kachel = kq
         an = [n for n in wand if schach((L[n]["x"], L[n]["y"]), zug) <= 1]
-        hin = [n for n in wand if n not in an and (befohlen.get(n) != ("zug", zug) or L[n]["zustand"] in (0, 1))]
+        # B-180: wer seit ZUG_STILL Takten nicht naeher kommt und niemanden angreift, bekommt den Weg neu
+        spur = getattr(self, "_zug_spur", {})
+        self._zug_spur = spur
+        hin = []
+        for n in wand:
+            if n in an:
+                continue
+            d = schach((L[n]["x"], L[n]["y"]), zug)
+            alt = spur.get(n)
+            if alt is None or alt[2] != zug or d < alt[0]:
+                spur[n] = (d, t, zug)
+                alt = spur[n]
+            still = t - alt[1] >= self.ZUG_STILL and not L[n].get("zielart", 0)
+            if befohlen.get(n) != ("zug", zug) or L[n]["zustand"] in (0, 1) or still:
+                hin.append(n)
+                spur[n] = (d, t, zug)
         if hin:
-            befehl({"angriff": {"einheiten": sorted(hin), "lauf": [zug[0], zug[1]], "trupp": 1}}, 1.0, bis="ANGRIFF")
+            self._kette_zum_zug(befehl, hin, L, zug)
             for n in hin:
                 befohlen[n] = ("zug", zug)
         neu = [n for n in an if n not in self.angesetzt or L[n]["zustand"] in (0, 1)]
@@ -675,7 +717,13 @@ class Feldzug:
                 aus.append("FELDZUG SCHWACHSTELLE (%s): Torhaus %d auf dem Durchbruch-Weg zum Lord (Zugang %s)" % (
                     anlass, nr, self.dplan["zug"]))
                 return True
-            self.dplan = None                 # naechste Runde neu planen - mit den inzwischen verworfenen Stellen
+            if self.dplan["art"] == "tor":
+                self.dplan = None             # das Torhaus ist weg/verworfen - naechste Runde neu planen
+            return False                      # Mauer: der Schredder am Zugang arbeitet, kein Turm dazwischen (B-185)
+        if self._lord_frei_alt:
+            # B-176 (2v2 17:52: Lord 143 zu Fuss erreichbar, Stau -> Turm 412 19 Felder abseits): ist der Lord zu Fuss erreichbar, ist
+            # kein Burgteil die Loesung - der Weg zum Lord ist offen
+            aus.append("FELDZUG KEINE SCHWACHSTELLE (%s): Lord zu Fuss erreichbar - kein Turm abseits" % anlass)
             return False
         kolben_s = [n for n, e in (self._lagebild or {}).items() if e["besitzer"] == self.sp and e["typ"] in HEER]
         beste = self._beste_stelle(G, lp, orte, nr_test=kolben_s[0] if kolben_s else None)
@@ -832,7 +880,7 @@ class Feldzug:
                 return []
             an = dict(an, einheiten=ns)
             da = [n for n in ns if n in L]
-            if da and "lauf" in an:
+            if da and "lauf" in an and "danach" not in an:      # B-180: eine fertige Wegkette (Durchbruch-Plan) nicht umleiten
                 m, z = mitte(da), tuple(an["lauf"])
                 weg = None
                 if self._bed and not (orte_f and im_feuer(m, orte_f)):
@@ -994,6 +1042,10 @@ class Feldzug:
             spitze = min(schach(o, lp) for o in orte)
             self.heerweg = (mitte, lp, t)        # B-150: fuer den Brandtrupp (nicht auf dem eigenen Weg anzuenden)
             if self._stau[0] is None or spitze < self._stau[0]:
+                self._stau = (spitze, t)
+            elif t - self._stau[1] >= self.STAU_TICKS and self.dplan is not None and self.dplan.get("art") in ("mauer", "tor"):
+                # B-184/B-185 (2v2 17:56/17:58: "STAU 5", alle wieder raus, aufs Torhaus ohne Zugang): mit Durchbruch-Plan ueberwacht
+                # der Schredder den Fortschritt (Ankunft, Wirkung) - kein Wegpunkt-Sprung, kein "alle direkt", keine Schwachstelle
                 self._stau = (spitze, t)
             elif t - self._stau[1] >= self.STAU_TICKS:
                 self.staus += 1
@@ -1283,8 +1335,12 @@ class Feldzug:
                     nah_w = [n for n in wand if schach((L[n]["x"], L[n]["y"]), kq) <= 3]
                     # B-164 (Pruefstand 22:22: 20.000 Takte "0 Mann bis 3 daneben" - der Waechter zaehlte Nicht-Ankommen nicht): kommt
                     # ANKUNFT_TAKTE lang niemand an die Kachel, ist sie fuer uns nicht erreichbar - verwerfen
-                    if nah_w or self._kachel_an is None or self._kachel_an[0] != kq:
-                        self._kachel_an = (kq, t)
+                    # B-180 (2v2 17:54: 47/54/81 Mann mit Mauerauftrag, nach 1.500 Takten niemand bis 3 daneben - viele waren
+                    # noch unterwegs): verworfen wird erst, wenn ANKUNFT_TAKTE lang niemand NAEHER kommt
+                    best_w = min((schach((L[n]["x"], L[n]["y"]), kq) for n in wand), default=999)
+                    if (nah_w or self._kachel_an is None or self._kachel_an[0] != kq
+                            or best_w < (self._kachel_an[2] if len(self._kachel_an) > 2 else 999)):
+                        self._kachel_an = (kq, t, best_w)
                     elif t - self._kachel_an[1] >= self.ANKUNFT_TAKTE:
                         self.mauer_verworfen.add(kq)
                         self.mauer_kachel, self._kachel_an = None, None
@@ -1319,7 +1375,7 @@ class Feldzug:
                     zug_w = ll.get("zug") if ll is not None else None
                     neu_w = [n for n in wand if befohlen.get(n) != ("mauer", ziel_w) or L[n]["zustand"] in (0, 1)]
                     if kq is not None and zug_w is not None and self.feldnr is not None:
-                        self._mauer_am_zug(L, wand, kq, tuple(zug_w), lp, befohlen, befehl, aus)
+                        self._mauer_am_zug(L, wand, kq, tuple(zug_w), lp, befohlen, befehl, aus, t)
                     elif neu_w:
                         # B-164: mit gewaehlter Kachel bekommt logik.lua sie mit (5./6. Wert) - alle Einer-Befehle auf DIESE
                         befehl({"angriff": {"einheiten": neu_w, "mauer": [lp[0], lp[1], L[self.ziel]["besitzer"], self.MAUER_R]

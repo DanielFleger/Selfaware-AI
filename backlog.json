@@ -4302,6 +4302,378 @@
      "was": "angelegt (gebaut)"
     }
    ]
+  },
+  {
+   "nr": "B-171",
+   "titel": "Sklave zieht sich durch den Beschuss zurueck statt die letzten Felder zum Ziel zu gehen - Rueckzug nur, wenn der Rueckweg billiger ist als das Ziel",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-22 17:49",
+   "herkunft": "Daniel 22.10. 17:48 (Bild: Sklave laeuft zurueck und wird erschossen)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_174639: Sklave 345 (Sp1) Leben 3.450 -> 750 von Tick 7.761 bis 7.988 bei vorhergesagt 0",
+    "36 Schaden/Takt x 20",
+    "3",
+    "8 Felder vor Huette 138 (146",
+    "81); bei 750 Leben jedes Ziel ueber RISIKO_MAX -> Rueckzug nach (148",
+    "65)",
+    "tot vor Tick 8.198; realer Verlust ~2.700 in 230 Takten statt ~1.680 vorhergesagt"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 17:49",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-172",
+   "titel": "Assassinen haengen: 'keins erreichbar' - warten ausser Reichweite, statt zu raiden (Ziele hinter Mauern gelten als unerreichbar)",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-22 17:49",
+   "herkunft": "Daniel 22.10. 17:48 (Bild: Assassine haengt)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_174639: Sp1 Tick 702 '2 Assassinen ohne Ziel (keins erreichbar 2)'",
+    "Tick 7.412 'STEHEN: 2 von 2 Assassinen seit >= 200 Ticks ohne Spielziel'; Sp2 Tick 7.730/8.232 dasselbe; Ursache in assassinen.py (Kandidat nur mit g['erreichbar']) - ob Assassinen die Mauer selbst ueberwinden: UNGEPRUEFT"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 17:49",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-173",
+   "titel": "Farmland-Absprache greift nicht ueberall: Spieler 2 baute in der Mitte auf dem Land von Spieler 1, Spieler 1 hat kaum Hoefe",
+   "bereich": "Wirtschaft",
+   "status": "offen",
+   "seit": "2026-10-22 17:49",
+   "herkunft": "Daniel 22.10. 17:49 ('sie teilen sich wieder beide Farmplaetze in der Mitte, wodurch einer fast nichts hat')",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_174639 Tick 14.835: Sp1 5 Hoefe (4 in der Mitte)",
+    "Sp2 16 (4 Apfel in der Mitte); Sp2-Apfel (193",
+    "219) und (197",
+    "229) liegen naeher am Bergfried von Sp1 (55/59 gegen 71/61 Felder); 'Land des Verbuendeten' nur 5x bei Sp2",
+    "0x bei Sp1. Vermutung UNGEPRUEFT: Eroeffnungs-Plantagen ueber baue_viele umgehen baue_schnell",
+    "oder _BURGEN war beim Bau noch leer"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 17:49",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-174",
+   "titel": "Waffenlager landet 180 Felder vom Lager: die Platzsuche gibt einen fernen Platz zurueck und der Bau nimmt ihn ohne Abstandspruefung",
+   "bereich": "Wirtschaft",
+   "status": "offen",
+   "seit": "2026-10-22 17:51",
+   "herkunft": "Daniel 22.10. 17:51 (Bild: Selfaware2 baut die Waffenkammer weit weg im Nirgendwo)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_174639 Sp2: Werkstattplan Waffenlager bei (266",
+    "283) direkt am Lager (266-274/287-291); 'Werkstattbau 1/8: Waffenlager Plan (266",
+    "283) -> geprueft (84",
+    "155)'",
+    "erst gescheitert",
+    "dann 'BAU BESTAETIGT Waffenlager Nr 339 bei (84",
+    "155)' - 182 Felder vom Lager; danach plante es (84",
+    "155) als neuen Planplatz"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 17:51",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-175",
+   "titel": "Reiter reagiert nicht auf Beschuss und greift einen Steinhaufen an (unzerstoerbar) statt zu patrouillieren und die Bogenschuetzen zu besiegen",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-22 17:52",
+   "herkunft": "Daniel 22.10. 17:52 (Bild: Berittener zielt auf Steinablage, wird abgeschossen)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_174639: Reiterjagd kennt nur Arbeiter als Ziel und weicht nur Nahkaempfern aus (FLUCHT_R)",
+    "Schuetzen in Reichweite loesen nichts aus; Anritt = Angriffs-Laufbefehl (lauf/danach) - Vermutung UNGEPRUEFT: das Spiel nimmt unterwegs das naechste feindliche Gebaeude (Steinhaufen) als Ziel; Steinhaufen/Lager muessen als Ziel tabu sein; Gegenwehr gegen Bogenschuetzen (Reiter schiessen 44 Felder) fehlt ganz"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 17:52",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-176",
+   "titel": "Stau vor einem zu Fuss erreichbaren Lord waehlt wieder einen Turm abseits (alte Schwachstellen-Regel) - der Durchbruch-Plan greift nur hinter Mauern",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-22 17:53",
+   "herkunft": "eigene Beobachtung 22.10. 17:52 im 2v2 (gleiches Muster wie Daniel 08:39)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_174639: 'FELDZUG LORD 143 zu Fuss erreichbar bei (260",
+    "135)'",
+    "dann 'FELDZUG SCHWACHSTELLE (Stau 1): Gebaeude 412 (Typ 74",
+    "Leben 500) bei (278",
+    "125)",
+    "19 Felder vom Lord - alle Nahkaempfer darauf'; B-170 setzt den Plan nur",
+    "wenn ll['frei'] None ist - bei Stau mit freiem Lord gilt noch _beste_stelle"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 17:53",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-177",
+   "titel": "Nahkaempfer gehen nur auf Bogenschuetzen, die beim Losschicken angreifbar sind - nicht auf die, die beim Vorbeilaufen sichtbar/angreifbar werden",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-22 17:53",
+   "herkunft": "Daniel 22.10. 17:53 (Bild Lord-Burg, Wortlaut: 'Schwertkaempfer gehen auf Bogenschuetzen, die sie zum Zeitpunkt angreifen koennen, ohne auf Bogenschuetzen zu gehen, die tatsaechlich sichtbar werden, wenn sie vorbeilaufen')",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_174639 um Tick ~33.000 (Bild); Lesart UNGEPRUEFT: Abfang (feldzug._abfangen",
+    "B-162) prueft Schuetzen am Weg nur beim Befehl - unterwegs neu erreichbare Schuetzen kommen nicht dazu; mit Daniel klaeren",
+    "falls anders gemeint"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 17:53",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-178",
+   "titel": "Reiter schiessen ohne Grund auf eine Eisenmine (Gebaeude) - gleiche Ursache wie der Steinhaufen in B-175",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-22 17:54",
+   "herkunft": "Daniel 22.10. 17:54 (Bild: drei Berittene schiessen auf eine Eisenmine)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_174639 um Tick ~40.000 (Bild); Reiterjagd befiehlt nur Arbeiter oder Anritt-Laufbefehle - Vermutung UNGEPRUEFT: der Angriffs-Laufbefehl laesst das Spiel unterwegs Gebaeude angreifen; Gebaeude sollen fuer Reiter kein Ziel sein (Pfeile gegen Gebaeude wirkungslos)"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 17:54",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-179",
+   "titel": "Durchbruch-Ziel springt: alle 10 Runden neu geplant vom wandernden Heer aus - (185,96) -> (147,123) -> (135,95), niemand kommt zum Hacken",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-22 17:54",
+   "herkunft": "eigene Beobachtung 22.10. 17:54 im 2v2 (B-170 im Spiel)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_174639 Lord 141: DURCHBRUCH Kachel (185",
+    "96) Zugang (186",
+    "96) bei Tick ~40.300",
+    "dann (147",
+    "123) ueber Tor-248-Weg",
+    "dann (135",
+    "95); Plan-Start = Mitte des Heeres",
+    "die sich bewegt; DPLAN_RUNDEN 10 laesst neu planen",
+    "auch wenn das Ziel steht - ein gewaehltes Ziel sollte bleiben",
+    "bis es faellt/verworfen ist (sturm.py plant nur nach Fall/Rueckzug)"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 17:54",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-180",
+   "titel": "Mauer am Zugang kommt nie zustande: 0x 'MAUER AM ZUGANG', Kachel nach 1.500 Takten 'kommt nicht an' (47 Mann mit Mauerauftrag, 0 bis 3 daneben)",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-22 17:54",
+   "herkunft": "eigene Beobachtung 22.10. 17:54 im 2v2 (B-170 im Spiel)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_174639: Sp2 Kachel (135",
+    "95) Tick 43.941-44.696 'Hoehe 90",
+    "0 Mann bis 3 daneben'",
+    "dann 'KOMMT NICHT AN ... 47 Mann mit Mauerauftrag'; Sp1 Kachel (134",
+    "96) gleich; gleichzeitig 'FELDZUG STAU ... Wegpunkt uebersprungen' - Vermutung UNGEPRUEFT: Wegpunkt-/Stau-Befehle oder die Feuer-/Gefahr-Umleitung ueberschreiben den Laufbefehl zum Zugang jede Runde"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 17:54",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-181",
+   "titel": "Heer geht auf die Burg zu und wieder zurueck, statt den besten Weg zu nehmen und abzuschaetzen, dass es gewinnt",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-22 17:54",
+   "herkunft": "Daniel 22.10. 17:54 (Bild vor Franz' Burg: 'Einheiten gehen auf Burg, dann aber wieder zurueck, anstatt direkt den besten Weg zur gegnerischen Burg zu finden und abzuschaetzen, dass sie gewinnen wuerden')",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_174639: Gefechtsrechnung meldete fuer Lord 141 'Sieg nach 820 Takten",
+    "uns bleiben 91 %' (60 gegen 29) und 89 % (48 gegen 29)",
+    "trotzdem Stau/Wegpunkt-Wechsel und neue Durchbruch-Plaene (B-179); Rueckzug-Ursache noch nicht gemessen"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 17:54",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-182",
+   "titel": "Feuerballisten auf dem Weg werden nicht beruecksichtigt und nicht von freien Einheiten besiegt (im Sturm abgesprochen: 2 Jaeger je Balliste)",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-22 17:55",
+   "herkunft": "Daniel 22.10. 17:55 (Bild vor Franz' Burg mit Feuerballisten)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_174639: die Jaeger-Regel ('jaeger wirkung'",
+    "mind. 2 Streitkolben je Feuerballiste",
+    "danach Fernkaempfer am Boden) gibt es nur in sturm.py",
+    "nicht im Feldzug der echten Partie; die Gefahrenkarte zaehlt nur Fernkaempfer-Einheiten aus gefecht.FERN_REICH - ob Feuerballisten (Einheitentyp) darin stehen: UNGEPRUEFT"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 17:55",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-183",
+   "titel": "Heer verbrennt in Haeusern, die eigene Sklaven oder die des Partners angezuendet haben",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-22 17:55",
+   "herkunft": "Daniel 22.10. 17:55 (Bild: Streitkolben-Haufen mitten im Feuer)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_174639: B-150 prueft nur gegen die Heerwege des EIGENEN Feldzugs (brand.heerwege) - der Brandtrupp des Partners kennt unsere Wege nicht und umgekehrt; ob die Feuer-Umleitung des Feldzugs (feuerfreier_weg) im 2v2 die Feuer des Partners sieht: UNGEPRUEFT; Absprache zwischen den Lenkern fehlt (Heerwege teilen wie die Bergfriede)"
+   ],
+   "notiz": "17:57 Daniel erneut (2 Bilder: Streitkolben-Haufen am Zugang vor Franz' Burg steht im Feuer, 'verbrennt sich schon wieder ohne Grund') - Brandquelle dort UNGEPRUEFT: eigene/Partner-Sklaven, Pechgraben oder feindliche Feuerwerfer; das Heer verlaesst das Feuer nicht",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 17:55",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 17:57",
+     "was": "offen -> offen: 17:57 Daniel erneut (2 Bilder: Streitkolben-Haufen am Zugang vor Franz' Burg steht im Feuer, 'verbrennt sich schon wieder ohne Grund') - Brandquelle dort UNGEPRUEFT: eigene/Partner-Sklaven, Pechgraben oder feindliche Feuerwerfer; das Heer verlaesst das Feuer nicht"
+    }
+   ]
+  },
+  {
+   "nr": "B-184",
+   "titel": "Uebermacht ohne Zugang: 146 + 114 Streitkolben stehen 12-30 Felder vor Franz' Lord, 'STAU 5: kein Weg zum Lord und kein feindliches Tor/Turm gefunden' - das Heer weicht aus statt durchzubrechen",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-22 17:56",
+   "herkunft": "Daniel 22.10. 17:56 (Bild: 'es wird ausgewichen, obwohl die Uebermacht komplett klar ist, und die KI findet nach mehreren Anlaeufen keinen Zugang, obwohl sie gefuehlt 10x so viele Einheiten hat')",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_174639: Sp1 Tick 56.703 146 Streitkolben",
+    "naechster 12 Felder vom Lord",
+    "Wegpunkt 2/29; Sp2 Tick 56.292 114",
+    "naechster 23; beide 'STAU 5: kein Weg zum Lord und kein feindliches Tor/Turm gefunden' (Tick 54.985/55.922); zusammen mit B-179/B-180 (Kachel springt",
+    "niemand kommt am Zugang an) - Ursache des Ausweichens noch nicht gemessen"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 17:56",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-185",
+   "titel": "Durchbruch ohne Linie: einer hackt den Mauerring an, dann gehen alle wieder raus, dann aufs Torhaus ohne Zugang - die Bresche am Ende war Glueck statt Plan",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-22 17:58",
+   "herkunft": "Daniel 22.10. 17:58 (2 Bilder vor/in Franz' Burg: 'fallen ist ein grosses Wort - einer hat den Mauerring angegriffen, jetzt haben sie eine Mauer angeschlagen, dann gehen sie wieder alle raus, dann auf das Torhaus, das keinen Zugang bietet, dann mehr durch Glueck als Verstand eine Bresche')",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_174639 Tick ~64.000-64.900; meine Meldung 'Kachel (186",
+    "91) gefallen' war NICHT belegt - geschlossen nur aus dem Zielwechsel auf (185",
+    "91)",
+    "nicht aus Hoehe/Logikbit der Kachel; Messung der Kachel-Hoehe je Runde gehoert in den Fix (Wirkung belegen statt annehmen)"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 17:58",
+     "was": "angelegt (offen)"
+    }
+   ]
   }
  ]
 }

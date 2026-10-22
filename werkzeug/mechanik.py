@@ -184,7 +184,7 @@ def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner
         kosten.append(kl)
         if dx == 0 or dy == 0:
             frei = ((link != 0) & ~sp) | wand                           # von einem freien oder gehackten Feld gerade weiter
-            rein = ok & frei & wand[x2c, y2c]
+            rein = ok & frei & wand[x2c, y2c] & ~sp[x2c, y2c]     # B-179: gesperrte (verworfene) Kachel auch nicht hacken
             von.append(idx(xs[rein], ys[rein])); nach.append(idx(x2c[rein], y2c[rein]))
             kosten.append(hack[x2c[rein], y2c[rein]].astype(float))
             # (22.10. 00:03, Test C: hinter (176,113) lag (175,113) = Bergfried, Logik 0x10000000 - der Plan sah 1 Mauer, es waren 4
