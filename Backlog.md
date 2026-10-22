@@ -84,3 +84,7 @@ die Wirtschaft kaufte mehrmals "Holz fuer B" (Tick 3.781 Gold 181, 3.808 Gold 16
 B nie gesetzt. Folge: ausbau.braucht_gold die ganze Partie True (Seasoning-B hat Vorrang) - blockierte den Waffenkauf
 (in v2b umgangen durch den Kipppunkt) und haelt Gold als Ruecklage fest. Zu klaeren: warum B nicht gesetzt wird
 (Platz? Holz-Reservierung gegen den Ertragsplaner?), Holzkauf fuer B nur, wenn B danach sicher gesetzt wird.
+
+
+## Offene Korrektur: Assassinen warten trotz moeglichem rechten Umweg (22.10.2026)
+- [ ] Daniels Szene aus Rotkaeppchen/Rattenfaenger-Lauf20261022_222923 nachstellen. Rechten begehbaren Umweg zu Bogenschuetzen sowie gemeinsamen Angriff statt Einzelrisiko berechnen; konkrete Ablehnungsgruende protokollieren und gegen eine echte Uebermacht pruefen. Gefahrenueberschaetzung ist bislang eine Hypothese. Belege und Abnahme: `daten/beobachtungen/assassinen_rechtsum_20261022/`. Fuer die naechste Korrektur vorgemerkt; laufende Partie unveraendert.
