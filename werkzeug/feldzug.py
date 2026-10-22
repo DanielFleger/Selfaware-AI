@@ -1022,6 +1022,21 @@ class Feldzug:
         if self.ziel is not None and self.ziel not in lords:
             self.tote_lords.append((self.ziel, t))
             aus.append("FELDZUG: Lord %d tot bei Tick %d - %d Streitkolben ueberlebten, naechstes Ziel" % (self.ziel, t, len(kolben)))
+            # B-190 (Daniel 22.10. 18:16: nach dem Fall des Lords blieb das Heer auf dem Bergfried zwischen Feinden und verlor
+            # Leben): festgehaltenes Mauerziel loesen, Plan/Schredder weg, alle sofort zum sicheren Punkt auf der Linie vom
+            # gefallenen Lord nach Hause - von dort geht es zum naechsten Ziel
+            alt_ort = getattr(self, "_ziel_ort", None)
+            if self._angesetzt_kachel is not None:
+                self._mauerziel_los(befehl)
+            self.dplan, self.schredder, self.mauer_kachel = None, False, None
+            if alt_ort is not None and kolben:
+                sicher_p = self._sammelpunkt(L, G, {"x": alt_ort[0], "y": alt_ort[1]})
+                befehl({"angriff": {"einheiten": kolben, "lauf": [sicher_p[0], sicher_p[1]]}}, 1.0, bis="ANGRIFF")
+                bef_t = getattr(self, "_befohlen", {})
+                self._befohlen = bef_t
+                for n in kolben:
+                    bef_t[n] = ("lauf", tuple(sicher_p))
+                aus.append("FELDZUG NACH DEM SIEG: %d Einheiten aus der Burg zum sicheren Punkt %s" % (len(kolben), tuple(sicher_p)))
             self.ziel, self.phase, self.punkt = None, "sammeln", None
             self._stau, self.staus, self.direkt = (None, 0), 0, False
             self.bresche, self.bresche_leben, self.lord_versuch = None, None, None
@@ -1035,6 +1050,7 @@ class Feldzug:
                 schach(self.heim, (lords[self.ziel]["x"], lords[self.ziel]["y"]))))
         lord = lords[self.ziel]
         lp = (lord["x"], lord["y"])
+        self._ziel_ort = lp
         if not kolben:
             return aus
         if self.phase == "sammeln":

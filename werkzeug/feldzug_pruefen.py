@@ -1284,6 +1284,18 @@ def main():
     f59._orte_f = [(p59[0], p59[1], 4)]
     p59f = f59._sammelpunkt(L59, G59, L59[500])
     pruefe(59, "Sammelpunkt ohne Feuer %s, mit Feuer dort %s" % (p59, p59f), p59f != p59 and not F.im_feuer(p59f, f59._orte_f))
+    # 60 (B-190): Lord 500 faellt (verschwindet aus dem Lagebild) -> Meldung "NACH DEM SIEG", ein Laufbefehl fuer alle Kolben
+    #    zu einem Punkt, kein festgehaltener Plan mehr
+    f60 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f60.schritt({"t": 12000}, *lage(10, heim), Befehle())
+    L60, G60 = lage(30, f60.punkt)
+    f60.schritt({"t": 12050}, L60, G60, Befehle())
+    del L60[500]
+    b60 = Befehle()
+    m60 = f60.schritt({"t": 12150}, L60, G60, b60)
+    lauf60 = [x["angriff"] for x in b60.liste if "lauf" in x.get("angriff", {}) and len(x["angriff"]["einheiten"]) >= 30]
+    pruefe(60, "nach dem Fall: %s, Laufbefehle fuer alle %d, Plan %s" % ([m[:40] for m in m60 if "SIEG" in m], len(lauf60), f60.dplan),
+           any("NACH DEM SIEG" in m for m in m60) and lauf60 and f60.dplan is None)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
