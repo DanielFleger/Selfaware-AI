@@ -143,8 +143,8 @@ def _laden_einmal(name=STANDARD_STAND, platz=1, platz_vorher=True):
     try:
         try:
             tick = lade_stand(name, mit_bild=False, platz=platz, platz_vorher=platz_vorher)
-        except RuntimeError as e:
-            if "kein Laden erkannt" not in str(e):
+        except (RuntimeError, TimeoutError) as e:
+            if "kein Laden erkannt" not in str(e) and "WIRKUNGSMARKE FEHLT: LADEPAUSE: Laden erkannt" not in str(e):
                 raise
             # 21.10. 20:06 und 20:33 (L183): nach einer Sandkasten-Partie drueckte das Modul den Laden-Knopf (ok=true), das Spiel
             # lud aber nichts - auch andere Spielstaende nicht; ein Neustart der Instanz half jedes Mal. Darum EINMAL neu starten
@@ -252,7 +252,9 @@ def sandkasten(name=STANDARD_STAND, franz_heer="nein", nur_soldaten="nein", fris
         try:
             text = laden(kurz)
             return "Sandkasten aus Spielstand '%s' in %.0f s: %s" % (kurz, time.time() - t_a, text)
-        except Exception as e:                       # noch kein gespeicherter Sandkasten: wie bisher bauen und dann speichern
+        except RuntimeError as e:                   # Nur ein nachweislich fehlender Cache erlaubt Neubau.
+            if "steht nicht in der Liste" not in str(e):
+                raise
             print("Sandkasten-Spielstand '%s' nicht ladbar (%s) - baue ihn" % (kurz, str(e)[:100]), flush=True)
     laden(name)
     befehl({"pause": False, "tempo": 40}, 0.3)            # ein paar Takte, damit Kern und Lagebild die neue Welt haben

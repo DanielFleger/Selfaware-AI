@@ -39,11 +39,14 @@ def main(argv):
     nrs = [int(n) for n in text.split("Nummern")[1].strip(" []").split(",")]
     befehl({"angriff": {"einheiten": nrs, "ziel": ln}}, 1.0)
     befehl({"pause": False, "tempo": 40}, 0.3)
-    proben, t0 = [], shc.zustand()["tick"]
+    proben, t0 = [], Leitung(SPIEL).lesen().tick
     ende = time.time() + 120
     while time.time() < ende:
         w = Leitung(SPIEL).lesen()
-        t = shc.zustand()["tick"]
+        t = w.tick
+        if t <= t0 or (proben and t <= proben[-1][0]):
+            time.sleep(.01)
+            continue
         lo = w.einheiten.get(ln, {})
         leben_l = lo.get("leben", 0) if lo.get("typ") == 55 else 0
         lebend = sum(1 for n in nrs if n in w.einheiten and w.einheiten[n].get("typ") == typ and w.einheiten[n]["leben"] > 0)
@@ -53,15 +56,17 @@ def main(argv):
         time.sleep(0.3)
     befehl({"pause": True}, 0.3)
     # Stueck mit allen am Leben und sinkendem Lord-Leben
-    voll = [p for p in proben if p[2] == anzahl]
-    schlag = [(a, b) for a, b in zip(voll, voll[1:]) if b[1] < a[1]]
+    # Nur benachbarte kohaerente Weltbilder: keine Zeitluecke ueber
+    # verschwundene Kaempfer und keine vom Weltbild getrennt gelesene Uhr.
+    schlag = [(a,b) for a,b in zip(proben,proben[1:])
+              if a[2] == b[2] == anzahl and b[0] > a[0] and 0 < b[1] < a[1]]
     if not schlag:
-        erg = {"typ": typ, "anzahl": anzahl, "je_takt": None, "grund": "kein Lebensverlust bei vollen Reihen", "proben": proben}
+        erg = {"typ":typ,"anzahl":anzahl,"je_takt":None,"grund":"keine gueltigen benachbarten Schlagproben","proben":proben}
     else:
-        von, bis = schlag[0][0], schlag[-1][1]
-        dt = max(1, bis[0] - von[0])
-        erg = {"typ": typ, "anzahl": anzahl, "je_takt": round((von[1] - bis[1]) / float(dt) / anzahl, 1),
-               "takte": dt, "lord_verlust": von[1] - bis[1], "proben": proben}
+        dt=sum(b[0]-a[0] for a,b in schlag)
+        verlust=sum(a[1]-b[1] for a,b in schlag)
+        erg={"typ":typ,"anzahl":anzahl,"je_takt":round(verlust/dt/anzahl,1),
+             "takte":dt,"lord_verlust":verlust,"proben":proben,"methode":"kern_tick_adjacent_v2"}
     erg["zeit"] = time.strftime("%Y-%m-%d %H:%M")
     with open(os.path.join(HIER, "..", "daten", "lord_nahkampf.jsonl"), "a", encoding="utf-8") as f:
         f.write(json.dumps(erg) + "\n")

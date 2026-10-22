@@ -50,7 +50,7 @@ try:
   tick=struct.unpack('<I',speicher.lies(0x0117CADC,4))[0]
   over=struct.unpack('<I',speicher.lies(0x0117D500,4))[0]
   if gate and any(p.poll() is not None for p in ps) and not over:
-   manifest['status']='timeout' if tick>=int(base['bis_tick'])-200 else 'invalid'
+   manifest['status']='timeout' if tick>=int(base['bis_tick']) and all(p.poll() in (None,0) for p in ps) else 'invalid'
    manifest['reason']='game tick limit reached without victory' if manifest['status']=='timeout' else 'controller ended while match still active';break
   if tick!=last_tick:last_tick=tick;last_progress=time.monotonic()
   if time.monotonic()-last_progress>90:manifest['status']='invalid';manifest['reason']='tick stalled';break
@@ -73,7 +73,12 @@ try:
    observer=subprocess.Popen([sys.executable,'-u',str(pathlib.Path(__file__).with_name('branching_beobachter.py')),stamp],cwd=root,stdout=obslog,stderr=subprocess.STDOUT)
   time.sleep(.5)
  else:
-  manifest['status']='finished_unscored';manifest['exit_codes']=[p.returncode for p in ps]
+  manifest['exit_codes']=[p.returncode for p in ps]
+  over=struct.unpack('<I',speicher.lies(0x0117D500,4))[0]
+  tick=struct.unpack('<I',speicher.lies(0x0117CADC,4))[0]
+  manifest['status']='finished_unscored' if over else ('timeout' if tick>=int(base['bis_tick']) and not any(manifest['exit_codes']) else 'invalid')
+  if manifest['status']=='timeout':manifest['reason']='game tick limit reached without victory'
+  elif manifest['status']=='invalid':manifest['reason']='controllers ended without native game end'
 except BaseException as ex:
  manifest['status']='invalid';manifest['reason']=repr(ex);raise
 finally:

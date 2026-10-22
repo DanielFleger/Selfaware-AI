@@ -177,7 +177,7 @@ def feuerfreier_weg(start, ziel, orte, gefahr=None):
 
 class Feldzug:
     N = 30                    # je Nomade (Daniel)
-    TRUPP = 5                 # B-158: Angriffe auf Bresche und Lord in Trueppchen zu 5 (gemessen: halbe Zeit gegenueber der Gruppe)
+    TRUPP = 1                 # Daniel 22.10.: jede Einheit einzeln, gleicher Angriffspunkt statt Formation.
     MAUER_R = 30              # B-147: so weit um den Lord sucht logik.lua die Mauerkachel (Burgradius wie BURG_R-Groessenordnung)
     SICHER = 50               # Felder Abstand des Sammelpunkts zu feindlichen Fernkaempfern (Reichweite 44 + Rand)
     GEB_ABSTAND = 30          # ... und zu feindlichen Gebaeuden (Tuerme, Mauern mit Schuetzen)
@@ -1467,17 +1467,21 @@ class Feldzug:
                             befohlen[n] = ("bresche", bresche)
                     am_lord = []
             if lord_ziel is not None and (self.bresche is None or self.bresche not in G):
-                # B-139: am erreichbaren Punkt (oder schon am Lord) -> Angriff; alle anderen laufen dorthin (einmal; erneut nur,
-                # wer untaetig und nicht dort ist)
-                am_lord = [n for n in nah_kampf if schach((L[n]["x"], L[n]["y"]), lp) <= self.ANGRIFF_NAH
-                           or schach((L[n]["x"], L[n]["y"]), lord_ziel) <= self.AM_PUNKT]
-                hin_l = [n for n in nah_kampf if n not in am_lord
-                         and (befohlen.get(n) != ("zum_lord", lord_ziel) or L[n]["zustand"] in (0, 1))]
+                # Ein gemeinsames Ziel statt Ankunft im Zehn-Felder-Kreis: im Nahbereich
+                # erst einzeln direkt zum Lord-Feld, nach Ankunft einzeln zuschlagen.
+                am_lord=[n for n in nah_kampf if schach((L[n]['x'],L[n]['y']),lp)<=1]
+                stapeln=[n for n in nah_kampf if 1<schach((L[n]['x'],L[n]['y']),lp)<=12]
+                hin_l=[n for n in nah_kampf if n not in am_lord and n not in stapeln
+                       and (befohlen.get(n)!=('zum_lord',lord_ziel) or L[n]['zustand'] in (0,1))]
                 if hin_l:
-                    befehl({"angriff": {"einheiten": hin_l, "lauf": [lord_ziel[0], lord_ziel[1]]}}, 1.0, bis="ANGRIFF")
-                    for n in hin_l:
-                        befohlen[n] = ("zum_lord", lord_ziel)
-                belegt |= set(nah_kampf) - set(am_lord)
+                    befehl({'angriff':{'einheiten':hin_l,'lauf':list(lord_ziel),'trupp':1}},1.0,bis='ANGRIFF')
+                    for n in hin_l:befohlen[n]=('zum_lord',lord_ziel)
+                neu_stapel=[n for n in stapeln if befohlen.get(n)!=('lord_stapel',tuple(lp)) or L[n]['zustand'] in (0,1)]
+                if neu_stapel:
+                    befehl({'angriff':{'einheiten':neu_stapel,'lauf':list(lp),'trupp':1}},1.0,bis='ANGRIFF')
+                    for n in neu_stapel:befohlen[n]=('lord_stapel',tuple(lp))
+                    aus.append('FELDZUG EINZELSTAPEL: %d Nahkaempfer einzeln auf denselben Lord-Punkt %s'%(len(neu_stapel),lp))
+                belegt|=set(nah_kampf)-set(am_lord)
             # B-147 (Daniel 21.10. 00:47 "ja, Mauer einreissen bauen und wieder messen"; L172: nach "Lord eingemauert" lief das
             # Heer immer wieder auf den unerreichbaren Lord, stand unter Beschuss und zog sich zurueck): ist der Lord eingemauert
             # und keine Bresche (Turm/Torhaus) mehr da, hacken alle Nahkaempfer, die es koennen, die naechste erreichbare Mauer

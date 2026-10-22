@@ -471,6 +471,10 @@ def main():
         lauf_ = [(ende_(x["angriff"]), len(x["angriff"]["einheiten"])) for x in b.liste if "lauf" in x.get("angriff", {})]
         for i in range(10):
             L_[10 + i]["x"], L_[10 + i]["y"], L_[10 + i]["zustand"] = 300 + i % 3, 102 + i // 5, 1
+        # Die Zwischenposition zwei Felder daneben ist noch keine Ankunft.
+        # Neu: erst einzeln zum gemeinsamen Lord-Feld, dann angreifen.
+        for i in range(10):
+            L_[10+i]['x'],L_[10+i]['y']=300,100
         lord_ = []
         for k in range(6):                             # Angriffsbefehle hoechstens alle WIEDERHOLEN Runden
             b2 = Befehle()

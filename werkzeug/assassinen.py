@@ -81,6 +81,8 @@ WERT = {
     # ohne Markt komplett gelaehmt"): Markt hoechster Wert (vorher 20, unter der Apfelplantage) - der Zielwechsel unterwegs
     # (WECHSEL 1,5 x Wert je Weg) nimmt ihn dann mit; ab TEUER zwei Plaetze. 19.10.: 300 (siehe Soeldnerposten)
     26: 300}
+from gebaeudeziele import angreifbar, zielwerte
+WERT = zielwerte(WERT)
 # Liga-Balance (liga_ai.json ranges): alle Bogen/Armbrust 40 Felder - eine Zahl fuer "in Schussweite" (Daniel 23:18: Schuetzen-
 # Gefahr auf 40; live_6: Assassine starb bei Tick 8.527, naechster Bogenschuetze 26 Felder weg, gezaehlt wurde nur bis 16)
 SCHUSSWEITE = 40
@@ -2041,6 +2043,11 @@ class Einzeln:
             elif L[n]["leben"] >= self.VOLL:
                 self.akte.pop(n, None)       # wieder voll geheilt: neue Akte beim naechsten Treffer
             self.leben[n], self.umfeld[n] = L[n]["leben"], u
+        # Unwirksame Altziele sofort aufgeben; niemals als zerstoert zaehlen.
+        for n,z in list(self.ziel.items()):
+            if z in G and not angreifbar(G[z]):
+                self._vergessen(n)
+                ereignis.append("UNZERSTOERBARES ZIEL %d aufgegeben" % z)
         # 2. Erledigte Ziele, erledigte Jagd
         for n, z in list(self.ziel.items()):
             if z not in G:

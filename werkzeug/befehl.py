@@ -224,16 +224,20 @@ def sende(befehl, warte=3.0, bis=None):
         # 19.10. (1v1-Probe 2: "keine Antwort auf peek" - der andere Lenker hielt das Modul mit einer Karte mehrere Sekunden)
         ende = time.monotonic() + (max(warte, 20.0) if PARTNER else warte)
         bestaetigt = False
+        quittiert = False
         while time.monotonic() < ende:
             time.sleep(ACK_POLL)
             if os.path.getsize(LOG) > vorher:
                 with io.open(LOG, encoding="utf-8", errors="replace") as f:
                     f.seek(vorher)
                     antwort = f.read()
-                    if bis in antwort and quittung.search(antwort):
+                    quittiert = bool(quittung.search(antwort))
+                    if bis in antwort and quittiert:
                         bestaetigt = True
                         break
         if not bestaetigt:
+            if quittiert:
+                raise TimeoutError('BEFEHL %s QUITTIERT ABER WIRKUNGSMARKE FEHLT: %s; Wirkung unbekannt' % (befehl['id'], bis))
             raise TimeoutError('BEFEHL %s OHNE EIGENE QUITTUNG: Wirkung unbekannt; nicht blind wiederholen' % befehl['id'])
         with io.open(LOG, encoding="utf-8", errors="replace") as f:
             f.seek(vorher)

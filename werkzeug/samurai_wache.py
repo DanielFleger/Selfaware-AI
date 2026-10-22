@@ -167,95 +167,82 @@ def ki_aus(sp):
         befehl({"poke": adr, "wert": wert}, 1.0, bis="POKE")
 
 
+AI_IDS = dict(zip(('rat','snake','pig','wolf','saladin','caliph','sultan','richard','frederick','phillip','wazir','emir','nizar','sheriff','marshal','abbot'),range(1,17)))
+
+
+def konfigurierte_ki(config):
+    """Die sichtbare SamurAI-Auswahl bestimmt den Platzhalter, nicht ein alter Zahlenwert."""
+    ai=config['config-full']['modules']['aiSwapper']['config']['ai']
+    result=[]
+    for name,parts in ai.items():
+        v=parts.get('lines',{}).get('contents',{}).get('value',{})
+        if v.get('active') and v.get('name')=='SamurAI' and v.get('root','').rstrip('/')=='ucp/resources/ai/SamurAI':
+            result.append(AI_IDS[name])
+    if len(result)!=1:
+        raise RuntimeError('SamurAI-Menuezuordnung muss eindeutig sein: %r'%result)
+    return result[0]
+
+
+def auswahl(ai, samurai_id, mensch=False):
+    slots={sp for sp,k in ai.items() if k==samurai_id}
+    if slots and mensch:slots.add(1)
+    return sorted(slots)
+
+
 def main():
-    if os.environ.get("SHC_PARTNER") != "ja":
-        raise SystemExit("samurai_wache braucht SHC_PARTNER=ja (Wache und Lenker teilen sich den Befehlskanal)")
-    if os.path.exists(STOP):
-        os.remove(STOP)
-    schreib("SamurAI-Wache an (Instanz %s) - wartet auf eine Partie mit der Ratte" % os.environ.get("SHC_INSTANZ", "1"))
-    # 20:56 AUS (Daniel: "ich brauche keinen Fix, ich will, dass du den Ursprung loest - es liegt an einem Skript, das du
-    # gemacht hast, bitte ausschalten"): spiel_ueber_taskleiste() wird nicht mehr aufgerufen - das Spiel wird nicht mehr
-    # ueber die Taskleiste gelegt. Die Funktion bleibt nur zum Nachlesen stehen.
-    lenker, bedient, log, scharf = None, False, None, False
-    sp_aktiv, neustarts = None, 0
-    from laden import befehl as befehl_w
-    while not os.path.exists(STOP):
-        try:
-            ansicht, gameover, ai = lies(mit_ai=False)
-            # 20:39 (Daniel: "das sollte Tick 0 oder 1 passieren, nicht 38"): im Menue die Tick-Pause des Moduls scharf
-            # stellen - das Spiel haelt beim ersten Takt selbst an (logik.lua tickpause), umgeschaltet wird in der Pause
-            # 22:35: nur AUSSERHALB einer Partie (vorher "Ansicht != 14" - auch beim Klick auf ein Gebaeude, Ansicht 16)
-            if ansicht not in IM_SPIEL and not scharf:
-                befehl_w({"tickpause": {"bei": 1}}, 0.5)
-                scharf = True
-                schreib("Tick-Pause bei Tick 1 scharf (Ansicht %s)" % ansicht)
-            if ansicht in IM_SPIEL and scharf and not bedient:
-                scharf = False            # die Pause hat gegriffen oder die Partie lief schon - beim naechsten Menue neu
-            if im_spiel(ansicht, gameover) and not bedient:
-                ai = lies()[2]
-        except Exception as ex:
-            schreib("Lesen fehlgeschlagen: %r" % (ex,))
-            time.sleep(5)
-            continue
-        laeuft = lenker is not None and lenker.poll() is None
-        if lenker is not None and not laeuft and bedient and log:
-            schreib("Lenker beendet (Rueckgabe %s) - Mitschrift %s" % (lenker.returncode, log))
-            lenker = None
-            # 20:42 (Daniel: "bitte schaue, dass es wirklich dauerhaft durchlaeuft fuer das ganze Spiel"): laeuft die Partie
-            # weiter, SamurAI sofort neu starten (hoechstens NEUSTARTS_MAX je Partie) - er vermisst nichts doppelt (Plan liegt)
-            if im_spiel(ansicht, gameover) and sp_aktiv and neustarts < NEUSTARTS_MAX:
-                neustarts += 1
-                log = os.path.join(D, "samurai_%s_sp%d_konsole.txt" % (time.strftime("%Y%m%d_%H%M%S"), sp_aktiv))
-                umgebung = dict(os.environ, SHC_SPIELER=str(sp_aktiv), SHC_PARTNER="ja")
-                lenker = subprocess.Popen([sys.executable, "-u", os.path.join(HIER, "erstes_spiel.py")] + LENKER_ARGS,
-                                          cwd=HIER, env=umgebung, stdout=open(log, "w", encoding="utf-8"), stderr=subprocess.STDOUT)
-                laeuft = True
-                schreib("NEUSTART %d von %d: SamurAI fuer Spieler %d wieder gestartet (Prozess %d, Mitschrift %s)" % (
-                    neustarts, NEUSTARTS_MAX, sp_aktiv, lenker.pid, log))
-        tat, sp = entscheide(ansicht, gameover, ai, laeuft, bedient)
-        # einmal je Partie die KI-Nummern aller Plaetze mitschreiben (Gegenprobe der Annahme "Ratte = 1")
-        gesehen = im_spiel(ansicht, gameover)
-        if gesehen and not getattr(main, "gemeldet", False):
-            main.karte = kartenname()
-            schreib("Partie erkannt - Karte %r, KI-Nummern je Spieler: %s" % (main.karte, {s: k for s, k in ai.items() if k}))
-            main.gemeldet = True
-        elif not gesehen:
-            main.gemeldet = False
-        if tat == "starten":
-            from laden import befehl
-            from steuerkarte import tick
-            t_vor = tick()
-            befehl({"pause": True}, 0.5)          # kurz anhalten (steht meist schon durch die Tick-Pause)
-            ki_aus(sp)
-            befehl({"pause": False}, 0.5)
-            schreib("Umschaltung bei Tick %s (Spiel waehrenddessen angehalten)" % t_vor)
-            log = os.path.join(D, "samurai_%s_sp%d_konsole.txt" % (time.strftime("%Y%m%d_%H%M%S"), sp))
-            umgebung = dict(os.environ, SHC_SPIELER=str(sp), SHC_PARTNER="ja")
-            lenker = subprocess.Popen([sys.executable, "-u", os.path.join(HIER, "erstes_spiel.py")] + LENKER_ARGS,
-                                      cwd=HIER, env=umgebung, stdout=open(log, "w", encoding="utf-8"), stderr=subprocess.STDOUT)
-            bedient, sp_aktiv, neustarts = True, sp, 0
-            schreib("Ratte auf Spieler %d gefunden - KI aus, SamurAI uebernimmt (Prozess %d, Mitschrift %s)" % (sp, lenker.pid, log))
-        elif tat == "beenden":
-            lenker.terminate()
-            schreib("Partie verlassen (Ansicht %s, Partie vorbei %s) - Lenker beendet" % (ansicht, gameover))
-            lenker = None
+    import json,yaml
+    from pathlib import Path
+    from laden import befehl
+    from befehl import SPIEL
+    if os.environ.get('SHC_PARTNER')!='ja':raise SystemExit('SHC_PARTNER=ja erforderlich')
+    config=yaml.safe_load((Path(SPIEL)/'ucp-config.yml').read_text(encoding='utf-8'))
+    samurai_id=konfigurierte_ki(config)
+    # Nur der ausdrueckliche KI-Testmodus steuert auch den menschlichen ersten Platz.
+    mensch=os.environ.get('SHC_STEUERE_MENSCH')=='ja'
+    schreib('SamurAI-Wache: sichtbarer Platzhalter KI %d, Teamsteuerung, Mensch steuern %s'%(samurai_id,mensch))
+    aktiv={};bedient=set();scharf=False;zuletzt_im_spiel=False
+    if os.path.exists(STOP):os.remove(STOP)
+    try:
+        while not os.path.exists(STOP):
             try:
-                lernen_starten(log, sp_aktiv, getattr(main, "karte", None))
-            except Exception as ex_l:
-                schreib("LERNEN fehlgeschlagen: %r" % (ex_l,))
-        elif tat == "neue_partie_frei":
-            bedient, sp_aktiv = False, None
-        elif tat == "warten" and im_spiel(ansicht, gameover) and not bedient and not laeuft and RATTE not in (ai or {}).values():
-            # Partie ohne Ratte: die Tick-Pause wieder aufheben (sonst stuende Daniels Spiel bei Tick 1)
-            from steuerkarte import tick as tick_w
-            if (tick_w() or 0) <= 2:
-                befehl_w({"pause": False}, 0.5)
-            bedient = True
-        time.sleep(PAUSE_S if bedient else SCHNELL_S)
-    # 20:44: beim Aufhoeren der Wache spielt SamurAI weiter (vorher beendete ein Neustart der Wache die laufende KI mit)
-    schreib("SamurAI-Wache aus (STOP_SAMURAI) - SamurAI spielt weiter" if lenker is not None and lenker.poll() is None
-            else "SamurAI-Wache aus (STOP_SAMURAI)")
+                ansicht,over,ai=lies(mit_ai=False)
+            except Exception as ex:
+                schreib('Warte auf Spiel: %r'%ex);time.sleep(2);continue
+            ingame=im_spiel(ansicht,over)
+            if not ingame:
+                for sp,(proc,handle) in list(aktiv.items()):
+                    if proc.poll() is None:proc.terminate()
+                    proc.wait(timeout=10);handle.close()
+                aktiv.clear();bedient.clear()
+                if not scharf:
+                    befehl({'tickpause':{'bei':1}},.5);scharf=True
+                zuletzt_im_spiel=False
+            else:
+                if not zuletzt_im_spiel:
+                    ai=lies()[2]
+                    slots=auswahl(ai,samurai_id,mensch)
+                    schreib('Neue Menue-Partie %r, KI-Nummern %r, SamurAI-Plaetze %r'%(kartenname(),ai,slots))
+                    if slots:
+                        befehl({'pause':True},.5)
+                        # Erst alle ausgewaehlten Platzhalter abschalten, dann beide Lenker starten.
+                        for sp in slots:ki_aus(sp)
+                        for sp in slots:
+                            log=Path(D)/('samurai_%s_sp%d_konsole.txt'%(time.strftime('%Y%m%d_%H%M%S'),sp))
+                            handle=log.open('w',encoding='utf-8')
+                            env=dict(os.environ,SHC_SPIELER=str(sp),SHC_PARTNER='ja')
+                            proc=subprocess.Popen([sys.executable,'-u',str(Path(HIER)/'erstes_spiel.py')]+LENKER_ARGS,cwd=HIER,env=env,stdout=handle,stderr=subprocess.STDOUT)
+                            aktiv[sp]=(proc,handle);bedient.add(sp)
+                            schreib('SamurAI gestartet fuer Spieler %d: Prozess %d, %s'%(sp,proc.pid,log))
+                    befehl({'tickpause':'aus'},.5)
+                    befehl({'pause':False},.5);scharf=False;zuletzt_im_spiel=True
+                for sp,(proc,handle) in aktiv.items():
+                    if proc.poll() is not None and not handle.closed:
+                        schreib('SamurAI Spieler %d beendet, Rueckgabe %s; kein verdeckter Neustart'%(sp,proc.returncode));handle.close()
+            time.sleep(SCHNELL_S if not ingame else PAUSE_S)
+    finally:
+        for proc,handle in aktiv.values():
+            if proc.poll() is None:proc.terminate()
+            proc.wait(timeout=10);handle.close()
 
 
-if __name__ == "__main__":
-    main()
+if __name__=='__main__':main()
