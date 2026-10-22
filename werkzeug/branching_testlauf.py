@@ -35,6 +35,8 @@ try:
  manifest['profile']=os.environ.get('SAI_PROFILE')=='ja';manifest['pids']=[p.pid for p in ps];save();print('MATCH',stamp,manifest['pids'],flush=True)
  deadline=time.monotonic()+1900;last_lock=0;gate=False;last_tick=0;last_progress=time.monotonic()
  while any(p.poll() is None for p in ps):
+  if not gate and any(p.poll() is not None for p in ps):
+   manifest['status']='invalid';manifest['reason']='controller ended before start gate';break
   if time.monotonic()>deadline:manifest['status']='invalid';manifest['reason']='wall-clock watchdog';break
   if time.monotonic()-last_lock>30:
    lockcall('holen');last_lock=time.monotonic()

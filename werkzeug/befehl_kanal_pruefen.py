@@ -23,6 +23,8 @@ class AntwortProbe(unittest.TestCase):
                         b = json.loads((root/'befehl.json').read_text())
                     except (OSError, ValueError):
                         continue
+                    if 'befehle' not in b or b['befehle'][0].get('zeit') is not True:
+                        return
                     if suffix is not None:
                         with log.open('a') as f:
                             f.write('villagestudio | QUITTUNG %s%s\n' % (b['id'], suffix))

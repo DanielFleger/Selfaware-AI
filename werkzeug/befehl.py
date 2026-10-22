@@ -175,6 +175,10 @@ def sende(befehl, warte=3.0, bis=None):
     _sperren()
     try:
         befehl["id"] = neue_id()
+        # Der Menue-Haken akzeptiert nur bestimmte Felder oder eine Befehlsliste.
+        # Eine einheitliche Huelle verhindert still verworfene Einzelbefehle.
+        if 'befehle' not in befehl:
+            befehl = {'id': befehl['id'], 'befehle': [befehl]}
         # 19.10.: mit Partner immer auf die EIGENE Quittung warten - sonst schreibt der andere Lenker befehl.json, bevor das
         # Modul diesen Befehl gelesen hat (die Quittung ist die letzte Zeile eines Befehls, nach allen Antwortzeilen)
         if PARTNER:
