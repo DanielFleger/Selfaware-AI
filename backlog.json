@@ -4348,7 +4348,7 @@
     "2v2 20261022_174639: Sp1 Tick 702 '2 Assassinen ohne Ziel (keins erreichbar 2)'",
     "Tick 7.412 'STEHEN: 2 von 2 Assassinen seit >= 200 Ticks ohne Spielziel'; Sp2 Tick 7.730/8.232 dasselbe; Ursache in assassinen.py (Kandidat nur mit g['erreichbar']) - ob Assassinen die Mauer selbst ueberwinden: UNGEPRUEFT"
    ],
-   "notiz": "",
+   "notiz": "Fix d988a6d WIRKT NICHT (Daniel 18:10, Bild: Assassine von Orange wartet auf nichts): 2v2 20261022_180844 Sp2 Tick 8.320 '2 Assassinen ohne Ziel (keins erreichbar 2)', 8.635 'STEHEN 1 von 2'; Sp1 9.477 'STEHEN 2 von 2'; keine einzige ARBEITERJAGD-Meldung - vermutlich lehnt die Bedingung sicht.sicher (kein waehlbarer Feind sieht den Arbeiter) jeden Arbeiter ab, UNGEPRUEFT",
    "verlauf": [
     {
      "zeit": "2026-10-22 17:49",
@@ -4356,6 +4356,14 @@
     },
     {
      "zeit": "2026-10-22 18:08",
+     "was": "offen -> gebaut"
+    },
+    {
+     "zeit": "2026-10-22 18:10",
+     "was": "gebaut -> offen: Fix d988a6d WIRKT NICHT (Daniel 18:10, Bild: Assassine von Orange wartet auf nichts): 2v2 20261022_180844 Sp2 Tick 8.320 '2 Assassinen ohne Ziel (keins erreichbar 2)', 8.635 'STEHEN 1 von 2'; Sp1 9.477 'STEHEN 2 von 2'; keine einzige ARBEITERJAGD-Meldung - vermutlich lehnt die Bedingung sicht.sicher (kein waehlbarer Feind sieht den Arbeiter) jeden Arbeiter ab, UNGEPRUEFT"
+    },
+    {
+     "zeit": "2026-10-22 18:27",
      "was": "offen -> gebaut"
     }
    ]
@@ -4494,7 +4502,7 @@
     "B-162) prueft Schuetzen am Weg nur beim Befehl - unterwegs neu erreichbare Schuetzen kommen nicht dazu; mit Daniel klaeren",
     "falls anders gemeint"
    ],
-   "notiz": "",
+   "notiz": "Daniel 18:15 (Bild: ein Schwertkaempfer steht, drei feindliche Bogenschuetzen direkt daneben, er greift nicht an) - 2v2 20261022_180844; 'ABFANG NACH WIRKUNG' Zaehlung siehe Konsolen; Vermutung UNGEPRUEFT: Abfang laeuft nur in der Angriffsphase des Feldzugs (phase angriff) bzw. nur fuer Schuetzen, die gerade auf uns zielen - ein einzelner Mann ohne Auftrag (Waechter/Sammeln) bekommt keinen Befehl; Grundregel fehlt: jeder freie Nahkaempfer greift einen feindlichen Schuetzen in Nahkampfweite an",
    "verlauf": [
     {
      "zeit": "2026-10-22 17:53",
@@ -4502,6 +4510,14 @@
     },
     {
      "zeit": "2026-10-22 18:08",
+     "was": "offen -> gebaut"
+    },
+    {
+     "zeit": "2026-10-22 18:15",
+     "was": "gebaut -> offen: Daniel 18:15 (Bild: ein Schwertkaempfer steht, drei feindliche Bogenschuetzen direkt daneben, er greift nicht an) - 2v2 20261022_180844; 'ABFANG NACH WIRKUNG' Zaehlung siehe Konsolen; Vermutung UNGEPRUEFT: Abfang laeuft nur in der Angriffsphase des Feldzugs (phase angriff) bzw. nur fuer Schuetzen, die gerade auf uns zielen - ein einzelner Mann ohne Auftrag (Waechter/Sammeln) bekommt keinen Befehl; Grundregel fehlt: jeder freie Nahkaempfer greift einen feindlichen Schuetzen in Nahkampfweite an"
+    },
+    {
+     "zeit": "2026-10-22 18:27",
      "was": "offen -> gebaut"
     }
    ]
@@ -4519,7 +4535,7 @@
    "belege": [
     "2v2 20261022_174639 um Tick ~40.000 (Bild); Reiterjagd befiehlt nur Arbeiter oder Anritt-Laufbefehle - Vermutung UNGEPRUEFT: der Angriffs-Laufbefehl laesst das Spiel unterwegs Gebaeude angreifen; Gebaeude sollen fuer Reiter kein Ziel sein (Pfeile gegen Gebaeude wirkungslos)"
    ],
-   "notiz": "",
+   "notiz": "Fix 0378caf WIRKT NICHT (Daniel 18:15, Bild: Berittene schiessen auf Gebaeude ohne Grund, patrouillieren nicht; sollen auf Bauern und Einheiten schiessen) - 2v2 20261022_180844 Tick ~12.000; Ursache weiter UNGEPRUEFT: entweder Anritt-Laufbefehl (angriff+lauf) laesst das Spiel Gebaeude angreifen, oder die Reiter haben gar keinen Befehl und schiessen von selbst; als Naechstes im Lageprotokoll zielart/zielgebaeude der Reiter auslesen",
    "verlauf": [
     {
      "zeit": "2026-10-22 17:54",
@@ -4527,6 +4543,14 @@
     },
     {
      "zeit": "2026-10-22 18:08",
+     "was": "offen -> gebaut"
+    },
+    {
+     "zeit": "2026-10-22 18:15",
+     "was": "gebaut -> offen: Fix 0378caf WIRKT NICHT (Daniel 18:15, Bild: Berittene schiessen auf Gebaeude ohne Grund, patrouillieren nicht; sollen auf Bauern und Einheiten schiessen) - 2v2 20261022_180844 Tick ~12.000; Ursache weiter UNGEPRUEFT: entweder Anritt-Laufbefehl (angriff+lauf) laesst das Spiel Gebaeude angreifen, oder die Reiter haben gar keinen Befehl und schiessen von selbst; als Naechstes im Lageprotokoll zielart/zielgebaeude der Reiter auslesen"
+    },
+    {
+     "zeit": "2026-10-22 18:27",
      "was": "offen -> gebaut"
     }
    ]
@@ -4731,6 +4755,219 @@
     },
     {
      "zeit": "2026-10-22 18:08",
+     "was": "offen -> gebaut"
+    }
+   ]
+  },
+  {
+   "nr": "B-186",
+   "titel": "Phase 1 bricht beim Warten auf das Assassinen-Gold ab (ZEIT UM bei Tick 1.491), der Lenker springt ohne fertige Eroeffnung in Phase 2",
+   "bereich": "Wirtschaft",
+   "status": "offen",
+   "seit": "2026-10-22 18:09",
+   "herkunft": "eigene Beobachtung 22.10. 18:09 im 2v2",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_180844: 'SystemExit: ZEIT UM beim Warten auf: Gold fuer den Assassinen abgebucht (Tick 1491)' - '1v1: weiter mit Phase 2'; in den Laeufen 08:05/08:29/17:46 nicht aufgetreten - Ursache UNGEPRUEFT"
+   ],
+   "notiz": "nicht gebaut: Ursache des Phase-1-Abbruchs noch nicht untersucht (ein Fall in 4 Laeufen)",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:09",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:27",
+     "was": "offen -> offen: nicht gebaut: Ursache des Phase-1-Abbruchs noch nicht untersucht (ein Fall in 4 Laeufen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-187",
+   "titel": "Sklave laeuft im Kreis, weil sein Ziel von einem Armbrustschuetzen geschuetzt wird - zufaellig lenkt das den Schuetzen ab und die anderen Sklaven kommen durch (Idee: bewusst als Koeder nutzen)",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-22 18:12",
+   "herkunft": "Daniel 22.10. 18:12 (Bild: Sklave kreist vor einem Armbrustschuetzen)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_180844 um Tick ~10.000; Ursache des Kreisens vermutlich Wechsel zwischen Ziel und Rueckzug (B-171/RISIKO_MAX) - UNGEPRUEFT; der Ablenk-Effekt ist Daniels Beobachtung",
+    "nicht gemessen; als Idee: ein Koeder bindet Schuetzen",
+    "waehrend die anderen durchlaufen"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:12",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-188",
+   "titel": "Reiter patrouillieren nicht und weichen nicht aus - sie stehen beim Schiessen still, statt im Lauf zu schiessen (Kite: angreifen, wegreiten, wieder angreifen)",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-22 18:12",
+   "herkunft": "Daniel 22.10. 18:12 (Bild: zwei Berittene stehen vor der Burg: 'sie muessen ausweichen, immerhin sind sie die einzige Einheit, die im Lauf auch schiessen kann - das nicht auszunutzen waere Verschwendung')",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_180844 um Tick ~10.000; Reiterjagd kennt nur Flucht vor Nahkaempfern (FLUCHT_R) und Angriffsbefehl auf ein Ziel - kein Hin-und-her im Schussfeld; ob der Pferdebogen im Spiel bei einem Laufbefehl selbst weiterschiesst: UNGEPRUEFT (raids.py 19.10.: 'nicht gemessen')"
+   ],
+   "notiz": "nicht gebaut: erst messen, ob der Pferdebogen bei einem Laufbefehl selbst weiterschiesst (Kite haengt daran)",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:12",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:27",
+     "was": "offen -> offen: nicht gebaut: erst messen, ob der Pferdebogen bei einem Laufbefehl selbst weiterschiesst (Kite haengt daran)"
+    }
+   ]
+  },
+  {
+   "nr": "B-189",
+   "titel": "Sklave wartet nach dem Anzuenden, statt sofort das naechste bessere Ziel zu suchen; und er nimmt ein einzelnes Haus, obwohl der Weg frei waere zur ganzen Wirtschaft im Schutz der Waffenproduktion",
+   "bereich": "Kampf",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:13",
+   "herkunft": "Daniel 22.10. 18:13 (2 Bilder: brennendes Haus, Sklave steht daneben; freier Weg in die Wirtschaft hinter der Waffenproduktion)",
+   "gebaut": "2026-10-22 18:27",
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_180844 um Tick ~11.000; Brandtrupp erkennt den Brand nur",
+    "wenn der Sklave hoechstens 4 Felder davor steht und die Abfrage diese Runde laeuft - dazwischen steht er; Zielwert je Gebaeude (WERT) ist pro Einzelgebaeude",
+    "nicht nach Gruppen erreichbarer Ziele (eine ganze ungeschuetzte Wirtschaft zaehlt nicht mehr als ein Haus) - UNGEPRUEFT"
+   ],
+   "notiz": "Daniel 18:14 ergaenzt: Feuer kann ueberspringen - ein perfekt platziertes Feuer fackelt eine ganze Wirtschaft in Sekunden ab, das muss in den Zielwert (Ueberspringen auf Nachbargebaeude, dichte Gruppen hoeher bewerten; Messung 19.10.: eine Huette mit Nachbarn bis 3 Felder sprang NICHT ueber, Daniels Bild 1018n zeigte Ueberspringen im Huettenhof - Bedingungen messen). Und: nach jedem geschafften Ziel SOFORT das beste neue waehlen (Brand pruefen, sobald er angezuendet hat, nicht erst in 4 Feldern Abstand)",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:13",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:14",
+     "was": "offen -> offen: Daniel 18:14 ergaenzt: Feuer kann ueberspringen - ein perfekt platziertes Feuer fackelt eine ganze Wirtschaft in Sekunden ab, das muss in den Zielwert (Ueberspringen auf Nachbargebaeude, dichte Gruppen hoeher bewerten; Messung 19.10.: eine Huette mit Nachbarn bis 3 Felder sprang NICHT ueber, Daniels Bild 1018n zeigte Ueberspringen im Huettenhof - Bedingungen messen). Und: nach jedem geschafften Ziel SOFORT das beste neue waehlen (Brand pruefen, sobald er angezuendet hat, nicht erst in 4 Feldern Abstand)"
+    },
+    {
+     "zeit": "2026-10-22 18:27",
+     "was": "offen -> gebaut"
+    }
+   ]
+  },
+  {
+   "nr": "B-190",
+   "titel": "Nach dem Fall des Lords bleibt das Heer auf dem Bergfried stehen (viele Feinde dort) und verliert Leben, statt sich in Sicherheit zu sammeln und zum naechsten Ziel zu gehen",
+   "bereich": "Kampf",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:16",
+   "herkunft": "Daniel 22.10. 18:16 (Bild: eigene Truppen auf dem Bergfried eines gefallenen Lords zwischen Feinden)",
+   "gebaut": "2026-10-22 18:27",
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_180844 um Tick ~14.000; Feldzug wechselt nach 'Lord tot' das Ziel - ob und wohin die Einheiten in der Zwischenzeit laufen",
+    "UNGEPRUEFT; gewuenscht: zuerst raus aus dem Schussfeld zum sicheren Sammelpunkt",
+    "dann neu planen"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:16",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:27",
+     "was": "offen -> gebaut"
+    }
+   ]
+  },
+  {
+   "nr": "B-191",
+   "titel": "Absprache beim Angriff: beide Heere brechen an zwei Stellen auf statt gemeinsam an einer; Streitkolben stehen vor der Mauer und finden den Eingang nicht",
+   "bereich": "Kampf",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:17",
+   "herkunft": "Daniel 22.10. 18:16 (Bild Franz' Burg: Streitkolben-Haufen steht vor der Mauer; 'es sollte zudem eine Absprache mit dem Teammate geben beim Angriff, sodass nicht doppelt an zwei Stellen aufgemacht wird')",
+   "gebaut": "2026-10-22 18:27",
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_180844: jeder Lenker plant seinen Durchbruch allein (durchbruch.plane je sp",
+    "eigener Startpunkt) - Absprache fehlt; gewuenscht: ein gemeinsamer Plan (z.B. der Lenker mit der kleineren Spielernummer plant",
+    "der andere uebernimmt Ziel und Zugang aus einer gemeinsamen Datei)"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:17",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:27",
+     "was": "offen -> gebaut"
+    }
+   ]
+  },
+  {
+   "nr": "B-192",
+   "titel": "Brennender Sammelpunkt: nicht immer wieder hinlaufen, sondern in Sicherheit warten, bis das Feuer aus ist",
+   "bereich": "Kampf",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:19",
+   "herkunft": "Daniel 22.10. 18:19 (Bild: Heer laeuft in den brennenden Sammelpunkt)",
+   "gebaut": "2026-10-22 18:27",
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_180844; Sammelpunkt wird nicht gegen Feuer geprueft (nur Vorposten/Bresche",
+    "B-150) - UNGEPRUEFT"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:19",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:27",
+     "was": "offen -> gebaut"
+    }
+   ]
+  },
+  {
+   "nr": "B-193",
+   "titel": "Mauer-Zielfindung zu langsam und mehrere Zugaenge statt dem einen kuerzesten; jede Runde aktualisieren: sobald der Lord zugaenglich ist, im selben Takt alle gemeinsam auf den Lord - Orange drehte trotz offenem Zugang um",
+   "bereich": "Kampf",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:19",
+   "herkunft": "Daniel 22.10. 18:19 (3 Bilder Franz' Burg: 'die Zielfindung der Mauer hat viel zu lange gebraucht und sie gehen nicht auf einen Mauerzugang, sondern zu mehreren - Berechnungsfehler; kuerzester Weg und immer updaten; sie kommen durch Glueck durch, weil sie so viele Leben haben; Orange ist, obwohl es dann zugaenglich war, einfach umgedreht statt in dem Tick gemeinsam auf den Lord zu gehen'; dazu: Combo-Angriffe sind sehr effektiv)",
+   "gebaut": "2026-10-22 18:27",
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_180844: Sp1 Kachel (144",
+    "89)",
+    "Sp2 (135",
+    "95) gleichzeitig (B-191); Plan bleibt seit B-179 bis Fall/Verwerfen - 'immer updaten' heisst: den Fall/Zugang JEDE Runde messen (Wegkarte: Lord im eigenen Gebiet -> sofort alle auf den Lord)",
+    "nicht den Zielplatz wechseln; Umdrehen von Orange: Ursache UNGEPRUEFT (Rueckzug/Stau/Freie-Fahrt-Pfad)"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:19",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:27",
      "was": "offen -> gebaut"
     }
    ]
