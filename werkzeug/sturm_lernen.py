@@ -52,12 +52,19 @@ def schluessel(wahl):
     return tuple(wahl.get(k) for k in sorted(STELLSCHRAUBEN))
 
 
+def kosten(z):
+    """Bewertung eines Laufs (Daniel 01:28: auch Tote und Zuruecklaufen zaehlen): Takte bis Lord tot + Tote x gemessene Takte je
+    Angeworbenem in diesem Lauf (so lange dauert es, einen Toten zu ersetzen); Rueckwaerts-Meldungen nur bei Gleichstand."""
+    je_rekrut = z.get("takte_je_rekrut") or 0
+    return (z["takte"] + (z.get("tote") or 0) * je_rekrut, z.get("rueckwaerts") or 0)
+
+
 def beste(laeufe):
     jetzt_ = [z for z in laeufe if not z.get("historisch")]
     sieg = [z for z in (jetzt_ if any(z.get("lord_tot") for z in jetzt_) else laeufe) if z.get("lord_tot")]
     if not sieg:
         return None
-    return min(sieg, key=lambda z: (z["takte"], z.get("tote") if z.get("tote") is not None else 10 ** 6))
+    return min(sieg, key=kosten)
 
 
 def naechste_wahl(laeufe):
@@ -92,6 +99,7 @@ def main():
     import sturm
     erg = sturm.main(wahl)
     erg.update({"zeit": time.strftime("%Y-%m-%d %H:%M"), "grund": grund})
+    erg["takte_je_rekrut"] = round(erg["takte"] / float(erg["angeworben"]), 1) if erg.get("angeworben") else None
     with open(DATEI, "a", encoding="utf-8") as fh:
         fh.write(json.dumps(erg, ensure_ascii=False, default=str) + "\n")
     b = beste(lesen())

@@ -69,8 +69,13 @@ STELLSCHRAUBEN = {
     "losgehen": ["alle", "bedarf"],              # erster Sturm: wenn alle da sind / sobald der Bedarf aus der Verlustrate da ist
     "jaeger": ["aus", "wirkung"],                # Jaeger: keine / nur auf Feinde, die gerade einen von uns angreifen
     "wegweiser": ["aus", "an"],                  # Sammeln/Nachschub/Sturm: direkt / Wegkette entlang des sicheren Plans
+    "abstand": ["3", "8", "15", "44"],           # Sicherheitsabstand fuers Warten: kein Schuetze naeher als so viele Felder
+                                                 # (Bandgrenzen L73; 44 = ganze Reichweite, L82/L91)
+    "rueckkopplung": ["aus", "an"],              # wer sich im Sturm vom Ziel entfernt (Rueckwaerts-Melder): neuer Weg ueber
+                                                 # die sicheren Wegpunkte
 }
-STANDARD = {"lord": "einzeln", "tor": "einzeln", "losgehen": "alle", "jaeger": "wirkung", "wegweiser": "an"}
+STANDARD = {"lord": "einzeln", "tor": "einzeln", "losgehen": "alle", "jaeger": "wirkung", "wegweiser": "an", "abstand": "15",
+            "rueckkopplung": "aus"}
 ZIELEINHEIT = 926                                    # Einheit +926 (short): wen sie gerade angreift (logik.lua lagebild "zieleinheit")
 
 
@@ -96,13 +101,13 @@ def eigene_soldaten(roh):
     return aus
 
 
-def plane_ziel(start, maenner, mk, lnr_xy):
+def plane_ziel(start, maenner, mk, lnr_xy, nah_r=None):
     """Schnellstes Ziel: Mauerweg oder ein Torhaus einschlagen. Rueckgabe dict art ("mauer"/"tor"/"lord"), ziel, zug, weg, takte."""
     befehl({"lagebild": True}, 2.0, bis="LAGEBILD")
     e = AD.ebenen()
     G = lies_gebaeude()
     sperre = AD.sperre_feindbau(e["bau"])
-    gf, nah = schaden_feld(e["link"].shape[0])
+    gf, nah = schaden_feld(e["link"].shape[0], nah_r)
     args = (e["link"], e["logik"], e["bau"], e["besitz"], e["hoehe"], e["boden"], SP, maenner, start, lnr_xy, mk)
     kand = []
     r = mechanik.durchbruch_schritte(*args, sperre=sperre, gefahr=gf)
@@ -140,7 +145,7 @@ SCHADEN_WEIT = 0.06
 NAH = 15                                              # ab hier faellt der Schaden auf ein Zehntel (L73) - Sammeln erlaubt
 
 
-def schaden_feld(n):
+def schaden_feld(n, nah_r=None):
     """(Schaden je Takt je Feld, Schuetzen naeher als NAH je Feld) aus dem letzten Lagebild - nur feindliche Fernkaempfer.
     (22.10. 00:42, Daniel: "er sucht das kleine Tuermchen aus und nicht die Luecke mit 1 Mauer" - mit 44 Feldern Reichweite zaehlte
     jeder Schuetze ueberall gleich, die ganze Burg war gleich gefaehrlich)"""
@@ -162,7 +167,7 @@ def schaden_feld(n):
             for r, w in reversed(SCHADEN_BAENDER):
                 quadrat(d_s, x, y, r, w - vorher)
                 vorher = w
-            quadrat(d_n, x, y, NAH, 1.0)
+            quadrat(d_n, x, y, NAH if nah_r is None else nah_r, 1.0)
     return d_s.cumsum(0).cumsum(1)[:n, :n], d_n.cumsum(0).cumsum(1)[:n, :n]
 
 
@@ -540,7 +545,7 @@ def main(wahl=None):
                             key=lambda q: abstand(q, kaserne_xy) if kaserne_xy else 0)   # Neue kommen aus der Kaserne
             # (Lauf 00:49: waehrend der 1-3 s Planung lief das Spiel weiter, die Maenner ohne Befehl liefen zurueck): Spiel anhalten
             befehl({"pause": True}, 0.3)
-            plan = plane_ziel(start, len(stuermer), mk, lord_xy)
+            plan = plane_ziel(start, len(stuermer), mk, lord_xy, int(wahl["abstand"]))
             befehl({"pause": False}, 0.3)
             ballisten_pruefen = True
             if plan is None:
@@ -639,13 +644,22 @@ def main(wahl=None):
         # Schach-Abstand jedes Sturm-Manns zum Zugang; ist er um 3 Felder oder mehr gewachsen, Meldung mit letztem Befehl
         if t_ % mk["takte_je_treffer"] == 0:
             zug_m = tuple(plan["zug"]) if plan["zug"] else lord_xy
+            korrektur = []
             for n in welle:
                 d_ = abstand((jetzt[n]["x"], jetzt[n]["y"]), zug_m)
                 alt_d = abst_alt.get(n)
                 if alt_d is not None and d_ >= alt_d + 3:
                     melde((t_, "RUECKWAERTS %d (Typ %d) %d -> %d Felder vom Zugang, Zustand %d, letzter Befehl %s" % (
                         n, jetzt[n]["typ"], alt_d, d_, jetzt[n]["lage"], letzter_befehl.get(n))))
+                    if wahl["rueckkopplung"] == "an":
+                        korrektur.append(n)
                 abst_alt[n] = d_
+            if korrektur:
+                # Rueckkopplung: die KI korrigiert, was sie selbst misst - Weg neu entlang des Plans bis zum Zugang (Lord: bis vor ihn,
+                # dort greift die Ankunft-Regel); danach wird wieder gemessen
+                bis_k = plan["weg"].index(tuple(plan["zug"])) if plan["zug"] and tuple(plan["zug"]) in plan["weg"] else len(plan["weg"]) - 2
+                kette(korrektur, bis_k, "Rueckkopplung")
+                lord_an.difference_update(korrektur)
         if plan["art"] == "mauer":
             k = kvon[plan["ziel"]]
             if not s32(speicher.LOGIK + 4 * k) & 0x100:
@@ -748,7 +762,8 @@ def main(wahl=None):
     with open(AUS, "a", encoding="utf-8") as fh:
         fh.write(json.dumps(erg, ensure_ascii=False, default=str) + "\n")
     print("Takte %d" % t_, flush=True)
-    return {"takte": t_, "lord_tot": erg["lord_tot"], "tote": erg["tote"], "rueckwaerts": erg["rueckwaerts"], "wahl": wahl}
+    return {"takte": t_, "lord_tot": erg["lord_tot"], "tote": erg["tote"], "rueckwaerts": erg["rueckwaerts"], "wahl": wahl,
+            "angeworben": erg["angeworben"]}
 
 
 if __name__ == "__main__":
