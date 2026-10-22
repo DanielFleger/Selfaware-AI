@@ -187,7 +187,7 @@ class Brandtrupp:
                 continue                                      # Fallgrube: toetet sofort, steht in keiner Schadenskarte
             if _nahkampf_bei(p, L, self.sp):
                 continue
-            if brennt_noch_bei_ankunft(g, self.heerwege):
+            if brennt_noch_bei_ankunft(g, getattr(self, '_wege', self.heerwege)):
                 continue                                      # B-150: wuerde auf dem eigenen Heerweg noch brennen
             kand.append((WERT[g["typ"]], p, n))
         return kand
@@ -203,11 +203,25 @@ class Brandtrupp:
         self._rang = r
         return [(k, p) for _, k, p in r]
 
+    def _alle_heerwege(self, L):
+        """B-183 (Daniel 22.10. 17:55/17:57: das Heer verbrennt in Haeusern, die eigene oder Partner-Sklaven anzuendeten): zu den
+        Heerwegen des eigenen Feldzugs die Kaempfer ALLER Verbuendeten - wo sie stehen und wohin sie laufen (Lagebild laufx/y)."""
+        from feldzug import HEER
+        wege = list(self.heerwege or ())
+        for e in L.values():
+            if (e.get("besitzer") in freunde_von(self.sp) and e.get("besitzer") not in (0, self.sp) and e.get("typ") in HEER
+                    and e.get("leben", 1) > 0):
+                o = (e["x"], e["y"])
+                ziel = (e["laufx"], e["laufy"]) if e.get("laufx", 0) > 0 and e.get("laufy", 0) > 0 else o
+                wege.append((o, ziel))
+        return wege
+
     def schritt(self, L, G, befehl, lage=None):
         import gefahrenschutz as GS
         self.runde += 1
         aus = []
         meine = self.einheiten(L)
+        self._wege = self._alle_heerwege(L)
         if lage is None or self.schutz:
             lage = _lage_fuer(self.sp, L, G, self.raten, ohne=self._gedeckt(L))
         for s in list(self.ziel):
@@ -229,7 +243,7 @@ class Brandtrupp:
         # B-150: ein noch nicht brennendes Ziel wird jede Runde gegen die Heerwege geprueft; ohne neues Ziel bleibt der Sklave stehen
         halt = set()
         for s, nr in list(self.ziel.items()):
-            if nr not in self.brennt and brennt_noch_bei_ankunft(G[nr], self.heerwege):
+            if nr not in self.brennt and brennt_noch_bei_ankunft(G[nr], getattr(self, '_wege', self.heerwege)):
                 self.ziel.pop(s)
                 self.plan.pop(s, None)
                 halt.add(s)

@@ -31,6 +31,7 @@ HEER = {24, 25, 26, 27, 28, 75, 22, 23, 70}
 # B-134 Burg knacken: Torhaeuser (45 gross, 46 klein), Tuerme 74-78 (bauen.NACH_TYP). Zugbruecke 49 nicht mehr (20.10. gegen
 # Franz: 6 Mal Ziel, ihr Leben blieb bei 100 stehen, keine einzige fiel - gefallen sind nur Torhaeuser 46 und ein Turm 74)
 BURG_TEILE = {45, 46, 74, 75, 76, 77, 78}
+BALLISTE = 77                    # Einheitentyp Feuerballiste (sturm.py)
 FERN_REICH = {22: 44, 23: 44, 70: 44}
 LORD = 55
 FERN = {22, 23, 70, 72, 74, 76}
@@ -436,6 +437,7 @@ class Feldzug:
         self.dplan = neu
         return neu
 
+    BALLISTE_MIN = 2           # B-182: so viele Nahkaempfer mindestens je Feuerballiste (im Sturm abgesprochen, Daniel 22.10.)
     ZUG_STILL = 300            # B-180: so lange nicht naeher am Zugang (und kein Gegner) -> Weg neu (wie RUECKZUG_TAKTE, L170)
     KETTE_ABSTAND = 15         # B-180: Wegpunkte entlang des Plans (wie sturm.py NAH)
 
@@ -641,6 +643,30 @@ class Feldzug:
                        "Fuss erreichbar (Gebiet %d); Mindestzahl bei %d Takten (Schaden je Takt %d UNGEMESSEN)" % (
                            noetig, k, L[k]["typ"], L[k].get("leben", 0), ort, treffer, self._karte.gebiet_bei(start),
                            self.ABFANG_TAKTE, GF.NAHKAMPF_SCHADEN))
+        # B-177/B-182 (Daniel 22.10. 17:53/17:55: Bogenschuetzen, die beim Vorbeilaufen sichtbar werden, und Feuerballisten auf
+        # dem Weg werden nicht besiegt): nach WIRKUNG wie im Sturm - wer gerade einen von uns angreift (Lagebild zieleinheit) und
+        # zu Fuss erreichbar ist (gleiches Gebiet), bekommt die kleinste Zahl Nahkaempfer, eine Feuerballiste mindestens BALLISTE_MIN
+        import gefecht
+        meine = {n for n, e in L.items() if e.get("besitzer") == self.sp}
+        g_start = self._karte.gebiet_bei(start)
+        for k, e in sorted(L.items(), key=lambda ke: schach((ke[1]["x"], ke[1]["y"]), start)):
+            if (k in auftraege or e.get("besitzer") in freunde_von(self.sp) or e.get("leben", 1) <= 0
+                    or (e.get("typ") not in gefecht.FERN_REICH and e.get("typ") != BALLISTE)
+                    or e.get("zieleinheit") not in meine):
+                continue
+            p_e = (e["x"], e["y"])
+            if not g_start or not self._karte.drin(p_e) or int(self._karte.gebiete[p_e[0], p_e[1]]) != g_start:
+                continue                                    # auf Mauer/Turm oder hinter einer Mauer - zu Fuss nicht erreichbar
+            noetig = GF.mindestzahl(e.get("leben", 1), self.ABFANG_TAKTE)
+            if e.get("typ") == BALLISTE:
+                noetig = max(noetig, self.BALLISTE_MIN)
+            if noetig > rest or noetig > len(frei):
+                continue
+            frei.sort(key=lambda n: schach((L[n]["x"], L[n]["y"]), p_e))
+            auftraege[k], frei, rest = frei[:noetig], frei[noetig:], rest - noetig
+            aus.append("FELDZUG ABFANG NACH WIRKUNG: %d Nahkaempfer auf %s %d (Typ %d) bei %s - greift Einheit %d an, zu Fuss "
+                       "erreichbar" % (noetig, "Feuerballiste" if e.get("typ") == BALLISTE else "Schuetze", k, e["typ"], p_e,
+                                       e.get("zieleinheit")))
         for k, ns in auftraege.items():
             neu = [n for n in ns if befohlen.get(n) != ("abfang", k) or L[n].get("zustand") in (0, 1)]
             if neu:

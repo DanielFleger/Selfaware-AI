@@ -1219,6 +1219,22 @@ def main():
     r55 = MK.durchbruch_schritte(*arg55, sperre=sperre55)
     pruefe(55, "ohne Sperre gehackt %s | mit dieser Kachel gesperrt: Mauern auf dem Weg %s" % (k55, r55.get("mauern")),
            k55 and r55["weg"] and k55 not in [tuple(q) for q in r55["mauern"]])
+    # 56 (B-177/B-182): Feuerballiste (Typ 77) im Gebiet 1 greift Einheit 10 an -> Abfang mit 2 Mann; dieselbe auf einer Mauer
+    #    (Gebiet 0) -> niemand
+    import gefahr as GF56
+    geb56 = np41.ones((400, 400), np41.int32)
+    geb56[150, 150] = 0
+    def abfang56(ort):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+        f._karte = GF56.Karte([], gebiete=geb56)
+        L_ = {10 + i: einheit(26, 1, 140 + i % 5, 140 + i // 5) for i in range(20)}
+        L_[777] = dict(einheit(77, 2, ort[0], ort[1], 5000), zieleinheit=10)
+        aus_ = []
+        return f._abfangen(L_, sorted(k for k in L_ if k < 777), (140, 140), (300, 300), {}, Befehle(), aus_), aus_
+    a56, m56 = abfang56((145, 150))
+    a56o, m56o = abfang56((150, 150))
+    pruefe(56, "Ballista im Feld: %d Jaeger %s | auf der Mauer: %d" % (len(a56), [m[:50] for m in m56], len(a56o)),
+           len(a56) >= 2 and any("Feuerballiste 777" in m for m in m56) and len(a56o) == 0)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

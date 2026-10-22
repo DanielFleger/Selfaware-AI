@@ -266,6 +266,17 @@ def main():
         fehler20 = repr(ex)
     pruefe(20, "Zielnummer neu vergeben: Fehler %s, Ziel %s" % (fehler20, rj20.befohlen.get(20)),
            fehler20 is None and rj20.befohlen.get(20, (None, None))[1] == 701)
+    # 21. (B-183) ein Kaempfer des Partners (Spieler 2, verbuendet) laeuft zu einem Punkt 2 Felder neben der Huette -> kein Ziel;
+    #     ohne ihn ist sie Ziel
+    parteien.setzen(1, {1, 2})
+    G21 = {1: geb(1, 3, 130, 100)}
+    L21 = {10: einheit(71, 1, 100, 100), 50: dict(einheit(26, 2, 128, 120), laufx=131, laufy=102)}
+    b21 = BT()
+    b21.schritt(L21, G21, Befehle())
+    b21o = BT()
+    b21o.schritt({10: einheit(71, 1, 100, 100)}, G21, Befehle())
+    parteien.setzen(1, {1})
+    pruefe(21, "Partner-Heer an der Huette: Ziel %s | ohne: %s" % (b21.ziel, b21o.ziel), 10 not in b21.ziel and b21o.ziel.get(10) == 1)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
