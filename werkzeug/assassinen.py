@@ -421,7 +421,14 @@ class Einzeln:
     # 18.10.: mit den Editor-Raten (L81) und der behobenen Nummer (L85) UEBERschaetzt das Modell den echten Verlust in 1017h-j
     # um das 2-4fache (6+ Schuetzen: Modell 8,4 / echt 2,8 je Takt; nahe Feuerwerfern 57-132 / 13-47) - es rechnet volles Feuer ab
     # dem ersten Takt, im Spiel vergehen 64-170 Takte bis zum ersten Treffer. Kein Aufschlag mehr; vorsichtig bleibt es so ohnehin
-    KALIB = 1.0
+    # B-204 (Daniel 22.10. 18:47: "die meisten Assassinen wuseln rum und finden keinen Platz zum Angreifen, weil alle durch den
+    # Sicherheitsfilter nicht angreifbar sind"; gemessen 18:47: gut jede zweite Entscheidung Warten/Ausweichen/'alle gefaehrlich'):
+    # die Eichung aus der Messung oben (echt/Modell 2,8/8,4 = 0,33; nahe Feuerwerfern 13-47/57-132 = 0,23-0,36) statt 1,0 - das
+    # Modell rechnete den Tod dreimal so wahrscheinlich, wie er war
+    KALIB = 0.33
+    # Lord-Anlauf: die Eichung oben stammt aus Raids; 1017i starben beim gemeinsamen Anlauf alle 5 vor dem Lord, obwohl das
+    # Modell "machbar" rechnete - dort bleibt das ungeeichte Modell
+    KALIB_LORD = 1.0
     ANKUNFT_MIN = 0.3                    # 18.10.: so viel Leben je Assassine muss nach dem Anlauf am Lord uebrig sein (STARTWERT)
     SPERRE_ROUTE = 1500                  # 18.10.: so lange nimmt der Zielwechsel ein Ziel mit gefaehrlicher Route nicht wieder
     ZIEL_RISIKO = 0.05
@@ -1057,7 +1064,7 @@ class Einzeln:
         k = max(1, d // 3)
         punkte = [(von[0] + (lp[0] - von[0]) * i // k, von[1] + (lp[1] - von[1]) * i // k) for i in range(k + 1)]
         f = sum(self._sicht.feuer_gesamt(q) for q in punkte) / len(punkte)
-        rest = int(self.VOLL - f * d * TEMPO * self.KALIB / n)
+        rest = int(self.VOLL - f * d * TEMPO * self.KALIB_LORD / n)
         # mindestens ANKUNFT_MIN Leben je Assassine am Lord, sonst gilt der Angriff als nicht machbar (Rechnung ist ein Modell)
         return rest if rest >= self.ANKUNFT_MIN * self.VOLL else 1
 

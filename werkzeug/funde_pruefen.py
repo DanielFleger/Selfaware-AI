@@ -338,7 +338,9 @@ def main():
         erg, bef = t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
         return t.ziel.get(100), [z[:90] for z in erg if z.startswith("ZIELWAHL")][:1]
     z14, m14 = lage_risiko(12500, 76)          # 19.10.: Spaeher 6 Felder weiter weg (Sicherheitsrand sicht.RAND 48)
-    pruefe(14, "Weg mit ~17 %% Todesrisiko (Bogen + Spaeher am Durchgang): Ziel %s %s" % (z14, m14), z14 is None)
+    # B-204 (Daniel 22.10. 18:47 "durch den Sicherheitsfilter nicht angreifbar"): mit der gemessenen Eichung KALIB 0,33 sind die
+    # ungeeichten ~17 % hier ~6 % -> Ziel (vorher: kein Ziel); die Grenze selbst prueft Fall 15 mit dem schwachen Assassinen
+    pruefe(14, "Weg mit ~17 %% ungeeicht (Bogen + Spaeher am Durchgang), geeicht ~6 %%: Ziel %s %s" % (z14, m14), z14 == 900)
     z15a, _ = lage_risiko(12500, 74)
     z15, m15 = lage_risiko(7000, 74)
     pruefe(15, "Weg mit ~9 %%: volles Leben Ziel %s (soll 900); mit 7.000 Leben (schwach, ~16 %%): Ziel %s %s" % (z15a, z15, m15),
@@ -528,10 +530,12 @@ def main():
     erg, bef = t.schritt(L, G, sichere_orte=[(20, 300)], tick=10000)
     pruefe(30, "Holzfaeller nahe am Speer vs. ruhige Apfelplantage: Ziel %s" % t.ziel.get(100), t.ziel.get(100) == 901)
     # 31
-    def lage_fertig(leben_g):
+    def lage_fertig(leben_g, armbrust=1):
         t = neu(); t._raid_plaetze = 99
         L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
-             601: einheit(24, 2, 112, 100, leben=10000), 610: einheit(23, 2, 130, 100, leben=17500)}
+             601: einheit(24, 2, 112, 100, leben=10000)}
+        for i in range(armbrust):                  # B-200: gegen EINE Armbrust bleibt er (TROTZ ENTDECKT) - Gegenprobe mit 12
+            L[610 + i] = einheit(23, 2, 128 + i % 4, 96 + i // 4 * 2, leben=17500)
         L[100].update(zustand=107)
         G = {900: {"besitzer": 2, "typ": 9, "x": 101, "y": 101, "leben": leben_g, "uid": 1, "erreichbar": 1}}
         t.aufnehmen([100])
@@ -540,7 +544,7 @@ def main():
         erg, bef = t.schritt(L, G, sichere_orte=[(20, 300)], tick=10000)
         return 100 in getattr(t, "entdeckt", {}), t.ziel.get(100), [z[:50] for z in erg if "FERTIG" in z][:1]
     e31, z31, m31 = lage_fertig(10)
-    e31v, _, _ = lage_fertig(200)
+    e31v, _, _ = lage_fertig(200, armbrust=12)
     pruefe(31, "Kaserne 10/200: entdeckt %s, Ziel %s %s; 200/200: entdeckt %s" % (e31, z31, m31, e31v), not e31 and z31 == 900 and e31v)
     # 32
     t = neu(); t._raid_plaetze = 99
