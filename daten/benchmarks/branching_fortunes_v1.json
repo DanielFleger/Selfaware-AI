@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "backlog": "B-209",
+  "status": "Zielwerte, noch keine Messergebnisse",
+  "map": "Liga_Branching Fortunes",
+  "mode": "2v2",
+  "our_players": [
+    1,
+    2
+  ],
+  "enemy_players": [
+    3,
+    4
+  ],
+  "enemy_ai_ids": [
+    7,
+    8
+  ],
+  "enemy_names": [
+    "Gardist",
+    "Kriegsfuerst"
+  ],
+  "plugin": "Mod-KI-Team-Liga 2.0.2",
+  "qualification": {
+    "both_controllers_active": true,
+    "both_observed_granaries_by_tick": 800,
+    "no_stale_or_mixed_snapshots": true,
+    "natural_enemy_lord_deaths": true,
+    "no_resource_or_combat_memory_writes_after_initialization": true
+  },
+  "evaluation": {
+    "held_out_seed_pairs": 10,
+    "matches": 20,
+    "minimum_wins": 19,
+    "minimum_own_lord_health_fraction": 0.9,
+    "minimum_dominant_wins": 18,
+    "median_win_tick_max": 28800,
+    "p90_win_tick_max": 38400,
+    "match_tick_limit": 96000,
+    "invalid_runs_allowed": 0,
+    "timeouts_are_wins": false,
+    "invalid_runs_are_losses": false,
+    "invalid_runs_reported_separately": true
+  },
+  "native_target": {
+    "reaction_ticks_p99_max": 4,
+    "speed_equivalence": [
+      40,
+      100,
+      300,
+      1000
+    ],
+    "status": "Ziel fuer Kernmigration; vom Python-Lenker nicht nachgewiesen"
+  },
+  "selection": "Victories first; among equally reliable versions minimize win time, then own losses. No stock/damage proxy can replace a lord kill."
+}

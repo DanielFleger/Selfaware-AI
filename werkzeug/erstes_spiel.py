@@ -278,11 +278,24 @@ def team_feinde_eintragen(karte, kurz, plaetze):
               for i, p in enumerate(plaetze) if i >= 1 + GEGNER_ZAHL}
     if not feinde:
         raise SystemExit("2v2: keine KI-Plaetze in plaetze=%s" % plaetze)
-    if info.get("feind_bergfried") != feinde:
+    # Both human keep locations were measured together, before the real match.
+    # Read the partner's own start record; AI keep coordinates differ from humans.
+    partner_plaetze = [plaetze[1], plaetze[0]] + plaetze[2:]
+    import karten_holen as KH_team
+    partner_kurz = KH_team.kurz_von(karte) + "_pl" + "-".join(map(str, partner_plaetze)) + "_2v2"
+    partner_info = json.load(open(os.path.join(D, "start_%s.json" % partner_kurz), encoding="utf-8"))
+    freund = {str(3 - SP): {"anker": partner_info["bergfried_anker"], "eingang": partner_info["bergfried_eingang"]}}
+    geaendert = info.get("freund_bergfried") != freund or info.get("spieler") != SP
+    info["freund_bergfried"], info["spieler"] = freund, SP
+    if info.get("feind_bergfried") != feinde or geaendert:
         schreib("2v2 FEINDE %s: feind_bergfried %s -> %s (KI-Burgen aus liga_karten.json)" % (
             kurz, {k: v["eingang"] for k, v in info.get("feind_bergfried", {}).items()}, {k: v["eingang"] for k, v in feinde.items()}))
         info["feind_bergfried"], info["feind_quelle"] = feinde, "liga_karten.json (KI-Burgen), B-136"
         json.dump(info, open(pfad, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        # Old plans were optimized without the teammate territory constraint.
+        plan_pfad = os.path.join(D, "eroeffnung_plan_%s.json" % kurz)
+        if os.path.exists(plan_pfad):
+            os.replace(plan_pfad, plan_pfad + ".vor_b210")
 
 
 def eins_gegen_eins_start():
@@ -366,6 +379,8 @@ def freier_platz(typ, mitte, r, frei_von=()):
     z = " ".join(befehl({"platzsuche": {"spieler": SP, "mapper": g["mapper"], "groesse": g["b"], "x": mitte[0], "y": mitte[1],
                                         "r": r, "max": 12}}, 1.0, bis="PLATZSUCHE"))
     for x, y in [tuple(map(int, q)) for q in re.findall(r"\((\d+),(\d+)\)", z.split("geprueft:")[-1])]:
+        if max(abs(x - mitte[0]), abs(y - mitte[1])) > r + PLATZ_RAND or not mein_land((x, y)):
+            continue
         if all(x + g["b"] <= o[0] or o[0] + b2 <= x or y + g["b"] <= o[1] or o[1] + b2 <= y for o, b2 in frei_von):
             return (x, y)
     return None
@@ -399,7 +414,7 @@ def phase1(plan, tempo, mit_posten=True):
     # Jetzt: ALLES, was nur Holz kostet, in EINEM Befehl gleich beim Start (Kornspeicher, Markt, Holzfaeller, Steinbruch,
     # Ochsenjoch, Huetten) an festen Plaetzen; sobald das Essen da ist verkaufen, Posten, Assassine; dann die Apfelplantagen
     # (die kosten Gold). Kontrolle einmal, waehrend wir sowieso aufs Essen warten.
-    if plan.get("karte", "Liga_Grumpy Neighbors") != "Liga_Grumpy Neighbors":
+    if not V14:
         global MARKT, POSTEN
         MARKT = freier_platz(26, BERGFRIED, 25)
         POSTEN = freier_platz(8, BERGFRIED, 25, frei_von=[(MARKT, NACH_TYP[26]["b"])] if MARKT else ())
@@ -645,14 +660,7 @@ def eigene_aepfel(plan):
         # eigenem Land steht
         ks = tuple(plan.get("kornspeicher") or ())
         if ks and not mein_land(ks):
-            q = (sum(p[0] for p in meine) // len(meine), sum(p[1] for p in meine) // len(meine)) if meine else BERGFRIED
-            for i in range(21):
-                q_i = (q[0] + (BERGFRIED[0] - q[0]) * i // 20, q[1] + (BERGFRIED[1] - q[1]) * i // 20)
-                if mein_land(q_i):
-                    q = q_i
-                    break
-            plan["kornspeicher"] = list(q)
-            schreib("ABSPRACHE Kornspeicher: Planplatz %s liegt naeher am Bergfried des Verbuendeten - neu bei %s" % (ks, q))
+            raise RuntimeError("TEAMPLAN UNGUELTIG: Kornspeicher %s liegt auf Partnerland - vor Partie neu planen" % (ks,))
 
 
 def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
@@ -3798,6 +3806,10 @@ def main():
             KH.vermessen_live(kurz, SP)
     if TEAM_KIS:
         team_feinde_eintragen(karte, kurz, plaetze)      # B-136: vor dem Eroeffnungsplan, der die eigene Seite daraus nimmt
+        info_team = json.load(open(os.path.join(D, "start_%s.json" % kurz), encoding="utf-8"))
+        _BURGEN.clear()
+        _BURGEN.update({int(s): tuple(b["eingang"]) for s, b in info_team["freund_bergfried"].items()})
+        _BURGEN[SP] = tuple(info_team["bergfried_eingang"])
     if UEBERNEHMEN:
         # 19.10. 20:05: Karte und Platz kommen aus der Lobby des Menschen - Kurzname aus dem Ort unseres Lords, den Platz in
         # der laufenden Partie vermessen (wie Spieler 2 im 1v1; die KI-Burg steht anders als die eines Menschen, L-Fund 19.10.)

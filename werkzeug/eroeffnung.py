@@ -207,6 +207,11 @@ def plane(K=8, A=6, holz=150, bevoelkerung_platz=10, steinbruch=True, huetten_mi
             return all(d_eigen < max(abs(p[0] - f[0]), abs(p[1] - f[1])) for f in feinde)
         karten = {n: {q for q in k if eigene_seite(q)} for n, k in karten.items()}
         B = [b for b in B if eigene_seite((b[1], b[2]) if isinstance(b, (tuple, list)) else (b["x"], b["y"]))]
+    if info:
+        from land import eigene_seite as gebietsregel
+        eigene_seite = gebietsregel(info)
+        karten = {n: {q for q in k if eigene_seite(q)} for n, k in karten.items()}
+        B = [b for b in B if eigene_seite((b[1], b[2]) if isinstance(b, (tuple, list)) else (b["x"], b["y"]))]
     # B-124 (19.10.): lager_max ist ein Knopf - Lobby-Partie 2240: 1 faellbarer Baum im Umkreis 60 um SamurAIs Bergfried,
     # Holzfaeller im Mittel 91 Felder entfernt; Modell: Lager bis 45 -> 60 Holz je 1.000 Ticks, bis 75 -> 84, bis 90 -> 93
     h = plane_holz(karten["holzfaeller"], karten["lager"], B, K, lager_max=lager_max)

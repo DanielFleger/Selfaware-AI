@@ -45,11 +45,11 @@ def schach(a, b):
     return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
 
 
-def apfel_plaetze(kurz, K, feinde):
+def apfel_plaetze(kurz, K, feinde, erlaubt=lambda p: True):
     """Nicht ueberlappende 10x10-Plaetze der eigenen Seite (Platzkarte des Spiels), die naechsten zum Bergfried zuerst."""
     from farmen_mischen import lies_karte
     roh = lies_karte(os.path.join(D, "start_%s_platz_apfel.txt" % kurz))
-    eigen = [p for p in roh if all(schach(p, K) < schach(p, f) for f in feinde)]
+    eigen = [p for p in roh if erlaubt(p) and all(schach(p, K) < schach(p, f) for f in feinde)]
     aus = []
     for p in sorted(eigen, key=lambda q: schach(q, K)):
         if all(abs(p[0] - q[0]) >= GROESSE_APFEL or abs(p[1] - q[1]) >= GROESSE_APFEL for q in aus):
@@ -128,7 +128,7 @@ def brotketten(frei, b, lager, speicher):
 RING_RAND = 2      # 19.10.: plus Burggraben (kornring.Graben) auf Abstand 2 - Ring UND Grabenring bleiben frei
 
 
-def speicherplatz(kurz, punkt, belegt):
+def speicherplatz(kurz, punkt, belegt, erlaubt=lambda p: True):
     """Gueltiger Kornspeicher-Platz (Platzkarte des Spiels) naechst `punkt`, ohne Plantagen-/Farmflaeche - mit RING_RAND
     Feldern Abstand fuer den Mauerring."""
     from farmen_mischen import lies_karte
@@ -136,9 +136,11 @@ def speicherplatz(kurz, punkt, belegt):
     r = RING_RAND
     # belegt: (x, y) = Plantage/Farm (10x10) oder (x, y, Groesse) fuer andere geplante Bauten (Holzfaeller, Huetten, Lager)
     gr = lambda q: q[2] if len(q) > 2 else GROESSE_APFEL
-    frei = [s for s in speicher if all(s[0] + 4 + r <= q[0] or q[0] + gr(q) + r <= s[0] or s[1] + 4 + r <= q[1]
+    frei = [s for s in speicher if erlaubt(s) and all(s[0] + 4 + r <= q[0] or q[0] + gr(q) + r <= s[0] or s[1] + 4 + r <= q[1]
                                        or q[1] + gr(q) + r <= s[1] for q in belegt)]
-    return tuple(min(frei, key=lambda s: schach((s[0] + 2, s[1] + 2), punkt))) if frei else tuple(punkt)
+    if not frei:
+        raise ValueError("KEIN GUELTIGER KORNSPEICHER: %s - keine ungepruefte Ersatzkoordinate" % kurz)
+    return tuple(min(frei, key=lambda s: (schach((s[0] + 2, s[1] + 2), punkt), s)))
 
 
 def waehle(kurz, plan, bev_ziel=90, ration="doppelt", horizont=16000):
@@ -150,8 +152,10 @@ def waehle(kurz, plan, bev_ziel=90, ration="doppelt", horizont=16000):
     K = tuple(info["bergfried_eingang"])
     feinde = [tuple(v["eingang"]) for v in info["feind_bergfried"].values()]
     lager = tuple(plan.get("lager_mitte") or plan.get("lager") or K)
-    plaetze = apfel_plaetze(kurz, K, feinde)
-    hd = herden(info, K, feinde)
+    from land import eigene_seite
+    erlaubt = eigene_seite(info)
+    plaetze = apfel_plaetze(kurz, K, feinde, erlaubt)
+    hd = [(m, n) for m, n in herden(info, K, feinde) if erlaubt(m)]
     jaeger_max = sum(min(JAEGER_JE_HERDE, n // JAGD_MIN) for _, n in hd)
     t_brot = M.BROT_ERSTE
     # 19.10. (B-120-Test, bis_tick=6000): endet die Partie vor dem ersten Brot (horizont < t_brot), war der Bereich leer und
@@ -245,7 +249,7 @@ def waehle(kurz, plan, bev_ziel=90, ration="doppelt", horizont=16000):
     belegt += [(p[0], p[1], NACH_TYP[3]["b"]) for p in plan.get("holzfaeller", [])] +               [(p[0], p[1], NACH_TYP[1]["b"]) for p in plan.get("huetten", [])]
     if plan.get("lager"):
         belegt.append((plan["lager"][0], plan["lager"][1], 6))
-    ks = list(speicherplatz(kurz, beste["_speicher"], belegt))
+    ks = list(speicherplatz(kurz, beste["_speicher"], belegt, erlaubt))
     grund["kornspeicher_zum_bergfried"] = schach(tuple(ks), K)
     grund["kornspeicher_zum_lager"] = schach(tuple(ks), lager)
     return {"aepfel": aepfel, "kornspeicher": ks, "brot": brot, "jaeger": jaeger, "ration_frueh": ration_frueh,
