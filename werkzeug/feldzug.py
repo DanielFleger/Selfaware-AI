@@ -1618,7 +1618,20 @@ class Feldzug:
             return True, "keine Verteidiger an der Angriffsstelle (%d eigene)" % len(wir)   # B-140: dann lohnt es erst recht
         try:
             # B-140 (Pruefstand 22:04: 115 gegen 84 "offen nach 1500 Takten", mit 167 Sieg nach 1.460): am Ziel bis ZIEL_BIS rechnen
-            ok_, text_ = gefecht.bewerte(wir, sie, bis=self.ZIEL_BIS if am_ziel else gefecht.BIS)
+            if am_ziel:
+                # B-207 (Daniel 18:58 "gegen so wenige wie moeglich kaempfen - du musst ja nur den Lord killen"): am Ziel zaehlt
+                # nur der Wettlauf - alle schlagen auf den Lord, gegen uns kaempfen die Verteidiger bis LORD_UMKREIS um IHN und die
+                # Schuetzen, die ihn erreichen; nicht die ganze Burg
+                sie_l = [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=False) for e in L.values()
+                         if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in TRUPPE and e["typ"] != gefecht.LORD and (
+                             schach((e["x"], e["y"]), lp) <= self.LORD_UMKREIS
+                             or (e["typ"] in gefecht.FERN_REICH and schach((e["x"], e["y"]), lp) <= gefecht.FERN_REICH[e["typ"]]))]
+                sie_l.insert(0, dict(typ=gefecht.LORD, leben=lord.get("leben", gefecht.LORD_LEBEN), x=lp[0], y=lp[1], steht=True))
+                # unsere stehen an der Angriffsstelle (mitte_k: Tor/Bresche) und laufen von dort zum Lord - der Weg durch die
+                # Verteidiger zaehlt mit (Streitkolben am Lord gemessen 70 je Takt, Sandkasten 22.10., lord_nahkampf.jsonl)
+                ok_, text_ = gefecht.lord_rennen(wir, sie_l, 0, bis=self.ZIEL_BIS)
+            else:
+                ok_, text_ = gefecht.bewerte(wir, sie, bis=gefecht.BIS)
             return ok_, ("mit %d Truppen des Verbuendeten: " % len(partner) if partner else "") + text_
         except Exception as ex:
             return False, "Rechnung fehlgeschlagen (%s)" % ex

@@ -114,6 +114,7 @@ def main():
     f6 = F.Feldzug(1, heim, lord_schutz_bis=12040, n=30)   # B-140: Schritt 1 unter Lord-Schutz
     f6.schritt({"t": 12000}, *lage(10, heim), Befehle())
     L, G = lage(8, f6.punkt)
+    L[500]["leben"] = 150000                # B-207 Lord-Wettlauf: echter Lord (150.000) - 8 schaffen ihn nicht vor den 20
     for i in range(20):
         L[900 + i] = einheit(75, 2, 300 + i % 5, 102 + i // 5, 28000)
     b = Befehle()
@@ -361,18 +362,21 @@ def main():
     # 20 (B-139/B-140): 30 arab. Schwertkaempfer irgendwo (nicht am Sammelpunkt), der Lord mit 2 Schuetzen, Lord-Schutz vorbei
     #    -> die Gefechtsrechnung mit dem ganzen Heer gewinnt -> sofort ANGRIFF (kein Rueckweg zum Sammelpunkt).
     #    Gegenprobe (B-140, Pruefstand T40126: 30 gegen Franz' 86): dieselben 30, am Lord stehen 80 arab. Schwertkaempfer -> sammeln.
-    def neustart(verteidiger):
+    # B-207 (Daniel 22.10. 18:58 "du musst ja nur den Lord killen"): Lord-Wettlauf statt Schlacht gegen alle - Gegenprobe
+    # jetzt: nur 6 eigene gegen den echten Lord (150.000) und 80 Verteidiger -> sammeln
+    def neustart(verteidiger, eigene=30):
         f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
         L_, G_ = lage(0, heim)
-        for i in range(30):
+        L_[500]["leben"] = 150000
+        for i in range(eigene):
             L_[10 + i] = einheit(75, 1, 250 + i % 5, 160 + i // 5, 28000)
         for i in range(verteidiger):
             L_[1000 + i] = einheit(75, 2, 296 + i % 9, 96 + i // 9, 28000)
         m_ = f.schritt({"t": 12000}, L_, G_, Befehle())
         return f.phase, [m[:50] for m in m_ if "ANGRIFF" in m]
     ph20, m20 = neustart(0)
-    ph20g, _ = neustart(80)
-    pruefe(20, "30 verstreut gegen Lord + 2 Schuetzen: Phase %s %s | gegen 80 am Lord: %s" % (ph20, m20, ph20g),
+    ph20g, _ = neustart(80, eigene=6)
+    pruefe(20, "30 verstreut gegen Lord + 2 Schuetzen: Phase %s %s | 6 gegen Lord + 80: %s" % (ph20, m20, ph20g),
            ph20 == "angriff" and ph20g == "sammeln")
     # 21 (B-139, 20.10. gegen Franz: 72.000 Takte Stillstand, Ziel 1.500 Leben, Truppen 150+ Felder weg): Stau, die Bresche steht,
     #    weniger als TOR_MIN Nahkaempfer davor -> "UNERREICHBAR", verworfen, naechste Schwachstelle.
@@ -504,10 +508,11 @@ def main():
     # 25 (B-140, Daniel 22:07 "schlau angestellt werden vielleicht nur 20-30 % der gegnerischen Einheiten ueberhaupt genutzt"):
     #    80 arab. Schwertkaempfer stehen 40 Felder noerdlich des Lords, das Torhaus liegt 20 Felder suedlich -> an der
     #    Angriffsstelle kaempft keiner von ihnen mit, 30 eigene greifen an. Gegenprobe: die 80 stehen am Torhaus -> sammeln.
-    def stelle(am_tor):
+    def stelle(am_tor, eigene=30):           # B-207: Gegenprobe mit 6 eigenen gegen den echten Lord
         f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
         L_, G_ = lage(0, heim)
-        for i in range(30):
+        L_[500]["leben"] = 150000
+        for i in range(eigene):
             L_[10 + i] = einheit(75, 1, 250 + i % 5, 160 + i // 5, 28000)
         for i in range(80):
             L_[1000 + i] = einheit(75, 2, 296 + i % 9, (116 if am_tor else 56) + i // 9, 28000)
@@ -515,8 +520,8 @@ def main():
         m_ = f.schritt({"t": 12000}, L_, G_, Befehle())
         return f.phase, [m[:60] for m in m_ if "ANGRIFF" in m]
     ph25, m25 = stelle(False)
-    ph25g, _ = stelle(True)
-    pruefe(25, "80 Verteidiger 40 Felder hinter dem Lord, Tor vorn: Phase %s %s | 80 am Tor: %s" % (ph25, m25, ph25g),
+    ph25g, _ = stelle(True, eigene=6)
+    pruefe(25, "80 Verteidiger 40 Felder hinter dem Lord, Tor vorn: Phase %s %s | 6 eigene, 80 am Tor: %s" % (ph25, m25, ph25g),
            ph25 == "angriff" and ph25g == "sammeln")
     # 26 (B-140, Daniel 22:27 "sofort erkennen, wenn jemand einen Burggraben setzt - dann ... einen anderen Weg"): Bresche 901
     #    gewaehlt, dann meldet der Wegfinder kein Feld bis 3 daneben mehr (Graben) -> in der NAECHSTEN Runde

@@ -104,6 +104,21 @@ def tabelle(dateien=None):
             if LORD not in schaden.get(int(x), {}) and v["proben"] >= LORD_PROBEN and v["je_takt"] > 0:
                 schaden.setdefault(int(x), {})[LORD] = v["je_takt"]
         leben.setdefault(LORD, LORD_LEBEN)
+    # B-207 (22.10.): Nahkaempfer am Lord im Sandkasten gemessen (lord_nahkampf_messen.py, daten/lord_nahkampf.jsonl) - Median
+    # je Art ab LORD_PROBEN Messungen; ersetzt den Ersatzwert (Mittel der Zeile)
+    ln = os.path.join(D, "lord_nahkampf.jsonl")
+    if os.path.exists(ln):
+        je = {}
+        for z in open(ln, encoding="utf-8"):
+            try:
+                r = json.loads(z)
+            except ValueError:
+                continue
+            if r.get("je_takt"):
+                je.setdefault(int(r["typ"]), []).append(r["je_takt"])
+        for x, werte in je.items():
+            if len(werte) >= LORD_PROBEN:
+                schaden.setdefault(x, {})[LORD] = sorted(werte)[len(werte) // 2]
     _TABELLE = (schaden, leben, fern)
     return _TABELLE
 
@@ -130,7 +145,7 @@ def dps(x, y, schaden, fern=None, d=1):
     return sum(zeile.values()) / len(zeile)
 
 
-def simuliere(wir, sie, schaden=None, bis=BIS, rest_aus=None):
+def simuliere(wir, sie, schaden=None, bis=BIS, rest_aus=None, fokus=None):
     """wir/sie: Listen von dict(typ, leben, x, y, steht=False). Gibt (wir_leben_rest, sie_leben_rest, takte, sieg) -
     sieg = True, wenn alle von "sie" tot sind und von "wir" noch jemand lebt."""
     fern = None
@@ -149,8 +164,10 @@ def simuliere(wir, sie, schaden=None, bis=BIS, rest_aus=None):
         treffer = [{}, {}]
         for i in (0, 1):
             gegner = lebend[1 - i]
+            # B-207 Lord-Wettlauf: fokus = Index in "sie" - solange er lebt, schlagen alle von "wir" nur auf ihn
+            f_ziel = seiten[1][fokus] if (fokus is not None and i == 0 and seiten[1][fokus]["leben"] > 0) else None
             for e in lebend[i]:
-                z = min(gegner, key=lambda g: max(abs(g["x"] - e["x"]), abs(g["y"] - e["y"])))
+                z = f_ziel or min(gegner, key=lambda g: max(abs(g["x"] - e["x"]), abs(g["y"] - e["y"])))
                 d = max(abs(z["x"] - e["x"]), abs(z["y"] - e["y"]))
                 reich = FERN_REICH.get(e["typ"], 1)
                 if d <= reich:
@@ -163,7 +180,11 @@ def simuliere(wir, sie, schaden=None, bis=BIS, rest_aus=None):
             for e in lebend[i]:
                 e["leben"] -= treffer[i].get(id(e), 0.0)
         t += SCHRITT
+        if fokus is not None and seiten[1][fokus]["leben"] <= 0:
+            break
     rest = [sum(max(0.0, e["leben"]) for e in s) for s in seiten]
+    if fokus is not None:
+        return rest[0], max(0.0, seiten[1][fokus]["leben"]), t, seiten[1][fokus]["leben"] <= 0 and rest[0] > 0
     if rest_aus is not None:                 # 19.10.: Rest je Einheit von "wir" (lebt der Lord?) - zuweisung.py
         rest_aus.extend(max(0.0, e["leben"]) for e in seiten[0])
     return rest[0], rest[1], t, rest[1] <= 0 and rest[0] > 0
@@ -181,3 +202,20 @@ def bewerte(wir, sie, schaden=None, bis=BIS):
     return lohnt, "%d eigene (%d Leben) gegen %d (%d Leben): %s nach %d Takten, uns bleiben %.0f %%" % (
         len(wir), voll, len(sie), sum(e["leben"] for e in sie), "Sieg" if sieg else "Niederlage" if r_wir <= 0 else "offen",
         t, 100 * anteil)
+
+
+RENNEN_REST = 0.1         # B-207: so viel unseres Lebens muss bleiben, wenn der Lord faellt (Startwert, UNGEMESSEN)
+
+
+def lord_rennen(wir, sie, lord_i, schaden=None, bis=BIS):
+    """B-207 (Daniel 22.10. 18:58: "warum sollten sie gegen alle kaempfen? Sie sollen gegen so wenige wie moeglich kaempfen -
+    so kannst du mit 10 gegen 500 gewinnen, du musst ja nur den Lord killen"): (lohnt, Text) - alle von "wir" schlagen nur auf
+    sie[lord_i], die Verteidiger auf uns; lohnt, wenn der Lord faellt, solange noch RENNEN_REST unseres Lebens lebt."""
+    if not wir:
+        return False, "keine eigenen"
+    voll = sum(e["leben"] for e in wir)
+    r_wir, r_lord, t, gefallen = simuliere(wir, sie, schaden, bis=bis, fokus=lord_i)
+    anteil = r_wir / float(max(1, voll))
+    lohnt = gefallen and anteil >= RENNEN_REST
+    return lohnt, "Lord-Wettlauf %d eigene (%d Leben) gegen Lord + %d Verteidiger: Lord %s nach %d Takten, uns bleiben %.0f %%" % (
+        len(wir), voll, len(sie) - 1, "faellt" if gefallen else "lebt (%d)" % r_lord, t, 100 * anteil)
