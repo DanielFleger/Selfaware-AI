@@ -524,6 +524,7 @@ class Feldzug:
         except OSError:
             pass
 
+    BALLISTE_R = 30            # B-205: Feuerballiste so nah an einem unserer Nahkaempfer -> Ziel (Startwert, UNGEMESSEN)
     BALLISTE_MIN = 2           # B-182: so viele Nahkaempfer mindestens je Feuerballiste (im Sturm abgesprochen, Daniel 22.10.)
     ZUG_STILL = 300            # B-180: so lange nicht naeher am Zugang (und kein Gegner) -> Weg neu (wie RUECKZUG_TAKTE, L170)
     KETTE_ABSTAND = 15         # B-180: Wegpunkte entlang des Plans (wie sturm.py NAH)
@@ -736,10 +737,16 @@ class Feldzug:
         import gefecht
         meine = {n for n, e in L.items() if e.get("besitzer") == self.sp}
         g_start = self._karte.gebiet_bei(start)
+        # B-205 (Daniel 22.10. 18:47: "Streitkolben stehen und gehen nicht auf die Feuerballiste"; gemessen: 'ABFANG ZU TEUER ...
+        # frei 22 (Anteil-Rest 1)' 22x, NACH WIRKUNG 0x - die Ballista zielte auf Gebaeude, nicht auf Einheiten): eine
+        # Feuerballiste bis BALLISTE_R Felder von einem unserer Nahkaempfer ist immer Ziel, und wer uns beschiesst oder eine
+        # Ballista ist, zaehlt nicht gegen den Anteil (nur die freien Leute begrenzen)
+        nah_orte = [(L[n]["x"], L[n]["y"]) for n in nah_kampf if n in L]
         for k, e in sorted(L.items(), key=lambda ke: schach((ke[1]["x"], ke[1]["y"]), start)):
+            ballista_nah = e.get("typ") == BALLISTE and any(schach((e["x"], e["y"]), q) <= self.BALLISTE_R for q in nah_orte)
             if (k in auftraege or e.get("besitzer") in freunde_von(self.sp) or e.get("leben", 1) <= 0
                     or (e.get("typ") not in gefecht.FERN_REICH and e.get("typ") != BALLISTE)
-                    or e.get("zieleinheit") not in meine):
+                    or (e.get("zieleinheit") not in meine and not ballista_nah)):
                 continue
             p_e = (e["x"], e["y"])
             if not g_start or not self._karte.drin(p_e) or int(self._karte.gebiete[p_e[0], p_e[1]]) != g_start:
@@ -747,7 +754,7 @@ class Feldzug:
             noetig = GF.mindestzahl(e.get("leben", 1), self.ABFANG_TAKTE)
             if e.get("typ") == BALLISTE:
                 noetig = max(noetig, self.BALLISTE_MIN)
-            if noetig > rest or noetig > len(frei):
+            if noetig > len(frei):
                 continue
             frei.sort(key=lambda n: schach((L[n]["x"], L[n]["y"]), p_e))
             auftraege[k], frei, rest = frei[:noetig], frei[noetig:], rest - noetig

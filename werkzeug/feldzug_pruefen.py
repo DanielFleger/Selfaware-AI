@@ -1235,6 +1235,20 @@ def main():
     a56o, m56o = abfang56((150, 150))
     pruefe(56, "Ballista im Feld: %d Jaeger %s | auf der Mauer: %d" % (len(a56), [m[:50] for m in m56], len(a56o)),
            len(a56) >= 2 and any("Feuerballiste 777" in m for m in m56) and len(a56o) == 0)
+    # 62 (B-205, Daniel 22.10. 18:47 "Streitkolben gehen nicht auf die Feuerballiste"): Ballista zielt auf KEINE Einheit
+    #    (Gebaeudebeschuss), 10 Felder neben den Nahkaempfern, nur 2 Nahkaempfer (Anteil 2 // 3 = 0) -> trotzdem 2 Jaeger;
+    #    Gegenprobe: 80 Felder weit -> niemand
+    def abfang62(ort):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+        f._karte = GF56.Karte([], gebiete=geb56)
+        L_ = {10: einheit(26, 1, 140, 140), 11: einheit(26, 1, 141, 140)}
+        L_[777] = dict(einheit(77, 2, ort[0], ort[1], 5000), zieleinheit=0)
+        aus_ = []
+        return f._abfangen(L_, [10, 11], (140, 140), (300, 300), {}, Befehle(), aus_), aus_
+    a62, m62 = abfang62((140, 130))
+    a62f, _ = abfang62((220, 140))
+    pruefe(62, "Ballista auf Gebaeude 10 Felder weit, 2 Nahkaempfer: %d Jaeger %s | 80 Felder weit: %d" % (
+        len(a62), [m[:45] for m in m62], len(a62f)), len(a62) == 2 and len(a62f) == 0)
     # 57 (B-191): Heer 1 plant (275,100), Heer 2 mit derselben Absprache-Datei uebernimmt den Plan ohne eigenen Planer-Aufruf;
     #    ohne Datei plant Heer 2 selbst
     import tempfile
