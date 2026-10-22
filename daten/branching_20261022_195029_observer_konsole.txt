@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\branching_beobachter.py", line 12, in <module>
+    start=number(0x0117CADC)
+          ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\branching_beobachter.py", line 8, in number
+    def number(a):return struct.unpack('<I',lies(a,4))[0]
+                                            ^^^^^^^^^
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\speicher.py", line 73, in lies
+    if not _k.ReadProcessMemory(griff(), adr, puf, n, ctypes.byref(m)) or m.value != n:
+                                ^^^^^^^
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\speicher.py", line 68, in griff
+    raise RuntimeError("kein laufendes Spiel in %s (ucp-pid: %s)" % (SPIEL, pids or "keine"))
+RuntimeError: kein laufendes Spiel in C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme Instanz5 (ucp-pid: keine)

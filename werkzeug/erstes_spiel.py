@@ -2794,7 +2794,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 if fallen is None:
                     import fallenwache as FW
                     FW.GROESSE.update({t_: g_["b"] for t_, g_ in NACH_TYP.items()})
-                    fallen = FW.Fallenwache(SP, setze_grube)
+                    fallen = FW.Fallenwache(SP, setze_grube, freunde=freunde_von(SP))
                 ereignis += fallen.schritt(st["t"], L, G, st.get("holz", 0))
             if speicher_nachbauen(G, BUCH.offen if BUCH is not None else [], st["t"],
                                   fruehpruefung.get("speicher_nachbau", -10 ** 6)):

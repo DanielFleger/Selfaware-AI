@@ -1,0 +1,47 @@
+CODE-KENNUNG 37e1f5a3 (58 Dateien: ablaufanalyse.py 044bf9, assassinen.py 142bce, aufbau_planer.py e47d65, auftragsbuch.py 0c17ed, bauen.py 653eba, bedrohung.py d0833f, befehl.py 2dddd4, bierkette.py fe871c, bilanz.py 33d335, brotbau.py 9c91ec, durchbruch.py a6ba11, editor_test.py 997f8f, endspurt.py 75ad57, eroeffnung.py 993f2b, erstes_spiel.py 57463d, ertrag_startwerte_M19.json c8d390, ertragsplaner.py 5d24cb, fallenwache.py b3db6e, farmen_mischen.py 39fea3, feldzug.py f84cfc, gefahr.py c22fce, gefahrenschutz.py df1cc0, gefahrenzone.py 944899, gefecht.py 1131ea, gegner_pruefen.py ffc108, haushalt.py 989720, kanalsperre.py 955184, karten_holen.py d4c82e, kausal.py edf278, kennung.py c1d186, kornring.py 643cca, laden.py 2ce16f, lageprotokoll.py 613569, land.py adcab7, logik.lua b59679, lordschutz.py 99ed39, lordwache.py 250c1c, mechanik.py 51aacf, nahrungsmodell.py 462245, nahrungswahl.py 81ea40, parteien.py a69b08, partie_vergleich.py bf2d06, partner.py fa1287, raids.py 4621f6, schussfeld.py b61ca8, serie.py 58199e, shc.py f83419, sicht.py ab4e56, speicher.py bbcea6, speichern.py 00a42e, steuerkarte.py 57bd5a, stillstand.py e33c6a, uebersicht.py 03d1b9, waechter.py d855ba, wegkarte.py 29ee1f, wirtschaft.py 8d244e, zielwaechter.py 63a435, zuweisung.py d2a1e9)
+START-BEFEHL Instanz 5: python erstes_spiel.py leere_ki=nein experiment=ja regel50=nein minuten=30 tempo=100 bis_tick=96000 ziel_tick=offen streitkolben=30 weg=feldzug produktion=ja bier=ja abriss=nein assassinen=20 aufloesen=ende b_versatz=600 bevoelkerung_ziel=90 einzelkauf=nein entscheider=kausal gegner=1 gute_dinge=0 haushalt_rand=650 holz_kaufen=ja holz_spam=20 holzfaeller_je_baum=4 holzfaeller_max=30 holzfaeller_vorab=4 huetten_voraus=nein je_arbeiter=ja joch_nach_stein=ja kasse=nein kasse_grenze=0 kasse_stufe=11 nahrung_ausbau=nein notwerbung=ja penner=20 rationen=doppelt schub=nein stein_max=nein stein_parallel=ja steinbruch_zuerst=nein steuer_ende=nein steuer_runter=90 umzug=frueh v14=nein vollbeschaeftigung=ja wachstum_boden=9500 waechter=ja stopp_tote=0 "karte=Liga_Branching Fortunes" team_kis=7,8 heer_gold_rand=0 plaetze=0,1,2,3 eins_gegen_eins=ja
+NAHRUNGSWAHL LigaBranchingFortunes_pl0-1-2-3_2v2: 4 Jaeger + 0 Brotkette(n) + 8 Apfelplantagen, Kornspeicher an den Aepfeln | {"plaetze_eigene_seite": 17, "herden": [[[251, 279], 37], [[223, 344], 10]], "jaeger_moeglich": 4, "ration": "doppelt", "bev_ziel": 90, "rehe_gezaehlt": true, "ration_frueh": "doppelt", "bedarf_frueh_1000": 30.4, "bedarf_spaet_1000": 35.1, "entscheidung": "4 Jaeger + 0 Brotkette(n) + 8 Apfelplantagen, Kornspeicher an den Aepfeln", "kornspeicher_zum_bergfried": 47, "kornspeicher_zum_lager": 27}
+== Phase 1: neue Partie ab Tick 0, Tempo 100 durchgehend, ohne Pausen (Plan eroeffnung_plan_LigaBranchingFortunes_pl0-1-2-3_2v2.json)
+Zuruecksetzen: Ansicht 41, pausiert
+1v1: KI der Plaetze [2] bei Tick 1 aus (currentAIArray, aiType, Mensch-Eintrag)
+SAAT fest aus saat_liga.json (Modul meldet {'karte': 1788115329, 'partie': 1788115329, 'wert1': 7474, 'wert2': 22872, 'zaehler1': 1, 'zaehler2': 118})
+LEERE KI: aus
+Partie laeuft seit Tick 99: Lords da, unser Lord bei (197, 309), {'Ansicht': 14, 'gameOver': 0, 'Mensch': 1, 'Platz': 1}
+STARTGUETER Tick 123: Spieler 1 Gold 0; Spieler 2 Gold 0; Spieler 3 Gold 63; Spieler 4 Gold 64
+1v1 ANGEGLICHEN bei Tick 157: Waren Spieler 1 {'Holz': 39}; Spieler 2 {'Holz': 39}; Truppen vorher {1: {}, 2: {}}, ergaenzt nichts
+2v2: Liga-Startgold 150 fuer die Spieler [1, 2]
+1v1: Startsignal bei Tick 157 - warte pausiert auf den Lenker von Spieler 2 (C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\.eins_gegen_eins_bereit5.json)
+1v1: Spieler 2 bereit - beide laufen los bei Tick 160
+Markt und Posten fuer Liga_Branching Fortunes live gesucht: Markt (201, 309), Posten (201, 314)
+ERSTE BAUBEFEHLE bei Tick 181: 17 von 20 Holz-Bauten stehen bei Tick 362 (Kornspeicher, Markt, Holzfaeller, Steinbruch, Ochsenjoch, Huetten); nicht gebaut: [('Marktplatz', 201, 309), ('Huette', 190, 307), ('Huette', 201, 309)]
+Markt am festen Platz nicht moeglich - gesucht: (201, 312)
+VERKAUFT bis Tick 456: {'kaese': 3, 'brot': 3, 'apfel': 3} Lose, Gold 345
+SEASONING FRUEH: 4 von 4 A-Plantagen mit dem Posten bei Tick 556, Gold jetzt 165
+RAID ZUERST: Nahrung da bei Tick 416, {'kaese': 3, 'brot': 3, 'apfel': 3} verkauft (Lose zu 5); Soeldnerposten (196, 317); 2 Assassinen angeworben (freie Leute am Feuer jetzt 2) -> Gold 25, Nahrung uebrig {'fleisch': 15}, Tick 675
+NACHGEHOLT bei Tick 745: 0 von 2 (Apfelplantagen A + Rest); nicht gebaut: [('Huette', 190, 307), ('Huette', 201, 309)]; Holz 68, Gold 25
+Apfelplantagen A 4, B 4 spaeter [(197, 366), (208, 359), (210, 369), (155, 330)]; altes Lager bleibt mit {'holz': 68}
+== Phase 2: Echtzeit, Tempo 100, 30 Minuten, Waechter an
+Lager: frueher Umzug an (208, 326) (Startlager raeumen und abreissen, neues in derselben Runde)
+Lageprotokoll (jede Runde komplett): C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\..\daten\lage_20261022_200104_i5.jsonl.gz
+Traceback (most recent call last):
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\erstes_spiel.py", line 4001, in main
+    phase2(plan, int(arg.get("minuten", 10)), int(arg.get("tempo", 40)), arg.get("waechter", "nein") == "ja",
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\erstes_spiel.py", line 2292, in phase2
+    ausbau = Ertragsplaner(plan, SP, baue_schnell, wirt, s32(peek(PD + 0x2188)[0]), ende=ZIEL_TICK, protokoll=lernlog, wegtest=wegtest)   # lernt im Spiel (Daniel 19:44)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\ertragsplaner.py", line 321, in __init__
+    self.kosten = kosten if kosten is not None else lies_baukosten((1, 3, 4, 5, 7, 10, 19, 20, 31, 32))
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\ertragsplaner.py", line 132, in lies_baukosten
+    return {t: dict(zip(KOSTEN_WAREN, peek(KOSTEN_ADR + t * 20, 5))) for t in typen}
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\ertragsplaner.py", line 132, in <dictcomp>
+    return {t: dict(zip(KOSTEN_WAREN, peek(KOSTEN_ADR + t * 20, 5))) for t in typen}
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\laden.py", line 44, in peek
+    for z in sende({"player": 1, "peek": adr, "worte": n}, 0.6, bis="PEEK 0x%08X" % adr):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\befehl.py", line 191, in sende
+    os.replace(temp, BEFEHL)
+PermissionError: [WinError 5] Zugriff verweigert: 'C:\\Program Files (x86)\\Steam\\steamapps\\common\\Stronghold Crusader Extreme Instanz5\\ucp\\villagestudio\\befehl.json.42768.tmp' -> 'C:\\Program Files (x86)\\Steam\\steamapps\\common\\Stronghold Crusader Extreme Instanz5\\ucp\\villagestudio\\befehl.json'
+ABBRUCH - Spiel laeuft fuer den anderen Lenker weiter - PermissionError(13, 'Zugriff verweigert')

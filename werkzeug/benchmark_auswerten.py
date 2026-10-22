@@ -33,12 +33,13 @@ def auswerten(rows, profil):
         end = remaining.get(str(sp), {})
         if end and end.get('uid') != start['uid']:
             raise ValueError('Eigener Lord ausgetauscht')
-        fractions[str(sp)] = max(0, end.get('health', 0)) / start['health']
+        maximum = profil.get('own_lord_max_health', {}).get(str(sp), start['health'])
+        fractions[str(sp)] = max(0, end.get('health', 0)) / maximum
     # alive wird vom Spiel erst am Ende belegt; vorherige Nullen sind kein Tod.
     ended = last['over'] == 1 and last['view'] in (14, 16)
     enemy_dead = all(remaining.get(str(sp), {}).get('health', 0) <= 0
                      and last['alive'][sp - 1] == 0 for sp in enemies)
-    own_alive = all(fractions[str(sp)] > 0 and last['alive'][sp - 1] == 1
+    own_alive = any(fractions[str(sp)] > 0 and last['alive'][sp - 1] == 1
                     for sp in own)
     won = ended and enemy_dead and own_alive
     dominant = won and min(fractions.values()) >= profil['evaluation']['minimum_own_lord_health_fraction']

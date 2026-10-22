@@ -28,12 +28,13 @@ def abstand_zu_gebaeude(p, g):
     return max(dx, dy)
 
 
-def kandidaten(L, G, sp):
+def kandidaten(L, G, sp, freunde=None):
     """[(Laufziel, Einheit)] fuer feindliche Truppen, deren Laufziel neben einem eigenen Gebaeude liegt."""
+    freunde = set(freunde or ()) | {0, sp}
     eigen = [g for g in G.values() if g["besitzer"] == sp and g["typ"] != 67]
     aus, gesehen = [], set()
     for nr, e in sorted(L.items()):
-        if e.get("besitzer") in (0, sp) or e.get("typ") not in FEIND_TYPEN or e.get("leben", 1) <= 0:
+        if e.get("besitzer") in freunde or e.get("typ") not in FEIND_TYPEN or e.get("leben", 1) <= 0:
             continue
         ziel = (e.get("laufx", 0), e.get("laufy", 0))
         if ziel == (0, 0) or ziel in gesehen:
@@ -50,8 +51,9 @@ def kandidaten(L, G, sp):
 
 
 class Fallenwache:
-    def __init__(self, sp, setze_grube):
+    def __init__(self, sp, setze_grube, freunde=None):
         self.sp, self.setze_grube = sp, setze_grube
+        self.freunde = set(freunde or ()) | {0, sp}
         self.versucht = {}          # Feld -> Tick
         self.bedient = set()        # Einheiten, fuer die schon eine Falle steht (eine je Assassine)
         self.gesetzt = 0
@@ -59,7 +61,7 @@ class Fallenwache:
     def schritt(self, t, L, G, holz):
         ev, rest = [], holz
         gruben = {(g["x"], g["y"]) for g in G.values() if g["besitzer"] == self.sp and g["typ"] == 67}
-        for ziel, nr in kandidaten(L, G, self.sp):
+        for ziel, nr in kandidaten(L, G, self.sp, self.freunde):
             if sum(1 for e in ev if e.startswith("FALLE gesetzt")) >= JE_RUNDE or rest < HOLZ + HOLZ_RESERVE:
                 break
             if nr in self.bedient or ziel in gruben or t - self.versucht.get(ziel, -10 ** 9) < WIEDER_TICKS:

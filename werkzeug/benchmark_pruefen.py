@@ -6,6 +6,7 @@ from benchmark_auswerten import auswerten
 class ErgebnisProbe(unittest.TestCase):
     def setUp(self):
         self.profil = {'our_players': [1, 2], 'enemy_players': [3, 4], 'enemy_ai_ids': [7, 8],
+                       'own_lord_max_health': {'1': 150000, '2': 150000},
                        'evaluation': {'minimum_own_lord_health_fraction': .9, 'median_win_tick_max': 28800}}
         self.start = {'tick': 500, 'over': 0, 'view': 14, 'alive': [0]*8,
                       'ai': [0, 0, 7, 8, 0, 0, 0, 0], 'coherent': True,
@@ -32,6 +33,18 @@ class ErgebnisProbe(unittest.TestCase):
     def test_living_enemy_blocks_win(self):
         self.end['lords']['3'] = {'uid': 13, 'health': 1}
         self.assertNotEqual(auswerten([self.start, self.end], self.profil)['observed_result'], 'win')
+
+    def test_team_win_with_one_lord_lost_is_not_dominant(self):
+        del self.end['lords']['2']
+        self.end['alive'][1] = 0
+        r = auswerten([self.start, self.end], self.profil)
+        self.assertEqual(r['observed_result'], 'win')
+        self.assertFalse(r['observed_dominant_win'])
+
+    def test_damaged_start_does_not_redefine_full_health(self):
+        self.start['lords']['1']['health'] = 100000
+        self.end['lords']['1']['health'] = 100000
+        self.assertFalse(auswerten([self.start, self.end], self.profil)['observed_dominant_win'])
 
     def test_bad_sources_rejected(self):
         for field, value in [('coherent', False), ('tick', 400), ('ai', [0]*8)]:

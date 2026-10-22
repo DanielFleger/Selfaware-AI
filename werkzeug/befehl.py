@@ -52,6 +52,10 @@ SENDE  = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".sende" + _EN
 
 _LETZTE = 0
 ACK_POLL = .002
+_ID_MUTEX = threading.Lock()
+_ID_BLOCK = iter(())
+_ID_PID = None
+_ID_BLOCK_GROESSE = 128
 
 
 def _veroeffentlichen(temp, ziel):
@@ -79,11 +83,21 @@ def letztes_spielende(n=1):
 
 def neue_id():
     # Derselbe Spieler darf auch aus mehreren Prozessen keine Nummer doppelt vergeben.
-    with Sperre(MERKER + '.lock'):
-        return _neue_id_gesperrt()
+    # Ganze Bloecke reservieren: unbenutzte Nummern nach einem Absturz werden ausgelassen.
+    global _ID_BLOCK, _ID_PID
+    with _ID_MUTEX:
+        if _ID_PID != os.getpid():
+            _ID_BLOCK, _ID_PID = iter(()), os.getpid()
+        try:
+            return next(_ID_BLOCK)
+        except StopIteration:
+            with Sperre(MERKER + '.lock'):
+                erste = _neue_id_gesperrt(_ID_BLOCK_GROESSE)
+            _ID_BLOCK = iter(range(erste + 8, erste + 8 * _ID_BLOCK_GROESSE, 8))
+            return erste
 
 
-def _neue_id_gesperrt():
+def _neue_id_gesperrt(anzahl=1):
     """Befehlsnummer. 18.10. (1v1-Lauf 1018a): beide Lenker zaehlten im selben Merker ohne Sperre hoch - gleiche Nummern,
     das Modul hielt den zweiten Befehl fuer "schon erledigt" und antwortete nicht (Spieler 1: Spieltakt None, Absturz).
     Jetzt hat jeder Spieler eigene Nummern (Rest SPIELER beim Teilen durch 8, eigener Merker) - steigend und nie dieselbe."""
@@ -95,9 +109,9 @@ def _neue_id_gesperrt():
         letzte = 0
     nummer = max(int(time.time()) * 8, letzte + 1, _LETZTE + 1)
     nummer += (SPIELER - nummer) % 8
-    _LETZTE = nummer
+    _LETZTE = nummer + 8 * (anzahl - 1)
     with io.open(MERKER, "w") as f:
-        f.write(str(nummer))
+        f.write(str(_LETZTE))
     return nummer
 
 

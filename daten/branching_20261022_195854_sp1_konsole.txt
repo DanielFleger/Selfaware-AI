@@ -1,0 +1,31 @@
+CODE-KENNUNG 7c89d0b0 (58 Dateien: ablaufanalyse.py 044bf9, assassinen.py 142bce, aufbau_planer.py e47d65, auftragsbuch.py 0c17ed, bauen.py 653eba, bedrohung.py d0833f, befehl.py d502be, bierkette.py fe871c, bilanz.py 33d335, brotbau.py 9c91ec, durchbruch.py a6ba11, editor_test.py 997f8f, endspurt.py 75ad57, eroeffnung.py 993f2b, erstes_spiel.py 57463d, ertrag_startwerte_M19.json c8d390, ertragsplaner.py 5d24cb, fallenwache.py b3db6e, farmen_mischen.py 39fea3, feldzug.py f84cfc, gefahr.py c22fce, gefahrenschutz.py df1cc0, gefahrenzone.py 944899, gefecht.py 1131ea, gegner_pruefen.py ffc108, haushalt.py 989720, kanalsperre.py 955184, karten_holen.py d4c82e, kausal.py edf278, kennung.py c1d186, kornring.py 643cca, laden.py 2ce16f, lageprotokoll.py 613569, land.py adcab7, logik.lua b59679, lordschutz.py 99ed39, lordwache.py 250c1c, mechanik.py 51aacf, nahrungsmodell.py 462245, nahrungswahl.py 81ea40, parteien.py a69b08, partie_vergleich.py bf2d06, partner.py fa1287, raids.py 4621f6, schussfeld.py b61ca8, serie.py 58199e, shc.py f83419, sicht.py ab4e56, speicher.py bbcea6, speichern.py 00a42e, steuerkarte.py 57bd5a, stillstand.py e33c6a, uebersicht.py 03d1b9, waechter.py d855ba, wegkarte.py 29ee1f, wirtschaft.py 8d244e, zielwaechter.py 63a435, zuweisung.py d2a1e9)
+START-BEFEHL Instanz 5: python erstes_spiel.py leere_ki=nein experiment=ja regel50=nein minuten=30 tempo=100 bis_tick=96000 ziel_tick=offen streitkolben=30 weg=feldzug produktion=ja bier=ja abriss=nein assassinen=20 aufloesen=ende b_versatz=600 bevoelkerung_ziel=90 einzelkauf=nein entscheider=kausal gegner=1 gute_dinge=0 haushalt_rand=650 holz_kaufen=ja holz_spam=20 holzfaeller_je_baum=4 holzfaeller_max=30 holzfaeller_vorab=4 huetten_voraus=nein je_arbeiter=ja joch_nach_stein=ja kasse=nein kasse_grenze=0 kasse_stufe=11 nahrung_ausbau=nein notwerbung=ja penner=20 rationen=doppelt schub=nein stein_max=nein stein_parallel=ja steinbruch_zuerst=nein steuer_ende=nein steuer_runter=90 umzug=frueh v14=nein vollbeschaeftigung=ja wachstum_boden=9500 waechter=ja stopp_tote=0 "karte=Liga_Branching Fortunes" team_kis=7,8 heer_gold_rand=0 plaetze=0,1,2,3 eins_gegen_eins=ja
+NAHRUNGSWAHL LigaBranchingFortunes_pl0-1-2-3_2v2: 4 Jaeger + 0 Brotkette(n) + 8 Apfelplantagen, Kornspeicher an den Aepfeln | {"plaetze_eigene_seite": 17, "herden": [[[251, 279], 37], [[223, 344], 10]], "jaeger_moeglich": 4, "ration": "doppelt", "bev_ziel": 90, "rehe_gezaehlt": true, "ration_frueh": "doppelt", "bedarf_frueh_1000": 30.4, "bedarf_spaet_1000": 35.1, "entscheidung": "4 Jaeger + 0 Brotkette(n) + 8 Apfelplantagen, Kornspeicher an den Aepfeln", "kornspeicher_zum_bergfried": 47, "kornspeicher_zum_lager": 27}
+== Phase 1: neue Partie ab Tick 0, Tempo 100 durchgehend, ohne Pausen (Plan eroeffnung_plan_LigaBranchingFortunes_pl0-1-2-3_2v2.json)
+Zuruecksetzen: Ansicht 41, pausiert
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\danie\AppData\Local\Programs\Python\Python311\Lib\cProfile.py", line 191, in <module>
+    main()
+  File "C:\Users\danie\AppData\Local\Programs\Python\Python311\Lib\cProfile.py", line 180, in main
+    runctx(code, globs, None, options.outfile, options.sort)
+  File "C:\Users\danie\AppData\Local\Programs\Python\Python311\Lib\cProfile.py", line 20, in runctx
+    return _pyprofile._Utils(Profile).runctx(statement, globals, locals,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\AppData\Local\Programs\Python\Python311\Lib\profile.py", line 63, in runctx
+    prof.runctx(statement, globals, locals)
+  File "C:\Users\danie\AppData\Local\Programs\Python\Python311\Lib\cProfile.py", line 101, in runctx
+    exec(cmd, globals, locals)
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\erstes_spiel.py", line 4029, in <module>
+    main()
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\erstes_spiel.py", line 3987, in main
+    phase1(plan, int(arg.get("tempo", 40)), mit_posten=int(arg.get("assassinen", 0)) != 0)   # Daniel 22:52: jede Partie ab Tick 0
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\erstes_spiel.py", line 404, in phase1
+    gefecht_starten(tempo)
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\erstes_spiel.py", line 140, in gefecht_starten
+    kanal.sende({"player": SP, "pause": False}, 0.5)
+  File "C:\Users\danie\Documents\ChatGPT\Village Studio\work\sai-live\werkzeug\befehl.py", line 205, in sende
+    raise TimeoutError('BEFEHL %s OHNE EIGENE QUITTUNG: Wirkung unbekannt; nicht blind wiederholen' % befehl['id'])
+TimeoutError: BEFEHL 14341786273 OHNE EIGENE QUITTUNG: Wirkung unbekannt; nicht blind wiederholen
