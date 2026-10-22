@@ -51,6 +51,7 @@ class Fehler(RuntimeError):
 
 
 def _s32(v):
+    v &= 0xFFFFFFFF
     return v - (1 << 32) if v & 0x80000000 else v
 
 

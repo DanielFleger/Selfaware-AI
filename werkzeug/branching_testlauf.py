@@ -64,6 +64,10 @@ try:
 except BaseException as ex:
  manifest['status']='invalid';manifest['reason']=repr(ex);raise
 finally:
+ if manifest['status']=='invalid':
+  # Spielabbruch: vorhandene Fehlerbehandlung darf gzip/Profiler geordnet schliessen.
+  grace=time.monotonic()+40
+  while any(p.poll() is None for p in ps) and time.monotonic()<grace:time.sleep(.2)
  for p in ps:
   if p.poll() is None:p.terminate()
  for p in ps:

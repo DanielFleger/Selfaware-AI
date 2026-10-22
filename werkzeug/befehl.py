@@ -18,7 +18,8 @@ VillageStudio/werkzeug/instanz.py (spiel.py prueft, dass beide gleich sind). And
 SPIEL und ABZUG von hier, nie einen eigenen Pfad - sonst liest ein Lauf auf
 Instanz 2 still die Lagebilder von Instanz 1.
 """
-import io, json, os, re, sys, time
+import io, json, os, re, sys, time, threading
+from kanalsperre import Sperre
 
 _ROH = os.environ.get("SHC_INSTANZ", "").strip() or "1"
 if not _ROH.isdigit() or int(_ROH) < 1:
@@ -63,18 +64,26 @@ def letztes_spielende(n=1):
 
 
 def neue_id():
+    # Derselbe Spieler darf auch aus mehreren Prozessen keine Nummer doppelt vergeben.
+    with Sperre(MERKER + '.lock'):
+        return _neue_id_gesperrt()
+
+
+def _neue_id_gesperrt():
     """Befehlsnummer. 18.10. (1v1-Lauf 1018a): beide Lenker zaehlten im selben Merker ohne Sperre hoch - gleiche Nummern,
     das Modul hielt den zweiten Befehl fuer "schon erledigt" und antwortete nicht (Spieler 1: Spieltakt None, Absturz).
     Jetzt hat jeder Spieler eigene Nummern (Rest SPIELER beim Teilen durch 8, eigener Merker) - steigend und nie dieselbe."""
     global _LETZTE
     try:
-        letzte = int(io.open(MERKER).read().strip())
+        with io.open(MERKER) as f:
+            letzte = int(f.read().strip())
     except (OSError, ValueError):
         letzte = 0
     nummer = max(int(time.time()) * 8, letzte + 1, _LETZTE + 1)
     nummer += (SPIELER - nummer) % 8
     _LETZTE = nummer
-    io.open(MERKER, "w").write(str(nummer))
+    with io.open(MERKER, "w") as f:
+        f.write(str(nummer))
     return nummer
 
 
@@ -102,7 +111,9 @@ def belege():
 
 def freigeben():
     try:
-        if io.open(LAUF).read().strip() == str(os.getpid()):
+        with io.open(LAUF) as f:
+            besitzer = f.read().strip()
+        if besitzer in (str(os.getpid()), str(os.getpid()) + ' partner'):
             os.remove(LAUF)
     except OSError:
         pass
@@ -120,33 +131,20 @@ def _kanal_frei():
     if pid.split()[0] != str(os.getpid()) and alter < 15:
         raise RuntimeError("KANAL BELEGT: ein Lauf (Prozess %s) benutzt den Befehlskanal von Instanz %d gerade (vor %.0f s gemeldet)" % (pid, INSTANZ, alter))
 
+_SENDE_LOKAL = threading.local()
+
+
 def _sperren():
-    """19.10. (PARTNER): exklusive Sperrdatei je Befehl - verwaist (aelter als 8 s) wird sie entfernt."""
-    ende = time.time() + 30
-    while True:
-        try:
-            fd = os.open(SENDE, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-            os.write(fd, str(os.getpid()).encode())
-            os.close(fd)
-            return
-        except (FileExistsError, PermissionError):
-            # 19.10. (1v1-Probe 2): unter Windows meldet O_EXCL "Zugriff verweigert", solange der andere Prozess die Datei
-            # gerade loescht - das heisst dasselbe wie "belegt"
-            try:
-                if time.time() - os.path.getmtime(SENDE) > 8:
-                    os.remove(SENDE)
-            except OSError:
-                pass
-            if time.time() > ende:
-                raise RuntimeError("SENDESPERRE: %s seit 30 s belegt" % SENDE)
-            time.sleep(0.005)
+    """Alle Schreiber muessen diese Fassung nutzen; keine altersbasierte Uebernahme."""
+    lock = Sperre(SENDE + '.lock')
+    lock.__enter__()
+    _SENDE_LOKAL.lock = lock
 
 
 def _entsperren():
-    try:
-        os.remove(SENDE)
-    except OSError:
-        pass
+    lock = _SENDE_LOKAL.lock
+    del _SENDE_LOKAL.lock
+    lock.__exit__(None, None, None)
 
 
 def _als_spieler(befehl):
@@ -174,34 +172,42 @@ def sende(befehl, warte=3.0, bis=None):
     if befehl is None:
         return meld
     befehl = _als_spieler(dict(befehl))
-    befehl["id"] = neue_id()
-    if PARTNER:
-        _sperren()
+    _sperren()
+    try:
+        befehl["id"] = neue_id()
         # 19.10.: mit Partner immer auf die EIGENE Quittung warten - sonst schreibt der andere Lenker befehl.json, bevor das
         # Modul diesen Befehl gelesen hat (die Quittung ist die letzte Zeile eines Befehls, nach allen Antwortzeilen)
-        bis = "QUITTUNG %s" % befehl["id"]
-    try:
+        if PARTNER:
+            bis = "QUITTUNG %s" % befehl["id"]
+        quittung = re.compile(r'\bQUITTUNG ' + str(befehl['id']) + r'(?!\d)')
         vorher = os.path.getsize(LOG)
-        io.open(BEFEHL, "wb").write(json.dumps(befehl).encode("utf-8"))
+        temp = BEFEHL + '.%s.tmp' % os.getpid()
+        with io.open(temp, 'wb') as f:
+            f.write(json.dumps(befehl).encode('utf-8'))
+        os.replace(temp, BEFEHL)
         if bis is None:
             # Daniel 05.10. 23:01: "loesch das feste Zeit-Warten - Sekunden sind Killer". Die Logik quittiert jeden Befehl mit
             # "QUITTUNG <id>" (gleicher Tick); warte ist nur noch die Notbremse, falls keine Quittung kommt (z. B. Hauptmenue).
             bis = "QUITTUNG %s" % befehl["id"]
         # 19.10. (1v1-Probe 2: "keine Antwort auf peek" - der andere Lenker hielt das Modul mit einer Karte mehrere Sekunden)
-        ende = time.time() + (max(warte, 20.0) if PARTNER else warte)
-        while time.time() < ende:
+        ende = time.monotonic() + (max(warte, 20.0) if PARTNER else warte)
+        bestaetigt = False
+        while time.monotonic() < ende:
             time.sleep(0.02)
             if os.path.getsize(LOG) > vorher:
                 with io.open(LOG, encoding="utf-8", errors="replace") as f:
                     f.seek(vorher)
-                    if bis in f.read():
+                    antwort = f.read()
+                    if bis in antwort and quittung.search(antwort):
+                        bestaetigt = True
                         break
+        if not bestaetigt:
+            raise TimeoutError('BEFEHL %s OHNE EIGENE QUITTUNG: Wirkung unbekannt; nicht blind wiederholen' % befehl['id'])
         with io.open(LOG, encoding="utf-8", errors="replace") as f:
             f.seek(vorher)
             neu = f.read()
     finally:
-        if PARTNER:
-            _entsperren()
+        _entsperren()
     zeilen = [z.split("| ", 1)[-1].strip() for z in neu.splitlines()
               if "villagestudio" in z and "ZUSTAND" not in z]
     return pruefe(zeilen) if STRENG else zeilen
