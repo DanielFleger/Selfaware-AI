@@ -1096,6 +1096,69 @@ def main():
     g_neu, g_alt = (GF40.weg_gefahr((101, 200), weg40, f40._bed) if weg40 else -1), GF40.weg_gefahr((101, 200), [(100, 40)], f40._bed)
     pruefe(40, "Weg %s, Gefahr %d statt %d (gerade), Meldung %s" % (weg40[:5], g_neu, g_alt, [m[:40] for m in m40][:1]),
            weg40 and weg40[-1] == (100, 40) and 0 <= g_neu < g_alt and any("SICHERER WEG" in m for m in m40))
+    # 50/51 (B-170, Daniel 22.10. 08:39 "er geht immer noch gegen Tuerme und einsame Mauern statt die aufzumachen, die zum Lord
+    #    fuehren"): hinter Mauern entscheidet der Durchbruch-Planer (hier ein fester Plan statt durchbruch.plane).
+    #  50. Plan "Torhaus 905 auf dem Weg", Turm 901 abseits (330,100) -> Bresche 905, Meldung "DURCHBRUCH", nie 901.
+    #      Gegenprobe ohne Planer (nur Mauerkarte): kein Torhaus aus dem Plan (Schredder wie in 44).
+    #  51. Plan "Mauerkachel (275,100), Zugang (274,100)": Runde 1 (alle am Sammelpunkt) -> Laufbefehl (274,100) mit trupp 1
+    #      fuer alle 30, kein Mauerbefehl; Runde 2 (alle bis 1 Feld am Zugang) -> mauerziel halten (Schluessel sp1, Feld 4242,
+    #      30 Einheiten) und EIN Mauerbefehl mit 7 Werten [300,100,2,30,275,100,3] (Blick aus dem Planer). Gegenprobe ohne
+    #      Planer: kein mauerziel, Mauerbefehl mit 6 Werten.
+    def burg50(plan, runde2=None, mit_planer=True):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+        f.schritt({"t": 12000}, *lage(10, heim), Befehle())
+        L_, G_ = lage(30, f.punkt)
+        G_[901] = {"typ": 46, "besitzer": 2, "x": 330, "y": 100, "leben": 1500}
+        G_[905] = {"typ": 75, "besitzer": 2, "x": 300, "y": 124, "leben": 1500}
+        f.wegkarte = lambda: {"gebiet": geb44}
+        f.mauerkarte = mk44
+        if mit_planer:
+            f.durchbruch = lambda sp, start, maenner, lord, verworfen=(): dict(plan)
+            f.blick = lambda kachel, sp: ((275, 100), 3)
+            f.feldnr = lambda xy: 4242
+        b1 = Befehle()
+        m1 = f.schritt({"t": 12050}, L_, G_, b1)
+        m2, b2 = [], Befehle()
+        if runde2:
+            runde2(L_)
+            m2 = f.schritt({"t": 12150}, L_, G_, b2)
+        return f, m1, b1.liste, m2, b2.liste
+
+    hoehe44["h"] = np41.where(ring44, 10, 0)
+    plan50 = {"art": "tor", "ziel": 905, "zug": (300, 128), "weg": [(300, 140), (300, 128), (300, 124), (300, 100)],
+              "takte": 999, "belastung": 0, "kandidaten": [("tor", 905, 0, 999)]}
+    f50, m50, b50, _, _ = burg50(plan50)
+    f50o, m50o, _, _, _ = burg50(plan50, mit_planer=False)
+    pruefe(50, "Torhaus auf dem Weg: Bresche %s, %s | ohne Planer: Bresche %s, %s" % (
+        f50.bresche, [m[:60] for m in m50 if "DURCHBRUCH" in m or "SCHWACHSTELLE" in m], f50o.bresche,
+        [m[:40] for m in m50o if "SCHREDDER" in m or "SCHWACHSTELLE" in m]),
+           f50.bresche == 905 and any("DURCHBRUCH" in m for m in m50) and not any("901" in m for m in m50)
+           and f50o.bresche != 905)
+
+    plan51 = {"art": "mauer", "ziel": (275, 100), "zug": (274, 100), "weg": [(260, 100), (274, 100), (275, 100), (300, 100)],
+              "takte": 500, "belastung": 0, "kandidaten": [("mauer", None, 0, 500)]}
+
+    def am_zug(L_):
+        for i in range(30):
+            L_[10 + i].update(x=273 + i % 2, y=99 + i % 3, zustand=1)
+    f51, m51, b51, m51b, b51b = burg50(plan51, am_zug)
+    lauf51 = [x["angriff"] for x in b51 if "lauf" in x.get("angriff", {}) and tuple(ende_(x["angriff"])) == (274, 100)]
+    mauer51 = [x["angriff"] for x in b51 if "mauer" in x.get("angriff", {})]
+    mz51 = [x["mauerziel"] for x in b51b if "mauerziel" in x]
+    mauer51b = [x["angriff"] for x in b51b if "mauer" in x.get("angriff", {})]
+    _, _, b51o, _, b51ob = burg50(plan51, am_zug, mit_planer=False)
+    mauer51o = [x["angriff"]["mauer"] for x in b51o + b51ob if "mauer" in x.get("angriff", {})]
+    pruefe(51, "Runde 1: Lauf zum Zugang %s, Mauerbefehle %d | Runde 2: mauerziel %s, Mauerbefehl %s | ohne Planer: mauerziel %d, "
+               "Mauerbefehle %s" % (
+                   [(len(a_["einheiten"]), a_.get("trupp")) for a_ in lauf51], len(mauer51),
+                   [(z["schluessel"], z["feld"], z.get("halten"), len(z["einheiten"])) for z in mz51],
+                   [(a_["mauer"], len(a_["einheiten"])) for a_ in mauer51b],
+                   sum(1 for x in b51o + b51ob if "mauerziel" in x), [len(m_) for m_ in mauer51o]),
+           lauf51 and sum(len(a_["einheiten"]) for a_ in lauf51) == 30 and all(a_.get("trupp") == 1 for a_ in lauf51)
+           and not mauer51 and len(mz51) == 1 and mz51[0]["schluessel"] == "sp1" and mz51[0]["feld"] == 4242
+           and mz51[0]["halten"] is True and len(mz51[0]["einheiten"]) == 30
+           and [a_["mauer"] for a_ in mauer51b] == [[300, 100, 2, 30, 275, 100, 3]] and len(mauer51b[0]["einheiten"]) == 30
+           and not any("mauerziel" in x for x in b51o + b51ob) and mauer51o and all(len(m_) == 6 for m_ in mauer51o))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

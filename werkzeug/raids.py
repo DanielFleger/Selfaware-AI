@@ -226,11 +226,13 @@ class Brandtrupp:
                     self.plan.pop(s, None)
                     aus.append("BRANDTRUPP: Sklave %d hat Gebaeude %d (Typ %d) angezuendet (Feuer %d) - weiter" % (
                         s, nr, G[nr]["typ"], f))
-        # B-150: ein noch nicht brennendes Ziel wird jede Runde gegen die Heerwege geprueft
+        # B-150: ein noch nicht brennendes Ziel wird jede Runde gegen die Heerwege geprueft; ohne neues Ziel bleibt der Sklave stehen
+        halt = set()
         for s, nr in list(self.ziel.items()):
             if nr not in self.brennt and brennt_noch_bei_ankunft(G[nr], self.heerwege):
                 self.ziel.pop(s)
                 self.plan.pop(s, None)
+                halt.add(s)
                 aus.append("BRANDTRUPP: Sklave %d laesst Gebaeude %d - es liegt jetzt am eigenen Heer" % (s, nr))
         for s in sorted(meine):
             e = L[s]
@@ -246,6 +248,8 @@ class Brandtrupp:
                     if alt is not None:
                         aus.append("BRANDTRUPP: Sklave %d laesst Gebaeude %d - kein Ziel mit vertretbarem Risiko (%d abgelehnt)" % (
                             s, alt, self.abgelehnt))
+                    if s in halt:
+                        befehl({"angriff": {"einheiten": [s], "lauf": [o[0], o[1]]}}, 1.0, bis="ANGRIFF")
                     rz = self.rueckzug.get(s)
                     if lage.schaden(o) > 0 and (rz is None or self.runde - rz[1] >= NEU_ALLE):
                         q = _rueckzug(lage, o)

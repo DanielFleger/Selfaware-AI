@@ -2364,6 +2364,12 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         import speicher                     # B-161: Gebiete (Mauer, Turm, Hof, offenes Feld) direkt aus dem Spielspeicher, nur lesen
         feldzug.wegkarte = speicher.wegkarte
         feldzug.mauerkarte = speicher.mauern  # B-164: Mauerkacheln + Hoehe je Besitzer fuer den Schredder (nur lesen)
+        # B-170 (Daniel 22.10. 08:39 "er geht immer noch gegen Tuerme und einsame Mauern"): hinter Mauern der Durchbruch-Planer
+        # von sturm.py - erstes Hindernis auf dem besten Weg zum Lord, gehackt am Zugangsfeld mit festgehaltenem Ziel
+        import durchbruch as DB_f
+        feldzug.durchbruch = DB_f.plane
+        feldzug.blick = DB_f.anfrage_und_blick
+        feldzug.feldnr = DB_f.feld
         if arg_global.get("angriff_ab"):
             feldzug.angriff_ab = int(arg_global["angriff_ab"])     # B-140 Versuchsreihe
         # 19.10. (Daniel: "warum wird keine Waffenproduktion gebaut? Wenn die Streitis es nicht schaffen, muesste teuer

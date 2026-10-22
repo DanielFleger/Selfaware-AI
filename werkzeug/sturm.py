@@ -102,40 +102,17 @@ def eigene_soldaten(roh):
 
 
 def plane_ziel(start, maenner, mk, lnr_xy, nah_r=None):
-    """Schnellstes Ziel: Mauerweg oder ein Torhaus einschlagen. Rueckgabe dict art ("mauer"/"tor"/"lord"), ziel, zug, weg, takte."""
+    """Schnellstes Ziel: Mauerweg oder ein Torhaus einschlagen. Rueckgabe dict art ("mauer"/"tor"/"lord"), ziel, zug, weg, takte.
+    B-170 (22.10.): der Planer selbst steht in durchbruch.py - derselbe fuer den Sturm und das Heer der echten Partie."""
+    import durchbruch
     befehl({"lagebild": True}, 2.0, bis="LAGEBILD")
     e = AD.ebenen()
-    G = lies_gebaeude()
-    sperre = AD.sperre_feindbau(e["bau"])
     gf, nah = schaden_feld(e["link"].shape[0], nah_r)
-    args = (e["link"], e["logik"], e["bau"], e["besitz"], e["hoehe"], e["boden"], SP, maenner, start, lnr_xy, mk)
-    kand = []
-    r = mechanik.durchbruch_schritte(*args, sperre=sperre, gefahr=gf)
-    if r["weg"]:
-        kand.append(("mauer", None, r, None))
-    for nr, g_ in G.items():
-        if g_["besitzer"] == FEIND and g_["typ"] == TORHAUS and g_["leben"] > 0:
-            rand = ndimage.binary_dilation(e["bau"] == nr, structure=np.ones((3, 3), bool), iterations=2)
-            # Einschlagen: Leben / Schaden je Treffer an Tor und Turm (Code UpdateMaceman), je Runde ein Treffer je Mann
-            kosten = math.ceil(g_["leben"] / float(mk["tor_turm"]) / max(1, maenner)) * mk["takte_je_treffer"]
-            rt = mechanik.durchbruch_schritte(*args, sperre=sperre & ~rand, gefahr=gf, frei=rand, frei_kosten=kosten)
-            if rt["weg"] and any(rand[q] for q in rt["weg"]):
-                kand.append(("tor", nr, rt, rand))
-    if not kand:
+    p = durchbruch.plane(SP, start, maenner, lnr_xy, mk=mk, gf=gf, e=e)
+    if p is None:
         return None
-    # Daniels Regel "maximale Sicherheit, dann minimaler Widerstand" auch ZWISCHEN den Kandidaten: Beschuss-Last, dann Zeit
-    art, nr, r, rand = min(kand, key=lambda k: (k[2]["belastung"] or 0.0, k[2]["takte"]))
-    weg = r["weg"]
-    # ab dem ZWEITEN Wegfeld suchen (Lauf 00:49: der Start lag selbst auf einem Mauerfeld -> Zugang = weg[-1] = der Lord)
-    i_wand = next((i for i, q in enumerate(weg) if i >= 1 and q in set(map(tuple, r["mauern"]))), None)
-    i_tor = next((i for i, q in enumerate(weg) if i >= 1 and rand is not None and rand[q] and not rand[weg[0]]), None)
-    gemein = {"weg": weg, "takte": r["takte"], "gefahr": gf, "nah": nah, "e": e,
-              "kandidaten": [(k[0], k[1], round(k[2]["belastung"] or 0), k[2]["takte"]) for k in kand]}     # EINE Stelle fuer alle Felder (Absturz 00:46: "nah" fehlte)
-    if i_tor is not None and (i_wand is None or i_tor < i_wand):
-        return dict(gemein, art="tor", ziel=nr, zug=weg[i_tor - 1])
-    if i_wand is not None:
-        return dict(gemein, art="mauer", ziel=weg[i_wand], zug=weg[i_wand - 1])
-    return dict(gemein, art="lord", ziel=None, zug=None)
+    p["nah"] = nah                                 # EINE Stelle fuer alle Felder (Absturz 00:46: "nah" fehlte)
+    return p
 
 
 # Schaden je Schuetze und Takt nach Schach-Abstand, offenes Feld (Wissensregister L73, gemessen an Assassinen, ~6.900 Runden):

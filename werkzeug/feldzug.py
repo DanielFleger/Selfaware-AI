@@ -286,9 +286,21 @@ class Feldzug:
         self.verworfen = set()      # B-138: zaehe Breschen - nicht noch einmal waehlen
         self._bresche_pruef = (None, -99)   # B-140: (Bresche, Runde) der letzten Pruefung mit dem Wegfinder
         self.mauer_seit = None      # B-147: Tick, seit dem die Mauer am eingemauerten Lord aufgehackt wird
+        # B-170 (Daniel 22.10. 08:39 "er geht immer noch gegen Tuerme und einsame Mauern statt die aufzumachen, die zum Lord
+        # fuehren"): hinter Mauern entscheidet der Durchbruch-Planer von sturm.py (durchbruch.py) - das ERSTE Hindernis auf dem
+        # besten Weg zum Lord (Mauerkachel oder Torhaus), gehackt wie im Sturm: Zugangsfeld, Ziel festhalten, Blickrichtung
+        self.durchbruch = None      # B-170: (sp, start, maenner, lord, verworfen=...) -> Plan (durchbruch.plane); setzt erstes_spiel
+        self.blick = None           # B-170: (kachel, sp) -> (Anfrage-Kachel, Blickrichtung) (durchbruch.anfrage_und_blick)
+        self.feldnr = None          # B-170: (x, y) -> Feldnummer des Spiels (durchbruch.feld) fuer logik.lua mauerziel
+        self.dplan = None           # B-170: letzter Durchbruch-Plan (art, ziel, zug, weg, ...) mit Runde und Lord
+        self.angesetzt = set()      # B-170: wer am Zugangsfeld die Kachel festgehalten bekam
+        self._angesetzt_kachel = None
+        self._dplan_meldung = None
         self._spur = {}             # B-146: je Nahkaempfer (Ort, Leben, still seit Tick, letzter Schaden bei Tick)
 
     NACHBAR_RINGE = (1, 2, 3)  # B-140: so nah am Gebaeude muss ein Feld erreichbar sein, sonst ist es nicht angreifbar
+    DPLAN_RUNDEN = 10          # B-170: so viele Runden gilt ein Durchbruch-Plan, solange sein Ziel steht (Startwert; eine Planung
+    #                            kostet Sekunden - sturm.py: 1-3 s)
     # B-146 (Daniel 21.10. 00:34 "ja bau die Rueckzugsregel und miss gegen die 107"): Stellschrauben, noch nicht gemessen
     RUECKZUG_TAKTE = 300       # so lange auf demselben Feld (Kern-Messung L170: STEHT NUR Median 345 Takte)
     RUECKZUG_SCHADEN = 1000    # Schaden innerhalb dieser Takte zaehlt als "unter Beschuss" (eine Lenker-Runde: 187-1.069 Takte)
@@ -374,6 +386,16 @@ class Feldzug:
             fen[max(0, lp[0] - self.MAUER_R):lp[0] + self.MAUER_R + 1, max(0, lp[1] - self.MAUER_R):lp[1] + self.MAUER_R + 1] = True
             # B-164 (Daniel 22:15 "keine Kompression auf eine Mauer"; 22:24 "durch die ganze Mauer"): EINE Kachel fuer alle - die
             # erste auf dem Durchbruch-Weg vom Heer zum Lord; sie bleibt, solange sie steht und nicht verworfen ist
+            if self.durchbruch is not None:
+                dp = self._durchbruch_neu(m, mitte or lp, lp, len(nah_kampf))
+                kachel = dp["ziel"] if dp is not None and dp["art"] == "mauer" else None
+                self.mauer_kachel = kachel
+                wand_w = [q for q in dp["weg"] if m[q]] if dp is not None else []
+                aus.update(mauern=len(wand_w), hoehe=int(h[m & fen].sum()), kachel=kachel,
+                           hoehe_kachel=int(h[kachel]) if kachel else None, weg_hoehe=int(sum(h[q] for q in wand_w)),
+                           zug=dp["zug"] if dp is not None else None,
+                           tor=dp["ziel"] if dp is not None and dp["art"] == "tor" else None)
+                return aus
             plan = self._durchbruch(geb, m, h, mitte or lp, lp)
             kachel = self.mauer_kachel
             if kachel is None or not m[kachel] or kachel in self.mauer_verworfen:
@@ -381,7 +403,79 @@ class Feldzug:
             self.mauer_kachel = kachel
             aus.update(mauern=plan["n"], hoehe=int(h[m & fen].sum()), kachel=kachel,
                        hoehe_kachel=int(h[kachel]) if kachel else None, weg_hoehe=plan["hoehe"])
+        elif frei is not None:
+            self.dplan = None
         return aus
+
+    def _durchbruch_neu(self, m, start, lp, maenner):
+        """B-170: Durchbruch-Plan (durchbruch.plane) - neu, wenn keiner da ist, das Ziel gefallen/verworfen ist, der Lord woanders
+        steht oder DPLAN_RUNDEN um sind; sonst der alte (die Planung kostet Sekunden)."""
+        dp = self.dplan
+        if dp is not None and tuple(dp["lord"]) == tuple(lp) and self.runde - dp["runde"] < self.DPLAN_RUNDEN:
+            if dp["art"] == "mauer" and m[dp["ziel"]] and dp["ziel"] not in self.mauer_verworfen:
+                return dp
+            if dp["art"] == "tor" and dp["ziel"] not in self.verworfen and (not self._feindbau or dp["ziel"] in self._feindbau):
+                return dp
+        try:
+            neu = self.durchbruch(self.sp, tuple(start), max(1, maenner), tuple(lp),
+                                  verworfen=set(self.mauer_verworfen) | set(self.verworfen))
+        except Exception as ex:
+            self.wegkarte_fehler = "Durchbruch: %s" % str(ex)[:120]
+            neu = None
+        if neu is not None:
+            neu = dict({k: neu.get(k) for k in ("art", "ziel", "zug", "weg", "takte", "belastung", "kandidaten")},
+                       runde=self.runde, lord=tuple(lp))
+            neu["weg"] = [tuple(q) for q in (neu["weg"] or [])]
+            if dp is None or (dp["art"], dp["ziel"]) != (neu["art"], neu["ziel"]):
+                self._dplan_meldung = ("FELDZUG DURCHBRUCH: bester Weg zum Lord %d - %s %s, Zugang %s, %s Takte, Beschuss-Last %s "
+                                       "(Kandidaten Art/Ziel/Last/Takte: %s)" % (
+                                           self.ziel, {"mauer": "Mauerkachel", "tor": "Torhaus", "lord": "frei bis"}.get(neu["art"]),
+                                           neu["ziel"], neu["zug"], neu["takte"], round(neu["belastung"] or 0), neu["kandidaten"]))
+        self.dplan = neu
+        return neu
+
+    def _mauerziel_los(self, befehl):
+        """B-170: festgehaltenes Mauerziel dieses Lenkers loesen (logik.lua: mauerziel ohne halten -> aus)."""
+        k_alt = self._angesetzt_kachel
+        if k_alt is not None and self.feldnr is not None:
+            k = self.feldnr(k_alt)
+            if k is not None:
+                befehl({"mauerziel": {"einheiten": [], "feld": k, "x": k_alt[0], "y": k_alt[1], "schluessel": "sp%d" % self.sp}}, 0.3)
+        self.angesetzt, self._angesetzt_kachel = set(), None
+
+    def _mauer_am_zug(self, L, wand, kq, zug, lp, befohlen, befehl, aus):
+        """B-170 wie sturm.py (Franz' Burg 5-mal gebrochen): alle zum Zugangsfeld genau vor der Kachel; wer dort steht (bis 1 Feld),
+        bekommt die Kachel als festgehaltenes Ziel (logik.lua mauerziel halten, je Lenker ein Schluessel) und den Angriffsbefehl
+        mit der Blickrichtung, bei der das Spiel genau diese Kachel waehlt (22.10.: am Lord gewaehlte Kacheln hatten 3-mal "keine
+        Wirkung", 2-mal "kommt nicht an")."""
+        if self._angesetzt_kachel != kq:
+            self._mauerziel_los(befehl)
+            self._angesetzt_kachel = kq
+        an = [n for n in wand if schach((L[n]["x"], L[n]["y"]), zug) <= 1]
+        hin = [n for n in wand if n not in an and (befohlen.get(n) != ("zug", zug) or L[n]["zustand"] in (0, 1))]
+        if hin:
+            befehl({"angriff": {"einheiten": sorted(hin), "lauf": [zug[0], zug[1]], "trupp": 1}}, 1.0, bis="ANGRIFF")
+            for n in hin:
+                befohlen[n] = ("zug", zug)
+        neu = [n for n in an if n not in self.angesetzt or L[n]["zustand"] in (0, 1)]
+        if not neu:
+            return
+        self.angesetzt |= set(neu)
+        k = self.feldnr(kq)
+        if k is not None:
+            befehl({"mauerziel": {"einheiten": sorted(self.angesetzt), "feld": k, "x": kq[0], "y": kq[1], "halten": True,
+                                  "schluessel": "sp%d" % self.sp}}, 0.3)
+        try:
+            ab = self.blick(kq, self.sp) if self.blick is not None else None
+        except Exception:
+            ab = None
+        ab = ab or (tuple(kq), 0)
+        befehl({"angriff": {"einheiten": sorted(neu), "mauer": [lp[0], lp[1], L[self.ziel]["besitzer"], self.MAUER_R,
+                                                                ab[0][0], ab[0][1], ab[1]], "trupp": 1}}, 1.0, bis="ANGRIFF")
+        for n in neu:
+            befohlen[n] = ("mauer", kq)
+        aus.append("FELDZUG MAUER AM ZUGANG: %d Mann an %s - Kachel %s festgehalten (Feld %s), Blick %d, zusammen %d angesetzt" % (
+            len(neu), zug, kq, k, ab[1], len(self.angesetzt)))
 
     def _durchbruch(self, geb, m, h, start, lp):
         """B-164 Durchbruch-Planer: der billigste Weg vom Heer (start) zum Lord, auf dem die Mauerkacheln seines Besitzers (m)
@@ -570,7 +664,19 @@ class Feldzug:
 
     def _schwachstelle(self, G, lp, orte, aus, anlass):
         """B-139: der schwaechste Teil der Burg am Lord (Torhaus/Turm bis BURG_R Felder vom Lord, nicht verworfen): wenigstes
-        Leben, bei Gleichstand der naechste an unserer Spitze. Setzt self.bresche; False, wenn es keinen gibt."""
+        Leben, bei Gleichstand der naechste an unserer Spitze. Setzt self.bresche; False, wenn es keinen gibt.
+        B-170: gibt es einen Durchbruch-Plan zu diesem Lord, entscheidet er - ein Torhaus nur, wenn es auf dem besten Weg liegt,
+        nie ein Turm abseits (22.10.: Turm 327, 2.000 Leben, 25 Felder vom Lord, auf keinem Weg dorthin)."""
+        if self.durchbruch is not None and self.dplan is not None and tuple(self.dplan["lord"]) == tuple(lp):
+            if self.dplan["art"] == "tor" and self.dplan["ziel"] in G and self.dplan["ziel"] not in self.verworfen:
+                nr = self.dplan["ziel"]
+                self.bresche, self.bresche_leben = nr, None
+                self._bresche_pruef = (nr, self.runde)
+                aus.append("FELDZUG SCHWACHSTELLE (%s): Torhaus %d auf dem Durchbruch-Weg zum Lord (Zugang %s)" % (
+                    anlass, nr, self.dplan["zug"]))
+                return True
+            self.dplan = None                 # naechste Runde neu planen - mit den inzwischen verworfenen Stellen
+            return False
         kolben_s = [n for n, e in (self._lagebild or {}).items() if e["besitzer"] == self.sp and e["typ"] in HEER]
         beste = self._beste_stelle(G, lp, orte, nr_test=kolben_s[0] if kolben_s else None)
         if beste is None:
@@ -932,6 +1038,9 @@ class Feldzug:
             # B-163/B-164 (Daniel 21:59): mit Wegkarte JEDE Runde, auch mit gewaehlter Bresche - steht der Lord in unserem Gebiet,
             # geht er allem vor; sonst der Schredder (Einer-Stapel auf seine Mauer), solange er Wirkung hat (B-165)
             ll = self._lage_lord(L, lp, [n for n in kolben if L[n]["typ"] not in FERN_REICH], lord["besitzer"], mitte)
+            if self._dplan_meldung:
+                aus.append(self._dplan_meldung)
+                self._dplan_meldung = None
             if ll is not None:
                 if (ll["frei"] is not None) != self._lord_frei_alt:
                     self._lord_frei_alt = ll["frei"] is not None
@@ -944,6 +1053,19 @@ class Feldzug:
                             self.ziel, "Bresche %d" % self.bresche if self.bresche is not None else "Schredder"))
                     self.bresche, self.bresche_leben, self.vorposten, self.schredder = None, None, None, False
                     self.lord_versuch = self.lord_versuch or t
+                    if self._angesetzt_kachel is not None:
+                        self._mauerziel_los(befehl)
+                elif ll.get("tor") is not None:
+                    # B-170: das Torhaus liegt auf dem besten Weg zum Lord - es ist die Bresche, kein Schredder
+                    if self.bresche != ll["tor"]:
+                        aus.append("FELDZUG DURCHBRUCH TOR: Lord %d hinter Mauern - Torhaus %d liegt auf dem besten Weg, alle "
+                                   "Nahkaempfer darauf%s" % (self.ziel, ll["tor"], " (statt Bresche %d)" % self.bresche
+                                                             if self.bresche is not None else ""))
+                        self.bresche, self.bresche_leben, self.vorposten = ll["tor"], None, None
+                        self._bresche_pruef = (ll["tor"], self.runde)
+                    if self._angesetzt_kachel is not None:
+                        self._mauerziel_los(befehl)
+                    self.schredder = False
                 elif ll["kachel"] is not None and t >= self.schredder_aus_bis:
                     if not self.schredder or ll["kachel"] != getattr(self, "_kachel_gemeldet", None):
                         self._kachel_gemeldet = ll["kachel"]
@@ -1194,8 +1316,11 @@ class Feldzug:
                                    "auf, je %d" % (self.ziel, " (Schredder)" if self.schredder else ", kein Turm erreichbar", len(wand),
                                                    self.MAUER_R, self.MAUER_TRUPP))
                     ziel_w = kq if kq is not None else lp
+                    zug_w = ll.get("zug") if ll is not None else None
                     neu_w = [n for n in wand if befohlen.get(n) != ("mauer", ziel_w) or L[n]["zustand"] in (0, 1)]
-                    if neu_w:
+                    if kq is not None and zug_w is not None and self.feldnr is not None:
+                        self._mauer_am_zug(L, wand, kq, tuple(zug_w), lp, befohlen, befehl, aus)
+                    elif neu_w:
                         # B-164: mit gewaehlter Kachel bekommt logik.lua sie mit (5./6. Wert) - alle Einer-Befehle auf DIESE
                         befehl({"angriff": {"einheiten": neu_w, "mauer": [lp[0], lp[1], L[self.ziel]["besitzer"], self.MAUER_R]
                                             + ([kq[0], kq[1]] if kq is not None else []), "trupp": self.MAUER_TRUPP}},

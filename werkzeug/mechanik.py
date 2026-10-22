@@ -140,7 +140,7 @@ RICHT_BITS = [((0, -1), 0x01), ((1, -1), 0x02), ((1, 0), 0x04), ((1, 1), 0x08), 
 
 
 def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner, start, ziel, mk=None, sperre=None, gefahr=None,
-                        frei=None, frei_kosten=0.0):
+                        frei=None, frei_kosten=0.0, freunde=None):
     """Billigster Weg (Takte) von start zum ziel ueber Laufen und Hacken; Rueckgabe {"weg", "mauern" (in Reihenfolge), "takte"}.
     Ohne Weg: weg = None. sperre: Felder, die fuer uns kein Weg sind (feindliche Tore/Tuerme mit Rand, B-164).
     gefahr: Schuetzen je Feld (gefahr.Karte.g). Rangfolge nach Daniels Regel "maximale Sicherheit, dann minimaler Widerstand"
@@ -156,7 +156,9 @@ def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner
     mk = mk or streitkolben()
     n = link.shape[0]
     idx = lambda x, y: x * n + y
-    wand = ((logik & 0x100) != 0) & ((logik & 0x10000400) == 0) & (bau == 0) & ((besitz & 7) + 1 != spieler) & (hoehe > boden)
+    # freunde (B-170, 2v2): Mauern aller Verbuendeten sind keine Ziele - ohne Angabe nur die eigenen
+    eigen = np.isin((besitz & 7) + 1, sorted(freunde)) if freunde else ((besitz & 7) + 1 == spieler)
+    wand = ((logik & 0x100) != 0) & ((logik & 0x10000400) == 0) & (bau == 0) & ~eigen & (hoehe > boden)
     nb = np.zeros(link.shape, int)
     for (dx, dy), _ in RICHT_BITS[::2]:
         nb += (np.roll(np.roll(logik, -dx, 0), -dy, 1) & 0x10000100) != 0

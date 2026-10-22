@@ -146,7 +146,8 @@ end
 -- das Spiel zerstoert die Kachel trotz gehaltener Hoehe.
 --============================================================================
 
-local mauerziel   = nil  -- B-167: { einheiten, feld, x, y, seit, neu } - Mauerziel je Takt festhalten, bis die Kachel faellt
+local mauerziele  = {}   -- B-167/B-170: schluessel -> { einheiten, feld, x, y, seit, neu } - Mauerziel je Takt festhalten, bis die
+                         -- Kachel faellt; je Lenker ein eigener Schluessel (2v2: zwei Heere an derselben Burg ueberschrieben sich)
 local mauerwacht = {}   -- schluessel -> { kacheln, ziel, anzahl, wieder, modus }
 
 local function mauerwachtStart(schluessel, besitzer, zielHoehe, modus)
@@ -2754,9 +2755,10 @@ local function einzelbefehl(cmd)
     end
     -- (Test C 23:35: jeder eingereihte Laufbefehl loescht beim Abarbeiten targetedBuildingTile - 19 von 20 standen mit Ziel 0.
     -- Darum haelt mauerzielTick das Ziel in jedem Takt fest, bis die Kachel faellt (LogicLayer-Bit 0x100 weg) oder ein neues kommt)
-    mauerziel = (mz.halten == true) and { einheiten = mz.einheiten or {}, feld = k, x = mx, y = my, seit = tick(), neu = 0 } or nil
-    log(INFO, string.format("MAUERZIEL Tick %d: %d Einheiten -> Kachel (%d,%d) Feld %d%s", tick(), n, mx, my, k,
-      mauerziel and " (festgehalten bis die Kachel faellt)" or ""))
+    local schl = tostring(mz.schluessel or "standard")
+    mauerziele[schl] = (mz.halten == true) and { einheiten = mz.einheiten or {}, feld = k, x = mx, y = my, seit = tick(), neu = 0 } or nil
+    log(INFO, string.format("MAUERZIEL Tick %d [%s]: %d Einheiten -> Kachel (%d,%d) Feld %d%s", tick(), schl, n, mx, my, k,
+      mauerziele[schl] and " (festgehalten bis die Kachel faellt)" or ""))
     return true
   end
 
@@ -4170,21 +4172,22 @@ local function einheitWachtTick()
 end
 
 local function mauerzielTick()
-  if mauerziel == nil then return end
-  local m = mauerziel
-  if ((core.readInteger(0x01BF8368 + 4 * m.feld) or 0) & 0x100) == 0 then
-    log(INFO, string.format("MAUERZIEL: Kachel (%d,%d) gefallen bei Tick %d (seit Tick %d, %d mal nachgeschrieben)", m.x, m.y,
-      tick(), m.seit, m.neu))
-    mauerziel = nil
-    return
-  end
-  for _, nrM in ipairs(m.einheiten) do
-    local u0 = 0x0138854C + nrM * 1168
-    if (core.readSmallInteger(u0 + 0x8C) or 0) ~= 0 and (core.readInteger(u0 + 0x3A8) or 0) ~= m.feld then
-      core.writeInteger(u0 + 0x3A8, m.feld)
-      core.writeSmallInteger(u0 + 0x3E8, m.x)
-      core.writeSmallInteger(u0 + 0x3EA, m.y)
-      m.neu = m.neu + 1
+  if next(mauerziele) == nil then return end
+  for schl, m in pairs(mauerziele) do
+    if ((core.readInteger(0x01BF8368 + 4 * m.feld) or 0) & 0x100) == 0 then
+      log(INFO, string.format("MAUERZIEL [%s]: Kachel (%d,%d) gefallen bei Tick %d (seit Tick %d, %d mal nachgeschrieben)", schl,
+        m.x, m.y, tick(), m.seit, m.neu))
+      mauerziele[schl] = nil
+    else
+      for _, nrM in ipairs(m.einheiten) do
+        local u0 = 0x0138854C + nrM * 1168
+        if (core.readSmallInteger(u0 + 0x8C) or 0) ~= 0 and (core.readInteger(u0 + 0x3A8) or 0) ~= m.feld then
+          core.writeInteger(u0 + 0x3A8, m.feld)
+          core.writeSmallInteger(u0 + 0x3E8, m.x)
+          core.writeSmallInteger(u0 + 0x3EA, m.y)
+          m.neu = m.neu + 1
+        end
+      end
     end
   end
 end
