@@ -390,6 +390,11 @@ class Feldzug:
             # erste auf dem Durchbruch-Weg vom Heer zum Lord; sie bleibt, solange sie steht und nicht verworfen ist
             if self.durchbruch is not None:
                 dp = self._durchbruch_neu(m, mitte or lp, lp, len(nah_kampf))
+                if dp is not None and dp["art"] == "lord" and dp.get("weg"):
+                    # B-193 (2v2 22.10. 18:19: "frei bis None" - der Planer fand einen Weg ohne Mauer, das Heer tat nichts): ein Weg
+                    # ohne Hindernis ist freie Fahrt bis vor den Lord
+                    aus.update(frei=tuple(dp["weg"][-2]) if len(dp["weg"]) > 1 else tuple(lp))
+                    return aus
                 kachel = dp["ziel"] if dp is not None and dp["art"] == "mauer" else None
                 self.mauer_kachel = kachel
                 wand_w = [q for q in dp["weg"] if m[q]] if dp is not None else []
@@ -1236,7 +1241,26 @@ class Feldzug:
             # RUECKZUG_MIN Nahkaempfer "STEHT NUR", wird die Angriffsstelle verworfen, sie laufen zum Sammelpunkt (ausser Reichweite
             # der Schuetzen) und die naechste Schwachstelle kommt
             stehen = self._steht_nur(L, nah_kampf, t)
-            if len(stehen) >= self.RUECKZUG_MIN:
+            zug_r = self.dplan.get("zug") if (self.dplan is not None and self.dplan.get("art") in ("mauer", "tor")) else None
+            if len(stehen) >= self.RUECKZUG_MIN and (zug_r is not None or (ll is not None and ll.get("frei"))):
+                # B-193/B-181 (Daniel 22.10. 18:19 "Orange ist, obwohl es dann zugaenglich war, einfach umgedreht"; gemessen: RUECKZUG
+                # 5/6/19 Mann bei Sp1, Sp2 182 Takte vor "Lord erreichbar"): mit Durchbruch-Plan oder offenem Weg geht, wer untaetig
+                # im Beschuss steht, an die Arbeit - zum Zugang bzw. auf den Lord - statt zurueck
+                bef_r = getattr(self, "_befohlen", {})
+                self._befohlen = bef_r
+                if zug_r is not None:
+                    self._kette_zum_zug(befehl, sorted(stehen), L, tuple(zug_r))
+                    for n in stehen:
+                        bef_r[n] = ("zug", tuple(zug_r))
+                    ziel_r = "zum Zugang %s" % (tuple(zug_r),)
+                else:
+                    befehl({"angriff": {"einheiten": sorted(stehen), "lauf": [ll["frei"][0], ll["frei"][1]]}}, 1.0, bis="ANGRIFF")
+                    for n in stehen:
+                        bef_r[n] = ("zum_lord", tuple(ll["frei"]))
+                    ziel_r = "auf den Lord"
+                aus.append("FELDZUG STEHT NUR -> ARBEIT: %d Nahkaempfer standen >= %d Takte unter Beschuss ohne Ziel - %s statt "
+                           "Rueckzug" % (len(stehen), self.RUECKZUG_TAKTE, ziel_r))
+            elif len(stehen) >= self.RUECKZUG_MIN:
                 sp_r = self._sammelpunkt(L, G, lord)
                 alt_r = self.bresche
                 if alt_r is not None:

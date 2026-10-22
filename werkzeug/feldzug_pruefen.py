@@ -1257,6 +1257,25 @@ def main():
     pruefe(57, "Heer 2 mit Absprache: Ziel %s, Planer-Aufrufe %d, %s | ohne Datei: Ziel %s" % (
         (f57b.dplan or {}).get("ziel"), n57, [m[:45] for m in m57b if "Absprache" in m], (f57c.dplan or {}).get("ziel")),
            (f57b.dplan or {}).get("ziel") == (275, 100) and n57 == 0 and (f57c.dplan or {}).get("ziel") == (276, 100))
+    # 58 (B-193/B-181): Plan aktiv, 6 stehen untaetig im Beschuss -> "STEHT NUR -> ARBEIT", Wegkette zum Zugang, kein RUECKZUG;
+    #    ohne Planer (Mauerkarte allein) -> alter RUECKZUG
+    def steht58(mit_planer):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+        f.schritt({"t": 12000}, *lage(10, heim), Befehle())
+        L_, G_ = lage(30, f.punkt)
+        f.wegkarte, f.mauerkarte = (lambda: {"gebiet": geb44}), mk44
+        if mit_planer:
+            f.durchbruch, f.blick, f.feldnr = (lambda sp, st, ma, lo, verworfen=(): dict(plan51)), (lambda k, sp: ((275, 100), 3)), (lambda xy: 4242)
+        f.schritt({"t": 12050}, L_, G_, Befehle())
+        f._steht_nur = lambda L__, nk, t__: sorted(nk)[:6]
+        b = Befehle()
+        return f.schritt({"t": 12150}, L_, G_, b), b.liste
+    m58, b58 = steht58(True)
+    m58o, _ = steht58(False)
+    pruefe(58, "mit Plan: %s | ohne Planer: %s" % ([m[:45] for m in m58 if "STEHT NUR" in m or "RUECKZUG" in m],
+                                                   [m[:30] for m in m58o if "RUECKZUG" in m]),
+           any("STEHT NUR -> ARBEIT" in m for m in m58) and not any("FELDZUG RUECKZUG" in m for m in m58)
+           and any("FELDZUG RUECKZUG" in m for m in m58o))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
