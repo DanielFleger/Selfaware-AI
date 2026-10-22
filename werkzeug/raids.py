@@ -67,6 +67,7 @@ FEUER_NACHBAR_R = 3      # B-189: so nah stehende feindliche Gebaeude koennen mi
 FEUER_NACHBAR_ANTEIL = 0.5  # B-189: Anteil ihres Werts, der dem Ziel zugerechnet wird (Startwert, UNGEMESSEN)
 ARBEITSPLATZ_DRIN = {4, 5, 10, 20, 21}   # B-178: Ochsenkarren, Eisenmine, Lager, Steinbruch, Steinhaufen - dort arbeiten sie am/im Gebaeude
 ARBEITSPLATZ_R = 3       # B-178: Abstand zur Gebaeudemitte, bis zu dem ein Arbeiter als "am Arbeitsplatz" gilt (Startwert, UNGEMESSEN)
+IMMUN_RUNDEN = 3        # B-196: so viele Runden Beschuss ohne Lebensverlust -> Ziel gesperrt (Startwert, UNGEMESSEN)
 SCHUETZE_WERT = 10      # B-175: feindlicher Schuetze am Boden als Reiterziel - wie ein Holzfaeller (Startwert, UNGEMESSEN)
 
 
@@ -342,9 +343,30 @@ class Reiterjagd:
         self.befohlen = {}          # Reiter -> (Art, Ziel, Runde)
         self.getoetet = 0
         self.runde = 0
+        self.wirkung = {}           # B-196: (Reiter, Ziel) -> (Leben des Ziels, Runde) seit dem letzten Lebensverlust unter Beschuss
+        self.immun = {}             # B-196: Ziel -> Feld, auf dem ihm unser Beschuss nichts anhaben konnte
 
     def einheiten(self, L):
         return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] == PFERDEBOGEN and e.get("leben", 1) > 0}
+
+    def _wirkung_messen(self, r, L, aus):
+        """B-196 (gemessen 22.10., Laeufe 18:08/18:27: Reiter 646 schoss 21.000 Takte auf Arbeiter 516 (Typ 31) in seinem Gebaeude,
+        Reiter 661 2.000 Takte auf 721 - beide blieben bei 2.500 Leben; die Feld-Regel aus B-178 erkannte das nicht): wer schiesst
+        (Zustand 4) und dessen Ziel IMMUN_RUNDEN Runden lang kein Leben verliert, sperrt das Ziel, solange es auf diesem Feld
+        steht - gelernt aus der Wirkung, nicht aus einer Liste von Typen."""
+        e = L[r]
+        z = e.get("zieleinheit")
+        if e.get("zustand") != 4 or z not in L or L[z].get("besitzer") in freunde_von(self.sp):
+            return
+        w = self.wirkung.get((r, z))
+        if w is None or L[z].get("leben", 0) < w[0]:
+            self.wirkung[(r, z)] = (L[z].get("leben", 0), self.runde)
+        elif self.runde - w[1] >= IMMUN_RUNDEN:
+            self.immun[z] = (L[z]["x"], L[z]["y"])
+            self.wirkung.pop((r, z), None)
+            self.befohlen.pop(r, None)
+            aus.append("REITERJAGD: Ziel %d (Typ %d) bei %s verliert unter Beschuss von Reiter %d seit %d Runden kein Leben (%d) - "
+                       "gesperrt, solange es dort steht" % (z, L[z]["typ"], self.immun[z], r, self.runde - w[1], w[0]))
 
     def schritt(self, L, G, befehl, lage=None):
         import gefahrenschutz as GS
@@ -368,7 +390,10 @@ class Reiterjagd:
         im_freien = lambda a: ((bau is None or not lage.drin((a["x"], a["y"])) or int(bau[a["x"], a["y"]]) == 0)
                                and not any(schach((a["x"], a["y"]), q) <= ARBEITSPLATZ_R for q in arbeitsplatz))
         import gefecht
+        for r in reiter:
+            self._wirkung_messen(r, L, aus)
         arbeiter = [(k, a) for k, a in L.items() if a["besitzer"] not in freunde_von(self.sp) and a.get("leben", 1) > 0
+                    and self.immun.get(k) != (a["x"], a["y"])
                     and ((a["typ"] in ARBEITER and im_freien(a))
                          or (a["typ"] in gefecht.FERN_REICH and im_freien(a) and a["typ"] != PFERDEBOGEN))]
         arbeiter_nr = {k for k, _ in arbeiter}

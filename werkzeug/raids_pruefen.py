@@ -326,6 +326,21 @@ def main():
     r26o.schritt(L26, {}, Befehle())
     pruefe(26, "am Steinbruch: Ziel %s | ohne: %s" % (r26.befohlen.get(20), r26o.befohlen.get(20)),
            r26.befohlen.get(20, (0, 0))[1] == 701 and r26o.befohlen.get(20, (0, 0))[1] == 700)
+    # 27. (B-196) Reiter schiesst (Zustand 4) auf Holzfaeller 700 (8 Felder), dessen Leben bleibt 5 Runden gleich -> 700 gesperrt,
+    #     der Reiter nimmt 701 (30 Felder); Gegenprobe: 700 verliert jede Runde Leben -> bleibt Ziel
+    def wirkung(verliert):
+        L = {20: einheit(74, 1, 100, 100), 700: einheit(3, 2, 108, 100), 701: einheit(3, 2, 130, 100)}
+        rj = RJ()
+        for i in range(5):
+            L[20].update(zustand=4, zieleinheit=700)
+            if verliert:
+                L[700]["leben"] = 10000 - 500 * (i + 1)
+            rj.schritt(L, {}, Befehle())
+        return rj.befohlen.get(20, (0, 0))[1], dict(rj.immun)
+    z27, i27 = wirkung(False)
+    z27b, i27b = wirkung(True)
+    pruefe(27, "ohne Wirkung: Ziel %s gesperrt %s | mit Wirkung: Ziel %s gesperrt %s" % (z27, i27, z27b, i27b),
+           z27 == 701 and 700 in i27 and z27b == 700 and not i27b)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
