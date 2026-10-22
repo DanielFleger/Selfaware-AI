@@ -140,7 +140,7 @@ def main():
     a8 = [x["angriff"] for x in b8.liste]
     letzter = (a8[0].get("danach") or [a8[0].get("lauf")])[-1] if a8 else None
     pruefe(8, "Holzfaeller 60 Felder weg: Befehle %s" % [{k: (v if k != "danach" else len(v)) for k, v in a.items()} for a in a8],
-           a8 and "ziel" not in a8[0] and "danach" in a8[0] and letzter and R.schach(letzter, (160, 100)) <= 8)
+           a8 and "ziel" not in a8[0] and "danach" in a8[0] and letzter and 32 <= R.schach(letzter, (160, 100)) <= 39)
 
     bt9 = BT()
     bt9.schritt({10: einheit(71, 1, 100, 100)}, {1: geb(11, 2, 120, 100), 2: geb(1, 2, 100, 120)}, Befehle())

@@ -209,10 +209,18 @@ class Brandtrupp:
     def _ziele(self, L, G, ort, belegt, lage=None, leben=6000):
         """Gebaeude nach Rang (bester zuerst) - nur die mit vertretbarem Risiko."""
         if lage is None or self.schutz:
-            lage = _lage_fuer(self.sp, L, G, self.raten, ohne=self._gedeckt(L))
+            lage = _lage_fuer(self.sp, L, G, self.raten, ohne=self._gedeckt(L),
+                             wegkarte=getattr(lage, "wegkarte", None))
         import gefahrenschutz as GS
         kand = self._kandidaten(L, G, belegt)
         r = GS.bewerte(lage, ort, SKLAVE, leben, kand)
+        if getattr(lage, "links", None) is not None:
+            r = []
+            for wert, zielort, nr in kand:
+                p = lage.plan(ort, zielort, SKLAVE, leben, gebaeude=nr)
+                if p is not None and p["p_tod"] <= GS.RISIKO_MAX:
+                    r.append((wert*(1-p["p_tod"])/max(1,p["takte"]+GS.VERWEILEN[SKLAVE]),nr,p))
+            r.sort(key=lambda v:-v[0])
         self.abgelehnt = len(kand) - len(r)
         self._rang = r
         return [(k, p) for _, k, p in r]
@@ -237,7 +245,7 @@ class Brandtrupp:
         meine = self.einheiten(L)
         self._wege = self._alle_heerwege(L)
         if lage is None or self.schutz:
-            lage = _lage_fuer(self.sp, L, G, self.raten, ohne=self._gedeckt(L))
+            lage = _lage_fuer(self.sp, L, G, self.raten, ohne=self._gedeckt(L), wegkarte=getattr(lage, "wegkarte", None))
         for s in list(self.ziel):
             if s not in meine or self.ziel[s] not in G or not angreifbar(G[self.ziel[s]]):
                 self.ziel.pop(s, None)
@@ -319,7 +327,15 @@ class Brandtrupp:
                     pl.update({"an": p["an"], "ort": o, "weg": p})
             # Befehl: an der Ankunft angreifen, sonst Wegkette; neu senden bei neuem Ziel, im Stillstand oder alle NEU_ALLE Runden
             an = pl["an"]
-            art = "angriff" if schach(o, an) <= self.ANGRIFF_R or schach(o, (G[self.ziel[s]]["x"], G[self.ziel[s]]["y"])) <= self.ANGRIFF_R else "lauf"
+            nah = schach(o, an) <= self.ANGRIFF_R or schach(o, (G[self.ziel[s]]["x"], G[self.ziel[s]]["y"])) <= self.ANGRIFF_R
+            if getattr(lage, "links", None) is not None:
+                # Geometrische Naehe ueber eine Klippe hinweg loest keinen Angriff aus.
+                rest = lage.plan(o, (G[self.ziel[s]]["x"], G[self.ziel[s]]["y"]), SKLAVE,
+                                 e.get("leben",6000), gebaeude=self.ziel[s])
+                nah = rest is not None and len(rest["weg"]) <= self.ANGRIFF_R+1
+                if rest is not None:
+                    pl["weg"] = rest
+            art = "angriff" if nah else "lauf"
             if art != pl["art"] or self.runde - pl["runde"] >= NEU_ALLE or e.get("zustand") in (0, 1):
                 if art == "angriff":
                     befehl({"angriff": {"einheiten": [s], "gebaeude": self.ziel[s]}}, 1.0, bis="ANGRIFF")
@@ -337,8 +353,10 @@ def reichweitenposition(lage, ort, ziel, eigene_reichweite, feind_reichweite, le
     Vier Felder Puffer, eigene obere Modellgrenze um fuenf Felder verkuerzt.
     Jeder Punkt wird gegen ALLE Schuetzen der Lage und gegen den wirklichen Weg geprueft.
     """
-    unten,oben=feind_reichweite+4,eigene_reichweite-5
-    if feind_reichweite<=0 or unten>=oben:return None
+    unten,oben=max(feind_reichweite+4, eigene_reichweite-12 if feind_reichweite == 0 else 0),eigene_reichweite-5
+    if feind_reichweite<0 or unten>=oben:return None
+    if feind_reichweite == 0 and schach(ort,ziel)<=oben and lage.schaden(ort)<=0:
+        return {'an':tuple(ort),'weg':[tuple(ort)],'takte':0,'verlust':0,'p_tod':0}
     if unten<=schach(ort,ziel)<=oben and lage.schaden(ort)<=0:
         return {'an':tuple(ort),'weg':[tuple(ort)],'takte':0,'verlust':0,'p_tod':0}
     radius=min(oben-1,unten+2)
@@ -442,6 +460,17 @@ class Reiterjagd:
                         self.befohlen[r]=('abstand',ziel_ab,self.runde)
                         aus.append('REITER REICHWEITENVORTEIL: %d weicht Typ %d vor Beschuss aus, Abstand %d, Ziel %s'%(r,f['typ'],d,ziel_ab))
                     continue
+                # Kein sicherer Punkt zum Schiessen: niemals in die normale Jagd durchfallen.
+                q = _rueckzug(lage, o)
+                p_r = lage.plan(o, q, PFERDEBOGEN, e.get('leben',15000)) if q is not None and q != o else None
+                if p_r:
+                    befehl(GS.lauf_befehl(lage,r,p_r),1.0,bis='ANGRIFF')
+                    self.befohlen[r]=('rueckzug',tuple(p_r['an']),self.runde)
+                    aus.append('REITER SICHERHEIT: %d ohne sicheren Schusspunkt - Rueckzug statt weiterer Jagd'%r)
+                else:
+                    befehl({'angriff':{'einheiten':[r],'lauf':list(o)}},1.0,bis='ANGRIFF')
+                    self.befohlen[r]=('halt',o,self.runde)
+                continue
             # B-188/B-201 (Daniel 22.10. 18:12 "sie muessen ausweichen, immerhin sind sie die einzige Einheit, die im Lauf auch
             # schiessen kann"; 18:45 "stehen beim Angriff, statt zu patrouillieren", "gehen in den Nahkampf"; gemessen 18:40:
             # 1.325 von 2.800 Reiter-Proben standen schiessend still): wer gerade beschossen wird, reitet KITE_FELDER vom Schuetzen
@@ -454,7 +483,10 @@ class Reiterjagd:
                 dx, dy = o[0] - f["x"], o[1] - f["y"]
                 n = max(abs(dx), abs(dy), 1)
                 ziel = (o[0] + KITE_FELDER * dx // n, o[1] + KITE_FELDER * dy // n)
-                befehl({"angriff": {"einheiten": [r], "lauf": [ziel[0], ziel[1]]}}, 1.0, bis="ANGRIFF")
+                p_flucht = lage.plan(o, ziel, PFERDEBOGEN, e.get("leben",15000))
+                if p_flucht is None:
+                    continue
+                befehl(GS.lauf_befehl(lage, r, p_flucht), 1.0, bis="ANGRIFF")
                 self.befohlen[r] = ("kite", ziel, self.runde)
                 aus.append("REITERJAGD: Reiter %d wird von %d (Typ %d, %d Felder) beschossen - reitet nach %s, dann wieder Angriff" % (
                     r, auf_mich[0][1], f["typ"], auf_mich[0][0], ziel))
@@ -470,7 +502,10 @@ class Reiterjagd:
                 n = max(abs(dx), abs(dy), 1)
                 ziel = (o[0] + 12 * dx // n, o[1] + 12 * dy // n)
                 if alt is None or alt[0] != "flucht" or self.runde - alt[2] >= NEU_ALLE:
-                    befehl({"angriff": {"einheiten": [r], "lauf": [ziel[0], ziel[1]]}}, 1.0, bis="ANGRIFF")
+                    p_flucht = lage.plan(o, ziel, PFERDEBOGEN, e.get("leben",15000))
+                    if p_flucht is None:
+                        continue
+                    befehl(GS.lauf_befehl(lage, r, p_flucht), 1.0, bis="ANGRIFF")
                     self.befohlen[r] = ("flucht", ziel, self.runde)
                     aus.append("REITERJAGD: Reiter %d weicht Typ %d in %d Feldern aus -> %s" % (r, f["typ"], nah[0], ziel))
                 continue
@@ -489,12 +524,13 @@ class Reiterjagd:
             zielpunkte=[]
             for k_a,a in naechste:
                 punkt=(a['x'],a['y']);reich=gefecht.FERN_REICH.get(a['typ'],0)
-                if 0<reich<gefecht.FERN_REICH[PFERDEBOGEN]:
+                if 0<=reich<gefecht.FERN_REICH[PFERDEBOGEN]:
                     p_a=reichweitenposition(lage,o,punkt,gefecht.FERN_REICH[PFERDEBOGEN],reich,e.get('leben',15000))
                     if p_a is None:continue
                     punkt=tuple(p_a['an'])
                 zielpunkte.append((ARBEITER.get(a['typ'],SCHUETZE_WERT),punkt,k_a))
             rang=GS.bewerte(lage,o,PFERDEBOGEN,e.get('leben',15000),zielpunkte)
+            rang.sort(key=lambda v:(-v[0],schach(o,(L[v[1]]['x'],L[v[1]]['y']))))
             if not rang:
                 if lage.schaden(o) > 0 and (alt is None or alt[0] != "rueckzug" or self.runde - alt[2] >= NEU_ALLE):
                     q = _rueckzug(lage, o)
@@ -508,13 +544,13 @@ class Reiterjagd:
             d = schach(o, (L[k]["x"], L[k]["y"]))
             feind_reich=gefecht.FERN_REICH.get(L[k]['typ'],0)
             schussgrenze=JAGD_R
-            if 0<feind_reich<gefecht.FERN_REICH[PFERDEBOGEN]:
+            if 0<=feind_reich<gefecht.FERN_REICH[PFERDEBOGEN]:
                 p_ab=reichweitenposition(lage,o,(L[k]['x'],L[k]['y']),gefecht.FERN_REICH[PFERDEBOGEN],feind_reich,e.get('leben',15000))
                 if p_ab is None:
                     continue  # Kein sicherer Schusspunkt: keinen Angriff in den Feind hinein ausloesen.
                 p=p_ab
                 schussgrenze=gefecht.FERN_REICH[PFERDEBOGEN]-5
-            art = "jagd" if d <= schussgrenze and (not (0<feind_reich<gefecht.FERN_REICH[PFERDEBOGEN]) or lage.schaden(o)<=0) else "anritt"
+            art = "jagd" if d <= schussgrenze and lage.schaden(o)<=0 else "anritt"
             if alt is None or alt[:2] != (art, k) or self.runde - alt[2] >= NEU_ALLE or e.get("zustand") in (0, 1):
                 if art == "jagd":
                     befehl({"angriff": {"einheiten": [r], "ziel": k}}, 1.0, bis="ANGRIFF")

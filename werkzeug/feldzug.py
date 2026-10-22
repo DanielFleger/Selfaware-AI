@@ -689,15 +689,16 @@ class Feldzug:
     def _neue_karte(self, bed, G=None):
         """B-157/B-161: Gefahrenkarte dieser Runde - mit den Gebieten des Spiels, wenn die Wegkarte lesbar ist (B-164: ohne
         feindliche Tore und Tuerme als Durchgang)."""
-        geb = None
+        geb, links = None, None
         if self.wegkarte is not None:
             try:
                 wk = self.wegkarte()
+                links = wk.get("link")
                 geb = wk["gebiet"] if G is None else self._ohne_feindtore(wk["gebiet"], wk.get("gebaeude"), G)
                 self.wegkarte_fehler = None
             except Exception as ex:                      # Spiel nicht lesbar: wie vorher ohne Gebiete, Grund merken
                 self.wegkarte_fehler = str(ex)[:120]
-        return GF.Karte(bed, feuer=self._orte_f, gebiete=geb)
+        return GF.Karte(bed, feuer=self._orte_f, gebiete=geb, links=links)
 
     def _abfangen(self, L, nah_kampf, start, ziel, befohlen, befehl, aus):
         """B-162: Schuetzen, deren Reichweite den sichersten Weg start -> ziel trifft UND die zu Fuss erreichbar sind (gleiches

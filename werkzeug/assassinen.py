@@ -1367,6 +1367,21 @@ class Einzeln:
         return sieg and anteil >= self.GEGEN_BEHALTEN, "%d eigene gegen %d feindliche (%d Schuetzen erreichen das Ziel): %s, uns bleiben %.0f %%" % (
             len(wir), len(sie), schuetzen, "Sieg" if sieg else "kein Sieg", 100 * anteil)
 
+    def _stapel_kandidaten(self, mitglieder, fern, L):
+        """Burgnaehe allein ist kein Veto: die vorhandene Gefechtsrechnung muss den Angriff tragen."""
+        if not mitglieder:
+            return []
+        mitte = (sum(L[n]["x"] for n in mitglieder) / len(mitglieder),
+                 sum(L[n]["y"] for n in mitglieder) / len(mitglieder))
+        aus = []
+        for f in fern:
+            if L[f[0]].get("erreichbar", -1) != 1 or schach(mitte, f[1]) > self.STAPEL_WEG:
+                continue
+            um = self._anzahl(f[1], fern, 10) - 1
+            if len(mitglieder) >= 2 * um + 4:
+                aus.append((um, schach(mitte, f[1]), f))
+        return sorted(aus)
+
     def _gemeinsam_angreifen(self, wir_nr, ziele, L, jagen):
         """19.10.: alle aus wir_nr greifen zugleich an - jeder das naechste der Ziele (Nummern feindlicher Einheiten)."""
         for m in wir_nr:
@@ -2837,20 +2852,11 @@ class Einzeln:
             elif stp["mitglieder"]:
                 # 9h: der naechste Schuetze stand inmitten von 17 weiteren - jetzt nur Schuetzen, um die hoechstens
                 # (Stapelgroesse - 4) / 2 weitere Fernkaempfer im Umkreis 10 stehen; davon der einsamste, dann der naechste.
-                # 19.10. (1019k): nur bis STAPEL_WEG Felder, nicht naeher als STAPEL_BURG an einem feindlichen Lord, und nur, was
-                # die Gefechtsrechnung gewinnt (die drei einsamsten/naechsten werden gerechnet)
-                mx = sum(L[n]["x"] for n in stp["mitglieder"]) / len(stp["mitglieder"])
-                my = sum(L[n]["y"] for n in stp["mitglieder"]) / len(stp["mitglieder"])
-                erreichbar = []
-                for f in fern:
-                    if L[f[0]].get("erreichbar", -1) != 1 or schach((mx, my), f[1]) > self.STAPEL_WEG \
-                            or any(schach(f[1], b) < self.STAPEL_BURG for b in self._feindburg):
-                        continue
-                    um = self._anzahl(f[1], fern, 10) - 1
-                    if len(stp["mitglieder"]) >= 2 * um + 4:
-                        erreichbar.append((um, schach((mx, my), f[1]), f))
-                wahl, text_s = None, "kein Schuetze bis %d Felder, ausserhalb %d Feldern um ihre Lords" % (self.STAPEL_WEG, self.STAPEL_BURG)
-                for um, d, f_ in sorted(erreichbar)[:3]:
+                # Burgnaehe ist kein pauschales Veto mehr; nur nach bestandener Gefechtsrechnung
+                # mit Mindestrestleben angreifen (die drei einsamsten/naechsten werden gerechnet).
+                erreichbar = self._stapel_kandidaten(stp["mitglieder"], fern, L)
+                wahl, text_s = None, "kein erreichbarer, ausreichend gedeckter Schuetze bis %d Felder" % self.STAPEL_WEG
+                for um, d, f_ in erreichbar[:3]:
                     lohnt_s, text_s = self._stapel_rechnung(stp["mitglieder"], f_[0], L)
                     if lohnt_s:
                         wahl = (um, d, f_)

@@ -121,4 +121,6 @@ def wegkarte():
     aus["link"][xs, ys] = link1[ks]
     aus["gebiet"][xs, ys] = np.where(link1[ks] > 0, geb1[ks], 0)
     aus["gebaeude"][xs, ys] = bau1[ks]
+    aus["hoehe"] = ebene(HOEHE)
+    aus["boden"] = ebene(BODEN)
     return aus

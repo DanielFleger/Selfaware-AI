@@ -58,7 +58,7 @@ class Karte:
     und gesperrt (Feld bool [x, y]) sind nicht begehbar; gebiete (Feld int [x, y], 0 = nicht begehbar, aus speicher.wegkarte)
     beschraenkt jede Suche auf das Gebiet ihres Startpunkts. Die Kostensuche je Startpunkt wird zwischengespeichert."""
 
-    def __init__(self, bed, feuer=(), gesperrt=None, k=K, n=GROESSE, gebiete=None):
+    def __init__(self, bed, feuer=(), gesperrt=None, k=K, n=GROESSE, gebiete=None, links=None):
         self.bed, self.feuer, self.k, self.n = list(bed), list(feuer), k, n
         d = np.zeros((n + 1, n + 1), np.int64)
         for x, y, r, w, _ in self.bed:
@@ -76,6 +76,7 @@ class Karte:
         self.kosten = 1.0 + k * self.g.astype(float)
         self.kosten[self.sperre] = -1.0
         self.gebiete = None if gebiete is None else np.asarray(gebiete)
+        self.links = None if links is None else np.asarray(links)
         self._suche, self._frei = {}, {}
 
     def drin(self, p):
@@ -121,8 +122,13 @@ class Karte:
             kosten = np.where(self.frei(start), self.kosten, -1.0)
             if self.drin(start) and kosten[start] < 0:      # wer im Feuer oder auf einer Gebaeudekante steht, darf hinaus
                 kosten[start] = 1.0
-            m = MCP(kosten, fully_connected=True)
-            kum, _ = m.find_costs([start])
+            if self.links is not None:
+                from weggraph import LinkSuche
+                m = LinkSuche(kosten, self.links, start)
+                kum = m.kum
+            else:
+                m = MCP(kosten, fully_connected=True)
+                kum, _ = m.find_costs([start])
             self._suche[start] = (m, kum)
         return self._suche[start]
 
@@ -172,14 +178,15 @@ def sicherer_weg(start, ziel, bed, feuer=(), k=K, schritt=None, rand=None):
     des A*, heute ohne Wirkung - die Suche deckt die ganze Karte.)"""
     karte = _als_karte(bed, feuer, k)
     start, ziel = tuple(start), tuple(ziel)
-    if all(karte.gefahr(p) == 0 and karte.offen(start, p) for p in karte.linie(start, ziel)[1:]):
+    from weggraph import linie_erlaubt
+    if (karte.links is None or linie_erlaubt(karte.linie(start, ziel), karte.links)) and all(karte.gefahr(p) == 0 and karte.offen(start, p) for p in karte.linie(start, ziel)[1:]):
         return [ziel]
     an = karte.ankunft(start, ziel)
     if an is None:
         return None
     m, _ = karte.suche(start)
     pfad = [tuple(int(v) for v in q) for q in m.traceback(an)]
-    if pfad[-1] != ziel and karte.offen(start, ziel):
+    if pfad[-1] != ziel and karte.offen(start, ziel) and (karte.links is None or linie_erlaubt(karte.linie(pfad[-1], ziel), karte.links)):
         pfad.append(ziel)
     # glaetten: nur Eckpunkte (Richtungswechsel) und jedes dritte Feld kommen als Wegpunkt in Frage; von jedem Punkt der
     # weiteste, dessen gerade Strecke durch kein gesperrtes Feld fuehrt und nicht gefaehrlicher ist als das ersetzte Stueck -
@@ -196,7 +203,7 @@ def sicherer_weg(start, ziel, bed, feuer=(), k=K, schritt=None, rand=None):
         j = len(kand) - 1
         while j > i + 1:
             gerade = karte.linie(pfad[kand[i]], pfad[kand[j]])
-            if all(karte.offen(start, p) for p in gerade[1:]) and \
+            if (karte.links is None or linie_erlaubt(gerade, karte.links)) and all(karte.offen(start, p) for p in gerade[1:]) and \
                     sum(karte.gefahr(p) for p in gerade[1:]) <= summe[kand[j]] - summe[kand[i]]:
                 break
             j -= 1

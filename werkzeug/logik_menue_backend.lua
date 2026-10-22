@@ -2481,7 +2481,8 @@ local function einzelbefehl(cmd)
             end
           end
           wegketten[#wegketten + 1] = { einheiten = ein, uid = uid, punkte = a.danach, i = 0, als = a._als,
-            x = tonumber(a.lauf[1]) or 0, y = tonumber(a.lauf[2]) or 0, seit = tick() }
+            x = tonumber(a.lauf[1]) or 0, y = tonumber(a.lauf[2]) or 0, seit = tick(),
+            radius = math.max(0, math.min(4, tonumber(a.weg_radius) or 4)) }
           log(INFO, string.format("WEGKETTE Tick %d: %d Einheiten nach (%s,%s), danach %d Punkte", tick(), #ein,
             tostring(a.lauf[1]), tostring(a.lauf[2]), #a.danach))
         end
@@ -4269,13 +4270,13 @@ local function wegketteTick()
          and (core.readInteger(b + E_LEBEN) or 0) > 0 then
         lebend[#lebend + 1] = nr
         local ux, uy = core.readSmallInteger(b + E_X) or -999, core.readSmallInteger(b + E_Y) or -999
-        if math.max(math.abs(ux - k.x), math.abs(uy - k.y)) <= 4 then da = da + 1 end
+        if math.max(math.abs(ux - k.x), math.abs(uy - k.y)) <= (k.radius or 4) then da = da + 1 end
       end
     end
     k.einheiten = lebend
     if #lebend == 0 then
       table.remove(wegketten, i)
-    elseif 2 * da >= #lebend or t - k.seit >= 300 then
+    elseif 2 * da >= #lebend or ((k.radius or 4) > 0 and t - k.seit >= 300) then
       k.i = k.i + 1
       local p = k.punkte[k.i]
       local px, py = tonumber(p[1]) or 0, tonumber(p[2]) or 0

@@ -96,6 +96,8 @@ class Lage:
         """wegkarte (speicher.wegkarte(): gebiet, gebaeude, link) - 22.10. 2v2 082947: ohne Gebaeude-Ebene legte die Suche den
         ersten Wegpunkt eines Reiters auf das Lagerfeuer (224,282, link 28, Gebaeude 10) - er stand 2.600 Takte still."""
         self.n = n
+        self.wegkarte = wegkarte
+        self.links = None if wegkarte is None or "link" not in wegkarte else np.asarray(wegkarte["link"])
         d = np.zeros((n + 1, n + 1))
 
         def quadrat(x, y, r, w):
@@ -158,8 +160,13 @@ class Lage:
                 kosten = np.where((self.bau == 0) | ((self.bau == eigen) & (eigen != 0)), kosten, -1.0)
             if self.drin(start):
                 kosten[start] = max(kosten[start], 1.0)
-            m = MCP(kosten, fully_connected=True)
-            kum, _ = m.find_costs([start])
+            if self.links is not None:
+                from weggraph import LinkSuche
+                m = LinkSuche(kosten, self.links, start)
+                kum = m.kum
+            else:
+                m = MCP(kosten, fully_connected=True)
+                kum, _ = m.find_costs([start])
             self._suche[start] = (m, kum)
         return self._suche[start]
 
@@ -177,11 +184,28 @@ class Lage:
                 return bester
         return None
 
-    def plan(self, start, ziel, typ, leben):
+    def plan(self, start, ziel, typ, leben, gebaeude=None):
         """Weg start -> ziel fuer eine Einheit vom Typ typ mit leben: dict(weg, takte, verlust, p_tod, an) oder None (nicht
         erreichbar). Verlust = Faktor x (Schaden entlang des Wegs x Takte je Feld + Schaden am Ankunftsfeld x Verweilen)."""
         start, ziel = tuple(start), tuple(ziel)
-        an = self.ankunft(start, ziel)
+        if gebaeude is not None and self.bau is not None and self.links is not None:
+            # Ein Brandauftrag braucht einen echten angrenzenden Angriffsplatz;
+            # "acht Felder daneben erreichbar" reicht an einer Klippe nicht.
+            _, kum = self.suche(start)
+            from weggraph import RICHTUNGEN
+            boden = self.wegkarte.get("boden")
+            kandidaten = set()
+            for x, y in zip(*np.nonzero(self.bau == gebaeude)):
+                for _, dx, dy in RICHTUNGEN:
+                    q = (x+dx, y+dy)
+                    if not self.drin(q) or self.bau[q] != 0 or not np.isfinite(kum[q]):
+                        continue
+                    if boden is not None and abs(int(boden[x,y])-int(boden[q])) > 16:
+                        continue
+                    kandidaten.add(q)
+            an = min(kandidaten, key=lambda q: (kum[q], q), default=None)
+        else:
+            an = self.ankunft(start, ziel)
         if an is None:
             return None
         m, _ = self.suche(start)
@@ -246,6 +270,8 @@ def lauf_befehl(lage, einheit, p):
     """Angriffsbefehl fuer logik.lua: Wegkette entlang des Plans."""
     pk = lage.wegpunkte(p["weg"])
     a = {"einheiten": [einheit], "lauf": [pk[0][0], pk[0][1]], "trupp": 1}
+    if getattr(lage, "links", None) is not None:
+        a["weg_radius"] = 0       # einen schmalen Aufgang nicht vier Felder vor dem Wegpunkt abschneiden
     if len(pk) > 1:
         a["danach"] = [[q[0], q[1]] for q in pk[1:]]
     return {"angriff": a}
