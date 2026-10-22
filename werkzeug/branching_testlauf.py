@@ -1,7 +1,7 @@
 """Entwicklungsvergleich mit bestehenden Crusader-Startwerkzeugen; keine Abnahmeserie."""
 import os,sys,pathlib,json,time,subprocess,struct,hashlib
 root=pathlib.Path(__file__).resolve().parents[1]
-os.environ.update(SHC_INSTANZ='5',SHC_SITZUNG='codex-sai-01a1649a',PYTHONIOENCODING='utf-8')
+os.environ.update(SHC_INSTANZ='5',SHC_SITZUNG='codex-sai-01a1649a',SHC_PARTNER='ja',PYTHONIOENCODING='utf-8')
 sys.path.insert(0,str(root/'werkzeug'))
 import samurai_wache as existing
 import speicher
@@ -13,6 +13,9 @@ base.update(tempo='100',minuten='30',bis_tick='96000',karte='Liga_Branching Fort
 for arg in sys.argv[1:]:
  k,v=arg.split('=',1);base[k]=v
 manifest={'backlog':'B-209 B-210','stamp':stamp,'map':base['karte'],'opponents':['Gardist','Kriegsfuerst'],'opponent_ids':[7,8],'status':'running','consoles':[], 'start_gate_tick':800,'args':base,'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip()}
+import kennung
+manifest['code_identity']=kennung.zeile()
+manifest['initial_data_hashes']={str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in (root/'daten').glob('*.json') if not p.name.startswith(('branching_','vergleich_','ertrag_gelernt_'))}
 game=pathlib.Path(r'C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme Instanz5')
 manifest['environment']={str(f.relative_to(game)):hashlib.sha256(f.read_bytes()).hexdigest() for f in [game/'Stronghold Crusader.exe',game/'ucp-config.yml',game/'ucp/villagestudio/logik.lua',game/'ucp/modules/villagestudio-0.1.0/init.lua',game/'ucp/plugins/Mod-KI-Team-Liga-2.0.2/resources/maps/Liga_Branching Fortunes.map']}
 path=prefix.with_suffix('.json')
