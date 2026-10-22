@@ -1296,6 +1296,17 @@ def main():
     lauf60 = [x["angriff"] for x in b60.liste if "lauf" in x.get("angriff", {}) and len(x["angriff"]["einheiten"]) >= 30]
     pruefe(60, "nach dem Fall: %s, Laufbefehle fuer alle %d, Plan %s" % ([m[:40] for m in m60 if "SIEG" in m], len(lauf60), f60.dplan),
            any("NACH DEM SIEG" in m for m in m60) and lauf60 and f60.dplan is None)
+    # 61 (B-177): Streitkolben 10 steht untaetig, feindlicher Bogen 3 Felder daneben -> Angriffsbefehl auf ihn; Bogen 10 Felder
+    #    weg -> keiner
+    def nah61(abstand):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+        L_ = {500: einheit(55, 2, 300, 100, 30000), 10: einheit(26, 1, 100, 100), 900: einheit(22, 2, 100 + abstand, 100)}
+        b = Befehle()
+        m_ = f.schritt({"t": 12000}, L_, {}, b)
+        return [x["angriff"] for x in b.liste if x.get("angriff", {}).get("ziel") == 900], m_
+    a61, m61 = nah61(3)
+    a61o, _ = nah61(10)
+    pruefe(61, "Bogen 3 daneben: %s | 10 weg: %s" % (a61, a61o), a61 and 10 in a61[0]["einheiten"] and not a61o)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

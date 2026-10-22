@@ -414,6 +414,40 @@ class Feldzug:
             self.dplan = None
         return aus
 
+    NAHE_SCHUETZE_R = 4        # B-177: so nah muss ein feindlicher Schuetze stehen, dass ein freier Nahkaempfer ihn sofort angreift
+
+    def _nahe_schuetzen(self, L, kolben, befehl, aus):
+        """B-177 (Daniel 22.10. 18:15, Bild: "ein Schwertkaempfer stand einfach nur da und ist nicht auf die Bogenschuetzen
+        gegangen, obwohl diese direkt neben ihm waren"): in JEDER Phase greift ein Nahkaempfer, der untaetig ist (Zustand 0/1) und
+        keinen Mauer-/Zugang-/Abfang-Auftrag hat, den naechsten feindlichen Fernkaempfer oder die naechste Feuerballiste bis
+        NAHE_SCHUETZE_R Felder an - nur im selben Gebiet (zu Fuss erreichbar, nicht auf der Mauer)."""
+        import gefecht
+        bef = getattr(self, "_befohlen", {})
+        self._befohlen = bef
+        k = self._karte
+        feinde = [(n, e) for n, e in L.items() if e.get("besitzer") not in freunde_von(self.sp) and e.get("leben", 1) > 0
+                  and (e.get("typ") in gefecht.FERN_REICH or e.get("typ") == BALLISTE)]
+        if not feinde:
+            return
+        neu = {}
+        for n in kolben:
+            e = L[n]
+            if e.get("typ") in FERN_REICH or e.get("zustand") not in (0, 1) or bef.get(n, (None,))[0] in ("mauer", "zug", "abfang"):
+                continue
+            o = (e["x"], e["y"])
+            nah = [(schach(o, (f["x"], f["y"])), fn) for fn, f in feinde if schach(o, (f["x"], f["y"])) <= self.NAHE_SCHUETZE_R]
+            if k is not None and k.gebiete is not None:
+                g = k.gebiet_bei(o)
+                nah = [(d, fn) for d, fn in nah if k.drin((L[fn]["x"], L[fn]["y"]))
+                       and int(k.gebiete[L[fn]["x"], L[fn]["y"]]) == g]
+            if nah:
+                neu.setdefault(min(nah)[1], []).append(n)
+        for fn, ns in neu.items():
+            befehl({"angriff": {"einheiten": sorted(ns), "ziel": fn}}, 1.0, bis="ANGRIFF")
+            for n in ns:
+                bef[n] = ("nah_schuetze", fn)
+            aus.append("FELDZUG NAHER SCHUETZE: %d freie Nahkaempfer auf %d (Typ %d) direkt daneben" % (len(ns), fn, L[fn]["typ"]))
+
     def _durchbruch_neu(self, m, start, lp, maenner):
         """B-170: Durchbruch-Plan (durchbruch.plane) - neu, wenn keiner da ist, das Ziel gefallen/verworfen ist, der Lord woanders
         steht oder DPLAN_RUNDEN um sind; sonst der alte (die Planung kostet Sekunden)."""
@@ -1040,6 +1074,7 @@ class Feldzug:
             self.ziel, self.phase, self.punkt = None, "sammeln", None
             self._stau, self.staus, self.direkt = (None, 0), 0, False
             self.bresche, self.bresche_leben, self.lord_versuch = None, None, None
+        self._nahe_schuetzen(L, kolben, befehl, aus)
         if not lords:
             return aus
         if self.ziel is None:
