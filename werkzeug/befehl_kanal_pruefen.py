@@ -16,7 +16,7 @@ class AntwortProbe(unittest.TestCase):
             kanal._veroeffentlichen('temp', 'ziel')
         self.assertEqual(replace.call_count, 2)
 
-    def versuch(self, suffix):
+    def versuch(self, suffix, partner=False, marker=None):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             log = root/'antwort.txt'
@@ -33,14 +33,18 @@ class AntwortProbe(unittest.TestCase):
                     if suffix is not None:
                         with log.open('a') as f:
                             f.write('villagestudio | QUITTUNG %s%s\n' % (b['id'], suffix))
+                        if marker:
+                            time.sleep(.05)
+                            with log.open('a') as f:
+                                f.write('villagestudio | '+marker+'\n')
                     return
             worker = threading.Thread(target=modul)
             with patch.multiple(kanal, LOG=str(log), BEFEHL=str(root/'befehl.json'),
                                 MERKER=str(root/'id'), SENDE=str(root/'senden'),
-                                LAUF=str(root/'lauf'), PARTNER=False), patch.object(lordschutz, 'filtern', lambda b: (b, [])):
+                                LAUF=str(root/'lauf'), PARTNER=partner), patch.object(lordschutz, 'filtern', lambda b: (b, [])):
                 worker.start()
                 try:
-                    return kanal.sende({'zeit': True}, warte=.08)
+                    return kanal.sende({'zeit': True}, warte=.2, bis=marker)
                 finally:
                     stop.set()
                     worker.join(1)
@@ -55,6 +59,10 @@ class AntwortProbe(unittest.TestCase):
     def test_longer_id_cannot_match_our_id(self):
         with self.assertRaises(TimeoutError):
             self.versuch('9')
+
+    def test_partner_preserves_delayed_effect_marker(self):
+        result=self.versuch('', partner=True, marker='LADEPAUSE: Laden erkannt')
+        self.assertTrue(any('LADEPAUSE: Laden erkannt' in z for z in result))
 
     def test_partner_cleanup(self):
         import os

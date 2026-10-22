@@ -44,3 +44,21 @@ Reproduzierbare Auswertung und Gegenproben:
 
 Quelle fuer die geplante Betriebssystem-Sperre:
 https://docs.python.org/3/library/msvcrt.html#msvcrt.locking
+
+## Weitere Entwicklungslaeufe, 22.10.2026
+
+Alle Zeiten sind Entwicklungsdaten, keine qualifizierte Abnahmeserie.
+
+| Lauf | Ergebnis | Schluss |
+|---|---|---|
+| 194200 | Sieg T39960, beide eigenen Lords voll | Ohne Kornring langsamer; keine Verbesserung. |
+| 200302 | Sieg T31447, beide eigenen Lords voll | Bisher schnellster beobachteter Sieg: 3,28 Jahre; Ziel weiterhin offen. |
+| 201033 | Sieg T33334, beide eigenen Lords voll | Schnellere Befehlsvergabe allein beschleunigt den Sieg nicht. |
+| 201647 | Sieg T36132, beide eigenen Lords voll | Vier Assassinen waren keine harte Grenze: zehn weitere erlaubt. Kein sauberer Vierer-Vergleich. |
+| 202608 | Zeitgrenze T96000 ohne Sieg, keine Steuerungsfehler in beiden Konsolen | Harte Vierergrenze plus 50-Prozent-Heerbudget ist keine erfolgreiche Verbesserung. Mehrere Aenderungen: Ursache nicht isoliert. |
+
+Allgemeine Auswertungsregel: Geordnetes Ende an der Spielzeitgrenze ist ein Zeitverlust, ein unerwartetes vorzeitiges Ende bleibt ungueltig. Gegenprobe: Lauf 202608 erreichte nachweislich T96000; Lauf 200050 scheiterte weit davor mit Schreibfehler. Der unabhaengige Beobachter war bisher auf 2000 Schleifendurchlaeufe begrenzt und brach bei langen Partien vor den Steuerungen ab. Er laeuft nun bis Spielende oder eigener dokumentierter Zeitgrenze. Fuer den alten Lauf wird kein fehlender Endnachweis erfunden.
+
+Transport: Betriebssystem-Sperre, exakte eigene Quittung, atomare Veroeffentlichung und reservierte Nummernbloecke inzwischen umgesetzt und mit Gegenproben geprueft. Die vollstaendige Wirkungspruefung bleibt offen. Rueckwirkend sind dadurch alte Laeufe nicht qualifiziert.
+
+Partner-Quittung und Wirkung sind getrennt: `befehl.sende` ueberschrieb einen angeforderten Wirkungsmarker mit der eigenen Empfangsquittung. Dadurch meldete der vorhandene Lader beim tatsaechlich geladenen Spielstand faelschlich einen Ladefehler und startete neu. Die angeforderte Marke bleibt nun zusaetzlich zur eigenen Quittung erforderlich. Sechs Dateikanal-Pruefungen bestanden; gezielter Rueckfall auf altes Verhalten scheitert an der verzoegerten Lademarke. Echte Gegenprobe: Sandkasten geladen bei T40967, Lade-Marke vorhanden, Probelauf erfolgreich, anschliessend fuenf arabische Schwertkaempfer gesetzt. Erste vorlaeufige Schadensmessung 127 statt bisherigem ungemessenem Ersatzwert 180 je Takt/Einheit; Wiederholungen mit Uhr aus demselben nativen Weltbild laufen. Keine Kampfabnahme daraus ableiten.

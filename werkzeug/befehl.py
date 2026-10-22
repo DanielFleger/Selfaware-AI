@@ -209,8 +209,8 @@ def sende(befehl, warte=3.0, bis=None):
             befehl = {'id': befehl['id'], 'befehle': [befehl]}
         # 19.10.: mit Partner immer auf die EIGENE Quittung warten - sonst schreibt der andere Lenker befehl.json, bevor das
         # Modul diesen Befehl gelesen hat (die Quittung ist die letzte Zeile eines Befehls, nach allen Antwortzeilen)
-        if PARTNER:
-            bis = "QUITTUNG %s" % befehl["id"]
+        # Auch im Partnerbetrieb muss ein ausdruecklicher Wirkungsmarker
+        # eintreffen. Die eigene Quittung allein bestaetigt nur den Empfang.
         quittung = re.compile(r'\bQUITTUNG ' + str(befehl['id']) + r'(?!\d)')
         vorher = os.path.getsize(LOG)
         temp = BEFEHL + '.%s.tmp' % os.getpid()

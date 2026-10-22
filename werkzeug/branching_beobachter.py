@@ -8,7 +8,8 @@ out=root/('daten/benchmarks/branching_'+stamp+'_observed.jsonl.gz')
 def number(a):return struct.unpack('<I',lies(a,4))[0]
 last=-1
 with gzip.open(out,'at',encoding='utf-8') as f:
- for _ in range(2000):
+ deadline=time.monotonic()+2100
+ while time.monotonic()<deadline:
   start=number(0x0117CADC)
   if start==last:time.sleep(.1);continue
   maxunits=min(number(0x01387F38),2500)

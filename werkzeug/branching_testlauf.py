@@ -1,5 +1,5 @@
 """Entwicklungsvergleich mit bestehenden Crusader-Startwerkzeugen; keine Abnahmeserie."""
-import os,sys,pathlib,json,time,subprocess,struct,hashlib
+import os,sys,pathlib,json,time,subprocess,struct,hashlib,gzip,shutil
 root=pathlib.Path(__file__).resolve().parents[1]
 os.environ.update(SHC_INSTANZ='5',SHC_SITZUNG='codex-sai-01a1649a',SHC_PARTNER='ja',PYTHONIOENCODING='utf-8')
 sys.path.insert(0,str(root/'werkzeug'))
@@ -23,6 +23,8 @@ native_dll=game/'ucp/modules/villagestudio-0.1.0'/native_name
 if native_dll.parent.resolve()!=(game/'ucp/modules/villagestudio-0.1.0').resolve():raise ValueError('Kernpfad ausserhalb des Moduls')
 manifest['environment'][str(native_dll.relative_to(game))]=hashlib.sha256(native_dll.read_bytes()).hexdigest()
 manifest['native_kernel']=native_name
+native_log=game/'ucp3.log'
+native_offset=native_log.stat().st_size
 path=prefix.with_suffix('.json')
 def save():path.write_text(json.dumps(manifest,indent=2),encoding='utf-8')
 def lockcall(action):
@@ -48,7 +50,8 @@ try:
   tick=struct.unpack('<I',speicher.lies(0x0117CADC,4))[0]
   over=struct.unpack('<I',speicher.lies(0x0117D500,4))[0]
   if gate and any(p.poll() is not None for p in ps) and not over:
-   manifest['status']='invalid';manifest['reason']='controller ended while match still active';break
+   manifest['status']='timeout' if tick>=int(base['bis_tick'])-200 else 'invalid'
+   manifest['reason']='game tick limit reached without victory' if manifest['status']=='timeout' else 'controller ended while match still active';break
   if tick!=last_tick:last_tick=tick;last_progress=time.monotonic()
   if time.monotonic()-last_progress>90:manifest['status']='invalid';manifest['reason']='tick stalled';break
   try:
@@ -74,7 +77,7 @@ try:
 except BaseException as ex:
  manifest['status']='invalid';manifest['reason']=repr(ex);raise
 finally:
- if manifest['status']=='invalid':
+ if manifest['status'] in ('invalid','timeout'):
   # Spielabbruch: vorhandene Fehlerbehandlung darf gzip/Profiler geordnet schliessen.
   grace=time.monotonic()+40
   while any(p.poll() is None for p in ps) and time.monotonic()<grace:time.sleep(.2)
@@ -95,3 +98,13 @@ finally:
  except Exception as ex:manifest['pause_error']=repr(ex);save()
  print(lockcall('freigeben').stdout,flush=True)
  print('MATCH END',manifest['status'],manifest.get('reason',''),flush=True)
+ # Die tatsaechlichen Modulbefehle gehoeren zum Nachweis, nicht nur die Lenkerkonsole.
+ try:
+  with native_log.open('rb') as source, gzip.open(str(prefix)+'_native.log.gz','wb') as target:
+   if native_log.stat().st_size>=native_offset:source.seek(native_offset)
+   shutil.copyfileobj(source,target)
+ except OSError as ex:manifest['native_log_error']=repr(ex);save()
+ observation=root/('daten/benchmarks/branching_'+stamp+'_observed.jsonl.gz')
+ if observation.exists() and manifest['status']=='finished_unscored':
+  subprocess.run([sys.executable,str(root/'werkzeug/benchmark_auswerten.py'),str(observation),'--output',str(observation).replace('_observed.jsonl.gz','_result.json')],cwd=root,check=False)
+ subprocess.run([sys.executable,str(root/'werkzeug/partiebelege_sichern.py'),stamp,'--modelle','--push'],cwd=root,check=False)
