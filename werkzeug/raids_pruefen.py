@@ -341,6 +341,20 @@ def main():
     z27b, i27b = wirkung(True)
     pruefe(27, "ohne Wirkung: Ziel %s gesperrt %s | mit Wirkung: Ziel %s gesperrt %s" % (z27, i27, z27b, i27b),
            z27 == 701 and 700 in i27 and z27b == 700 and not i27b)
+    # 28. (B-188) Reiter 20, feindlicher Bogen 600 zwölf Felder daneben beschiesst ihn (zieleinheit 20) -> Runde 1 "kite" weg vom
+    #     Bogen, Runde 2 (Bogen zielt nicht mehr) wieder Angriff; Gegenprobe: Bogen zielt nicht auf ihn -> sofort Angriff, kein kite
+    def kite(zielt):
+        L = {20: einheit(74, 1, 100, 100), 600: dict(einheit(22, 2, 112, 100), zieleinheit=20 if zielt else 0)}
+        rj = RJ()
+        rj.schritt(L, {}, Befehle())
+        r1 = rj.befohlen.get(20, ("-",))[0]
+        L[600]["zieleinheit"] = 0
+        rj.schritt(L, {}, Befehle())
+        return r1, rj.befohlen.get(20, ("-",))[0], rj.befohlen.get(20)
+    k1, k2, b28 = kite(True)
+    g1, _, _ = kite(False)
+    pruefe(28, "beschossen: Runde 1 %s, Runde 2 %s %s | nicht beschossen: Runde 1 %s" % (k1, k2, b28, g1),
+           k1 == "kite" and k2 in ("jagd", "anritt") and g1 in ("jagd", "anritt"))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

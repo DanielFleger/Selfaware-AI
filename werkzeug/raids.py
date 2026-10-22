@@ -67,6 +67,7 @@ FEUER_NACHBAR_R = 3      # B-189: so nah stehende feindliche Gebaeude koennen mi
 FEUER_NACHBAR_ANTEIL = 0.5  # B-189: Anteil ihres Werts, der dem Ziel zugerechnet wird (Startwert, UNGEMESSEN)
 ARBEITSPLATZ_DRIN = {4, 5, 10, 20, 21}   # B-178: Ochsenkarren, Eisenmine, Lager, Steinbruch, Steinhaufen - dort arbeiten sie am/im Gebaeude
 ARBEITSPLATZ_R = 3       # B-178: Abstand zur Gebaeudemitte, bis zu dem ein Arbeiter als "am Arbeitsplatz" gilt (Startwert, UNGEMESSEN)
+KITE_FELDER = 8         # B-188: so weit reitet ein beschossener Reiter weg, bevor er wieder angreift (Startwert, UNGEMESSEN)
 IMMUN_RUNDEN = 3        # B-196: so viele Runden Beschuss ohne Lebensverlust -> Ziel gesperrt (Startwert, UNGEMESSEN)
 SCHUETZE_WERT = 10      # B-175: feindlicher Schuetze am Boden als Reiterziel - wie ein Holzfaeller (Startwert, UNGEMESSEN)
 
@@ -402,6 +403,25 @@ class Reiterjagd:
             e = L[r]
             o = (e["x"], e["y"])
             alt = self.befohlen.get(r)
+            # B-188/B-201 (Daniel 22.10. 18:12 "sie muessen ausweichen, immerhin sind sie die einzige Einheit, die im Lauf auch
+            # schiessen kann"; 18:45 "stehen beim Angriff, statt zu patrouillieren", "gehen in den Nahkampf"; gemessen 18:40:
+            # 1.325 von 2.800 Reiter-Proben standen schiessend still): wer gerade beschossen wird, reitet KITE_FELDER vom Schuetzen
+            # weg und greift in der naechsten Runde wieder an - angreifen, wegreiten, angreifen
+            auf_mich = sorted((schach(o, (f["x"], f["y"])), k) for k, f in L.items()
+                              if f.get("besitzer") not in freunde_von(self.sp) and f.get("zieleinheit") == r
+                              and f.get("typ") in gefecht.FERN_REICH and f.get("leben", 1) > 0)
+            if auf_mich and (alt is None or alt[0] != "kite" or self.runde - alt[2] >= 2):
+                f = L[auf_mich[0][1]]
+                dx, dy = o[0] - f["x"], o[1] - f["y"]
+                n = max(abs(dx), abs(dy), 1)
+                ziel = (o[0] + KITE_FELDER * dx // n, o[1] + KITE_FELDER * dy // n)
+                befehl({"angriff": {"einheiten": [r], "lauf": [ziel[0], ziel[1]]}}, 1.0, bis="ANGRIFF")
+                self.befohlen[r] = ("kite", ziel, self.runde)
+                aus.append("REITERJAGD: Reiter %d wird von %d (Typ %d, %d Felder) beschossen - reitet nach %s, dann wieder Angriff" % (
+                    r, auf_mich[0][1], f["typ"], auf_mich[0][0], ziel))
+                continue
+            if alt is not None and alt[0] == "kite" and self.runde - alt[2] < 1:
+                continue
             # Flucht vor Nahkaempfern/Assassinen
             nah = min(((schach(o, (f["x"], f["y"])), k) for k, f in L.items()
                        if f["besitzer"] not in freunde_von(self.sp) and f["typ"] in NAH and f.get("leben", 1) > 0), default=None)
