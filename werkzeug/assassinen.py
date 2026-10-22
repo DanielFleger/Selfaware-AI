@@ -2729,23 +2729,28 @@ class Einzeln:
                     n, gn, typ, schach(ort, p), saldo, 100 * p_tod, f30, L[n]["leben"], self._beschuss_angriff(gn, G, ort),
                     "gemessen" if typ in ARBEIT else "geschaetzt", ARBEIT.get(typ, ARBEIT_SONST)))
                 continue
-            if not erreichbar and n not in self.jagd:
+            if (not erreichbar or not frei) and n not in self.jagd:
                 # B-172 (2v2 22.10. 17:48: "warum haengt der Assassine da" - beide warteten >= 200 Takte, "keins erreichbar"): ohne
                 # erreichbares Gebaeude den naechsten feindlichen Arbeiter jagen, der zu Fuss erreichbar ist und den kein waehlbarer
                 # Feind sieht (sicht.sicher) - statt zu warten
                 from raids import ARBEITER as ARB_
                 # (Lauf 18:08: mit "nur wen kein Feind sieht" griff die Regel nie - jeder Arbeiter stand im Blick eines Schuetzen;
                 # Daniel 18:10 "wartet auf nichts"): ungesehene zuerst, sonst der naechste erreichbare
-                arb = sorted((not self._sicher((e["x"], e["y"])), schach(ort, (e["x"], e["y"])), k) for k, e in L.items()
+                # B-195 (Daniel 22.10. 18:29 "Assassinen sollen Gebaeude zerstoeren und nicht unbedingt Bevoelkerung - einen Ochsen
+                # mit Steinen, einen Arbeiter mit Holz oder einen, der gerade Eisen abliefern will, waere natuerlich gut"): Arbeiter
+                # mit Ladung (Lagebild-Spalte ladung) vor allen anderen; gilt auch, wenn alle erreichbaren Gebaeude voll belegt sind
+                arb = sorted((e.get("ladung", 0) <= 0, not self._sicher((e["x"], e["y"])), schach(ort, (e["x"], e["y"])), k)
+                             for k, e in L.items()
                              if e.get("besitzer") not in freunde_von(self.sp) and e.get("typ") in ARB_ and e.get("leben", 1) > 0
                              and e.get("erreichbar", 1) == 1)
-                arb = [(d, k) for _, d, k in arb]
+                arb = [(d, k) for _, _, d, k in arb]
                 if arb:
                     self._vergessen(n)
                     self.jagd[n] = arb[0][1]
                     jagen.append((n, arb[0][1]))
-                    ereignis.append("ARBEITERJAGD %d: kein Gebaeude erreichbar - jagt Arbeiter %d (Typ %d) in %d Feldern" % (
-                        n, arb[0][1], L[arb[0][1]]["typ"], arb[0][0]))
+                    ereignis.append("ARBEITERJAGD %d: %s - jagt Arbeiter %d (Typ %d, Ladung %d) in %d Feldern" % (
+                        n, "kein Gebaeude erreichbar" if not erreichbar else "alle erreichbaren Gebaeude belegt", arb[0][1],
+                        L[arb[0][1]]["typ"], L[arb[0][1]].get("ladung", 0), arb[0][0]))
                     continue
             ohne += 1
             gruende["keins erreichbar" if not erreichbar else "alle voll" if not frei else "alle gefaehrlich"] += 1

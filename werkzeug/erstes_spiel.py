@@ -842,7 +842,42 @@ def runde_lesen():
     lordschutz.aktualisieren(st.get("t"), L, SP)
     from waechter import lies_bodenfeuer
     st["bodenfeuer"] = lies_bodenfeuer()      # B-150: Feuer meiden im Feldzug
-    return st, L, lies_gebaeude()
+    G = lies_gebaeude()
+    erreichbar_setzen(L, G)
+    return st, L, G
+
+
+def erreichbar_setzen(L, G):
+    """B-194 (Daniel 22.10. 18:32 "warum sollte sie ueberhaupt stehen"; gemessen im Lauf 18:27: jedes Gebaeude erreichbar 0, jede
+    Feind-Einheit -1, seit 21.10. in jedem Lauf - logik.lua rechnet vom festen Ersatzpunkt (165,111) aus, lagebildVon setzt
+    niemand, und ein Startpunkt fuer zwei Lenker waere ohnehin falsch): erreichbar je Lenker aus der Wegkarte - gleiches
+    zusammenhaengendes Gebiet wie der eigene Bergfried-Eingang (Gebaeude: irgendein Feld rund um den Grundriss).
+    Gemessen 18:40: beide Bergfriede in Gebiet 1, die ummauerten Burgkerne der Gegner eigene Gebiete (39, 51)."""
+    try:
+        import speicher
+        geb = speicher.wegkarte()["gebiet"]
+    except Exception as ex:
+        schreib("ERREICHBAR: Wegkarte nicht lesbar (%s) - Werte aus logik.lua bleiben" % ex)
+        return
+    n_ = geb.shape[0]
+    bx, by = BERGFRIED
+    eigen = 0
+    for r in range(4):
+        werte = [int(geb[x, y]) for x in range(bx - r, bx + r + 1) for y in range(by - r, by + r + 1)
+                 if 0 <= x < n_ and 0 <= y < n_ and geb[x, y] > 0]
+        if werte:
+            eigen = max(set(werte), key=werte.count)
+            break
+    if not eigen:
+        return
+    frei = lambda x, y: 0 <= x < n_ and 0 <= y < n_ and int(geb[x, y]) == eigen
+    for e in L.values():
+        if e.get("besitzer") != SP:
+            e["erreichbar"] = 1 if frei(e["x"], e["y"]) else 0
+    for g in G.values():
+        b, x, y = NACH_TYP.get(g["typ"], {}).get("b", 3), g["x"], g["y"]
+        g["erreichbar"] = 1 if any(frei(x + d, y - 1) or frei(x + d, y + b) or frei(x - 1, y + d) or frei(x + b, y + d)
+                                   for d in range(-1, b + 1)) else 0
 
 def eigene_gebaeude():
     orte = []

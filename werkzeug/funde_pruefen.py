@@ -821,6 +821,22 @@ def main():
     z51, z51b, m51 = lage_stapel((125, 100), (390, 390), dazu=20)
     pruefe(51, "Stapel laeuft (Ziel %s), dann 20 weitere Armbrustschuetzen am Ziel: Ziel jetzt %s %s" % (z51, z51b, m51),
            z51 == 600 and z51b is None)
+    # 52 (B-195, Daniel 22.10. 18:29: "Gebaeude zerstoeren, nicht unbedingt Bevoelkerung - einen Ochsen mit Steinen ... waere
+    # natuerlich gut"): kein Gebaeude erreichbar, zwei Holzfaeller - der nahe ohne Ladung, der ferne mit Ladung -> Jagd auf den
+    # fernen; Gegenprobe: beide ohne Ladung -> der nahe
+    def jagd_auf(ladung_fern):
+        t = neu()
+        L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
+             700: einheit(3, 2, 108, 100), 701: einheit(3, 2, 130, 100)}
+        L[701]["ladung"] = ladung_fern
+        G = {900: {"besitzer": 2, "typ": 20, "x": 300, "y": 300, "leben": 5000, "uid": 1, "erreichbar": 0}}
+        t.aufnehmen([100])
+        erg, _ = t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
+        return t.jagd.get(100), [z[:90] for z in erg if "ARBEITERJAGD" in z]
+    j52, m52 = jagd_auf(5)
+    j52b, m52b = jagd_auf(0)
+    pruefe(52, "Holzfaeller mit Ladung 30 Felder weit, ohne Ladung 8 Felder: Jagd auf %s %s; beide leer: %s" % (j52, m52, j52b),
+           j52 == 701 and j52b == 700)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
