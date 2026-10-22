@@ -18,6 +18,11 @@ manifest['code_identity']=kennung.zeile()
 manifest['initial_data_hashes']={str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in (root/'daten').glob('*.json') if not p.name.startswith(('branching_','vergleich_','ertrag_gelernt_'))}
 game=pathlib.Path(r'C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme Instanz5')
 manifest['environment']={str(f.relative_to(game)):hashlib.sha256(f.read_bytes()).hexdigest() for f in [game/'Stronghold Crusader.exe',game/'ucp-config.yml',game/'ucp/villagestudio/logik.lua',game/'ucp/modules/villagestudio-0.1.0/init.lua',game/'ucp/plugins/Mod-KI-Team-Liga-2.0.2/resources/maps/Liga_Branching Fortunes.map']}
+native_name=(game/'ucp/villagestudio/kern_aktuell.txt').read_text().strip()
+native_dll=game/'ucp/modules/villagestudio-0.1.0'/native_name
+if native_dll.parent.resolve()!=(game/'ucp/modules/villagestudio-0.1.0').resolve():raise ValueError('Kernpfad ausserhalb des Moduls')
+manifest['environment'][str(native_dll.relative_to(game))]=hashlib.sha256(native_dll.read_bytes()).hexdigest()
+manifest['native_kernel']=native_name
 path=prefix.with_suffix('.json')
 def save():path.write_text(json.dumps(manifest,indent=2),encoding='utf-8')
 def lockcall(action):

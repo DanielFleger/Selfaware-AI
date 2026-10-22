@@ -3933,7 +3933,10 @@ def main():
     # der Rechenhorizont des Kausalmodells (jede Apfelplantage "wert" Tausende, Partie 20261019_2240). Offen: Kausalmodell mit
     # mitlaufendem Fenster (jetzt + kausal_horizont); alles andere (Planer, Produktion) rechnet wie bisher mit bis_tick
     global OFFENES_ENDE, KAUSAL_SPAREN
-    global STEIN_FRUEH, DECKUNG_SOLL, HEER_ANTEIL, HEER_GOLD_RAND
+    global STEIN_FRUEH, DECKUNG_SOLL, HEER_ANTEIL, HEER_GOLD_RAND, ASSASSINEN_EXTRA
+    ASSASSINEN_EXTRA = int(arg.get('assassinen_extra', ASSASSINEN_EXTRA))
+    if ASSASSINEN_EXTRA < 0:
+        raise SystemExit('assassinen_extra muss mindestens 0 sein')
     HEER_GOLD_RAND = int(arg.get("heer_gold_rand", HEER_GOLD_RAND))
     if HEER_GOLD_RAND < 0:
         raise SystemExit("heer_gold_rand muss mindestens 0 sein")
