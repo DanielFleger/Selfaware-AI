@@ -4172,11 +4172,13 @@
    "nr": "B-167",
    "titel": "Test C: 20 Streitkolben von der Mauer zum Lord - Durchbruch-Weg ueber Schrittbits, Zielwahl des Spiels (Blickrichtung) nachgebildet und per Blick gesetzt, Regelung ueber tatsaechliches Ziel, Sandkasten als Spielstand (37 s statt ~2 min)",
    "bereich": "angriff",
-   "status": "in_arbeit",
+   "status": "gebaut",
    "seit": "2026-10-21 23:15",
    "herkunft": "Daniel 21.10. 22:48 'Tests mit den 20 Streitkolben, so schnell wie moeglich von der Mauer zum Lord, kuerzester Weg durch die Mauern, direkt auf den Keep sobald zugaenglich, gesehen im Code'; 23:06 Ladezeiten",
-   "gebaut": null,
-   "commits": [],
+   "gebaut": "2026-10-22 01:03",
+   "commits": [
+    "b75a764"
+   ],
    "wo": [
     "werkzeug/mechanik.py (spiel_wahl",
     "durchbruch_schritte",
@@ -4197,6 +4199,59 @@
    "verlauf": [
     {
      "zeit": "2026-10-21 23:15",
+     "was": "angelegt (in Arbeit)"
+    },
+    {
+     "zeit": "2026-10-22 01:03",
+     "was": "in Arbeit -> gebaut (Commit b75a764)"
+    }
+   ]
+  },
+  {
+   "nr": "B-168",
+   "titel": "Gefahrenschutz mit Risikoabwaegung fuer jede gesteuerte Einheit: Weg mit wenigstem Beschuss (ausholen), P(Tod) aus gelernten Verlustraten je Typ, Ziele auf dem Weg mitnehmen, Rueckzug; zuerst Sklaven + Pferdebogen (Heer hat B-157)",
+   "bereich": "Kampf",
+   "status": "in_arbeit",
+   "seit": "2026-10-22 08:29",
+   "herkunft": "Daniel 22.10. 08:08/08:09 (2v2 gegen Franz+Karl: Sklaven in den sicheren Tod, Berittene ungenutzt)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "werkzeug/gefahrenschutz.py",
+    "werkzeug/raids.py",
+    "werkzeug/erstes_spiel.py (Raid-Block)"
+   ],
+   "belege": [
+    "raids_pruefen.py 17/17",
+    "Gegenprobe alt 6 rot; raids_trocken.py auf lage_20261022_080637_i5; daten/verlust_raten.json"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 08:29",
+     "was": "angelegt (in Arbeit)"
+    }
+   ]
+  },
+  {
+   "nr": "B-169",
+   "titel": "Farmland-Absprache unter Verbuendeten: jedes Feld gehoert dem Partner mit dem naechsten Bergfried - beide Lenker rechnen dieselbe Regel",
+   "bereich": "Wirtschaft",
+   "status": "in_arbeit",
+   "seit": "2026-10-22 08:29",
+   "herkunft": "Daniel 22.10. 08:08 (beide teilen sich die Mitte)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "werkzeug/erstes_spiel.py mein_land + baue_schnell"
+   ],
+   "belege": [
+    "Trockentest mit Bergfrieden und Hoefen aus lage_20261022_080637_i5"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 08:29",
      "was": "angelegt (in Arbeit)"
     }
    ]

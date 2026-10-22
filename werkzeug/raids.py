@@ -15,8 +15,8 @@ GEMESSEN 19.10. (werkzeug/raid_messen.py, Spielstand "Walltest 4", daten/raid_me
     Ob er im Reiten schiesst: NICHT gemessen (Versuch gegen einen Speer im Spielstand mit Burg unbrauchbar).
   - Feuer lesen: Gebaeudedatensatz 0xF98520 + nr*0x32C, fireDuration bei +0x14+702 (short), Verursacher bei +0x14+734.
 
-BRANDTRUPP (Sklaven): jeder Sklave nimmt das wertvollste ungefaehrliche feindliche Gebaeude (Wert je Weg), das noch nicht
-brennt und das kein anderer Sklave hat; brennt es, zieht er sofort weiter. Gefaehrlich = feindlicher Schuetze oder Turm
+BRANDTRUPP (Sklaven): B-168 (22.10.) - Ziel und Weg mit Risikoabwaegung aus gefahrenschutz.py (siehe Klasse); brennt es,
+zieht er sofort weiter. Bis 21.10. galt: das wertvollste ungefaehrliche Gebaeude (Wert je Weg), Gefahr nur am Ziel gesehen. Gefaehrlich = feindlicher Schuetze oder Turm
 bis GEFAHR_FERN Felder, feindlicher Nahkaempfer/Assassine bis GEFAHR_NAH, feindliche Fallgrube bis GRUBE_R.
 REITERJAGD (Pferdebogen): Nahkaempfer/Assassine naeher als FLUCHT_R -> 12 Felder weg von ihm; sonst den naechsten
 ungeschuetzten Arbeiter bis JAGD_R angreifen (Holzfaeller zuerst - 1018j: liefernde Holzfaeller entschieden die Partie);
@@ -115,41 +115,105 @@ def brennt_noch_bei_ankunft(g, heerwege):
                for von, nach in heerwege or ())
 
 
+def _lage_fuer(sp, L, G, raten=None, ohne=()):
+    """B-168: Gefahrenlage aus dem Lagebild, wenn der Lenker keine mitgibt (Pruefungen); ohne = Einheiten, die nicht zaehlen
+    (gedeckte Schuetzen, B-129)."""
+    import gefecht
+    import gefahrenschutz as GS
+    L_ = {n: e for n, e in L.items() if n not in ohne} if ohne else L
+    return GS.Lage(L_, G, lambda b: b not in freunde_von(sp), gefecht.FERN_REICH, raten=raten)
+
+
+def _nahkampf_bei(p, L, sp):
+    """Feindlicher Nahkaempfer/Assassine bis GEFAHR_NAH an p - die Gefahrenkarte zaehlt nur Schuetzen (22.10.: Sklaven starben
+    beim Anzuenden neben Streitkolben-Gruppen)."""
+    return any(typ in NAH and schach(p, q) <= GEFAHR_NAH for typ, q in feinde(L, sp))
+
+
+def _rueckzug(lage, o):
+    """Naechstes Feld ohne Beschuss (kleinste Kosten der Wegsuche ab o) - wer kein vertretbares Ziel hat und im Feuer steht."""
+    import numpy as np
+    _, kum = lage.suche(o)
+    sicher = (lage.s <= 1e-9) & np.isfinite(kum)
+    if not sicher.any():
+        return None
+    k = np.where(sicher, kum, np.inf)
+    i = int(k.argmin())
+    return (i // lage.n, i % lage.n)
+
+
 class Brandtrupp:
-    def __init__(self, sp, feuer):
-        """feuer(nr) -> fireDuration des Gebaeudes nr (0 = brennt nicht)."""
-        self.sp, self.feuer = sp, feuer
+    """B-168 (Daniel 22.10. 08:09 "sie muessen ausholen und den richtigen Pfad zum Ziel finden und auf dem Weg noch moegliche
+    andere Dinge mitnehmen"; gemessen: 28 von 38 Sklaven starben, unterwegs - gefahrenschutz.py): jeder Sklave nimmt das Ziel mit
+    dem besten Rang aus gefahrenschutz.bewerte (Wert x (1 - P(Tod)) / Takte; erwarteter Verlust >= Leben = nie), laeuft die
+    Wegkette mit dem wenigsten Beschuss und greift erst an der Ankunft an. Neu gerankt wird, sobald er REPLAN_FELDER weiter ist -
+    liegt dann ein anderes Ziel besser (er kommt gerade daran vorbei), nimmt er es mit. Ohne vertretbares Ziel im Beschuss: Rueckzug
+    auf das naechste sichere Feld."""
+    REPLAN_FELDER = 5            # neu ranken, wenn der Sklave so weit gelaufen ist (eine Suche ~60 ms, gemessen 22.10.)
+    ANGRIFF_R = 4                # so nah an der Ankunft greift er an (wie die Wegkette von logik.lua: Mehrheit bis 4 Felder)
+
+    def __init__(self, sp, feuer, raten=None):
+        """feuer(nr) -> fireDuration des Gebaeudes nr (0 = brennt nicht); raten: fuer Pruefungen (sonst die Datei)."""
+        self.sp, self.feuer, self.raten = sp, feuer, raten
         self.ziel = {}              # Sklave -> Gebaeude
-        self.befohlen = {}          # Sklave -> Runde
+        self.plan = {}              # Sklave -> {"an", "ort" (wo geplant), "art" lauf/angriff, "runde"}
         self.brennt = set()         # Gebaeude, die wir brennen sahen
         self.angezuendet = 0
         self.runde = 0
         self.schutz = []            # B-129: Orte der Deckungs-Schuetzen, setzt der Lenker je Runde
         self.heerwege = []          # B-150: [(von, nach)] des eigenen Heeres (Feldzug._heerwege), setzt der Lenker je Runde
+        self.abgelehnt = 0          # Ziele, die nur wegen des Risikos nicht genommen wurden (letzte Planung)
+        self._rang = []
+        self.rueckzug = {}          # Sklave -> (Feld, Runde) des letzten Rueckzugsbefehls
 
     def einheiten(self, L):
         return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] == SKLAVE and e.get("leben", 1) > 0}
 
-    def _ziele(self, L, G, ort, belegt):
+    def _gedeckt(self, L):
+        """B-129: feindliche Kaempfer, neben denen ein eigener Deckungs-Schuetze steht (DECK_R) - zaehlen nicht als Gefahr."""
+        if not self.schutz:
+            return set()
+        return {n for n, e in L.items() if e.get("besitzer") not in freunde_von(self.sp)
+                and any(schach((e["x"], e["y"]), q) <= DECK_R for q in self.schutz)}
+
+    def _kandidaten(self, L, G, belegt):
         kand = []
         for n, g in G.items():
             if g.get("besitzer") in freunde_von(self.sp) or g["typ"] not in WERT or n in belegt or n in self.brennt:
                 continue
             p = (g["x"], g["y"])
-            if gefaehrlich(p, L, G, self.sp, self.schutz):
+            if any(h.get("besitzer") not in freunde_von(self.sp) and h["typ"] == GRUBE and schach(p, (h["x"], h["y"])) <= GRUBE_R
+                   for h in G.values()):
+                continue                                      # Fallgrube: toetet sofort, steht in keiner Schadenskarte
+            if _nahkampf_bei(p, L, self.sp):
                 continue
             if brennt_noch_bei_ankunft(g, self.heerwege):
                 continue                                      # B-150: wuerde auf dem eigenen Heerweg noch brennen
-            kand.append((WERT[g["typ"]] / float(max(schach(ort, p), 1)), n))
-        return [n for _, n in sorted(kand, reverse=True)]
+            kand.append((WERT[g["typ"]], p, n))
+        return kand
 
-    def schritt(self, L, G, befehl):
+    def _ziele(self, L, G, ort, belegt, lage=None, leben=6000):
+        """Gebaeude nach Rang (bester zuerst) - nur die mit vertretbarem Risiko."""
+        if lage is None or self.schutz:
+            lage = _lage_fuer(self.sp, L, G, self.raten, ohne=self._gedeckt(L))
+        import gefahrenschutz as GS
+        kand = self._kandidaten(L, G, belegt)
+        r = GS.bewerte(lage, ort, SKLAVE, leben, kand)
+        self.abgelehnt = len(kand) - len(r)
+        self._rang = r
+        return [(k, p) for _, k, p in r]
+
+    def schritt(self, L, G, befehl, lage=None):
+        import gefahrenschutz as GS
         self.runde += 1
         aus = []
         meine = self.einheiten(L)
+        if lage is None or self.schutz:
+            lage = _lage_fuer(self.sp, L, G, self.raten, ohne=self._gedeckt(L))
         for s in list(self.ziel):
             if s not in meine or self.ziel[s] not in G:
                 self.ziel.pop(s, None)
+                self.plan.pop(s, None)
         # brennt ein Ziel, zieht der Sklave weiter (gemessen: es brennt allein ab). Gelesen wird nur, wenn der Sklave hoechstens
         # 4 Felder davor steht - jede Abfrage ist ein Weg durch den Kanal
         for s, nr in list(self.ziel.items()):
@@ -159,38 +223,62 @@ class Brandtrupp:
                     self.brennt.add(nr)
                     self.angezuendet += 1
                     self.ziel.pop(s)
+                    self.plan.pop(s, None)
                     aus.append("BRANDTRUPP: Sklave %d hat Gebaeude %d (Typ %d) angezuendet (Feuer %d) - weiter" % (
                         s, nr, G[nr]["typ"], f))
-        # B-150 (Pruefstand 21.10.: Sklave 208 nahm Gebaeude 291 bei Takt 45.079 ins Ziel, 4 Felder neben dem Vorposten, zu
-        # dem das Heer befohlen war - das Ziel wurde nur beim Vergeben geprueft): ein noch nicht brennendes Ziel wird jede Runde
-        # gegen die Heerwege geprueft; liegt es jetzt am Heer, wird es fallen gelassen - der Sklave bekommt ein anderes oder
-        # bleibt stehen
-        halt = set()
+        # B-150: ein noch nicht brennendes Ziel wird jede Runde gegen die Heerwege geprueft
         for s, nr in list(self.ziel.items()):
             if nr not in self.brennt and brennt_noch_bei_ankunft(G[nr], self.heerwege):
                 self.ziel.pop(s)
-                self.befohlen[s] = -99
-                halt.add(s)
+                self.plan.pop(s, None)
                 aus.append("BRANDTRUPP: Sklave %d laesst Gebaeude %d - es liegt jetzt am eigenen Heer" % (s, nr))
-        belegt = set(self.ziel.values())
         for s in sorted(meine):
-            if s in self.ziel and self.runde - self.befohlen.get(s, -99) < NEU_ALLE:
-                continue
             e = L[s]
-            if s not in self.ziel:
-                z = self._ziele(L, G, (e["x"], e["y"]), belegt)
-                if not z:
-                    if s in halt:
-                        befehl({"angriff": {"einheiten": [s], "lauf": [e["x"], e["y"]]}}, 1.0, bis="ANGRIFF")
+            o = (e["x"], e["y"])
+            pl = self.plan.get(s)
+            neu_ranken = s not in self.ziel or pl is None or schach(o, pl["ort"]) >= self.REPLAN_FELDER or e.get("zustand") in (0, 1)
+            if neu_ranken:
+                belegt = {z for k, z in self.ziel.items() if k != s}
+                r = self._ziele(L, G, o, belegt, lage, e.get("leben", 6000))
+                if not r:
+                    alt = self.ziel.pop(s, None)
+                    self.plan.pop(s, None)
+                    if alt is not None:
+                        aus.append("BRANDTRUPP: Sklave %d laesst Gebaeude %d - kein Ziel mit vertretbarem Risiko (%d abgelehnt)" % (
+                            s, alt, self.abgelehnt))
+                    rz = self.rueckzug.get(s)
+                    if lage.schaden(o) > 0 and (rz is None or self.runde - rz[1] >= NEU_ALLE):
+                        q = _rueckzug(lage, o)
+                        if q is not None and q != o:
+                            p_r = lage.plan(o, q, SKLAVE, e.get("leben", 6000))
+                            if p_r:
+                                befehl(GS.lauf_befehl(lage, s, p_r), 1.0, bis="ANGRIFF")
+                                self.rueckzug[s] = (q, self.runde)
+                                aus.append("BRANDTRUPP: Sklave %d zieht sich aus dem Beschuss nach %s zurueck" % (s, q))
                     continue
-                self.ziel[s] = z[0]
-                belegt.add(z[0])
-                g = G[z[0]]
-                aus.append("BRANDTRUPP: Sklave %d -> Gebaeude %d (Typ %d) bei (%d, %d), %d Felder" % (
-                    s, z[0], g["typ"], g["x"], g["y"], schach((e["x"], e["y"]), (g["x"], g["y"]))))
-            if self.befohlen.get(s, -99) < self.runde - NEU_ALLE or e.get("zustand") in (0, 1):
-                befehl({"angriff": {"einheiten": [s], "gebaeude": self.ziel[s]}}, 1.0, bis="ANGRIFF")
-                self.befohlen[s] = self.runde
+                self.rueckzug.pop(s, None)
+                alt = self.ziel.get(s)
+                nr, p, wahl_art = GS.waehle(self._rang, alt)
+                if alt != nr:
+                    g = G[nr]
+                    art = {"mitnehmen": "nimmt unterwegs mit", "wechsel": "wechselt zu"}.get(wahl_art, "->")
+                    aus.append("BRANDTRUPP: Sklave %d %s Gebaeude %d (Typ %d) bei (%d, %d): %d Takte, erwarteter Verlust %d von %d "
+                               "Leben (P(Tod) %.2f)%s" % (s, art, nr, g["typ"], g["x"], g["y"], p["takte"], p["verlust"],
+                                                          e.get("leben", 0), p["p_tod"], " statt %d" % alt if alt is not None else ""))
+                self.ziel[s] = nr
+                if alt != nr or pl is None:
+                    pl = self.plan[s] = {"an": p["an"], "ort": o, "art": None, "runde": -99, "weg": p}
+                else:
+                    pl.update({"an": p["an"], "ort": o, "weg": p})
+            # Befehl: an der Ankunft angreifen, sonst Wegkette; neu senden bei neuem Ziel, im Stillstand oder alle NEU_ALLE Runden
+            an = pl["an"]
+            art = "angriff" if schach(o, an) <= self.ANGRIFF_R or schach(o, (G[self.ziel[s]]["x"], G[self.ziel[s]]["y"])) <= self.ANGRIFF_R else "lauf"
+            if art != pl["art"] or self.runde - pl["runde"] >= NEU_ALLE or e.get("zustand") in (0, 1):
+                if art == "angriff":
+                    befehl({"angriff": {"einheiten": [s], "gebaeude": self.ziel[s]}}, 1.0, bis="ANGRIFF")
+                else:
+                    befehl(GS.lauf_befehl(lage, s, pl["weg"]), 1.0, bis="ANGRIFF")
+                pl["art"], pl["runde"] = art, self.runde
         return aus
 
     def bericht(self):
@@ -198,23 +286,39 @@ class Brandtrupp:
 
 
 class Reiterjagd:
-    def __init__(self, sp):
-        self.sp = sp
+    """B-168 (Daniel 22.10. 08:08 "warum macht einer Berittene, wenn diese eh nicht genutzt werden? er soll sie nutzen";
+    gemessen: der Reiter von Spieler 2 stand 11.700 Takte auf einem Feld - ein Angriffsbefehl auf 166-215 Felder bewegt ihn nicht;
+    der von Spieler 1 fand nie ein Ziel ohne Schuetzen bis 20 Felder): Nahkaempfer naeher als FLUCHT_R -> ausweichen; sonst der
+    Arbeiter mit dem besten Rang aus gefahrenschutz.bewerte (Wert x (1 - P(Tod)) / Takte, nur vertretbares Risiko). Bis JAGD_R
+    Felder: Angriffsbefehl; weiter weg: Wegkette mit dem wenigsten Beschuss zu ihm. Neu gerankt wird jede Runde (die Arbeiter
+    laufen) - kommt der Reiter an einem anderen vorbei, nimmt er ihn mit. Ohne vertretbares Ziel im Beschuss: Rueckzug."""
+    KANDIDATEN = 40              # so viele naechste Arbeiter werden je Reiter bewertet (je Weg eine Rueckverfolgung)
+
+    def __init__(self, sp, raten=None):
+        self.sp, self.raten = sp, raten
         self.befohlen = {}          # Reiter -> (Art, Ziel, Runde)
         self.getoetet = 0
-        self.ziele_vorher = {}
         self.runde = 0
 
     def einheiten(self, L):
         return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] == PFERDEBOGEN and e.get("leben", 1) > 0}
 
-    def schritt(self, L, G, befehl):
+    def schritt(self, L, G, befehl, lage=None):
+        import gefahrenschutz as GS
         self.runde += 1
         aus = []
         self._abschuesse(L)
-        for r in sorted(self.einheiten(L)):
+        reiter = sorted(self.einheiten(L))
+        if not reiter:
+            return aus
+        if lage is None:
+            lage = _lage_fuer(self.sp, L, G, self.raten)
+        arbeiter = [(k, a) for k, a in L.items() if a["besitzer"] not in freunde_von(self.sp) and a["typ"] in ARBEITER
+                    and a.get("leben", 1) > 0]
+        for r in reiter:
             e = L[r]
             o = (e["x"], e["y"])
+            alt = self.befohlen.get(r)
             # Flucht vor Nahkaempfern/Assassinen
             nah = min(((schach(o, (f["x"], f["y"])), k) for k, f in L.items()
                        if f["besitzer"] not in freunde_von(self.sp) and f["typ"] in NAH and f.get("leben", 1) > 0), default=None)
@@ -223,42 +327,46 @@ class Reiterjagd:
                 dx, dy = o[0] - f["x"], o[1] - f["y"]
                 n = max(abs(dx), abs(dy), 1)
                 ziel = (o[0] + 12 * dx // n, o[1] + 12 * dy // n)
-                if self.befohlen.get(r, (None,))[0] != "flucht" or self.runde - self.befohlen[r][2] >= NEU_ALLE:
+                if alt is None or alt[0] != "flucht" or self.runde - alt[2] >= NEU_ALLE:
                     befehl({"angriff": {"einheiten": [r], "lauf": [ziel[0], ziel[1]]}}, 1.0, bis="ANGRIFF")
                     self.befohlen[r] = ("flucht", ziel, self.runde)
                     aus.append("REITERJAGD: Reiter %d weicht Typ %d in %d Feldern aus -> %s" % (r, f["typ"], nah[0], ziel))
                 continue
-            kand = []
-            for k, a in L.items():
-                if a["besitzer"] in freunde_von(self.sp) or a["typ"] not in ARBEITER or a.get("leben", 1) <= 0:
-                    continue
-                p = (a["x"], a["y"])
-                d = schach(o, p)
-                if d > JAGD_R or gefaehrlich(p, L, G, self.sp):
-                    continue
-                kand.append((-ARBEITER[a["typ"]], d, k))
-            if not kand:
-                # 17:41: nichts in Reichweite -> der naechste ungeschuetzte Arbeiter irgendwo (der Angriffsbefehl reitet hin)
-                kand = [(0, schach(o, (a["x"], a["y"])), k) for k, a in L.items()
-                        if a["besitzer"] not in freunde_von(self.sp) and a["typ"] in ARBEITER and a.get("leben", 1) > 0
-                        and not gefaehrlich((a["x"], a["y"]), L, G, self.sp)]
-            if not kand:
+            naechste = sorted(arbeiter, key=lambda ka: schach(o, (ka[1]["x"], ka[1]["y"])))[:self.KANDIDATEN]
+            if alt is not None and alt[0] in ("jagd", "anritt") and alt[1] in L and all(k_ != alt[1] for k_, _ in naechste):
+                naechste.append((alt[1], L[alt[1]]))         # das jetzige Ziel bleibt im Vergleich, auch wenn es fern ist
+            rang = GS.bewerte(lage, o, PFERDEBOGEN, e.get("leben", 15000),
+                              [(ARBEITER[a["typ"]], (a["x"], a["y"]), k) for k, a in naechste])
+            if not rang:
+                if lage.schaden(o) > 0 and (alt is None or alt[0] != "rueckzug" or self.runde - alt[2] >= NEU_ALLE):
+                    q = _rueckzug(lage, o)
+                    p_r = lage.plan(o, q, PFERDEBOGEN, e.get("leben", 15000)) if q is not None and q != o else None
+                    if p_r:
+                        befehl(GS.lauf_befehl(lage, r, p_r), 1.0, bis="ANGRIFF")
+                        self.befohlen[r] = ("rueckzug", q, self.runde)
+                        aus.append("REITERJAGD: Reiter %d - kein Arbeiter mit vertretbarem Risiko, Rueckzug nach %s" % (r, q))
                 continue
-            k = min(kand)[2]
-            alt = self.befohlen.get(r)
-            if alt is None or alt[:2] != ("jagd", k) or self.runde - alt[2] >= NEU_ALLE:
-                befehl({"angriff": {"einheiten": [r], "ziel": k}}, 1.0, bis="ANGRIFF")
-                self.befohlen[r] = ("jagd", k, self.runde)
-                if alt is None or alt[:2] != ("jagd", k):
-                    aus.append("REITERJAGD: Reiter %d jagt Arbeiter %d (Typ %d) in %d Feldern" % (
-                        r, k, L[k]["typ"], schach(o, (L[k]["x"], L[k]["y"]))))
+            k, p, _ = GS.waehle(rang, alt[1] if alt is not None and alt[0] in ("jagd", "anritt") else None)
+            d = schach(o, (L[k]["x"], L[k]["y"]))
+            art = "jagd" if d <= JAGD_R else "anritt"
+            if alt is None or alt[:2] != (art, k) or self.runde - alt[2] >= NEU_ALLE or e.get("zustand") in (0, 1):
+                if art == "jagd":
+                    befehl({"angriff": {"einheiten": [r], "ziel": k}}, 1.0, bis="ANGRIFF")
+                else:
+                    befehl(GS.lauf_befehl(lage, r, p), 1.0, bis="ANGRIFF")
+                self.befohlen[r] = (art, k, self.runde)
+                if alt is None or alt[1] != k:
+                    aus.append("REITERJAGD: Reiter %d %s Arbeiter %d (Typ %d) in %d Feldern, %d Takte, erwarteter Verlust %d von %d (P(Tod) %.2f)" % (
+                        r, "jagt" if art == "jagd" else "reitet ueber %d Wegpunkte zu" % len(lage.wegpunkte(p["weg"])),
+                        k, L[k]["typ"], d, p["takte"], p["verlust"], e.get("leben", 0), p["p_tod"]))
         return aus
 
     def _abschuesse(self, L):
         """Ein gejagtes Ziel, das nicht mehr lebt, zaehlt genau einmal; der Reiter ist danach frei."""
         for r, v in list(self.befohlen.items()):
-            if v[0] == "jagd" and (v[1] not in L or L[v[1]].get("leben", 1) <= 0 or L[v[1]]["besitzer"] in freunde_von(self.sp)):
-                self.getoetet += 1
+            if v[0] in ("jagd", "anritt") and (v[1] not in L or L[v[1]].get("leben", 1) <= 0 or L[v[1]]["besitzer"] in freunde_von(self.sp)):
+                if v[0] == "jagd":
+                    self.getoetet += 1
                 self.befohlen.pop(r)
 
     def bericht(self):

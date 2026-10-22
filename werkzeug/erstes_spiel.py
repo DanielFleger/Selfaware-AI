@@ -592,6 +592,31 @@ def speicher_nachbauen(G, offen, t, zuletzt, sp=None, abstand=200):
         return False
     return t - zuletzt > abstand
 
+FELDER = (30, 31, 32, 33)          # Weizen, Hopfen, Apfel, Milchvieh - brauchen fruchtbaren Boden
+_BURGEN = {}
+
+
+def mein_land(p, G=None):
+    """B-169 Absprache unter Verbuendeten (Daniel 22.10. 08:08: "warum teilen sie sich beide die Mitte, einer soll einen Bereich
+    Farmland nehmen, der eine das andere - das ist Absprache"; gemessen 2v2 080557: Spieler 2 baute 2 Apfel- und 1 Hopfenhof bei
+    (193-207, 219-229) - naeher an der Burg von Spieler 1, 49-65 Felder, als an seiner eigenen, 68-72): ein Feld gehoert dem
+    Verbuendeten, dessen Bergfried (Gebaeudetyp 55) am naechsten liegt; bei Gleichstand der kleineren Spielernummer. Beide Lenker
+    rechnen dieselbe Regel - ohne Nachricht. Ohne Verbuendete: alles meins."""
+    if not _BURGEN:
+        # erst merken, wenn beide Bergfriede da sind (vor dem Eintrag der Mannschaft kennt freunde_von nur uns selbst)
+        try:
+            G = G if G is not None else lies_gebaeude()
+        except Exception:
+            return True
+        b = {g["besitzer"]: (g["x"], g["y"]) for g in G.values()
+             if g["typ"] == 55 and g.get("besitzer") and g.get("besitzer") in freunde_von(SP)}
+        if SP not in b or len(b) < 2:
+            return True
+        _BURGEN.update(b)
+    d = lambda sp_: (max(abs(p[0] - _BURGEN[sp_][0]), abs(p[1] - _BURGEN[sp_][1])), sp_)
+    return min(_BURGEN, key=d) == SP
+
+
 def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
     """Im laufenden Spiel: Platz suchen und bauen OHNE zu blockieren (04.10.: das alte Bauwerkzeug wartete fest und
     auf einen genauen Tick - bei Tempo 1000 hing die Schleife ~20.000 Ticks, der Waechter kam nie dran).
@@ -617,6 +642,13 @@ def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
                                         "max": 12 if BUCH is not None else 1}}, 1.0, bis="PLATZSUCHE"))
     frei = [tuple(map(int, p)) for p in re.findall(r"\((\d+),(\d+)\)", z.split("geprueft:")[-1])]
     platz_frei = bool(frei)
+    if typ in FELDER and frei:
+        partner_land = [q for q in frei if not mein_land(q)]
+        frei = [q for q in frei if mein_land(q)]
+        if not frei:
+            if BUCH is not None:
+                BUCH.ablehnen(typ, (x, y), "Land des Verbuendeten (Absprache: naeher an seinem Bergfried) - %d Plaetze" % len(partner_land))
+            return rueckgabe(None, "platz")
     # 19.10. (1018x/y: kein einziger Kuhhof - auf 10x10 laeuft fast immer gerade jemand, platz_sauber meldete "schutz"):
     # Felder (Weizen 30, Hopfen 31, Apfel 32, Kuhhof 33) sind begehbar (sicht.FLACH) - niemand wird eingesperrt, die
     # Platzsuche des Spiels hat Belegung und Ueberlappung schon geprueft
@@ -2297,7 +2329,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     # nach dem anderen"): weg=feldzug - kein Bilanz-Endspiel (die Wirtschaft bleibt), Ruestung laufend aus dem Gold ueber
     # der Ruecklage auf streitkolben lebende Kaempfer aufgefuellt, Angriff ueber feldzug.py; Assassinen ohne Lord-Angriff
     feldzug = bier = None
-    brand = reiter = None
+    brand = reiter = gs_lerner = None
     if RAIDS:
         # 19.10. (Daniel 16:57 "Sklaven am Anfang richtig OP ... wenn Feuer erkannt werden kann"): Feuer = fireDuration im
         # Gebaeudedatensatz (gemessen raid_messen.py: Sklave zuendet, das Gebaeude brennt allein ab)
@@ -2308,6 +2340,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         # die Sklaven; Knopf deckung_soll (0 = aus)
         RA.DECKUNG_SOLL = DECKUNG_SOLL
         deckung = RA.Deckung(SP, BERGFRIED)
+        # B-168: Verlust je Einheitentyp unter Beschuss und Takte je Feld - jede Runde selbst nachgelernt (gefahrenschutz.py)
+        import gefahrenschutz as GS_r
+        gs_lerner = GS_r.Lerner(SP, (71, 74, 72, 70, 75, 26))
     if weg == "feldzug" and streitkolben:
         from feldzug import Feldzug
         feldzug = Feldzug(SP, BERGFRIED, LORD_SCHUTZ_BIS, n=streitkolben)
@@ -3396,8 +3431,15 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             brand.schutz = deckung.orte(L)
                             brand.heerwege = getattr(feldzug, "heerwege", []) if feldzug else []   # B-150
                             ereignis += deckung.schritt(L, G, befehl, brand)
-                            ereignis += brand.schritt(L, G, befehl)
-                            ereignis += reiter.schritt(L, G, befehl)
+                            # B-168 (Daniel 22.10. 08:09 "Gefahrenschutz mit Risikoabwaegung ... ausholen ... auf dem Weg
+                            # mitnehmen"): eine Gefahrenlage je Runde, mit den Gebieten der Wegkarte des Feldzugs (wer hinter
+                            # einer Mauer steht, ist zu Fuss nicht erreichbar)
+                            import gefecht as GE_r
+                            lage_r = GS_r.Lage(L, G, lambda b_: b_ not in freunde_von(SP), GE_r.FERN_REICH,
+                                               gebiete=getattr(getattr(feldzug, "_karte", None), "gebiete", None))
+                            gs_lerner.runde(st["t"], L, lage_r)
+                            ereignis += brand.schritt(L, G, befehl, lage_r)
+                            ereignis += reiter.schritt(L, G, befehl, lage_r)
                             if posten_h is not None and not es_an and not hunger_r and runde % 2 == 1:
                                 import bauen as BA_r
                                 for typ_r, n_r in RA.werbung(st["gold"] - wirt.ruecklage(G, ohne_heer=HEER_ANTEIL > 0)["gold"], st.get("feuer", 0),
@@ -3528,6 +3570,12 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     schreib(serie.bericht())
     if brand is not None:
         schreib("RAIDS: %s; %s; %s" % (brand.bericht(), reiter.bericht(), deckung.bericht()))
+        try:
+            gs_lerner.schreiben()
+            import gefahrenschutz as GS_e
+            schreib("GEFAHRENSCHUTZ gelernt: %s" % GS_e.raten_laden())
+        except Exception as ex_g:
+            schreib("GEFAHRENSCHUTZ Lerner nicht geschrieben: %r" % (ex_g,))
     if GZ is not None:
         schreib(GZ.bericht())
     st, L, G = runde_lesen()
