@@ -65,6 +65,8 @@ ARBEITER = {1: 12, 3: 10, 13: 6, 31: 5, 8: 4, 7: 4, 14: 3, 19: 3, 21: 3, 6: 2, 1
 FEUER_NACHBAR_R = 3      # B-189: so nah stehende feindliche Gebaeude koennen mitbrennen (Startwert, UNGEMESSEN - 19.10. sprang
                          # eine Huette mit Nachbarn bis 3 Felder NICHT ueber, Daniels Bild 1018n zeigte Ueberspringen im Huettenhof)
 FEUER_NACHBAR_ANTEIL = 0.5  # B-189: Anteil ihres Werts, der dem Ziel zugerechnet wird (Startwert, UNGEMESSEN)
+ARBEITSPLATZ_DRIN = {4, 5, 10, 20, 21}   # B-178: Ochsenkarren, Eisenmine, Lager, Steinbruch, Steinhaufen - dort arbeiten sie am/im Gebaeude
+ARBEITSPLATZ_R = 3       # B-178: Abstand zur Gebaeudemitte, bis zu dem ein Arbeiter als "am Arbeitsplatz" gilt (Startwert, UNGEMESSEN)
 SCHUETZE_WERT = 10      # B-175: feindlicher Schuetze am Boden als Reiterziel - wie ein Holzfaeller (Startwert, UNGEMESSEN)
 
 
@@ -359,7 +361,12 @@ class Reiterjagd:
         # Gebaeudeangriff. Dazu feindliche Schuetzen am Boden (kein Gebaeude, nicht auf der Mauer) - wer uns beschiesst, wird
         # bekaempft statt ignoriert
         bau = getattr(lage, "bau", None)
-        im_freien = lambda a: bau is None or not lage.drin((a["x"], a["y"])) or int(bau[a["x"], a["y"]]) == 0
+        # (Lauf 18:08 gemessen: die Reiter hatten nie ein Gebaeude als Ziel - sie schossen auf Arbeiter, die an/in ihrem Arbeitsplatz
+        # standen, die Pfeile trafen sichtbar Mine und Steinablage; Daniel 18:15): auch wer bis 1 Feld an Mine, Steinbruch, Lager oder
+        # Ochsenkarren steht, ist kein Reiterziel
+        arbeitsplatz = [(g["x"], g["y"]) for g in G.values() if g.get("typ") in ARBEITSPLATZ_DRIN]
+        im_freien = lambda a: ((bau is None or not lage.drin((a["x"], a["y"])) or int(bau[a["x"], a["y"]]) == 0)
+                               and not any(schach((a["x"], a["y"]), q) <= ARBEITSPLATZ_R for q in arbeitsplatz))
         import gefecht
         arbeiter = [(k, a) for k, a in L.items() if a["besitzer"] not in freunde_von(self.sp) and a.get("leben", 1) > 0
                     and ((a["typ"] in ARBEITER and im_freien(a))

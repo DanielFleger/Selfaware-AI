@@ -2734,9 +2734,12 @@ class Einzeln:
                 # erreichbares Gebaeude den naechsten feindlichen Arbeiter jagen, der zu Fuss erreichbar ist und den kein waehlbarer
                 # Feind sieht (sicht.sicher) - statt zu warten
                 from raids import ARBEITER as ARB_
-                arb = sorted((schach(ort, (e["x"], e["y"])), k) for k, e in L.items()
+                # (Lauf 18:08: mit "nur wen kein Feind sieht" griff die Regel nie - jeder Arbeiter stand im Blick eines Schuetzen;
+                # Daniel 18:10 "wartet auf nichts"): ungesehene zuerst, sonst der naechste erreichbare
+                arb = sorted((not self._sicher((e["x"], e["y"])), schach(ort, (e["x"], e["y"])), k) for k, e in L.items()
                              if e.get("besitzer") not in freunde_von(self.sp) and e.get("typ") in ARB_ and e.get("leben", 1) > 0
-                             and e.get("erreichbar", 1) == 1 and self._sicher((e["x"], e["y"])))
+                             and e.get("erreichbar", 1) == 1)
+                arb = [(d, k) for _, d, k in arb]
                 if arb:
                     self._vergessen(n)
                     self.jagd[n] = arb[0][1]

@@ -317,6 +317,15 @@ def main():
     m25 = b25.schritt({10: einheit(71, 1, 114, 100, zustand=107)}, {1: geb(11, 2, 120, 100), 2: geb(1, 2, 150, 100)}, Befehle())
     pruefe(24, "Gruppe statt Einzelhaus: %s | ohne Nachbarn %s" % (b24.ziel, b24o.ziel), b24.ziel.get(10) == 2 and b24o.ziel.get(10) == 1)
     pruefe(25, "Brand beim Angreifen erkannt: %s" % [m[:50] for m in m25], any("angezuendet" in m for m in m25))
+    # 26. (B-178) Steinmetz (Typ 3 als Arbeiter) 2 Felder neben einem feindlichen Steinbruch (Typ 20) 15 weg, Holzfaeller frei 30
+    #     weg -> der freie; ohne Steinbruch der nahe
+    L26 = {20: einheit(74, 1, 100, 100), 700: einheit(3, 2, 115, 100), 701: einheit(3, 2, 130, 100)}
+    r26 = RJ()
+    r26.schritt(L26, {5: geb(20, 2, 117, 100)}, Befehle())
+    r26o = RJ()
+    r26o.schritt(L26, {}, Befehle())
+    pruefe(26, "am Steinbruch: Ziel %s | ohne: %s" % (r26.befohlen.get(20), r26o.befohlen.get(20)),
+           r26.befohlen.get(20, (0, 0))[1] == 701 and r26o.befohlen.get(20, (0, 0))[1] == 700)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
