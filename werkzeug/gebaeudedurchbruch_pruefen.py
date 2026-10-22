@@ -60,4 +60,27 @@ class Gebaeudepfad(unittest.TestCase):
   z=np.zeros((n,n),int);frei=np.zeros((n,n),bool);frei[1,1]=True
   p=mechanik.durchbruch_schritte(link,z,z,z,z,z,1,5,(2,12),(21,12),mk=MK,frei=frei,frei_kosten=96)
   self.assertIsNone(p['weg'])
+ def test_building_order_only_after_reaching_planned_access(self):
+  import feldzug as F,gefahr as GF
+  e,G=self.scene();f=F.Feldzug(1,(2,12),lord_schutz_bis=0,n=5)
+  f.ziel=500;f.phase='angriff';f._orte_f=[]
+  f._karte=GF.Karte([],n=24,gebiete=e['gebiet'],links=e['link'])
+  f._feuer_lenken=lambda st,L,G,b,aus:b
+  f.mauerkarte=lambda sp:(np.zeros((24,24),bool),np.zeros((24,24),int))
+  f.durchbruch=lambda sp,start,anzahl,ziel,**kw:durchbruch.plane(sp,start,anzahl,ziel,mk=MK,L={},G=G,gf=np.zeros((24,24)),e=e,**kw)
+  L={n:{'typ':26,'besitzer':1,'x':2,'y':12,'leben':15000,'zustand':1,'zielart':0,'nahziel':0} for n in range(1,6)}
+  L[500]={'typ':55,'besitzer':2,'x':21,'y':12,'leben':75000,'zustand':1}
+  cmd=[];f.schritt({'t':12000},L,G,lambda b,*a,**kw:cmd.append(b))
+  self.assertFalse(any(b.get('angriff',{}).get('gebaeude')==90 for b in cmd))
+  self.assertTrue(any(b.get('angriff',{}).get('lauf')==[7,12] for b in cmd))
+  for n in range(1,6):L[n]['x']=7
+  cmd=[];f.schritt({'t':12100},L,G,lambda b,*a,**kw:cmd.append(b))
+  self.assertTrue(any(b.get('angriff',{}).get('gebaeude')==90 for b in cmd))
+ def test_active_building_fight_is_not_idle_but_standing_still_is(self):
+  import feldzug as F
+  for state,expected in ((107,[]),(1,[1])):
+   f=F.Feldzug(1,(2,12),lord_schutz_bis=0,n=5);f._befohlen={1:('bresche',90)}
+   L={1:{'typ':26,'besitzer':1,'x':7,'y':12,'leben':15000,'zustand':state,'zielart':0,'nahziel':0}}
+   f._steht_nur(L,[1],0);L[1]['leben']=14000
+   self.assertEqual(f._steht_nur(L,[1],500),expected)
 if __name__=='__main__':unittest.main()

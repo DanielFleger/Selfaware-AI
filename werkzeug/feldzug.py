@@ -326,6 +326,7 @@ class Feldzug:
             # (B-147, L175: wer eine Mauer aufhackt, hat zielart 0 und kein Nahziel - mit Mauerauftrag und nicht untaetig ist er
             # beschaeftigt, kein "steht nur"; in Pruefstand-Lauf 4 zog die Regel die Hacker 4-mal ab)
             hackt = befohlen.get(n, (None,))[0] in ("mauer", "zug") and e.get("zustand") not in (0, 1)
+            hackt = hackt or (befohlen.get(n,(None,))[0]=="bresche" and e.get("zustand") in (106,107))
             if (t - still_seit >= self.RUECKZUG_TAKTE and schaden is not None and t - schaden <= self.RUECKZUG_SCHADEN
                     and not e.get("zielart", 0) and e.get("nahziel", 0) <= 0 and not hackt):
                 stehen.append(n)
@@ -1287,6 +1288,8 @@ class Feldzug:
                                    "Nahkaempfer darauf%s" % (self.ziel, ll["tor"], " (statt Bresche %d)" % self.bresche
                                                              if self.bresche is not None else ""))
                         self.bresche, self.bresche_leben, self.vorposten = ll["tor"], None, None
+                        if self.dplan and self.dplan.get("art")=="gebaeude" and self.dplan.get("zug"):
+                            self.vorposten=(self.bresche,tuple(self.dplan["zug"]))
                         self._bresche_pruef = (ll["tor"], self.runde)
                     if self._angesetzt_kachel is not None:
                         self._mauerziel_los(befehl)
@@ -1443,6 +1446,12 @@ class Feldzug:
             if bresche is not None and bresche in G:
                 tor = (G[bresche]["x"], G[bresche]["y"])
                 am_tor = [n for n in nah_kampf if schach((L[n]["x"], L[n]["y"]), tor) <= self.TOR_R]
+                if self.dplan and self.dplan.get("art")=="gebaeude" and self.dplan.get("zug"):
+                    zug_b=tuple(self.dplan["zug"])
+                    self.vorposten=(bresche,zug_b)
+                    p=zug_b
+                    am_tor=[n for n in nah_kampf if schach((L[n]["x"],L[n]["y"]),zug_b)<=1
+                            or (L[n].get("zielgebaeude")==bresche and L[n].get("zustand") in (106,107))]
                 leben_b = G[bresche].get("leben", -1)
                 if (self.bresche_leben is None or self.bresche_leben[2] != bresche or leben_b < self.bresche_leben[0]
                         or len(am_tor) < self.TOR_MIN):

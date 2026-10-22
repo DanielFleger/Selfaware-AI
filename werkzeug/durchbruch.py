@@ -85,13 +85,15 @@ def plane(sp, start, maenner, lord, mk=None, L=None, G=None, gf=None, verworfen=
     # Alle zulaessigen Hindernisse gemeinsam rechnen, damit auch zwei hintereinander
     # stehende Gebaeude als zusammenhaengender Weg erkannt werden.
     from gebaeudeziele import angreifbar
+    from feldzug import BURG_TEILE
     abriss = np.zeros(e["bau"].shape, float)
     ab_ids = set()
     for nr, g_ in G.items():
         if (g_.get("besitzer") in freunde_von(sp) or nr in verworfen
                 or not angreifbar(g_) or g_.get("leben",0) <= 0 or g_.get("feuer",0)>0):
             continue
-        kosten = math.ceil(g_["leben"] / max(1,float(mk["gebaeude"])*max(1,maenner))) * mk["takte_je_treffer"]
+        schaden_bau = mk["tor_turm"] if g_["typ"] in BURG_TEILE else mk["gebaeude"]
+        kosten = math.ceil(g_["leben"] / max(1,float(schaden_bau)*max(1,maenner))) * mk["takte_je_treffer"]
         abriss[e["bau"] == nr] = max(1,kosten)
         ab_ids.add(nr)
     if ab_ids:
