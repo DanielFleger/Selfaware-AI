@@ -1948,7 +1948,9 @@ class Einzeln:
             ereignis.append("NEU UNTER ALTER NUMMER: %s aufgenommen" % neu_alt)
         # 1. Verluste und Verletzungen messen
         for n in list(self.mitglieder):
-            if n not in L or L[n]["besitzer"] != self.sp:
+            # B-197 (2v2 22.10. 18:41: Nummer 146 war bei Tick 726 Assassine, ab ~3.000 ein eigener Arbeiter Typ 7 bei (304, 275) -
+            # die Gruppe schickte ihm 20 Routen, er stand bis Tick 25.000): eine Nummer mit anderem Typ ist ein Toter
+            if n not in L or L[n]["besitzer"] != self.sp or L[n].get("typ", ASSASSINE) != ASSASSINE:
                 # 19.10. (Daniel: "bei jedem verlorenen Assassinen genau notieren, warum er verletzt wurde und dann gestorben
                 # ist"): Akte vor dem Vergessen - erste Verletzung, Zahl der Runden mit Treffern, letztes Umfeld, letzter Auftrag
                 a = self.akte.pop(n, {})
@@ -1958,7 +1960,7 @@ class Einzeln:
                 self.bilanz["verluste"].add(n); self.mitglieder.discard(n); self._vergessen(n); self.flucht.pop(n, None)
                 self.bilanz["tote"] += 1
                 self.lordtrupp["mitglieder"].discard(n)
-                if n not in L:
+                if n not in L or L[n].get("typ", ASSASSINE) != ASSASSINE:
                     self._frei_nr.add(n)
                 ereignis.append("MESSUNG tot %d: zuletzt %s" % (n, self.umfeld.pop(n, "unbekannt")))
                 self.leben.pop(n, None)

@@ -837,6 +837,22 @@ def main():
     j52b, m52b = jagd_auf(0)
     pruefe(52, "Holzfaeller mit Ladung 30 Felder weit, ohne Ladung 8 Felder: Jagd auf %s %s; beide leer: %s" % (j52, m52, j52b),
            j52 == 701 and j52b == 700)
+    # 53 (B-197): Assassine 100 hat ein Ziel, seine Nummer gehoert jetzt einem eigenen Arbeiter (Typ 7) -> 100 ist kein Mitglied
+    #     mehr und bekommt keinen Befehl; Gegenprobe: bleibt Assassine -> Mitglied
+    def nummer(typ_jetzt):
+        t = neu()
+        G = {900: {"besitzer": 2, "typ": 20, "x": 130, "y": 100, "leben": 5000, "uid": 1, "erreichbar": 1}}
+        L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000)}
+        t.aufnehmen([100])
+        t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
+        L[100] = einheit(typ_jetzt, 1, 100, 100)
+        _, bef = t.schritt(L, G, sichere_orte=[(50, 50)], tick=10030)
+        an_100 = [b for b in (bef or []) if 100 in (b.get("angriff", {}) or {}).get("einheiten", [])] if isinstance(bef, list) else bef
+        return 100 in t.mitglieder, an_100
+    m53, b53 = nummer(7)
+    m53b, _ = nummer(73)
+    pruefe(53, "Nummer 100 jetzt Arbeiter: Mitglied %s, Befehle an 100 %s | bleibt Assassine: Mitglied %s" % (m53, b53, m53b),
+           not m53 and not b53 and m53b)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
