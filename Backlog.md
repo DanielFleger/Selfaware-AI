@@ -88,3 +88,8 @@ B nie gesetzt. Folge: ausbau.braucht_gold die ganze Partie True (Seasoning-B hat
 
 ## Offene Korrektur: Assassinen warten trotz moeglichem rechten Umweg (22.10.2026)
 - [ ] Daniels Szene aus Rotkaeppchen/Rattenfaenger-Lauf20261022_222923 nachstellen. Rechten begehbaren Umweg zu Bogenschuetzen sowie gemeinsamen Angriff statt Einzelrisiko berechnen; konkrete Ablehnungsgruende protokollieren und gegen eine echte Uebermacht pruefen. Gefahrenueberschaetzung ist bislang eine Hypothese. Belege und Abnahme: `daten/beobachtungen/assassinen_rechtsum_20261022/`. Fuer die naechste Korrektur vorgemerkt; laufende Partie unveraendert.
+
+
+## Offene Korrektur: Zielwechsel und Breschendauer (22.10.2026)
+- [ ] Nach besiegtem Lord direktes Weiterziehen zum naechsten Gegner gegen notwendigen Rueckzug vergleichen. Belegt: Spieler4/T36063 im Lauf20261022_222923 wird durch feldzug.schritt pauschal erst Richtung Heimat zu(263,238) geschickt; Geistergefahr nicht belegt. Schutz vor Beschuss nach Lordtod muss erhalten bleiben, aber keine pauschale Ehrenrunde.
+- [ ] Blockierende zerstoerbare Gebaeude als Zugang zum Keep gegen Umweg/Mauerbruch bewerten: Zeit bis zum Durchbruch und erwartete Verluste. Daniels Folgeaufnahme zeigt inzwischen offenen Zugang; daher nicht behaupten, die KI koenne grundsaetzlich keine Bresche schaffen. Konkretes Hindernis und verursachte Schaeden noch auswerten. Szenen und Entscheidungsauszuege ausschliesslich lokal unter daten/beobachtungen/bresche_und_siegumweg_20261022/.
