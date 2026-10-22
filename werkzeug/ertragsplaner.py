@@ -315,6 +315,8 @@ class Ertragsplaner:
         kurz = plan["start"]
         info = json.load(open(os.path.join(d, "start_%s.json" % kurz), encoding="utf-8"))
         self.feinde = [tuple(v["eingang"]) for v in info["feind_bergfried"].values()]
+        from land import eigene_seite
+        self._eigenes_gebiet = eigene_seite(info)
         self.startwerte = startwerte_laden(os.path.join(d, "ertrag_startwerte_%s.json" % kurz))
         self.kosten = kosten if kosten is not None else lies_baukosten((1, 3, 4, 5, 7, 10, 19, 20, 31, 32))
         if groesse is None:
@@ -353,8 +355,7 @@ class Ertragsplaner:
         self.joch_bruch, self.joch_lieferung, self.joch_stau = {}, {}, {}
 
     def eigene_seite(self, p):
-        d = schach(p, self.K)
-        return all(d < schach(p, f) for f in self.feinde)
+        return self._eigenes_gebiet(p)
 
     def kosten_von(self, typ):
         k = dict(self.kosten[typ])
