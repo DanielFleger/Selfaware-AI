@@ -7,7 +7,7 @@ diesen Rest -> hoehere Steuerstufe -> mehr Gold fuer Wirtschaft und Waffen.
 
 Kartenunabhaengig: jeder Platz kommt vom Spiel selbst (plaetze(typ, kern, r) = Modulbefehl platzkarte, Bauregeln des
 Spiels je Feld), nichts ist fuer eine Karte eingetragen. Ablauf je Runde (schritt):
-  SOLL     eine Kette (Hopfenfarm + Brauerei + Schenke) je PRO_KETTE Einwohner, hoechstens HOECHSTENS; erst ab PRO_KETTE.
+  SOLL     eine Kette (Hopfenfarm + Brauerei + Schenke) je PRO_KETTE Einwohner (B-206: ohne Obergrenze); erst ab PRO_KETTE.
   REIHE    19.10. (Daniel, 1019a: "wir haben sogar schon Bier und noch keine Schenke - sobald das erste Bier geliefert ist,
            soll der erste Wirt losgehen koennen"; 1019a: die zweite Hopfenfarm scheiterte 20-mal, die Schenke kam nie dran):
            ENGPASS ZUERST - Schenke, solange es weniger Schenken als Brauereien gibt; Brauerei, solange weniger Brauereien
@@ -25,7 +25,9 @@ HOPFEN, BRAUEREI, SCHENKE, KORNSPEICHER, LAGER = 31, 18, 22, 19, 10
 
 class Bierkette:
     PRO_KETTE = 30            # Einwohner je Kette (Daniel: "30 Bevoelkerung ... bei einer Schenke")
-    HOECHSTENS = 4
+    # B-206 (Daniel 22.10. 18:48: "es werden nur 4 Schenken betrieben, obwohl die Bevoelkerung schon ueber 120 ist"; gemessen:
+    # beide Spieler 4 Schenken bei 140/136 Leuten): keine feste Obergrenze mehr - die Zahl folgt der Bevoelkerung
+    HOECHSTENS = None
     NEU_PLAETZE = 3000        # Ticks, nach denen die Platzliste neu vom Spiel geholt wird
     # B-151 (Daniel 21.10.2026 20:07: "sie prueft einfach den naechsten oder mehrere gleichzeitig und nimmt sofort den
     # freien"; Pruefstand 21.10.: 12 Schenke-Versuche ohne Schenke - je Runde kam EIN Platz dran, die eigene Laufweg-
@@ -78,7 +80,8 @@ class Bierkette:
         return self.preis(self.naechster, "stein") if self.naechster else 0
 
     def soll(self, leute):
-        return 0 if leute < self.PRO_KETTE else min(self.HOECHSTENS, int(math.ceil(leute / float(self.PRO_KETTE))))
+        n = 0 if leute < self.PRO_KETTE else int(math.ceil(leute / float(self.PRO_KETTE)))
+        return n if self.HOECHSTENS is None else min(self.HOECHSTENS, n)
 
     def schritt(self, st, G, ruecklage):
         aus = []
