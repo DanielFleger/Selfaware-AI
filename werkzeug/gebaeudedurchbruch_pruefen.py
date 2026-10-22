@@ -61,4 +61,3 @@ class Gebaeudepfad(unittest.TestCase):
   p=mechanik.durchbruch_schritte(link,z,z,z,z,z,1,5,(2,12),(21,12),mk=MK,frei=frei,frei_kosten=96)
   self.assertIsNone(p['weg'])
 if __name__=='__main__':unittest.main()
-
