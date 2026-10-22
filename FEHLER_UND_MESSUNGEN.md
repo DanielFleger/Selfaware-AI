@@ -98,3 +98,8 @@ Reiter: fehlender sicherer Schusspunkt liess die Steuerung zur normalen Jagd dur
 Assassinen: ein festes Veto fuer alle Gruppenziele innerhalb45Feldern um Lords stand vor der Gefechtsrechnung. Es wurde entfernt; Erreichbarkeit, Mindestgruppenstaerke und anschliessende Rechnung mit Mindestrestleben bleiben erforderlich. Drei neue Kandidatengegenproben und zehn bestehende Lordanlaufpruefungen bestanden. Nicht behaupten, diese Modellrechnung garantiere einen echten Sieg.
 
 Gemeinsame Nebenpruefung: Raids28/28, Gefahr8/8, Feldzug63/63 (echte temporaere Dateien ausserhalb der Dateisystemvirtualisierung). Janitschar/Mirza vorheriger Lauf endet nativ40701, beide eigenen Lords150000/150000,4,24Jahre. Frischer gleicher Gegnerlauf20261022_221719 startet mit Korrekturen ueber native Menuehandler, ohne Eingabesimulation/Spielstand. Eigene Spieler1/4 auf Sued-/Westseite, Gegner2/3 auf Ost-/Nordseite. Endwirkung noch offen.
+
+
+## Naechste Turnierpaarung nach korrigiertem Lauf
+
+Lauf20261022_221719 endet unabhaengig nativ bei37346 mit beiden eigenen Burgherren150000/150000: 3,89Spieljahre; Entwicklungsnachweis, weiterhin kein qualifizierter Benchmark und kein isolierter Wirkungsnachweis einzelner Korrekturen. Die aktive Liga-Konfiguration umfasst14Turniergegner(1-14); Slot16istSamurAI, Slot15keine weitere konfigurierte Turnier-KI. Naechste noch ungetestete Paarung nach13/14 daher Rotkaeppchen/Rattenfaenger(1/2), wieder gegen eigeneSamurAI1/4.
