@@ -4817,16 +4817,18 @@
    "nr": "B-188",
    "titel": "Reiter patrouillieren nicht und weichen nicht aus - sie stehen beim Schiessen still, statt im Lauf zu schiessen (Kite: angreifen, wegreiten, wieder angreifen)",
    "bereich": "Kampf",
-   "status": "offen",
+   "status": "gebaut",
    "seit": "2026-10-22 18:12",
    "herkunft": "Daniel 22.10. 18:12 (Bild: zwei Berittene stehen vor der Burg: 'sie muessen ausweichen, immerhin sind sie die einzige Einheit, die im Lauf auch schiessen kann - das nicht auszunutzen waere Verschwendung')",
-   "gebaut": null,
-   "commits": [],
+   "gebaut": "2026-10-22 18:58",
+   "commits": [
+    "accd575"
+   ],
    "wo": [],
    "belege": [
     "2v2 20261022_180844 um Tick ~10.000; Reiterjagd kennt nur Flucht vor Nahkaempfern (FLUCHT_R) und Angriffsbefehl auf ein Ziel - kein Hin-und-her im Schussfeld; ob der Pferdebogen im Spiel bei einem Laufbefehl selbst weiterschiesst: UNGEPRUEFT (raids.py 19.10.: 'nicht gemessen')"
    ],
-   "notiz": "nicht gebaut: erst messen, ob der Pferdebogen bei einem Laufbefehl selbst weiterschiesst (Kite haengt daran) | Messung 18:40 (3 Laeufe, 1.305 Proben in Bewegung): Ziel verlor in 6 Faellen Leben, waehrend der Reiter lief - nicht trennbar von anderen Schuetzen; Hauptursache des Stehens war B-196 (Ziele ohne Wirkung). Nach dem naechsten Lauf erneut messen",
+   "notiz": "nicht gebaut: erst messen, ob der Pferdebogen bei einem Laufbefehl selbst weiterschiesst (Kite haengt daran) | Messung 18:40 (3 Laeufe, 1.305 Proben in Bewegung): Ziel verlor in 6 Faellen Leben, waehrend der Reiter lief - nicht trennbar von anderen Schuetzen; Hauptursache des Stehens war B-196 (Ziele ohne Wirkung). Nach dem naechsten Lauf erneut messen | Daniel 18:45 erneut: Reiter stehen beim Angriff statt zu patrouillieren - auch nach B-196 (Lauf 20261022_184103)",
    "verlauf": [
     {
      "zeit": "2026-10-22 18:12",
@@ -4839,6 +4841,14 @@
     {
      "zeit": "2026-10-22 18:39",
      "was": "offen -> offen: Messung 18:40 (3 Laeufe, 1.305 Proben in Bewegung): Ziel verlor in 6 Faellen Leben, waehrend der Reiter lief - nicht trennbar von anderen Schuetzen; Hauptursache des Stehens war B-196 (Ziele ohne Wirkung). Nach dem naechsten Lauf erneut messen"
+    },
+    {
+     "zeit": "2026-10-22 18:45",
+     "was": "offen -> offen: Daniel 18:45 erneut: Reiter stehen beim Angriff statt zu patrouillieren - auch nach B-196 (Lauf 20261022_184103)"
+    },
+    {
+     "zeit": "2026-10-22 18:58",
+     "was": "offen -> gebaut (Commit accd575)"
     }
    ]
   },
@@ -5073,6 +5083,334 @@
     {
      "zeit": "2026-10-22 18:39",
      "was": "in Arbeit -> gebaut (Commit dc7ff90)"
+    }
+   ]
+  },
+  {
+   "nr": "B-197",
+   "titel": "Assassine steht trotz Ziel: dieselbe ZIELWAHL jede Runde, Abstand bleibt gleich (Angriffsbefehl auf fernes Gebaeude bewegt ihn nicht)",
+   "bereich": "Raids",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:43",
+   "herkunft": "Daniel 22.10. 18:42 (Bild: zwei Assassinen am Steinbruch, einer steht)",
+   "gebaut": "2026-10-22 18:50",
+   "commits": [
+    "b077ec5"
+   ],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_184103: Sp2 'ZIELWAHL 146 -> 134 Typ 20 in 151' sechsmal in Folge",
+    "Abstand immer 151; Sp1 'ZIELWAHL 149 -> 167 Typ 26 in 73' wiederholt",
+    "Abstand immer 73 - kein WEG-Befehl dazwischen; wie B-168 bei den Reitern (Angriff auf 166-215 Felder bewegt nicht)"
+   ],
+   "notiz": "im Lauf nur gesammelt",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:43",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:50",
+     "was": "offen -> gebaut (Commit b077ec5)"
+    }
+   ]
+  },
+  {
+   "nr": "B-198",
+   "titel": "Assassine greift den Steinbruch von der Seite an, an der die Ochsen erscheinen - von der anderen Seite waere er schneller fertig",
+   "bereich": "Raids",
+   "status": "offen",
+   "seit": "2026-10-22 18:43",
+   "herkunft": "Daniel 22.10. 18:43 (Bild: Assassine am Steinbruch zwischen den Ochsen)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "nur Daniels Beobachtung; ungemessen: an welchem Feld des Grundrisses die Ochsen erscheinen und ob sie den Angreifer behindern"
+   ],
+   "notiz": "im Lauf nur gesammelt; Messidee: Abrisszeit je Angriffsseite im Sandkasten",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:43",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-199",
+   "titel": "Assassine nach erledigtem Ziel: laeuft irgendwohin und zurueck statt sofort das naechste gueltige Ziel anzugreifen",
+   "bereich": "Raids",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:44",
+   "herkunft": "Daniel 22.10. 18:44 (Bild: Assassine steht allein auf der Wiese)",
+   "gebaut": "2026-10-22 18:53",
+   "commits": [
+    "e6c84ed"
+   ],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_184103 Sp2: 'STILLSTAND geloest: 146 (Route",
+    "213 Ticks bei (304",
+    "275))'",
+    "dann erneut 247 Ticks am selben Feld; neue Ziele 84-214 Felder weit; Sp1: nach ENTDECKT wartet er 400 Takte ('ENTDECKT vorbei ... 400 Takte nicht gesehen') bevor er wieder raidet; Zielwahlen 118-228 Felder weit"
+   ],
+   "notiz": "im Lauf nur gesammelt; zusammen mit B-197 ansehen (Route bleibt haengen) | Teil 1 = B-197 (Nummer 146 war ein Arbeiter); Teil 2 = 400 Takte Warten nach ENTDECKT -> mit B-200/B-204 | Teil 1 B-197, Teil 2 weniger Fluchten durch B-200/B-204",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:44",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:50",
+     "was": "offen -> in Arbeit: Teil 1 = B-197 (Nummer 146 war ein Arbeiter); Teil 2 = 400 Takte Warten nach ENTDECKT -> mit B-200/B-204"
+    },
+    {
+     "zeit": "2026-10-22 18:53",
+     "was": "in Arbeit -> gebaut (Commit e6c84ed): Teil 1 B-197, Teil 2 weniger Fluchten durch B-200/B-204"
+    }
+   ]
+  },
+  {
+   "nr": "B-200",
+   "titel": "Assassinen zu vorsichtig: EIN Bogenschuetze mit Linie bricht den Steinbruch-Angriff bei vollem Leben ab, obwohl der Gegenwert reicht",
+   "bereich": "Raids",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:45",
+   "herkunft": "Daniel 22.10. 18:45 (Bild: Steinbruch-Angriff abgebrochen)",
+   "gebaut": "2026-10-22 18:52",
+   "commits": [
+    "9af5ee4"
+   ],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_184103 Sp2: 'ENTDECKT 705 bei (289",
+    "210) (Auftrag: Route zu Gebaeude 195): Spaeher Typ 22 in 51 Feldern",
+    "1 Schuetzen mit Linie",
+    "Leben 12500 -> raus'; danach 400 Takte Warten (ENTDECKT vorbei)"
+   ],
+   "notiz": "im Lauf nur gesammelt; ENTDECKT soll Risiko gegen Ertrag rechnen (erwarteter Schaden bis Abriss gegen Wert) statt bei jeder Linie raus",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:45",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:52",
+     "was": "offen -> gebaut (Commit 9af5ee4)"
+    }
+   ]
+  },
+  {
+   "nr": "B-201",
+   "titel": "Berittene Bogenschuetzen gehen in den Nahkampf (direkt neben den Feind an der Mauer) statt auf Schussweite zu bleiben",
+   "bereich": "Raids",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:45",
+   "herkunft": "Daniel 22.10. 18:45 (Bild: Reiter dicht an einem Feind vor der Burgmauer)",
+   "gebaut": "2026-10-22 18:58",
+   "commits": [
+    "accd575"
+   ],
+   "wo": [],
+   "belege": [
+    "nur Daniels Bild im Lauf 20261022_184103; ungemessen: ob der Angriffsbefehl auf ein Ziel den Reiter bis zum Kontakt laufen laesst oder ob ein Nahkaempfer ihn erreicht hat; zusammen mit B-188 (Abstand halten",
+    "im Lauf schiessen)"
+   ],
+   "notiz": "im Lauf nur gesammelt",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:45",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:58",
+     "was": "offen -> gebaut (Commit accd575)"
+    }
+   ]
+  },
+  {
+   "nr": "B-202",
+   "titel": "Beide Spieler bauen wieder am selben Platz in der Mitte: der Kornspeicher von Spieler 1 steht naeher am Bergfried des Verbuendeten - die Absprache (mein_land) gilt nur fuer Apfelplaetze",
+   "bereich": "Wirtschaft",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:46",
+   "herkunft": "Daniel 22.10. 18:45 (Bild: Kornspeicher/Aufbauplatz beider in der Mitte)",
+   "gebaut": "2026-10-22 18:55",
+   "commits": [
+    "3ffcad7"
+   ],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_184103: Kornspeicher Sp1 bei (200",
+    "242) - 62 Felder vom eigenen Bergfried (138",
+    "270)",
+    "48 vom Bergfried Sp2 (224",
+    "290); Kornspeicher Sp2 bei (199",
+    "278); ABSPRACHE filterte nur Apfelplaetze (Sp2: 6 von 16",
+    "Sp1: 1 von 9)"
+   ],
+   "notiz": "im Lauf nur gesammelt; Absprache auf alle Bauplaetze (Eroeffnungsplan + Platzsuche) ausdehnen, nicht nur Aepfel",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:46",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:55",
+     "was": "offen -> gebaut (Commit 3ffcad7)"
+    }
+   ]
+  },
+  {
+   "nr": "B-203",
+   "titel": "Heer reagiert viel zu spaet auf anstroemende arabische Bogenschuetzen - statt Gefechtsrechnung (Nahkampf haette gewonnen) laesst es sich beschiessen",
+   "bereich": "Kampf",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:46",
+   "herkunft": "Daniel 22.10. 18:46 (Bild: Streitkolben-Trupp im Freien, Bogen kommen von der Burg)",
+   "gebaut": "2026-10-22 18:57",
+   "commits": [
+    "d6ebded"
+   ],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_184103: Runden dauern bis 594/603 Ticks (WARNUNG Runde dauerte) - so lange sieht der Lenker nichts; im Lauf kein 'FELDZUG ABFANG' gemeldet"
+   ],
+   "notiz": "im Lauf nur gesammelt; Daniel: 'sie koennten einfach kalkulieren, dass sie im Nahkampf in der Situation wahrscheinlich gewonnen haetten' - gefecht.py-Rechnung (wir gegen anrueckende Schuetzen) jede Runde, bei Sieg sofort angreifen; dazu Rundendauer kuerzen | Abfang nach Wirkung ohne Anteil-Grenze (B-205) + Gefechtsrechnung mit Verbuendetem (B-207); offen: Rundendauer bis 600 Ticks nicht verkuerzt",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:46",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:57",
+     "was": "offen -> gebaut (Commit d6ebded): Abfang nach Wirkung ohne Anteil-Grenze (B-205) + Gefechtsrechnung mit Verbuendetem (B-207); offen: Rundendauer bis 600 Ticks nicht verkuerzt"
+    }
+   ]
+  },
+  {
+   "nr": "B-204",
+   "titel": "Die meisten Assassinen wuseln herum: Risikofilter (ZIEL_RISIKO, ENTDECKT) schliesst fast alle Ziele aus - 'alle gefaehrlich'",
+   "bereich": "Raids",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:47",
+   "herkunft": "Daniel 22.10. 18:47 (Bild: viele Assassinen einzeln im Feld ohne Angriff)",
+   "gebaut": "2026-10-22 18:53",
+   "commits": [
+    "e6c84ed"
+   ],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_184103 letzte 60 Assassinen-Meldungen: Sp1 'ohne Ziel (alle gefaehrlich)' 7",
+    "'warten ausser Reichweite' 10",
+    "ENTDECKT 19",
+    "ZIELWAHL 24; Sp2: 12 / 13 / 16 / 19 - fast jede zweite Entscheidung ist Ausweichen/Warten"
+   ],
+   "notiz": "im Lauf nur gesammelt; zusammen mit B-200: Grenzen (ZIEL_RISIKO_WEG 10 %, ENTDECKT bei jeder Linie) gegen gemessenen Ertrag/Verlust aus den Laeufen neu setzen statt fester Stellgroessen",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:47",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:53",
+     "was": "offen -> gebaut (Commit e6c84ed)"
+    }
+   ]
+  },
+  {
+   "nr": "B-205",
+   "titel": "Streitkolben stehen und gehen nicht auf die Feuerballiste neben dem Lord-Ring - Abfang durch Anteil-Grenze gesperrt ('ABFANG ZU TEUER ... frei 22, Anteil-Rest 1')",
+   "bereich": "Kampf",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:47",
+   "herkunft": "Daniel 22.10. 18:47 (Bild: Streitkolben am Bergfried-Ring, Feuerballiste oben links)",
+   "gebaut": "2026-10-22 18:54",
+   "commits": [
+    "13fb32b"
+   ],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_184103 Sp1: 'ABFANG ZU TEUER: Schuetze 152 bei (261",
+    "131) braucht 2",
+    "frei 22 (Anteil-Rest 1)' wiederholt - 22 freie Nahkaempfer",
+    "aber das Abfang-Kontingent ist aufgebraucht; die Feuerballiste greift nicht 'nach Wirkung' (B-177) an",
+    "weil nur Ziele zaehlen",
+    "die gerade eine unserer Einheiten beschiessen"
+   ],
+   "notiz": "im Lauf nur gesammelt; Anteil-Grenze gegen freie Leute und Gefechtsrechnung ersetzen; Feuerballiste immer Ziel (BALLISTE_MIN), auch wenn sie gerade auf ein Gebaeude zielt",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:47",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:54",
+     "was": "offen -> gebaut (Commit 13fb32b)"
+    }
+   ]
+  },
+  {
+   "nr": "B-206",
+   "titel": "Nur 4 Wirtshaeuser bei ueber 120 Leuten - die Bierabdeckung (je Wirtshaus ~30 Leute) faellt unter die volle Stufe, statt mit der Bevoelkerung mitzuwachsen",
+   "bereich": "Wirtschaft",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:48",
+   "herkunft": "Daniel 22.10. 18:48 (Bild: Spieler 1, 140/151 Leute, 4 Wirtshaeuser)",
+   "gebaut": "2026-10-22 18:55",
+   "commits": [
+    "f428d5f"
+   ],
+   "wo": [],
+   "belege": [
+    "2v2 20261022_184103: Sp1 Tick 39.486 Leute 140/151",
+    "Brauerei 4",
+    "Wirtshaus 4; Sp2 Tick 38.274 Leute 136/142",
+    "Brauerei 4",
+    "Wirtshaus 4"
+   ],
+   "notiz": "im Lauf nur gesammelt; Daniel: '4 x 30 waere +8' - Zahl der Wirtshaeuser/Brauereien an die Bevoelkerung koppeln; die Abdeckung je Wirtshaus im Spiel messen, nicht annehmen",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:48",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:55",
+     "was": "offen -> gebaut (Commit f428d5f)"
+    }
+   ]
+  },
+  {
+   "nr": "B-207",
+   "titel": "Heer wartet mit zu grossem Sicherheitsabstand vor der feindlichen Burg - wie schnell es die Gegner toeten wuerde, wird nicht eingeschaetzt; haette viel frueher losgehen koennen",
+   "bereich": "Kampf",
+   "status": "gebaut",
+   "seit": "2026-10-22 18:50",
+   "herkunft": "Daniel 22.10. 18:49 (Bild: grosses Heer wartet unterhalb der Burg)",
+   "gebaut": "2026-10-22 18:57",
+   "commits": [
+    "d6ebded",
+    "dc050df"
+   ],
+   "wo": [],
+   "belege": [
+    "Lauf 20261022_184103: Sieg bei Tick 46.185 (April 1186) - Rekord",
+    "aber 'dennoch nicht gut' (Daniel)"
+   ],
+   "notiz": "Gefechtsrechnung (gefecht.py) mit Zeit bis zum Sieg statt fester Abstaende; zusammen mit B-203",
+   "verlauf": [
+    {
+     "zeit": "2026-10-22 18:50",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-22 18:57",
+     "was": "offen -> gebaut (Commit d6ebded)"
+    },
+    {
+     "zeit": "2026-10-22 19:10",
+     "was": "gebaut -> gebaut (Commit dc050df)"
     }
    ]
   }
