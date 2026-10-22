@@ -853,6 +853,24 @@ def main():
     m53b, _ = nummer(73)
     pruefe(53, "Nummer 100 jetzt Arbeiter: Mitglied %s, Befehle an 100 %s | bleibt Assassine: Mitglied %s" % (m53, b53, m53b),
            not m53 and not b53 and m53b)
+    # 54 (B-200, Daniel 22.10. 18:45 "ein Steinbruch-Angriff wurde gestoppt, weil EIN Bogenschuetze geschossen hat"): Assassine
+    #     reisst einen Steinbruch ab (Zustand 107, daneben), ein Speer sieht ihn, EIN Bogen mit Linie 25 Felder weit -> bleibt
+    #     dran (TROTZ ENTDECKT); Gegenprobe: 12 Armbrustschuetzen -> ENTDECKT, Ziel weg
+    def gegenwert(n_armbrust):
+        t = neu(); t._raid_plaetze = 99
+        L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
+             601: einheit(24, 2, 112, 100, leben=10000), 602: einheit(22, 2, 125, 100, leben=8000)}
+        for i in range(n_armbrust):
+            L[610 + i] = einheit(23, 2, 118 + i % 4, 96 + i // 4 * 2, leben=17500)
+        G = {900: {"besitzer": 2, "typ": 20, "x": 101, "y": 101, "leben": 5000, "uid": 1, "erreichbar": 1}}
+        t.aufnehmen([100])
+        t.ziel[100] = 900; t.ziel_typ[900] = 20; t.befohlen[100] = 0
+        L[100].update(laufx=100, laufy=100, zustand=107)
+        erg, _ = t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
+        return t.ziel.get(100), [z[:80] for z in erg if "ENTDECKT" in z][:1]
+    z54, m54 = gegenwert(0)
+    z54b, m54b = gegenwert(12)
+    pruefe(54, "ein Bogen: Ziel %s %s | 12 Armbrueste: Ziel %s %s" % (z54, m54, z54b, m54b), z54 == 900 and z54b is None)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

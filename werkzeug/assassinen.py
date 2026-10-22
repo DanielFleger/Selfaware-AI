@@ -429,6 +429,8 @@ class Einzeln:
     # schiesst bis ~300 Takte spaeter noch (Armbrust 49 sah 198 bei Tick 7.512, der Bolzen traf 7.750 - laengst ausser Sicht);
     # 265 stand 14 Runden in Sicht, 215 acht, 198 zwei - der Lenker reagierte nur auf Treffer. Neu: gesehen + Schuetze mit
     # Reichweite und Linie -> Auftrag ab, sofort ausser Sicht UND ausser Reichweite dieser Schuetzen, dort bis zum Vergessen
+    ENTDECKT_RISIKO = 0.5     # B-200: bis zu dieser Todeswahrscheinlichkeit bleibt ein Entdeckter an seinem Gebaeude (Startwert,
+                              # UNGEMESSEN - wie RISIKO_MAX der Sklaven)
     ENTDECKT_TICKS = 400      # so lange gilt sie fuer jeden Schuetzen, der sie gesehen hat, als Ziel
     ENTDECKT_RAND = 4         # Felder ueber die Reichweite hinaus (Bolzen aus 42 Feldern, 1018p)
     GERADE_TEIL = 20          # lange Wege ohne Umweg trotzdem in Stuecken laufen (198 lief 222 Felder am Stueck)
@@ -1457,6 +1459,8 @@ class Einzeln:
                     continue                   # 19.10.: nur ein Sklave sieht ihn - erledigen statt fliehen
                 if e is None and sehen and self._fertig_zuerst(n, ort, G, L, ereignis):
                     continue                   # 19.10.: fast kaputt - erst fertig abreissen
+                if e is None and sehen and self._gegenwert_lohnt(n, ort, sehen, G, L, ereignis):
+                    continue                   # B-200: der Beschuss bis zum Abriss ist den Gegenwert wert
                 if sehen:
                     if e is not None:
                         e["gesehen"] = True
@@ -1554,6 +1558,32 @@ class Einzeln:
                 self._fliehen(n, p, flieh)       # laeuft nicht dorthin (z.B. vom Spiel umgelenkt): Befehl erneuern
             else:
                 self.warte[n] = p
+
+    def _gegenwert_lohnt(self, n, ort, sehen, G, L, ereignis):
+        """B-200 (Daniel 22.10. 18:45: "zu uebervorsichtig - ein Steinbruch-Angriff wurde gestoppt, weil EIN Bogenschuetze auf
+        ihn geschossen hat, der Gegenwert ist aber schon zu gut"; gemessen: 'ENTDECKT 705 ... 1 Schuetzen mit Linie, Leben
+        12500 -> raus'): wer ein Gebaeude-Ziel hat, rechnet den Beschuss der Schuetzen, die ihn jetzt erreichen, ueber Restweg +
+        gemessene Restarbeit: P(Tod) bis ENTDECKT_RISIKO und Saldo (Wert x Ueberleben - Tod x Preis) > 0 -> weiter. Jede Runde
+        neu - kommen Schuetzen dazu, kippt die Rechnung."""
+        gn = self.ziel.get(n)
+        if gn is None and n in self.route:
+            gn = self.route[n].get("gebaeude")
+        g = G.get(gn)
+        if g is None or g.get("besitzer") in freunde_von(self.sp):
+            return False
+        voll = max(getattr(self, "_gb_max", {}).get(gn, 0), g.get("leben", 1), 1)
+        zahl = max(1, sum(1 for z in self.ziel.values() if z == gn))
+        takte = schach(ort, (g["x"], g["y"])) * TEMPO + self._arbeit(g["typ"], zahl) * g.get("leben", voll) / float(voll)
+        dps = self._feuer_von(ort, set(sehen) | self._nahe_schuetzen(ort, L), L)
+        verlust = dps * takte * self.KALIB
+        p_tod = min(1.0, verlust / max(1.0, float(L[n]["leben"])))
+        saldo = WERT.get(g["typ"], 10) * (1 - p_tod) - p_tod * self.KOSTEN
+        if p_tod > self.ENTDECKT_RISIKO or saldo <= 0:
+            return False
+        ereignis.append("TROTZ ENTDECKT %d: %d Schuetzen mit Linie, Gebaeude %d (Typ %d) noch ~%d Takte, erwarteter Verlust %d von %d "
+                        "(P(Tod) %.2f), Saldo %.0f - bleibt dran" % (n, len(sehen), gn, g["typ"], takte, verlust, L[n]["leben"],
+                                                                    p_tod, saldo))
+        return True
 
     def _fertig_zuerst(self, n, ort, G, L, ereignis):
         """19.10. (1018x, Daniel: "die Barracke nur bis kurz vor kaputt angegriffen, dann ist er nach hinten"): reisst er gerade
