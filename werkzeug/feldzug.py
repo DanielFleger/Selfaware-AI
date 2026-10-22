@@ -367,15 +367,19 @@ class Feldzug:
         geb = k.gebiete
         g_lord = int(geb[lp[0], lp[1]]) if k.drin(lp) else 0
         frei = None
+        kum = None
+        if getattr(k,"links",None) is not None:
+            von = min(((L[n]["x"],L[n]["y"]) for n in nah_kampf),key=lambda q:schach(q,mitte or lp))
+            _, kum = k.suche(von)
         if g_lord in (g, 0):
             for r in self.LORD_RINGE:
                 ring = [(lp[0] + dx, lp[1] + dy) for dx in range(-r, r + 1) for dy in range(-r, r + 1)
                         if max(abs(dx), abs(dy)) == r]
-                ring = [q for q in ring if k.drin(q) and geb[q[0], q[1]] == g]
+                ring = [q for q in ring if k.drin(q) and geb[q[0], q[1]] == g and (kum is None or np.isfinite(kum[q]))]
                 if ring:
-                    frei = min(ring)
+                    frei = min(ring,key=lambda q:(kum[q],q)) if kum is not None else min(ring)
                     break
-            if frei is None and g_lord == g:
+            if frei is None and g_lord == g and (kum is None or np.isfinite(kum[lp])):
                 frei = tuple(lp)
         aus = {"gebiet": g, "gebiet_lord": g_lord, "frei": frei, "mauern": 0, "hoehe": None, "kachel": None, "hoehe_kachel": None}
         if frei is None and self.mauerkarte is not None:
@@ -402,7 +406,7 @@ class Feldzug:
                 aus.update(mauern=len(wand_w), hoehe=int(h[m & fen].sum()), kachel=kachel,
                            hoehe_kachel=int(h[kachel]) if kachel else None, weg_hoehe=int(sum(h[q] for q in wand_w)),
                            zug=dp["zug"] if dp is not None else None,
-                           tor=dp["ziel"] if dp is not None and dp["art"] == "tor" else None)
+                           tor=dp["ziel"] if dp is not None and dp["art"] in ("tor", "gebaeude") else None)
                 return aus
             plan = self._durchbruch(geb, m, h, mitte or lp, lp)
             kachel = self.mauer_kachel
@@ -449,6 +453,12 @@ class Feldzug:
                 bef[n] = ("nah_schuetze", fn)
             aus.append("FELDZUG NAHER SCHUETZE: %d freie Nahkaempfer auf %d (Typ %d) direkt daneben" % (len(ns), fn, L[fn]["typ"]))
 
+    def _abriss_gueltig(self, nr):
+        from gebaeudeziele import angreifbar
+        g = getattr(self,"_gebaeudebild",{}).get(nr)
+        return bool(g and g.get("besitzer") not in freunde_von(self.sp)
+                    and g.get("leben",0)>0 and angreifbar(g))
+
     def _durchbruch_neu(self, m, start, lp, maenner):
         """B-170: Durchbruch-Plan (durchbruch.plane) - neu, wenn keiner da ist, das Ziel gefallen/verworfen ist, der Lord woanders
         steht oder DPLAN_RUNDEN um sind; sonst der alte (die Planung kostet Sekunden)."""
@@ -460,10 +470,10 @@ class Feldzug:
             self.mauer_verworfen |= {tuple(q) for q in geteilt.get("verworfen_kacheln", [])}
             self.verworfen |= set(geteilt.get("verworfen_tore", []))
             gp = geteilt.get("plan")
-            if gp and gp.get("art") in ("mauer", "tor") and gp.get("ziel") is not None:
+            if gp and gp.get("art") in ("mauer", "tor", "gebaeude") and gp.get("ziel") is not None:
                 z_ = tuple(gp["ziel"]) if gp["art"] == "mauer" else gp["ziel"]
                 gueltig = (gp["art"] == "mauer" and m[z_] and z_ not in self.mauer_verworfen) or \
-                          (gp["art"] == "tor" and z_ not in self.verworfen)
+                          (gp["art"] in ("tor", "gebaeude") and z_ not in self.verworfen)
                 if gueltig and (self.dplan is None or (self.dplan["art"], self.dplan["ziel"]) != (gp["art"], z_)):
                     self.dplan = dict(gp, ziel=z_, zug=tuple(gp["zug"]) if gp.get("zug") else None,
                                       weg=[tuple(q) for q in gp.get("weg") or []], runde=self.runde, lord=tuple(lp))
@@ -475,7 +485,7 @@ class Feldzug:
         if dp is not None and tuple(dp["lord"]) == tuple(lp):
             if dp["art"] == "mauer" and m[dp["ziel"]] and dp["ziel"] not in self.mauer_verworfen:
                 return dp
-            if dp["art"] == "tor" and dp["ziel"] not in self.verworfen and (not self._feindbau or dp["ziel"] in self._feindbau):
+            if dp["art"] in ("tor", "gebaeude") and dp["ziel"] not in self.verworfen and ((dp["art"] == "gebaeude" and self._abriss_gueltig(dp["ziel"])) or (dp["art"] == "tor" and (not self._feindbau or dp["ziel"] in self._feindbau))):
                 return dp
         try:
             neu = self.durchbruch(self.sp, tuple(start), max(1, maenner), tuple(lp),
@@ -490,7 +500,7 @@ class Feldzug:
             if dp is None or (dp["art"], dp["ziel"]) != (neu["art"], neu["ziel"]):
                 self._dplan_meldung = ("FELDZUG DURCHBRUCH: bester Weg zum Lord %d - %s %s, Zugang %s, %s Takte, Beschuss-Last %s "
                                        "(Kandidaten Art/Ziel/Last/Takte: %s)" % (
-                                           self.ziel, {"mauer": "Mauerkachel", "tor": "Torhaus", "lord": "frei bis"}.get(neu["art"]),
+                                           self.ziel, {"mauer": "Mauerkachel", "tor": "Torhaus", "gebaeude": "Gebaeude", "lord": "frei bis"}.get(neu["art"]),
                                            neu["ziel"], neu["zug"], neu["takte"], round(neu["belastung"] or 0), neu["kandidaten"]))
         self.dplan = neu
         self._absprache_schreiben(lp)
@@ -516,7 +526,7 @@ class Feldzug:
              "verworfen_kacheln": sorted({tuple(q) for q in alt.get("verworfen_kacheln", [])} | set(self.mauer_verworfen)),
              "verworfen_tore": sorted(set(alt.get("verworfen_tore", [])) | {v for v in self.verworfen if isinstance(v, int)}),
              "plan": None}
-        if self.dplan is not None and self.dplan.get("art") in ("mauer", "tor"):
+        if self.dplan is not None and self.dplan.get("art") in ("mauer", "tor", "gebaeude"):
             d["plan"] = {k: self.dplan.get(k) for k in ("art", "ziel", "zug", "weg", "takte", "belastung", "kandidaten")}
         tmp = "%s.neu%d" % (self.absprache, self.sp)
         try:
@@ -832,14 +842,14 @@ class Feldzug:
         B-170: gibt es einen Durchbruch-Plan zu diesem Lord, entscheidet er - ein Torhaus nur, wenn es auf dem besten Weg liegt,
         nie ein Turm abseits (22.10.: Turm 327, 2.000 Leben, 25 Felder vom Lord, auf keinem Weg dorthin)."""
         if self.durchbruch is not None and self.dplan is not None and tuple(self.dplan["lord"]) == tuple(lp):
-            if self.dplan["art"] == "tor" and self.dplan["ziel"] in G and self.dplan["ziel"] not in self.verworfen:
+            if self.dplan["art"] in ("tor", "gebaeude") and self.dplan["ziel"] in G and self.dplan["ziel"] not in self.verworfen:
                 nr = self.dplan["ziel"]
                 self.bresche, self.bresche_leben = nr, None
                 self._bresche_pruef = (nr, self.runde)
-                aus.append("FELDZUG SCHWACHSTELLE (%s): Torhaus %d auf dem Durchbruch-Weg zum Lord (Zugang %s)" % (
+                aus.append("FELDZUG SCHWACHSTELLE (%s): Gebaeude %d auf dem Durchbruch-Weg zum Lord (Zugang %s)" % (
                     anlass, nr, self.dplan["zug"]))
                 return True
-            if self.dplan["art"] == "tor":
+            if self.dplan["art"] in ("tor", "gebaeude"):
                 self.dplan = None             # das Torhaus ist weg/verworfen - naechste Runde neu planen
             return False                      # Mauer: der Schredder am Zugang arbeitet, kein Turm dazwischen (B-185)
         if self._lord_frei_alt:
@@ -911,7 +921,7 @@ class Feldzug:
         Fernkaempfer und GEB_ABSTAND von jedem feindlichen Gebaeude entfernt ist."""
         fern = [(e["x"], e["y"]) for e in L.values() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in FERN]
         geb = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] not in freunde_von(self.sp)]
-        h, z = self.heim, (lord["x"], lord["y"])
+        h, z = getattr(self,"_sammel_von",self.heim), (lord["x"], lord["y"])
         d = max(1, schach(h, z))
         for k in range(d, -1, -2):
             q = (h[0] + (z[0] - h[0]) * k // d, h[1] + (z[1] - h[1]) * k // d)
@@ -919,7 +929,16 @@ class Feldzug:
             # sondern in Sicherheit gehen und dort warten, bis das Feuer vorbei ist"): kein Sammelpunkt im Feuer
             if all(schach(q, f) > self.SICHER for f in fern) and all(schach(q, b) > self.GEB_ABSTAND for b in geb)                     and not im_feuer(q, self._orte_f or ()):
                 return q
-        return h
+        if hasattr(self,"_sammel_von") and self._karte is not None:
+            # Nach einem Sieg kann die aktuelle Front unter Beschuss stehen.
+            # Falls die Linie zum neuen Gegner nirgends sicher ist, seitlich
+            # ausweichen statt den unsicheren Start zum Sammelpunkt zu erklaeren.
+            _, kum = self._karte.suche(h)
+            sicher = np.isfinite(kum) & (self._karte.g == 0) & ~self._karte.sperre
+            if sicher.any():
+                kosten = np.where(sicher,kum,np.inf)
+                return tuple(int(v) for v in np.unravel_index(kosten.argmin(),kosten.shape))
+        return self.heim
 
     def _heerwege(self, L):
         """B-150 fuer den Brandtrupp: wo das eigene Heer steht und wohin es befohlen ist - [(von, nach)]: wer steht, je 5x5-Feld
@@ -1057,6 +1076,7 @@ class Feldzug:
         """Gibt die Meldungen der Runde. befehl(dict, warte, bis=...) schickt einen Modulbefehl."""
         self.runde += 1
         self._lagebild = L
+        self._gebaeudebild = G
         aus = []
         befehl = self._feuer_lenken(st, L, G, befehl, aus)     # B-150: Feuer meiden, jede Runde neu
         t = st.get("t", 0)
@@ -1072,7 +1092,19 @@ class Feldzug:
             if self._angesetzt_kachel is not None:
                 self._mauerziel_los(befehl)
             self.dplan, self.schredder, self.mauer_kachel = None, False, None
-            if alt_ort is not None and kolben:
+            if lords and kolben:
+                # Die neue Front beginnt beim ueberlebenden Heer, nicht zu Hause.
+                # Die normale Gefechtsrechnung entscheidet unten sofort ueber Weiterangriff
+                # oder ein sicheres Sammelfeld in Richtung des naechsten Gegners.
+                self._sammel_von = (sorted(L[n]["x"] for n in kolben)[len(kolben)//2],
+                                    sorted(L[n]["y"] for n in kolben)[len(kolben)//2])
+                self.weg, self.weg_i, self.weg_ziel = [], 0, None
+                self._rechnung = self._rechnung_alle = (-99,False,"")
+                self._lord_frei_alt = None
+                self.lord_vp, self.vorposten = None, None
+                self._befohlen = {}
+                aus.append("FELDZUG NACH DEM SIEG: neue Front ab %s - naechster Gegner ohne Heimat-Umweg" % (self._sammel_von,))
+            elif alt_ort is not None and kolben:
                 sicher_p = self._sammelpunkt(L, G, {"x": alt_ort[0], "y": alt_ort[1]})
                 befehl({"angriff": {"einheiten": kolben, "lauf": [sicher_p[0], sicher_p[1]]}}, 1.0, bis="ANGRIFF")
                 bef_t = getattr(self, "_befohlen", {})
@@ -1087,7 +1119,7 @@ class Feldzug:
         if not lords:
             return aus
         if self.ziel is None:
-            self.ziel = min(lords, key=lambda n: (schach(self.heim, (lords[n]["x"], lords[n]["y"])), n))
+            self.ziel = min(lords, key=lambda n: (schach(getattr(self,"_sammel_von",self.heim), (lords[n]["x"], lords[n]["y"])), n))
             self.phase = "sammeln"
             aus.append("FELDZUG: Ziel Lord %d (Spieler %d) bei (%d, %d), %d Felder vom Bergfried" % (
                 self.ziel, lords[self.ziel]["besitzer"], lords[self.ziel]["x"], lords[self.ziel]["y"],
@@ -1184,7 +1216,7 @@ class Feldzug:
             self.heerweg = (mitte, lp, t)        # B-150: fuer den Brandtrupp (nicht auf dem eigenen Weg anzuenden)
             if self._stau[0] is None or spitze < self._stau[0]:
                 self._stau = (spitze, t)
-            elif t - self._stau[1] >= self.STAU_TICKS and self.dplan is not None and self.dplan.get("art") in ("mauer", "tor"):
+            elif t - self._stau[1] >= self.STAU_TICKS and self.dplan is not None and self.dplan.get("art") in ("mauer", "tor", "gebaeude"):
                 # B-184/B-185 (2v2 17:56/17:58: "STAU 5", alle wieder raus, aufs Torhaus ohne Zugang): mit Durchbruch-Plan ueberwacht
                 # der Schredder den Fortschritt (Ankunft, Wirkung) - kein Wegpunkt-Sprung, kein "alle direkt", keine Schwachstelle
                 self._stau = (spitze, t)
@@ -1251,7 +1283,7 @@ class Feldzug:
                 elif ll.get("tor") is not None:
                     # B-170: das Torhaus liegt auf dem besten Weg zum Lord - es ist die Bresche, kein Schredder
                     if self.bresche != ll["tor"]:
-                        aus.append("FELDZUG DURCHBRUCH TOR: Lord %d hinter Mauern - Torhaus %d liegt auf dem besten Weg, alle "
+                        aus.append("FELDZUG DURCHBRUCH TOR/GEBAEUDE: Lord %d hinter Hindernissen - Gebaeude %d liegt auf dem besten Weg, alle "
                                    "Nahkaempfer darauf%s" % (self.ziel, ll["tor"], " (statt Bresche %d)" % self.bresche
                                                              if self.bresche is not None else ""))
                         self.bresche, self.bresche_leben, self.vorposten = ll["tor"], None, None
@@ -1303,7 +1335,7 @@ class Feldzug:
             # RUECKZUG_MIN Nahkaempfer "STEHT NUR", wird die Angriffsstelle verworfen, sie laufen zum Sammelpunkt (ausser Reichweite
             # der Schuetzen) und die naechste Schwachstelle kommt
             stehen = self._steht_nur(L, nah_kampf, t)
-            zug_r = self.dplan.get("zug") if (self.dplan is not None and self.dplan.get("art") in ("mauer", "tor")) else None
+            zug_r = self.dplan.get("zug") if (self.dplan is not None and self.dplan.get("art") in ("mauer", "tor", "gebaeude")) else None
             if len(stehen) >= self.RUECKZUG_MIN and (zug_r is not None or (ll is not None and ll.get("frei"))):
                 # B-193/B-181 (Daniel 22.10. 18:19 "Orange ist, obwohl es dann zugaenglich war, einfach umgedreht"; gemessen: RUECKZUG
                 # 5/6/19 Mann bei Sp1, Sp2 182 Takte vor "Lord erreichbar"): mit Durchbruch-Plan oder offenem Weg geht, wer untaetig

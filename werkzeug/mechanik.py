@@ -140,7 +140,7 @@ RICHT_BITS = [((0, -1), 0x01), ((1, -1), 0x02), ((1, 0), 0x04), ((1, 1), 0x08), 
 
 
 def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner, start, ziel, mk=None, sperre=None, gefahr=None,
-                        frei=None, frei_kosten=0.0, freunde=None):
+                        frei=None, frei_kosten=0.0, freunde=None, abriss=None):
     """Billigster Weg (Takte) von start zum ziel ueber Laufen und Hacken; Rueckgabe {"weg", "mauern" (in Reihenfolge), "takte"}.
     Ohne Weg: weg = None. sperre: Felder, die fuer uns kein Weg sind (feindliche Tore/Tuerme mit Rand, B-164).
     gefahr: Schuetzen je Feld (gefahr.Karte.g). Rangfolge nach Daniels Regel "maximale Sicherheit, dann minimaler Widerstand"
@@ -167,7 +167,10 @@ def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner
     treffer = np.ceil(np.maximum(punkte, 1) / np.maximum(schaden, 1))
     hack = np.ceil(treffer / max(1, maenner)) * mk["takte_je_treffer"] + TAKTE_JE_FELD
     xs, ys = np.meshgrid(np.arange(n), np.arange(n), indexing="ij")
-    sp = np.zeros(link.shape, bool) if sperre is None else sperre
+    sp = np.zeros(link.shape, bool) if sperre is None else np.array(sperre, bool, copy=True)
+    abriss = np.zeros(link.shape, float) if abriss is None else np.asarray(abriss, float)
+    ab = abriss > 0
+    sp &= ~ab
     von, nach, kosten = [], [], []
     for (dx, dy), bit in RICHT_BITS:
         x2, y2 = xs + dx, ys + dy
@@ -177,14 +180,26 @@ def durchbruch_schritte(link, logik, bau, besitz, hoehe, boden, spieler, maenner
         if frei is not None:
             lauf = lauf | (ok & (frei | frei[x2c, y2c]) & ~wand & ~wand[x2c, y2c] & ((link != 0) | frei) &
                            ((link[x2c, y2c] != 0) | frei[x2c, y2c]))
+        lauf &= ~ab & ~ab[x2c,y2c]
         von.append(idx(xs[lauf], ys[lauf])); nach.append(idx(x2c[lauf], y2c[lauf]))
         kl = np.full(int(lauf.sum()), float(TAKTE_JE_FELD))
         if frei is not None:
             kl = kl + np.where(~frei[xs[lauf], ys[lauf]] & frei[x2c[lauf], y2c[lauf]], float(frei_kosten), 0.0)
         kosten.append(kl)
+        # Erst nach dem Zerschlagen begehbare Gebaeudefelder: keine virtuellen
+        # Klippenspruenge und keine Abkuerzung durch unzerstoerbare Bauwerke.
+        virt = ok & (ab | ab[x2c,y2c]) & ~wand & ~wand[x2c,y2c] & ~sp & ~sp[x2c,y2c]
+        virt &= ((link != 0) | ab) & ((link[x2c,y2c] != 0) | ab[x2c,y2c])
+        virt &= np.abs(boden.astype(int)-boden[x2c,y2c].astype(int)) <= 16
+        # Normale Kanten bleiben unveraendert; eine virtuelle Kante bezahlt
+        # beim Eintritt in jedes neue Gebaeude dessen gesamte Abbruchzeit.
+        virt &= ~lauf
+        von.append(idx(xs[virt],ys[virt])); nach.append(idx(x2c[virt],y2c[virt]))
+        eintritt = ab[x2c[virt],y2c[virt]] & (bau[xs[virt],ys[virt]] != bau[x2c[virt],y2c[virt]])
+        kosten.append(TAKTE_JE_FELD + np.where(eintritt, abriss[x2c[virt],y2c[virt]], 0.0))
         if dx == 0 or dy == 0:
-            frei = ((link != 0) & ~sp) | wand                           # von einem freien oder gehackten Feld gerade weiter
-            rein = ok & frei & wand[x2c, y2c] & ~sp[x2c, y2c]     # B-179: gesperrte (verworfene) Kachel auch nicht hacken
+            hackbar_von = ((link != 0) & ~sp) | wand | ab
+            rein = ok & hackbar_von & wand[x2c, y2c] & ~sp[x2c, y2c]
             von.append(idx(xs[rein], ys[rein])); nach.append(idx(x2c[rein], y2c[rein]))
             kosten.append(hack[x2c[rein], y2c[rein]].astype(float))
             # (22.10. 00:03, Test C: hinter (176,113) lag (175,113) = Bergfried, Logik 0x10000000 - der Plan sah 1 Mauer, es waren 4

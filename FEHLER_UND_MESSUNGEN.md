@@ -103,3 +103,12 @@ Gemeinsame Nebenpruefung: Raids28/28, Gefahr8/8, Feldzug63/63 (echte temporaere 
 ## Naechste Turnierpaarung nach korrigiertem Lauf
 
 Lauf20261022_221719 endet unabhaengig nativ bei37346 mit beiden eigenen Burgherren150000/150000: 3,89Spieljahre; Entwicklungsnachweis, weiterhin kein qualifizierter Benchmark und kein isolierter Wirkungsnachweis einzelner Korrekturen. Die aktive Liga-Konfiguration umfasst14Turniergegner(1-14); Slot16istSamurAI, Slot15keine weitere konfigurierte Turnier-KI. Naechste noch ungetestete Paarung nach13/14 daher Rotkaeppchen/Rattenfaenger(1/2), wieder gegen eigeneSamurAI1/4.
+
+
+## Beauftragte Korrektur: Zielwechsel und blockierende Gebaeude
+
+Gemeinsame Regel: naechsten wirksamen Zugang aus der aktuellen Front planen; weder ein fester Heimat-Umweg noch ein Filter nur fuer Burgteile darf einen brauchbaren Weg ausschliessen. Nach Lordtod beginnt der neue Sammel-/Angriffsweg bei der ueberlebenden Armee; die Gefechtsrechnung bleibt zwingend und ein sicherer Seitenausgang bleibt moeglich. Ist kein Gegner mehr uebrig, bleibt der sichere Auszug bestehen. Vier neue Zielwechsel-Gegenproben bestanden.
+
+Durchbruchplaner vergleicht jetzt zusaetzlich Wege durch zerstoerbare feindliche Gebaeude, auch mehrere hintereinander. Abbruchkosten aus gemessener Streitkolben-Mechanik, Gesundheit und Mannzahl; Hoehenkanten bleiben begrenzt, eigene/allierte und unzerstoerbare Bauten sind keine Abbruchziele. Das erste Hindernis auf dem gewaehlten Weg wird zum echten Gebaeude-Angriff uebergeben und nach seinem Fall neu geplant. Zusaetzlich behoben: mechanik.durchbruch_schritte ueberschrieb den Parameter frei waehrend der Richtungsiteration; dadurch konnte ein geoeffnetes Tor nicht beteiligte fehlende Wegkanten faelschlich freigeben. Gegenprobe mit Inseln und nur einem irrelevanten freigegebenen Feld bestanden.
+
+Neun neue Durchbruch-Gegenproben inkl. Verkettung, bestehendem kuerzeren Fussweg, Klippe, Vorratslager, Partnerbau, verworfenem Ziel und Feldzug-Integration bestanden. Feldzug63/63, Raids28/28, Gefahr8/8, Hoehen7/7 bestanden. Neue Wirkung im echten Gefecht ist noch offen. Vorheriger Rotkaeppchen/Rattenfaenger-Lauf222923 endet nativ49558, beide eigenen Lords150000/150000;5,16Spieljahre. Screenshots und private Szenenauszuege bleiben lokal, keine Veroeffentlichung dieser Bilder.

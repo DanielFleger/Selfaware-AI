@@ -81,6 +81,23 @@ def plane(sp, start, maenner, lord, mk=None, L=None, G=None, gf=None, verworfen=
     r = mechanik.durchbruch_schritte(*args, sperre=sperre, gefahr=gf, freunde=freunde)
     if r["weg"]:
         kand.append(("mauer", None, r, None))
+    # Gewoehnliche Gebaeude koennen einen Zugang genauso versperren wie ein Tor.
+    # Alle zulaessigen Hindernisse gemeinsam rechnen, damit auch zwei hintereinander
+    # stehende Gebaeude als zusammenhaengender Weg erkannt werden.
+    from gebaeudeziele import angreifbar
+    abriss = np.zeros(e["bau"].shape, float)
+    ab_ids = set()
+    for nr, g_ in G.items():
+        if (g_.get("besitzer") in freunde_von(sp) or nr in verworfen
+                or not angreifbar(g_) or g_.get("leben",0) <= 0 or g_.get("feuer",0)>0):
+            continue
+        kosten = math.ceil(g_["leben"] / max(1,float(mk["gebaeude"])*max(1,maenner))) * mk["takte_je_treffer"]
+        abriss[e["bau"] == nr] = max(1,kosten)
+        ab_ids.add(nr)
+    if ab_ids:
+        ra = mechanik.durchbruch_schritte(*args, sperre=sperre, gefahr=gf, freunde=freunde, abriss=abriss)
+        if ra["weg"]:
+            kand.append(("gebaeude", None, ra, abriss))
     for nr, g_ in G.items():
         if (g_.get("besitzer") in freunde_von(sp) or g_["typ"] != TORHAUS or g_.get("leben", 1) <= 0 or nr in verworfen):
             continue
@@ -98,8 +115,14 @@ def plane(sp, start, maenner, lord, mk=None, L=None, G=None, gf=None, verworfen=
     mauern = set(map(tuple, r["mauern"]))
     i_wand = next((i for i, q in enumerate(weg) if i >= 1 and q in mauern), None)
     i_tor = next((i for i, q in enumerate(weg) if i >= 1 and rand is not None and rand[q] and not rand[weg[0]]), None)
+    i_bau = next((i for i,q in enumerate(weg) if i>=1 and art=="gebaeude" and rand[q]>0
+                  and e["bau"][q] != e["bau"][weg[0]]), None)
+    if art == "gebaeude":
+        i_tor = None
     gemein = {"weg": weg, "takte": r["takte"], "belastung": r["belastung"], "gefahr": gf, "e": e,
               "kandidaten": [(k[0], k[1], round(k[2]["belastung"] or 0), k[2]["takte"]) for k in kand]}
+    if i_bau is not None and (i_wand is None or i_bau<i_wand):
+        return dict(gemein, art="gebaeude", ziel=int(e["bau"][weg[i_bau]]), zug=weg[i_bau-1])
     if i_tor is not None and (i_wand is None or i_tor < i_wand):
         return dict(gemein, art="tor", ziel=nr, zug=weg[i_tor - 1])
     if i_wand is not None:
