@@ -2394,6 +2394,14 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         feldzug.durchbruch = DB_f.plane
         feldzug.blick = DB_f.anfrage_und_blick
         feldzug.feldnr = DB_f.feld
+        if PARTNER:
+            # B-191: gemeinsame Durchbruch-Datei je Instanz - beide Lenker brechen an derselben Stelle auf
+            feldzug.absprache = os.path.join(D, "durchbruch_absprache_i%d.json" % INSTANZ)
+            try:                                      # ein Plan der letzten Partie (gleiche Karte, gleiche Lords) gilt nicht
+                with open(feldzug.absprache, "w", encoding="utf-8") as fh_a:
+                    fh_a.write("{}")
+            except OSError:
+                pass
         if arg_global.get("angriff_ab"):
             feldzug.angriff_ab = int(arg_global["angriff_ab"])     # B-140 Versuchsreihe
         # 19.10. (Daniel: "warum wird keine Waffenproduktion gebaut? Wenn die Streitis es nicht schaffen, muesste teuer

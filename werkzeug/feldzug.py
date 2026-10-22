@@ -293,6 +293,7 @@ class Feldzug:
         self.durchbruch = None      # B-170: (sp, start, maenner, lord, verworfen=...) -> Plan (durchbruch.plane); setzt erstes_spiel
         self.blick = None           # B-170: (kachel, sp) -> (Anfrage-Kachel, Blickrichtung) (durchbruch.anfrage_und_blick)
         self.feldnr = None          # B-170: (x, y) -> Feldnummer des Spiels (durchbruch.feld) fuer logik.lua mauerziel
+        self.absprache = None       # B-191: Pfad der gemeinsamen Durchbruch-Datei beider Lenker (setzt erstes_spiel im 2v2)
         self.dplan = None           # B-170: letzter Durchbruch-Plan (art, ziel, zug, weg, ...) mit Runde und Lord
         self.angesetzt = set()      # B-170: wer am Zugangsfeld die Kachel festgehalten bekam
         self._angesetzt_kachel = None
@@ -411,6 +412,23 @@ class Feldzug:
     def _durchbruch_neu(self, m, start, lp, maenner):
         """B-170: Durchbruch-Plan (durchbruch.plane) - neu, wenn keiner da ist, das Ziel gefallen/verworfen ist, der Lord woanders
         steht oder DPLAN_RUNDEN um sind; sonst der alte (die Planung kostet Sekunden)."""
+        # B-191 (Daniel 22.10. 18:16 "eine Absprache mit dem Teammate beim Angriff, sodass nicht doppelt an zwei Stellen
+        # aufgemacht wird"; gemessen 18:16: Sp1 hackte (144,89), Sp2 (135,95)): verworfene Stellen und der Plan des Partners
+        # kommen aus der gemeinsamen Datei (self.absprache) - gibt es dort einen gueltigen Plan fuer diesen Lord, gilt er
+        geteilt = self._absprache_lesen(lp)
+        if geteilt is not None:
+            self.mauer_verworfen |= {tuple(q) for q in geteilt.get("verworfen_kacheln", [])}
+            self.verworfen |= set(geteilt.get("verworfen_tore", []))
+            gp = geteilt.get("plan")
+            if gp and gp.get("art") in ("mauer", "tor") and gp.get("ziel") is not None:
+                z_ = tuple(gp["ziel"]) if gp["art"] == "mauer" else gp["ziel"]
+                gueltig = (gp["art"] == "mauer" and m[z_] and z_ not in self.mauer_verworfen) or \
+                          (gp["art"] == "tor" and z_ not in self.verworfen)
+                if gueltig and (self.dplan is None or (self.dplan["art"], self.dplan["ziel"]) != (gp["art"], z_)):
+                    self.dplan = dict(gp, ziel=z_, zug=tuple(gp["zug"]) if gp.get("zug") else None,
+                                      weg=[tuple(q) for q in gp.get("weg") or []], runde=self.runde, lord=tuple(lp))
+                    self._dplan_meldung = "FELDZUG DURCHBRUCH (Absprache): Plan von Spieler %s uebernommen - %s %s, Zugang %s" % (
+                        geteilt.get("von"), gp["art"], z_, self.dplan["zug"])
         dp = self.dplan
         # B-179 (2v2 22.10. 17:54: alle 10 Runden neu geplant vom wandernden Heer aus - (185,96) -> (147,123) -> (135,95), niemand
         # kam zum Hacken): der Plan bleibt, solange sein Ziel steht und nicht verworfen ist - wie sturm.py (Neuplanung nur nach Fall)
@@ -435,7 +453,37 @@ class Feldzug:
                                            self.ziel, {"mauer": "Mauerkachel", "tor": "Torhaus", "lord": "frei bis"}.get(neu["art"]),
                                            neu["ziel"], neu["zug"], neu["takte"], round(neu["belastung"] or 0), neu["kandidaten"]))
         self.dplan = neu
+        self._absprache_schreiben(lp)
         return neu
+
+    def _absprache_lesen(self, lp):
+        if not self.absprache:
+            return None
+        try:
+            import json
+            d = json.load(open(self.absprache, encoding="utf-8"))
+        except (OSError, ValueError):
+            return None
+        return d if tuple(d.get("lord") or ()) == tuple(lp) else None
+
+    def _absprache_schreiben(self, lp):
+        """B-191: Plan und verworfene Stellen fuer den Partner (Lesen-Mischen-Schreiben, ersetzt per os.replace)."""
+        if not self.absprache:
+            return
+        import json
+        alt = self._absprache_lesen(lp) or {}
+        d = {"lord": list(lp), "von": self.sp,
+             "verworfen_kacheln": sorted({tuple(q) for q in alt.get("verworfen_kacheln", [])} | set(self.mauer_verworfen)),
+             "verworfen_tore": sorted(set(alt.get("verworfen_tore", [])) | {v for v in self.verworfen if isinstance(v, int)}),
+             "plan": None}
+        if self.dplan is not None and self.dplan.get("art") in ("mauer", "tor"):
+            d["plan"] = {k: self.dplan.get(k) for k in ("art", "ziel", "zug", "weg", "takte", "belastung", "kandidaten")}
+        tmp = "%s.neu%d" % (self.absprache, self.sp)
+        try:
+            json.dump(d, open(tmp, "w", encoding="utf-8"), default=list)
+            os.replace(tmp, self.absprache)
+        except OSError:
+            pass
 
     BALLISTE_MIN = 2           # B-182: so viele Nahkaempfer mindestens je Feuerballiste (im Sturm abgesprochen, Daniel 22.10.)
     ZUG_STILL = 300            # B-180: so lange nicht naeher am Zugang (und kein Gegner) -> Weg neu (wie RUECKZUG_TAKTE, L170)

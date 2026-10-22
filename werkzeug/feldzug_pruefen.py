@@ -1235,6 +1235,28 @@ def main():
     a56o, m56o = abfang56((150, 150))
     pruefe(56, "Ballista im Feld: %d Jaeger %s | auf der Mauer: %d" % (len(a56), [m[:50] for m in m56], len(a56o)),
            len(a56) >= 2 and any("Feuerballiste 777" in m for m in m56) and len(a56o) == 0)
+    # 57 (B-191): Heer 1 plant (275,100), Heer 2 mit derselben Absprache-Datei uebernimmt den Plan ohne eigenen Planer-Aufruf;
+    #    ohne Datei plant Heer 2 selbst
+    import tempfile
+    datei57 = os.path.join(tempfile.mkdtemp(), "absprache.json")
+
+    def heer57(mit_datei, planer):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+        f.schritt({"t": 12000}, *lage(10, heim), Befehle())
+        L_, G_ = lage(30, f.punkt)
+        f.wegkarte, f.mauerkarte = (lambda: {"gebiet": geb44}), mk44
+        f.durchbruch, f.blick, f.feldnr = planer, (lambda k, sp: ((275, 100), 3)), (lambda xy: 4242)
+        f.absprache = datei57 if mit_datei else None
+        m_ = f.schritt({"t": 12050}, L_, G_, Befehle())
+        return f, m_
+    aufrufe57 = []
+    f57a, _ = heer57(True, lambda sp, st, ma, lo, verworfen=(): dict(plan51))
+    f57b, m57b = heer57(True, lambda sp, st, ma, lo, verworfen=(): aufrufe57.append(1) or dict(plan51, ziel=(276, 100), zug=(277, 100)))
+    n57 = len(aufrufe57)
+    f57c, _ = heer57(False, lambda sp, st, ma, lo, verworfen=(): aufrufe57.append(1) or dict(plan51, ziel=(276, 100), zug=(277, 100)))
+    pruefe(57, "Heer 2 mit Absprache: Ziel %s, Planer-Aufrufe %d, %s | ohne Datei: Ziel %s" % (
+        (f57b.dplan or {}).get("ziel"), n57, [m[:45] for m in m57b if "Absprache" in m], (f57c.dplan or {}).get("ziel")),
+           (f57b.dplan or {}).get("ziel") == (275, 100) and n57 == 0 and (f57c.dplan or {}).get("ziel") == (276, 100))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
