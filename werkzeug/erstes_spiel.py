@@ -404,6 +404,7 @@ def phase1(plan, tempo, mit_posten=True):
         MARKT = freier_platz(26, BERGFRIED, 25)
         POSTEN = freier_platz(8, BERGFRIED, 25, frei_von=[(MARKT, NACH_TYP[26]["b"])] if MARKT else ())
         schreib("Markt und Posten fuer %s live gesucht: Markt %s, Posten %s" % (plan["karte"], MARKT, POSTEN))
+    eigene_aepfel(plan)
     A, B = apfel_gruppen(plan["aepfel"])
     if V14 and HOLZ_SPAM:
         # E3 (Daniel 22:57: "als Spieler erstmal alle Baeume vollspammen im Umkreis vom Vorratslager"): das Startholz zuerst in
@@ -592,6 +593,7 @@ def speicher_nachbauen(G, offen, t, zuletzt, sp=None, abstand=200):
         return False
     return t - zuletzt > abstand
 
+PLATZ_RAND = 3                     # B-174: so weit darf ein Platz ueber den Umkreis hinaus liegen
 FELDER = (30, 31, 32, 33)          # Weizen, Hopfen, Apfel, Milchvieh - brauchen fruchtbaren Boden
 _BURGEN = {}
 
@@ -615,6 +617,21 @@ def mein_land(p, G=None):
         _BURGEN.update(b)
     d = lambda sp_: (max(abs(p[0] - _BURGEN[sp_][0]), abs(p[1] - _BURGEN[sp_][1])), sp_)
     return min(_BURGEN, key=d) == SP
+
+
+def eigene_aepfel(plan):
+    """B-173 (2v2 22.10. 17:49: Spieler 2 baute seine Eroeffnungs-Plantagen (197,229) (193,219) auf dem Land von Spieler 1 - der
+    Eroeffnungsplan je Startplatz enthaelt sie, Phase 1 baut ueber baue_viele an baue_schnell vorbei): die Plan-Apfelplaetze
+    einmal gegen die Absprache (mein_land) filtern - vor Phase 1 und vor der Wirtschaft."""
+    if plan.get("_aepfel_geprueft"):
+        return
+    alle = [tuple(p) for p in plan.get("aepfel") or []]
+    meine = [p for p in alle if mein_land(p)]
+    if _BURGEN:
+        plan["aepfel"], plan["_aepfel_geprueft"] = [list(p) for p in meine], True
+        if len(meine) < len(alle):
+            schreib("ABSPRACHE Apfelplaetze: %d von %d liegen naeher am Bergfried des Verbuendeten und fallen weg: %s" % (
+                len(alle) - len(meine), len(alle), sorted(set(alle) - set(meine))))
 
 
 def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
@@ -641,6 +658,12 @@ def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
     z = " ".join(befehl({"platzsuche": {"spieler": SP, "mapper": g["mapper"], "groesse": g["b"], "x": x, "y": y, "r": r,
                                         "max": 12 if BUCH is not None else 1}}, 1.0, bis="PLATZSUCHE"))
     frei = [tuple(map(int, p)) for p in re.findall(r"\((\d+),(\d+)\)", z.split("geprueft:")[-1])]
+    # B-174 (2v2 22.10. 17:51: Werkstatt mit Umkreis 0 bei (266,283) bestellt, die Platzsuche gab (84,155) zurueck - das
+    # Waffenlager stand 182 Felder vom Lager): Plaetze weiter als Umkreis + PLATZ_RAND vom Wunschplatz zaehlen nicht
+    fern_ = [q for q in frei if max(abs(q[0] - x), abs(q[1] - y)) > r + PLATZ_RAND]
+    frei = [q for q in frei if q not in fern_]
+    if fern_ and BUCH is not None and not frei:
+        BUCH.ablehnen(typ, (x, y), "Platzsuche nur ausserhalb des Umkreises %d (+%d): %s" % (r, PLATZ_RAND, fern_[:3]))
     platz_frei = bool(frei)
     if typ in FELDER and frei:
         partner_land = [q for q in frei if not mein_land(q)]
@@ -2156,6 +2179,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         trupp.angriff_aus = True
     if trupp is not None:   # S1 (Plan_Lord.md): was tut der Angriff auf den Lord, Runde fuer Runde
         trupp.wellen_protokoll = os.path.join(D, "angriff_live_%s%s.jsonl" % (time.strftime("%Y%m%d_%H%M%S"), LAUF_ENDUNG))
+    eigene_aepfel(plan)
     wirt = Wirtschaft(plan, SP, baue_schnell, [nr for nr, _, _ in gebaeude_von(SP, 10)])
     if not V14:
         # 12.10. 01:49 (Daniel 01:46 "hier gibt es keinen Grund, das Vorratslager nicht umzuplatzieren"; 1012i: Umzug erst bei

@@ -2729,6 +2729,21 @@ class Einzeln:
                     n, gn, typ, schach(ort, p), saldo, 100 * p_tod, f30, L[n]["leben"], self._beschuss_angriff(gn, G, ort),
                     "gemessen" if typ in ARBEIT else "geschaetzt", ARBEIT.get(typ, ARBEIT_SONST)))
                 continue
+            if not erreichbar and n not in self.jagd:
+                # B-172 (2v2 22.10. 17:48: "warum haengt der Assassine da" - beide warteten >= 200 Takte, "keins erreichbar"): ohne
+                # erreichbares Gebaeude den naechsten feindlichen Arbeiter jagen, der zu Fuss erreichbar ist und den kein waehlbarer
+                # Feind sieht (sicht.sicher) - statt zu warten
+                from raids import ARBEITER as ARB_
+                arb = sorted((schach(ort, (e["x"], e["y"])), k) for k, e in L.items()
+                             if e.get("besitzer") not in freunde_von(self.sp) and e.get("typ") in ARB_ and e.get("leben", 1) > 0
+                             and e.get("erreichbar", 1) == 1 and self._sicher((e["x"], e["y"])))
+                if arb:
+                    self._vergessen(n)
+                    self.jagd[n] = arb[0][1]
+                    jagen.append((n, arb[0][1]))
+                    ereignis.append("ARBEITERJAGD %d: kein Gebaeude erreichbar - jagt Arbeiter %d (Typ %d) in %d Feldern" % (
+                        n, arb[0][1], L[arb[0][1]]["typ"], arb[0][0]))
+                    continue
             ohne += 1
             gruende["keins erreichbar" if not erreichbar else "alle voll" if not frei else "alle gefaehrlich"] += 1
             # 17.10.: warten nur dort, wo ihn kein waehlbarer Feind sieht und kein Trupp ihm nachlaeuft (sicht.sicher) - statt
