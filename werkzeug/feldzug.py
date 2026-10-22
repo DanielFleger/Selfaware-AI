@@ -872,7 +872,9 @@ class Feldzug:
         d = max(1, schach(h, z))
         for k in range(d, -1, -2):
             q = (h[0] + (z[0] - h[0]) * k // d, h[1] + (z[1] - h[1]) * k // d)
-            if all(schach(q, f) > self.SICHER for f in fern) and all(schach(q, b) > self.GEB_ABSTAND for b in geb):
+            # B-192 (Daniel 22.10. 18:19: "wenn der Sammelpunkt brennt, sollen sie nicht staendig versuchen, zu diesem zu laufen,
+            # sondern in Sicherheit gehen und dort warten, bis das Feuer vorbei ist"): kein Sammelpunkt im Feuer
+            if all(schach(q, f) > self.SICHER for f in fern) and all(schach(q, b) > self.GEB_ABSTAND for b in geb)                     and not im_feuer(q, self._orte_f or ()):
                 return q
         return h
 
@@ -1036,7 +1038,7 @@ class Feldzug:
         if not kolben:
             return aus
         if self.phase == "sammeln":
-            if self.punkt is None or self.runde % 20 == 0:
+            if self.punkt is None or self.runde % 20 == 0 or im_feuer(self.punkt, self._orte_f or ()):
                 neu = self._sammelpunkt(L, G, lord)
                 if neu != self.punkt:
                     self.punkt = neu

@@ -1276,6 +1276,14 @@ def main():
                                                    [m[:30] for m in m58o if "RUECKZUG" in m]),
            any("STEHT NUR -> ARBEIT" in m for m in m58) and not any("FELDZUG RUECKZUG" in m for m in m58)
            and any("FELDZUG RUECKZUG" in m for m in m58o))
+    # 59 (B-192): Feuer am bisherigen Sammelpunkt -> _sammelpunkt waehlt einen Punkt ausserhalb des Feuers; ohne Feuer derselbe
+    f59 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    L59, G59 = lage(10, heim)
+    f59._orte_f = []
+    p59 = f59._sammelpunkt(L59, G59, L59[500])
+    f59._orte_f = [(p59[0], p59[1], 4)]
+    p59f = f59._sammelpunkt(L59, G59, L59[500])
+    pruefe(59, "Sammelpunkt ohne Feuer %s, mit Feuer dort %s" % (p59, p59f), p59f != p59 and not F.im_feuer(p59f, f59._orte_f))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
