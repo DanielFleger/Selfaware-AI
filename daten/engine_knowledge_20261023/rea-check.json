@@ -1,0 +1,62 @@
+{
+  "published_version": "6.7.0",
+  "development_head": {
+    "sha": "9066444f6b8e9ffe1607a9b02cde3895a37db431"
+  },
+  "provider": {
+    "id": "ghidra",
+    "name": "Ghidra",
+    "version": "12.1.2"
+  },
+  "target": {
+    "name": "StrongholdCrusader.exe",
+    "digest": {
+      "sha256": "3bb0a8c1e72331b3a30a5aa93ed94beca0081b476b04c1960e26d5b45387ac5a"
+    },
+    "local_path": "C:\\Users\\danie\\shc-ref\\StrongholdCrusader.exe",
+    "format": "pe",
+    "architecture": "x86"
+  },
+  "function": {
+    "address": "0x401000",
+    "name": "FUN_00401000",
+    "classification": {
+      "external": false,
+      "thunk": false,
+      "thunk_target": null,
+      "provenance": "ghidra-function-manager"
+    },
+    "body": {
+      "available": true,
+      "provenance": "ghidra-function-body-address-set",
+      "ranges": [
+        {
+          "start": "0x401000",
+          "end": "0x401035"
+        }
+      ],
+      "total_bytes": 54,
+      "span_bytes": 54,
+      "non_contiguous": false,
+      "contains_entry": true
+    },
+    "signature": "undefined FUN_00401000()",
+    "locals": []
+  },
+  "assembly_instructions": 14,
+  "incoming_references": 47,
+  "relationship_coverage": {
+    "status": "partial",
+    "limitations": [
+      "Ghidra's caller inventory omits sources of 13 call reference(s) into this function's body."
+    ],
+    "limited_directions": [
+      "callers"
+    ],
+    "diagnostics": [
+      "Only resolved Ghidra call references are returned; unresolved computed or indirect calls remain unknown, while function classifications distinguish thunks and externals."
+    ]
+  },
+  "result": "Tested: x86 Windows PE, pseudocode, assembler and references. Fresh REA import has no OpenSHC annotation names. Existing Ghidra copy remains the primary annotated source.",
+  "command": "node rea/node_modules/rea-agents/scripts/rea.mjs function C:\\Users\\danie\\shc-ref\\StrongholdCrusader.exe 0x00401000 --provider ghidra --format json"
+}

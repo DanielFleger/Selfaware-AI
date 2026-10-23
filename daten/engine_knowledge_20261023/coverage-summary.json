@@ -1,0 +1,44 @@
+{
+  "command": "python pipeline.py index",
+  "program": {
+    "name": "StrongholdCrusader.exe",
+    "source_path": "/C:/Users/danie/shc-ref/StrongholdCrusader.exe",
+    "sha256": "3bb0a8c1e72331b3a30a5aa93ed94beca0081b476b04c1960e26d5b45387ac5a",
+    "language": "x86:LE:32:default",
+    "compiler": "windows",
+    "image_base": "00400000",
+    "identity": "3bb0a8c1e72331b3a30a5aa93ed94beca0081b476b04c1960e26d5b45387ac5a|11bd329502fde0b6fa504a52d348a620d5fe7108379a89af773d0fc561012638",
+    "function_count": 4765
+  },
+  "instance_file_sha256": "2178b10de9470f00a645a16da7eed9a1e94d44db2d053449f95b33c0fb420fd5",
+  "counts": {
+    "captured": 4581,
+    "disassembled": 4581,
+    "decompiled": 4580,
+    "semantic_examined": 2,
+    "counterexample_confirmed": 1,
+    "same_address_identical_bytes": 4581,
+    "different_bytes": 0,
+    "indirect_instructions": 1747
+  },
+  "recognized_function_count": 4765,
+  "internal_function_count": 4581,
+  "unassigned_executable": {
+    "bytes": 98781,
+    "meaning": "Executable addresses outside recognized function bodies; may include padding or data, not asserted code."
+  },
+  "decompilation_failures": [
+    {
+      "address": "004d76a0",
+      "error": "\nLow-level Error: Flow exceeded maximum allowable instructions"
+    }
+  ],
+  "elapsed_seconds": 19.01599999999962,
+  "export_bytes": 99310035,
+  "limits": [
+    "Byte match is static only; callees, global data and in-process patches still require validation.",
+    "Instruction classification and boundaries are Ghidra analysis, not ground truth.",
+    "Semantic counts are scoped by rules.json, not proof of whole-function gameplay behavior.",
+    "Original comparison uses the isolated leaf routine with a fresh paused game snapshot, not tactical outcomes."
+  ]
+}

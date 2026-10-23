@@ -1,0 +1,1798 @@
+{
+  "scene": {
+    "map": "Liga_Branching Fortunes",
+    "ai": [
+      0,
+      16,
+      9,
+      10,
+      16,
+      0,
+      0,
+      0,
+      0
+    ],
+    "groups": [
+      0,
+      1,
+      2,
+      2,
+      1,
+      255,
+      255,
+      255,
+      255
+    ],
+    "positions": [
+      0,
+      2,
+      1,
+      3,
+      246,
+      246,
+      246,
+      246
+    ],
+    "method": "menu_handlers",
+    "no_ui_input": true,
+    "no_saved_game": true,
+    "start_tick": 7,
+    "status": "started"
+  },
+  "pid": 956,
+  "tick": 8,
+  "tick_after": 8,
+  "unpatched_functions": 4424,
+  "patched_functions": [
+    {
+      "address": "00407190",
+      "name": "_HoldStrong::Map::Entities::EntityState::processEntityHitBuildingOrUnit",
+      "changed": [
+        {
+          "start": "00407610",
+          "reference_sha256": "329fdec22f4ddc90c76095fa759f2eaade5b5182fa33ba083a28fc5c00421f12",
+          "runtime_sha256": "6f6d1b69232a8f2da4f30805529d265760166ed8e6fb083f39a5860d3356fe43"
+        },
+        {
+          "start": "00407b50",
+          "reference_sha256": "d971c2b0d8de312309c6364e44d9371d2acf7247e367c4264b665c5865f0cd18",
+          "runtime_sha256": "60cee06cc7b1d4f454de6c8e504e9e2fabc31d57d79aa0d35cc4349065166f21"
+        }
+      ]
+    },
+    {
+      "address": "0040b260",
+      "name": "_HoldStrong::Map::Buildings::BuildingsState::recomputeAllFearFactors",
+      "changed": [
+        {
+          "start": "0040b260",
+          "reference_sha256": "f1cafc7542fc99fa681ced2f30bd23813c9b6fa6d607abfaa407334f83031822",
+          "runtime_sha256": "340fe7bbef1e35810a5950ccadcdcf5ae63c91fd47ca382403a1411d75961a0b"
+        }
+      ]
+    },
+    {
+      "address": "0041bfd0",
+      "name": "_HoldStrong::Map::Buildings::BuildingsState::processPlacementResourceLossForBuildingType",
+      "changed": [
+        {
+          "start": "0041bfd0",
+          "reference_sha256": "8226ef5baabb348dd9ad9e061ddf38a07eb5fc1dc6f66dd6ef8a77412a15158b",
+          "runtime_sha256": "ef54746a46f46d2bbe6925485cbf8f5e673983d3cb02e959c5d8d8f5bf760380"
+        }
+      ]
+    },
+    {
+      "address": "0041e240",
+      "name": "_HoldStrong::Global::UpdateFireBallistaBuilding",
+      "changed": [
+        {
+          "start": "0041e240",
+          "reference_sha256": "8b4f7aae529f7a41b4b2f740f10f411031f5d5d873b9ff3edf9442d0794e5bc2",
+          "runtime_sha256": "f06e0d89785a540554b45c4b7d1e8a428099b4180142c10346939f02c3ddf996"
+        }
+      ]
+    },
+    {
+      "address": "0041f3b0",
+      "name": "_HoldStrong::Global::UpdateCatapultBuilding",
+      "changed": [
+        {
+          "start": "0041f3b0",
+          "reference_sha256": "451ac42ebc797eccd50a705718739b57df7481ee55069b2fb7277e2e1058acd0",
+          "runtime_sha256": "f18beb4676493abecd3aac2c922a5020a21843fe715d7635dd1bcbeca6b3b933"
+        }
+      ]
+    },
+    {
+      "address": "0041f7c0",
+      "name": "_HoldStrong::Global::UpdateTrebutchetBuilding",
+      "changed": [
+        {
+          "start": "0041f7c0",
+          "reference_sha256": "e615653f1283f211b5bd7759f650e1f3907382c9a07acdb8271d0e949c71259b",
+          "runtime_sha256": "98e640b014030a457458dad658e54282813e23f912240362acc9f9b1304afbdd"
+        }
+      ]
+    },
+    {
+      "address": "0041fc90",
+      "name": "_HoldStrong::Global::UpdateSiegeTowerBuilding",
+      "changed": [
+        {
+          "start": "0041fc90",
+          "reference_sha256": "0e6258b519ce9a41a97182ccf7d136c605c785a34090b11efa67b55a0f5e1bc2",
+          "runtime_sha256": "db0a69d3e1349c418cee857205e4962ed8cdfe787161e96386e63507bd5ee7be"
+        }
+      ]
+    },
+    {
+      "address": "00420120",
+      "name": "_HoldStrong::Global::UpdateBatteringRamBuilding",
+      "changed": [
+        {
+          "start": "00420120",
+          "reference_sha256": "7c7cb2876066aeb62dd352ce3ba0454e383ed91142acc3c14cde7132090477ff",
+          "runtime_sha256": "201de42b86f9dffecd08e0a885ff41bb283a1e45717b6aa760377b159ef1b64c"
+        }
+      ]
+    },
+    {
+      "address": "004205b0",
+      "name": "_HoldStrong::Global::UpdateShieldBuilding",
+      "changed": [
+        {
+          "start": "004205b0",
+          "reference_sha256": "3b1919f26a53c68adbc619f7d170ae5cac2686c6554c742ebd8ca990e942fe10",
+          "runtime_sha256": "ed7885d4de62d8c5abdfb14c8541fed36597d38dc1eabb0aa982b1a400dafa81"
+        }
+      ]
+    },
+    {
+      "address": "004224f0",
+      "name": "_HoldStrong::Map::Buildings::BuildingsState::updateGateDrawBridgeOpenCloseLogic",
+      "changed": [
+        {
+          "start": "00422a70",
+          "reference_sha256": "024d065f95ebab381c6a0c40bebc7489929be4058b224b71a3f843d0aa37c364",
+          "runtime_sha256": "115b1be77584d25ea189ffac43dd262d4bd11f802b60040c7172dc3fd153fb16"
+        }
+      ]
+    },
+    {
+      "address": "00424270",
+      "name": "_HoldStrong::Map::Buildings::BuildingsState::updateHeatmapBasedOnBuildingAccessibility",
+      "changed": [
+        {
+          "start": "00424270",
+          "reference_sha256": "a2a27cdfff9ef1dd497e80f101a9c3530f6bd9a240af13371761040b1f9d0c49",
+          "runtime_sha256": "2752f74b0ed4824d7f46a81caadb0bee7e3886072c69f8365c05fe31c0874cd2"
+        }
+      ]
+    },
+    {
+      "address": "00424da0",
+      "name": "_HoldStrong::UI::MenuView_MainMenu_DoEveryFrame",
+      "changed": [
+        {
+          "start": "00424da0",
+          "reference_sha256": "6c5fd88894ee29235a645b4a7730ce02a81a1eb61957f6804e890523fb50d240",
+          "runtime_sha256": "e0b15b7afdfb81762d31c862d2c1399ecf2e8d0e3f064218248f46e5fffa1214"
+        }
+      ]
+    },
+    {
+      "address": "00433370",
+      "name": "_HoldStrong::UI::MenuItemActionHandler_InGameMenu_ProcessScribeAnimationChange",
+      "changed": [
+        {
+          "start": "00433370",
+          "reference_sha256": "d2c59e88c6db752ee246cb2ddbc916593e15bef5bc7d6b678da9e8641750efa1",
+          "runtime_sha256": "1c5b133085688886964772a122816e3cf2b83b20674d56ebad79fe68f5287fac"
+        }
+      ]
+    },
+    {
+      "address": "004348d0",
+      "name": "_HoldStrong::UI::MenuItemActionHandler_InGameMenu_UnitSelectionAndControlsUnk",
+      "changed": [
+        {
+          "start": "00434fe0",
+          "reference_sha256": "6f10da88d477d5b574e9659c00258e07dff0b7784363b861669b039cba53ef43",
+          "runtime_sha256": "3c3a2652d26f982f38d3ede135680045b11b69ccfebe7e484a08cb7a80ad5f42"
+        }
+      ]
+    },
+    {
+      "address": "0043a9f0",
+      "name": "_HoldStrong::UI::Rendering::RenderBuildingMenu_Keep",
+      "changed": [
+        {
+          "start": "0043a9f0",
+          "reference_sha256": "09c6162a4b9ad7d646797f40bba1c922aef995d0c8ffa5cf0b976c94eeac96fe",
+          "runtime_sha256": "955f031b76268000604bff8c7b04f4796a8375b16c6687494bd958a2f00ff32f"
+        }
+      ]
+    },
+    {
+      "address": "0043af40",
+      "name": "_HoldStrong::UI::Rendering::RenderBuildingMenu_Inn",
+      "changed": [
+        {
+          "start": "0043af40",
+          "reference_sha256": "84680bd22ea183d8aca0ec77b9258122f99d26aec62801728825ff89af1af7be",
+          "runtime_sha256": "470dd2965ee4d741d22ce5662bdc543cc1701d9bb80e802e3ce08bec3ee168cc"
+        }
+      ]
+    },
+    {
+      "address": "0043b3b0",
+      "name": "_HoldStrong::UI::Rendering::RenderBuildingMenu_Granary",
+      "changed": [
+        {
+          "start": "0043b3b0",
+          "reference_sha256": "e804707b8e7a81ce840a821be0663fef4c15a366d5a5ccd96424ad25e682acf6",
+          "runtime_sha256": "6f073b9730738dd345dae3949704d9b22371e894715909f9c295e39547c12def"
+        }
+      ]
+    },
+    {
+      "address": "0043e6c0",
+      "name": "_HoldStrong::UI::Rendering::RenderStatusMenu_Popularity",
+      "changed": [
+        {
+          "start": "0043e6c0",
+          "reference_sha256": "735d1a32021a9ceeaa03a3b6a810c56e04bb9a8cc9c9a954ee88fe4f07170d5f",
+          "runtime_sha256": "5e65d30afa5f638e096a59776d51bb238de0d1404edef459315c7fd42d1fc471"
+        }
+      ]
+    },
+    {
+      "address": "0043f2f0",
+      "name": "_HoldStrong::UI::Rendering::RenderStatusMenu_FearFactor",
+      "changed": [
+        {
+          "start": "0043f2f0",
+          "reference_sha256": "49b4bf5b269370a51be034020db217bb004b8bf4570b7b6ed779915f7abe8255",
+          "runtime_sha256": "8be004c939e5434caae1294d9efe67e802821084acb68793cb5ebeb5d87d6ff9"
+        }
+      ]
+    },
+    {
+      "address": "0043fe10",
+      "name": "_HoldStrong::UI::Rendering::RenderStatusMenu_Religion",
+      "changed": [
+        {
+          "start": "0043fe10",
+          "reference_sha256": "e8e99325f9ee8717e6690f7f4d1e4866c9343e3d73c7ea24416e9c3774f5fd44",
+          "runtime_sha256": "ec21e1ae5df04f4de44865a2a490e0d44dbd4949bc10212a051348187ee14954"
+        }
+      ]
+    },
+    {
+      "address": "004451c0",
+      "name": "_HoldStrong::UI::MenuItemActionHandler_InGameMenu_TriggerPlaceBuildingCommand",
+      "changed": [
+        {
+          "start": "0044544b",
+          "reference_sha256": "91b6058129682fcd76ae5f8b429cf8bdf761794f801c65d1e2eb6f2f7b2a80a8",
+          "runtime_sha256": "0ae41bb65eb6b07f4de87ba377b40eb90ddebe5dac7664eb081bb0d0f5e87620"
+        }
+      ]
+    },
+    {
+      "address": "0044a290",
+      "name": "_HoldStrong::Audio::SFX::SFXState::playUnitSpeechEffect",
+      "changed": [
+        {
+          "start": "0044a290",
+          "reference_sha256": "c6519ac0d0a2990226396f82aa32d3d6208a99a0817883c414298ca6bd5f6ed7",
+          "runtime_sha256": "a6caaa375b3ed5c28927f3f7c62a25f87252a2c416797d48e0787af7d41cc11d"
+        }
+      ]
+    },
+    {
+      "address": "0044b210",
+      "name": "_HoldStrong::Audio::SFX::SFXState::playUnitSpeech",
+      "changed": [
+        {
+          "start": "0044b210",
+          "reference_sha256": "9291a49176bc95bed03f5ecc3e7225c49966e5730e68cecfae464ca95b6c8b46",
+          "runtime_sha256": "db47a90ec6918952ad79f749305ea7a6aaed40095a71e63f608f3f8a7480b732"
+        }
+      ]
+    },
+    {
+      "address": "0044c740",
+      "name": "_HoldStrong::Audio::SFX::SFXState::soundRelatedMethod1",
+      "changed": [
+        {
+          "start": "0044c740",
+          "reference_sha256": "8384e4737a65b4be1edbdb481857ae5788f6784162ae064a72df960b306b9132",
+          "runtime_sha256": "e0c00a24a28d862a0baedf924386c916f4fe207c9db36ef0c1c35e625e4c85a7"
+        }
+      ]
+    },
+    {
+      "address": "0044c850",
+      "name": "_HoldStrong::UI::Rendering::TextureRenderCore::drawLoadingBarUnk",
+      "changed": [
+        {
+          "start": "0044c850",
+          "reference_sha256": "c91df446218895b994d4a4510d16a2028231bde71c83b0ab7bb56399084a8910",
+          "runtime_sha256": "76efa9d89250f3466a5754b19897c9351872fe420f4bbda26fdebe304b9bd5b8"
+        }
+      ]
+    },
+    {
+      "address": "00455e10",
+      "name": "_HoldStrong::Game::GameStateStructures::resetVariousCountsAndStatisticsAndStartGoodsAndResources",
+      "changed": [
+        {
+          "start": "00455e40",
+          "reference_sha256": "14f1182489b263e8be63f1b08acb913197adce8d2f4fd53bb29f6576e7eea201",
+          "runtime_sha256": "259cfcaef2a1324b5bdbef4a99ff92ba3d83c11c189ddfa8fb48b597eee12faa"
+        }
+      ]
+    },
+    {
+      "address": "004576e0",
+      "name": "_HoldStrong::Game::GameStateStructures::canNavigateFromKeepToKeep",
+      "changed": [
+        {
+          "start": "004576e0",
+          "reference_sha256": "d08bd988d2c4801713fc574eac13a9c777828a0d3651f4c884ead0cccd218bdc",
+          "runtime_sha256": "6e5ebea08fdd1aa715f8f0a0b0d64e20718ea04a623e7d27428ce47fca91d2b4"
+        }
+      ]
+    },
+    {
+      "address": "00457b80",
+      "name": "_HoldStrong::Game::GameStateStructures::checkRequiredResourcesForBuildingOrPlanToBuy",
+      "changed": [
+        {
+          "start": "00457b80",
+          "reference_sha256": "699cc9a19004ce32e0f837c1d211cb9031d5fc8ef160ce5f3fcf54c5ea93d409",
+          "runtime_sha256": "2ecfc8cf7aee9a8bff106ba950c4a570357b2b48ba8a4685c1ee7b50cc37b394"
+        }
+      ]
+    },
+    {
+      "address": "00458ec0",
+      "name": "_HoldStrong::Game::GameStateStructures::updateFearFactorProductivity",
+      "changed": [
+        {
+          "start": "00458ec0",
+          "reference_sha256": "738428963427f37f681481e0f44a08a7f6ac90f442d47ee83051776b5727b025",
+          "runtime_sha256": "8178653a1ffd599eb41e3199bd0655226bd36463afd1d31d3fb0c12d2d90d0ad"
+        }
+      ]
+    },
+    {
+      "address": "00459080",
+      "name": "_HoldStrong::Game::GameStateStructures::calculateTaxIncomeForPlayer",
+      "changed": [
+        {
+          "start": "00459080",
+          "reference_sha256": "1c9caa6eb9eb56deaedc58eb6781b4082559e8579070d6f0ce7731ac310429fe",
+          "runtime_sha256": "4db665e3cc57292e6f7ec6e7d5661f68198b2f36c1699815e2bae3d082e020e1"
+        }
+      ]
+    },
+    {
+      "address": "00459140",
+      "name": "_HoldStrong::Game::GameStateStructures::calculateTaxBribeExpenseForPlayer",
+      "changed": [
+        {
+          "start": "00459140",
+          "reference_sha256": "dcfe900e7c1dc87fcdc03a205e1c9f59f17272fa84e2c290ea63da522be0741c",
+          "runtime_sha256": "482103747c318ccae6608fac3e0415c6491579e69711bb7b03168b697c1045c7"
+        }
+      ]
+    },
+    {
+      "address": "00459170",
+      "name": "_HoldStrong::Game::GameStateStructures::getNumberToDisplayPlayerTaxIncome",
+      "changed": [
+        {
+          "start": "00459170",
+          "reference_sha256": "7d7bea99d4e7827f72c68e99360f4d29098eee0a87940be98d951eb7e7955961",
+          "runtime_sha256": "cb3e5290948fcd23107c9c98278c31ca288eb0c1645453ecde9b0cc69b8d62df"
+        }
+      ]
+    },
+    {
+      "address": "004591b0",
+      "name": "_HoldStrong::Game::GameStateStructures::getNumberToDisplayBribeIncome",
+      "changed": [
+        {
+          "start": "004591b0",
+          "reference_sha256": "69c2a2fa447ed8e7231c8701ecf9422225cd5fac6052e0a00de1065f5c907b9e",
+          "runtime_sha256": "8a050f0c391882687f6b0925fcf2f8f3937aa4856303125d1e67fbf93fca87a1"
+        }
+      ]
+    },
+    {
+      "address": "0045b830",
+      "name": "_HoldStrong::Game::GameStateStructures::updatePopularity",
+      "changed": [
+        {
+          "start": "0045b860",
+          "reference_sha256": "17cd90e442b214d9648013e56da1ec293d7484a5bdb1208f9c12b00dc5414836",
+          "runtime_sha256": "49dc40c01453afef1b565fe0e92c487ed40a7f50cd5eb73bd66d907af0219610"
+        }
+      ]
+    },
+    {
+      "address": "0045bf50",
+      "name": "_HoldStrong::Game::GameStateStructures::updateTaxing",
+      "changed": [
+        {
+          "start": "0045bf50",
+          "reference_sha256": "a9be3a14f1cdb2bbdfffa5e64c2d9c2239558701d2034cb76bc964ac929b31c6",
+          "runtime_sha256": "d23e4dfc46110ecab95382ace95b883ebaa07b5ad93e7f2c529a730725750b1a"
+        }
+      ]
+    },
+    {
+      "address": "0045cd10",
+      "name": "_HoldStrong::Game::GameStateStructures::processGameTick",
+      "changed": [
+        {
+          "start": "0045cd10",
+          "reference_sha256": "5d58386ae8ae897c63aebdff0bf3e26b690208af5915281d299d35e19b68ccd0",
+          "runtime_sha256": "5ad0248caab8a854b2ff22a6168ff9c7ab491b8fbec727e7bb136f194d7a404a"
+        }
+      ]
+    },
+    {
+      "address": "00465f20",
+      "name": "_HoldStrong::Global::TryAcquireAmmunitionOrPlanToBuyStone",
+      "changed": [
+        {
+          "start": "00465f20",
+          "reference_sha256": "86f8120f17577e12ba733d5451ac5a7a03d7e608a89852db601c194459cf09a5",
+          "runtime_sha256": "a6d1f82a075dffc885b3d7f8ca9386af9c8efb7f4ac7380ef1042622e4de29a6"
+        }
+      ]
+    },
+    {
+      "address": "00465f90",
+      "name": "_HoldStrong::Global::SelectionReplenishAmmo",
+      "changed": [
+        {
+          "start": "00465f90",
+          "reference_sha256": "ac2a28fdd6170336715925141e49dd3f5cc33023cdc7d70abaf576c0377b504c",
+          "runtime_sha256": "d85588f6d5f6ffe6944b727454f21a601f50e7ee4703836c5527c986b8fd0d5b"
+        }
+      ]
+    },
+    {
+      "address": "00466e20",
+      "name": "_HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_EngineerAndMonkPortraits",
+      "changed": [
+        {
+          "start": "00466e20",
+          "reference_sha256": "7ee90dff8386054273a335de881d599164487bf6a56e4d21a1bb68446bc2b429",
+          "runtime_sha256": "1cf68fccedcf24879dbe1a59fb55d5c5d33e0f8b26805f0b394a99bcc2d5d2e5"
+        }
+      ]
+    },
+    {
+      "address": "00467a90",
+      "name": "_HoldStrong::UI::Rendering::WindowAndDirectDraw::createWindow",
+      "changed": [
+        {
+          "start": "00467a90",
+          "reference_sha256": "e8c432342cf975d3cdaec3cd5674bf8a017c219733ffb7885c7219208828eab8",
+          "runtime_sha256": "d31ad690f94f01de4d6351a6894524ddfb61b7a0425c202813f6e4dcae5debf4"
+        }
+      ]
+    },
+    {
+      "address": "00467b40",
+      "name": "_HoldStrong::UI::Rendering::WindowAndDirectDraw::getDeviceCapsAndSetup",
+      "changed": [
+        {
+          "start": "00467b40",
+          "reference_sha256": "a0b5d6d7643ec70e7aba311966b027cf91c6c52280b333cac404b745f8c8224b",
+          "runtime_sha256": "cb259b2261fc884e8720106fb3f0ea08e47751841666adb6753f6e47ae7732df"
+        }
+      ]
+    },
+    {
+      "address": "00467d80",
+      "name": "_HoldStrong::UI::Rendering::WindowAndDirectDraw::releaseSurfacesAndDirectDraw",
+      "changed": [
+        {
+          "start": "00467d80",
+          "reference_sha256": "e454c5f3d3c0231e5faa6cd8084008d8e228d0fa2ac3346db82d5c27f5857ab5",
+          "runtime_sha256": "c6a2c1642a32ffba2d84d6a13a12352f1c085f33f1765a6816c54202ab6e51dd"
+        }
+      ]
+    },
+    {
+      "address": "00467ec0",
+      "name": "_HoldStrong::UI::Rendering::WindowAndDirectDraw::restoreDXSurfaces",
+      "changed": [
+        {
+          "start": "00467ec0",
+          "reference_sha256": "4b69eba45525dbeab022d1d19672c972a138eba1146b78d5b749d516d48727da",
+          "runtime_sha256": "e05b0290157d6946b6dbf81d76cab40c8d892db69883462592063033b9eab85d"
+        }
+      ]
+    },
+    {
+      "address": "0046a050",
+      "name": "_HoldStrong::Text::TextManager::getTextStringInGroupAtOffset",
+      "changed": [
+        {
+          "start": "0046a050",
+          "reference_sha256": "6ca9244e6da453c6658f43d4a39c19621cfe83bfac87f26d9ce2f2087c99cc91",
+          "runtime_sha256": "e3631dbdd636ab52f5e669dc184961f6fb07f10bd2548d3ab9e09452400d6c9f"
+        }
+      ]
+    },
+    {
+      "address": "0046f750",
+      "name": "_HoldStrong::UI::Rendering::WindowAndDirectDraw::setWindowStyleRectAndPosition",
+      "changed": [
+        {
+          "start": "0046f750",
+          "reference_sha256": "87e52460de6b7584474121c1fc6e07cb61e164bd6b45f890dcc9f6162c7322f3",
+          "runtime_sha256": "dd2e1c27475425525e12f267e8df57f42f0cd337116e4ad2acd255f1a7c7886a"
+        }
+      ]
+    },
+    {
+      "address": "0046f880",
+      "name": "_HoldStrong::UI::Rendering::WindowAndDirectDraw::setupPreferredScreenResolution",
+      "changed": [
+        {
+          "start": "0046f880",
+          "reference_sha256": "f3ec1bbe30eed3f8d384ecbd33d62d1d2004fea53819a3f37c39846b92a27a9c",
+          "runtime_sha256": "011c5720a50cc01f20331d07b21b237b3ff946965e236aeef7bda0044ce715b9"
+        }
+      ]
+    },
+    {
+      "address": "0046fa70",
+      "name": "_HoldStrong::UI::Rendering::WindowAndDirectDraw::initializeDirectDraw",
+      "changed": [
+        {
+          "start": "0046fa70",
+          "reference_sha256": "7d898850ed833daad1d0c636cf1cc8d9e22c2cd2ba1723f7b4d6867ec1db5e7a",
+          "runtime_sha256": "34d9d34d4891c56e0f0a41db7926ecfe436f7e0d7a258f74f4613a42f961a20f"
+        }
+      ]
+    },
+    {
+      "address": "00470040",
+      "name": "_HoldStrong::UI::Rendering::WindowAndDirectDraw::renderBltAndFlip",
+      "changed": [
+        {
+          "start": "00470040",
+          "reference_sha256": "a7a2a005447bbcc7dc0cd3845f5477b74b7caeb615e5186f0ae4ed8e9795f331",
+          "runtime_sha256": "686fca62c06e715c5b3d15c30be9b2638d6f55cd17bef78a8b9dc4dd3de32825"
+        }
+      ]
+    },
+    {
+      "address": "00477ee0",
+      "name": "_HoldStrong::IO::ResourceManager::discoverMapFiles",
+      "changed": [
+        {
+          "start": "00477ee0",
+          "reference_sha256": "931daeacb56ee64b99d6e98d39c56b66a05019d743064acba56031ac0e065a7c",
+          "runtime_sha256": "4be63e918b7c4f3589d27c303e6250a958c146dc7b588871ce5f64de0cec0246"
+        }
+      ]
+    },
+    {
+      "address": "0047c400",
+      "name": "_HoldStrong::Audio::MSS::SoundSystem::initMiles",
+      "changed": [
+        {
+          "start": "0047c400",
+          "reference_sha256": "b2d9f6c2a962a2476193fb382373276afd1f52a648ce5b4d381db5c7466da084",
+          "runtime_sha256": "327180c9a7b6ee4068e59a63ae487ca637c343ae2c9fecefa6dc5b9097229a51"
+        }
+      ]
+    },
+    {
+      "address": "00481f40",
+      "name": "_HoldStrong::Commands::ClickDestroyBuilding",
+      "changed": [
+        {
+          "start": "00481f40",
+          "reference_sha256": "f1915e8fb9fe6832c4eee1edd51cee798812ca59de1bc127f3e32568b0ff35b4",
+          "runtime_sha256": "b0c5a02b894dc043742f77fc7cedae80083c52fecffbe41149c99a82ddc65364"
+        }
+      ]
+    },
+    {
+      "address": "00486530",
+      "name": "_HoldStrong::Commands::ActiveTacticalPowers",
+      "changed": [
+        {
+          "start": "00486530",
+          "reference_sha256": "bf6107bfa63d9918e75ffc6e7fe4752006bf3a1b723b3d4b2ee7e1d9f8c1e81b",
+          "runtime_sha256": "1473ef0e0485b0cb870adc11d7963656070c5e4fb62d0f17f8a9e1d49f13bf3f"
+        }
+      ]
+    },
+    {
+      "address": "00486a70",
+      "name": "_HoldStrong::Synchrony::GameSynchronyState::getLordTypeForPlayer",
+      "changed": [
+        {
+          "start": "00486a70",
+          "reference_sha256": "4ad39243f90b015f4af3906665b9367fdcf047366fb9e98dfad7b27973295875",
+          "runtime_sha256": "d73bb65ed6f0e0c8df395e2b20616b5ee32a08c2280d439415529612b4d8aca1"
+        }
+      ]
+    },
+    {
+      "address": "004892f0",
+      "name": "_HoldStrong::Synchrony::GameSynchronyState::processWaitingCommands",
+      "changed": [
+        {
+          "start": "004892f0",
+          "reference_sha256": "6c46769df32d83ddadae9149e3dc477723f931834c01382b743d486df3fdc7c2",
+          "runtime_sha256": "99f8d5ff97d7e7229ad5675ea55502052e0bf6acdccd1b2b3e5a3cc22bfd8f7b"
+        }
+      ]
+    },
+    {
+      "address": "00489c80",
+      "name": "_HoldStrong::Commands::CommandLoadMapHeader",
+      "changed": [
+        {
+          "start": "00489c80",
+          "reference_sha256": "9dc6d35c048cca83eaf50671dcd7fb7b30feb64a2dae86c4a68ffbead3bdb327",
+          "runtime_sha256": "11a5d8a5b769947b5c86b16b30ccdf321aa3e5273e9e09137152b7169b267540"
+        }
+      ]
+    },
+    {
+      "address": "0048f870",
+      "name": "_HoldStrong::Commands::AskForPlayerSlotAssignment",
+      "changed": [
+        {
+          "start": "0048f870",
+          "reference_sha256": "a75cedf69185d8ec7a8006b02b3e1d65e414ffdf99807ad636972cf1dbdffe4a",
+          "runtime_sha256": "800fe8e1489c1e60de92c6f4800306b03ad074887e8d694a1a5f220c1df1fb0b"
+        }
+      ]
+    },
+    {
+      "address": "004950b0",
+      "name": "_HoldStrong::UI::MenuItemActionHandler_ProgressBarBox_LoadAndSaveGameButtonLogic",
+      "changed": [
+        {
+          "start": "004954a0",
+          "reference_sha256": "e2c46d029af98aeb2a4cd9dc60f41db653f9f7f69ab3448cc5bb92a4680572a6",
+          "runtime_sha256": "87c2cb0c974ee37feea25766cc4952631777ae207a42cc0f9daa11bef4440645"
+        }
+      ]
+    },
+    {
+      "address": "004995e0",
+      "name": "_HoldStrong::Map::Navigation::PathFindingState::updateSeparateAreaTileMap",
+      "changed": [
+        {
+          "start": "004995e0",
+          "reference_sha256": "295d51373af2247780a03ae88669fe01165a032ddff85b680aeb15e9ee43b61e",
+          "runtime_sha256": "15d7eb041b9893c87188bcd6bdc7065057f491bc454294902288903e270bfa2c"
+        }
+      ]
+    },
+    {
+      "address": "004aea50",
+      "name": "_HoldStrong::UI::MenuItemActionHandler_Roundtable_Main",
+      "changed": [
+        {
+          "start": "004aeb20",
+          "reference_sha256": "01e243673b8b7f5273cc3485fb14db2c3c955a50b4eb376c86c96bff1988906c",
+          "runtime_sha256": "9431495e264c128d3e079c50d32e0ef3f915466380040c52e9fbff492cb2deb4"
+        }
+      ]
+    },
+    {
+      "address": "004b2ae0",
+      "name": "_HoldStrong::Global::WindowMsgProcessingFunc",
+      "changed": [
+        {
+          "start": "004b3e20",
+          "reference_sha256": "d25b795fdc204943e3910697da6620d4c4b20f9b215ef87c23d769e4b1a1cb45",
+          "runtime_sha256": "52629db1f4437d01b6fa1cf841326f7a5d2a28e79a34b7e62806af989258db28"
+        }
+      ]
+    },
+    {
+      "address": "004b7f60",
+      "name": "_HoldStrong::UI::PlayAMessageFromAI",
+      "changed": [
+        {
+          "start": "004b7f60",
+          "reference_sha256": "f1bef350ce9171f54770a5420db23dcfc1cdd9af071c1d662b4999db06ce3908",
+          "runtime_sha256": "d85caf810125aeb998ae31c7aa27110192e6b4a12f261b622a5ddcd81ced7714"
+        }
+      ]
+    },
+    {
+      "address": "004bea90",
+      "name": "_HoldStrong::Rendering::Bink::AIMessageQueue::playBikVideoFromPlayer",
+      "changed": [
+        {
+          "start": "004bea90",
+          "reference_sha256": "cac87d42e97e6f726ccbfa48ac51d3398a8b6b928f99e7f8217380f6818daaf9",
+          "runtime_sha256": "4d5246176e8d62fd999cabc6d4bfa78e165471443b4287974e936244da6b58df"
+        }
+      ]
+    },
+    {
+      "address": "004cb3a0",
+      "name": "_HoldStrong::AI::AICState::aiRequiresExtraOxtethers",
+      "changed": [
+        {
+          "start": "004cb3a0",
+          "reference_sha256": "10f4a65f3466f2d0eb79544c09a0ee31d29b3bec2dc1294d3cef821c6ca3ad56",
+          "runtime_sha256": "e862f408dc53e3a6892aca421ee2d1daeb956d0535e71994045e1700cf1b79a7"
+        }
+      ]
+    },
+    {
+      "address": "004cb5b0",
+      "name": "_HoldStrong::AI::AICState::shouldNotBeBuildingHovel",
+      "changed": [
+        {
+          "start": "004cb5b0",
+          "reference_sha256": "b00771c985ea8c2d8173302072ac66f881d20c10bd30a91c5011ec9033a366aa",
+          "runtime_sha256": "c8416895d2628eee67bb27e2f2d098bc12b2aeba475e97affe4cf9422499e9e5"
+        }
+      ]
+    },
+    {
+      "address": "004cb810",
+      "name": "_HoldStrong::AI::AICState::destroyHouse",
+      "changed": [
+        {
+          "start": "004cb810",
+          "reference_sha256": "328b9764db4dff99564648d8baff59cfb476c960d6e5a29a0c317f7e28ffc445",
+          "runtime_sha256": "fba40707e4695bfae6faff21104cb3b92cee544eb4d46f5862f659a710a351c3"
+        }
+      ]
+    },
+    {
+      "address": "004cba50",
+      "name": "_HoldStrong::AI::AICState::planToBuyWhenLowOnResourceAndSnoozeBuildings",
+      "changed": [
+        {
+          "start": "004cba50",
+          "reference_sha256": "0967338c8df9c3fe48cee90f191708234e5866338437e9ac341a56391dcc2a25",
+          "runtime_sha256": "7fe03a930772ddf9ec9d7c67a65d4a2bcf9f896e845304baab3d59cbf46a6fde"
+        }
+      ]
+    },
+    {
+      "address": "004cde60",
+      "name": "_HoldStrong::AI::AICState::setCurrentAttackStrength",
+      "changed": [
+        {
+          "start": "004cde60",
+          "reference_sha256": "4ba8de09f4d9a2db0ea22b589959253af9db4587dd61c23a043a24b3b0255d4e",
+          "runtime_sha256": "d3ae81dbbfced8a17ff4b1ecc83a00cee1af52be37d02de9520856483ba8bc82"
+        }
+      ]
+    },
+    {
+      "address": "004d0280",
+      "name": "_HoldStrong::AI::AICState::destroyAnyBuildingInCategory",
+      "changed": [
+        {
+          "start": "004d0280",
+          "reference_sha256": "aa413d010b03575967ef7ec0b66e08ade327c5de9eab1cfaf5d55c31cdc064d8",
+          "runtime_sha256": "5a6f8ee45c197605f3e71c469199234181c38a5b9b3c01b188fa06125129dbb0"
+        }
+      ]
+    },
+    {
+      "address": "004d2000",
+      "name": "_HoldStrong::AI::AICState::aiCreateSiegeUnits",
+      "changed": [
+        {
+          "start": "004d2080",
+          "reference_sha256": "7280fb2d07f2f1e1eeea4dbc66cd89a50b615e5fa2f59ec40b6164c2489efcb4",
+          "runtime_sha256": "c0d9677cea7270ed4c55b51223775873649aee77e86c57286a5cc8e3533fa153"
+        }
+      ]
+    },
+    {
+      "address": "004d30e0",
+      "name": "_HoldStrong::AI::AICState::sendUnitsToAttackBreachedCastle",
+      "changed": [
+        {
+          "start": "004d30e0",
+          "reference_sha256": "6d36195a02ee9fbbeb787ff56c31ecc3f943d84a066b34aebc8643f2225e9c5e",
+          "runtime_sha256": "652172b65f8cfb437bdfb011ce23b026cfff148a567ab53bf799010a6eb77061"
+        }
+      ]
+    },
+    {
+      "address": "004d3320",
+      "name": "_HoldStrong::AI::AICState::updateAIStrengthState",
+      "changed": [
+        {
+          "start": "004d3320",
+          "reference_sha256": "08f9e6c7150071f68fc9599c85bd22dc949511ab6402dbe123293e60b671c159",
+          "runtime_sha256": "01e53ee10b5aaba817ac8254921d48ad414281307059a210f5e2979f41226ccb"
+        }
+      ]
+    },
+    {
+      "address": "004d3ae0",
+      "name": "_HoldStrong::AI::AICState::aiRecruitUnits",
+      "changed": [
+        {
+          "start": "004d3ae0",
+          "reference_sha256": "0fcff0f431e804eb924b8eeaa5d9df0b7d609deed5967890e94771b27ae111a2",
+          "runtime_sha256": "2e98c69f1b41605a0a82b9587b0a113bf54a599627b41f9622ed84433d13b68f"
+        }
+      ]
+    },
+    {
+      "address": "004d4680",
+      "name": "_HoldStrong::AI::AICState::selectAttackTarget",
+      "changed": [
+        {
+          "start": "004d4680",
+          "reference_sha256": "089552bdd4488a37e57a2052d64c310b20bc1749a25526cac0e959039f94d488",
+          "runtime_sha256": "3e38b71ef9c8a3094603f81ee69767772c0b715557e8483f9d63f2494bf6eba1"
+        }
+      ]
+    },
+    {
+      "address": "004da050",
+      "name": "_HoldStrong::UI::MenuItemActionHandler_TacticalPowerBar_Main",
+      "changed": [
+        {
+          "start": "004da050",
+          "reference_sha256": "98cfc684b1ef9a2a20fd86062ac69a9c22a2ce960b3dc53c83d9119f2e9dbb73",
+          "runtime_sha256": "c2f1465ce5a73540e6eb41ca7b799286915cf76fa005d46914208953405c4f7f"
+        }
+      ]
+    },
+    {
+      "address": "004e8cf0",
+      "name": "_HoldStrong::Rendering::ViewportRenderState::renderMap",
+      "changed": [
+        {
+          "start": "004ea050",
+          "reference_sha256": "0691b46e608545acec667285b1cd92938719adb0c62838081eaa576173f03427",
+          "runtime_sha256": "4aae8fa6fa182af24ae8cb3f85b202d944e4ca9e712c31455d7b0ae983ddf52d"
+        },
+        {
+          "start": "004ec080",
+          "reference_sha256": "95ddd70ab0bbf7e810e569539fdb062151705b28e11c45fe728a0c694b95dc5d",
+          "runtime_sha256": "df33426cf1f5d13b5adfa1e61499e5062430b3072d719bac192aa16d4059ed4b"
+        }
+      ]
+    },
+    {
+      "address": "004ecad0",
+      "name": "_HoldStrong::AI::AIVState::setAvailableAIV",
+      "changed": [
+        {
+          "start": "004ecad0",
+          "reference_sha256": "86bb7754ea79f6a448d7f9d7b74802d0814d1b97b810ed4019164b50c071e823",
+          "runtime_sha256": "96ced87fd8c1d5904c2865d6379574f3ae8e8ac96c34fcdd05f5baee7815a3a9"
+        }
+      ]
+    },
+    {
+      "address": "004efed0",
+      "name": "_HoldStrong::AI::AIVState::aiPlaceQuarryAndOxtether",
+      "changed": [
+        {
+          "start": "004efed0",
+          "reference_sha256": "ace800ac732c22877ecb6bcd0b0fd864f44af48c7772f4a088721050005f92d9",
+          "runtime_sha256": "375ae37ca08cbf77b0b3f634c1ed6e2083750da40fb65d717b6a7e9d45ecab9a"
+        }
+      ]
+    },
+    {
+      "address": "004f1860",
+      "name": "_HoldStrong::AI::AIVState::updateBuildingsStateAndUpdateAIBuildingDecisions",
+      "changed": [
+        {
+          "start": "004f1860",
+          "reference_sha256": "534376cd2152cfe6eb3b3e09ea7f7a62dbf342bc989cace36b5d9578bf697ca7",
+          "runtime_sha256": "7c1e46bac6da21b6e9e4693aa35be6b6e88118cf0bfff2fb237b1fff502b7d58"
+        }
+      ]
+    },
+    {
+      "address": "004f3610",
+      "name": "_HoldStrong::Map::LandscapeState::selectClosestTree",
+      "changed": [
+        {
+          "start": "004f3610",
+          "reference_sha256": "85995e9f1000854df7d070d229bf65df0332db247a8383f18bbba35d64665f1c",
+          "runtime_sha256": "66fbe6ff51c0d2ff65320adabe3466bf4f045f7f705ec19faff702ddbd6c357e"
+        }
+      ]
+    },
+    {
+      "address": "004f4f60",
+      "name": "_HoldStrong::UI::BottomLeftTextDisplayState::renderCurrentlyDisplayedTextConstructionCost",
+      "changed": [
+        {
+          "start": "004f4f60",
+          "reference_sha256": "17e6e8f9f3827a428bab67db1a033637789a9376d3256456edeca002410d8c81",
+          "runtime_sha256": "cf41b13db60a689fc833a6962a796fb8bfcde1207597de503ab80d58131b96ae"
+        }
+      ]
+    },
+    {
+      "address": "004f6280",
+      "name": "_HoldStrong::UI::Menu::handleMenuItems",
+      "changed": [
+        {
+          "start": "004f6280",
+          "reference_sha256": "34e826d58e34d89db524d21ff1e9adf98f7100739b637c657562775b47401a90",
+          "runtime_sha256": "48981f8af02d2d12bf1b8a48599d7569110ef2c942736aa515d90a68a310c6ea"
+        }
+      ]
+    },
+    {
+      "address": "004f94a0",
+      "name": "_HoldStrong::Map::TileMapState::validateWallPlacementAtTile",
+      "changed": [
+        {
+          "start": "004f94a0",
+          "reference_sha256": "95d51d31dfa9bb0cebb2a7726aa753bd5bff80a85fd2020974fb1c53285a4ab5",
+          "runtime_sha256": "a5e39f312a5903c73318f4aa8c67ba85053a45f3933a38d8e64f69875d492c27"
+        }
+      ]
+    },
+    {
+      "address": "005160c0",
+      "name": "_HoldStrong::Map::TileMapState::prepareAreaForBuildingPlacement",
+      "changed": [
+        {
+          "start": "005160c0",
+          "reference_sha256": "9d0574278fbbbe4738e03e6e8cab1d19e8bc4951c1f4880be36d635d151ae28b",
+          "runtime_sha256": "b827559e30efd1603a9bf5a3d9ee85ab825698ff4d63f19936eaf219e5b88d06"
+        }
+      ]
+    },
+    {
+      "address": "0051e300",
+      "name": "_HoldStrong::Map::Units::TroopValueState::recomputeAttackInfo",
+      "changed": [
+        {
+          "start": "0051edf0",
+          "reference_sha256": "5aa772b60c2eec7b0cbda231a76c5974c8d85ba6ebfd6c4e66318b3dfc46925d",
+          "runtime_sha256": "af5012cf42809537fee00e3055b032ab93534eabb0c4aee4e82017cd3c0e2a9b"
+        }
+      ]
+    },
+    {
+      "address": "005244d0",
+      "name": "_HoldStrong::Map::Units::TribesState::assignAttackTargetsForTribe",
+      "changed": [
+        {
+          "start": "005244d0",
+          "reference_sha256": "c0550906ac71c69ff0e59c4028353813c2c30084dd1cf9446ccd7cbdccb3e7c7",
+          "runtime_sha256": "0a689b59cd0f76cb734944e5932d2ab9323e5afb88e6f2bc0433bad52d312725"
+        }
+      ]
+    },
+    {
+      "address": "0052ec10",
+      "name": "_HoldStrong::Map::Units::UnitsState::nonEuroRecruit",
+      "changed": [
+        {
+          "start": "0052ec10",
+          "reference_sha256": "071ed71f61a5b094b02113795c31a67bfd2ecdce928967374ee8effbef60e243",
+          "runtime_sha256": "d2e36438e881b12a094ffcaf0bdc1bd9c572dedfa28842f063687ffbfd8a4d0f"
+        }
+      ]
+    },
+    {
+      "address": "005311f0",
+      "name": "_HoldStrong::Map::Units::UnitsState::ComputeDamageFearFactorBonus",
+      "changed": [
+        {
+          "start": "005311f0",
+          "reference_sha256": "f3c2b7f14d1e4f2f98a1dc1a807ea273e2c82c61e642821a7ae4f8101e7973d1",
+          "runtime_sha256": "c0f35b86c8bf8adadf80fae25a3d477fb487d910fcd39f983f3b3d9c9d4674d7"
+        }
+      ]
+    },
+    {
+      "address": "00531920",
+      "name": "_HoldStrong::Map::Units::UnitsState::processEntityDamageToUnit",
+      "changed": [
+        {
+          "start": "00531920",
+          "reference_sha256": "b0063a4defd9ce63a1d62eccbb236ee889e11588df95b9e34f00ec6d136a8bb0",
+          "runtime_sha256": "97ac855638665020d0fd94c6e9aa35d292e38c6eff8b3a78b9a6a321107ad629"
+        }
+      ]
+    },
+    {
+      "address": "00532460",
+      "name": "_HoldStrong::Map::Units::UnitsState::processFireDamageToUnit",
+      "changed": [
+        {
+          "start": "00532460",
+          "reference_sha256": "9fba2c8bbcb0d087c7b4a151f75642e2544e4cca90757e182c2358d915ef06b9",
+          "runtime_sha256": "26601e7d05cfaffc4c79e3aae7a63504d5ee966121c2f79539fe46b46caea0fe"
+        }
+      ]
+    },
+    {
+      "address": "005345a0",
+      "name": "_HoldStrong::Map::Units::UnitsState::findEligibleUnitByTimeAndLocation",
+      "changed": [
+        {
+          "start": "005345a0",
+          "reference_sha256": "0ed03e1980345346379d377023ff7c21e7dfa80c328eb0cf9a29de709aa714dd",
+          "runtime_sha256": "7d2ca304719814fcdd63b5eb48a5dc8178cf0c13cb971717851b48c6962c2bbc"
+        }
+      ]
+    },
+    {
+      "address": "0053d030",
+      "name": "_HoldStrong::Map::Units::UnitsState::harassBuildingsWithSiegeAI",
+      "changed": [
+        {
+          "start": "0053d030",
+          "reference_sha256": "6580f18a7d2fbd54f4620816dd7f37c068f9cc5c3f26ee6735dacbdaaa84dae7",
+          "runtime_sha256": "bf35c48511be5180eb1d196ca3508cfae9a3f7646b421a3e2bc0eff2b548fdc5"
+        }
+      ]
+    },
+    {
+      "address": "0053d3d0",
+      "name": "_HoldStrong::Map::Units::UnitsState::setDestinationForUnit",
+      "changed": [
+        {
+          "start": "0053d3d0",
+          "reference_sha256": "ada7671fb15720effdc44f019300b941624b48a2848e9e8b5877a0fb0982cb21",
+          "runtime_sha256": "9d0d5913ba5643f7cc34d55e28f11ce4dd60e537be977908173240d5a86aa892"
+        }
+      ]
+    },
+    {
+      "address": "0053d900",
+      "name": "_HoldStrong::Map::Units::UnitsState::exitLadder",
+      "changed": [
+        {
+          "start": "0053d900",
+          "reference_sha256": "cecd078060cad1e9d5d50e291b3d4ca36db4aa785bc1fde07e933be070f702e6",
+          "runtime_sha256": "c49f32a9310a690b6ac1a2cc35bba5f04dfa20cd6a4159aefed98e062e5f1a8b"
+        }
+      ]
+    },
+    {
+      "address": "0053e440",
+      "name": "_HoldStrong::Map::Units::UnitsState::spawnUnit",
+      "changed": [
+        {
+          "start": "0053e440",
+          "reference_sha256": "da8037d823832ac60d84d9844668be94837dc925668329e924ae0027c62685af",
+          "runtime_sha256": "0e93d94bf22850d855e6c9aaf91f1754ca1bc5ba9baf1def313f2a7c52cbf896"
+        }
+      ]
+    },
+    {
+      "address": "00540440",
+      "name": "_HoldStrong::Global::UpdateHealer",
+      "changed": [
+        {
+          "start": "00540440",
+          "reference_sha256": "a7f4d1ed4fe77ace0cafece51b1026ac98e76d9126185b66c8124cf753d2f00f",
+          "runtime_sha256": "c05af64e3b44d8693723db798293b2556df762fbb15a42ef0ba43b408a92501b"
+        }
+      ]
+    },
+    {
+      "address": "00540ec0",
+      "name": "_HoldStrong::Global::UpdateInnkeeper",
+      "changed": [
+        {
+          "start": "00540ec0",
+          "reference_sha256": "16e00e226f2442a544733178d31dc114dea4d5f96a2b1f4ebe4c1f14b99551e0",
+          "runtime_sha256": "b112ca6c1097ba403702db388a12480ed43ce2e8187061d4111f9eef7dfd4f8e"
+        }
+      ]
+    },
+    {
+      "address": "005459b0",
+      "name": "_HoldStrong::Global::UpdateBatteringRam",
+      "changed": [
+        {
+          "start": "00545f00",
+          "reference_sha256": "ccc3ef97ed1f5910a1f4c5e7b16cafbdc878ffa5a3eb483c8a0ac7610b684b6c",
+          "runtime_sha256": "1904a756d4102fd549f7224cd4e9d47c011f1571151e9d8f337cc8f369eea880"
+        }
+      ]
+    },
+    {
+      "address": "00549b30",
+      "name": "_HoldStrong::Global::SetRestingForUnit",
+      "changed": [
+        {
+          "start": "00549b30",
+          "reference_sha256": "c390145acfb94a81de4a2a66aa1201fc6dbd57f02cc1eac93cd92c36bb8696f2",
+          "runtime_sha256": "c0db8f63d61d1ebb049d2c4979a54465f4ae01068e56ed96aae5b255f0bffb0d"
+        }
+      ]
+    },
+    {
+      "address": "0054b0d0",
+      "name": "_HoldStrong::Map::Units::UnitsState::acquireShootTarget",
+      "changed": [
+        {
+          "start": "0054b0d0",
+          "reference_sha256": "0f6892cc941f482ae6874f916a6b387843c6c40d85b1d11f04a3b3ae459ec93e",
+          "runtime_sha256": "dbdecf7a0fdf8c7212e406a8cd91b9a75b9378f356595bfb9967c2de75eb7c98"
+        }
+      ]
+    },
+    {
+      "address": "0054c1c0",
+      "name": "_HoldStrong::Map::Units::UnitsState::unitClimbing",
+      "changed": [
+        {
+          "start": "0054c1c0",
+          "reference_sha256": "0aec6156f4ab06a766d7e3bfd6a7d65aa3d7df869356cce174572c89dc8842d5",
+          "runtime_sha256": "c8d9c68bf4ae07567af6cbf22d7e62bf9aa06adc44380926a007e7e7f35fbc7d"
+        }
+      ]
+    },
+    {
+      "address": "0054d8f0",
+      "name": "_HoldStrong::Global::UpdateFletcher",
+      "changed": [
+        {
+          "start": "0054d8f0",
+          "reference_sha256": "c6c71dafeefe1cc4518520329b1b36c98276a14e5bb74d61410a7032597e9c09",
+          "runtime_sha256": "adc2e31ff60749cc0006c322d0e0104a3461b615d2bd6f1db02f61ca0e38c815"
+        }
+      ]
+    },
+    {
+      "address": "0054e6c0",
+      "name": "_HoldStrong::Global::UpdateTunneler",
+      "changed": [
+        {
+          "start": "0054e6c0",
+          "reference_sha256": "4fe706815c0859b1fcdcf1dd940d120824a38feb2fe2eacf8a89bd1c51ec0cc6",
+          "runtime_sha256": "ff86abd700fa2d3f954864822d5a79ec3c3c73f431b5b32aadd34518821b10d8"
+        }
+      ]
+    },
+    {
+      "address": "0054f860",
+      "name": "_HoldStrong::Global::UpdateHunter",
+      "changed": [
+        {
+          "start": "0054f860",
+          "reference_sha256": "e4344c43d7a1afaab055390e95e1fea33b299ef9692d40913ca4460ba95181b4",
+          "runtime_sha256": "8a9f225f0319b3dd2e744bef71a619542074158fd0fd8ee8d99186ff90a6c076"
+        }
+      ]
+    },
+    {
+      "address": "00550d70",
+      "name": "_HoldStrong::Global::UpdateQuarryWorker",
+      "changed": [
+        {
+          "start": "00550d70",
+          "reference_sha256": "ea6d4db245bcda24de815c0b277326f8a4ae36155b2fa4a049e125171596923f",
+          "runtime_sha256": "eb7964e0b68a8112a8b015bd059f462c2a9e18dcdb8ada08d15ecaa5c2cdaa1e"
+        }
+      ]
+    },
+    {
+      "address": "005521d0",
+      "name": "_HoldStrong::Global::UpdateWheatFarmer",
+      "changed": [
+        {
+          "start": "005521d0",
+          "reference_sha256": "46ba07892b00e86c73d5874d151de815256181c4641eecfcc5adf499bcf47b45",
+          "runtime_sha256": "b0d448f6328de51a68ad0140ad91ff62f83754a3d44b2dde9faf6dad59dd5b2d"
+        }
+      ]
+    },
+    {
+      "address": "00554500",
+      "name": "_HoldStrong::Global::UpdateDairyFarmer",
+      "changed": [
+        {
+          "start": "00554500",
+          "reference_sha256": "4c9a131a4502a5c98551989c84c131cce3d1bdd182277ee427631b220dd90729",
+          "runtime_sha256": "087033b276f8f8d397dcbb793a98fe2d8e85a549fc8e2c59e9da940b893343f7"
+        }
+      ]
+    },
+    {
+      "address": "00555880",
+      "name": "_HoldStrong::Global::UpdateBaker",
+      "changed": [
+        {
+          "start": "00555880",
+          "reference_sha256": "ed18292953727f5922a7362777046bddda54a3c3227bfc2d269e8f4bcbc3bb2a",
+          "runtime_sha256": "f65100b311159a84a32d21c89c6800b834ce7c05053196b94fdcb4e873c044a9"
+        }
+      ]
+    },
+    {
+      "address": "005565d0",
+      "name": "_HoldStrong::Global::UpdateBrewer",
+      "changed": [
+        {
+          "start": "005565d0",
+          "reference_sha256": "1146024fff868fe8a9575f732fe14c9ca8da8370f5b5cd0edb633c36f4560f40",
+          "runtime_sha256": "9e6c4bf55657e0a5f67c5aeb8c89803f5fc876a87ca677c932bbbbb12d184733"
+        }
+      ]
+    },
+    {
+      "address": "00557230",
+      "name": "_HoldStrong::Global::UpdatePoleTurner",
+      "changed": [
+        {
+          "start": "00557230",
+          "reference_sha256": "6e391e1025221c17e6bc243526c1c99c207576825cd9ed1b55c6844ae02136c7",
+          "runtime_sha256": "86f2750608151562a26d77691654eb0728dea60bf113e119bd28d2333d0e91e1"
+        }
+      ]
+    },
+    {
+      "address": "00557f70",
+      "name": "_HoldStrong::Global::UpdateBlacksmith",
+      "changed": [
+        {
+          "start": "00557f70",
+          "reference_sha256": "9c15a155b44c2007f580be639729d38451ee2a9cf0332fee8ab9b53be73ba948",
+          "runtime_sha256": "b01c3a5cf8f4553ff6a32e3cd9f37883ab53072012471b1cc52baa1f78a64f12"
+        }
+      ]
+    },
+    {
+      "address": "00558cb0",
+      "name": "_HoldStrong::Global::UpdateArmorer",
+      "changed": [
+        {
+          "start": "00558cb0",
+          "reference_sha256": "76debc0b973ccc6abb633ee6657b6b59fb5fa83890130cb8f7128890fe851b2e",
+          "runtime_sha256": "2a217ccb2dee67e20c1b955b0dd78d1a1e8ff6189efff81b467d8c49458a6431"
+        }
+      ]
+    },
+    {
+      "address": "005598d0",
+      "name": "_HoldStrong::Global::UpdateTanner",
+      "changed": [
+        {
+          "start": "005598d0",
+          "reference_sha256": "55d2ea89ecc9c20cbc9cc8a1188cf4d9fe26a0b6944c32f86b58e5296ecc16dc",
+          "runtime_sha256": "79907d6da021dd8fd3d9837982a96818c07fbcd84ede7a3cfc5e1b4f0ae4f42e"
+        }
+      ]
+    },
+    {
+      "address": "0055a800",
+      "name": "_HoldStrong::Global::UpdateCrusaderArcher",
+      "changed": [
+        {
+          "start": "0055a800",
+          "reference_sha256": "af82fc0b54a70ffdf549f0276f8f4cb4aeddfc1d30c4499d672131253952b8fe",
+          "runtime_sha256": "2f255927347abb2f7424dbc0ced6e2b786a7ce720fec0f10287bb92691f49415"
+        }
+      ]
+    },
+    {
+      "address": "0055c7b0",
+      "name": "_HoldStrong::Global::UpdateCrossbowman",
+      "changed": [
+        {
+          "start": "0055c7b0",
+          "reference_sha256": "d82773a6c1afe09d3f1aee7f3b213d53e43e3b0e244237b9e6d6dfd417857cfb",
+          "runtime_sha256": "de3a07f2cdde83f170ea7242d7c24fccfc8636fb357e298758c92212c145ada1"
+        }
+      ]
+    },
+    {
+      "address": "0055da50",
+      "name": "_HoldStrong::Global::UpdateSpearman",
+      "changed": [
+        {
+          "start": "0055da50",
+          "reference_sha256": "929c107d7e6463e1e1213558ec759ebd5da6696484ebdf872a6b6f8e15745508",
+          "runtime_sha256": "f105c68d8f099611cba4f8f3ef788d7c4e9fda50c058a5af7284c8014add40bd"
+        }
+      ]
+    },
+    {
+      "address": "0055f110",
+      "name": "_HoldStrong::Global::UpdatePikeman",
+      "changed": [
+        {
+          "start": "0055f110",
+          "reference_sha256": "be06e64a341dea4a72d9758ac0cb8b1d5cb2bd8d78ac18ec7762b1a7ee13b479",
+          "runtime_sha256": "f787b9b214f67a0bed9c08f69f684e10d4286f70ff25e43bf4538fcbfb03134b"
+        }
+      ]
+    },
+    {
+      "address": "00560700",
+      "name": "_HoldStrong::Global::UpdateMaceman",
+      "changed": [
+        {
+          "start": "00560700",
+          "reference_sha256": "962e0419ede8c31962ad79619847522fd266cc99544990aa040bb5890596b318",
+          "runtime_sha256": "af7ac85f108717663fb547f80d7c4bd340d963feb575cd3eeeed880f1bfa5477"
+        }
+      ]
+    },
+    {
+      "address": "00561c10",
+      "name": "_HoldStrong::Global::UpdateSwordsman",
+      "changed": [
+        {
+          "start": "00561c10",
+          "reference_sha256": "d05268e24e6031f4d6e25ef5dc2f8f4c925573fa6d19fb32c58b172f08a40e44",
+          "runtime_sha256": "6d198534fac4dbf240399f56c1a3f88c245615bbb0cedb07d1758f5e595c11ce"
+        }
+      ]
+    },
+    {
+      "address": "00562aa0",
+      "name": "_HoldStrong::Global::UpdateKnight",
+      "changed": [
+        {
+          "start": "00562aa0",
+          "reference_sha256": "fce7f2d64e64186f8002545018411aa029f8c879aad69873b8732e8d2b331f8f",
+          "runtime_sha256": "f5e9af7fb37c1b0618c7e7e9a1289b6a6823917aeb841ee5e2a41dcf83b175e2"
+        }
+      ]
+    },
+    {
+      "address": "00566010",
+      "name": "_HoldStrong::Global::UpdateMinerIronFetcher",
+      "changed": [
+        {
+          "start": "00566010",
+          "reference_sha256": "f1488fac2a6e0a75bc873de1397ad1380c65f7486f3ff4d1801551068fbeee76",
+          "runtime_sha256": "35fdf60c4591e6304f4ef44b0d1389a28a0a8a9d60e1c5705b74a73209643af9"
+        }
+      ]
+    },
+    {
+      "address": "00567640",
+      "name": "_HoldStrong::Global::UpdateMonk",
+      "changed": [
+        {
+          "start": "00567640",
+          "reference_sha256": "f0cb9d9bb45051978b4b70a3fae1db315ef6ccf7d30705fb8dadadd68a6db287",
+          "runtime_sha256": "3829db66b23e9fa3ebee9fabdcea2d7c8f8fc39fdb23523ffea0a20e16b125da"
+        }
+      ]
+    },
+    {
+      "address": "0056a3f0",
+      "name": "_HoldStrong::Global::UpdateMangonel",
+      "changed": [
+        {
+          "start": "0056a3f0",
+          "reference_sha256": "f2e13e45f263c50142a686e0a7569fc171304e95566d3ce51d67dc7e66fe7a2d",
+          "runtime_sha256": "9084d584f43118032011e8b5d10e3993b6601f5708bfa8af792849a46466bff9"
+        }
+      ]
+    },
+    {
+      "address": "0056c560",
+      "name": "_HoldStrong::Global::UpdateLord",
+      "changed": [
+        {
+          "start": "0056c560",
+          "reference_sha256": "e2914df43b6e22772092a7c8502ed841afda9ec2ae2cc5de142796ad1e9d9ec2",
+          "runtime_sha256": "1de249c8719e1077fd3c13a91d08b287e8d37f46f284f800b20bfd869dc7d7d7"
+        },
+        {
+          "start": "0056dac0",
+          "reference_sha256": "9162215a5acc5eba1ff204a7a04be2a6cab6f66e80a862191e84905bbf5724df",
+          "runtime_sha256": "0c6778c97ce9d9fe6b9d684e87bbba3c67b040db5db48746f37efd86c7301443"
+        }
+      ]
+    },
+    {
+      "address": "0056e190",
+      "name": "_HoldStrong::Global::UpdateJester",
+      "changed": [
+        {
+          "start": "0056e190",
+          "reference_sha256": "2ce542c59091ffad1d65418d8ed0929341d1a464fa95fa217759044cb9450f2c",
+          "runtime_sha256": "4ddb569032d4322f94240c2f64cdb77d44a683d08bf5f1a053a56e82c9eaf831"
+        }
+      ]
+    },
+    {
+      "address": "0056ecd0",
+      "name": "_HoldStrong::Global::UpdateBallista",
+      "changed": [
+        {
+          "start": "0056ecd0",
+          "reference_sha256": "42781c5ce1c65bfe6795b22ad3e1adc4627533566fdc242f87b62dac0b58b93c",
+          "runtime_sha256": "1ab86ce0460d7334e5c6c1b9d256279bb054ba1bdc6e093c2e27f24e45d04412"
+        }
+      ]
+    },
+    {
+      "address": "0056f9b0",
+      "name": "_HoldStrong::Global::UpdateCageDog",
+      "changed": [
+        {
+          "start": "0056f9b0",
+          "reference_sha256": "75098446a15b12feacad2796b038ea8f3f93380f927fc05cbad31ec7322f215c",
+          "runtime_sha256": "c8ada5bea57156201ae6115cd58eadf2bc34bbf4ecc26782e03076047bd93500"
+        }
+      ]
+    },
+    {
+      "address": "00570400",
+      "name": "_HoldStrong::Global::UpdateArabianArcher",
+      "changed": [
+        {
+          "start": "00570400",
+          "reference_sha256": "a350218254aeb634b25f56b5320dc06977d553c9e3ee6ee494d48d1fe51eab1d",
+          "runtime_sha256": "8cf6c3c9110b33c8b172bb04204c714b83c1b59eea899166a073d48074c72f93"
+        }
+      ]
+    },
+    {
+      "address": "00571c00",
+      "name": "_HoldStrong::Global::UpdateSlave",
+      "changed": [
+        {
+          "start": "00571c00",
+          "reference_sha256": "f6443b161323c1c3200a7bcffc2f7d87b8f88928f0a7bfabcb552d5fd9d892e4",
+          "runtime_sha256": "2d2d6a8407874d02801d3f9accc63c263b7497b5dbab6b4ccf12b1a597384dc9"
+        }
+      ]
+    },
+    {
+      "address": "00572e80",
+      "name": "_HoldStrong::Global::UpdateSlinger",
+      "changed": [
+        {
+          "start": "00572e80",
+          "reference_sha256": "8ddc160df92a1c14f4f752e7a03a3676e37a6dd12b91d4ed52dbf2fdb9a33635",
+          "runtime_sha256": "3a899e8e6611e0a780026b88851e493948f4f1129ea1b2746fab2d4106898e08"
+        }
+      ]
+    },
+    {
+      "address": "005744d0",
+      "name": "_HoldStrong::Global::UpdateAssassin",
+      "changed": [
+        {
+          "start": "005744d0",
+          "reference_sha256": "230f76348e3579c43aff987edcf6e0e6b84e07fba824e92e59adda74f7bdab42",
+          "runtime_sha256": "a2003eea5df927d8ea5770cc0ddc4e5724d24409746adb920639ac85b71f6c03"
+        }
+      ]
+    },
+    {
+      "address": "00575c40",
+      "name": "_HoldStrong::Global::UpdateArabianSwordsman",
+      "changed": [
+        {
+          "start": "00575c40",
+          "reference_sha256": "f12c454ae7bdb0d585cbb1f74b798e289d41d5faf2d724cdfc403d87069bb25b",
+          "runtime_sha256": "6d02a6e87fd2cb01720df49b9ab0bacd4ee142e47d629d2d12cea65f177e9009"
+        }
+      ]
+    },
+    {
+      "address": "005769f0",
+      "name": "_HoldStrong::Global::UpdateFireThrower",
+      "changed": [
+        {
+          "start": "005769f0",
+          "reference_sha256": "9c528d6e04f78bec40ad7845bc1ca118b37c9c3443b258b3aa5acd826a3766b9",
+          "runtime_sha256": "2e5eae2d498104cf9281582bd34325af3de2a52c24c431076a0f60cb41edefb9"
+        }
+      ]
+    },
+    {
+      "address": "00577cc0",
+      "name": "_HoldStrong::Global::UpdateFireBallista",
+      "changed": [
+        {
+          "start": "00577cc0",
+          "reference_sha256": "4ff6e32ddbafedb5113a6504bc816e45c9efc7f66ad782982d5c6f60a0afc0d0",
+          "runtime_sha256": "8a6dd8a9858e717e7814ce7e12550737d1af3dd626b6841ffc109a265f9744b5"
+        },
+        {
+          "start": "00578370",
+          "reference_sha256": "0d4cfceaf8e883baf4eb6bf1f791d130f7874d7f5829feda81056b61622c6e3b",
+          "runtime_sha256": "904c6a780626d786ad0f35b3e83a692bd16b028a537ffa9d4e682fe6964a8871"
+        }
+      ]
+    },
+    {
+      "address": "00578c40",
+      "name": "_HoldStrong::Map::Units::UnitsState::processUnitMove",
+      "changed": [
+        {
+          "start": "00578d90",
+          "reference_sha256": "8cdd7bdedeabd7b676f28ab2fde8d6c85c38576a8c344cf9c0c9caf9ec7dc716",
+          "runtime_sha256": "f1eb23c86a7b3356751f49e2a36779e7d8671a7b0aeffdd41a8c72e08d72bb8d"
+        }
+      ]
+    },
+    {
+      "address": "00579300",
+      "name": "_HoldStrong::Map::Units::UnitsState::updateUnits",
+      "changed": [
+        {
+          "start": "00579380",
+          "reference_sha256": "de580b1d4cfc372a4ff12ffd3170c40d5d28e22386c6387c98e3a0af5ce693f9",
+          "runtime_sha256": "8f1b7577442d85172933b81145d6cbe9596b2f884dcff5debeaf3f8ce8635b32"
+        }
+      ]
+    },
+    {
+      "address": "0057ab50",
+      "name": "_HoldStrong::Global::UpdateHorseArcher",
+      "changed": [
+        {
+          "start": "0057ab50",
+          "reference_sha256": "915232130d903e08c3bf3634f6d6bfd345835e23bfccb4193e258eab0b0d02af",
+          "runtime_sha256": "c7bb4f9a227512a477fa4a4fb6157fb75ee0189e421d6f437d473ef0baead74f"
+        }
+      ]
+    },
+    {
+      "address": "0057be10",
+      "name": "_HoldStrong::Global::WinMain",
+      "changed": [
+        {
+          "start": "0057be10",
+          "reference_sha256": "dc84e043f97ad885f8ebf5335eee49ecf80e1b0ead76079734f2fbb2e944dc0a",
+          "runtime_sha256": "a971ab4be77fd9dd2b37fa781ed601a788c0d58f25afdf7cb6cf07078e015f99"
+        }
+      ]
+    },
+    {
+      "address": "0057fcb2",
+      "name": "_HoldStrong::OS::_fclose",
+      "changed": [
+        {
+          "start": "0057fcb2",
+          "reference_sha256": "221f4318d4f46c1fd296401522be86dee64ee53cf53b3015a044fd12ae0dc942",
+          "runtime_sha256": "3aadab663c8d2a734b91affa48c7f856237b8f093bacab96f5697e5ac1c76bf9"
+        }
+      ]
+    },
+    {
+      "address": "0057ff34",
+      "name": "HoldStrong_lib::_fread_s",
+      "changed": [
+        {
+          "start": "0057ff34",
+          "reference_sha256": "79d22b8584f5aac6797b09523c62a615242d57eff119bd1750f9f7a26a9bce10",
+          "runtime_sha256": "b5e5127a71b702d77f23c72467c4df70b084e853ac9f4424a8b087e23c26fe3f"
+        }
+      ]
+    },
+    {
+      "address": "0058028f",
+      "name": "_HoldStrong::OS::_ftell",
+      "changed": [
+        {
+          "start": "0058028f",
+          "reference_sha256": "7f458ab9778f9b51f7547ea8d5d48c9e284bde092ede6188f58a12960141eaed",
+          "runtime_sha256": "a207419e7e0e1b52ee3f87f866fd88e060024bf786d2682e779ca21953eb51af"
+        }
+      ]
+    },
+    {
+      "address": "00580384",
+      "name": "_HoldStrong::OS::_fseek",
+      "changed": [
+        {
+          "start": "00580384",
+          "reference_sha256": "d899ee0fcf3a5feda977e3fd55008e1f4f2574f246186f030244d93c8a3b23c2",
+          "runtime_sha256": "3fab22d2c6a1d015da220457c429c2d87aeb262d2724c663aa9660e653ff5e17"
+        }
+      ]
+    },
+    {
+      "address": "00580409",
+      "name": "HoldStrong_lib::__fsopen",
+      "changed": [
+        {
+          "start": "00580409",
+          "reference_sha256": "81ddd9979e48107845fc313359a85a0934e9bc109b417a6c0bd311cff33745de",
+          "runtime_sha256": "2e6aef68cf22d3a9cd6c1145323865e700683410cbd53f500229880b5b8363e2"
+        }
+      ]
+    },
+    {
+      "address": "005804cd",
+      "name": "_HoldStrong::OS::_fopen",
+      "changed": [
+        {
+          "start": "005804cd",
+          "reference_sha256": "642e2c2db07c596280a886eb3549a162bfceae12fe766393bbd41f04e507f468",
+          "runtime_sha256": "2f628ea203f8f84f495c9af5a5cfec67b5d7b1b206c825a0b2ceebaf0181f6c6"
+        }
+      ]
+    },
+    {
+      "address": "00580735",
+      "name": "_HoldStrong::OS::_fgetwc",
+      "changed": [
+        {
+          "start": "00580735",
+          "reference_sha256": "10ac406942c303961e8595789b36d87606729e4e26d759ff631bd6ca09bb0ff7",
+          "runtime_sha256": "4da916bb728beb899c0e08f7963d81a21f187f92f2758b3eca53ec7ba91aa402"
+        }
+      ]
+    },
+    {
+      "address": "0058099b",
+      "name": "_HoldStrong::OS::_fwrite",
+      "changed": [
+        {
+          "start": "0058099b",
+          "reference_sha256": "9bafe2e920161eef61f386fd32453acda1c6722005c2465d35a0ab6dfc9325a2",
+          "runtime_sha256": "d76fb92df83b1a91f28ce64a2eda046c4d5e382c3d8be24d55c031b6ed4e65ff"
+        }
+      ]
+    },
+    {
+      "address": "00580f38",
+      "name": "_HoldStrong::OS::_ucrt_close",
+      "changed": [
+        {
+          "start": "00580f38",
+          "reference_sha256": "00c57d240e5b15d50e60f9a2a9dcae7202a7ccf4fcc6ddb078a86f0a016100d2",
+          "runtime_sha256": "83b375de2b28601126c7392cb0e39c8e7da971fc463925cbeff379f0c72c125e"
+        }
+      ]
+    },
+    {
+      "address": "005815c6",
+      "name": "_HoldStrong::OS::_ucrt_read",
+      "changed": [
+        {
+          "start": "005815c6",
+          "reference_sha256": "b6aad136660d1ff54b7f0891ab3bbed40177655f6dce2a27e641ec966bcfb570",
+          "runtime_sha256": "87e5179665c443d61e114074c2985270e443586cbcbf533485a3cb0356dd2050"
+        }
+      ]
+    },
+    {
+      "address": "005816c3",
+      "name": "_HoldStrong::OS::_ucrt_open",
+      "changed": [
+        {
+          "start": "005816c3",
+          "reference_sha256": "6903eca73b3bcded062ff3dcbe74fc9a1d186bc79920e0f3c2a03bb1b1b61ce2",
+          "runtime_sha256": "24293b9e8d5441f9949db8b119a8c465d254fc7f0ce7a368e3cf2b1be3b7bc78"
+        }
+      ]
+    },
+    {
+      "address": "00581f6f",
+      "name": "_HoldStrong::OS::_ucrt_write",
+      "changed": [
+        {
+          "start": "00581f6f",
+          "reference_sha256": "6c28eabbf2a055033df0f5ab81ea952a69abcc35d8e839f431fa973b16475721",
+          "runtime_sha256": "b466ce316677169f3fbb6f3864d176efe0b20b085ecf019148bbc76b4c871711"
+        }
+      ]
+    },
+    {
+      "address": "0058277e",
+      "name": "_HoldStrong::OS::_ucrt_lseek",
+      "changed": [
+        {
+          "start": "0058277e",
+          "reference_sha256": "88479124446fca95c20f07ec1731e5e9aa9f2e51d0d5ee1c5483adb16fa899d7",
+          "runtime_sha256": "658b148bbab4693ab76df23c872b6af26a0cb8cc8324cfa033d13fccf04ef555"
+        }
+      ]
+    },
+    {
+      "address": "005831be",
+      "name": "HoldStrong_lib::_flsall",
+      "changed": [
+        {
+          "start": "005831be",
+          "reference_sha256": "f153ff13600f9a84e2877ef298c455156a993a1c38906227ef37c892a7b71414",
+          "runtime_sha256": "3f4dc123195d5d4a04b64dec2e95d87a463d2db44cd05f0130d42fb692768adc"
+        }
+      ]
+    },
+    {
+      "address": "00583298",
+      "name": "HoldStrong_lib::_fflush",
+      "changed": [
+        {
+          "start": "00583298",
+          "reference_sha256": "64263859fe995b80217d8ecf6bd7c47e11c87abc428c8edbf1a87e643b734f0d",
+          "runtime_sha256": "02ac9034a2d856f1b169258a98051cbd2e7cacccc9cc74c24a64b44f1ac0493e"
+        }
+      ]
+    },
+    {
+      "address": "005833f2",
+      "name": "HoldStrong_lib::_fgetpos",
+      "changed": [
+        {
+          "start": "005833f2",
+          "reference_sha256": "374f5c02d1b65232ab75403bb3769f754d6db510cc487acedb6153b57eddf94f",
+          "runtime_sha256": "aaa08c48b8956927b1fef3dfe0b5e5af1f071b48db4f6efac77f9188580135d0"
+        }
+      ]
+    },
+    {
+      "address": "0058345d",
+      "name": "HoldStrong_lib::_fsetpos",
+      "changed": [
+        {
+          "start": "0058345d",
+          "reference_sha256": "3ae9d72704f4eba381b9ad1f2b5404f34d6b12fb2b6b31798e5087793a5d2357",
+          "runtime_sha256": "2f3852110a0147abc269f8e26ac18af16f93edae5a4b017e83dc35fceb482f04"
+        }
+      ]
+    },
+    {
+      "address": "00584026",
+      "name": "entry",
+      "changed": [
+        {
+          "start": "00584026",
+          "reference_sha256": "388f118c7bfbe9cb22ced479f16ce1470f72f5ab8b3b28bce623c70ad93f956b",
+          "runtime_sha256": "1d11bf4434c4a3d2496ba70ed23e6d6e6b607e457a0a2bcc6a32e1ca509b871f"
+        }
+      ]
+    },
+    {
+      "address": "0058c4cb",
+      "name": "HoldStrong_lib::__fileno",
+      "changed": [
+        {
+          "start": "0058c4cb",
+          "reference_sha256": "4b973c761754b10e695c0c4cde71f0cf68c4407491236afbacb5edf424f334ab",
+          "runtime_sha256": "456d5e80abd7277c0afee422e369e517fd5cf4c4bd80f30bb9eb998a33cbb3ff"
+        }
+      ]
+    },
+    {
+      "address": "0059c9a0",
+      "name": "_HoldStrong::Global::Init::Constructor_TextureRenderingCore",
+      "changed": [
+        {
+          "start": "0059c9a0",
+          "reference_sha256": "f97ef1f1d305bf734b6f080a10aa3344ca9dd0e81fc557ec86a2fe94bd6b7e69",
+          "runtime_sha256": "b89ccd62f65fa3b66ad21e5bb74aacf1e60ee9a086dda1474bfea09773d68898"
+        }
+      ]
+    }
+  ],
+  "mask_sha256": "f17e0872fb95acc14846213640c55029b521422802307d3d987733d051de36ed",
+  "valid_cells": 78804,
+  "mode": "fresh-menu-start; paused observation; no policy performance claim"
+}

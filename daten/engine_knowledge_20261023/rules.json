@@ -1,0 +1,121 @@
+[
+  {
+    "id": "EK-001",
+    "recorded_on": "2026-10-23",
+    "status": "confirmed",
+    "scope": "Unsigned coordinate predicate only; isolated original machine code on captured live input. Not native in-game invocation or reachability.",
+    "reference_sha256": "3bb0a8c1e72331b3a30a5aa93ed94beca0081b476b04c1960e26d5b45387ac5a",
+    "function_sha256": "1ffb330c5b1089e33cbbc4b2c64cf1c9163c8831659326dbfeca184c43aa9566",
+    "address": "00401000",
+    "rule": "x<400 and y<400 and renderer_mask[400*y+x] != 0",
+    "inputs": [
+      "u32 x",
+      "u32 y",
+      "160000-byte renderer mask at this+0xc0"
+    ],
+    "outputs": [
+      "0 or 1"
+    ],
+    "state_dependencies": [
+      "caller this pointer; mask bytes"
+    ],
+    "side_effects": [],
+    "preconditions": [
+      "Reviewed 54-byte function fingerprint",
+      "32-bit thiscall",
+      "valid 160000-byte mask memory"
+    ],
+    "boundaries": [
+      "400 excluded",
+      "negative signed values interpreted as large unsigned values => false",
+      "any nonzero byte is true, including 128 and 255"
+    ],
+    "counterexamples": [
+      "Coordinates inside 400x400 square can be invalid",
+      "x and y cannot be exchanged"
+    ],
+    "static_evidence": "exports/reference/functions/00401000.json",
+    "runtime_observation": "evidence\\live-20261023_180848\\state.json",
+    "original_comparison": "evidence/viewport-comparison.json",
+    "decisions": [
+      "Reject invalid map coordinates before any action; cannot authorize movement or firing"
+    ],
+    "tests": [
+      "scripts/viewport_original_compare.rs",
+      "test_pipeline.py"
+    ],
+    "evidence_files": [
+      {
+        "path": "evidence\\live-20261023_180848\\state.json",
+        "sha256": "a8ba02e88af15f78ca4fb20f3f7c6fe7719580104b2fbab728369952f1f78b15"
+      },
+      {
+        "path": "evidence\\live-20261023_180848\\xy-original.bin",
+        "sha256": "1ffb330c5b1089e33cbbc4b2c64cf1c9163c8831659326dbfeca184c43aa9566"
+      },
+      {
+        "path": "evidence\\live-20261023_180848\\viewport-mask.bin",
+        "sha256": "f17e0872fb95acc14846213640c55029b521422802307d3d987733d051de36ed"
+      },
+      {
+        "path": "evidence\\viewport-comparison.json",
+        "sha256": "e3b64f3802ba9647ebd6ed749eb5a267a1a4b41adba6843ba576ca4821c43cfb"
+      }
+    ]
+  },
+  {
+    "id": "EK-002",
+    "recorded_on": "2026-10-23",
+    "status": "partially_confirmed",
+    "scope": "Static examination only; no original runtime comparison of navigation semantics.",
+    "reference_sha256": "3bb0a8c1e72331b3a30a5aa93ed94beca0081b476b04c1960e26d5b45387ac5a",
+    "function_sha256": "9a597c869bfc3a676a9f071d51bf457bf9b35af96cf02521780cbb58bbf33d44",
+    "address": "004a5320",
+    "rule": "The navigation query can write global scratch/state fields; it is not generally side-effect-free as the existing Rust comment states.",
+    "inputs": [
+      "playerID",
+      "fromArea",
+      "toArea",
+      "permitClimb",
+      "PathFindingState"
+    ],
+    "outputs": [
+      "integer area-like result; nonzero is not a shortest-path proof"
+    ],
+    "state_dependencies": [
+      "team membership",
+      "climbData",
+      "building state",
+      "shared navigation scratch fields"
+    ],
+    "side_effects": [
+      "DAT_Test_likely increment",
+      "field50_0x98 writes",
+      "field63_0xc0 writes"
+    ],
+    "preconditions": [
+      "Interpret exact version and loaded patches first"
+    ],
+    "boundaries": [
+      "Equal areas return fromArea directly",
+      "If unequal and either is zero, return zero",
+      "Parameter-direction comment in reference remains uncertain"
+    ],
+    "counterexamples": [
+      "Existing crates/samurai-kern/src/wege.rs comment says no side effect; stores in the exported assembly contradict unrestricted purity"
+    ],
+    "static_evidence": "exports/reference/functions/004a5320.json",
+    "runtime_observation": null,
+    "decisions": [
+      "Do not run this query concurrently or memoize it as a pure operation without further evidence",
+      "Reachability does not itself establish action completion"
+    ],
+    "tests": [],
+    "evidence_files": [
+      {
+        "path": "exports\\reference\\functions\\004a5320.json",
+        "sha256": "cf3e21091366f372c1e4d65cca9fc5cc79322aa9402c7b96fdd31a9a836ef5c5"
+      }
+    ]
+  }
+]

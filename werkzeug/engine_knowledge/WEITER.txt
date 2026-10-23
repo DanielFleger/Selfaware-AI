@@ -1,0 +1,71 @@
+Engine-Wissensbasis — 23.10.2026 — B-211
+
+Arbeitsstand, keine Behauptung vollstaendigen Spielverstaendnisses.
+Der lokale Arbeitsordner ist C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge.
+Das Spiel wurde frisch ueber den nativen Menuekanal gestartet, stummgeschaltet und bei Tick 8 pausiert.
+Es gab keine Maus-/Tastatureingaben, keine geladenen Spielstaende und keinen Strategie- oder Siegtest.
+
+Nachgewiesen:
+  4.581 interne Funktionen maschinell erfasst und disassembliert;
+  4.580 davon dekompiliert, Fehler bei 004d76a0 separat erfasst;
+  184 externe Funktionsdeklarationen separat, nicht als dekompilierte Implementierungen gezaehlt;
+  7.564 Kommentare erhalten, 1.881 vorhandene Instruktionen ohne Funktionszuordnung separat;
+  1.747 indirekte Kontrollfluss-Instruktionen (NICHT gleich 1.747 unaufgeloeste Aufrufe);
+  alle 4.581 Koerper bytegleich mit der untersuchten EXE auf Platte;
+  im frischen laufenden Spiel 157 Koerper abweichend, 4.424 unveraendert.
+  Zwei Funktionen eng semantisch untersucht, eine Regel mit Gegenproben bestaetigt.
+
+EK-001: Koordinatenmaske, kein Wegfindungsbeweis. Rust-Modul gegen exakt gepruefte
+54 Originalbytes in einem isolierten 32-Bit-Prozess verglichen: 160.070 Vergleiche,
+null Abweichungen, Rechteck- und Achsenvertauschungs-Gegenprobe. Maske und Code stammen
+aus der frischen Partie. Kein Aufruf dieser Funktion im Spiel durch diesen Test.
+EK-002: Navigation schreibt globale Hilfsfelder. Der Kommentar 'keine Nebenwirkung'
+im vorhandenen Rust-Kern ist in dieser Allgemeinheit durch den statischen Code widerlegt.
+Keine Aenderung am laufenden Kern; Wirkung und Konkurrenzverhalten bleiben offen.
+
+REA 6.7.0 aus npm lokal getestet, Ghidra 12.1.2: x86-PE, Assembler, Pseudocode und
+Querverweise funktionieren. REA meldet begrenzte Aufruferabdeckung. Sein Neuimport hat
+die vorhandenen OpenSHC-Namen nicht; deshalb bleibt die annotierte Projektkopie die Hauptquelle.
+FilmCraft ist fuer diese Pipeline weder Abhaengigkeit noch Vollstaendigkeitsbeleg.
+
+Start fuer die Fortsetzung (PowerShell, in diesem Arbeitsordner):
+  .\verify.ps1
+  python pipeline.py query calculateCanPlayerUnitsNavigateToAreaFromArea
+  python pipeline.py rule EK-002
+  python pipeline.py query climb
+  python pipeline.py export 0
+  python pipeline.py index
+  python -m unittest discover -s . -p test_pipeline.py -v
+
+exports/reference/ enthaelt Rohbelege; knowledge.sqlite enthaelt functions, refs,
+search (Volltext) und rules. Gezielte SQL-Abfragen sind lokal moeglich.
+rules.json nennt Eingaben, Ausgaben, Version, Seiteneffekte, Grenzen, Gegenbeispiele,
+Tests, Entscheidungsbezug und Belegdateien. Geaenderte Belegpruefsummen machen Regeln stale.
+remaining.json ordnet die offenen sechs taktischen Problemfaelle und die Programmrestluecken.
+evidence/coverage.json trennt die vier Belegstufen. Fehlstellen sind keine 'Abdeckung'.
+evidence/inventory.json inventarisiert Dateien, liest aber nicht alle Dokumente semantisch.
+
+Originale bleiben erhalten. projects/OpenSHC-ref ist die Arbeitskopie, der Export
+laeuft mit -readOnly -noanalysis. Annotationen sind mit ApplyKnowledgeAnnotations.java
+getestet; der Test verwirft Aenderungen. Fuer eine bewusste Anwendung nur in der Kopie
+-readOnly weglassen, annotations.json zuvor pruefen. Bestehender Name, Kommentar,
+Datei- und Funktionshash muessen passen. Import neuer Typen ist noch nicht implementiert;
+vorhandene Typen bleiben in der Projektkopie und im Typenexport erhalten.
+
+Wichtige verbleibende Grenzen:
+  - Noch keine Originalvergleiche fuer Assassinenumweg, Reiterreichweite, Hoehenpendeln,
+    Gebaeudedurchbruch, Umweg nach Sieg oder Bauplatz-Wiederholung in diesem Auftrag.
+  - Noch keine Integration der Mechanikregeln in den aktiven Entscheider.
+  - Geaenderte Ghidra-Projektinhalte invalidieren konservativ den Gesamtexport.
+    Selektive Invalidierung entlang des Abhaengigkeitsgraphen ist noch offen.
+  - Bibliothekscode/Code-Daten-Grenzen und indirekte Ziele nicht vollstaendig klassifiziert.
+  - Gesamte Rohdaten, kommerzielle EXE und Projektkopie bleiben lokal.
+  - Die pausierte Beobachtung ist keine abgeschlossene Trainingspartie; keinen Sieg,
+    Verlust oder Strategiegewinn daraus ableiten.
+
+Bei Wiederverwendung aus der versionierten Werkzeugkopie vorher setzen:
+  $env:SHC_KNOWLEDGE_ROOT='C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge'
+
+Abnahme erster Durchlauf: echte binaere Quelle -> kopiertes Ghidra -> durchsuchbarer
+Index -> enger statischer Beleg -> frische Spielbeobachtung -> isolierter Originalvergleich.
+Gesamtauftrag und Sitzung 2 bleiben B-211 in_arbeit.
