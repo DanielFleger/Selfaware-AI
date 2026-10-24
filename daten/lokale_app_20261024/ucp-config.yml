@@ -1,0 +1,2027 @@
+meta:
+  version: 1.0.0
+active: true
+config-sparse:
+  modules:
+    selfaware-runtime:
+      config: {}
+    aiSwapper:
+      config:
+        ai:
+          abbot:
+            lines:
+              contents:
+                value:
+                  name: SamurAI
+                  root: ucp/plugins/Selfaware-AI-0.1.0/resources/ai/SamurAI/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: SamurAI
+                  root: ucp/plugins/Selfaware-AI-0.1.0/resources/ai/SamurAI/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: SamurAI
+                  root: ucp/plugins/Selfaware-AI-0.1.0/resources/ai/SamurAI/
+                  active: true
+  plugins:
+    Mod-KI-Team-Liga:
+      config: {}
+    Selfaware-AI:
+      config: {}
+  load-order:
+  - extension: Mod-KI-Team-Liga
+    version: 2.0.2
+  - extension: selfaware-runtime
+    version: 0.1.0
+  - extension: Selfaware-AI
+    version: 0.1.0
+config-full:
+  modules:
+    ucp2-legacy:
+      config:
+        ai_access:
+          enabled:
+            contents:
+              value: true
+        ai_assaultswitch:
+          enabled:
+            contents:
+              value: true
+        ai_buywood:
+          enabled:
+            contents:
+              value: true
+        ai_defense:
+          enabled:
+            contents:
+              value: true
+        ai_fix_crusader_archers_pitch:
+          enabled:
+            contents:
+              value: true
+        ai_fix_laddermen_with_enclosed_keep:
+          enabled:
+            contents:
+              value: true
+        ai_nosleep:
+          enabled:
+            contents:
+              value: true
+        ai_rebuild:
+          enabled:
+            contents:
+              value: true
+        ai_tethers:
+          enabled:
+            contents:
+              value: false
+        ai_towerengines:
+          enabled:
+            contents:
+              value: true
+        ai_housing:
+          build_housing:
+            contents:
+              value:
+                enabled: true
+                sliderValue: 5
+          campfire_housing:
+            contents:
+              value:
+                enabled: true
+                sliderValue: 8
+          delete_housing:
+            enabled:
+              contents:
+                value: true
+        ai_resources_rebuy:
+          flour:
+            contents:
+              value:
+                enabled: true
+                sliderValue: 2
+          iron:
+            contents:
+              value:
+                enabled: true
+                sliderValue: 2
+          wood:
+            contents:
+              value:
+                enabled: true
+                sliderValue: 2
+        ai_demolish:
+          ai_demolish_walls:
+            enabled:
+              contents:
+                value: true
+          ai_demolish_trapped:
+            enabled:
+              contents:
+                value: true
+          ai_demolish_eco:
+            enabled:
+              contents:
+                value: true
+        ai_addattack:
+          contents:
+            value:
+              enabled: true
+              choice: relative
+              choices:
+                absolute:
+                  slider: 5
+                relative:
+                  slider: 1
+        ai_attacklimit:
+          contents:
+            value:
+              enabled: true
+              sliderValue: 3000
+        ai_attacktarget:
+          contents:
+            value:
+              enabled: false
+              choice: ''
+        ai_attackwave:
+          contents:
+            value:
+              enabled: true
+              sliderValue: 7
+        ai_recruitinterval:
+          enabled:
+            contents:
+              value: false
+        ai_recruitstate_initialtimer:
+          contents:
+            value:
+              enabled: true
+              sliderValue: 0
+        fix_apple_orchard_build_size:
+          enabled:
+            contents:
+              value: true
+        o_firecooldown:
+          contents:
+            value:
+              enabled: false
+              sliderValue: 2000
+        o_freetrader:
+          enabled:
+            contents:
+              value: false
+        o_healer:
+          enabled:
+            contents:
+              value: true
+        o_responsivegates:
+          enabled:
+            contents:
+              value: true
+        o_shfy:
+          o_shfy_beer:
+            enabled:
+              contents:
+                value: false
+          o_shfy_religion:
+            enabled:
+              contents:
+                value: false
+          o_shfy_peasantspawnrate:
+            enabled:
+              contents:
+                value: false
+          o_shfy_resourcequantity:
+            enabled:
+              contents:
+                value: false
+        u_arabwall:
+          enabled:
+            contents:
+              value: true
+        u_arabxbow:
+          enabled:
+            contents:
+              value: false
+        u_laddermen:
+          enabled:
+            contents:
+              value: false
+        u_spearmen:
+          enabled:
+            contents:
+              value: false
+        u_spearmen_run:
+          enabled:
+            contents:
+              value: false
+        o_fix_map_sending:
+          enabled:
+            contents:
+              value: true
+        o_fix_rapid_deletion_bug:
+          enabled:
+            contents:
+              value: true
+        o_fix_baker_disappear:
+          enabled:
+            contents:
+              value: true
+        o_fix_fletcher_bug:
+          enabled:
+            contents:
+              value: true
+        o_fix_ladderclimb:
+          enabled:
+            contents:
+              value: true
+        o_fix_moat_digging_unit_disappearing:
+          enabled:
+            contents:
+              value: true
+        o_restore_arabian_engineer_speech:
+          enabled:
+            contents:
+              value: true
+        u_fireballistafix:
+          enabled:
+            contents:
+              value: true
+        u_fix_applefarm_blocking:
+          enabled:
+            contents:
+              value: true
+        u_fix_lord_animation_stuck_movement:
+          enabled:
+            contents:
+              value: true
+        u_tanner_fix:
+          enabled:
+            contents:
+              value: true
+        o_change_siege_engine_spawn_position_catapult:
+          enabled:
+            contents:
+              value: true
+        o_increase_path_update_tick_rate:
+          enabled:
+            contents:
+              value: true
+        o_onlyai:
+          enabled:
+            contents:
+              value: true
+        o_override_identity_menu:
+          enabled:
+            contents:
+              value: true
+        o_playercolor:
+          contents:
+            value:
+              enabled: false
+              choice: red
+        o_stop_player_keep_rotation:
+          enabled:
+            contents:
+              value: false
+        o_xtreme:
+          enabled:
+            contents:
+              value: true
+        o_armory_marketplace_weapon_order_fix:
+          enabled:
+            contents:
+              value: false
+        o_fast_placing:
+          enabled:
+            contents:
+              value: true
+        o_default_multiplayer_speed:
+          contents:
+            value:
+              enabled: false
+              sliderValue: 50
+        o_engineertent:
+          enabled:
+            contents:
+              value: true
+        o_gamespeed:
+          enabled:
+            contents:
+              value: true
+        o_keys:
+          enabled:
+            contents:
+              value: false
+        o_moatvisibility:
+          enabled:
+            contents:
+              value: true
+    aicloader:
+      config:
+        failureHandling:
+          contents:
+            value: ERROR_LOG
+    ai-ox-tethers:
+      config:
+        oxtethers:
+          enabled:
+            contents:
+              value: true
+          mode:
+            contents:
+              value: use_aic
+          parameters:
+            disableInitialOxTether:
+              contents:
+                value: true
+            maxOxTethers:
+              contents:
+                value: 10
+            dynamicMaxOxTethers:
+              contents:
+                value: 3
+            maximumOxTethersPerQuarry:
+              contents:
+                value: 6
+            minimumOxTethersPerQuarry:
+              contents:
+                value: 1
+            thresholdStoneLoad:
+              contents:
+                value: 20
+          logic:
+            dynamic:
+              contents:
+                value: true
+          log:
+            contents:
+              value:
+                enabled: false
+                sliderValue: 2
+    graphicsApiReplacer:
+      config:
+        window:
+          type:
+            contents:
+              value: borderlessFullscreen
+          width:
+            contents:
+              value: 1280
+          height:
+            contents:
+              value: 720
+          pos:
+            contents:
+              value: middle
+          continueOutOfFocus:
+            contents:
+              value: render
+          minimizeOnLostFocus:
+            contents:
+              value: false
+        graphic:
+          api:
+            contents:
+              value: DirectX
+          filterLinear:
+            contents:
+              value: true
+          vsync:
+            contents:
+              value: true
+          waitWithGLFinish:
+            contents:
+              value: false
+          pixFormat:
+            contents:
+              value: argb1555
+          debug:
+            contents:
+              value: none
+        control:
+          clipCursor:
+            contents:
+              value: true
+          scrollActive:
+            contents:
+              value: true
+          margin:
+            contents:
+              value: 0
+          padding:
+            contents:
+              value: 0
+    rebalancer:
+      config:
+        balance_config_file_selector:
+          contents:
+            value: ucp/plugins/Mod-KI-Team-Liga-*/resources/balance/liga_ai.json
+    running-units:
+      config:
+        macemen:
+          running:
+            general:
+              contents:
+                value: true
+            ai:
+              contents:
+                value: aic_run_if_not_defined
+        slingers:
+          running:
+            general:
+              contents:
+                value: true
+            ai:
+              contents:
+                value: aic_run_if_not_defined
+        slaves:
+          running:
+            general:
+              contents:
+                value: true
+            ai:
+              contents:
+                value: aic_run_if_not_defined
+        spearmen:
+          running:
+            general:
+              contents:
+                value: true
+            ai:
+              contents:
+                value: aic_run_if_not_defined
+    startResources:
+      config:
+        startGold:
+          normal:
+            majorHumanAdvantage:
+              human:
+                contents:
+                  value: 8000
+              computer:
+                contents:
+                  value: 2000
+            minorHumanAdvantage:
+              human:
+                contents:
+                  value: 4000
+              computer:
+                contents:
+                  value: 2000
+            noAdvantage:
+              human:
+                contents:
+                  value: 0
+              computer:
+                contents:
+                  value: 150
+            minorComputerAdvantage:
+              human:
+                contents:
+                  value: 0
+              computer:
+                contents:
+                  value: 1000
+            majorComputerAdvantage:
+              human:
+                contents:
+                  value: 0
+              computer:
+                contents:
+                  value: 5000
+          crusader:
+            majorHumanAdvantage:
+              human:
+                contents:
+                  value: 8000
+              computer:
+                contents:
+                  value: 2000
+            minorHumanAdvantage:
+              human:
+                contents:
+                  value: 4000
+              computer:
+                contents:
+                  value: 2000
+            noAdvantage:
+              human:
+                contents:
+                  value: 2000
+              computer:
+                contents:
+                  value: 2000
+            minorComputerAdvantage:
+              human:
+                contents:
+                  value: 2000
+              computer:
+                contents:
+                  value: 4000
+            majorComputerAdvantage:
+              human:
+                contents:
+                  value: 2000
+              computer:
+                contents:
+                  value: 8000
+          deathmatch:
+            majorHumanAdvantage:
+              human:
+                contents:
+                  value: 40000
+              computer:
+                contents:
+                  value: 3000
+            minorHumanAdvantage:
+              human:
+                contents:
+                  value: 20000
+              computer:
+                contents:
+                  value: 7000
+            noAdvantage:
+              human:
+                contents:
+                  value: 10000
+              computer:
+                contents:
+                  value: 10000
+            minorComputerAdvantage:
+              human:
+                contents:
+                  value: 7000
+              computer:
+                contents:
+                  value: 20000
+            majorComputerAdvantage:
+              human:
+                contents:
+                  value: 3000
+              computer:
+                contents:
+                  value: 40000
+        startGoods:
+          normal:
+            wood:
+              contents:
+                value: 150
+            hop:
+              contents:
+                value: 0
+            stone:
+              contents:
+                value: 0
+            iron:
+              contents:
+                value: 0
+            pitch:
+              contents:
+                value: 0
+            wheat:
+              contents:
+                value: 0
+            bread:
+              contents:
+                value: 15
+            cheese:
+              contents:
+                value: 15
+            meat:
+              contents:
+                value: 15
+            fruit:
+              contents:
+                value: 15
+            beer:
+              contents:
+                value: 0
+            flour:
+              contents:
+                value: 0
+            bows:
+              contents:
+                value: 0
+            crossbows:
+              contents:
+                value: 0
+            spears:
+              contents:
+                value: 0
+            pikes:
+              contents:
+                value: 0
+            maces:
+              contents:
+                value: 0
+            swords:
+              contents:
+                value: 0
+            leatherarmor:
+              contents:
+                value: 0
+            metalarmor:
+              contents:
+                value: 0
+          crusader:
+            wood:
+              contents:
+                value: 100
+            hop:
+              contents:
+                value: 0
+            stone:
+              contents:
+                value: 50
+            iron:
+              contents:
+                value: 0
+            pitch:
+              contents:
+                value: 0
+            wheat:
+              contents:
+                value: 0
+            bread:
+              contents:
+                value: 60
+            cheese:
+              contents:
+                value: 0
+            meat:
+              contents:
+                value: 0
+            fruit:
+              contents:
+                value: 0
+            beer:
+              contents:
+                value: 0
+            flour:
+              contents:
+                value: 0
+            bows:
+              contents:
+                value: 0
+            crossbows:
+              contents:
+                value: 0
+            spears:
+              contents:
+                value: 0
+            pikes:
+              contents:
+                value: 0
+            maces:
+              contents:
+                value: 0
+            swords:
+              contents:
+                value: 0
+            leatherarmor:
+              contents:
+                value: 0
+            metalarmor:
+              contents:
+                value: 0
+          deathmatch:
+            wood:
+              contents:
+                value: 150
+            hop:
+              contents:
+                value: 20
+            stone:
+              contents:
+                value: 150
+            iron:
+              contents:
+                value: 25
+            pitch:
+              contents:
+                value: 48
+            wheat:
+              contents:
+                value: 25
+            bread:
+              contents:
+                value: 200
+            cheese:
+              contents:
+                value: 0
+            meat:
+              contents:
+                value: 0
+            fruit:
+              contents:
+                value: 0
+            beer:
+              contents:
+                value: 10
+            flour:
+              contents:
+                value: 0
+            bows:
+              contents:
+                value: 0
+            crossbows:
+              contents:
+                value: 0
+            spears:
+              contents:
+                value: 0
+            pikes:
+              contents:
+                value: 0
+            maces:
+              contents:
+                value: 0
+            swords:
+              contents:
+                value: 0
+            leatherarmor:
+              contents:
+                value: 0
+            metalarmor:
+              contents:
+                value: 0
+        startTroops:
+          crusader:
+            normal:
+              EuropArcher:
+                contents:
+                  value: 5
+              Crossbowman:
+                contents:
+                  value: 0
+              Spearman:
+                contents:
+                  value: 7
+              Pikeman:
+                contents:
+                  value: 0
+              Maceman:
+                contents:
+                  value: 0
+              Swordsman:
+                contents:
+                  value: 0
+              Knight:
+                contents:
+                  value: 0
+              Engineer:
+                contents:
+                  value: 0
+              Monk:
+                contents:
+                  value: 0
+              ArabArcher:
+                contents:
+                  value: 0
+              Slave:
+                contents:
+                  value: 0
+              Slinger:
+                contents:
+                  value: 0
+              Assassin:
+                contents:
+                  value: 0
+              HorseArcher:
+                contents:
+                  value: 0
+              ArabSwordsman:
+                contents:
+                  value: 0
+              FireThrower:
+                contents:
+                  value: 0
+              FireBallista:
+                contents:
+                  value: 0
+            crusader:
+              EuropArcher:
+                contents:
+                  value: 40
+              Crossbowman:
+                contents:
+                  value: 0
+              Spearman:
+                contents:
+                  value: 0
+              Pikeman:
+                contents:
+                  value: 0
+              Maceman:
+                contents:
+                  value: 0
+              Swordsman:
+                contents:
+                  value: 10
+              Knight:
+                contents:
+                  value: 4
+              Engineer:
+                contents:
+                  value: 0
+              Monk:
+                contents:
+                  value: 0
+              ArabArcher:
+                contents:
+                  value: 0
+              Slave:
+                contents:
+                  value: 0
+              Slinger:
+                contents:
+                  value: 0
+              Assassin:
+                contents:
+                  value: 0
+              HorseArcher:
+                contents:
+                  value: 0
+              ArabSwordsman:
+                contents:
+                  value: 0
+              FireThrower:
+                contents:
+                  value: 0
+              FireBallista:
+                contents:
+                  value: 0
+            deathmatch:
+              EuropArcher:
+                contents:
+                  value: 5
+              Crossbowman:
+                contents:
+                  value: 0
+              Spearman:
+                contents:
+                  value: 7
+              Pikeman:
+                contents:
+                  value: 0
+              Maceman:
+                contents:
+                  value: 0
+              Swordsman:
+                contents:
+                  value: 0
+              Knight:
+                contents:
+                  value: 0
+              Engineer:
+                contents:
+                  value: 0
+              Monk:
+                contents:
+                  value: 0
+              ArabArcher:
+                contents:
+                  value: 0
+              Slave:
+                contents:
+                  value: 0
+              Slinger:
+                contents:
+                  value: 0
+              Assassin:
+                contents:
+                  value: 0
+              HorseArcher:
+                contents:
+                  value: 0
+              ArabSwordsman:
+                contents:
+                  value: 0
+              FireThrower:
+                contents:
+                  value: 0
+              FireBallista:
+                contents:
+                  value: 0
+          arabian:
+            normal:
+              EuropArcher:
+                contents:
+                  value: 0
+              Crossbowman:
+                contents:
+                  value: 0
+              Spearman:
+                contents:
+                  value: 0
+              Pikeman:
+                contents:
+                  value: 0
+              Maceman:
+                contents:
+                  value: 0
+              Swordsman:
+                contents:
+                  value: 0
+              Knight:
+                contents:
+                  value: 0
+              Engineer:
+                contents:
+                  value: 0
+              Monk:
+                contents:
+                  value: 0
+              ArabArcher:
+                contents:
+                  value: 6
+              Slave:
+                contents:
+                  value: 6
+              Slinger:
+                contents:
+                  value: 0
+              Assassin:
+                contents:
+                  value: 0
+              HorseArcher:
+                contents:
+                  value: 0
+              ArabSwordsman:
+                contents:
+                  value: 0
+              FireThrower:
+                contents:
+                  value: 0
+              FireBallista:
+                contents:
+                  value: 0
+            crusader:
+              EuropArcher:
+                contents:
+                  value: 0
+              Crossbowman:
+                contents:
+                  value: 0
+              Spearman:
+                contents:
+                  value: 0
+              Pikeman:
+                contents:
+                  value: 0
+              Maceman:
+                contents:
+                  value: 0
+              Swordsman:
+                contents:
+                  value: 0
+              Knight:
+                contents:
+                  value: 0
+              Engineer:
+                contents:
+                  value: 0
+              Monk:
+                contents:
+                  value: 0
+              ArabArcher:
+                contents:
+                  value: 50
+              Slave:
+                contents:
+                  value: 0
+              Slinger:
+                contents:
+                  value: 0
+              Assassin:
+                contents:
+                  value: 0
+              HorseArcher:
+                contents:
+                  value: 0
+              ArabSwordsman:
+                contents:
+                  value: 10
+              FireThrower:
+                contents:
+                  value: 0
+              FireBallista:
+                contents:
+                  value: 0
+            deathmatch:
+              EuropArcher:
+                contents:
+                  value: 0
+              Crossbowman:
+                contents:
+                  value: 0
+              Spearman:
+                contents:
+                  value: 0
+              Pikeman:
+                contents:
+                  value: 0
+              Maceman:
+                contents:
+                  value: 0
+              Swordsman:
+                contents:
+                  value: 0
+              Knight:
+                contents:
+                  value: 0
+              Engineer:
+                contents:
+                  value: 0
+              Monk:
+                contents:
+                  value: 0
+              ArabArcher:
+                contents:
+                  value: 6
+              Slave:
+                contents:
+                  value: 6
+              Slinger:
+                contents:
+                  value: 0
+              Assassin:
+                contents:
+                  value: 0
+              HorseArcher:
+                contents:
+                  value: 0
+              ArabSwordsman:
+                contents:
+                  value: 0
+              FireThrower:
+                contents:
+                  value: 0
+              FireBallista:
+                contents:
+                  value: 0
+    maploader:
+      config:
+        disable-game-maps:
+          contents:
+            value: false
+        disable-user-maps:
+          contents:
+            value: false
+        disable-user-savs:
+          contents:
+            value: false
+        disable-game-maps-extreme:
+          contents:
+            value: false
+        disable-user-maps-extreme:
+          contents:
+            value: false
+        disable-user-savs-extreme:
+          contents:
+            value: false
+        extra-map-directory:
+          contents:
+            value: ucp/plugins/Mod-KI-Team-Liga-*/resources/maps
+        extra-map-extreme-directory:
+          contents:
+            value: ucp/plugins/Mod-KI-Team-Liga-*/resources/maps
+    aiSwapper:
+      config:
+        menu:
+          contents:
+            value:
+              rat:
+              - name: Rotkaeppchen
+                root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rotkaeppchen/
+                control:
+                  binks: true
+                  speech: true
+                  lines: true
+                  portrait: true
+                  aic: true
+                  aiv: true
+                  lord: true
+                  startTroops: true
+              snake:
+              - name: Rattenfaenger
+                root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rattenfaenger/
+                control:
+                  binks: true
+                  speech: true
+                  lines: true
+                  portrait: true
+                  aic: true
+                  aiv: true
+                  lord: true
+                  startTroops: true
+              pig:
+              - name: Franz von Festenberg
+                root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kult/
+                control:
+                  binks: true
+                  speech: true
+                  lines: true
+                  portrait: true
+                  aic: true
+                  aiv: true
+                  lord: true
+                  startTroops: true
+              wolf:
+              - name: Karl von Festenberg
+                root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/BierKoenig/
+                control:
+                  binks: true
+                  speech: true
+                  lines: true
+                  portrait: true
+                  aic: true
+                  aiv: true
+                  lord: true
+                  startTroops: true
+              saladin:
+              - name: Bauer
+                root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Bauer/
+                control:
+                  binks: true
+                  speech: true
+                  lines: true
+                  portrait: true
+                  aic: true
+                  aiv: true
+                  lord: true
+                  startTroops: true
+              caliph:
+              - name: König
+                root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/King/
+                control:
+                  binks: true
+                  speech: true
+                  lines: true
+                  portrait: true
+                  aic: true
+                  aiv: true
+                  lord: true
+                  startTroops: true
+              sultan:
+              - name: Gardist
+                root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Gardist/
+                control:
+                  binks: true
+                  speech: true
+                  lines: true
+                  portrait: true
+                  aic: true
+                  aiv: true
+                  lord: true
+                  startTroops: true
+              richard:
+              - name: Kriegsfürst
+                root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kriegsfuerst/
+                control:
+                  binks: true
+                  speech: true
+                  lines: true
+                  portrait: true
+                  aic: true
+                  aiv: true
+                  lord: true
+                  startTroops: true
+              frederick:
+              - name: David
+                root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/David/
+                control:
+                  binks: true
+                  speech: true
+                  lines: true
+                  portrait: true
+                  aic: true
+                  aiv: true
+                  lord: true
+                  startTroops: true
+              phillip:
+              - name: Goliath
+                root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Goliath/
+                control:
+                  binks: true
+                  speech: true
+                  lines: true
+                  portrait: true
+                  aic: true
+                  aiv: true
+                  lord: true
+                  startTroops: true
+              wazir:
+              - name: Grossmeister
+                root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Grossmeister/
+                control:
+                  binks: true
+                  speech: true
+                  lines: true
+                  portrait: true
+                  aic: true
+                  aiv: true
+                  lord: true
+                  startTroops: true
+              emir:
+              - name: Knappe
+                root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Knappe/
+                control:
+                  binks: true
+                  speech: true
+                  lines: true
+                  portrait: true
+                  aic: true
+                  aiv: true
+                  lord: true
+                  startTroops: true
+              nizar:
+              - name: Janitschar
+                root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Janitschar/
+                control:
+                  binks: true
+                  speech: true
+                  lines: true
+                  portrait: true
+                  aic: true
+                  aiv: true
+                  lord: true
+                  startTroops: true
+              sheriff:
+              - name: Mirza
+                root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Mirza/
+                control:
+                  binks: true
+                  speech: true
+                  lines: true
+                  portrait: true
+                  aic: true
+                  aiv: true
+                  lord: true
+                  startTroops: true
+        defaultLanguage:
+          contents:
+            value: null
+        ai:
+          abbot:
+            lines:
+              contents:
+                value:
+                  name: SamurAI
+                  root: ucp/plugins/Selfaware-AI-0.1.0/resources/ai/SamurAI/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: SamurAI
+                  root: ucp/plugins/Selfaware-AI-0.1.0/resources/ai/SamurAI/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: SamurAI
+                  root: ucp/plugins/Selfaware-AI-0.1.0/resources/ai/SamurAI/
+                  active: true
+          rat:
+            binks:
+              contents:
+                value:
+                  name: Rotkaeppchen
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rotkaeppchen/
+                  active: true
+            speech:
+              contents:
+                value:
+                  name: Rotkaeppchen
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rotkaeppchen/
+                  active: true
+            lines:
+              contents:
+                value:
+                  name: Rotkaeppchen
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rotkaeppchen/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: Rotkaeppchen
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rotkaeppchen/
+                  active: true
+            aic:
+              contents:
+                value:
+                  name: Rotkaeppchen
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rotkaeppchen/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: Rotkaeppchen
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rotkaeppchen/
+                  active: true
+            lord:
+              contents:
+                value:
+                  name: Rotkaeppchen
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rotkaeppchen/
+                  active: true
+            startTroops:
+              contents:
+                value:
+                  name: Rotkaeppchen
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rotkaeppchen/
+                  active: true
+          snake:
+            binks:
+              contents:
+                value:
+                  name: Rattenfaenger
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rattenfaenger/
+                  active: true
+            speech:
+              contents:
+                value:
+                  name: Rattenfaenger
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rattenfaenger/
+                  active: true
+            lines:
+              contents:
+                value:
+                  name: Rattenfaenger
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rattenfaenger/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: Rattenfaenger
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rattenfaenger/
+                  active: true
+            aic:
+              contents:
+                value:
+                  name: Rattenfaenger
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rattenfaenger/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: Rattenfaenger
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rattenfaenger/
+                  active: true
+            lord:
+              contents:
+                value:
+                  name: Rattenfaenger
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rattenfaenger/
+                  active: true
+            startTroops:
+              contents:
+                value:
+                  name: Rattenfaenger
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Rattenfaenger/
+                  active: true
+          pig:
+            binks:
+              contents:
+                value:
+                  name: Franz von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kult/
+                  active: true
+            speech:
+              contents:
+                value:
+                  name: Franz von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kult/
+                  active: true
+            lines:
+              contents:
+                value:
+                  name: Franz von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kult/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: Franz von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kult/
+                  active: true
+            aic:
+              contents:
+                value:
+                  name: Franz von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kult/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: Franz von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kult/
+                  active: true
+            lord:
+              contents:
+                value:
+                  name: Franz von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kult/
+                  active: true
+            startTroops:
+              contents:
+                value:
+                  name: Franz von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kult/
+                  active: true
+          wolf:
+            binks:
+              contents:
+                value:
+                  name: Karl von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/BierKoenig/
+                  active: true
+            speech:
+              contents:
+                value:
+                  name: Karl von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/BierKoenig/
+                  active: true
+            lines:
+              contents:
+                value:
+                  name: Karl von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/BierKoenig/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: Karl von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/BierKoenig/
+                  active: true
+            aic:
+              contents:
+                value:
+                  name: Karl von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/BierKoenig/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: Karl von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/BierKoenig/
+                  active: true
+            lord:
+              contents:
+                value:
+                  name: Karl von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/BierKoenig/
+                  active: true
+            startTroops:
+              contents:
+                value:
+                  name: Karl von Festenberg
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/BierKoenig/
+                  active: true
+          saladin:
+            binks:
+              contents:
+                value:
+                  name: Bauer
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Bauer/
+                  active: true
+            speech:
+              contents:
+                value:
+                  name: Bauer
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Bauer/
+                  active: true
+            lines:
+              contents:
+                value:
+                  name: Bauer
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Bauer/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: Bauer
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Bauer/
+                  active: true
+            aic:
+              contents:
+                value:
+                  name: Bauer
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Bauer/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: Bauer
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Bauer/
+                  active: true
+            lord:
+              contents:
+                value:
+                  name: Bauer
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Bauer/
+                  active: true
+            startTroops:
+              contents:
+                value:
+                  name: Bauer
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Bauer/
+                  active: true
+          caliph:
+            binks:
+              contents:
+                value:
+                  name: König
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/King/
+                  active: true
+            speech:
+              contents:
+                value:
+                  name: König
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/King/
+                  active: true
+            lines:
+              contents:
+                value:
+                  name: König
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/King/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: König
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/King/
+                  active: true
+            aic:
+              contents:
+                value:
+                  name: König
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/King/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: König
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/King/
+                  active: true
+            lord:
+              contents:
+                value:
+                  name: König
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/King/
+                  active: true
+            startTroops:
+              contents:
+                value:
+                  name: König
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/King/
+                  active: true
+          sultan:
+            binks:
+              contents:
+                value:
+                  name: Gardist
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Gardist/
+                  active: true
+            speech:
+              contents:
+                value:
+                  name: Gardist
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Gardist/
+                  active: true
+            lines:
+              contents:
+                value:
+                  name: Gardist
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Gardist/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: Gardist
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Gardist/
+                  active: true
+            aic:
+              contents:
+                value:
+                  name: Gardist
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Gardist/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: Gardist
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Gardist/
+                  active: true
+            lord:
+              contents:
+                value:
+                  name: Gardist
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Gardist/
+                  active: true
+            startTroops:
+              contents:
+                value:
+                  name: Gardist
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Gardist/
+                  active: true
+          richard:
+            binks:
+              contents:
+                value:
+                  name: Kriegsfürst
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kriegsfuerst/
+                  active: true
+            speech:
+              contents:
+                value:
+                  name: Kriegsfürst
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kriegsfuerst/
+                  active: true
+            lines:
+              contents:
+                value:
+                  name: Kriegsfürst
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kriegsfuerst/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: Kriegsfürst
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kriegsfuerst/
+                  active: true
+            aic:
+              contents:
+                value:
+                  name: Kriegsfürst
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kriegsfuerst/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: Kriegsfürst
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kriegsfuerst/
+                  active: true
+            lord:
+              contents:
+                value:
+                  name: Kriegsfürst
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kriegsfuerst/
+                  active: true
+            startTroops:
+              contents:
+                value:
+                  name: Kriegsfürst
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Kriegsfuerst/
+                  active: true
+          frederick:
+            binks:
+              contents:
+                value:
+                  name: David
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/David/
+                  active: true
+            speech:
+              contents:
+                value:
+                  name: David
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/David/
+                  active: true
+            lines:
+              contents:
+                value:
+                  name: David
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/David/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: David
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/David/
+                  active: true
+            aic:
+              contents:
+                value:
+                  name: David
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/David/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: David
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/David/
+                  active: true
+            lord:
+              contents:
+                value:
+                  name: David
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/David/
+                  active: true
+            startTroops:
+              contents:
+                value:
+                  name: David
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/David/
+                  active: true
+          phillip:
+            binks:
+              contents:
+                value:
+                  name: Goliath
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Goliath/
+                  active: true
+            speech:
+              contents:
+                value:
+                  name: Goliath
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Goliath/
+                  active: true
+            lines:
+              contents:
+                value:
+                  name: Goliath
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Goliath/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: Goliath
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Goliath/
+                  active: true
+            aic:
+              contents:
+                value:
+                  name: Goliath
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Goliath/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: Goliath
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Goliath/
+                  active: true
+            lord:
+              contents:
+                value:
+                  name: Goliath
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Goliath/
+                  active: true
+            startTroops:
+              contents:
+                value:
+                  name: Goliath
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Goliath/
+                  active: true
+          wazir:
+            binks:
+              contents:
+                value:
+                  name: Grossmeister
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Grossmeister/
+                  active: true
+            speech:
+              contents:
+                value:
+                  name: Grossmeister
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Grossmeister/
+                  active: true
+            lines:
+              contents:
+                value:
+                  name: Grossmeister
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Grossmeister/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: Grossmeister
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Grossmeister/
+                  active: true
+            aic:
+              contents:
+                value:
+                  name: Grossmeister
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Grossmeister/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: Grossmeister
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Grossmeister/
+                  active: true
+            lord:
+              contents:
+                value:
+                  name: Grossmeister
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Grossmeister/
+                  active: true
+            startTroops:
+              contents:
+                value:
+                  name: Grossmeister
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Grossmeister/
+                  active: true
+          emir:
+            binks:
+              contents:
+                value:
+                  name: Knappe
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Knappe/
+                  active: true
+            speech:
+              contents:
+                value:
+                  name: Knappe
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Knappe/
+                  active: true
+            lines:
+              contents:
+                value:
+                  name: Knappe
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Knappe/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: Knappe
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Knappe/
+                  active: true
+            aic:
+              contents:
+                value:
+                  name: Knappe
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Knappe/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: Knappe
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Knappe/
+                  active: true
+            lord:
+              contents:
+                value:
+                  name: Knappe
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Knappe/
+                  active: true
+            startTroops:
+              contents:
+                value:
+                  name: Knappe
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Knappe/
+                  active: true
+          nizar:
+            binks:
+              contents:
+                value:
+                  name: Janitschar
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Janitschar/
+                  active: true
+            speech:
+              contents:
+                value:
+                  name: Janitschar
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Janitschar/
+                  active: true
+            lines:
+              contents:
+                value:
+                  name: Janitschar
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Janitschar/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: Janitschar
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Janitschar/
+                  active: true
+            aic:
+              contents:
+                value:
+                  name: Janitschar
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Janitschar/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: Janitschar
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Janitschar/
+                  active: true
+            lord:
+              contents:
+                value:
+                  name: Janitschar
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Janitschar/
+                  active: true
+            startTroops:
+              contents:
+                value:
+                  name: Janitschar
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Janitschar/
+                  active: true
+          sheriff:
+            binks:
+              contents:
+                value:
+                  name: Mirza
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Mirza/
+                  active: true
+            speech:
+              contents:
+                value:
+                  name: Mirza
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Mirza/
+                  active: true
+            lines:
+              contents:
+                value:
+                  name: Mirza
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Mirza/
+                  active: true
+            portrait:
+              contents:
+                value:
+                  name: Mirza
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Mirza/
+                  active: true
+            aic:
+              contents:
+                value:
+                  name: Mirza
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Mirza/
+                  active: true
+            aiv:
+              contents:
+                value:
+                  name: Mirza
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Mirza/
+                  active: true
+            lord:
+              contents:
+                value:
+                  name: Mirza
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Mirza/
+                  active: true
+            startTroops:
+              contents:
+                value:
+                  name: Mirza
+                  root: ucp/plugins/Mod-KI-Team-Liga/resources/ai/Mirza/
+                  active: true
+    gmResourceModifier:
+      config: {}
+    textResourceModifier:
+      config: {}
+    files:
+      config: {}
+    aivloader:
+      config: {}
+    winProcHandler:
+      config: {}
+    selfaware-runtime:
+      config: {}
+  plugins:
+    Mod-KI-Team-Liga:
+      config: {}
+    Selfaware-AI:
+      config: {}
+  load-order:
+  - extension: gmResourceModifier
+    version: 0.2.0
+  - extension: textResourceModifier
+    version: 0.3.0
+  - extension: aicloader
+    version: 1.1.2
+  - extension: files
+    version: 1.3.0
+  - extension: aivloader
+    version: 1.0.0
+  - extension: aiSwapper
+    version: 1.3.0
+  - extension: winProcHandler
+    version: 1.0.0
+  - extension: graphicsApiReplacer
+    version: 1.3.0
+  - extension: ai-ox-tethers
+    version: 1.0.3
+  - extension: startResources
+    version: 1.0.1
+  - extension: running-units
+    version: 1.0.2
+  - extension: ucp2-legacy
+    version: 2.15.1
+  - extension: maploader
+    version: 1.1.0
+  - extension: rebalancer
+    version: 1.1.3
+  - extension: Mod-KI-Team-Liga
+    version: 2.0.2
+  - extension: selfaware-runtime
+    version: 0.1.0
+  - extension: Selfaware-AI
+    version: 0.1.0

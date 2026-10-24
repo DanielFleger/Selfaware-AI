@@ -13,6 +13,7 @@ on:
       - 'options.yml'
       - 'starttroops.lua'
       - 'command_owner.lua'
+      - 'engine_contract.lua'
       - 'takeover.lua'
       - '.github/workflows/selfaware-package.yml'
 jobs:
@@ -45,16 +46,16 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Native start troop checks failed' }
           python werkzeug/uebernahme_pruefen.py
           if ($LASTEXITCODE -ne 0) { throw 'Native takeover checks failed' }
-      - name: Package unsigned review candidate
+      - name: Package separate local development app
         shell: pwsh
         run: |
           python -m pip install PyYAML==6.0.3
-          python distribution/install_candidate.py --package-only
-          if ($LASTEXITCODE -ne 0) { throw 'Candidate packaging failed' }
-          Compress-Archive -Path Selfaware-AI/* -DestinationPath build/Selfaware-AI-0.1.0.zip
+          python distribution/package_local.py
+          if ($LASTEXITCODE -ne 0) { throw 'Local application packaging failed' }
+          python werkzeug/distribution_boundary_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'External runtime separation checks failed' }
       - uses: actions/upload-artifact@v4
         with:
-          name: selfaware-ai-unsigned-review-candidate
+          name: selfaware-ai-local-development
           path: |
-            build/selfaware-runtime-0.1.0.zip
-            build/Selfaware-AI-0.1.0.zip
+            build/Selfaware-AI-local-0.1.0.zip

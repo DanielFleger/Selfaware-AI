@@ -1,42 +1,63 @@
-# Selfaware AI 0.1.0 — packaging candidate
+# Selfaware AI 0.1.0 — separate local development mod
 
-UCP 3.0.7, Stronghold Crusader 1.41 (32-bit game, 64-bit Windows controller).
-Select **Selfaware AI** in Content, apply, start Crusader normally, select
-**SamurAI** in a fresh custom skirmish. The other lords keep their configured AI.
-The controller starts with the game and exits with it. No LLM account, Python
-installation, mouse/keyboard automation, old save or development checkout is needed.
+This is NOT a Store-compatible module. The Store proposal was withdrawn on
+24 October 2026 after maintainer review. Signing the old prototype alone would
+not make it acceptable. Preserve a working local mod before redesigning its API.
 
-The native bridge disables SamurAI's placeholder BEFORE the first simulation
-tick, independently of worker readiness. Its session receipt transfers the
-selected slots to the worker. Leaving the match restores the lobby selection.
-Tagged command owners are resolved before native command sorting as well as
-execution, so observer slot zero does not silently stall AI commands. Human and
-ordinary native command owners retain the original resolver.
+## Install and play
 
-Under Customisations, **Selfaware AI: Starteinheiten** sets the starting roster
-for the packaged Abbot slot in new matches. Defaults are 4 assassins and 6 Arabian
-archers, replacing rather than supplementing the inherited monks. Every supported
-troop count is editable, including zero; totals above 100 are rejected before any
-native writes. Other AI slots keep their existing starting troops. This is a
-moderate proposed preset, not an experimentally proven balance guarantee.
+Extract Selfaware-AI-local-0.1.0.zip to a normal folder and run setup.ps1 with
+PowerShell. Choose the Crusader game folder. The installer creates the desktop
+shortcut **Selfaware AI (lokal)**. No separate Python installation, LLM account,
+development checkout, mouse/keyboard automation or old save is needed.
+Requirements: 64-bit Windows, UCP 3.0.7, Stronghold Crusader 1.41.
 
-The current game's native bridge and kernel 19 are bundled without tactical
-changes. The existing online learner measures damage and movement, persists its
-model and automatically reads it in subsequent decisions. Per-match receipts
-record good/bad observations and distinguish native outcomes from unverified
-interruptions. These are measured model updates, not general autonomous source
-code rewriting or proof of stronger play.
+The separate installer unpacks the portable runtime under Local AppData. The
+external starter launches the game, waits for the native bridge readiness
+message, then starts the controller. It reports startup failures visibly.
+The game module neither unpacks nor launches the external runtime.
+The existing runtime directory and learned models are reused when unchanged;
+upgrades preserve backups and keep incompatible runtime revisions separate.
 
-State and learning: `%LOCALAPPDATA%\Selfaware AI\<game-path-hash>\<runtime-hash>`.
-Startup trace and errors: `bootstrap-<game-pid>.log`; worker output:
-`worker-<game-pid>.log`, both in the game-path state directory. Startup uses .NET
-APIs so a missing PowerShell module search path does not silently prevent it.
-Each runtime revision
-has separate state so incompatible model formats cannot silently mix. Learned
-mechanic models are also separated by the effective UCP configuration; changing
-balance profiles does not silently reuse incompatible measurements.
+Select SamurAI in a fresh custom skirmish. It occupies the Abbot slot; other
+configured lords remain available. The native bridge disables its placeholder
+before simulation tick zero, independently of worker readiness. The worker reads
+the selected slots from a native receipt. Returning to the menu restores the
+lobby choices. Observer slot zero is supported without changing the local player.
 
-The official Store must build/sign the runtime module and accept the recipe.
-An unsigned development ZIP is not a secure-mode release. Do not advise users to
-disable security as the permanent installation procedure. This candidate is not
-declared released until both secure-mode loading and a fresh menu match pass.
+Under Customisations, **Selfaware AI: Starteinheiten** sets the starting roster.
+Default: 4 assassins and 6 Arabian archers instead of inherited monks. Supported
+counts are editable, including zero; totals above 100 are rejected before writes.
+Other AI slots retain their configured troops. This is a proposed moderate preset,
+not an experimentally proven balance guarantee.
+
+## Learning and evidence
+
+Selfaware is the project name, not a claim of consciousness. The existing online
+learner persists measured damage and movement models for later decisions. Match
+journals distinguish native outcomes from interruptions. This does not mean
+arbitrary autonomous code rewriting or demonstrate improved overall strength.
+
+State: Local AppData/Selfaware AI/<game-path-hash>/<runtime-hash>.
+The parent directory holds local-start.log, bootstrap-<pid>.log and worker-<pid>.log.
+Mechanic models also have separate profiles for effective UCP balance settings.
+No tactical algorithm changes are included in this packaging correction.
+
+## Remaining Store blockers
+
+The native bridge is still LOCAL DEVELOPMENT: legacy file communication and
+snapshots access game directories; some engine bindings use fixed addresses.
+Moving extraction and learning outside UCP does not fix these remaining issues.
+The shortcut's --ucp-no-security argument applies only to this local development
+copy; the installer does not globally disable UCP security.
+
+A future Store bridge must use reviewed communication and UCP infrastructure,
+load entirely from its signed in-memory ZIP, only read its own directory, create
+no files or persistent state, and have inspectable source-to-binary builds.
+Do not resubmit this legacy bridge as compliant. An external mod can remain
+separate while the minimal bridge is redesigned and reviewed.
+
+The pinned OpenSHC source in openshc-reference.json is a read-only reference for
+engine types, offsets and function semantics. The new owner resolver uses a
+verified instruction signature. No OpenSHC DLL was built or installed, and this
+is not a reconstruction or understanding of every line of the game.

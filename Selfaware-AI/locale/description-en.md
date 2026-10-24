@@ -1,7 +1,8 @@
 # Selfaware AI
 
-SamurAI runs locally and automatically when selected in a fresh Crusader skirmish.
-Includes the controller, its runtime and the native game bridge. No Python setup,
+Local development mod, currently not a Store module. The separate Selfaware
+application installs the runtime and starts the game and controller. SamurAI
+controls selected slots in fresh skirmishes. No additional Python installation,
 LLM subscription or supervising assistant is needed.
 
 Records match observations and native outcomes; the existing online learner
@@ -10,5 +11,5 @@ does not promise autonomous source-code rewriting or a measured strength gain.
 
 Requires 64-bit Windows, UCP 3.0.7 and Stronghold Crusader 1.41. Select SamurAI
 in the Abbot slot. Other configured opponents remain available. Runtime revisions
-keep separate learning state under Local AppData. Secure-mode module signing is
-required before official Store release.
+keep separate learning state under Local AppData. Legacy file communication and
+fixed game addresses still block Store acceptance; signing alone is insufficient.

@@ -1,26 +1,15 @@
-param([Parameter(Mandatory=$true)][string]$Game,[Parameter(Mandatory=$true)][int]$GamePid)
+param([Parameter(Mandatory=$true)][string]$Game,[Parameter(Mandatory=$true)][int]$GamePid,
+      [Parameter(Mandatory=$true)][string]$Runtime)
 $ErrorActionPreference='Stop'
 $gameRoot=[IO.Path]::GetFullPath($Game)
-$gameKey=([BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($gameRoot.ToLowerInvariant())))).Replace('-','').Substring(0,16)
-$state=[IO.Path]::Combine($env:LOCALAPPDATA,"Selfaware AI\$gameKey")
+$state=[IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($Runtime))
 [void][IO.Directory]::CreateDirectory($state)
 $trace=[IO.Path]::Combine($state,"bootstrap-$GamePid.log")
 try {
     [IO.File]::AppendAllText($trace,"Bootstrap started for game $GamePid`r`n")
-    $archive=[IO.Path]::Combine($gameRoot,'ucp\villagestudio\runtime.zip')
-    $stream=[IO.File]::OpenRead($archive)
-    try { $version=([BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash($stream))).Replace('-','').Substring(0,16) }
-    finally { $stream.Dispose() }
-    $runtime=[IO.Path]::Combine($state,$version)
-    $lock=[IO.File]::Open([IO.Path]::Combine($state,'bootstrap.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
-    try {
-        if (-not [IO.File]::Exists([IO.Path]::Combine($runtime,'ready'))) {
-            if ([IO.Directory]::Exists($runtime)) { throw 'Incomplete runtime exists; preserving it for diagnosis' }
-            [void][Reflection.Assembly]::LoadWithPartialName('System.IO.Compression.FileSystem')
-            [IO.Compression.ZipFile]::ExtractToDirectory($archive,$runtime)
-            [IO.File]::WriteAllText([IO.Path]::Combine($runtime,'ready'),$version)
-        }
-    } finally { $lock.Dispose() }
+    $runtime=[IO.Path]::GetFullPath($Runtime)
+    $version=[IO.Path]::GetFileName($runtime)
+    if (-not [IO.File]::Exists([IO.Path]::Combine($runtime,'ready'))) { throw 'External runtime is not installed; run local setup first' }
     $env:SHC_GAME_DIR=$gameRoot
     $env:SHC_GAME_PID=[string]$GamePid
     $env:SHC_PARTNER='ja'
@@ -40,5 +29,5 @@ try {
     if ($worker.ExitCode -ne 0) { throw "Controller exited with $($worker.ExitCode); see $($env:SHC_START_LOG)" }
 } catch {
     [IO.File]::AppendAllText($trace,($_.ToString()+"`r`n"))
-    exit 1
+    throw
 }

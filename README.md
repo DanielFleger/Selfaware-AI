@@ -15,6 +15,11 @@ Stronghold Crusader / Crusader Extreme under UCP3.
 ## Status
 Early research. Assumptions are labelled and must not be relied on.
 
+Local installation and its current limits are described in
+[distribution/README.md](distribution/README.md). The Store proposal was withdrawn
+after maintainer feedback on 24 October 2026. The separate local app works with
+the legacy development bridge; this is not a Store-compatible release.
+
 ## Pflicht nach jeder Partie: alles ins Repo (Daniel 17.10.2026)
 
 Jeder Rechner (Laptop, Desktop-PC, jede Sitzung) committet und pusht nach jeder

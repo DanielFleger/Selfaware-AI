@@ -1,4 +1,4 @@
-"""Build the UCP runtime from source; never ship local logs/screenshots/configs."""
+"""Build the external local runtime; never ship local logs/screenshots/configs."""
 import email
 import hashlib
 import json
@@ -106,7 +106,7 @@ def build(resume=False):
     target = os.environ.get('SAI_RUST_TARGET', 'i686-pc-windows-msvc')
     env = msvc_environment() if target.endswith('msvc') else dict(os.environ)
     run([rustup, 'target', 'add', target],env=env)
-    for name, crate in [('samurai_kern','kernel'),('sai_launcher','launcher')]:
+    for name, crate in [('samurai_kern','kernel')]:
         run([cargo, 'build', '--locked', '--release', '--target', target,
              '--manifest-path', ROOT / ('distribution/%s/Cargo.toml'%crate), '--target-dir', BUILD / 'native-target'],env=env)
         shutil.copy2(BUILD / ('native-target/%s/release/%s.dll'%(target,name)), BUILD / (name+'.dll'))

@@ -1,8 +1,9 @@
 # Selfaware AI
 
-SamurAI startet automatisch mit dem Spiel und steuert die ausgewaehlten
-SamurAI-Plaetze in einem frischen eigenen Gefecht. Laufzeit und Spielanbindung
-sind enthalten: keine Python-Einrichtung, kein KI-Abonnement, keine betreuende KI.
+Lokale Entwicklungsfassung, derzeit kein Store-Modul. Einrichtung und Start
+erfolgen ueber die separate Selfaware-Anwendung. Diese startet das Spiel und
+den Controller; SamurAI steuert die ausgewaehlten Plaetze in frischen Gefechten.
+Keine zusaetzliche Python-Einrichtung, kein KI-Abonnement, keine betreuende KI.
 
 Die KI protokolliert Beobachtungen und belegte Partieausgaenge. Ihr vorhandener
 Lerner speichert gemessene Verluste und Laufzeiten und nutzt sie fuer folgende
@@ -14,4 +15,5 @@ SamurAI belegt den Abt-Platz. Lernstand und Startfehler liegen in Local AppData.
 Unter Customisations -> Selfaware AI: Starteinheiten lassen sich die Starttruppen
 einstellen. Standard: 4 Assassinen und 6 arabische Bogenschuetzen anstelle der
 Abt-Truppen. Die Einstellung gilt ab dem naechsten Spielstart fuer neue Gefechte.
-Vor der offiziellen Store-Veroeffentlichung muss das Laufzeitmodul signiert werden.
+Die alte Dateikommunikation und feste Spieladressen verhindern derzeit eine
+Store-Freigabe. Eine Signatur allein behebt diese Grenzen nicht.

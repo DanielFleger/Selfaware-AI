@@ -2,9 +2,11 @@
 -- Native getCommandIDFromCommandSelectionStuff rejects neutral player zero.
 -- Contract: daten/dekomp_absender.c, translateMultiplayerIDsIntoPlayerIDs.
 local original
+local abi=require('engine_contract')
 return {
   install=function()
-    local address=0x0047EAF0
+    local address=assert(core.AOBScan(abi.senderTranslatorPattern,0x400000),
+      'Selfaware AI: sender translator signature not found')
     for i,v in ipairs({0x8B,0x91,0x18,0x06,0x00,0x00}) do
       assert(core.readByte(address+i-1)==v,'Selfaware AI: unexpected sender translator')
     end

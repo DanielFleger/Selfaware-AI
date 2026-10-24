@@ -1,5 +1,6 @@
 -- Called BEFORE processGameTick. Native placeholder AI never gets its first turn.
 local active=false
+local abi=require('engine_contract')
 local sequence=0
 local saved={}
 local PATH='ucp/villagestudio/uebernahme.json'
@@ -14,10 +15,10 @@ return {
     if view~=14 and view~=16 then
       if active then
         for sp,old in pairs(saved) do
-          if core.readInteger(0x0191DE7C+sp*4)==0 then
-            core.writeInteger(0x0191DE7C+sp*4,old.ai)
-            core.writeInteger(0x0115BDF8+sp*0x39F4+0x2300,old.kind)
-            core.writeInteger(0x0191DE10+sp*4,old.full)
+          if core.readInteger(abi.currentAI+sp*4)==0 then
+            core.writeInteger(abi.currentAI+sp*4,old.ai)
+            core.writeInteger(abi.playerData+sp*abi.playerStride+abi.aiType,old.kind)
+            core.writeInteger(abi.fullID+sp*4,old.full)
           end
         end
         saved={};active=false;save({active=false})
@@ -28,15 +29,15 @@ return {
     if active then return end
     local original,slots={},{}
     for sp=1,8 do
-      local ai=core.readInteger(0x0191DE7C+sp*4)
+      local ai=core.readInteger(abi.currentAI+sp*4)
       original[tostring(sp)]=ai
       if ai==16 then
-        saved[sp]={ai=ai,kind=core.readInteger(0x0115BDF8+sp*0x39F4+0x2300),
-          full=core.readInteger(0x0191DE10+sp*4)}
+        saved[sp]={ai=ai,kind=core.readInteger(abi.playerData+sp*abi.playerStride+abi.aiType),
+          full=core.readInteger(abi.fullID+sp*4)}
         -- Mark alive before disabling AI, preserving the native defeat contract.
-        core.writeInteger(0x0191DE10+sp*4,1)
-        core.writeInteger(0x0115BDF8+sp*0x39F4+0x2300,0)
-        core.writeInteger(0x0191DE7C+sp*4,0)
+        core.writeInteger(abi.fullID+sp*4,1)
+        core.writeInteger(abi.playerData+sp*abi.playerStride+abi.aiType,0)
+        core.writeInteger(abi.currentAI+sp*4,0)
         slots[#slots+1]=sp
       end
     end
