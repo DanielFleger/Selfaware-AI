@@ -187,22 +187,28 @@ class Brandtrupp:
                 and any(schach((e["x"], e["y"]), q) <= DECK_R for q in self.schutz)}
 
     def _kandidaten(self, L, G, belegt):
+        # B-216 (24.10., Profil raids_trocken: 10 von 23 s hier - je Gebaeude wurden Freunde, Nahkaempfer, Gruben und alle
+        # Feindgebaeude neu durchgegangen, freunde_von 20 Mio. Aufrufe): alles einmal je Aufruf sammeln, Ergebnis unveraendert
+        fr = freunde_von(self.sp)
+        nah_q = [q for typ, q in feinde(L, self.sp) if typ in NAH]
+        gruben = [(h["x"], h["y"]) for h in G.values() if h.get("besitzer") not in fr and h["typ"] == GRUBE]
+        feind_geb = [(hn, WERT.get(h["typ"], 1), (h["x"], h["y"])) for hn, h in G.items()
+                     if h.get("besitzer") not in fr and angreifbar(h)]
+        wege = getattr(self, '_wege', self.heerwege)
         kand = []
         for n, g in G.items():
-            if g.get("besitzer") in freunde_von(self.sp) or g["typ"] not in WERT or n in belegt or n in self.brennt:
+            if g.get("besitzer") in fr or g["typ"] not in WERT or n in belegt or n in self.brennt:
                 continue
             p = (g["x"], g["y"])
-            if any(h.get("besitzer") not in freunde_von(self.sp) and h["typ"] == GRUBE and schach(p, (h["x"], h["y"])) <= GRUBE_R
-                   for h in G.values()):
+            if any(schach(p, q) <= GRUBE_R for q in gruben):
                 continue                                      # Fallgrube: toetet sofort, steht in keiner Schadenskarte
-            if _nahkampf_bei(p, L, self.sp):
-                continue
-            if brennt_noch_bei_ankunft(g, getattr(self, '_wege', self.heerwege)):
+            if any(schach(p, q) <= GEFAHR_NAH for q in nah_q):
+                continue                                      # feindlicher Nahkaempfer daneben (wie _nahkampf_bei)
+            if brennt_noch_bei_ankunft(g, wege):
                 continue                                      # B-150: wuerde auf dem eigenen Heerweg noch brennen
             # B-189 (Daniel 18:14 "ein Feuer kann ueberspringen - ein perfekt platziertes Feuer kann eine komplette Wirtschaft
             # abfackeln"): feindliche Nachbargebaeude bis FEUER_NACHBAR_R zaehlen mit FEUER_NACHBAR_ANTEIL ihres Werts dazu
-            nachbarn = sum(WERT.get(h["typ"], 1) for hn, h in G.items() if hn != n and h.get("besitzer") not in freunde_von(self.sp)
-                           and angreifbar(h) and schach(p, (h["x"], h["y"])) <= FEUER_NACHBAR_R)
+            nachbarn = sum(w for hn, w, q in feind_geb if hn != n and schach(p, q) <= FEUER_NACHBAR_R)
             kand.append((WERT[g["typ"]] + FEUER_NACHBAR_ANTEIL * nachbarn, p, n))
         return kand
 

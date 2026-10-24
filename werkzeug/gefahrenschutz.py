@@ -171,17 +171,28 @@ class Lage:
         return self._suche[start]
 
     def ankunft(self, start, ziel):
+        """Naechstes erreichbares Feld am Ziel: Ring fuer Ring (Schachabstand 0..ZIEL_UMKREIS) das Feld mit den kleinsten
+        Wegkosten; bei Gleichstand das erste in x-, dann y-Reihenfolge.
+        B-216 (24.10., Profil raids_trocken: 9,7 von 23 s hier - vier Python-Schleifen je Ziel): dieselbe Wahl mit numpy auf
+        dem Fenster um das Ziel; argmin nimmt bei Gleichstand das erste in Zeilenreihenfolge = dieselbe Reihenfolge wie vorher."""
         _, kum = self.suche(start)
-        for r in range(ZIEL_UMKREIS + 1):
-            bester = None
-            for x in range(ziel[0] - r, ziel[0] + r + 1):
-                for y in range(ziel[1] - r, ziel[1] + r + 1):
-                    if schach((x, y), ziel) != r or not self.drin((x, y)) or not np.isfinite(kum[x, y]):
-                        continue
-                    if bester is None or kum[x, y] < kum[bester]:
-                        bester = (x, y)
-            if bester is not None:
-                return bester
+        R = ZIEL_UMKREIS
+        x0, x1 = max(0, ziel[0] - R), min(self.n - 1, ziel[0] + R)
+        y0, y1 = max(0, ziel[1] - R), min(self.n - 1, ziel[1] + R)
+        if x0 > x1 or y0 > y1:
+            return None
+        fen = kum[x0:x1 + 1, y0:y1 + 1]
+        xs = np.arange(x0, x1 + 1)[:, None]
+        ys = np.arange(y0, y1 + 1)[None, :]
+        ring = np.maximum(np.abs(xs - ziel[0]), np.abs(ys - ziel[1]))
+        endlich = np.isfinite(fen)
+        for r in range(R + 1):
+            m = endlich & (ring == r)
+            if not m.any():
+                continue
+            w = np.where(m, fen, np.inf)
+            i = int(np.argmin(w))
+            return (x0 + i // w.shape[1], y0 + i % w.shape[1])
         return None
 
     def plan(self, start, ziel, typ, leben, gebaeude=None):
