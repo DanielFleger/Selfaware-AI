@@ -52,7 +52,8 @@ def _programm(pid):
 
 def griff():
     """Lesegriff auf den Spielprozess dieser Instanz; RuntimeError, wenn keiner laeuft oder die Nummer nicht passt."""
-    pids = sorted(int(os.path.basename(p).rsplit("-", 1)[-1]) for p in glob.glob(os.path.join(SPIEL, "ucp-pid-*")))
+    explicit=os.environ.get('SHC_GAME_PID')
+    pids = [int(explicit)] if explicit else sorted(int(os.path.basename(p).rsplit("-", 1)[-1]) for p in glob.glob(os.path.join(SPIEL, "ucp-pid-*")))
     if _griff["pid"] in pids and _griff["h"]:
         return _griff["h"]
     for pid in pids:

@@ -277,7 +277,8 @@ def main():
                     ai=lies()[2]
                     native=None
                     try:
-                        record=json.loads((Path(SPIEL)/'ucp/villagestudio/uebernahme.json').read_text(encoding='utf-8'))
+                        from befehl import session_record
+                        record=session_record()
                         if record.get('active'):
                             captured={int(k):v for k,v in record['original_ai'].items()}
                             if all(captured.get(sp)==samurai_id and ai.get(sp)==0 for sp in record['slots']):

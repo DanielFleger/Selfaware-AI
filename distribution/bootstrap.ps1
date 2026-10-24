@@ -1,5 +1,5 @@
 param([Parameter(Mandatory=$true)][string]$Game,[Parameter(Mandatory=$true)][int]$GamePid,
-      [Parameter(Mandatory=$true)][string]$Runtime)
+      [Parameter(Mandatory=$true)][string]$Runtime,[ValidateSet('file','memory')][string]$Transport='file')
 $ErrorActionPreference='Stop'
 $gameRoot=[IO.Path]::GetFullPath($Game)
 $state=[IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($Runtime))
@@ -12,6 +12,8 @@ try {
     if (-not [IO.File]::Exists([IO.Path]::Combine($runtime,'ready'))) { throw 'External runtime is not installed; run local setup first' }
     $env:SHC_GAME_DIR=$gameRoot
     $env:SHC_GAME_PID=[string]$GamePid
+    $env:SHC_TRANSPORT=$Transport
+    $env:SHC_STATE_DIR=$state
     $env:SHC_PARTNER='ja'
     $env:SHC_STEUERE_MENSCH='nein'
     $env:SHC_START_LOG=[IO.Path]::Combine($state,"worker-$GamePid.log")

@@ -1,4 +1,5 @@
-param([Parameter(Mandatory=$true)][string]$Game,[Parameter(Mandatory=$true)][string]$Runtime)
+param([Parameter(Mandatory=$true)][string]$Game,[Parameter(Mandatory=$true)][string]$Runtime,
+      [ValidateSet('file','memory')][string]$Transport='file',[switch]$UnsignedDevelopment)
 $ErrorActionPreference='Stop'
 $gameRoot=[IO.Path]::GetFullPath($Game)
 $runtimeRoot=[IO.Path]::GetFullPath($Runtime)
@@ -12,6 +13,8 @@ try {
         $elevate=[Diagnostics.ProcessStartInfo]::new()
         $elevate.FileName=[IO.Path]::Combine($env:SystemRoot,'System32\WindowsPowerShell\v1.0\powershell.exe')
         $elevate.Arguments='-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "'+$PSCommandPath+'" -Game "'+$gameRoot+'" -Runtime "'+$runtimeRoot+'"'
+        $elevate.Arguments+=' -Transport '+$Transport
+        if($UnsignedDevelopment){$elevate.Arguments+=' -UnsignedDevelopment'}
         $elevate.UseShellExecute=$true;$elevate.Verb='runas';$elevate.WindowStyle='Hidden'
         $child=[Diagnostics.Process]::Start($elevate)
         [IO.File]::AppendAllText($trace,"Elevation handoff: PID $($child.Id)`r`n")
@@ -33,11 +36,14 @@ try {
         $exe=[IO.Path]::Combine($gameRoot,'Stronghold Crusader.exe')
         if (-not [IO.File]::Exists($exe)) {throw 'Crusader wurde nicht gefunden.'}
         if (-not [IO.File]::Exists([IO.Path]::Combine($runtimeRoot,'python\python.exe'))) {throw 'Die lokale Selfaware-Laufzeit fehlt.'}
-        $ipc=[IO.Path]::Combine($gameRoot,'ucp\villagestudio')
-        [void][IO.Directory]::CreateDirectory($ipc)
-        [IO.File]::WriteAllText([IO.Path]::Combine($ipc,'befehl.json'),'{}')
+        if($Transport -eq 'file') {
+            $ipc=[IO.Path]::Combine($gameRoot,'ucp\villagestudio')
+            [void][IO.Directory]::CreateDirectory($ipc)
+            [IO.File]::WriteAllText([IO.Path]::Combine($ipc,'befehl.json'),'{}')
+        }
         $info=[Diagnostics.ProcessStartInfo]::new()
-        $info.FileName=$exe;$info.Arguments='--ucp-no-security';$info.WorkingDirectory=$gameRoot
+        $info.FileName=$exe;$info.WorkingDirectory=$gameRoot
+        if($Transport -eq 'file' -or $UnsignedDevelopment){$info.Arguments='--ucp-no-security'}
         $info.UseShellExecute=$true
         $started=[DateTime]::UtcNow
         $gameProcess=[Diagnostics.Process]::Start($info)
@@ -49,12 +55,13 @@ try {
             if([IO.File]::Exists($log) -and [IO.File]::GetLastWriteTimeUtc($log) -ge $started) {
                 $f=[IO.File]::Open($log,'Open','Read','ReadWrite')
                 try {$reader=[IO.StreamReader]::new($f);$text=$reader.ReadToEnd()} finally {$f.Dispose()}
-                if($text.Contains('Selfaware AI local development bridge ready')) {$ready=$true;break}
+                $marker=if($Transport -eq 'memory'){'Selfaware AI memory bridge ready'}else{'Selfaware AI local development bridge ready'}
+                if($text.Contains($marker)) {$ready=$true;break}
             }
             [Threading.Thread]::Sleep(200)
         }
         if(-not $ready) {throw 'Die lokale Selfaware-Spielanbindung ist nicht bereit. Bitte ucp3-error-log.log pruefen.'}
-        & ([IO.Path]::Combine($PSScriptRoot,'bootstrap.ps1')) -Game $gameRoot -GamePid $gameProcess.Id -Runtime $runtimeRoot
+        & ([IO.Path]::Combine($PSScriptRoot,'bootstrap.ps1')) -Game $gameRoot -GamePid $gameProcess.Id -Runtime $runtimeRoot -Transport $Transport
     } finally {$lease.Dispose()}
 } catch {
     [IO.File]::AppendAllText($trace,($_.ToString()+"`r`n"))

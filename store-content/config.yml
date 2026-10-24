@@ -1,0 +1,27 @@
+meta:
+  version: 1.0.0
+config-sparse:
+  modules:
+    selfaware-bridge:
+      config: {}
+    aiSwapper:
+      config:
+        ai:
+          abbot:
+            lines:
+              contents:
+                suggested-value: &id001
+                  name: SamurAI
+                  root: ucp/plugins/Selfaware-AI-0.2.0/resources/ai/SamurAI/
+                  active: true
+            portrait:
+              contents:
+                suggested-value: *id001
+            aiv:
+              contents:
+                suggested-value: *id001
+  load-order:
+  - extension: selfaware-bridge
+    version: 0.1.0
+  - extension: aiSwapper
+    version: 1.3.0

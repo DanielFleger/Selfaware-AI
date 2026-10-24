@@ -18,8 +18,12 @@ mod leitung;
 mod waechter;
 mod wege;
 mod welt;
+#[cfg(feature = "store-bridge")]
+pub mod bridge_channel;
 
+#[cfg(not(feature = "store-bridge"))]
 use std::fs::OpenOptions;
+#[cfg(not(feature = "store-bridge"))]
 use std::io::Write;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::Mutex;
@@ -133,11 +137,15 @@ pub fn einheiten_je_spieler() -> [u32; 9] {
     je
 }
 
+#[cfg(not(feature = "store-bridge"))]
 fn schreibe(zeile: &str) {
     if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(PROTOKOLL) {
         let _ = writeln!(f, "{}", zeile);
     }
 }
+
+#[cfg(feature = "store-bridge")]
+fn schreibe(zeile: &str) { bridge_channel::trace(zeile); }
 
 fn zustand() -> std::sync::MutexGuard<'static, Zustand> {
     ZUSTAND.lock().unwrap_or_else(|e| e.into_inner())
@@ -449,6 +457,7 @@ pub extern "C" fn samurai_einheiten(spieler: i32) -> i32 {
 /// kern_gebaeude.txt (Vergleich mit {"lagebild": true} im selben, angehaltenen Takt). Rueckgabe: Zahl der Einheiten, -3 bei
 /// einem Schreibfehler.
 #[unsafe(no_mangle)]
+#[cfg(not(feature = "store-bridge"))]
 pub extern "C" fn samurai_welt_schreiben(tick: i32) -> i32 {
     geschuetzt("samurai_welt_schreiben", || {
         let mut z = zustand();
@@ -461,6 +470,10 @@ pub extern "C" fn samurai_welt_schreiben(tick: i32) -> i32 {
         }
     })
 }
+
+#[unsafe(no_mangle)]
+#[cfg(feature = "store-bridge")]
+pub extern "C" fn samurai_welt_schreiben(_tick: i32) -> i32 { -4 }
 
 /// S2: Einheit `nr` dem Kern uebergeben (ein Schreiber je Einheit). Rueckgabe 1.
 #[unsafe(no_mangle)]

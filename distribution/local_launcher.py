@@ -24,9 +24,11 @@ def start_command(config_file):
                      game/'Stronghold Crusader.exe', runtime/'python/python.exe', powershell):
         if not required.is_file():
             raise FileNotFoundError('Startdatei fehlt: '+str(required))
-    return [str(powershell), '-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden',
+    command=[str(powershell), '-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden',
             '-ExecutionPolicy', 'Bypass', '-File', str(starter/'local_start.ps1'),
-            '-Game', str(game), '-Runtime', str(runtime)]
+            '-Game', str(game), '-Runtime', str(runtime),'-Transport',config.get('transport','file')]
+    if config.get('unsigned_development',config.get('transport','file')=='file'):command.append('-UnsignedDevelopment')
+    return command
 
 
 def launch(config_file, run=subprocess.run, notify=show_error):

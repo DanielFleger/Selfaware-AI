@@ -45,14 +45,24 @@ def backup(path,stamp):
 
 def install(game,packages=None,local=None,shortcut=True):
     game=Path(game).resolve();packages=Path(packages or ROOT/'build').resolve()
+    manifest=packages/'application.json'
+    spec=json.loads(manifest.read_text(encoding='utf-8')) if manifest.is_file() else {}
+    transport=spec.get('transport','file')
+    if transport not in ('file','memory'):raise ValueError('Unsupported local application transport')
+    module='selfaware-bridge' if transport=='memory' else 'selfaware-runtime'
+    content_version='0.2.0' if transport=='memory' else '0.1.0'
+    unsigned=spec.get('unsigned_development',transport=='file')
     if not (game/'Stronghold Crusader.exe').is_file():raise ValueError('Crusader executable missing')
     config=game/'ucp-config.yml'
     raw=config.read_bytes();data=yaml.safe_load(raw)
     archive=packages/'runtime.zip'
-    bridge=packages/'selfaware-runtime-0.1.0.zip'
-    plugin=packages/'Selfaware-AI-0.1.0.zip'
+    bridge=packages/(module+'-0.1.0.zip')
+    if transport=='memory' and not unsigned:
+        # Production app never replaces the Store's certificate-signed module.
+        bridge=game/'ucp/modules'/bridge.name
+    plugin=packages/('Selfaware-AI-'+content_version+'.zip')
     for path in (archive,bridge,plugin):
-        if not path.is_file():raise ValueError('Missing local application package: '+str(path))
+        if not path.is_file():raise ValueError('Required package missing; install Selfaware AI from the UCP Store first: '+str(path))
     with zipfile.ZipFile(bridge) as z:
         assert not {'runtime.zip','bootstrap.ps1','sai_launcher.dll'} & set(z.namelist()),'Runtime must be separate from bridge'
     runtime=runtime_path(game,archive,local)
@@ -79,35 +89,44 @@ def install(game,packages=None,local=None,shortcut=True):
     target.parent.mkdir(parents=True,exist_ok=True)
     if not target.exists() or sha(target)!=sha(bridge):
         backup(target,stamp);shutil.copy2(bridge,target)
-    target_plugin=game/'ucp/plugins/Selfaware-AI-0.1.0'
+    target_plugin=game/('ucp/plugins/Selfaware-AI-'+content_version)
     # Preserve old customized files before upgrading the plugin; no recursive deletion.
     with zipfile.ZipFile(plugin) as z:
         for name in checked_names(z,target_plugin):
             target_file=target_plugin/name
             if target_file.is_file() and not name.endswith('/') and target_file.read_bytes()!=z.read(name):backup(target_file,stamp)
     safe_extract(plugin,target_plugin)
-    value={'name':'SamurAI','root':'ucp/plugins/Selfaware-AI-0.1.0/resources/ai/SamurAI/','active':True}
+    value={'name':'SamurAI','root':'ucp/plugins/Selfaware-AI-'+content_version+'/resources/ai/SamurAI/','active':True}
     for section in ('config-sparse','config-full'):
         block=data.setdefault(section,{})
         modules=block.setdefault('modules',{})
-        modules.setdefault('selfaware-runtime',{'config':{}})
+        if transport=='memory':
+            old=modules.pop('selfaware-runtime',None)
+            modules.setdefault(module,old or {'config':{}})
+            block['load-order']=[row for row in block.get('load-order',[]) if row.get('extension')!='selfaware-runtime']
+        else:modules.setdefault(module,{'config':{}})
         block.setdefault('plugins',{}).setdefault('Selfaware-AI',{'config':{}})
         ai=modules.setdefault('aiSwapper',{'config':{}})['config'].setdefault('ai',{})
         abbot=ai.setdefault('abbot',{})
         for k in ('lines','portrait','aiv'):abbot[k]={'contents':{'value':dict(value)}}
         order=block.setdefault('load-order',[])
-        for name in ('selfaware-runtime','Selfaware-AI'):
-            if not any(row.get('extension')==name for row in order):order.append({'extension':name,'version':'0.1.0'})
+        for name in (module,'Selfaware-AI'):
+            version=content_version if name=='Selfaware-AI' else '0.1.0'
+            existing=next((row for row in order if row.get('extension')==name),None)
+            if existing is None:order.append({'extension':name,'version':version})
+            else:existing['version']=version
     if yaml.safe_load(raw)!=data:
         backup(config,stamp)
         temp=config.with_name(config.name+'.local-app.tmp')
         temp.write_text(yaml.safe_dump(data,sort_keys=False,allow_unicode=True),encoding='utf-8');temp.replace(config)
-    ipc=game/'ucp/villagestudio';ipc.mkdir(exist_ok=True)
+    if transport=='file':
+        ipc=game/'ucp/villagestudio';ipc.mkdir(exist_ok=True)
     launcher=runtime/'python/pythonw.exe'
     arguments=subprocess.list2cmdline([str(starter/'local_launcher.py'),str(starter/'installation.json')])
     result={'game':str(game),'runtime':str(runtime),'starter':str(starter),'arguments':arguments,'shortcut_target':str(launcher),
-            'module_sha256':sha(target),'runtime_sha256':sha(archive),'store_compatible':False,
-            'module_extracts_runtime':False,'external_app_owns_learning':True}
+            'module_sha256':sha(target),'runtime_sha256':sha(archive),'store_compatible':None if transport=='memory' else False,
+            'module_extracts_runtime':False,'external_app_owns_learning':True,'transport':transport,
+            'unsigned_development':unsigned}
     if shortcut:
         link=desktop_directory()/'Selfaware AI (lokal).lnk'
         raw=absolute_link(launcher,arguments,starter,game/'Stronghold Crusader.exe',

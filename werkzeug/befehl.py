@@ -32,6 +32,13 @@ if not os.path.isdir(SPIEL):
 _ENDUNG = "" if INSTANZ == 1 else str(INSTANZ)
 BEFEHL = os.path.join(SPIEL, "ucp", "villagestudio", "befehl.json")
 LOG    = os.path.join(SPIEL, "ucp3.log")
+MEMORY = os.environ.get('SHC_TRANSPORT')=='memory'
+if MEMORY:
+    if not os.environ.get('SHC_STATE_DIR') or not os.environ.get('SHC_GAME_PID','').isdigit():
+        raise RuntimeError('Memory transport requires an explicit external state directory and game PID')
+    KANAL_ORDNER=os.path.join(os.path.abspath(os.environ['SHC_STATE_DIR']),'ipc',os.environ['SHC_GAME_PID'])
+else:
+    KANAL_ORDNER=os.path.dirname(BEFEHL)
 # 19.10.2026 (1v1, Selfaware gegen sich selbst): SHC_SPIELER waehlt den Spieler dieses Prozesses - jeder Befehl traegt dann
 # "player" = SPIELER (das Modul stellt den Platz je Befehl um, logik.lua 19.10.), Abzuege (Lagebild, Gebaeude, Karten)
 # kommen in einen eigenen Ordner abzug_sp<N>. SHC_PARTNER=ja: zwei Lenker teilen sich den Kanal - statt der Sperre fuer
@@ -41,11 +48,10 @@ if not _SP.isdigit() or not 1 <= int(_SP) <= 8:
     raise RuntimeError("SHC_SPIELER=%r ist keine Spielernummer (1-8)" % _SP)
 SPIELER = int(_SP)
 PARTNER = os.environ.get("SHC_PARTNER", "").strip().lower() in ("ja", "1", "true")
-ABZUG  = os.path.join(SPIEL, "ucp", "villagestudio", "abzug" if SPIELER == 1 else "abzug_sp%d" % SPIELER)
+ABZUG  = os.path.join(KANAL_ORDNER, "abzug" if SPIELER == 1 else "abzug_sp%d" % SPIELER)
 os.makedirs(ABZUG, exist_ok=True)      # auch eine frische Installation braucht den Ordner fuer Spieler 1
 # 18.10. (1v1-Lauf 1018a): je Spieler ein eigener Merker - im gemeinsamen las ein Lenker die kleinere Nummer des anderen und
 # vergab eigene Nummern doppelt (Gegenprobe ids_pruefen: 5.754 doppelte von 6.000)
-KANAL_ORDNER = os.path.dirname(BEFEHL)
 MERKER = os.path.join(KANAL_ORDNER, ".letzte_id_sp%d" % SPIELER)
 SENDE  = os.path.join(KANAL_ORDNER, ".sende")   # ein Spielkanal, unabhaengig von Checkout und Instanz-Alias
 
@@ -75,7 +81,7 @@ def letztes_spielende(n=1):
     """B-154: die letzten n Zeilen des Spielende-Melders (logik.lua schreibt ucp/villagestudio/spielende.txt: BEWUSST/UNBEWUSST,
     Grund, gameOver, Ansicht, Lords) - [] ohne Datei."""
     try:
-        with open(os.path.join(SPIEL, "ucp", "villagestudio", "spielende.txt"), encoding="utf-8", errors="replace") as f:
+        with open(os.path.join(KANAL_ORDNER, "spielende.txt"), encoding="utf-8", errors="replace") as f:
             return [z.rstrip("\n") for z in f.readlines()[-n:]]
     except OSError:
         return []
@@ -160,6 +166,62 @@ def _kanal_frei():
         raise RuntimeError("KANAL BELEGT: ein Lauf (Prozess %s) benutzt den Befehlskanal von Instanz %d gerade (vor %.0f s gemeldet)" % (pid, INSTANZ, alter))
 
 _SENDE_LOKAL = threading.local()
+_MEMORY_CHANNEL = None
+
+
+def memory_channel():
+    global _MEMORY_CHANNEL
+    if not MEMORY:raise RuntimeError('Memory channel was not explicitly selected')
+    if _MEMORY_CHANNEL is None:
+        from speicherkanal import Channel
+        _MEMORY_CHANNEL=Channel(int(os.environ['SHC_GAME_PID']))
+    return _MEMORY_CHANNEL
+
+
+def session_record():
+    if MEMORY:
+        raw=memory_channel().status()
+        return json.loads(raw.decode('utf-8')) if raw else {'active':False}
+    with open(os.path.join(KANAL_ORDNER,'uebernahme.json'),encoding='utf-8') as f:return json.load(f)
+
+
+def _materialize_memory_reply(data):
+    from pathlib import Path
+    from speicherkanal import records
+    decoded=records(data) # Validate the entire frame before any external writes.
+    root=Path(KANAL_ORDNER).resolve();lines=[]
+    for kind,key,payload in decoded:
+        if kind==1:
+            lines.append(payload.decode('utf-8',errors='replace'));continue
+        target=(root/key).resolve()
+        if not target.is_relative_to(root):raise RuntimeError('Snapshot resource escaped external state')
+        target.parent.mkdir(parents=True,exist_ok=True)
+        if kind==3:
+            with target.open('ab') as f:f.write(payload)
+        else:
+            temp=target.with_name(target.name+'.%s.tmp'%os.getpid())
+            temp.write_bytes(payload);_veroeffentlichen(str(temp),str(target))
+    return ''.join(lines)
+
+
+def _send_memory(command,warte,bis):
+    channel=memory_channel();own='QUITTUNG %s'%command['id']
+    expected=bis or own
+    deadline=time.monotonic()+(max(warte,20.0) if PARTNER else warte)
+    payload=json.dumps(command).encode('utf-8');answer=''
+    while True:
+        sequence,data,error=channel.transact(payload,max(.001,deadline-time.monotonic()))
+        answer+=_materialize_memory_reply(data)
+        channel.consume(sequence) # Acknowledge only after external snapshots are safe.
+        if error:raise RuntimeError('MODULFEHLER (memory bridge): '+answer[-1800:])
+        if re.search(r'\b'+re.escape(own)+r'(?!\d)',answer) and expected in answer:
+            lines=logzeilen(answer)
+            return pruefe(lines) if STRENG else lines
+        if time.monotonic()>=deadline:
+            raise TimeoutError('BEFEHL %s: Wirkung/Quittung fehlt; nicht blind wiederholen'%command['id'])
+        # Collect asynchronous effect markers/events; never repeat the original action.
+        payload=b'{"poll":true}'
+        time.sleep(ACK_POLL)
 
 
 def _sperren():
@@ -207,6 +269,7 @@ def sende(befehl, warte=3.0, bis=None):
         # Eine einheitliche Huelle verhindert still verworfene Einzelbefehle.
         if 'befehle' not in befehl:
             befehl = {'id': befehl['id'], 'befehle': [befehl]}
+        if MEMORY:return _send_memory(befehl,warte,bis)
         # 19.10.: mit Partner immer auf die EIGENE Quittung warten - sonst schreibt der andere Lenker befehl.json, bevor das
         # Modul diesen Befehl gelesen hat (die Quittung ist die letzte Zeile eines Befehls, nach allen Antwortzeilen)
         # Auch im Partnerbetrieb muss ein ausdruecklicher Wirkungsmarker

@@ -66,6 +66,7 @@ impl Leitung {
             if p.is_null() {
                 return None;
             }
+            #[cfg(not(feature = "store-bridge"))]
             std::fs::write(NAME_DATEI, format!("{}\n{}\n", name, GROESSE)).ok()?;
             Some(Leitung { basis: p, name })
         }

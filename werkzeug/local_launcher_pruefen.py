@@ -57,5 +57,17 @@ class Launcher(unittest.TestCase):
             self.assertEqual(local_launcher.launch(config,forbidden,notifications.append),1)
             self.assertIn('Startdatei fehlt',notifications[0])
 
+    def test_store_production_has_no_development_security_bypass(self):
+        with tempfile.TemporaryDirectory() as folder:
+            config,game=self.config(Path(folder))
+            data=json.loads(config.read_text())
+            data.update(transport='memory',unsigned_development=False)
+            config.write_text(json.dumps(data))
+            command=local_launcher.start_command(config)
+            self.assertEqual(command[command.index('-Transport')+1],'memory')
+            self.assertNotIn('-UnsignedDevelopment',command)
+            data['unsigned_development']=True;config.write_text(json.dumps(data))
+            self.assertIn('-UnsignedDevelopment',local_launcher.start_command(config))
+
 
 if __name__ == '__main__':unittest.main()

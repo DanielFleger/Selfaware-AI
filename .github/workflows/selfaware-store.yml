@@ -1,0 +1,71 @@
+name: Selfaware Store boundary candidate
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/branching-fortunes]
+    paths:
+      - 'store-module/**'
+      - 'store-content/**'
+      - 'distribution/**'
+      - 'werkzeug/**'
+      - 'takeover.lua'
+      - 'starttroops.lua'
+      - 'command_owner.lua'
+      - 'engine_contract.lua'
+      - 'options.yml'
+      - 'Selfaware-AI/**'
+      - '.github/workflows/selfaware-store.yml'
+jobs:
+  build-and-check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build external portable runtime from source
+        shell: pwsh
+        run: ./build.ps1
+      - name: Check source snapshot and build Store kernel
+        shell: pwsh
+        run: |
+          python distribution/prepare_store_source.py --check
+          if ($LASTEXITCODE -ne 0) { throw 'Stale release source snapshot' }
+          ./store-module/build.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Store native build failed' }
+          cargo build --locked --release --target i686-pc-windows-msvc --manifest-path store-module/Cargo.toml --target-dir store-module/build/native-target --bin ipc_probe
+          if ($LASTEXITCODE -ne 0) { throw '32-bit IPC probe build failed' }
+          cargo test --locked --target i686-pc-windows-msvc --manifest-path store-module/Cargo.toml --target-dir store-module/build/native-target --lib
+          if ($LASTEXITCODE -ne 0) { throw 'Store kernel regression tests failed' }
+      - name: Counterexamples and actual 32/64-bit memory communication
+        shell: pwsh
+        run: |
+          python -m pip install PyYAML==6.0.3 lupa==2.8
+          $env:SHC_GAME_DIR=Join-Path $PWD 'build/fixture-game'
+          New-Item -ItemType Directory -Path $env:SHC_GAME_DIR -Force | Out-Null
+          $env:SAI_IPC_PEER=Join-Path $PWD 'store-module/build/native-target/i686-pc-windows-msvc/release/ipc_probe.exe'
+          python werkzeug/speicherkanal_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'Memory transport checks failed' }
+          python werkzeug/store_bridge_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'Store IO boundary checks failed' }
+          python werkzeug/befehl_speicher_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'Whole memory transaction checks failed' }
+          python werkzeug/distribution_boundary_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'Installer preservation checks failed' }
+          python werkzeug/local_launcher_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'External startup checks failed' }
+          python werkzeug/desktop_shortcut_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'Desktop path checks failed' }
+      - name: Package module, content and separate applications
+        shell: pwsh
+        run: |
+          python distribution/package_store.py
+          if ($LASTEXITCODE -ne 0) { throw 'Store candidate packaging failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: selfaware-store-review-candidate
+          path: |
+            build/store/selfaware-bridge-0.1.0.zip
+            build/store/Selfaware-AI-0.2.0.zip
+            build/store/Selfaware-AI-external-0.2.0.zip
+            build/store/Selfaware-AI-review-0.2.0.zip

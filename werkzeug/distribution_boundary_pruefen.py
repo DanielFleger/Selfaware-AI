@@ -54,6 +54,44 @@ class Distribution(unittest.TestCase):
             self.assertEqual((game/'ucp-config.yml').read_bytes(),raw)
             self.assertFalse((base/'local').exists())
 
+    def memory_fixture(self,base,review):
+        game,package=self.fixture(base)
+        (package/'application.json').write_text(json.dumps({'transport':'memory','unsigned_development':review}))
+        module=package/'selfaware-bridge-0.1.0.zip' if review else game/'ucp/modules/selfaware-bridge-0.1.0.zip'
+        module.parent.mkdir(parents=True,exist_ok=True)
+        with zipfile.ZipFile(module,'w') as z:z.writestr('init.lua',b'Store signed placeholder')
+        with zipfile.ZipFile(package/'Selfaware-AI-0.2.0.zip','w') as z:z.writestr('definition.yml',b'name: Selfaware-AI')
+        return game,package,module
+
+    def test_memory_production_preserves_store_module_and_removes_legacy_activation(self):
+        with tempfile.TemporaryDirectory() as t:
+            base=Path(t);game,package,module=self.memory_fixture(base,False)
+            before=module.read_bytes()
+            # A foreign unsigned package must never replace the Store module.
+            (package/module.name).write_bytes(b'not the installed signed Store module')
+            result=local_setup.install(game,package,base/'local',shortcut=False)
+            self.assertEqual(module.read_bytes(),before)
+            self.assertFalse(result['unsigned_development'])
+            self.assertEqual(result['transport'],'memory')
+            self.assertIsNone(result['store_compatible'],'Maintainers certify Store compatibility')
+            self.assertFalse((game/'ucp/villagestudio').exists())
+            config=yaml.safe_load((game/'ucp-config.yml').read_text())
+            for section in ('config-sparse','config-full'):
+                block=config[section]
+                self.assertNotIn('selfaware-runtime',block['modules'])
+                self.assertIn({'extension':'Selfaware-AI','version':'0.2.0'},block['load-order'])
+            self.assertEqual(config['config-full']['modules']['selfaware-bridge']['config']['startTroops']['Assassin']['contents']['value'],3)
+            self.assertEqual(config['config-sparse']['modules']['aiSwapper']['config']['ai']['rat'],{'kept':True})
+
+    def test_memory_production_requires_store_module_before_any_installation(self):
+        with tempfile.TemporaryDirectory() as t:
+            base=Path(t);game,package,module=self.memory_fixture(base,False)
+            module.unlink();before=(game/'ucp-config.yml').read_bytes()
+            with self.assertRaisesRegex(ValueError,'install Selfaware AI from the UCP Store first'):
+                local_setup.install(game,package,base/'local',shortcut=False)
+            self.assertFalse((base/'local').exists())
+            self.assertEqual((game/'ucp-config.yml').read_bytes(),before)
+
     def test_zip_cannot_escape_install_directory(self):
         with tempfile.TemporaryDirectory() as t:
             base=Path(t);archive=base/'bad.zip'

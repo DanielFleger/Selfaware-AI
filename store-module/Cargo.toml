@@ -1,0 +1,22 @@
+[package]
+name = "samurai_kern"
+version = "0.1.0"
+edition = "2024"
+description = "SamurAI-Kern im Spiel (Backlog B-115): laeuft als DLL im Stronghold-Prozess, liest jeden Takt die Spielstrukturen direkt"
+
+[lib]
+path = "native/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["store-bridge"]
+store-bridge = []
+
+[[bin]]
+name = "ipc_probe"
+path = "native/ipc_probe.rs"
+required-features = ["store-bridge"]
+
+[profile.release]
+panic = "unwind"   # B-145: Fehler im Kern fangen statt das Spiel mitzureissen (geschuetzt() in lib.rs)
+opt-level = 2

@@ -3,7 +3,9 @@
 //! beide im selben Takt verglichen werden koennen (python -m selfaware.tools.experiments.kern_vergleich). Die Spalte
 //! "erreichbar" braucht den Wegfinder des Spiels - das ist S3; bis dahin steht dort -9 (nicht berechnet).
 
+#[cfg(not(feature = "store-bridge"))]
 use std::fs::File;
+#[cfg(not(feature = "store-bridge"))]
 use std::io::{BufWriter, Write};
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten ab 0x0138854C, je 1.168 Byte, 2.500 Plaetze (Spielkarte 2)
@@ -331,6 +333,7 @@ impl Welt {
     }
 
     /// Schreibt Einheiten und Gebaeude im Format von abzug/lagebild.txt und abzug/gebaeude.txt.
+    #[cfg(not(feature = "store-bridge"))]
     pub fn schreiben(&self, tick: i32, pfad_einheiten: &str, pfad_gebaeude: &str) -> std::io::Result<()> {
         let mut f = BufWriter::new(File::create(pfad_einheiten)?);
         writeln!(f, "tick {}", tick)?;
