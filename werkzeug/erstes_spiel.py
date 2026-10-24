@@ -3540,7 +3540,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         try:
                             brand.schutz = deckung.orte(L)
                             brand.heerwege = getattr(feldzug, "heerwege", []) if feldzug else []   # B-150
+                            tz = uhr("r_feldzug", tz)              # B-216: Zeit je Teil des Militaerblocks
                             ereignis += deckung.schritt(L, G, befehl, brand)
+                            tz = uhr("r_deckung", tz)
                             # B-168 (Daniel 22.10. 08:09 "Gefahrenschutz mit Risikoabwaegung ... ausholen ... auf dem Weg
                             # mitnehmen"): eine Gefahrenlage je Runde, mit den Gebieten der Wegkarte des Feldzugs (wer hinter
                             # einer Mauer steht, ist zu Fuss nicht erreichbar)
@@ -3552,8 +3554,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             lage_r = GS_r.Lage(L, G, lambda b_: b_ not in freunde_von(SP), GE_r.FERN_REICH, wegkarte=wk_r,
                                                gebiete=getattr(getattr(feldzug, "_karte", None), "gebiete", None))
                             gs_lerner.runde(st["t"], L, lage_r)
+                            tz = uhr("r_lage", tz)
                             ereignis += brand.schritt(L, G, befehl, lage_r)
+                            tz = uhr("r_brand", tz)
                             ereignis += reiter.schritt(L, G, befehl, lage_r)
+                            tz = uhr("r_reiter", tz)
                             if posten_h is not None and not es_an and not hunger_r and runde % 2 == 1:
                                 import bauen as BA_r
                                 for typ_r, n_r in RA.werbung(st["gold"] - wirt.ruecklage(G, ohne_heer=HEER_ANTEIL > 0)["gold"], st.get("feuer", 0),
