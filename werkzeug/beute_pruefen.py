@@ -9,7 +9,9 @@ damit im Nahkampf einfach zu snacken sind"). Vorher festgelegt, was gelten muss:
   5. Schuetze 30 Felder weg (> BEUTE_R) -> KEINE Jagd
   6. (17.10., Partie 1017a: Assassine 195) Schuetze am Boden, aber 12 weitere Armbrustschuetzen 8-12 Felder dahinter mit
      freier Linie -> KEINE Jagd (Beschuss x Toetungszeit uebersteigt den Wert); Gegenprobe: Raten 0 -> Jagd
-  7. (17.10., 1017j, Daniel: "Raiden geht vor") wie 1, aber lohnende Raid-Plaetze da (mehr als Raider) -> KEINE Jagd
+  7. (17.10., 1017j, Daniel: "Raiden geht vor") wie 1, aber lohnende Raid-Plaetze da (mehr als Raider) -> keine BEUTE-Jagd;
+     24.10. (B-213, Daniel: "da haette eine Assassine einen Bogenschuetzen locker besiegen koennen"): der Schuetze SIEHT ihn
+     aus 6 Feldern - statt zu fliehen gewinnt er das gerechnete Gefecht und erledigt ihn (GEGENSCHLAG SCHUETZE), dann raidet er
   8. (17.10., 1017j: Feuerwerfer neben arab. Bogen, Todesrisiko 47 %) Schuetze mit 3 Armbrustschuetzen 8-10 Felder dahinter,
      keine Raid-Plaetze -> KEINE Jagd (Risiko ueber BEUTE_RISIKO)
   Fall 1-6 laufen ohne lohnende Raid-Plaetze (Lage vor 17.10.).
@@ -70,8 +72,9 @@ def main():
     # lieber noch moeglichst viel"), aber keine BEUTE-Jagd aus der Risikorechnung
     pruefe(6, "Schuetze vor 12 Armbrustschuetzen: keine Beute-Jagd (Jagd %s, letzter Einsatz %s)" % (jagd, 100 in getattr(t6, "letzter", {})),
            jagd != 600 or 100 in getattr(t6, "letzter", {}))
-    jagd, bef, _ = lauf(*szene(), raid=5)
-    pruefe(7, "lohnende Raid-Plaetze da: keine Jagd (%s)" % jagd, jagd != 600)
+    jagd, bef, t7 = lauf(*szene(), raid=5)
+    pruefe(7, "lohnende Raid-Plaetze da, Schuetze sieht ihn: Gegenschlag statt Flucht (Jagd %s, Gegenschlaege %s)" % (
+        jagd, t7.bilanz.get("gegenschlag_schuetze", 0)), jagd == 600 and t7.bilanz.get("gegenschlag_schuetze", 0) >= 1)
     drei = {630 + i: einheit(23, 2, 214 + i, 268 + i, leben=17500) for i in range(3)}
     jagd, bef, t8 = lauf(*szene(extra=drei))
     pruefe(8, "Schuetze vor 3 Armbrustschuetzen: keine Jagd (%s)" % jagd, jagd != 600)

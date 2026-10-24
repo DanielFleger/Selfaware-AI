@@ -874,10 +874,28 @@ def main():
         t.ziel[100] = 900; t.ziel_typ[900] = 20; t.befohlen[100] = 0
         L[100].update(laufx=100, laufy=100, zustand=107)
         erg, _ = t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
-        return t.ziel.get(100), [z[:80] for z in erg if "ENTDECKT" in z][:1]
-    z54, m54 = gegenwert(0)
-    z54b, m54b = gegenwert(12)
-    pruefe(54, "ein Bogen: Ziel %s %s | 12 Armbrueste: Ziel %s %s" % (z54, m54, z54b, m54b), z54 == 900 and z54b is None)
+        return t.ziel.get(100), t.jagd.get(100), [z[:80] for z in erg if "ENTDECKT" in z or "GEGENSCHLAG" in z][:1]
+    # 24.10. (B-213): gegen EINEN Bogen gewinnt er das Gefecht - er erledigt erst den Schuetzen (Jagd auf 602) statt unter
+    # Beschuss weiter abzureissen; das Gebaeude nimmt die Zielwahl danach wieder. Gegen 12 Armbrueste: ENTDECKT, Ziel weg.
+    z54, j54, m54 = gegenwert(0)
+    z54b, j54b, m54b = gegenwert(12)
+    pruefe(54, "ein Bogen: Ziel %s, Jagd %s %s | 12 Armbrueste: Ziel %s, Jagd %s %s" % (z54, j54, m54, z54b, j54b, m54b),
+           j54 == 602 and z54 is None and z54b is None and j54b is None)
+    # 55 (B-213, Daniel 24.10. "da haette eine Assassine einen Bogenschuetzen locker besiegen koennen"): Assassine mit vollem
+    #     Leben, ein arab. Bogen (Typ 70) 12 Felder weit sieht und erreicht sie -> GEGENSCHLAG SCHUETZE, Jagd auf ihn, kein
+    #     ENTDECKT; Gegenprobe: 8 Armbrustschuetzen 30 Felder weit (Flucht noch moeglich) -> ENTDECKT, kein Gegenschlag, keine Jagd
+    def gegenschlag(n_armbrust):
+        t = neu(); t._raid_plaetze = 99
+        L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000), 600: einheit(70, 2, 112, 100, leben=15000)}
+        for i in range(n_armbrust):
+            L[610 + i] = einheit(23, 2, 130 + i % 4, 96 + i // 4 * 2, leben=17500)
+        t.aufnehmen([100])
+        erg, _ = t.schritt(L, {}, sichere_orte=[(50, 50)], tick=10000)
+        return t.jagd.get(100), 100 in t.entdeckt, [z[:60] for z in erg if "GEGENSCHLAG SCHUETZE" in z or z.startswith("ENTDECKT")][:1]
+    j55, e55, m55 = gegenschlag(0)
+    j55b, e55b, m55b = gegenschlag(8)
+    pruefe(55, "ein Bogen: Jagd %s, entdeckt %s %s | 8 Armbrueste dazu: Jagd %s, entdeckt %s %s" % (j55, e55, m55, j55b, e55b, m55b),
+           j55 == 600 and not e55 and j55b is None and e55b)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

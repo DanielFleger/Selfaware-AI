@@ -5,6 +5,7 @@ values are already consumed by gefahrenschutz.Lage in subsequent rounds/matches.
 """
 import json
 import os
+import re
 import tempfile
 import uuid
 from pathlib import Path
@@ -32,6 +33,21 @@ def modell(path):
         return {}
     except (json.JSONDecodeError, OSError) as ex:
         return {'lesefehler':str(ex)} # retain the original; telemetry must not disable the AI
+
+
+def entdeckt_zaehlen(text):
+    """B-213 (Daniel 24.10.: das Lernbuch soll vorarbeiten): je Partie zaehlen, vor wie vielen Schuetzen eine Assassine floh
+    und mit welchem Leben - von Hand aus 14 Partien gezogen ergab das 42 % Fluchten vor EINEM Schuetzen bei vollem Leben.
+    Dazu, wie oft stattdessen der Gegenschlag gerechnet wurde."""
+    aus = {'gesamt': 0, 'ein_schuetze': 0, 'volles_leben': 0, 'gegenschlag_schuetze': text.count('GEGENSCHLAG SCHUETZE'),
+           'trotz_entdeckt': text.count('TROTZ ENTDECKT')}
+    for m in re.finditer(r'ENTDECKT \d+ bei \([^)]*\).*?: Spaeher Typ \d+ in \d+ Feldern, (\d+) Schuetzen mit Linie, Leben (\d+)', text):
+        aus['gesamt'] += 1
+        if int(m.group(1)) == 1:
+            aus['ein_schuetze'] += 1
+        if int(m.group(2)) >= 11000:
+            aus['volles_leben'] += 1
+    return aus
 
 
 def ausgang(over, killers, player, enemies):
@@ -73,6 +89,7 @@ class Lernbuch:
         except OSError:
             text = ''
         run['beobachtungen'] = {k: text.count(k) for k in ('HUNGER', 'STILLSTAND', 'ABGELEHNT', 'angeworben')}
+        run['entdeckt'] = entdeckt_zaehlen(text)
         after = modell(self.modellpfad)
         run['modell_nachher'] = after
         changed = ('lesefehler' not in run['modell_vorher'] and 'lesefehler' not in after
@@ -86,6 +103,10 @@ class Lernbuch:
             lessons.append('Nahrung war knapp: Nahrungsversorgung als Problem festgehalten; Ursache noch nicht belegt.')
         if run['beobachtungen']['STILLSTAND']:
             lessons.append('Stillstand gemeldet: Weg-/Arbeitsauftraege im Lageprotokoll pruefen; Ursache noch nicht belegt.')
+        e = run.get('entdeckt') or {}
+        if e.get('gesamt', 0) >= 20 and e['ein_schuetze'] * 100 >= 30 * e['gesamt']:
+            lessons.append('Assassinen flohen %d-mal, davon %d-mal vor einem einzelnen Schuetzen (%d %% bei vollem Leben); Gegenschlag gerechnet: %d-mal. Die Gefechtsrechnung vor der Flucht (B-213) greift hier noch zu selten.' % (
+                e['gesamt'], e['ein_schuetze'], 100 * e['volles_leben'] // max(1, e['gesamt']), e['gegenschlag_schuetze']))
         if run['status'] == 'sieg':
             lessons.append('Sieg durch native Lord-Daten bestaetigt. Daraus allein folgt keine bewiesene Ursache fuer den Sieg.')
         elif run['status'] == 'niederlage':

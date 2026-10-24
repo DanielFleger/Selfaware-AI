@@ -1483,6 +1483,8 @@ class Einzeln:
                     continue                   # 19.10.: nur ein Sklave sieht ihn - erledigen statt fliehen
                 if e is None and sehen and self._fertig_zuerst(n, ort, G, L, ereignis):
                     continue                   # 19.10.: fast kaputt - erst fertig abreissen
+                if e is None and sehen and self._schuetzen_schlagen(n, ort, sehen, L, G, ereignis, jagen if jagen is not None else []):
+                    continue                   # B-213: das Gefecht gegen die Schuetzen wird gewonnen - angreifen statt fliehen
                 if e is None and sehen and self._gegenwert_lohnt(n, ort, sehen, G, L, ereignis):
                     continue                   # B-200: der Beschuss bis zum Abriss ist den Gegenwert wert
                 if sehen:
@@ -1693,6 +1695,54 @@ class Einzeln:
         anteil = r_wir / float(max(1, voll))
         return sieg and anteil >= self.GEGEN_BEHALTEN, "%d eigene gegen %d feindliche Nahkaempfer bis %d Felder: %s, uns bleiben %.0f %%" % (
             len(wir), len(sie), self.GEGEN_UMKREIS, "Sieg" if sieg else "kein Sieg", 100 * anteil), wir_nr
+
+    def _schuetzen_schlagen(self, n, ort, sehen, L, G, ereignis, jagen):
+        """B-213 (Daniel 24.10. 20:56 "da haette eine Assassine einen Bogenschuetzen locker besiegen koennen"; gemessen ueber 14
+        Partien: 572 von 1.368 ENTDECKT-Fluchten wegen EINES Schuetzen, 81 % bei vollem Leben; die Gefechtsrechnung sagt 1 gegen
+        1 Sieg mit 76-94 % Rest): statt bei Sichtlinie zu fliehen, rechnen - wir (_mitkaempfer) gegen die Schuetzen, die ihn
+        sehen und zu Fuss erreichbar sind, plus feindliche Nahkaempfer bis GEGEN_UMKREIS. Lohnt = Sieg und mindestens
+        GEGEN_BEHALTEN Rest - ODER Sieg und der Schuetze deckt Gebaeude, deren Wert (frei nach seinem Tod) den Einsatz
+        aufwiegt (Daniel 21:00: "es kann sein, dass die KI gewinnen wuerde, wenn dieser Schuetze weg ist, weil dadurch ein
+        wichtiges Gebaeude zerstoert werden kann"). Dann greifen alle Mitkaempfer die Schuetzen an."""
+        import gefecht
+        if L[n]["leben"] < self.EIN_TREFFER or n in self.letzter:
+            return False
+        # oben auf Turm/Torhaus (ERHOEHT, wie in der Beute-Jagd) oder laut Wegkarte unerreichbar: dort hilft kein Angriff
+        hoch = [(g["x"], g["y"]) for g in G.values() if g.get("besitzer") not in freunde_von(self.sp) and g.get("typ") in self.ERHOEHT]
+        ziele = [k for k in sehen if k in L and L[k].get("leben", 1) > 0 and L[k].get("erreichbar", 1) != 0
+                 and L[k].get("typ") in sicht.SCHUETZE_ART
+                 and not any(schach((L[k]["x"], L[k]["y"]), q) <= self.HOCH_R for q in hoch)]
+        if not ziele or len(ziele) < len([k for k in sehen if k in L]):
+            return False                       # ein Schuetze auf Mauer/Turm bleibt unerreichbar - dort hilft kein Angriff
+        if n in self.jagd and self.jagd[n] in ziele:
+            return True                        # ist schon dran
+        nahk = [(schach(ort, (e["x"], e["y"])), k, e) for k, e in L.items() if e["besitzer"] not in freunde_von(self.sp)
+                and e["typ"] in sicht.NAHKAMPF and e.get("leben", 1) > 0 and schach(ort, (e["x"], e["y"])) <= self.GEGEN_UMKREIS]
+        wir_nr = self._mitkaempfer(n, ort, L)
+        wir = [dict(typ=ASSASSINE, leben=L[m]["leben"], x=L[m]["x"], y=L[m]["y"]) for m in wir_nr]
+        sie = [dict(typ=L[k]["typ"], leben=L[k]["leben"], x=L[k]["x"], y=L[k]["y"]) for k in ziele] +               [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"]) for _, _, e in nahk]
+        try:
+            voll = sum(w["leben"] for w in wir)
+            r_wir, r_sie, takte, sieg = gefecht.simuliere(wir, sie)
+        except Exception as ex:
+            return False
+        anteil = r_wir / float(max(1, voll))
+        # Wert, den der Tod dieser Schuetzen freisetzt: feindliche Gebaeude in ihrer Reichweite, die gerade unter Beschuss liegen
+        frei = 0
+        for gn, g in G.items():
+            if g.get("besitzer") in freunde_von(self.sp) or g.get("typ") not in WERT or schach(ort, (g["x"], g["y"])) > 60:
+                continue
+            if any(schach((g["x"], g["y"]), (L[k]["x"], L[k]["y"])) <= gefecht.FERN_REICH.get(L[k]["typ"], 1) for k in ziele)                     and self._beschuss_angriff(gn, G, ort) > 0:
+                frei += WERT[g["typ"]]
+        lohnt = sieg and (anteil >= self.GEGEN_BEHALTEN or frei * anteil >= self.KOSTEN)
+        if not lohnt:
+            return False
+        self._gemeinsam_angreifen(wir_nr, ziele, L, jagen)
+        self.bilanz["gegenschlag_schuetze"] = self.bilanz.get("gegenschlag_schuetze", 0) + 1
+        ereignis.append("GEGENSCHLAG SCHUETZE %d: %d Schuetzen mit Linie (%s), %d Nahkaempfer nah - %d eigene gewinnen nach %d Takten, "
+                        "uns bleiben %.0f %%, freigesetzter Gebaeudewert %d -> greifen an statt zu fliehen" % (
+                            n, len(ziele), "/".join(str(L[k]["typ"]) for k in ziele), len(nahk), len(wir), takte, 100 * anteil, frei))
+        return True
 
     def _spaeher_erledigen(self, n, ort, sehen, L, ereignis, jagen):
         """19.10. (1018w: alle 6 Entdeckungen durch Sklaven, oft mit nur 1 Schuetzen in Reichweite - die Assassine floh und
