@@ -1274,6 +1274,21 @@ def main():
     ok63f, t63f = lohnt63(100)
     del P63._FEST[1]
     pruefe(63, "mit Verbuendetem 20 Felder vor: %s %s | 100 Felder weit: %s %s" % (ok63, t63[:70], ok63f, t63f[:50]), ok63 and not ok63f)
+    # 64 (B-226): dieselbe Lage, der Verbuendete bringt statt 27 Streitkolben 27 Assassinen (Typ 73, nicht in HEER) ->
+    #    sie zaehlen mit (Text "mit 27 Truppen des Verbuendeten") und der Angriff lohnt; Gegenprobe: 27 Arbeiter (Typ 1) zaehlen nicht
+    P63._FEST[1] = frozenset((0, 1, 2))
+    def lohnt64(typ):
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+        L_ = {10 + i: einheit(26, 1, 300, 300) for i in range(13)}
+        L_.update({100 + i: einheit(24, 3, 200 + i % 5, 100 + i // 5) for i in range(20)})
+        L_.update({300 + i: einheit(typ, 2, 200 + i % 5, 120 + i // 5) for i in range(27)})
+        lord = einheit(55, 3, 200, 100, 150000)
+        return f._lohnt(L_, sorted(k for k in L_ if k < 100), lord, am_ziel=True, ort=(200, 100))
+    ok64, t64 = lohnt64(73)
+    ok64f, t64f = lohnt64(1)
+    del P63._FEST[1]
+    pruefe(64, "27 Partner-Assassinen: %s %s | 27 Arbeiter: %s %s" % (ok64, t64[:45], ok64f, t64f[:45]),
+           ok64 and "mit 27 Truppen" in t64 and not ok64f and "Verbuendeten" not in t64f)
     # 57 (B-191): Heer 1 plant (275,100), Heer 2 mit derselben Absprache-Datei uebernimmt den Plan ohne eigenen Planer-Aufruf;
     #    ohne Datei plant Heer 2 selbst
     import tempfile

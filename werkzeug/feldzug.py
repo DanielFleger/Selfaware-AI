@@ -1661,8 +1661,9 @@ class Feldzug:
         partner = []
         if am_ziel:
             for e in L.values():
-                if (e.get("besitzer") in (0, self.sp) or e.get("besitzer") not in freunde_von(self.sp) or e.get("typ") not in HEER
-                        or e.get("leben", 0) <= 0):
+                # B-226: auch die Assassinen des Verbuendeten (Typ 73) - der Lordtrupp rechnet umgekehrt unser Heer mit
+                if (e.get("besitzer") in (0, self.sp) or e.get("besitzer") not in freunde_von(self.sp)
+                        or (e.get("typ") not in HEER and e.get("typ") != 73) or e.get("leben", 0) <= 0):
                     continue
                 lauf = (e.get("laufx", 0), e.get("laufy", 0))
                 if schach((e["x"], e["y"]), mitte_k) <= self.PARTNER_R or (lauf[0] > 0 and schach(lauf, mitte_k) <= self.PARTNER_R):

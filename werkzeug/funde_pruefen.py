@@ -894,6 +894,31 @@ def main():
         return t.jagd.get(100), 100 in t.entdeckt, [z[:60] for z in erg if "GEGENSCHLAG SCHUETZE" in z or z.startswith("ENTDECKT")][:1]
     j55, e55, m55 = gegenschlag(0)
     j55b, e55b, m55b = gegenschlag(8)
+    # 56 (B-226, Daniel 24.10. 22:02 "keine Abstimmung zwischen Raid-Assassinen und dem Heer des Teammates"): 6 Assassinen im
+    #     Feldzug-Modus (lord_aus, Raiden geht vor), Lord des Feindes (Spieler 3) 75.000 Leben mit 8 Boegen; 10 Streitkolben des
+    #     Verbuendeten (Spieler 2) stehen 2 Felder vor dem Lord -> LORD GEMEINSAM, Trupp im Angriff mit allen 6, Angriffsbefehl
+    #     auf den Lord. Gegenproben: ohne Verbuendete nichts (Phase None); Verbuendete da, aber Lord mit 10 Mio Leben -> nichts
+    import parteien as P56
+    P56._FEST[1] = frozenset((0, 1, 2))
+    def gemeinsam(partner, lord_leben=75000):
+        t = neu(); t._raid_plaetze = 99; t.lord_aus = True
+        L = {100 + i: einheit(73, 1, 100 + i, 100) for i in range(6)}
+        L[500] = einheit(55, 3, 160, 100, leben=lord_leben)
+        for i in range(8):
+            L[600 + i] = einheit(22, 3, 150 + i % 4, 96 + i // 4 * 2, leben=5000)
+        for i in range(partner):
+            L[300 + i] = einheit(26, 2, 158, 95 + i, leben=20000)
+        t.aufnehmen(sorted(k for k in L if k < 200))
+        erg, bef = t.schritt(L, {}, sichere_orte=[(50, 50)], tick=20000)
+        an_lord = [b for b in (bef or []) if (b.get("angriff", {}) or {}).get("ziel") == 500] if isinstance(bef, list) else []
+        return t.lordtrupp["phase"], len(t.lordtrupp["mitglieder"]), len(an_lord), [z[:90] for z in erg if "LORD GEMEINSAM" in z][:1]
+    p56, n56, b56, m56 = gemeinsam(10)
+    p56o, n56o, b56o, _ = gemeinsam(0)
+    p56l, _, _, _ = gemeinsam(10, 10 ** 7)
+    del P56._FEST[1]
+    pruefe(56, "10 Partner am Lord: Phase %s, %d im Trupp, %d Lord-Befehle %s | ohne Partner: Phase %s | Lord 10 Mio: Phase %s" % (
+        p56, n56, b56, m56, p56o, p56l),
+           p56 == "angriff" and n56 == 6 and b56 >= 1 and m56 and p56o is None and p56l is None)
     pruefe(55, "ein Bogen: Jagd %s, entdeckt %s %s | 8 Armbrueste dazu: Jagd %s, entdeckt %s %s" % (j55, e55, m55, j55b, e55b, m55b),
            j55 == 600 and not e55 and j55b is None and e55b)
     print("%d von %d gruen" % (sum(ok), len(ok)))

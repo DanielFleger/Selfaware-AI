@@ -473,6 +473,8 @@ class Einzeln:
     # (Daniel 17:14: "wenn jemand sieht, dass er jemanden eindeutig killen oder snipen kann, sollte er angreifen")
     RESERVE_PARKEN = True
     LORD_WACHE_R = 25         # 19.10.: so weit vom Lord zaehlt eine feindliche Truppe als Wache (wie feldzug.LORD_UMKREIS)
+    PARTNER_R = 60            # B-226: Verbuendete bis hierhin um den Lord (oder dorthin laufend) kaempfen im Wettlauf mit (wie
+                              # feldzug.PARTNER_R, Startwert UNGEMESSEN)
     # 34 floh vor einer gleich schnellen feindlichen Assassine und lief ihr in die Arme. 19.10. (1019f, 301 griff mit 11.320
     # gegen 12.500 an, dann kamen 2 weitere Nahkaempfer): Editor-Duell Assassine gegen Assassine 148 je Takt in beide
     # Richtungen - das Leben entscheidet, also mindestens gleich viel
@@ -704,6 +706,22 @@ class Einzeln:
         fallback = [q for q in heime if schach(q, lord) > SCHUSSWEITE
                     and all(schach(q, p) > SCHUSSWEITE for _, p, _ in fern)]
         return min(fallback, key=lambda q: schach(q, lord)) if fallback else None
+
+    def _verbuendete_am_lord(self, L, lp):
+        """B-226 (Daniel 24.10. 22:02, Lauf 215535: "Raid-Assassinen haetten mit den Einheiten des Teammates den Lord killen
+        koennen"): Truppen der Verbuendeten (und eigene des Feldzugs) bis PARTNER_R um den Lord oder auf dem Weg dorthin, als
+        Kaempfer am Lord fuer gefecht.lord_rennen. Eigene Assassinen dieses Trupps zaehlen getrennt."""
+        import feldzug as _fz
+        arten = set(_fz.HEER) | {73}
+        aus = []
+        for n, e in L.items():
+            if (e.get("besitzer") in (0, None) or e.get("besitzer") not in freunde_von(self.sp) or e.get("typ") not in arten
+                    or e.get("leben", 0) <= 0 or (e.get("besitzer") == self.sp and n in self.mitglieder)):
+                continue
+            lauf = (e.get("laufx", 0), e.get("laufy", 0))
+            if schach((e["x"], e["y"]), lp) <= self.PARTNER_R or (lauf[0] > 0 and schach(lauf, lp) <= self.PARTNER_R):
+                aus.append(dict(typ=e["typ"], leben=e["leben"], x=lp[0], y=lp[1]))
+        return aus
 
     def _lord_bedarf(self, L, G, ereignis):
         """Bedarf fuer den Lord-Angriff in dieser Lage: (Zahl, Art, Gruppenleben). Meldet jede Aenderung einmal."""
@@ -2498,6 +2516,41 @@ class Einzeln:
             # weiter Daniels Regel vom 17.10. "erst die Wirtschaft entmannen" (lordanlauf_pruefen 3/4 - mit dieser Regel ueberall
             # fielen dort 4 von 10 Faellen)
             eindeutig = self.lord_aus and machbar and wachen_l == 0 and lt["phase"] is None
+            # B-226: stehen Verbuendete am Lord (Partner-Heer, Partner-Assassinen, eigener Feldzug), rechnet der Wettlauf ALLE
+            # zusammen gegen Lord + Verteidiger bis LORD_UMKREIS + Schuetzen, die ihn erreichen (dieselbe Regel wie
+            # feldzug._lohnt am Ziel, das umgekehrt unsere Assassinen zaehlt) - reicht es, gehen alle sofort, auch im
+            # Feldzug-Modus (lord_aus) und vor dem Raiden; die Bereitstellung entfaellt, der Partner kaempft schon dort
+            gemeinsam, text_g, frei_g = False, "", []
+            verb = self._verbuendete_am_lord(L, lp) if lt["phase"] is None and not self.angriff_aus else []
+            if verb and self.jetzt >= lordschutz.BIS and self.jetzt >= lt.get("pause_bis", 0):
+                import gefecht
+                frei_g = sorted(k for k in self.mitglieder if k in L and k not in self.flucht)
+                leben_g = self._anlauf_leben(self._anlauf_von(L, lp), lp, max(1, len(frei_g)))
+                wir_g = [dict(typ=73, leben=min(L[k]["leben"], leben_g), x=lp[0], y=lp[1]) for k in frei_g] + verb
+                sie_g = [dict(typ=55, leben=le["leben"], x=lp[0], y=lp[1], steht=True)]
+                sie_g += [dict(typ=typ, leben=L[nr]["leben"], x=q[0], y=q[1], steht=False) for nr, q, typ in nah
+                          if L[nr].get("besitzer") and schach(q, lp) <= self.LORD_UMKREIS]
+                sie_g += [dict(typ=typ, leben=L[nr]["leben"], x=q[0], y=q[1], steht=False) for nr, q, typ in fern
+                          if schach(q, lp) <= max(self.LORD_UMKREIS, gefecht.FERN_REICH.get(typ, 0))]
+                if frei_g:
+                    gemeinsam, text_g = gefecht.lord_rennen(wir_g, sie_g, 0)
+            if gemeinsam:
+                for k in frei_g:
+                    self._vergessen(k)
+                    self.stapel["mitglieder"].discard(k)
+                lt.update(mitglieder=set(frei_g), lord=ln, phase="angriff", seit=self.runde, seit_tick=self.jetzt,
+                          angriff_tick=self.jetzt, sammelpunkt=None, bereit=set(), raus=set())
+                lord_befehl = {"angriff": {"einheiten": list(frei_g), "ziel": ln}}
+                self.bilanz["lordtrupps"] = self.bilanz.get("lordtrupps", 0) + 1
+                wege_g = sorted(schach(pos(k), lp) for k in frei_g)
+                self.angriffe.append({"runde": self.runde, "groesse": len(frei_g), "lord_vorher": le["leben"], "lord_nachher": le["leben"],
+                                      "fern": self._anzahl(lp, fern, self.LORD_UMKREIS), "nah": self._anzahl(lp, nah, self.LORD_UMKREIS),
+                                      "weg_min": wege_g[0], "weg_max": wege_g[-1], "am_lord_max": 0, "erreicht_runde": None,
+                                      "anderes": {}, "truppe": set(frei_g), "verluste": 0, "bedarf": len(frei_g),
+                                      "bedarf_art": "gemeinsam", "bedarf_grund": "B-226 mit %d Verbuendeten" % len(verb),
+                                      "fingerabdruck": self.bedarf_fa})
+                ereignis.append("LORD GEMEINSAM: %d Assassinen mit %d Verbuendeten am Lord %d (%d Leben, Weg %d-%d) - %s" % (
+                    len(frei_g), len(verb), ln, le["leben"], wege_g[0], wege_g[-1], text_g))
             if lt["phase"] == "bereit" and not machbar:
                 ereignis.append("LORD-BEREITSTELLUNG ABGEBROCHEN: reicht nicht mehr (Lord %d Leben, Beschuss am Lord %.1f je Tick) - alle raiden" % (
                     le["leben"], satz_lord))
