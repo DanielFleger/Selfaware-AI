@@ -30,9 +30,16 @@ def msvc_environment():
     if not install:
         raise RuntimeError('Visual C++ x86 build tools missing on build host')
     setup = Path(install) / 'VC/Auxiliary/Build/vcvars32.bat'
-    output = subprocess.check_output(['cmd.exe', '/d', '/s', '/c', '""%s" >nul && set"' % setup], text=True, errors='replace')
-    env = dict(os.environ)
-    env.update(line.split('=', 1) for line in output.splitlines() if '=' in line and not line.startswith('='))
+    return batch_environment(setup)
+
+
+def batch_environment(setup):
+    # cmd.exe has its own quote grammar; list2cmdline backslash-quoting is wrong
+    # for paths containing spaces in a /c command.
+    command='"%s" /d /s /c ""%s" >nul && set"' % (os.environ.get('COMSPEC','cmd.exe'),setup)
+    output = subprocess.check_output(command, text=True, errors='replace')
+    env = {k.upper():v for k,v in os.environ.items()}
+    env.update((k.upper(),v) for k,v in (line.split('=',1) for line in output.splitlines() if '=' in line and not line.startswith('=')))
     return env
 
 
