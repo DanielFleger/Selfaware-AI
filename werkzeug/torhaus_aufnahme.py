@@ -63,7 +63,9 @@ def main(argv):
         k = speicher.wegkarte()
         pfad = os.path.join(D, "torhaus_wegkarte_%s_%d.npz" % (zeit, takt))
         np.savez(pfad, **{n: np.asarray(k[n]) for n in ("link", "gebiet", "gebaeude", "hoehe", "boden") if n in k})
-        print("Wegkarte gespeichert:", os.path.basename(pfad), flush=True)
+        # SRE 24.10. 22:05: dazu der rohe Wegfinder-Zustand (PathFindingState samt Kletterdaten, wie Codex ihn 23.10. las)
+        open(os.path.join(D, "torhaus_pfs_%s_%d.bin" % (zeit, takt)), "wb").write(bytes(speicher.lies(0x012BB8C8, 107428)))
+        print("Wegkarte gespeichert:", os.path.basename(pfad), "+ PathFindingState", flush=True)
         return pfad
 
     dateien = []
