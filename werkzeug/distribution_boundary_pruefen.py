@@ -1,6 +1,7 @@
 """Verify external runtime ownership; deliberately do NOT certify the legacy bridge."""
 from pathlib import Path
 import sys,tempfile,unittest,zipfile,json,yaml
+from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'distribution'))
 import local_setup
@@ -15,6 +16,18 @@ class Distribution(unittest.TestCase):
             with zipfile.ZipFile(package/name,'w') as z:
                 for path,data in contents.items():z.writestr(path,data)
         return game,package
+
+    def test_default_migrates_appdata_learning_to_shared_documents_without_deletion(self):
+        with tempfile.TemporaryDirectory() as t:
+            base=Path(t);game,package=self.fixture(base);profile=base/'profile'
+            with patch.object(Path,'home',return_value=profile):
+                old=local_setup.install(game,package,profile/'AppData/Local',shortcut=False)
+                model=Path(old['runtime'])/'Selfaware-AI/daten/lernprofile/measured.json'
+                model.parent.mkdir(parents=True);model.write_text('{"measured":321}')
+                new=local_setup.install(game,package,shortcut=False)
+                self.assertTrue(Path(new['runtime']).is_relative_to(profile/'Documents'))
+                self.assertEqual((Path(new['runtime'])/model.relative_to(old['runtime'])).read_bytes(),model.read_bytes())
+                self.assertTrue(model.is_file(),'Migration must not remove the old learning state')
 
     def test_upgrade_preserves_learning_and_unrelated_configuration(self):
         with tempfile.TemporaryDirectory() as t:

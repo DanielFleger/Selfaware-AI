@@ -12,7 +12,13 @@ shortcut **Selfaware AI (lokal)**. No separate Python installation, LLM account,
 development checkout, mouse/keyboard automation or old save is needed.
 Requirements: 64-bit Windows, UCP 3.0.7, Stronghold Crusader 1.41.
 
-The separate installer unpacks the portable runtime under Local AppData. The
+The separate installer unpacks the portable runtime under Documents/Selfaware AI.
+This shared desktop location avoids the private Local AppData overlay of a
+packaged installer such as Codex. Existing matching AppData runtimes and their
+learned models are copied to Documents; the original data is retained.
+Windows shortcut known-folder aliasing/tracking is disabled so its saved target
+remains the literal installed path.
+The
 external starter launches the game, waits for the native bridge readiness
 message, then starts the controller. It reports startup failures visibly.
 The desktop shortcut uses portable pythonw, so it opens no terminal. Every
@@ -41,7 +47,7 @@ learner persists measured damage and movement models for later decisions. Match
 journals distinguish native outcomes from interruptions. This does not mean
 arbitrary autonomous code rewriting or demonstrate improved overall strength.
 
-State: Local AppData/Selfaware AI/<game-path-hash>/<runtime-hash>.
+State: Documents/Selfaware AI/<game-path-hash>/<runtime-hash>.
 The parent directory holds launcher.log, launcher-<pid>-output.log,
 local-start.log, bootstrap-<pid>.log and worker-<pid>.log.
 Mechanic models also have separate profiles for effective UCP balance settings.

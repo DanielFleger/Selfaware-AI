@@ -11,5 +11,5 @@ does not promise autonomous source-code rewriting or a measured strength gain.
 
 Requires 64-bit Windows, UCP 3.0.7 and Stronghold Crusader 1.41. Select SamurAI
 in the Abbot slot. Other configured opponents remain available. Runtime revisions
-keep separate learning state under Local AppData. Legacy file communication and
+keep separate learning state under Documents/Selfaware AI. Legacy file communication and
 fixed game addresses still block Store acceptance; signing alone is insufficient.
