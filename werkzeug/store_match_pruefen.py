@@ -3,7 +3,7 @@
 Requires an explicitly supplied start record from the isolated review app.
 Never run this against a user match: the initial menu state must be 41.
 """
-import argparse,os,sys,json,time,traceback,struct,hashlib
+import argparse,os,sys,json,time,traceback,struct,hashlib,re,ctypes
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser();p.add_argument('--start-record',required=True);p.add_argument('--output',required=True)
@@ -28,7 +28,7 @@ try:
         while numbers(a)[0]!=value:
             assert time.monotonic()<deadline,(a,value,numbers(a));time.sleep(.1)
     def button(name,n):return sende({'knopf':name,'nr':n},6,bis='KNOPF')
-    wait(0x01FE7D1C,41)
+    wait(0x01FE7D1C,41,90)
     result['initial_clock']=sende({'zeit':True},3)
     # A banned operation must fail without disabling the bridge or opening files.
     try:sende({'foto':True},3)
@@ -56,6 +56,12 @@ try:
     assert result['local_slot_after']==result['local_slot_before'],result
     result['snapshot_reply']=sende({'player':slots[0],'lagebild':True},10,bis='LAGEBILD')
     result['external_snapshot_files']=[str(p.relative_to(runtime.parent)) for p in Path(KANAL_ORDNER).rglob('*.txt')]
+    snapshot_root=Path(KANAL_ORDNER)/('abzug' if slots[0]==1 else 'abzug_sp%d'%slots[0])
+    result['snapshot_headers']={}
+    for name,header in (('lagebild.txt',b'tick '),('gebaeude.txt',b'nr besitzer typ '),('feuer.txt',b'x y')):
+        payload=(snapshot_root/name).read_bytes()
+        assert payload.startswith(header),'Invalid snapshot header: '+name
+        result['snapshot_headers'][name]={'bytes':len(payload),'sha256':hashlib.sha256(payload).hexdigest()}
     deadline=time.monotonic()+60
     while True:
         raw=lies(0xF98520,2000*0x32c);types={sp:{} for sp in slots}
@@ -72,6 +78,21 @@ try:
         time.sleep(.5)
     result['watcher_log']=(runtime.parent/('worker-%d.log'%start['game_pid'])).read_text(encoding='utf-8',errors='replace')[-10000:]
     assert 'beendet, Rueckgabe 1' not in result['watcher_log'],'Controller stopped unexpectedly'
+    kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+    kernel.OpenProcess.argtypes=[ctypes.c_uint32,ctypes.c_bool,ctypes.c_uint32]
+    kernel.OpenProcess.restype=ctypes.c_void_p
+    kernel.WaitForSingleObject.argtypes=[ctypes.c_void_p,ctypes.c_uint32]
+    kernel.CloseHandle.argtypes=[ctypes.c_void_p]
+    workers={int(sp):int(pid) for sp,pid in re.findall(r'SamurAI gestartet fuer Spieler (\d+): Prozess (\d+)',result['watcher_log'])}
+    result['controllers_alive']={}
+    for sp in slots:
+        assert sp in workers,'Controller did not start: '+str(sp)
+        handle=kernel.OpenProcess(0x100000,False,workers[sp])
+        assert handle,'Controller process unavailable: '+str(sp)
+        try:alive=kernel.WaitForSingleObject(handle,0)==0x102
+        finally:kernel.CloseHandle(handle)
+        result['controllers_alive'][sp]={'pid':workers[sp],'alive':alive}
+        assert alive,'Controller stopped: '+str(sp)
     result['active_unit_types']={sp:{} for sp in slots}
     units=lies(0x0138854C,2500*1168)
     for i in range(1,2500):

@@ -82,12 +82,47 @@ the controller therefore stopped before building. A regression test now compares
 framework and memory log lines including their semantic pipe separators.
 The user's running game is not stopped by the test tooling.
 
-## Open release gates
+## Final Windows/MSVC package check
 
-* Final packaged Windows/MSVC artifact test. First public Store-boundary CI:
-  [successful run 40112436515](https://github.com/UnofficialCrusaderPatch/Selfaware-AI/actions/runs/40112436515).
-* MIT licensing approved by the project owner on 2026-10-24; notices are included
-  in the module, content and external application. Third-party notices remain.
+The exact artifacts from [Windows CI run 40115190829](https://github.com/UnofficialCrusaderPatch/Selfaware-AI/actions/runs/40115190829)
+at source `c6ac85f1a977a0f59a2250a245d02510ebcf2f2d` were installed in
+Instanz4 and tested on 2026-10-24. Their ZIP and installed runtime hashes are in
+`daten/store_grenze_20261024/paket_ci_msvc.json`; the Store recipe stays pinned
+to this tested source. The stronger external test harness is kept separately
+from the packaged controller and records its own hash.
+
+```powershell
+python werkzeug/store_match_pruefen.py --start-record build/store-start-result.json --output daten/store_grenze_20261024/gefecht_ci_msvc.json
+```
+
+Passed: fresh native-menu match, takeover recorded at tick 0 for slots 2/3,
+human slot 1 retained, both controller processes alive at tick 4150, and 31/30
+non-start building objects counted respectively. These counts include building
+objects of different kinds, not a claim that every object produces resources.
+The controller logs also record recruited assassins for both players. Returned
+unit/building/fire snapshots had valid headers and recorded byte counts/hashes.
+Lobby assignments were restored on leaving and the legacy game IPC tree had
+the same before/after file hashes. That last comparison is not a complete
+filesystem-operation trace and does not rule out transient operations elsewhere.
+
+Both external match journals recorded changed shared learning-model data and
+correctly labelled the deliberately aborted match `unbestaetigt`; no victory
+or measured improvement in win rate is claimed. The transcripts, new maps/plans,
+compressed state histories and learning receipts are under
+`daten/store_grenze_20261024/ci_msvc_daten/`. The legacy label `Instanz 1` in some
+worker filenames denotes its default namespace; the actual executable path and
+process identity were verified as the isolated Instanz4. Only that test game
+was closed afterwards. The ordinary user shortcut was not replaced.
+
+This was the explicitly unsigned review bundle. It proves the tested local
+runtime/bridge path, not a certificate-signed Secure-Load or full tournament run.
+The initial harness timeout while the startup menu was still loading is retained
+in `menue_anlauf_ci.json`; the bounded menu-readiness wait was increased before
+the successful run. MIT licensing was approved by the project owner; notices
+are included in module, content and app, with third-party notices preserved.
+
+## Remaining release gates
+
 * UCP maintainer review, certificate signing and Store publication.
 
 The implementation still uses Crusader 1.41-specific engine addresses and
