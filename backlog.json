@@ -5525,19 +5525,117 @@
    "nr": "B-212",
    "titel": "Pruefstand funde 49 rot seit Codex 8aa6e13: Assassinen-Stapel greift Schuetzen 25 Felder vor dem feindlichen Lord an (alte Regel STAPEL_BURG = Burg tabu) - entscheiden, welche Regel gilt",
    "bereich": "Raids",
-   "status": "offen",
+   "status": "gebaut",
    "seit": "2026-10-24 20:49",
    "herkunft": "Zusammenfuehrung 24.10. 20:55",
-   "gebaut": null,
-   "commits": [],
+   "gebaut": "2026-10-24 20:58",
+   "commits": [
+    "d435c95"
+   ],
    "wo": [],
    "belege": [
     "funde_pruefen.py Fall 49 rot in beiden Checkouts (Tools/Selfaware-AI und work/sai-live); Codex-Commit 8aa6e13 'evaluate assassin attacks near keeps' ohne Testanpassung"
    ],
-   "notiz": "nicht selbst entschieden - Daniels Regel vom 19.10. (ihre Burg ist tabu) gegen Codex' Aenderung",
+   "notiz": "nicht selbst entschieden - Daniels Regel vom 19.10. (ihre Burg ist tabu) gegen Codex' Aenderung | Daniel 24.10. 20:56: fester Abstand ist hart kodiert und gegen die Selfaware-Idee - Codex-Regel bleibt, Pruefstand angepasst (54/54)",
    "verlauf": [
     {
      "zeit": "2026-10-24 20:49",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-24 20:58",
+     "was": "offen -> gebaut (Commit d435c95): Daniel 24.10. 20:56: fester Abstand ist hart kodiert und gegen die Selfaware-Idee - Codex-Regel bleibt, Pruefstand angepasst (54/54)"
+    }
+   ]
+  },
+  {
+   "nr": "B-213",
+   "titel": "Gefechtsrechnung zu vorsichtig: Assassine koennte einzelnes Gebaeude/einzelnen Bogenschuetzen locker besiegen, wird aber durch Risikofilter abgehalten - Rechnung gegen Duell-Messungen pruefen",
+   "bereich": "Raids",
+   "status": "offen",
+   "seit": "2026-10-24 20:57",
+   "herkunft": "Daniel 24.10. 20:56 (mehrere Partien durchgesehen)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "Beobachtung Daniel",
+    "noch nicht gemessen"
+   ],
+   "notiz": "Gemessen 24.10. 21:05 ueber 14 Partien (22.10.): 1.368 ENTDECKT-Abbrueche, davon 572 (42 %) wegen EINES Schuetzen mit Linie, 1.102 (81 %) bei vollem Leben; Ausloeser: 706x wartend, 398x ohne Auftrag, 225x auf Route, 28x am Gebaeude. Die reine Gefechtsrechnung sagt 1 Assassine gegen 1 Bogen/Armbrust/Speer: Sieg mit 76-94 % Rest (Werte gemessen). Zu vorsichtig ist also der ENTDECKT-Filter, nicht die Rechnung",
+   "verlauf": [
+    {
+     "zeit": "2026-10-24 20:57",
+     "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-24 20:58",
+     "was": "offen -> offen: Gemessen 24.10. 21:05 ueber 14 Partien (22.10.): 1.368 ENTDECKT-Abbrueche, davon 572 (42 %) wegen EINES Schuetzen mit Linie, 1.102 (81 %) bei vollem Leben; Ausloeser: 706x wartend, 398x ohne Auftrag, 225x auf Route, 28x am Gebaeude. Die reine Gefechtsrechnung sagt 1 Assassine gegen 1 Bogen/Armbrust/Speer: Sieg mit 76-94 % Rest (Werte gemessen). Zu vorsichtig ist also der ENTDECKT-Filter, nicht die Rechnung"
+    }
+   ]
+  },
+  {
+   "nr": "B-214",
+   "titel": "Assassinen weichen unter Beschuss zu schlecht aus - Ausweichen soll auch im Feuer gelingen statt Auftrag abzubrechen",
+   "bereich": "Raids",
+   "status": "offen",
+   "seit": "2026-10-24 20:57",
+   "herkunft": "Daniel 24.10. 20:56 (mehrere Partien durchgesehen)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "Beobachtung Daniel",
+    "noch nicht gemessen"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-24 20:57",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-215",
+   "titel": "KI braucht zu lange, den besten Angriffsplatz zu finden und als Team mit der zweiten Selfaware-KI zusammenzuarbeiten",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-24 20:57",
+   "herkunft": "Daniel 24.10. 20:56 (mehrere Partien durchgesehen)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "Beobachtung Daniel",
+    "noch nicht gemessen"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-24 20:57",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-216",
+   "titel": "Reaktion zu langsam: passiert unterwegs etwas (Beschuss, Hindernis, Ziel weg), muss die KI in derselben Runde umplanen statt Runden spaeter",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-10-24 20:57",
+   "herkunft": "Daniel 24.10. 20:56 (mehrere Partien durchgesehen)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [
+    "Beobachtung Daniel",
+    "noch nicht gemessen"
+   ],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-10-24 20:57",
      "was": "angelegt (offen)"
     }
    ]
