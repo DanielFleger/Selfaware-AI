@@ -87,3 +87,7 @@ PathFindingState roh (speicher.lies(0x012BB8C8, 107428)) - bei SAI angefordert (
 Pruefplan danach: (1) Gebiet aus dem npz gegen eigene Flutfuellung ueber link nachzaehlen (W35);
 (2) jeder Schritt zwischen zwei Gebietsnummern != 0 muss einen climbData-Eintrag haben, der beide verbindet,
 und query(from, to) != 0 liefern (navigation_rule.rs-Nachbau in Python oder die Rust-Regel direkt).
+22:30 SRE: Torhaus-Aufnahme (SAI, f097701) ausgewertet - torhaus_pruefen.py, W35 berichtigt, W36-W39.
+Kernfund: ein Torhaus verbindet NIE zwei Gebiete (vor der Flutfuellung werden alle Tore geschlossen, 0x00419960);
+innen/aussen sind getrennte Gebiete, nur der Kletter-Eintrag verbindet sie in der Wegabfrage. Gebietsnummern
+wechseln bei jeder Neuberechnung (W38). OFFEN W39: PathFindingState roh + Logik-Ebene fuer P4 und die Saat-Maske.
