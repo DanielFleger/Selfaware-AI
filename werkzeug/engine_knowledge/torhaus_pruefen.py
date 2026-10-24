@@ -110,6 +110,147 @@ def p1(z):
     return aus
 
 
+# ---------------------------------------------------------------------------------------------------------------
+# P4: Wegabfrage 0x004A5320 gegen die Gebietswechsel. Kletterdaten aus PathFindingState roh (speicher.lies(0x012BB8C8,
+# 107428)): Anzahl bei +0, Eintrag i ab 4228 + i*516 (Felder wie navigation_capture.py / Ghidra ClimbData):
+# +0 canBeUsed, +4 type (1 = Leiter), +12 buildingID, +24 isRecognizedByPathfinding, +52 area, +56 wallGroupAreaID,
+# +484 ownerPlayerIndex, +488 buildingArea. Die Abfrage ist ein Nachbau von scripts/navigation_rule.rs (Codex, 20.000
+# isolierte Vergleiche gegen den Originalcode ohne Abweichung) - hier in Python, nur Rueckgabewert, kein Hilfsfeld.
+# Mannschaften (playerTeams) und "Gebaeude offen" (+0x2c6) sind nicht im Abzug: fuer Eintraege mit anderem Besitzer als
+# dem Spieler wird "gleiche Mannschaft" als unbekannt gemeldet, nicht angenommen.
+import struct
+
+
+def kletterdaten(pfs):
+    n = struct.unpack_from("<i", pfs, 0)[0]
+    if not 0 <= n <= 200:
+        raise ValueError("unerwartete Anzahl Kletter-Eintraege %d" % n)
+    aus = []
+    for i in range(1, n):
+        o = 4228 + i * 516
+        g = lambda j: struct.unpack_from("<i", pfs, o + j)[0]
+        aus.append({"i": i, "canBeUsed": g(0), "type": g(4), "building": g(12), "recognized": g(24), "area": g(52),
+                    "wall": g(56), "owner": g(484), "building_area": g(488)})
+    return aus
+
+
+def wegabfrage(eintraege, player, von, nach, climb=0, fremde_gelten=False):
+    """Rueckgabe wie das Original: von, wenn gleich; 0, wenn eines 0; sonst das Gebiet, ueber das man 'nach' von 'von'
+    aus erreicht (nach selbst oder ein Zwischengebiet), oder 0. fremde_gelten: Eintraege anderer Besitzer mitzaehlen
+    (Mannschaftstabelle fehlt im Abzug)."""
+    if von == nach:
+        return von
+    if von == 0 or nach == 0:
+        return 0
+    ok = []
+    for r in eintraege:
+        if r["canBeUsed"] != 1 or r["recognized"] == 0:
+            continue
+        if (r["type"] == 1 and climb == 0) or (r["type"] != 1 and climb == 2):
+            continue
+        if player == 0 or r["owner"] == player or fremde_gelten:
+            ok.append(r)
+
+    def nachbarn(r, bei):
+        if r["area"] == bei:
+            return r["wall"], r["building_area"], r["building_area"] > 0
+        if r["wall"] == bei:
+            return r["area"], r["building_area"], r["building_area"] > 0
+        if r["building_area"] == bei:
+            return r["area"], r["wall"], True
+        return None
+
+    queue, used, naechst = [], [False] * len(ok), 0
+    for phase in (0, 1):
+        for i, r in enumerate(ok):
+            if phase == 0 and r["type"] == 1:
+                continue
+            t = nachbarn(r, nach)
+            if t:
+                a, b, mit_b = t
+                if a == von or b == von:
+                    return nach
+                queue.append(a)
+                if mit_b:
+                    queue.append(b)
+                used[i] = True
+        while naechst < len(queue):
+            bei = queue[naechst]
+            naechst += 1
+            for i, r in enumerate(ok):
+                if used[i] or (phase == 0 and r["type"] == 1):
+                    continue
+                t = nachbarn(r, bei)
+                if t:
+                    a, b, mit_b = t
+                    if a == von or b == von:
+                        return bei
+                    queue.append(a)
+                    if mit_b:
+                        queue.append(b)
+                    used[i] = True
+    return 0
+
+
+def p4(pfad_pfs, wechsel, karte_pfs, player):
+    pfs = open(pfad_pfs, "rb").read()
+    if len(pfs) != 107428:
+        raise ValueError("PathFindingState-Abzug hat %d Byte, erwartet 107428" % len(pfs))
+    E = kletterdaten(pfs)
+    aktiv = [r for r in E if r["canBeUsed"] == 1 and r["recognized"] != 0]
+    aus = {"datei": os.path.basename(pfad_pfs), "eintraege": len(E), "aktiv": len(aktiv),
+           "aktive_eintraege": aktiv, "wechsel": [], "negativ": {}}
+    print("P4 - Kletter-Eintraege: %d, davon nutzbar und vom Wegfinder erkannt: %d" % (len(E), len(aktiv)))
+    for r in aktiv:
+        print("   Eintrag %3d Typ %d Gebaeude %4d Besitzer %d: Boden-Gebiet %3d  Mauer-Gebiet %3d  Gebaeude-Gebiet %3d" % (
+            r["i"], r["type"], r["building"], r["owner"], r["area"], r["wall"], r["building_area"]))
+    # Gebietsnummern des Wechsels auf die Wegkarte des Abzug-Takts umrechnen (W38: Nummern wechseln je Neuberechnung)
+    geb = karte_pfs["gebiet"]
+    gut = 0
+    for w in wechsel:
+        gv, gn = int(geb[tuple(w["von"])]), int(geb[tuple(w["nach"])])
+        direkt = [r["i"] for r in aktiv if {gv, gn} <= {r["area"], r["wall"], r["building_area"]}]
+        q = wegabfrage(aktiv, player, gv, gn)
+        q_rueck = wegabfrage(aktiv, player, gn, gv)
+        e = {"t": w["t"], "nr": w["nr"], "art": w["art"], "von": w["von"], "nach": w["nach"], "gebiet_zum_abzugstakt": [gv, gn],
+             "gebiet_zur_laufzeit": w["gebiet"], "eintrag_direkt": direkt, "abfrage_hin": q, "abfrage_rueck": q_rueck}
+        aus["wechsel"].append(e)
+        if q:
+            gut += 1
+        print("   t %d %3d %-13s %s -> %s Gebiet %s (Lauf %s) Eintrag %s Abfrage hin %s rueck %s" % (
+            w["t"], w["nr"], w["art"], tuple(w["von"]), tuple(w["nach"]), [gv, gn], w["gebiet"], direkt or "-", q, q_rueck))
+    print("   Abfrage != 0 bei %d von %d Gebietswechseln" % (gut, len(wechsel)))
+    echt = [e for e, w in zip(aus["wechsel"], wechsel) if w.get("aufenthalt_takte", 99) >= 10]
+    kurz = [e for e, w in zip(aus["wechsel"], wechsel) if w.get("aufenthalt_takte", 99) < 10]
+    aus["echte_uebergaenge"] = {"anzahl": len(echt), "mit_eintrag": sum(1 for e in echt if e["eintrag_direkt"]),
+                                "abfrage_hin_und_rueck": sum(1 for e in echt if e["abfrage_hin"] and e["abfrage_rueck"])}
+    aus["kurzkontakte"] = {"anzahl": len(kurz), "mit_eintrag": sum(1 for e in kurz if e["eintrag_direkt"]),
+                           "abfrage_hin": sum(1 for e in kurz if e["abfrage_hin"])}
+    print("   Echte Uebergaenge (>= 10 Takte): %s" % aus["echte_uebergaenge"])
+    print("   Kurzkontakte (< 10 Takte):       %s" % aus["kurzkontakte"])
+    # Negativlauf: Gebiete, zwischen denen keine Einheit wechselte und die kein Eintrag verbindet, muessen 0 liefern;
+    # und ein ausgedachtes Gebiet (9999) ebenso.
+    gebiete = sorted({int(g) for g in set(geb[geb != 0].tolist())})
+    verbunden = set()
+    for r in aktiv:
+        trio = [g for g in (r["area"], r["wall"], r["building_area"]) if g > 0]
+        for a in trio:
+            for b in trio:
+                verbunden.add((a, b))
+    import random
+    random.seed(24102026)
+    paare = [(a, b) for a in gebiete for b in gebiete if a != b and (a, b) not in verbunden]
+    probe = random.sample(paare, min(300, len(paare)))
+    falsch_positiv = [(a, b, wegabfrage(aktiv, player, a, b)) for a, b in probe]
+    falsch_positiv = [x for x in falsch_positiv if x[2]]
+    aus["negativ"] = {"geprueft_paare": len(probe), "abfrage_trotzdem_nicht_0": falsch_positiv[:20], "anzahl": len(falsch_positiv),
+                      "erfunden_9999": wegabfrage(aktiv, player, 9999, gebiete[0]) if gebiete else None,
+                      "hinweis": "nicht 0 ist hier kein Fehler, wenn ein Zwischengebiet verbindet - die Liste zeigt, welche"}
+    print("   Negativlauf: %d zufaellige Gebietspaare ohne direkten Eintrag, Abfrage != 0 bei %d (Mehrschritt-Wege moeglich): %s; erfundenes Gebiet 9999 -> %s" % (
+        len(probe), len(falsch_positiv), falsch_positiv[:8], aus["negativ"]["erfunden_9999"]))
+    return aus
+
+
 def main():
     pfad = sys.argv[1] if len(sys.argv) > 1 else sorted(glob.glob(os.path.join(D, "torhaus_aufnahme_*.json")))[-1]
     d = json.load(open(pfad, encoding="utf-8"))
@@ -144,7 +285,13 @@ def main():
     je_einheit = {}
     for nr, reihe in orte(d["ew"]).items():
         n_schritt, n_verst, n_wechsel, spruenge = 0, 0, 0, 0
-        for t, von, nach in schritte(reihe):
+        S = schritte(reihe)
+        for i, (t, von, nach) in enumerate(S):
+            # Aufenthalt auf dem HOEHEREN der beiden Felder (Mauer/Torhaus/Turm): beim Hinauf die Zeit auf dem Zielfeld bis
+            # zum naechsten Ortswechsel, beim Herunter die Zeit, die die Einheit vorher auf dem Startfeld stand.
+            dauer_nach = (S[i + 1][0] if i + 1 < len(S) else reihe[-1][0]) - t
+            dauer_von = t - (S[i - 1][0] if i else reihe[0][0])
+            aufenthalt = (dauer_nach, dauer_von)
             dx, dy = nach[0] - von[0], nach[1] - von[1]
             if max(abs(dx), abs(dy)) != 1:
                 spruenge += 1
@@ -163,7 +310,8 @@ def main():
                                      {int(z["gebaeude"][nach[0] + i, nach[1] + j]) for i in (-1, 0, 1) for j in (-1, 0, 1)})
                 wechsel.append({"t": t, "nr": nr, "art": namen.get(nr, "?"), "von": list(von), "nach": list(nach), "gebiet": [gv, gn],
                                 "hoehe": [hv, hn], "gebaeude": [bv, bn], "gebaeude_umkreis1": [g for g in nachbar_geb if g],
-                                "bit_gesetzt": erlaubt, "wegkarte_takt": zt})
+                                "bit_gesetzt": erlaubt, "wegkarte_takt": zt,
+                                "aufenthalt_takte": aufenthalt[0] if hn >= hv else aufenthalt[1]})
             elif not erlaubt:
                 n_verst += 1
                 verst.append({"t": t, "nr": nr, "art": namen.get(nr, "?"), "von": list(von), "nach": list(nach), "link_von": "%02x" % lv,
@@ -178,12 +326,30 @@ def main():
         print("   Verstoss", v)
     print("P3 - Gebietswechsel: %d" % len(wechsel))
     for w in wechsel:
-        print("   t %d %3d %-14s %s -> %s Gebiet %s Hoehe %s Gebaeude %s Umkreis %s Bit %s" % (
-            w["t"], w["nr"], w["art"], tuple(w["von"]), tuple(w["nach"]), w["gebiet"], w["hoehe"], w["gebaeude"], w["gebaeude_umkreis1"], w["bit_gesetzt"]))
+        print("   t %d %3d %-14s %s -> %s Gebiet %s Hoehe %s Gebaeude %s Umkreis %s Bit %s Aufenthalt %d Takte" % (
+            w["t"], w["nr"], w["art"], tuple(w["von"]), tuple(w["nach"]), w["gebiet"], w["hoehe"], w["gebaeude"], w["gebaeude_umkreis1"], w["bit_gesetzt"], w["aufenthalt_takte"]))
     print("   Gebietspaare:", Counter(tuple(w["gebiet"]) for w in wechsel).most_common())
     print("   Bit gesetzt bei Gebietswechsel:", Counter(w["bit_gesetzt"] for w in wechsel))
     print("   Wechsel ohne Gebaeude im Umkreis 1:", sum(1 for w in wechsel if not w["gebaeude_umkreis1"]))
-    print("P4 -", aus["p4"])
+    # Echter Uebergang oder Kurzkontakt? Ein Schritt dauert >= 10 Takte (L1, hier gemessen 8-18); wer das hoehere Feld
+    # (Mauer/Torhaus/Turm) nach < 10 Takten wieder verlaesst, hat es nur gestreift (Feinposition am Mauereck - vermutet).
+    echt = [w for w in wechsel if w["aufenthalt_takte"] >= 10]
+    kurz = [w for w in wechsel if w["aufenthalt_takte"] < 10]
+    print("   Echte Uebergaenge (Aufenthalt >= 10 Takte): %d  %s" % (len(echt), Counter(tuple(w["gebiet"]) for w in echt).most_common()))
+    print("   Kurzkontakte (< 10 Takte): %d  %s  Aufenthalte %s" % (len(kurz), Counter(tuple(w["gebiet"]) for w in kurz).most_common(),
+                                                                     sorted(Counter(w["aufenthalt_takte"] for w in kurz).items())))
+    aus["p3_echt"] = len(echt)
+    aus["p3_kurz"] = len(kurz)
+    pfs_dateien = sorted(glob.glob(os.path.join(D, "torhaus_pfs_%s_*.npz" % zeit)) + glob.glob(os.path.join(D, "torhaus_pfs_%s_*.bin" % zeit)))
+    if pfs_dateien:
+        tp = int(re.search(r"_(\d+)\.bin$", pfs_dateien[-1]).group(1))
+        if tp in karten:
+            aus["p4"] = p4(pfs_dateien[-1], wechsel, karten[tp], d.get("spieler", 0))
+            aus["p4"]["abzug_takt"] = tp
+        else:
+            print("P4 - Abzug-Takt %d hat keine Wegkarte, nicht geprueft" % tp)
+    else:
+        print("P4 -", aus["p4"])
     ziel = os.path.join(D, "torhaus_pruefung_%s.json" % zeit)
     json.dump(aus, open(ziel, "w", encoding="utf-8"), indent=1, ensure_ascii=False, default=str)
     print("Beleg:", ziel)

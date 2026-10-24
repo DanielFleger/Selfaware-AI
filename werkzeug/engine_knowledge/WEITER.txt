@@ -91,3 +91,10 @@ und query(from, to) != 0 liefern (navigation_rule.rs-Nachbau in Python oder die 
 Kernfund: ein Torhaus verbindet NIE zwei Gebiete (vor der Flutfuellung werden alle Tore geschlossen, 0x00419960);
 innen/aussen sind getrennte Gebiete, nur der Kletter-Eintrag verbindet sie in der Wegabfrage. Gebietsnummern
 wechseln bei jeder Neuberechnung (W38). OFFEN W39: PathFindingState roh + Logik-Ebene fuer P4 und die Saat-Maske.
+22:45 SRE: Laufwegbeweis Teil 2 ERBRACHT (W39/W40): 6 Kletter-Eintraege aus PathFindingState roh (SAI, e0f7db8),
+alle 12 echten Uebergaenge (8x Torhaus, 4x Turm) mit Eintrag, nachgebaute Wegabfrage in beide Richtungen != 0;
+Negativlauf 299/300 Paare 0, 9999 -> 0. W36 berichtigt: keine Treppe, 16 Kurzkontakte am Mauereck (2-4 Takte).
+OFFEN: Saat-Maske (Logik-Ebene) fuer eine exakte Nachbildung der Gebiete (W35, 181 statt 74 Stuecke); fremde Tore
+(Mannschaftstabelle 0x0117D548, "Gebaeude offen" +0x2c6); Leitern (Typ 1) und permitClimb; Mauerbruch/Belagerungsturm.
+Fuer die SamurAI-Lenker nutzbar ab jetzt: Gebiet gleich -> Weg ohne Abfrage; Gebiet 0 -> kein Weg; Torhaus trennt
+immer (innen/aussen), Gebietsnummern nie ueber eine Neuberechnung (200 Takte) merken.
