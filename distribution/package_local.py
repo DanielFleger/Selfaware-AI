@@ -14,7 +14,7 @@ def package():
             if p.is_file():z.write(p,p.relative_to(ROOT/'Selfaware-AI'))
     bundle=build/'Selfaware-AI-local-0.1.0.zip'
     files=[module,plugin,build/'runtime.zip']
-    files.extend(ROOT/'distribution'/n for n in ('setup.ps1','local_setup.py','local_start.ps1','bootstrap.ps1','README.md'))
+    files.extend(ROOT/'distribution'/n for n in ('setup.ps1','local_setup.py','local_start.ps1','local_launcher.py','bootstrap.ps1','README.md'))
     with zipfile.ZipFile(bundle,'w',zipfile.ZIP_STORED) as z:
         for p in files:z.write(p,p.name)
     return bundle

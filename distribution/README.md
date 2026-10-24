@@ -15,6 +15,9 @@ Requirements: 64-bit Windows, UCP 3.0.7, Stronghold Crusader 1.41.
 The separate installer unpacks the portable runtime under Local AppData. The
 external starter launches the game, waits for the native bridge readiness
 message, then starts the controller. It reports startup failures visibly.
+The desktop shortcut uses portable pythonw, so it opens no terminal. Every
+request reaches launcher.log before handing off to PowerShell. Elevation waits
+for its child and propagates failures instead of reporting premature success.
 The game module neither unpacks nor launches the external runtime.
 The existing runtime directory and learned models are reused when unchanged;
 upgrades preserve backups and keep incompatible runtime revisions separate.
@@ -39,7 +42,8 @@ journals distinguish native outcomes from interruptions. This does not mean
 arbitrary autonomous code rewriting or demonstrate improved overall strength.
 
 State: Local AppData/Selfaware AI/<game-path-hash>/<runtime-hash>.
-The parent directory holds local-start.log, bootstrap-<pid>.log and worker-<pid>.log.
+The parent directory holds launcher.log, launcher-<pid>-output.log,
+local-start.log, bootstrap-<pid>.log and worker-<pid>.log.
 Mechanic models also have separate profiles for effective UCP balance settings.
 No tactical algorithm changes are included in this packaging correction.
 

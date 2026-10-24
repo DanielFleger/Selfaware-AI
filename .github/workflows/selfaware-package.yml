@@ -54,6 +54,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Local application packaging failed' }
           python werkzeug/distribution_boundary_pruefen.py
           if ($LASTEXITCODE -ne 0) { throw 'External runtime separation checks failed' }
+          python werkzeug/local_launcher_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'Windowless desktop startup checks failed' }
       - uses: actions/upload-artifact@v4
         with:
           name: selfaware-ai-local-development

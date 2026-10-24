@@ -5,14 +5,18 @@ $runtimeRoot=[IO.Path]::GetFullPath($Runtime)
 $state=[IO.Path]::GetDirectoryName($runtimeRoot)
 $trace=[IO.Path]::Combine($state,'local-start.log')
 try {
+    [void][IO.Directory]::CreateDirectory($state)
+    [IO.File]::AppendAllText($trace,"$([DateTime]::Now.ToString('s')) Start request: PID $PID`r`n")
     $admin=([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     if (-not $admin) {
         $elevate=[Diagnostics.ProcessStartInfo]::new()
         $elevate.FileName=[IO.Path]::Combine($env:SystemRoot,'System32\WindowsPowerShell\v1.0\powershell.exe')
         $elevate.Arguments='-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "'+$PSCommandPath+'" -Game "'+$gameRoot+'" -Runtime "'+$runtimeRoot+'"'
         $elevate.UseShellExecute=$true;$elevate.Verb='runas';$elevate.WindowStyle='Hidden'
-        [void][Diagnostics.Process]::Start($elevate)
-        exit 0
+        $child=[Diagnostics.Process]::Start($elevate)
+        [IO.File]::AppendAllText($trace,"Elevation handoff: PID $($child.Id)`r`n")
+        $child.WaitForExit()
+        exit $child.ExitCode
     }
     [void][IO.Directory]::CreateDirectory($state)
     $deadline=[DateTime]::UtcNow.AddSeconds(30)
@@ -54,7 +58,6 @@ try {
     } finally {$lease.Dispose()}
 } catch {
     [IO.File]::AppendAllText($trace,($_.ToString()+"`r`n"))
-    [void][Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')
-    [void][Windows.Forms.MessageBox]::Show($_.ToString()+"`r`nProtokoll: "+$trace,'Selfaware AI: Startfehler')
+    Write-Error ($_.ToString()+"`r`nProtokoll: "+$trace) -ErrorAction Continue
     exit 1
 }

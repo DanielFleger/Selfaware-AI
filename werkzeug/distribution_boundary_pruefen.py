@@ -11,7 +11,7 @@ class Distribution(unittest.TestCase):
         config={'config-sparse':{'modules':{'aiSwapper':{'config':{'ai':{'abbot':{'lord':{'kept':True}},'rat':{'kept':True}}}}}},'config-full':{'modules':{'selfaware-runtime':{'config':{'startTroops':{'Assassin':{'contents':{'value':3}}}}}}}}
         (game/'ucp-config.yml').write_text(yaml.safe_dump(config))
         package=base/'packages';package.mkdir()
-        for name,contents in [('runtime.zip',{'python/python.exe':b'python'}),('selfaware-runtime-0.1.0.zip',{'init.lua':b'local bridge'}),('Selfaware-AI-0.1.0.zip',{'definition.yml':b'name: Selfaware-AI'})]:
+        for name,contents in [('runtime.zip',{'python/python.exe':b'python','python/pythonw.exe':b'windowless python'}),('selfaware-runtime-0.1.0.zip',{'init.lua':b'local bridge'}),('Selfaware-AI-0.1.0.zip',{'definition.yml':b'name: Selfaware-AI'})]:
             with zipfile.ZipFile(package/name,'w') as z:
                 for path,data in contents.items():z.writestr(path,data)
         return game,package

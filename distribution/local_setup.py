@@ -57,11 +57,11 @@ def install(game,packages=None,local=None,shortcut=True):
         runtime.mkdir(parents=True)
         safe_extract(archive,runtime)
         (runtime/'ready').write_text(runtime.name,encoding='utf-8')
-    if not (runtime/'python/python.exe').is_file():raise ValueError('Installed portable Python missing')
+    if not all((runtime/'python'/name).is_file() for name in ('python.exe','pythonw.exe')):raise ValueError('Installed portable Python or its windowless starter missing')
     stamp=datetime.datetime.now().strftime('%Y%m%d_%H%M%S_%f')
     starter=runtime.parent/'starter';starter.mkdir(exist_ok=True)
     scripts=packages if (packages/'local_start.ps1').is_file() else ROOT/'distribution'
-    for name in ('local_start.ps1','bootstrap.ps1'):
+    for name in ('local_start.ps1','bootstrap.ps1','local_launcher.py'):
         target=starter/name
         if target.exists() and target.read_bytes()==(scripts/name).read_bytes():continue
         backup(target,stamp);shutil.copy2(scripts/name,target)
@@ -94,16 +94,17 @@ def install(game,packages=None,local=None,shortcut=True):
         temp.write_text(yaml.safe_dump(data,sort_keys=False,allow_unicode=True),encoding='utf-8');temp.replace(config)
     ipc=game/'ucp/villagestudio';ipc.mkdir(exist_ok=True)
     powershell=Path(os.environ.get('SystemRoot','C:/Windows'))/'System32/WindowsPowerShell/v1.0/powershell.exe'
-    arguments='-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "'+str(starter/'local_start.ps1')+'" -Game "'+str(game)+'" -Runtime "'+str(runtime)+'"'
-    result={'game':str(game),'runtime':str(runtime),'starter':str(starter),'arguments':arguments,
+    launcher=runtime/'python/pythonw.exe'
+    arguments=subprocess.list2cmdline([str(starter/'local_launcher.py'),str(starter/'installation.json')])
+    result={'game':str(game),'runtime':str(runtime),'starter':str(starter),'arguments':arguments,'shortcut_target':str(launcher),
             'module_sha256':sha(target),'runtime_sha256':sha(archive),'store_compatible':False,
             'module_extracts_runtime':False,'external_app_owns_learning':True}
     if shortcut:
         ps=("$s=New-Object -ComObject WScript.Shell; $p=Join-Path ([Environment]::GetFolderPath('Desktop')) 'Selfaware AI (lokal).lnk'; "
             "if(Test-Path -LiteralPath $p){Copy-Item -LiteralPath $p -Destination ($p+'.before-local-app-"+stamp+"')}; "
-            "$l=$s.CreateShortcut($p); $l.TargetPath='"+str(powershell).replace("'","''")+"'; $l.Arguments='"+arguments.replace("'","''")+"'; "
+            "$l=$s.CreateShortcut($p); $l.TargetPath='"+str(launcher).replace("'","''")+"'; $l.Arguments='"+arguments.replace("'","''")+"'; "
             "$l.WorkingDirectory='"+str(starter).replace("'","''")+"'; $l.IconLocation='"+str(game/'Stronghold Crusader.exe').replace("'","''")+",0'; "
-            "$l.Description='Selfaware AI - eigenstaendige lokale Entwicklungsfassung'; $l.Save(); Write-Output $p")
+            "$l.WindowStyle=7; $l.Description='Selfaware AI - eigenstaendige lokale Entwicklungsfassung'; $l.Save(); Write-Output $p")
         result['shortcut']=subprocess.check_output([str(powershell),'-NoProfile','-NonInteractive','-Command',ps],text=True).strip()
     (starter/'installation.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
     return result
