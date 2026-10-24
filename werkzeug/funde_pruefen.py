@@ -818,8 +818,11 @@ def main():
         return ziel1, t.stapel["ziel"], [z[:110] for z in erg if z.startswith("STAPEL")][-1:]
     z49, _, m49 = lage_stapel((125, 100), (390, 390))
     z49b, _, m49b = lage_stapel((125, 100), (150, 100))
+    # 24.10. (Daniel: "hard coded geht gegen unsere Idee von Selfaware"; Codex 8aa6e13 hob den festen Burgabstand STAPEL_BURG
+    # auf): auch 25 Felder vor dem feindlichen Lord entscheidet die Gefechtsrechnung, nicht ein fester Abstand - eine einzelne
+    # Armbrust dort ist fuer 12 Assassinen ein Ziel; Fall 51 prueft weiter, dass 20 weitere Schuetzen den Stapel abbrechen
     pruefe(49, "12 Wartende, einzelne Armbrust 24 Felder weit: Stapel auf %s %s; dieselbe Armbrust 25 Felder vor ihrem Lord: %s %s" % (
-        z49, m49, z49b, m49b), z49 == 600 and z49b is None)
+        z49, m49, z49b, m49b), z49 == 600 and z49b == 600)
     z50, _, m50 = lage_stapel((160, 100), (390, 390))
     pruefe(50, "einzelne Armbrust 58 Felder weit: Stapel auf %s %s" % (z50, m50), z50 is None)
     z51, z51b, m51 = lage_stapel((125, 100), (390, 390), dazu=20)
