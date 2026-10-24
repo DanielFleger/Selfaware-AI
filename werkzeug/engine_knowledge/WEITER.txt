@@ -81,3 +81,9 @@ OFFEN (braucht Spiel): Gebiets-Ebene 0x01DF70D8 und Wegabfrage 0x004A5320 gegen 
 die ein Torhaus/eine Treppe nehmen - alte Wegkarten haben die Gebiets-Spalte von der falschen
 Adresse (W33). Naechster Schritt: Aufnahme (wegkarte + einheitwacht alle 2 Takte) in einer
 Partie mit Torhaus-Durchgang, dann denselben Pruefer um Gebietswechsel erweitern.
+22:10 SRE: W34/W35 - Wegabfrage vergleicht PathConnectionLayer-Nummern (0x01DF70D8), Gebiete = Flutfuellung ueber
+die Weg-Bits (updateSeparateAreaTileMap). Fuer den Gebietswechsel-Beweis braucht die Torhaus-Aufnahme zusaetzlich
+PathFindingState roh (speicher.lies(0x012BB8C8, 107428)) - bei SAI angefordert (Daniel 21:44 freigegeben).
+Pruefplan danach: (1) Gebiet aus dem npz gegen eigene Flutfuellung ueber link nachzaehlen (W35);
+(2) jeder Schritt zwischen zwei Gebietsnummern != 0 muss einen climbData-Eintrag haben, der beide verbindet,
+und query(from, to) != 0 liefern (navigation_rule.rs-Nachbau in Python oder die Rust-Regel direkt).
