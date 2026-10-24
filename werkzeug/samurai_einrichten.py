@@ -11,7 +11,7 @@ sein Profilbild, nenne es auch SamurAI").
    ucp-config.yml hat EINEN Schreiber (VillageStudio Betriebsregeln Regel 2): vorher datierte Sicherung, danach gegenlesen
    (villagestudio 3-mal, continueOutOfFocus da, YAML lesbar, rat -> SamurAI). Wirkt beim naechsten Spielstart.
 Rueckweg: --aus (Block entfernen; das Paket bleibt liegen, schadet ohne Eintrag nicht).
-Aufruf: python werkzeug/samurai_einrichten.py [instanz=4] [--aus]"""
+Aufruf: python werkzeug/samurai_einrichten.py [instanz=4] [platz=rat|abbot|...] [--aus]"""
 import os
 import shutil
 import sys
@@ -22,8 +22,10 @@ import yaml
 HIER = os.path.dirname(os.path.abspath(__file__))
 PAKET = os.path.join(HIER, "..", "samurai_ki", "SamurAI")
 ANFANG, ENDE = "          # SamurAI anfang (samurai_einrichten.py)", "          # SamurAI ende"
-BLOCK = """{anfang}
-          rat:
+# 22.10. (Daniel 20:57: "so einstellen, dass meine Selfaware AI hier angezeigt wird"; Instanz 5 traegt die Team-Liga, rat ist
+# dort Rotkaeppchen): der Platz ist waehlbar (platz=abbot = KI 16, frei in der Liga) - Standard bleibt rat
+BLOCK_ROH = """{anfang}
+          {platz}:
             lines:
               contents:
                 value:
@@ -43,7 +45,8 @@ BLOCK = """{anfang}
                   root: ucp/resources/ai/SamurAI/
                   active: true
 {ende}
-""".format(anfang=ANFANG, ende=ENDE)
+"""
+BLOCK = BLOCK_ROH.format(anfang=ANFANG, ende=ENDE, platz="rat")
 
 
 def instanz_ordner(n):
@@ -64,9 +67,9 @@ def gegenlesen(text):
     return fehler, y
 
 
-def rat_name(y):
+def rat_name(y, platz="rat"):
     try:
-        return y["config-full"]["modules"]["aiSwapper"]["config"]["ai"]["rat"]["lines"]["contents"]["value"]["name"]
+        return y["config-full"]["modules"]["aiSwapper"]["config"]["ai"][platz]["lines"]["contents"]["value"]["name"]
     except (KeyError, TypeError):
         pass
     # die Datei kann den Baum unter einem anderen Schluessel fuehren - suchen statt raten
@@ -74,7 +77,7 @@ def rat_name(y):
         if isinstance(k, dict):
             if "aiSwapper" in k and isinstance(k["aiSwapper"], dict) and "config" in k["aiSwapper"]:
                 try:
-                    return k["aiSwapper"]["config"]["ai"]["rat"]["lines"]["contents"]["value"]["name"]
+                    return k["aiSwapper"]["config"]["ai"][platz]["lines"]["contents"]["value"]["name"]
                 except (KeyError, TypeError):
                     return None
             for v in k.values():
@@ -88,6 +91,9 @@ def rat_name(y):
 def main():
     arg = dict(a.split("=", 1) for a in sys.argv[1:] if "=" in a)
     aus = "--aus" in sys.argv
+    global BLOCK
+    platz = arg.get("platz", "rat")
+    BLOCK = BLOCK_ROH.format(anfang=ANFANG, ende=ENDE, platz=platz)
     ordner = arg.get("ordner") or instanz_ordner(int(arg.get("instanz", 4)))      # ordner=: Probe an einer Kopie
     cfg = os.path.join(ordner, "ucp-config.yml")
     # 20:03 (Probe an einer Kopie): Zeilenenden unveraendert lassen - der Textmodus unter Windows haette beim Schreiben jedes
@@ -130,12 +136,12 @@ def main():
     f1, y = gegenlesen(neu)
     if f1:
         raise SystemExit("Gegenlesen ROT, nichts geschrieben (Sicherung %s): %s" % (sicherung, f1))
-    name = rat_name(y)
+    name = rat_name(y, platz)
     if (name != "SamurAI") != aus:
-        raise SystemExit("Gegenlesen ROT: rat -> %r, erwartet %s - nichts geschrieben" % (name, "nichts" if aus else "SamurAI"))
+        raise SystemExit("Gegenlesen ROT: %s -> %r, erwartet %s - nichts geschrieben" % (platz, name, "nichts" if aus else "SamurAI"))
     open(cfg, "w", encoding="utf-8", newline="").write(neu)
-    print("ucp-config.yml %s (Sicherung %s); gegengelesen: villagestudio 3, continueOutOfFocus da, rat -> %s" % (
-        "zurueckgesetzt" if aus else "ergaenzt", os.path.basename(sicherung), name))
+    print("ucp-config.yml %s (Sicherung %s); gegengelesen: villagestudio 3, continueOutOfFocus da, %s -> %s" % (
+        "zurueckgesetzt" if aus else "ergaenzt", os.path.basename(sicherung), platz, name))
 
 
 if __name__ == "__main__":
