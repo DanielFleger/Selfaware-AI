@@ -51,3 +51,6 @@ lokalen Entwicklungsstart, keine globale Sicherheitseinstellung wurde geaendert.
 Selfaware bezeichnet persistierte Messmodelle und Beobachtungen, kein Bewusstsein
 oder nachgewiesene allgemeine Selbstverbesserung. Gynt wurde nicht automatisch
 angeschrieben. Zuerst lokale Funktion, dann kleiner gepruefter Store-Brueckenentwurf.
+
+Nachprobe local-lifecycle.json: beide Testspiele, beide Worker beendet und
+exklusive Startsperre frei; keine Testprozesse zurueckgelassen.
