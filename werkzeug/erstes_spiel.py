@@ -2539,7 +2539,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     graben = None                                              # 19.10.: Burggraben um den Kornspeicher (kornring.Graben)
     fallen = None                                              # 19.10.: Fallenwache (fallenwache.py)
     probe = {"fehler": FEHLERPROBE, "pause": PAUSEPROBE}
-    while time.time() < ende and not os.path.exists(os.path.join(HIER, "STOP")):
+    while (time.time() < ende and not os.path.exists(os.path.join(HIER, "STOP"))
+           and not (os.environ.get('SHC_RUN_STOP') and os.path.exists(os.environ['SHC_RUN_STOP']))):
         try:
             tz = time.time()
             befehlskanal.belege()

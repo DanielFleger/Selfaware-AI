@@ -117,7 +117,7 @@ def zeichen(worte):
 def kartenname():
     try:
         from laden import peek
-        return zeichen(peek(KARTE_KURZ, 30)) or None
+        return zeichen(peek(KARTE_KURZ, 30)) or zeichen(peek(0x01A22F9C,30)) or None
     except Exception as e:
         return "nicht lesbar (%r)" % (e,)
 
@@ -175,8 +175,10 @@ def konfigurierte_ki(config):
     ai=config['config-full']['modules']['aiSwapper']['config']['ai']
     result=[]
     for name,parts in ai.items():
-        v=parts.get('lines',{}).get('contents',{}).get('value',{})
-        if v.get('active') and v.get('name')=='SamurAI' and v.get('root','').rstrip('/')=='ucp/resources/ai/SamurAI':
+        lines=parts.get('lines',{})
+        v=lines.get('contents',{}).get('value',{}) if 'contents' in lines else lines
+        root=v.get('root','').rstrip('/')
+        if v.get('active') and v.get('name')=='SamurAI' and (root=='ucp/resources/ai/SamurAI' or root=='ucp/plugins/Selfaware-AI-0.1.0/resources/ai/SamurAI'):
             result.append(AI_IDS[name])
     if len(result)!=1:
         raise RuntimeError('SamurAI-Menuezuordnung muss eindeutig sein: %r'%result)
@@ -189,31 +191,84 @@ def auswahl(ai, samurai_id, mensch=False):
     return sorted(slots)
 
 
+def spielprozess_lebt():
+    """Only observe process lifetime; never touch a window or another program."""
+    pid=os.environ.get('SHC_GAME_PID')
+    if not pid:return True
+    import ctypes
+    from ctypes import wintypes
+    k=ctypes.WinDLL('kernel32',use_last_error=True)
+    k.OpenProcess.restype=wintypes.HANDLE
+    k.WaitForSingleObject.argtypes=[wintypes.HANDLE,wintypes.DWORD]
+    k.CloseHandle.argtypes=[wintypes.HANDLE]
+    h=k.OpenProcess(0x100000,False,int(pid))
+    if not h:return False
+    try:return k.WaitForSingleObject(h,0)==0x102
+    finally:k.CloseHandle(h)
+
+
 def main():
     import json,yaml
     from pathlib import Path
     from laden import befehl
     from befehl import SPIEL
     if os.environ.get('SHC_PARTNER')!='ja':raise SystemExit('SHC_PARTNER=ja erforderlich')
+    from lernbuch import Lernbuch
+    config_path=Path(SPIEL)/'ucp/.ucp-final-config-cache'
     config=yaml.safe_load((Path(SPIEL)/'ucp-config.yml').read_text(encoding='utf-8'))
+    if config_path.is_file():
+        effective=yaml.safe_load(config_path.read_text(encoding='utf-8'))
+        if isinstance(effective,dict) and 'modules' in effective:
+            config={'config-full':effective}
+        elif isinstance(effective,dict):
+            swappers=[v for k,v in effective.items() if k.startswith('aiSwapper-')]
+            if len(swappers)==1:
+                config={'config-full':{'modules':{'aiSwapper':{'config':swappers[0]}}}}
     samurai_id=konfigurierte_ki(config)
     # Nur der ausdrueckliche KI-Testmodus steuert auch den menschlichen ersten Platz.
     mensch=os.environ.get('SHC_STEUERE_MENSCH')=='ja'
     schreib('SamurAI-Wache: sichtbarer Platzhalter KI %d, Teamsteuerung, Mensch steuern %s'%(samurai_id,mensch))
+    buch=Lernbuch(D)
     aktiv={};bedient=set();scharf=False;zuletzt_im_spiel=False
+
+    def abschliessen(over=0, grund='Wache beendet'):
+        from laden import peek
+        killers={};end_tick=None
+        if over==1:
+            try:
+                for p in SPIELER:
+                    raw=peek(0x0115BDF8+p*0x39F4+8720)[0]
+                    killers[p]=raw-0x100000000 if raw>=0x80000000 else raw
+                end_tick=peek(0x0117CADC)[0]
+            except Exception as ex:
+                schreib('Lernbuch: native Enddaten nicht vollstaendig: %r'%ex)
+        for sp,(proc,handle,run,stop) in list(aktiv.items()):
+            stop.write_text('beenden',encoding='utf-8')
+        for sp,(proc,handle,run,stop) in list(aktiv.items()):
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                proc.terminate();proc.wait(timeout=10)
+            handle.close()
+            if run is None:continue
+            try:
+                result=buch.beenden(run,over,killers,end_tick,grund)
+                schreib('Lernbuch Spieler %d: %s; %s'%(sp,result['status'],' '.join(result['schluesse'])))
+            except Exception as ex:
+                schreib('Lernbuch Spieler %d nicht abgeschlossen: %r; Lauf bleibt als offen erhalten'%(sp,ex))
+        aktiv.clear()
     if os.path.exists(STOP):os.remove(STOP)
     try:
         while not os.path.exists(STOP):
+            if not spielprozess_lebt():break
             try:
                 ansicht,over,ai=lies(mit_ai=False)
             except Exception as ex:
                 schreib('Warte auf Spiel: %r'%ex);time.sleep(2);continue
             ingame=im_spiel(ansicht,over)
             if not ingame:
-                for sp,(proc,handle) in list(aktiv.items()):
-                    if proc.poll() is None:proc.terminate()
-                    proc.wait(timeout=10);handle.close()
-                aktiv.clear();bedient.clear()
+                abschliessen(over,'Partie verlassen oder beendet')
+                bedient.clear()
                 if not scharf:
                     befehl({'tickpause':{'bei':1}},.5);scharf=True
                 zuletzt_im_spiel=False
@@ -224,25 +279,43 @@ def main():
                     schreib('Neue Menue-Partie %r, KI-Nummern %r, SamurAI-Plaetze %r'%(kartenname(),ai,slots))
                     if slots:
                         befehl({'pause':True},.5)
+                        from parteien import gruppen_aus_worten,freunde_aus_gruppen,GRUPPE
+                        from laden import peek
+                        groups=gruppen_aus_worten(peek(GRUPPE-1,3))
+                        from karten_holen import bergfriede
+                        keeps=bergfriede()
+                        context={'karte':kartenname(),'ki':ai,'teams':groups,'bergfriede':keeps}
                         # Erst alle ausgewaehlten Platzhalter abschalten, dann beide Lenker starten.
                         for sp in slots:ki_aus(sp)
                         for sp in slots:
                             log=Path(D)/('samurai_%s_sp%d_konsole.txt'%(time.strftime('%Y%m%d_%H%M%S'),sp))
                             handle=log.open('w',encoding='utf-8')
-                            env=dict(os.environ,SHC_SPIELER=str(sp),SHC_PARTNER='ja')
+                            enemies=set(keeps)-freunde_aus_gruppen(sp,groups)
+                            try:run=buch.beginnen(sp,enemies,log,context)
+                            except Exception as ex:
+                                schreib('Lernbuch konnte nicht starten: %r; KI startet weiter'%ex)
+                                run=None
+                            import uuid
+                            stop=Path(D)/('stopp_'+uuid.uuid4().hex)
+                            env=dict(os.environ,SHC_SPIELER=str(sp),SHC_PARTNER='ja',SHC_RUN_STOP=str(stop))
                             proc=subprocess.Popen([sys.executable,'-u',str(Path(HIER)/'erstes_spiel.py')]+LENKER_ARGS,cwd=HIER,env=env,stdout=handle,stderr=subprocess.STDOUT)
-                            aktiv[sp]=(proc,handle);bedient.add(sp)
+                            aktiv[sp]=(proc,handle,run,stop);bedient.add(sp)
                             schreib('SamurAI gestartet fuer Spieler %d: Prozess %d, %s'%(sp,proc.pid,log))
                     befehl({'tickpause':'aus'},.5)
                     befehl({'pause':False},.5);scharf=False;zuletzt_im_spiel=True
-                for sp,(proc,handle) in aktiv.items():
+                for sp,(proc,handle,run,stop) in aktiv.items():
                     if proc.poll() is not None and not handle.closed:
                         schreib('SamurAI Spieler %d beendet, Rueckgabe %s; kein verdeckter Neustart'%(sp,proc.returncode));handle.close()
             time.sleep(SCHNELL_S if not ingame else PAUSE_S)
     finally:
-        for proc,handle in aktiv.values():
-            if proc.poll() is None:proc.terminate()
-            proc.wait(timeout=10);handle.close()
+        abschliessen()
 
 
-if __name__=='__main__':main()
+if __name__=='__main__':
+    from kanalsperre import Sperre
+    from befehl import KANAL_ORDNER
+    try:
+        with Sperre(os.path.join(KANAL_ORDNER,'.wache.lock'),timeout=0):
+            main()
+    except TimeoutError:
+        raise SystemExit('SamurAI-Wache laeuft bereits fuer diese Installation')

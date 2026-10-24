@@ -32,7 +32,7 @@ import sys
 import numpy as np
 
 HIER = os.path.dirname(os.path.abspath(__file__))
-RATEN = os.path.join(HIER, "..", "daten", "verlust_raten.json")
+RATEN = os.path.join(os.environ.get('SHC_LEARNING_DIR') or os.path.join(HIER, '..', 'daten'), 'verlust_raten.json')
 SCHADEN_BAENDER = ((3, 2.10), (8, 1.37), (15, 0.56))     # L73: Schaden je Schuetze und Takt nach Abstand (an Assassinen)
 SCHADEN_WEIT = 0.06                                      # L73: weiter als 15 Felder, bis zur Reichweite
 GROESSE = 400

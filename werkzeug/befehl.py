@@ -26,7 +26,7 @@ if not _ROH.isdigit() or int(_ROH) < 1:
     raise RuntimeError("SHC_INSTANZ=%r ist keine Instanznummer (1, 2, ...)" % _ROH)
 INSTANZ = int(_ROH)
 _STAMM = r"C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme"
-SPIEL  = _STAMM if INSTANZ == 1 else "%s Instanz%d" % (_STAMM, INSTANZ)
+SPIEL  = os.path.abspath(os.environ.get("SHC_GAME_DIR") or (_STAMM if INSTANZ == 1 else "%s Instanz%d" % (_STAMM, INSTANZ)))
 if not os.path.isdir(SPIEL):
     raise RuntimeError("Instanz %d gibt es nicht: %s" % (INSTANZ, SPIEL))
 _ENDUNG = "" if INSTANZ == 1 else str(INSTANZ)
@@ -42,12 +42,12 @@ if not _SP.isdigit() or not 1 <= int(_SP) <= 8:
 SPIELER = int(_SP)
 PARTNER = os.environ.get("SHC_PARTNER", "").strip().lower() in ("ja", "1", "true")
 ABZUG  = os.path.join(SPIEL, "ucp", "villagestudio", "abzug" if SPIELER == 1 else "abzug_sp%d" % SPIELER)
-if SPIELER != 1:
-    os.makedirs(ABZUG, exist_ok=True)      # das Modul legt keine Ordner an
+os.makedirs(ABZUG, exist_ok=True)      # auch eine frische Installation braucht den Ordner fuer Spieler 1
 # 18.10. (1v1-Lauf 1018a): je Spieler ein eigener Merker - im gemeinsamen las ein Lenker die kleinere Nummer des anderen und
 # vergab eigene Nummern doppelt (Gegenprobe ids_pruefen: 5.754 doppelte von 6.000)
-MERKER = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".letzte_id" + _ENDUNG + ("" if SPIELER == 1 else "_sp%d" % SPIELER))
-SENDE  = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".sende" + _ENDUNG)   # Sperre je Befehl (PARTNER)
+KANAL_ORDNER = os.path.dirname(BEFEHL)
+MERKER = os.path.join(KANAL_ORDNER, ".letzte_id_sp%d" % SPIELER)
+SENDE  = os.path.join(KANAL_ORDNER, ".sende")   # ein Spielkanal, unabhaengig von Checkout und Instanz-Alias
 
 
 _LETZTE = 0
@@ -129,7 +129,7 @@ def pruefe(zeilen):
             raise RuntimeError("MODULFEHLER (Antwort des Moduls): " + z[:240])
     return zeilen
 
-LAUF = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".lauf" + _ENDUNG)   # Kanal belegt: "<pid>" - der Lenker frischt sie je Runde auf; je Instanz eine
+LAUF = os.path.join(KANAL_ORDNER, ".lauf")   # Kanal belegt: alle Clients desselben Spiels teilen dieselbe Kennung
 
 def belege():
     """Der Lenker meldet sich als Besitzer des Kanals (je Runde aufrufen). 05.10.: eine Nebenabfrage aus einem zweiten
@@ -244,9 +244,15 @@ def sende(befehl, warte=3.0, bis=None):
             neu = f.read()
     finally:
         _entsperren()
-    zeilen = [z.split("| ", 1)[-1].strip() for z in neu.splitlines()
-              if "villagestudio" in z and "ZUSTAND" not in z]
+    zeilen = logzeilen(neu)
     return pruefe(zeilen) if STRENG else zeilen
+
+
+def logzeilen(text):
+    """One compatibility boundary for the Store module's new log prefix."""
+    return [z.split('| ',1)[-1].strip().replace('[selfaware-runtime]','[villagestudio]')
+            for z in text.splitlines()
+            if ('villagestudio' in z or '[selfaware-runtime]' in z) and 'ZUSTAND' not in z]
 
 
 if __name__ == "__main__":

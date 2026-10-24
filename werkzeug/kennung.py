@@ -43,7 +43,8 @@ def dateien():
     sys.path.insert(0, HIER)
     import befehl
     aus = [os.path.join(HIER, f) for f in python_dateien()]
-    lua = os.path.join(befehl.SPIEL, "ucp", "villagestudio", "logik.lua")
+    lua = (os.path.join(HIER,"logik_menue_backend.lua") if os.environ.get('SHC_GAME_PID') else
+           os.path.join(befehl.SPIEL, "ucp", "villagestudio", "logik.lua"))
     if os.path.exists(lua):
         aus.append(lua)
     d = os.path.join(HIER, "..", "daten")

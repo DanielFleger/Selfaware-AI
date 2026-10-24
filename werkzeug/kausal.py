@@ -22,7 +22,7 @@ import json
 import os
 
 HIER = os.path.dirname(os.path.abspath(__file__))
-DATEI = os.path.join(HIER, "..", "daten", "kausal_modell.json")
+DATEI = os.path.join(os.environ.get('SHC_LEARNING_DIR') or os.path.join(HIER, '..', 'daten'), 'kausal_modell.json')
 
 # Gemessen unter Ascension (12.10., Daniel 01:09 "Cash von Steinen/Eisen/Brot", 01:26 "in der Mine selbst messen"):
 # Preise L65 (preise_messen.py), Gehtempo L68, Ketten L71 (arbeitsgang_rohstoff.py + gebaeude_auswerten.py).

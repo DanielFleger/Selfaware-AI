@@ -1,0 +1,51 @@
+name: Selfaware AI package
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/branching-fortunes]
+    paths:
+      - 'distribution/**'
+      - 'Selfaware-AI/**'
+      - 'werkzeug/**'
+      - 'definition.yml'
+      - 'init.lua'
+      - 'files.xml'
+      - '.github/workflows/selfaware-package.yml'
+jobs:
+  package:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build pinned portable runtime and existing native kernel
+        shell: pwsh
+        run: ./build.ps1
+      - name: Offline integration checks
+        shell: pwsh
+        run: |
+          $env:SHC_GAME_DIR=Join-Path $PWD 'build/fixture-game'
+          New-Item -ItemType Directory -Path $env:SHC_GAME_DIR -Force | Out-Null
+          $python=Join-Path $PWD 'build/runtime/python/python.exe'
+          & $python -c "import erstes_spiel,samurai_wache,numpy,scipy,skimage,yaml;from ortools.sat.python import cp_model;print('portable imports OK')"
+          if ($LASTEXITCODE -ne 0) { throw 'Portable imports failed' }
+          & $python werkzeug/lernbuch_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'Learning checks failed' }
+          & $python werkzeug/samurai_zuordnung_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'AI selection checks failed' }
+          python werkzeug/portable_kanal_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'Shared channel checks failed' }
+      - name: Package unsigned review candidate
+        shell: pwsh
+        run: |
+          python -m pip install PyYAML==6.0.3
+          python distribution/install_candidate.py --package-only
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate packaging failed' }
+          Compress-Archive -Path Selfaware-AI/* -DestinationPath build/Selfaware-AI-0.1.0.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: selfaware-ai-unsigned-review-candidate
+          path: |
+            build/selfaware-runtime-0.1.0.zip
+            build/Selfaware-AI-0.1.0.zip
