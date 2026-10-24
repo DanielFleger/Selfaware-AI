@@ -17,6 +17,7 @@ from lernbuch import atomar
 def package_module(root):
     # Build exact module packaging layout used by UCP (no enclosing folder).
     files={'definition.yml':root/'definition.yml','init.lua':root/'init.lua',
+           'options.yml':root/'options.yml','starttroops.lua':root/'starttroops.lua',
            'bridge.lua':root/'distribution/bridge.lua','bootstrap.ps1':root/'distribution/bootstrap.ps1',
            'README.md':root/'distribution/README.md'}
     files.update({n:root/'build'/n for n in ('runtime.zip','logik.lua','sai_launcher.dll','samurai_kern.dll')})

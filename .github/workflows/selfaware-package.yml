@@ -10,6 +10,8 @@ on:
       - 'definition.yml'
       - 'init.lua'
       - 'files.xml'
+      - 'options.yml'
+      - 'starttroops.lua'
       - '.github/workflows/selfaware-package.yml'
 jobs:
   package:
@@ -36,6 +38,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'AI selection checks failed' }
           python werkzeug/portable_kanal_pruefen.py
           if ($LASTEXITCODE -ne 0) { throw 'Shared channel checks failed' }
+          python -m pip install lupa==2.8
+          python werkzeug/starttruppen_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'Native start troop checks failed' }
       - name: Package unsigned review candidate
         shell: pwsh
         run: |

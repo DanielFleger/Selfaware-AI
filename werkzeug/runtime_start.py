@@ -12,6 +12,10 @@ def profilkennung(config):
 
 
 def main():
+    import sys
+    if os.environ.get('SHC_START_LOG'):
+        stream=open(os.environ['SHC_START_LOG'],'a',encoding='utf-8',buffering=1)
+        sys.stdout=sys.stderr=stream
     import yaml
     game=Path(os.environ['SHC_GAME_DIR']).resolve()
     config=game/'ucp/.ucp-final-config-cache'

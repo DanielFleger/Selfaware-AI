@@ -17,6 +17,7 @@ end
 
 return {
   enable = function(self, config)
+    require('starttroops').configure(config or {})
     launcher = assert(core.openLibraryHandle(ROOT .. 'sai_launcher.dll'))
     local prepare = core.exposeCode(launcher:getProcAddress('sai_prepare'), 0, 0)
     assert(prepare() == 1, 'Selfaware AI: runtime directory is not writable')

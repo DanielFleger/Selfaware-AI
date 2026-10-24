@@ -11,4 +11,7 @@ Quellcode-Umbauten noch eine nachgewiesene Verbesserung der Spielstaerke.
 
 Benoetigt Windows mit 64 Bit, UCP 3.0.7 und Stronghold Crusader 1.41.
 SamurAI belegt den Abt-Platz. Lernstand und Startfehler liegen in Local AppData.
+Unter Customisations -> Selfaware AI: Starteinheiten lassen sich die Starttruppen
+einstellen. Standard: 4 Assassinen und 6 arabische Bogenschuetzen anstelle der
+Abt-Truppen. Die Einstellung gilt ab dem naechsten Spielstart fuer neue Gefechte.
 Vor der offiziellen Store-Veroeffentlichung muss das Laufzeitmodul signiert werden.
