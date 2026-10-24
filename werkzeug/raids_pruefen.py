@@ -44,12 +44,7 @@ ALT = len(sys.argv) > 1 and sys.argv[1] == "alt"
 RATEN = {71: {"verlust": 20300.0, "vorhersage": 1000.0, "felder": 1000, "takte": 12000}}
 if ALT:
     RATEN = {71: {"verlust": 0.0, "vorhersage": 1000.0, "felder": 1000, "takte": 12000}}
-    _init = GS.Lage.__init__
-
-    def _ohne_vorrang(self, *a, **k):
-        _init(self, *a, **k)
-        self.vorrang = 0.0
-    GS.Lage.__init__ = _ohne_vorrang
+    GS.Lage.vorrang = lambda self, s: 0.0           # B-217: vorrang ist seit den Typ-Gittern eine Methode
 
 
 def einheit(typ, sp, x, y, zustand=1, leben=None):

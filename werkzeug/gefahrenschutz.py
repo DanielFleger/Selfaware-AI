@@ -35,6 +35,13 @@ HIER = os.path.dirname(os.path.abspath(__file__))
 RATEN = os.path.join(os.environ.get('SHC_LEARNING_DIR') or os.path.join(HIER, '..', 'daten'), 'verlust_raten.json')
 SCHADEN_BAENDER = ((3, 2.10), (8, 1.37), (15, 0.56))     # L73: Schaden je Schuetze und Takt nach Abstand (an Assassinen)
 SCHADEN_WEIT = 0.06                                      # L73: weiter als 15 Felder, bis zur Reichweite
+# B-217 (gemessen 24.10., lage_20261024_215535_i5, 50 Sklaventode): 45 starben 22-40 Felder vor stehenden Bogenschuetzen, die
+# schon vor der Zielwahl dort standen. Die Baender oben gelten fuer Assassinen (getarnt, selten beschossen); Sklaven bekamen
+# jenseits 15 Felder 0,5-1,8 Schaden je Schuetze und Takt statt 0,06 - ein Faktor je Typ kann die Form nicht richten.
+# Deshalb lernt der Lerner je Typ und Abstandsband (Band = Abstand zum naechsten Schuetzen in Reichweite) den Schaden je
+# Schuetze und Takt, Tode eingerechnet; Lage rechnet je Typ mit den gelernten Baendern. Ungemessene Baender: L73 x Faktor.
+BAND_GRENZEN = (3, 8, 15, 44)                            # letztes Band: bis zur Reichweite
+BAND_MIN = 2000                                          # Schuetzen-Takte je Band, ab denen der gemessene Wert gilt
 GROESSE = 400
 ZIEL_UMKREIS = 8                 # wie gefahr.ZIEL_UMKREIS: ist das Ziel nicht begehbar, das naechste erreichbare Feld bis so weit
 LAUF = 101                       # Zustand "laeuft" (Lagebild; Sklaven unterwegs, 22.10.)
@@ -98,6 +105,42 @@ class Lage:
         self.n = n
         self.wegkarte = wegkarte
         self.links = None if wegkarte is None or "link" not in wegkarte else np.asarray(wegkarte["link"])
+        self.schuetzen_liste = [(e["x"], e["y"], fern_reich[e["typ"]]) for e in L.values()
+                                if ist_feind(e.get("besitzer")) and e.get("typ") in fern_reich and e.get("leben", 1) > 0]
+        self.schuetzen = len(self.schuetzen_liste)
+        self._gitter = {}
+        self.s = self.gitter(None)                                # Schaden je Takt (Assassinen-Einheiten L73) je Feld
+        if wegkarte is not None:
+            gebiete = wegkarte["gebiet"]
+        self.gebiete = None if gebiete is None else np.asarray(gebiete)
+        self.bau = None if wegkarte is None else np.asarray(wegkarte["gebaeude"])
+        self.raten = raten_laden() if raten is None else raten
+        self._suche = {}
+
+    def baender(self, typ):
+        """([(Grenze, Schaden je Schuetze und Takt)], alle gemessen?) fuer typ: je Band gemessen (ab BAND_MIN Schuetzen-Takte)
+        oder L73 x Faktor; typ None = L73 roh (Assassinen)."""
+        if typ is None:
+            return list(SCHADEN_BAENDER) + [(BAND_GRENZEN[-1], SCHADEN_WEIT)], True
+        f, _ = faktor(self.raten, typ)
+        gelernt = (self.raten.get(typ) or {}).get("baender", {})
+        l73 = dict(SCHADEN_BAENDER)
+        l73[BAND_GRENZEN[-1]] = SCHADEN_WEIT
+        aus, alle = [], True
+        for r in BAND_GRENZEN:
+            b = gelernt.get(str(r))
+            if b and b.get("schuss_takte", 0) >= BAND_MIN:
+                aus.append((r, b["verlust"] / float(b["schuss_takte"])))
+            else:
+                aus.append((r, l73[r] * f))
+                alle = False
+        return aus, alle
+
+    def gitter(self, typ):
+        """Schaden je Takt je Feld fuer Einheiten vom Typ typ (None: Assassinen-Baender L73), einmal je Lage und Typ."""
+        if typ in self._gitter:
+            return self._gitter[typ]
+        n = self.n
         d = np.zeros((n + 1, n + 1))
 
         def quadrat(x, y, r, w):
@@ -108,26 +151,22 @@ class Lage:
             d[x1 + 1, y0] -= w
             d[x0, y1 + 1] -= w
             d[x1 + 1, y1 + 1] += w
-        self.schuetzen = 0
-        for e in L.values():
-            if ist_feind(e.get("besitzer")) and e.get("typ") in fern_reich and e.get("leben", 1) > 0:
-                x, y, reich = e["x"], e["y"], fern_reich[e["typ"]]
-                self.schuetzen += 1
-                quadrat(x, y, reich, SCHADEN_WEIT)
-                vorher = SCHADEN_WEIT
-                for r, w in reversed(SCHADEN_BAENDER):
-                    quadrat(x, y, min(r, reich), w - vorher)       # kurze Reichweite (Schleuder 17, Feuer 11): Band endet dort
-                    vorher = w
-        self.s = np.maximum(d.cumsum(0).cumsum(1)[:n, :n], 0.0)    # Schaden je Takt (Assassinen-Einheiten) je Feld
-        if wegkarte is not None:
-            gebiete = wegkarte["gebiet"]
-        self.gebiete = None if gebiete is None else np.asarray(gebiete)
-        self.bau = None if wegkarte is None else np.asarray(wegkarte["gebaeude"])
-        self.raten = raten_laden() if raten is None else raten
-        mn = self.s[self.s > 1e-9].min() if (self.s > 1e-9).any() else SCHADEN_WEIT
+        baender, _ = self.baender(typ)
+        weit = baender[-1][1]
+        for x, y, reich in self.schuetzen_liste:
+            quadrat(x, y, reich, weit)
+            vorher = weit
+            for r, w in reversed(baender[:-1]):
+                quadrat(x, y, min(r, reich), w - vorher)       # kurze Reichweite (Schleuder 17, Feuer 11): Band endet dort
+                vorher = w
+        s = np.maximum(d.cumsum(0).cumsum(1)[:n, :n], 0.0)
+        self._gitter[typ] = s
+        return s
+
+    def vorrang(self, s):
         # Vorrang: jedes Feld unter Beschuss kostet mehr als jeder Umweg ohne Beschuss (2 x Kartenbreite Felder)
-        self.vorrang = 2.0 * n / mn
-        self._suche = {}
+        mn = s[s > 1e-9].min() if (s > 1e-9).any() else SCHADEN_WEIT
+        return 2.0 * self.n / mn
 
     def drin(self, p):
         return 0 <= p[0] < self.n and 0 <= p[1] < self.n
@@ -145,12 +184,13 @@ class Lage:
         werte, zahl = np.unique(fen[fen > 0], return_counts=True)
         return int(werte[zahl.argmax()]) if len(werte) else 0
 
-    def suche(self, start):
-        """(MCP, kumulierte Kosten) ab start - einmal je Startpunkt und Runde."""
+    def suche(self, start, typ=None):
+        """(MCP, kumulierte Kosten) ab start - einmal je Startpunkt, Typ und Runde (B-217: Kosten aus dem Gitter des Typs)."""
         start = tuple(start)
-        if start not in self._suche:
+        if (start, typ) not in self._suche:
             from skimage.graph import MCP_Geometric as MCP     # Schraegschritt kostet Wurzel 2 - ohne Beschuss gerade statt Zickzack
-            kosten = 1.0 + self.vorrang * self.s
+            s = self.gitter(typ)
+            kosten = 1.0 + self.vorrang(s) * s
             g = self.gebiet_bei(start)
             if self.gebiete is not None and g:
                 kosten = np.where(self.gebiete == g, kosten, -1.0)
@@ -167,15 +207,15 @@ class Lage:
             else:
                 m = MCP(kosten, fully_connected=True)
                 kum, _ = m.find_costs([start])
-            self._suche[start] = (m, kum)
-        return self._suche[start]
+            self._suche[(start, typ)] = (m, kum)
+        return self._suche[(start, typ)]
 
-    def ankunft(self, start, ziel):
+    def ankunft(self, start, ziel, typ=None):
         """Naechstes erreichbares Feld am Ziel: Ring fuer Ring (Schachabstand 0..ZIEL_UMKREIS) das Feld mit den kleinsten
         Wegkosten; bei Gleichstand das erste in x-, dann y-Reihenfolge.
         B-216 (24.10., Profil raids_trocken: 9,7 von 23 s hier - vier Python-Schleifen je Ziel): dieselbe Wahl mit numpy auf
         dem Fenster um das Ziel; argmin nimmt bei Gleichstand das erste in Zeilenreihenfolge = dieselbe Reihenfolge wie vorher."""
-        _, kum = self.suche(start)
+        _, kum = self.suche(start, typ)
         R = ZIEL_UMKREIS
         x0, x1 = max(0, ziel[0] - R), min(self.n - 1, ziel[0] + R)
         y0, y1 = max(0, ziel[1] - R), min(self.n - 1, ziel[1] + R)
@@ -197,12 +237,13 @@ class Lage:
 
     def plan(self, start, ziel, typ, leben, gebaeude=None):
         """Weg start -> ziel fuer eine Einheit vom Typ typ mit leben: dict(weg, takte, verlust, p_tod, an) oder None (nicht
-        erreichbar). Verlust = Faktor x (Schaden entlang des Wegs x Takte je Feld + Schaden am Ankunftsfeld x Verweilen)."""
+        erreichbar). Verlust = Schaden entlang des Wegs x Takte je Feld + Schaden am Ankunftsfeld x Verweilen, aus dem Gitter
+        des Typs (B-217: gelernte Baender; ungemessene Baender tragen den Faktor schon in sich). gemessen: alle Baender gemessen."""
         start, ziel = tuple(start), tuple(ziel)
         if gebaeude is not None and self.bau is not None and self.links is not None:
             # Ein Brandauftrag braucht einen echten angrenzenden Angriffsplatz;
             # "acht Felder daneben erreichbar" reicht an einer Klippe nicht.
-            _, kum = self.suche(start)
+            _, kum = self.suche(start, typ)
             from weggraph import RICHTUNGEN
             boden = self.wegkarte.get("boden")
             kandidaten = set()
@@ -216,17 +257,18 @@ class Lage:
                     kandidaten.add(q)
             an = min(kandidaten, key=lambda q: (kum[q], q), default=None)
         else:
-            an = self.ankunft(start, ziel)
+            an = self.ankunft(start, ziel, typ)
         if an is None:
             return None
-        m, _ = self.suche(start)
+        m, _ = self.suche(start, typ)
         weg = [tuple(int(v) for v in q) for q in m.traceback(an)]
-        f, _ = faktor(self.raten, typ)
+        s = self.gitter(typ)
+        _, gemessen = self.baender(typ)
         tpf, _ = takte_je_feld(self.raten, typ)
-        beschuss = sum(self.s[q[0], q[1]] for q in weg[1:])
-        verlust = f * (beschuss * tpf + self.s[an[0], an[1]] * VERWEILEN.get(typ, 0))
+        beschuss = sum(s[q[0], q[1]] for q in weg[1:])
+        verlust = beschuss * tpf + s[an[0], an[1]] * VERWEILEN.get(typ, 0)
         return {"weg": weg, "takte": len(weg) * tpf, "verlust": verlust, "p_tod": min(1.0, verlust / float(max(1, leben))),
-                "an": an}
+                "an": an, "gemessen": gemessen}
 
     def wegpunkte(self, weg):
         """Wegpunkte fuer logik.lua: Richtungswechsel und mindestens alle WEGPUNKT_ABSTAND Felder, letzter = Ankunft."""
@@ -303,17 +345,30 @@ class Lerner:
 
     def runde(self, t, L, lage):
         jetzt = {n: (t, e) for n, e in L.items() if e.get("besitzer") == self.sp and e.get("typ") in self.typen and e.get("leben", 0) > 0}
-        for n, (t1, e1) in jetzt.items():
-            if n not in self.vorher:
+        schuetzen = getattr(lage, "schuetzen_liste", None)
+        for n, (t0, e0) in self.vorher.items():
+            # B-217: jede Einheit der letzten Runde, auch die verschwundene (Tod: der Rest ihres Lebens ist der Verlust)
+            e1 = jetzt[n][1] if n in jetzt else None
+            tot = e1 is None
+            dt = t - t0
+            if dt <= 0:
                 continue
-            t0, e0 = self.vorher[n]
-            dt = t1 - t0
-            if dt <= 0 or e0.get("zustand") != LAUF or e1.get("zustand") != LAUF:
+            z = self.neu.setdefault(e0["typ"], {"verlust": 0.0, "vorhersage": 0.0, "felder": 0, "takte": 0})
+            verlust = e0["leben"] if tot else max(0, e0["leben"] - e1["leben"])
+            if schuetzen is not None:
+                # Band = Abstand zum naechsten Schuetzen, der die Einheit erreicht; Schuetzen-Takte = alle, die sie erreichen
+                in_reich = [schach((x, y), (e0["x"], e0["y"])) for x, y, reich in schuetzen
+                            if schach((x, y), (e0["x"], e0["y"])) <= reich]
+                if in_reich:
+                    grenze = next((r for r in BAND_GRENZEN if min(in_reich) <= r), BAND_GRENZEN[-1])
+                    b = z.setdefault("baender", {}).setdefault(str(grenze), {"verlust": 0.0, "schuss_takte": 0})
+                    b["verlust"] += verlust
+                    b["schuss_takte"] += len(in_reich) * dt
+            if tot or e0.get("zustand") != LAUF or e1.get("zustand") != LAUF:
                 continue
-            z = self.neu.setdefault(e1["typ"], {"verlust": 0.0, "vorhersage": 0.0, "felder": 0, "takte": 0})
             v = lage.schaden((e0["x"], e0["y"])) * dt
             if v > 0:
-                z["verlust"] += max(0, e0["leben"] - e1["leben"])
+                z["verlust"] += verlust
                 z["vorhersage"] += v
             d = schach((e0["x"], e0["y"]), (e1["x"], e1["y"]))
             if d > 0:
@@ -350,11 +405,18 @@ class Lerner:
             for typ, z in self.neu.items():
                 a = r.setdefault(typ, {"verlust": 0.0, "vorhersage": 0.0, "felder": 0, "takte": 0})
                 for k in z:
-                    a[k] = round(a.get(k, 0) + z[k], 2)
+                    if k == "baender":
+                        for g, b in z[k].items():
+                            ab = a.setdefault("baender", {}).setdefault(g, {"verlust": 0.0, "schuss_takte": 0})
+                            for kk in b:
+                                ab[kk] = round(ab.get(kk, 0) + b[kk], 2)
+                    else:
+                        a[k] = round(a.get(k, 0) + z[k], 2)
             tmp = RATEN + ".neu%d" % self.sp
             json.dump({"quelle": "gefahrenschutz.Lerner, Spieler %d, zuletzt %s" % (self.sp, time.strftime("%Y-%m-%d %H:%M")),
                        "erklaerung": "je Einheitentyp: verlust/vorhersage = Faktor gegen die Assassinen-Raten L73 (laufend unter "
-                       "Beschuss), takte/felder = Takte je Feld beim Laufen", "typen": {str(k): v for k, v in sorted(r.items())}},
+                       "Beschuss), takte/felder = Takte je Feld beim Laufen, baender[Abstand zum naechsten Schuetzen] = "
+                       "verlust/schuss_takte = Schaden je Schuetze und Takt, Tode eingerechnet (B-217)", "typen": {str(k): v for k, v in sorted(r.items())}},
                       open(tmp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
             os.replace(tmp, RATEN)
             self.neu = {}
@@ -378,7 +440,8 @@ def lernen_aus_protokoll(pfad, spieler, feinde):
         for ln in lerner.values():
             ln.runde(t, L, lage)
     for ln in lerner.values():
-        print("Spieler %d: %s" % (ln.sp, {k: {kk: round(vv, 1) for kk, vv in v.items()} for k, v in ln.neu.items()}))
+        print("Spieler %d: %s" % (ln.sp, {k: {kk: (vv if isinstance(vv, dict) else round(vv, 1)) for kk, vv in v.items()}
+                                        for k, v in ln.neu.items()}))
         ln.schreiben()
     print("Datei:", os.path.abspath(RATEN), raten_laden())
 
