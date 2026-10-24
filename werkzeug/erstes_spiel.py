@@ -2444,7 +2444,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         deckung = RA.Deckung(SP, BERGFRIED)
         # B-168: Verlust je Einheitentyp unter Beschuss und Takte je Feld - jede Runde selbst nachgelernt (gefahrenschutz.py)
         import gefahrenschutz as GS_r
-        gs_lerner = GS_r.Lerner(SP, (71, 74, 72, 70, 75, 26))
+        gs_lerner = GS_r.Lerner(SP, (71, 74, 72, 70, 75, 26, 73))     # B-229: auch Assassinen-Baender lernen
     if weg == "feldzug" and streitkolben:
         from feldzug import Feldzug
         feldzug = Feldzug(SP, BERGFRIED, LORD_SCHUTZ_BIS, n=streitkolben)

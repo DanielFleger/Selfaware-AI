@@ -431,6 +431,13 @@ class Einzeln:
     # Lord-Anlauf: die Eichung oben stammt aus Raids; 1017i starben beim gemeinsamen Anlauf alle 5 vor dem Lord, obwohl das
     # Modell "machbar" rechnete - dort bleibt das ungeeichte Modell
     KALIB_LORD = 1.0
+    # B-229 (Daniel 24.10. 22:32 "Torhaus anlaufen ist gut, aber es muss sich lohnen"; gemessen Lauf 222643: zwei Wellen mit
+    # 10-13 Assassinen ueber das Torhaus (212,273) zum Kriegsfuersten-Lord, 36 Schuetzen in 40 Feldern, Kletterzustand 126/127
+    # am Tor Median 291 Takte bei 15 Assassinen, keiner kam am Lord an, 16 Verluste): die Anlaufrechnung kannte weder das
+    # Klettern noch den Ausgang des letzten Anlaufs. Jetzt: Kletterzeit zaehlt zur Beschusszeit (je Lord gelernt aus dem eigenen
+    # Angriff, davor der Messwert), und ein Lord, den der letzte Anlauf nicht erreichte, gilt erst wieder als lohnend, wenn das
+    # Feuer am Lord unter die Haelfte von damals faellt (je Fehlanlauf halbiert) - oder Verbuendete dort kaempfen (B-226)
+    KLETTER_TAKTE = 291                  # gemessen 24.10. (s.o.), Startwert bis der eigene Anlauf es je Lord misst
     ANKUNFT_MIN = 0.3                    # 18.10.: so viel Leben je Assassine muss nach dem Anlauf am Lord uebrig sein (STARTWERT)
     SPERRE_ROUTE = 1500                  # 18.10.: so lange nimmt der Zielwechsel ein Ziel mit gefaehrlicher Route nicht wieder
     ZIEL_RISIKO = 0.05
@@ -564,6 +571,7 @@ class Einzeln:
         self.angriff_aus = False             # Trainingsstand: nur sammeln, nie angreifen (setzt erstes_spiel.py)
         self.lord_aus = False                # 18.10. (weg=feldzug, Daniel): Assassinen nur fuer die Wirtschaft, Lords toeten Streitkolben
         self.bedarf_zuletzt = None
+        self.lord_lehre = {}                 # B-229: Lord-Nr -> {"fehl": Anlaeufe ohne Ankunft, "feuer": Feuer am Lord dabei, "kletter": Takte}
         self.bedarf_grund, self.bedarf_fa = "", None
         self._raid_plaetze = None            # 17.10.: lohnende Raid-Plaetze der letzten Runde (Raiden geht vor)
         self._steht = {}                     # 17.10.: n -> (Feld, seit Tick) - Stillstand ohne Spielziel
@@ -1074,7 +1082,7 @@ class Einzeln:
         nah = sorted(rand, key=lambda q: (max(abs(q[0] - vx), abs(q[1] - vy)), q))[:3]
         return max(wert(q) for q in nah)
 
-    def _anlauf_leben(self, von, lp, n):
+    def _anlauf_leben(self, von, lp, n, ln=None):
         """18.10. (1017l: 5 Assassinen starben im Anlauf 10 Felder vor dem Lord - 13 Schleuderer, 6 Boegen, 1 Feuerwerfer im
         Umkreis 12; lord_machbar zaehlte nur Schuetzen mit Linie aufs Lordfeld, und der Bergfried sperrt viele): Leben, mit dem
         jede der n Assassinen am Lord ankommt = voll - (mittleres Gesamtfeuer entlang der Strecke von -> Lord x Laufzeit) / n."""
@@ -1084,7 +1092,9 @@ class Einzeln:
         k = max(1, d // 3)
         punkte = [(von[0] + (lp[0] - von[0]) * i // k, von[1] + (lp[1] - von[1]) * i // k) for i in range(k + 1)]
         f = sum(self._sicht.feuer_gesamt(q) for q in punkte) / len(punkte)
-        rest = int(self.VOLL - f * d * TEMPO * self.KALIB_LORD / n)
+        # B-229: Klettern ueber Torhaus/Mauer kostet Zeit unter Beschuss - je Lord gemessen, sonst KLETTER_TAKTE
+        kletter = self.lord_lehre.get(ln, {}).get("kletter", self.KLETTER_TAKTE) if ln is not None else self.KLETTER_TAKTE
+        rest = int(self.VOLL - f * (d * TEMPO + kletter) * self.KALIB_LORD / n)
         # mindestens ANKUNFT_MIN Leben je Assassine am Lord, sonst gilt der Angriff als nicht machbar (Rechnung ist ein Modell)
         return rest if rest >= self.ANKUNFT_MIN * self.VOLL else 1
 
@@ -2478,7 +2488,7 @@ class Einzeln:
                 f_ges = self._sicht.feuer_gesamt(lp)
                 von_a = self._anlauf_von(L, lp)
                 n_r = next((k for k in range(5, len(self.mitglieder) + 1)
-                            if lord_machbar(k, le["leben"], f_ges / k, leben=self._anlauf_leben(von_a, lp, k))[0]), None)
+                            if lord_machbar(k, le["leben"], f_ges / k, leben=self._anlauf_leben(von_a, lp, k, ln))[0]), None)
                 if n_r is not None:
                     if (n_r, "gerechnet") != getattr(self, "_bedarf_rech", None):
                         self._bedarf_rech = (n_r, "gerechnet")
@@ -2489,6 +2499,21 @@ class Einzeln:
             if lt["phase"] == "angriff" and len(lt["mitglieder"]) < self.LORD_REST:
                 ereignis.append("GEMEINSAMER LORD-ANGRIFF vorbei: noch %d leben, Lord-Leben %d - wieder raiden bis %d" % (
                     len(lt["mitglieder"]), le["leben"], n_bedarf))
+                # B-229: aus dem eigenen Anlauf lernen - Kletterzeit je Assassine und ob ueberhaupt jemand ankam
+                if self.angriffe:
+                    a_ = self.angriffe[-1]
+                    lehre = self.lord_lehre.setdefault(ln, {"fehl": 0})
+                    if a_.get("kletter_takte", 0) > 0:
+                        lehre["kletter"] = a_["kletter_takte"] / float(max(1, a_["groesse"]))
+                    if a_.get("am_lord_max", 0) == 0:
+                        lehre["fehl"] = lehre.get("fehl", 0) + 1
+                        lehre["feuer"] = self._sicht.feuer_gesamt(lp)
+                        ereignis.append("LORD-LEHRE %d: Anlauf %d erreichte ihn nicht (%d Verluste, Feuer am Lord %.0f je Takt, Klettern %s Takte) - "
+                                        "gilt erst wieder als lohnend unter Feuer %.0f oder mit Verbuendeten am Lord" % (
+                                            ln, lehre["fehl"], a_.get("verluste", 0), lehre["feuer"], lehre.get("kletter", "-"),
+                                            lehre["feuer"] * 0.5 ** lehre["fehl"]))
+                    else:
+                        lehre["fehl"] = 0
                 for n in list(lt["mitglieder"]):
                     self._vergessen(n)
                 lt.update(mitglieder=set(), phase=None, sammelpunkt=None, pause_bis=self.jetzt + self.BEREIT_PAUSE)
@@ -2504,7 +2529,7 @@ class Einzeln:
                 n_l = len(lt["mitglieder"])
             satz_lord = self._sicht.feuer_gesamt(lp) / max(1, n_l)
             machbar, t_l, rest_l = lord_machbar(n_l, le["leben"], satz_lord,
-                                                leben=self._anlauf_leben(self._anlauf_von(L, lp), lp, n_l))
+                                                leben=self._anlauf_leben(self._anlauf_von(L, lp), lp, n_l, ln))
             # 19.10. (Daniel 17:43, Bild 1018n: Lord fast allein, unsere Assassinen ringsum, "LORD WARTET: Raiden geht vor"):
             # "in so einem Fall koennen die Assassinen bestimmen - wir haben genug Staerke, keine Bedrohung, so eine Lord-
             # Lebensstaerke - wir gehen alle gleichzeitig mit aller Macht auf den Lord und gewinnen, anstatt es rauszuzoegern":
@@ -2515,6 +2540,16 @@ class Einzeln:
             # nur dort, wo die Assassinen den Lord sonst NIE angreifen (Feldzug-Modus, lord_aus - das 1v1): gegen Nomaden gilt
             # weiter Daniels Regel vom 17.10. "erst die Wirtschaft entmannen" (lordanlauf_pruefen 3/4 - mit dieser Regel ueberall
             # fielen dort 4 von 10 Faellen)
+            # B-229: lohnt es nach dem letzten Anlauf? (gemeinsam mit Verbuendeten unten rechnet getrennt)
+            lehre_l = self.lord_lehre.get(ln) or {}
+            if lehre_l.get("fehl", 0) > 0 and machbar:
+                f_jetzt = self._sicht.feuer_gesamt(lp)
+                grenze_l = lehre_l.get("feuer", 0) * 0.5 ** lehre_l["fehl"]
+                if f_jetzt > grenze_l:
+                    machbar = False
+                    if self.runde % 20 == 0:
+                        ereignis.append("LORD NICHT LOHNEND %d: %d Anlaeufe erreichten ihn nicht, Feuer am Lord %.0f (lohnend erst unter %.0f) - raiden" % (
+                            ln, lehre_l["fehl"], f_jetzt, grenze_l))
             eindeutig = self.lord_aus and machbar and wachen_l == 0 and lt["phase"] is None
             # B-226: stehen Verbuendete am Lord (Partner-Heer, Partner-Assassinen, eigener Feldzug), rechnet der Wettlauf ALLE
             # zusammen gegen Lord + Verteidiger bis LORD_UMKREIS + Schuetzen, die ihn erreichen (dieselbe Regel wie
@@ -2525,7 +2560,7 @@ class Einzeln:
             if verb and self.jetzt >= lordschutz.BIS and self.jetzt >= lt.get("pause_bis", 0):
                 import gefecht
                 frei_g = sorted(k for k in self.mitglieder if k in L and k not in self.flucht)
-                leben_g = self._anlauf_leben(self._anlauf_von(L, lp), lp, max(1, len(frei_g)))
+                leben_g = self._anlauf_leben(self._anlauf_von(L, lp), lp, max(1, len(frei_g)), ln)
                 wir_g = [dict(typ=73, leben=min(L[k]["leben"], leben_g), x=lp[0], y=lp[1]) for k in frei_g] + verb
                 sie_g = [dict(typ=55, leben=le["leben"], x=lp[0], y=lp[1], steht=True)]
                 sie_g += [dict(typ=typ, leben=L[nr]["leben"], x=q[0], y=q[1], steht=False) for nr, q, typ in nah
@@ -2726,6 +2761,8 @@ class Einzeln:
                 # 17.10. (1017h): weiter weg -> Laufbefehl auf den Lord (Kletterweg), erst daneben der Angriffsbefehl;
                 # wer STEH_TICKS ohne Spielziel steht, faellt aus der Gruppe (sonst stand er an unserer Burg bis Partieende)
                 for k in sorted(lt["mitglieder"]):
+                    if self.angriffe and L[k]["zustand"] in (126, 127):           # B-229: Kletterzeit messen (Haken/hoch)
+                        self.angriffe[-1]["kletter_takte"] = self.angriffe[-1].get("kletter_takte", 0) + getattr(self, "_runde_ticks", 50)
                     if L[k]["zielart"] == 4 and L[k].get("zieleinheit") == ln:
                         continue
                     f, seit = self._steht.get(k, (None, self.jetzt))

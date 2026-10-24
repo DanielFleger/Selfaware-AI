@@ -919,6 +919,36 @@ def main():
     pruefe(56, "10 Partner am Lord: Phase %s, %d im Trupp, %d Lord-Befehle %s | ohne Partner: Phase %s | Lord 10 Mio: Phase %s" % (
         p56, n56, b56, m56, p56o, p56l),
            p56 == "angriff" and n56 == 6 and b56 >= 1 and m56 and p56o is None and p56l is None)
+    # 57 (B-229, Daniel 24.10. 22:32 "es muss sich lohnen"; Lauf 222643: zwei Wellen ueber das Torhaus, keiner kam an): ein Anlauf
+    #     endet ohne Ankunft (am_lord_max 0) -> LORD-LEHRE, danach keine neue Bereitstellung auf diesen Lord (LORD NICHT LOHNEND)
+    #     solange das Feuer am Lord nicht gefallen ist; Gegenprobe: ohne den Fehlanlauf -> Bereitstellung wie in Pruefung 3.
+    #     Dazu: Kletterzeit senkt das Ankunftsleben (291 Takte Startwert gegen gelernte 0)
+    def lehre57(fehlanlauf):
+        t = neu(); t._raid_plaetze = 0
+        L = {500: einheit(55, 2, LORD[0], LORD[1], leben=30000)}
+        for i in range(4):
+            L[600 + i] = einheit(22, 2, LORD[0] + 3, LORD[1] - 2 + i, leben=5000)
+        for i in range(6):
+            L[200 + i] = einheit(73, 1, LORD[0] - 40, LORD[1] - 10 + 4 * i)
+        t.aufnehmen([n for n in L if n < 500])
+        erg1 = []
+        if fehlanlauf:
+            t.lordtrupp.update(mitglieder={200}, phase="angriff", lord=500, angriff_tick=9000, seit=1)
+            t.angriffe.append({"runde": 1, "groesse": 5, "am_lord_max": 0, "fern": 4, "nah": 0, "verluste": 4, "truppe": {200},
+                               "kletter_takte": 1200, "lord_vorher": 30000, "lord_nachher": 30000})
+            erg1, _ = t.schritt(L, {}, sichere_orte=[(100, 200)], tick=10000)
+            t.lordtrupp["pause_bis"] = 0
+        erg2, _ = t.schritt(L, {}, sichere_orte=[(100, 200)], tick=10050)
+        l_def = t._anlauf_leben((LORD[0] - 40, LORD[1]), LORD, 6, 999)
+        l_null = t._anlauf_leben((LORD[0] - 40, LORD[1]), LORD, 6, 500) if fehlanlauf else None
+        return (t.lordtrupp["phase"], t.lord_lehre.get(500), [z[:70] for z in erg1 + erg2 if "LORD-LEHRE" in z or "NICHT LOHNEND" in z][:2],
+                l_def, l_null)
+    p57, le57, m57, ld57, ln57 = lehre57(True)
+    p57o, le57o, _, _, _ = lehre57(False)
+    pruefe(57, "nach Fehlanlauf: Phase %s, Lehre %s %s, Leben am Lord Start %d / gelernt %s | ohne: Phase %s, Lehre %s" % (
+        p57, le57, m57, ld57, ln57, p57o, le57o),
+           p57 is None and le57 and le57.get("fehl") == 1 and len(m57) >= 1 and p57o == "bereit" and not le57o
+           and ln57 is not None and ld57 < ln57 < A.Einzeln.VOLL)
     pruefe(55, "ein Bogen: Jagd %s, entdeckt %s %s | 8 Armbrueste dazu: Jagd %s, entdeckt %s %s" % (j55, e55, m55, j55b, e55b, m55b),
            j55 == 600 and not e55 and j55b is None and e55b)
     print("%d von %d gruen" % (sum(ok), len(ok)))

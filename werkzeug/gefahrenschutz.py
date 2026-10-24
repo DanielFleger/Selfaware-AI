@@ -431,7 +431,7 @@ def lernen_aus_protokoll(pfad, spieler, feinde):
     """Offline: dasselbe Lernen ueber ein Lageprotokoll (alle Runden), fuer die eigenen spieler gegen feinde."""
     import gefecht
     from lageprotokoll import runden
-    lerner = {sp: Lerner(sp, (71, 74, 72, 70, 75, 26)) for sp in spieler}
+    lerner = {sp: Lerner(sp, (71, 74, 72, 70, 75, 26, 73)) for sp in spieler}
     for ln in lerner.values():
         ln.SCHREIB_ALLE = 10 ** 9
     for t, st, E, G in runden(pfad):
