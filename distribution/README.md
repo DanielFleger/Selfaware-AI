@@ -6,6 +6,13 @@ Select **Selfaware AI** in Content, apply, start Crusader normally, select
 The controller starts with the game and exits with it. No LLM account, Python
 installation, mouse/keyboard automation, old save or development checkout is needed.
 
+The native bridge disables SamurAI's placeholder BEFORE the first simulation
+tick, independently of worker readiness. Its session receipt transfers the
+selected slots to the worker. Leaving the match restores the lobby selection.
+Tagged command owners are resolved before native command sorting as well as
+execution, so observer slot zero does not silently stall AI commands. Human and
+ordinary native command owners retain the original resolver.
+
 Under Customisations, **Selfaware AI: Starteinheiten** sets the starting roster
 for the packaged Abbot slot in new matches. Defaults are 4 assassins and 6 Arabian
 archers, replacing rather than supplementing the inherited monks. Every supported

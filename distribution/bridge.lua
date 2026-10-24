@@ -59,6 +59,7 @@ local PLAN_FOLDER    = "ucp/villagestudio/aiv/"   -- hier liegen eigene BauplÃƒÂ
 -- Spieltempo. Ueber VS.setPollEvery(n) zur Laufzeit aenderbar, falls das
 -- Dateilesen bei sehr hohem Tempo stoert.
 local POLL_EVERY     = 1
+local beforeTick = nil
 local SLOT_SIZE      = 0x6D98      -- Groesse eines AIV-Slots
 local SLOT_PLAYERID  = 0x04        -- +0x04 = PlayerID des Slots
 local SLOT_LORDTYPE  = 0x08        -- +0x08 = Lord-Typ (2..17, also aivIndex+2)
@@ -650,6 +651,7 @@ local menuCounter = 0
 local fotoWunsch = nil
 
 local function onMenuFrame()
+  if beforeTick then beforeTick() end
   -- nicht bei jedem Bild in die Datei schauen, das kostet nur
   menuCounter = menuCounter + 1
   -- Zustandsmeldung. Der Tick-Poll haengt an processGameTick und laeuft nur
@@ -774,6 +776,7 @@ local originalGameTick = nil
 local originalMenuFrame = nil
 
 return {
+  setBeforeTick = function(self, callback) beforeTick=callback end,
   enable = function(self, config)
     if config ~= nil and config.commandFile ~= nil then
       COMMAND_FILE = config.commandFile
@@ -781,6 +784,7 @@ return {
 
     -- processGameTick beginnt mit 7 Bytes "cmp dword [..],0", die wir stehlen.
     originalGameTick = core.hookCode(function(this)
+      if beforeTick then beforeTick() end
       local r = originalGameTick(this)
       local ok, err = pcall(onTick)
       if not ok then log(WARNING, "villagestudio: " .. tostring(err)) end

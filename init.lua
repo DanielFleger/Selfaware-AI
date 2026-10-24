@@ -18,6 +18,7 @@ end
 return {
   enable = function(self, config)
     require('starttroops').configure(config or {})
+    require('command_owner').install()
     launcher = assert(core.openLibraryHandle(ROOT .. 'sai_launcher.dll'))
     local prepare = core.exposeCode(launcher:getProcAddress('sai_prepare'), 0, 0)
     assert(prepare() == 1, 'Selfaware AI: runtime directory is not writable')
@@ -27,6 +28,7 @@ return {
     command:write('{}'); command:close()
     -- The deployed logic is part of the verified module, not an editable repo path.
     bridge = require('bridge')
+    bridge:setBeforeTick(require('takeover').tick)
     bridge:enable(config)
     local start = core.exposeCode(launcher:getProcAddress('sai_start'), 0, 0)
     assert(start() == 1, 'Selfaware AI: could not start autonomous controller')

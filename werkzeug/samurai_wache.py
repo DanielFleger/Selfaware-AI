@@ -270,23 +270,31 @@ def main():
                 abschliessen(over,'Partie verlassen oder beendet')
                 bedient.clear()
                 if not scharf:
-                    befehl({'tickpause':{'bei':1}},.5);scharf=True
+                    scharf=True # first-tick suppression belongs to the native bridge
                 zuletzt_im_spiel=False
             else:
                 if not zuletzt_im_spiel:
                     ai=lies()[2]
+                    native=None
+                    try:
+                        record=json.loads((Path(SPIEL)/'ucp/villagestudio/uebernahme.json').read_text(encoding='utf-8'))
+                        if record.get('active'):
+                            captured={int(k):v for k,v in record['original_ai'].items()}
+                            if all(captured.get(sp)==samurai_id and ai.get(sp)==0 for sp in record['slots']):
+                                ai=captured;native=record
+                    except (OSError,ValueError,KeyError,TypeError):pass
                     slots=auswahl(ai,samurai_id,mensch)
                     schreib('Neue Menue-Partie %r, KI-Nummern %r, SamurAI-Plaetze %r'%(kartenname(),ai,slots))
                     if slots:
-                        befehl({'pause':True},.5)
                         from parteien import gruppen_aus_worten,freunde_aus_gruppen,GRUPPE
                         from laden import peek
                         groups=gruppen_aus_worten(peek(GRUPPE-1,3))
                         from karten_holen import bergfriede
                         keeps=bergfriede()
-                        context={'karte':kartenname(),'ki':ai,'teams':groups,'bergfriede':keeps}
+                        context={'karte':kartenname(),'ki':ai,'teams':groups,'bergfriede':keeps,'native_uebernahme':native}
                         # Erst alle ausgewaehlten Platzhalter abschalten, dann beide Lenker starten.
-                        for sp in slots:ki_aus(sp)
+                        if native is None:
+                            for sp in slots:ki_aus(sp)
                         for sp in slots:
                             log=Path(D)/('samurai_%s_sp%d_konsole.txt'%(time.strftime('%Y%m%d_%H%M%S'),sp))
                             handle=log.open('w',encoding='utf-8')
@@ -298,11 +306,11 @@ def main():
                             import uuid
                             stop=Path(D)/('stopp_'+uuid.uuid4().hex)
                             env=dict(os.environ,SHC_SPIELER=str(sp),SHC_PARTNER='ja',SHC_RUN_STOP=str(stop))
+                            if native is not None:env['SHC_NATIVE_TAKEOVER_TICK']=str(native['tick'])
                             proc=subprocess.Popen([sys.executable,'-u',str(Path(HIER)/'erstes_spiel.py')]+LENKER_ARGS,cwd=HIER,env=env,stdout=handle,stderr=subprocess.STDOUT)
                             aktiv[sp]=(proc,handle,run,stop);bedient.add(sp)
                             schreib('SamurAI gestartet fuer Spieler %d: Prozess %d, %s'%(sp,proc.pid,log))
-                    befehl({'tickpause':'aus'},.5)
-                    befehl({'pause':False},.5);scharf=False;zuletzt_im_spiel=True
+                    scharf=False;zuletzt_im_spiel=True
                 for sp,(proc,handle,run,stop) in aktiv.items():
                     if proc.poll() is not None and not handle.closed:
                         schreib('SamurAI Spieler %d beendet, Rueckgabe %s; kein verdeckter Neustart'%(sp,proc.returncode));handle.close()

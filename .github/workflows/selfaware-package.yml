@@ -12,6 +12,8 @@ on:
       - 'files.xml'
       - 'options.yml'
       - 'starttroops.lua'
+      - 'command_owner.lua'
+      - 'takeover.lua'
       - '.github/workflows/selfaware-package.yml'
 jobs:
   package:
@@ -41,6 +43,8 @@ jobs:
           python -m pip install lupa==2.8
           python werkzeug/starttruppen_pruefen.py
           if ($LASTEXITCODE -ne 0) { throw 'Native start troop checks failed' }
+          python werkzeug/uebernahme_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'Native takeover checks failed' }
       - name: Package unsigned review candidate
         shell: pwsh
         run: |

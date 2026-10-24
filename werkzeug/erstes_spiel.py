@@ -365,9 +365,13 @@ def uebernehmen_start():
     das Gefecht hat der Mensch gestartet - die eingebaute KI unseres Platzes aus (dieselben drei Stellen wie ki_aus im 1v1:
     currentAIArray, PlayerData.aiType, Mensch-Eintrag), ohne Pause, dann spielt der Lenker diesen Platz."""
     # 20:22: Mensch-Eintrag ZUERST (gemessen: KI-Feld zuerst auf 0 beendet die Partie nach 3 Takten - samurai_wache.ki_aus)
-    for adr, wert in ((0x0191DE10 + SP * 4, 1), (0x0115BDF8 + SP * 0x39F4 + 0x2300, 0), (0x0191DE7C + SP * 4, 0)):
-        befehl({"poke": adr, "wert": wert}, 1.0, bis="POKE")
-    schreib("UEBERNEHMEN: KI von Spieler %d bei Tick %d aus - SamurAI spielt" % (SP, tick()))
+    native_tick=os.environ.get('SHC_NATIVE_TAKEOVER_TICK')
+    if native_tick is None:
+        for adr, wert in ((0x0191DE10 + SP * 4, 1), (0x0115BDF8 + SP * 0x39F4 + 0x2300, 0), (0x0191DE7C + SP * 4, 0)):
+            befehl({"poke": adr, "wert": wert}, 1.0, bis="POKE")
+        schreib("UEBERNEHMEN: KI von Spieler %d bei Tick %d aus - SamurAI spielt" % (SP, tick()))
+    else:
+        schreib('UEBERNEHMEN: native KI von Spieler %d vor Spieltakt %s abgeschaltet; Lenker bereit bei Tick %d' % (SP,native_tick,tick()))
     global START_FERTIG
     START_FERTIG = True
     return tick()
