@@ -30,8 +30,10 @@ class Shortcut(unittest.TestCase):
             exe=Path(os.environ['SystemRoot'])/'System32/WindowsPowerShell/v1.0/powershell.exe'
             def read():return json.loads(subprocess.check_output([str(exe),'-NoProfile','-Command',ps],encoding='utf-8'))
             first=read();second=read()
-            self.assertEqual(first['target'],str(target));self.assertEqual(first['arguments'],args)
-            self.assertEqual(first['working'],str(base));self.assertEqual(second,first)
+            # Windows may expand RUNNER~1 to runneradmin; that is the same file,
+            # unlike redirection into a different packaged-app installation.
+            self.assertTrue(Path(first['target']).samefile(target));self.assertEqual(first['arguments'],args)
+            self.assertTrue(Path(first['working']).samefile(base));self.assertEqual(second,first)
             self.assertEqual(link.read_bytes(),raw,'Resolver must not silently rewrite destination')
 
     def test_package_cache_and_relative_paths_are_rejected(self):
