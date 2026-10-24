@@ -12,6 +12,11 @@ ROOT=Path(__file__).resolve().parents[1]
 DEST=ROOT/'store-module'
 
 
+def text_bytes(data):
+    """Git's Windows checkout may convert LF to CRLF; source semantics do not."""
+    return data.replace(b'\r\n',b'\n')
+
+
 def files():
     result={}
     for name in ('starttroops.lua','command_owner.lua','engine_contract.lua','options.yml'):
@@ -46,17 +51,18 @@ def files():
     origins.extend(sorted((ROOT/'distribution/kernel/src').glob('*.rs')))
     result['source-manifest.json']=json.dumps({
         'generator':'distribution/prepare_store_source.py',
-        'canonical_sources':{p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in origins},
+        'canonical_sources':{p.relative_to(ROOT).as_posix():hashlib.sha256(text_bytes(p.read_bytes())).hexdigest() for p in origins},
+        'hash_normalization':'CRLF to LF for canonical text sources',
         'changes':'Dependency-injected volatile streams/module root and status writer; Store kernel feature removes filesystem output',
         'not_store_approval':True},indent=2).encode()
-    return result
+    return {name:text_bytes(data) for name,data in result.items()}
 
 
 def prepare(check=False):
     for name,data in files().items():
         target=DEST/name
         if check:
-            assert target.is_file() and target.read_bytes()==data,'Stale generated Store source: '+name
+            assert target.is_file() and text_bytes(target.read_bytes())==data,'Stale generated Store source: '+name
         else:
             target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(data)
     # Pure-data Store entry; the external runtime is not shipped in either UCP ZIP.
@@ -75,7 +81,12 @@ def prepare(check=False):
         if locale in ('locale/description-de.md','locale/description-en.md'):
             language='de' if locale.endswith('-de.md') else 'en'
             data=(ROOT/('distribution/store-description-'+language+'.md')).read_bytes()
-        if check:assert target.is_file() and target.read_bytes()==data,'Stale Store content: '+str(name)
+        is_text=path.suffix in ('.yml','.md','.lua','.json','.txt')
+        if is_text:data=text_bytes(data)
+        if check:
+            assert target.is_file(),'Missing Store content: '+str(name)
+            actual=target.read_bytes()
+            assert (text_bytes(actual) if is_text else actual)==data,'Stale Store content: '+str(name)
         else:target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(data)
 
 
