@@ -20,6 +20,12 @@ class Peer:
 
 
 class MemoryCommands(unittest.TestCase):
+    def test_memory_and_framework_logs_preserve_semantic_pipe_separators(self):
+        body='[selfaware-runtime]: ZEIT: Tick 75 | Tag 25/50 | Woche 0/200'
+        expected=['[villagestudio]: ZEIT: Tick 75 | Tag 25/50 | Woche 0/200']
+        self.assertEqual(kanal.logzeilen(body),expected)
+        self.assertEqual(kanal.logzeilen('logging.cpp:102 INFO| '+body),expected)
+
     def test_delayed_effect_is_polled_without_repeating_action(self):
         reply=frame(1,'',b'[selfaware-runtime]: QUITTUNG 123\n')
         snapshot=frame(2,'ucp/villagestudio/abzug/lagebild.txt',b'\0\xffactual snapshot')

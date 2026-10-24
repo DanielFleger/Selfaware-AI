@@ -19,6 +19,7 @@ def text_bytes(data):
 
 def files():
     result={}
+    result['LICENSE']=(ROOT/'LICENSE').read_bytes()
     for name in ('starttroops.lua','command_owner.lua','engine_contract.lua','options.yml'):
         result[name]=(ROOT/name).read_bytes()
     result['options.yml']=result['options.yml'].replace(b'selfaware-runtime.',b'selfaware-bridge.')
@@ -67,6 +68,9 @@ def prepare(check=False):
             target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(data)
     # Pure-data Store entry; the external runtime is not shipped in either UCP ZIP.
     plugin=ROOT/'store-content'
+    license_target=plugin/'LICENSE'
+    if check:assert license_target.is_file() and text_bytes(license_target.read_bytes())==text_bytes((ROOT/'LICENSE').read_bytes()),'Missing Store content license'
+    else:plugin.mkdir(exist_ok=True);license_target.write_bytes(text_bytes((ROOT/'LICENSE').read_bytes()))
     for path in (ROOT/'Selfaware-AI').rglob('*'):
         if not path.is_file():continue
         name=path.relative_to(ROOT/'Selfaware-AI')

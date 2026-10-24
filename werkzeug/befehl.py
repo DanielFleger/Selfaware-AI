@@ -313,7 +313,9 @@ def sende(befehl, warte=3.0, bis=None):
 
 def logzeilen(text):
     """One compatibility boundary for the Store module's new log prefix."""
-    return [z.split('| ',1)[-1].strip().replace('[selfaware-runtime]','[villagestudio]')
+    # Memory records already begin with the module name. Their first pipe can
+    # belong to ZEIT/status data; only disk log lines have a framework preamble.
+    return [(z if z.lstrip().startswith(('[selfaware-runtime]','[villagestudio]')) else z.split('| ',1)[-1]).strip().replace('[selfaware-runtime]','[villagestudio]')
             for z in text.splitlines()
             if ('villagestudio' in z or '[selfaware-runtime]' in z) and 'ZUSTAND' not in z]
 

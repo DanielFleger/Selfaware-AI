@@ -4,6 +4,7 @@ import datetime
 import hashlib
 import json
 import os
+import re
 from pathlib import Path, PurePosixPath
 import shutil
 import subprocess
@@ -78,6 +79,21 @@ def install(game,packages=None,local=None,shortcut=True):
             safe_extract(archive,runtime)
             (runtime/'ready').write_text(runtime.name,encoding='utf-8')
     if not all((runtime/'python'/name).is_file() for name in ('python.exe','pythonw.exe')):raise ValueError('Installed portable Python or its windowless starter missing')
+    migration=runtime/'learning-migration.json'
+    if not migration.is_file():
+        previous=[p for p in runtime.parent.iterdir() if p!=runtime and (p/'ready').is_file() and (p/'Selfaware-AI/daten').is_dir()]
+        copied=[]
+        if previous:
+            source=max(previous,key=lambda p:(p/'ready').stat().st_mtime_ns)
+            old_data=source/'Selfaware-AI/daten';new_data=runtime/'Selfaware-AI/daten'
+            # Keep the new release's seeds, copy existing measured models/history
+            # that are absent from the clean package, and never remove the source.
+            for path in old_data.rglob('*'):
+                target_data=new_data/path.relative_to(old_data)
+                if path.is_file() and not target_data.exists():
+                    target_data.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(path,target_data)
+                    copied.append(path.relative_to(old_data).as_posix())
+        migration.write_text(json.dumps({'copied':copied},indent=2),encoding='utf-8')
     stamp=datetime.datetime.now().strftime('%Y%m%d_%H%M%S_%f')
     starter=runtime.parent/'starter';starter.mkdir(exist_ok=True)
     scripts=packages if (packages/'local_start.ps1').is_file() else ROOT/'distribution'
@@ -107,6 +123,16 @@ def install(game,packages=None,local=None,shortcut=True):
         else:modules.setdefault(module,{'config':{}})
         block.setdefault('plugins',{}).setdefault('Selfaware-AI',{'config':{}})
         ai=modules.setdefault('aiSwapper',{'config':{}})['config'].setdefault('ai',{})
+        # Earlier local experiments mapped SamurAI to Rat. The packaged entry is
+        # Abbot; remove only our obsolete display/AIV assignments, not other mods.
+        for lord,parts in ai.items():
+            if lord=='abbot' or not isinstance(parts,dict):continue
+            for field in ('lines','portrait','aiv'):
+                entry=parts.get(field) or {}
+                old=(entry.get('contents') or {}).get('value') or {} if 'contents' in entry else entry
+                old_root=str(old.get('root','')).rstrip('/')
+                own_root=old_root=='ucp/resources/ai/SamurAI' or re.fullmatch(r'ucp/plugins/Selfaware-AI-\d+\.\d+\.\d+/resources/ai/SamurAI',old_root)
+                if old.get('name')=='SamurAI' and own_root:parts.pop(field)
         abbot=ai.setdefault('abbot',{})
         for k in ('lines','portrait','aiv'):abbot[k]={'contents':{'value':dict(value)}}
         order=block.setdefault('load-order',[])

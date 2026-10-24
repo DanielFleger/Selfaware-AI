@@ -20,6 +20,11 @@ Local installation and its current limits are described in
 after maintainer feedback on 24 October 2026. The separate local app works with
 the legacy development bridge; this is not a Store-compatible release.
 
+A new memory-only bridge and separate secure external application are under
+review; see [the Store boundary status and tests](docs/Store-Speicherbruecke.md).
+The project's own code is licensed under [MIT](LICENSE); existing third-party
+notices remain applicable.
+
 ## Pflicht nach jeder Partie: alles ins Repo (Daniel 17.10.2026)
 
 Jeder Rechner (Laptop, Desktop-PC, jede Sitzung) committet und pusht nach jeder

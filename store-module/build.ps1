@@ -19,3 +19,12 @@ if($LASTEXITCODE -ne 0){throw 'Rust x86 target installation failed'}
 & cargo build --locked --release --target i686-pc-windows-msvc --features store-bridge --lib --manifest-path "$PSScriptRoot/Cargo.toml" --target-dir "$PSScriptRoot/build/native-target"
 if($LASTEXITCODE -ne 0){throw 'Store bridge source build failed'}
 Copy-Item -LiteralPath "$PSScriptRoot/build/native-target/i686-pc-windows-msvc/release/samurai_kern.dll" -Destination "$PSScriptRoot/build/samurai_kern.dll" -Force
+# Preserve notices from the exact Rust toolchain used for this build.
+& rustup component add rust-docs
+if($LASTEXITCODE -ne 0){throw 'Rust standard-library notices unavailable'}
+$rustRoot=(& rustc --print sysroot).Trim()
+$notices=Join-Path $PSScriptRoot 'build/native-notices'
+New-Item -ItemType Directory -Path $notices -Force | Out-Null
+Copy-Item -LiteralPath "$rustRoot/share/doc/rust/COPYRIGHT-library.html" -Destination "$notices/Rust-standard-library.html" -Force
+Copy-Item -LiteralPath "$rustRoot/share/doc/rust/licenses" -Destination $notices -Recurse -Force
+& rustc --version | Set-Content "$notices/toolchain.txt"

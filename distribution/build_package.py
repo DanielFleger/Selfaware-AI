@@ -96,6 +96,7 @@ def build(resume=False):
     catalog.mkdir(parents=True,exist_ok=resume)
     shutil.copy2(ROOT / 'distribution/catalog/gebaeude.json', catalog / 'gebaeude.json')
     shutil.copy2(ROOT / 'distribution/catalog/LICENSE', catalog / 'LICENSE')
+    if (ROOT/'LICENSE').is_file():shutil.copy2(ROOT/'LICENSE',runtime/'Selfaware-AI/LICENSE')
     helpers = runtime / 'VillageStudio/werkzeug'
     helpers.mkdir(exist_ok=resume)
     shutil.copy2(ROOT / 'distribution/instanz.py', helpers / 'instanz.py')

@@ -59,26 +59,35 @@ python werkzeug/befehl_kanal_pruefen.py
 python werkzeug/starttruppen_pruefen.py
 python werkzeug/uebernahme_pruefen.py
 python werkzeug/lernbuch_pruefen.py
+python werkzeug/samurai_zuordnung_pruefen.py
+python werkzeug/platzkarte_antwort_pruefen.py
+python werkzeug/store_package_pruefen.py
 cargo test --locked --manifest-path store-module/Cargo.toml --lib --target-dir build/store-module-native
 ```
 
-Result: 39 Python tests passed across those ten suites; 23 Rust library tests
+Result: 54 Python tests passed across those thirteen suites; 23 Rust library tests
 passed. The IPC suite uses an actual 32-bit Rust subprocess and 64-bit Python,
 including binary NUL/0xff bytes, process death, missing peer, request bounds,
 100 sequential exchanges and rejection of an unconsumed response. The synthetic
 peer is a developer test tool, not a game and not packaged in the Store module.
 
 The isolated Instanz4 setup succeeded with `shortcut=False`; the user's running
-Instanz5 game and ordinary desktop shortcut were preserved. **Actual loading of
-this new DLL through UCP and a fresh native-menu match are still pending.**
+Instanz5 game and ordinary desktop shortcut were preserved. The DLL was loaded
+through UCP in the isolated copy and a fresh native-menu game passed: takeover
+at tick 0 for slots 2/3, human slot 1 retained, binary snapshots returned to the
+external app, both controllers constructed their economy, and lobby AI values
+were restored when leaving. Evidence: `daten/store_grenze_20261024/`.
+The first failed run is retained too: memory log framing lost the tick field;
+the controller therefore stopped before building. A regression test now compares
+framework and memory log lines including their semantic pipe separators.
 The user's running game is not stopped by the test tooling.
 
 ## Open release gates
 
-* Fresh native-menu game test of the memory variant, including frame-zero
-  takeover, construction/recruitment, events and return-to-lobby restoration.
-* Public Windows/MSVC CI result and artifact checks.
-* Project license selection/approval; no new license grant has been assumed.
+* Final packaged Windows/MSVC artifact test. First public Store-boundary CI:
+  [successful run 40112436515](https://github.com/UnofficialCrusaderPatch/Selfaware-AI/actions/runs/40112436515).
+* MIT licensing approved by the project owner on 2026-10-24; notices are included
+  in the module, content and external application. Third-party notices remain.
 * UCP maintainer review, certificate signing and Store publication.
 
 The implementation still uses Crusader 1.41-specific engine addresses and

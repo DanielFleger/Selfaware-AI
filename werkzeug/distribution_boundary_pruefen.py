@@ -45,6 +45,18 @@ class Distribution(unittest.TestCase):
             self.assertFalse(second['store_compatible'])
             self.assertFalse(second['module_extracts_runtime'])
 
+    def test_new_runtime_version_copies_measured_models_without_deleting_previous(self):
+        with tempfile.TemporaryDirectory() as t:
+            base=Path(t);game,package=self.fixture(base)
+            old=local_setup.install(game,package,base/'local',shortcut=False)
+            model=Path(old['runtime'])/'Selfaware-AI/daten/lernprofile/proven/model.json'
+            model.parent.mkdir(parents=True);model.write_bytes(b'{"measured":456}')
+            with zipfile.ZipFile(package/'runtime.zip','a') as z:z.writestr('version.txt','new code version')
+            new=local_setup.install(game,package,base/'local',shortcut=False)
+            self.assertNotEqual(old['runtime'],new['runtime'])
+            self.assertTrue(model.is_file())
+            self.assertEqual((Path(new['runtime'])/model.relative_to(old['runtime'])).read_bytes(),model.read_bytes())
+
     def test_old_self_extracting_package_is_rejected(self):
         with tempfile.TemporaryDirectory() as t:
             base=Path(t);game,package=self.fixture(base)
@@ -91,6 +103,19 @@ class Distribution(unittest.TestCase):
                 local_setup.install(game,package,base/'local',shortcut=False)
             self.assertFalse((base/'local').exists())
             self.assertEqual((game/'ucp-config.yml').read_bytes(),before)
+
+    def test_migration_clears_only_obsolete_owned_rat_display_not_foreign_fields(self):
+        with tempfile.TemporaryDirectory() as t:
+            base=Path(t);game,package,module=self.memory_fixture(base,True)
+            config=yaml.safe_load((game/'ucp-config.yml').read_text())
+            rat=config['config-sparse']['modules']['aiSwapper']['config']['ai']['rat']
+            rat.update(lines={'contents':{'value':{'name':'SamurAI','root':'ucp/resources/ai/SamurAI/','active':True}}},portrait={'name':'another mod','root':'foreign/'},lord={'kept':True})
+            (game/'ucp-config.yml').write_text(yaml.safe_dump(config))
+            local_setup.install(game,package,base/'local',shortcut=False)
+            rat=yaml.safe_load((game/'ucp-config.yml').read_text())['config-sparse']['modules']['aiSwapper']['config']['ai']['rat']
+            self.assertNotIn('lines',rat)
+            self.assertEqual(rat['portrait'],{'name':'another mod','root':'foreign/'})
+            self.assertEqual(rat['lord'],{'kept':True})
 
     def test_zip_cannot_escape_install_directory(self):
         with tempfile.TemporaryDirectory() as t:

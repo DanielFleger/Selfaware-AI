@@ -50,6 +50,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Store IO boundary checks failed' }
           python werkzeug/befehl_speicher_pruefen.py
           if ($LASTEXITCODE -ne 0) { throw 'Whole memory transaction checks failed' }
+          python werkzeug/platzkarte_antwort_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'Placement query ownership checks failed' }
+          python werkzeug/samurai_zuordnung_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'Effective Store AI selection failed' }
           python werkzeug/distribution_boundary_pruefen.py
           if ($LASTEXITCODE -ne 0) { throw 'Installer preservation checks failed' }
           python werkzeug/local_launcher_pruefen.py
@@ -61,6 +65,8 @@ jobs:
         run: |
           python distribution/package_store.py
           if ($LASTEXITCODE -ne 0) { throw 'Store candidate packaging failed' }
+          python werkzeug/store_package_pruefen.py
+          if ($LASTEXITCODE -ne 0) { throw 'Actual Store archive checks failed' }
       - uses: actions/upload-artifact@v4
         with:
           name: selfaware-store-review-candidate

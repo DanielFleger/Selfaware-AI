@@ -138,7 +138,8 @@ def lernen_starten(log, sp, karte=None):
     ziel = os.path.join(D, "lernen_%s.txt" % os.path.basename(log).replace("_konsole.txt", ""))
     subprocess.Popen([sys.executable, "-P", os.path.join(HIER, "partie_lernen.py"), log, lage, "gegner=Mensch",
                       "anmerkung=Karte %s" % (karte or "unbekannt")],
-                     cwd=HIER, stdout=open(ziel, "w", encoding="utf-8"), stderr=subprocess.STDOUT)
+                     cwd=HIER, stdout=open(ziel, "w", encoding="utf-8"), stderr=subprocess.STDOUT,
+                     creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
     schreib("LERNEN: Auswertung gestartet (%s + %s -> %s)" % (os.path.basename(log), os.path.basename(lage), os.path.basename(ziel)))
 
 
@@ -175,10 +176,13 @@ def konfigurierte_ki(config):
     ai=config['config-full']['modules']['aiSwapper']['config']['ai']
     result=[]
     for name,parts in ai.items():
-        lines=parts.get('lines',{})
-        v=lines.get('contents',{}).get('value',{}) if 'contents' in lines else lines
+        if not isinstance(parts,dict):continue
+        lines=parts.get('lines') or {}
+        v=(lines.get('contents') or {}).get('value') or {} if 'contents' in lines else lines
         root=v.get('root','').rstrip('/')
-        if v.get('active') and v.get('name')=='SamurAI' and (root=='ucp/resources/ai/SamurAI' or root=='ucp/plugins/Selfaware-AI-0.1.0/resources/ai/SamurAI'):
+        import re
+        owned=root=='ucp/resources/ai/SamurAI' or re.fullmatch(r'ucp/plugins/Selfaware-AI-\d+\.\d+\.\d+/resources/ai/SamurAI',root)
+        if v.get('active') and v.get('name')=='SamurAI' and owned:
             result.append(AI_IDS[name])
     if len(result)!=1:
         raise RuntimeError('SamurAI-Menuezuordnung muss eindeutig sein: %r'%result)
@@ -308,7 +312,7 @@ def main():
                             stop=Path(D)/('stopp_'+uuid.uuid4().hex)
                             env=dict(os.environ,SHC_SPIELER=str(sp),SHC_PARTNER='ja',SHC_RUN_STOP=str(stop))
                             if native is not None:env['SHC_NATIVE_TAKEOVER_TICK']=str(native['tick'])
-                            proc=subprocess.Popen([sys.executable,'-u',str(Path(HIER)/'erstes_spiel.py')]+LENKER_ARGS,cwd=HIER,env=env,stdout=handle,stderr=subprocess.STDOUT)
+                            proc=subprocess.Popen([sys.executable,'-u',str(Path(HIER)/'erstes_spiel.py')]+LENKER_ARGS,cwd=HIER,env=env,stdout=handle,stderr=subprocess.STDOUT,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
                             aktiv[sp]=(proc,handle,run,stop);bedient.add(sp)
                             schreib('SamurAI gestartet fuer Spieler %d: Prozess %d, %s'%(sp,proc.pid,log))
                     scharf=False;zuletzt_im_spiel=True
