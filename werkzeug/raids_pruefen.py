@@ -204,7 +204,9 @@ def main():
 
     # 16. mitnehmen
     feuer16 = {}
-    G16 = {1: geb(1, 2, 200, 100), 3: geb(3, 2, 170, 100)}
+    # 24.10. (B-217: Verweilen am Ziel gemessen 211 statt 165 Takte): mit 211 lag die Huette bei 35 Feldern knapp VOR dem Holzfaeller
+    # 5 Felder daneben (24/643 gegen 10/283 je Takt) - die Huette steht jetzt 85 Felder weit, damit der Fall das Mitnehmen prueft
+    G16 = {1: geb(1, 2, 250, 100), 3: geb(3, 2, 170, 100)}
     bt16 = R.Brandtrupp(1, lambda nr: feuer16.get(nr, 0), raten=RATEN)
     bt16.schritt({10: einheit(71, 1, 100, 100, zustand=101)}, G16, Befehle())
     z_a = bt16.ziel.get(10)

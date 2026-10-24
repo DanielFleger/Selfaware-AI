@@ -2149,7 +2149,13 @@ class Einzeln:
         stehen = []
         for n in sorted(self.mitglieder):
             f, seit = self._steht.get(n, (None, self.jetzt))
-            if n in self.lordtrupp["mitglieder"] or self.jetzt - seit < self.STEH_TICKS:
+            # B-218 (Daniel 24.10. 21:37 "Assassinen gehen zu einem Steinbruch, greifen ihn aber nicht an, sondern stehen daneben";
+            # gemessen Lauf 213406: 36 Leerlauf-Episoden am Ziel, Median 90 Takte = eine Runde, p90 299, bis 551 - meist
+            # Zustand 101 ohne Spielziel): wer bis ZIEL_NAH an seinem Gebaeude steht und kein Spielziel hat, bekommt den
+            # Befehl sofort neu, nicht erst nach STEH_TICKS
+            am_ziel = n in self.ziel and self.ziel[n] in G and schach((L[n]["x"], L[n]["y"]), (G[self.ziel[n]]["x"], G[self.ziel[n]]["y"])) <= self.ZIEL_NAH
+            frist = 0 if am_ziel and L[n].get("zielart", 0) == 0 and L[n].get("zustand") not in (106, 107) else self.STEH_TICKS
+            if n in self.lordtrupp["mitglieder"] or self.jetzt - seit < frist:
                 continue
             if schach((L[n].get("laufx", -99), L[n].get("laufy", -99)), f) > 1:
                 continue

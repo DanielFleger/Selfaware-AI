@@ -70,7 +70,12 @@ FEUER_NACHBAR_ANTEIL = 0.5  # B-189: Anteil ihres Werts, der dem Ziel zugerechne
 ARBEITSPLATZ_DRIN = {4, 5, 10, 20, 21}   # B-178: Ochsenkarren, Eisenmine, Lager, Steinbruch, Steinhaufen - dort arbeiten sie am/im Gebaeude
 ARBEITSPLATZ_R = 3       # B-178: Abstand zur Gebaeudemitte, bis zu dem ein Arbeiter als "am Arbeitsplatz" gilt (Startwert, UNGEMESSEN)
 KITE_FELDER = 8         # B-188: so weit reitet ein beschossener Reiter weg, bevor er wieder angreift (Startwert, UNGEMESSEN)
+ABLENK_R = 40           # B-222: Schuetzen so weit um den feindlichen Lord lenken die Reiter beim Heeresangriff ab (Startwert, UNGEMESSEN)
+ABLENK_RISIKO = 0.8     # B-222: beim Ablenken vertretbares Todesrisiko (Startwert, UNGEMESSEN)
 IMMUN_RUNDEN = 3        # B-196: so viele Runden Beschuss ohne Lebensverlust -> Ziel gesperrt (Startwert, UNGEMESSEN)
+FOLGE_ANTEIL = 1.0      # B-219: das letzte Gebaeude seiner Art zaehlt (1 + 1/1) = doppelt (Startwert, UNGEMESSEN)
+BRAND_FRIST = 600       # B-217: so lange darf ein Sklave an einem Gebaeude schlagen, ohne dass es brennt (gemessen 24.10.: Feuer nach
+                        # Median 174 Takten; Episoden ohne Feuer Median 91, bis 1.817 - Startwert ~3x Median)
 SCHUETZE_WERT = 10      # B-175: feindlicher Schuetze am Boden als Reiterziel - wie ein Holzfaeller (Startwert, UNGEMESSEN)
 
 
@@ -195,9 +200,20 @@ class Brandtrupp:
         feind_geb = [(hn, WERT.get(h["typ"], 1), (h["x"], h["y"])) for hn, h in G.items()
                      if h.get("besitzer") not in fr and angreifbar(h)]
         wege = getattr(self, '_wege', self.heerwege)
+        # B-219 (Daniel 24.10. 21:37: "ein paar Assassinen opfern ist richtig, wenn die Wirtschaft des Gegners irreversibel
+        # zerstoert wird"): Folgewert - das LETZTE Gebaeude seiner Art beim Gegner wiegt doppelt (ohne Steinbruch keine Mauern,
+        # ohne Kornspeicher Hunger); bei n gleichen zaehlt jedes 1 + FOLGE_ANTEIL/n (Startwert, UNGEMESSEN)
+        art_zahl = {}
+        for h in G.values():
+            if h.get("besitzer") not in fr:
+                art_zahl[(h.get("besitzer"), h["typ"])] = art_zahl.get((h.get("besitzer"), h["typ"]), 0) + 1
+        # B-216: die Grundliste ist je Runde fuer alle Sklaven gleich - einmal rechnen, je Sklave nur belegt/brennt filtern
+        schluessel = (self.runde, len(G), len(L), len(self.brennt))
+        if getattr(self, "_kand_runde", None) == schluessel:
+            return [k for k in self._kand_basis if k[2] not in belegt and k[2] not in self.brennt]
         kand = []
         for n, g in G.items():
-            if g.get("besitzer") in fr or g["typ"] not in WERT or n in belegt or n in self.brennt:
+            if g.get("besitzer") in fr or g["typ"] not in WERT or n in self.brennt:
                 continue
             p = (g["x"], g["y"])
             if any(schach(p, q) <= GRUBE_R for q in gruben):
@@ -209,8 +225,10 @@ class Brandtrupp:
             # B-189 (Daniel 18:14 "ein Feuer kann ueberspringen - ein perfekt platziertes Feuer kann eine komplette Wirtschaft
             # abfackeln"): feindliche Nachbargebaeude bis FEUER_NACHBAR_R zaehlen mit FEUER_NACHBAR_ANTEIL ihres Werts dazu
             nachbarn = sum(w for hn, w, q in feind_geb if hn != n and schach(p, q) <= FEUER_NACHBAR_R)
-            kand.append((WERT[g["typ"]] + FEUER_NACHBAR_ANTEIL * nachbarn, p, n))
-        return kand
+            folge = 1.0 + FOLGE_ANTEIL / float(max(1, art_zahl.get((g.get("besitzer"), g["typ"]), 1)))
+            kand.append((WERT[g["typ"]] * folge + FEUER_NACHBAR_ANTEIL * nachbarn, p, n))
+        self._kand_runde, self._kand_basis = schluessel, kand
+        return [k for k in kand if k[2] not in belegt]
 
     def _ziele(self, L, G, ort, belegt, lage=None, leben=6000):
         """Gebaeude nach Rang (bester zuerst) - nur die mit vertretbarem Risiko."""
@@ -250,6 +268,7 @@ class Brandtrupp:
         aus = []
         meine = self.einheiten(L)
         self._wege = self._alle_heerwege(L)
+        self._kand_runde = None                    # B-216: Kandidaten-Grundliste gilt nur innerhalb dieses Schritts
         if lage is None or self.schutz:
             lage = _lage_fuer(self.sp, L, G, self.raten, ohne=self._gedeckt(L), wegkarte=getattr(lage, "wegkarte", None))
         for s in list(self.ziel):
@@ -258,6 +277,8 @@ class Brandtrupp:
                 self.plan.pop(s, None)
         # brennt ein Ziel, zieht der Sklave weiter (gemessen: es brennt allein ab). Gelesen wird nur, wenn der Sklave hoechstens
         # 4 Felder davor steht - jede Abfrage ist ein Weg durch den Kanal
+        schlag = getattr(self, "_schlag_seit", {})
+        self._schlag_seit = schlag
         for s, nr in list(self.ziel.items()):
             # B-189 (Daniel 22.10. 18:13: "nachdem ein Sklave ein Ziel bekommen hat, hat er einfach nur gewartet"): auch wer gerade
             # angreift (Zustand 106/107) wird geprueft - an groesseren Gebaeuden steht er weiter als 4 Felder von der Mitte
@@ -268,8 +289,25 @@ class Brandtrupp:
                     self.angezuendet += 1
                     self.ziel.pop(s)
                     self.plan.pop(s, None)
+                    schlag.pop(s, None)
                     aus.append("BRANDTRUPP: Sklave %d hat Gebaeude %d (Typ %d) angezuendet (Feuer %d) - weiter" % (
                         s, nr, G[nr]["typ"], f))
+                    continue
+                # B-217 (Daniel 24.10. 21:37: Sklaven sterben, weil sie das Ziel nicht durchziehen; gemessen Lauf 213406: 88-90 %
+                # der Sklaven tot, 36 von 66 beim Schlagen, Verweilen am Ziel Median 211, p90 1.485 Takte statt 165 im Modell; 70
+                # Schlag-Episoden ohne jedes Feuer): wer laenger als BRAND_FRIST schlaegt, ohne dass es brennt, laesst das Ziel
+                # und nimmt das naechste - das Gebaeude bleibt fuer ihn gesperrt
+                if L[s].get("zustand") in (106, 107):
+                    jetzt = getattr(self, "tick", None)
+                    jetzt = self.runde * 100 if jetzt is None else jetzt     # ohne Takt (Pruefstand): ~100 Takte je Runde
+                    t0 = schlag.get((s, nr))
+                    if t0 is None:
+                        schlag[(s, nr)] = jetzt
+                    elif jetzt - t0 >= BRAND_FRIST:
+                        self.ziel.pop(s); self.plan.pop(s, None); schlag.pop((s, nr), None)
+                        self.unbrennbar = getattr(self, "unbrennbar", set()); self.unbrennbar.add((s, nr))
+                        aus.append("BRANDTRUPP: Sklave %d schlaegt seit %d Takten auf Gebaeude %d (Typ %d) ohne Feuer - laesst es "
+                                   "(B-217)" % (s, jetzt - t0, nr, G[nr]["typ"]))
         # B-150: ein noch nicht brennendes Ziel wird jede Runde gegen die Heerwege geprueft; ohne neues Ziel bleibt der Sklave stehen
         halt = set()
         for s, nr in list(self.ziel.items()):
@@ -284,7 +322,7 @@ class Brandtrupp:
             pl = self.plan.get(s)
             neu_ranken = s not in self.ziel or pl is None or schach(o, pl["ort"]) >= self.REPLAN_FELDER or e.get("zustand") in (0, 1)
             if neu_ranken:
-                belegt = {z for k, z in self.ziel.items() if k != s}
+                belegt = {z for k, z in self.ziel.items() if k != s} | {g_ for s_, g_ in getattr(self, "unbrennbar", ()) if s_ == s}
                 r = self._ziele(L, G, o, belegt, lage, e.get("leben", 6000))
                 alt_z = self.ziel.get(s)
                 if not r and alt_z is not None and alt_z in G and alt_z not in self.brennt:
@@ -445,8 +483,17 @@ class Reiterjagd:
                     and self.immun.get(k) != (a["x"], a["y"])
                     and ((a["typ"] in ARBEITER and im_freien(a))
                          or (a["typ"] in gefecht.FERN_REICH and im_freien(a) and a["typ"] != PFERDEBOGEN))]
+        # B-222 (Daniel 24.10. 21:40 "Berittene nehmen es bei einem Counter nicht mit der KI auf - sie koennten den Nahkaempfern
+        # helfen, weil sich die Fernkaempfer auf dem Keep auf die Berittenen fokussieren"): greift das Heer an (erstes_spiel setzt
+        # angriff/lord_ort), sind die Schuetzen bis ABLENK_R um den feindlichen Lord die Ziele - mit hoeherem vertretbarem Risiko
+        lord_ort = getattr(self, "lord_ort", None) if getattr(self, "angriff", False) else None
+        if lord_ort is not None:
+            arbeiter = [(k, a) for k, a in L.items() if a["besitzer"] not in freunde_von(self.sp) and a.get("leben", 1) > 0
+                        and a["typ"] in gefecht.FERN_REICH and a["typ"] != PFERDEBOGEN and im_freien(a)
+                        and schach((a["x"], a["y"]), lord_ort) <= ABLENK_R] or arbeiter
         arbeiter_nr = {k for k, _ in arbeiter}
         self._ziel_nr = arbeiter_nr
+        self.ziele_zuletzt = 0
         for r in reiter:
             e = L[r]
             o = (e["x"], e["y"])
@@ -535,7 +582,8 @@ class Reiterjagd:
                     if p_a is None:continue
                     punkt=tuple(p_a['an'])
                 zielpunkte.append((ARBEITER.get(a['typ'],SCHUETZE_WERT),punkt,k_a))
-            rang=GS.bewerte(lage,o,PFERDEBOGEN,e.get('leben',15000),zielpunkte)
+            rang=GS.bewerte(lage,o,PFERDEBOGEN,e.get('leben',15000),zielpunkte, risiko=ABLENK_RISIKO if lord_ort is not None else None)
+            self.ziele_zuletzt = max(self.ziele_zuletzt, len(rang))      # B-220
             rang.sort(key=lambda v:(-v[0],schach(o,(L[v[1]]['x'],L[v[1]]['y']))))
             if not rang:
                 if lage.schaden(o) > 0 and (alt is None or alt[0] != "rueckzug" or self.runde - alt[2] >= NEU_ALLE):
@@ -645,7 +693,7 @@ class Deckung:
         return "Deckung: %d Feinde getoetet" % self.getoetet
 
 
-def werbung(gold_frei, feuer, sklaven, reiter, schleuder=0):
+def werbung(gold_frei, feuer, sklaven, reiter, schleuder=0, reiter_ziele=None):
     """[(typ, anzahl)] - erst Sklaven bis SKLAVEN_SOLL, dann Schleuderer bis DECKUNG_SOLL (B-129), dann Reiter bis REITER_SOLL; nur Gold ueber der Ruecklage und nur
     so viele, dass FEUER_MIN Bauern am Feuer bleiben."""
     aus, frei, f = [], int(gold_frei), int(feuer) - FEUER_MIN
@@ -659,7 +707,11 @@ def werbung(gold_frei, feuer, sklaven, reiter, schleuder=0):
         aus.append((SCHLEUDER, d))
         frei -= d * SCHLEUDER_GOLD
         f -= d
-    m = max(0, min(REITER_SOLL - reiter, frei // PFERD_GOLD, f))
+    # B-220 (Daniel 24.10. 21:38: "wenn Berittene nur rumstehen, weil sie nichts finden, duerfen sie gar nicht erst ausgebildet
+    # werden"): neue Reiter nur, wenn die Reiterjagd zuletzt mehr vertretbare Ziele sah, als Reiter da sind (None = unbekannt,
+    # z. B. vor dem ersten Reiter: dann hoechstens EINER als Spaeher)
+    soll = min(REITER_SOLL, 1) if reiter_ziele is None else min(REITER_SOLL, reiter_ziele)
+    m = max(0, min(soll - reiter, frei // PFERD_GOLD, f))
     if m:
         aus.append((PFERDEBOGEN, m))
     return aus

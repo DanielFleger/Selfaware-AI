@@ -1746,6 +1746,7 @@ class Produktion:
     1,13 Leder/1.000 und je zwei Hoefe pro Gerber. Gold bleibt bis zum fertigen Wirtschaftsaufbau in der Wirtschaft;
     angeworben wird erst, wenn Zielware und Anwerbegold bereitliegen."""
     UEBERSCHUSS = 800              # Gold ueber der Ruecklage, ab dem ein fehlendes Los gekauft werden darf
+    HOF_FRIST = 3000               # B-223: so lange wartet der Werkstattplan auf Hoefe, wenn Minen schon stehen (Startwert, UNGEMESSEN)
     HOF_NEU = 1000                 # 19.10.: Ticks zwischen zwei Abfragen frischer Hofplaetze beim Spiel (fremde Karten)
     WERKPLAN_PAUSE = 2000          # 19.10. (1019e, Stocken): so lange nach einem leeren Werkstattplan kein neuer Versuch
 
@@ -2029,7 +2030,13 @@ class Produktion:
         # 19.10. (Daniel, 1019e: "das Spiel stockt immer ein bisschen"): der Werkstattplan haelt das Spiel fuer die Wegekarte
         # und die Planung an (~3 s) - in 1019e scheiterte er 32-mal (2 von 4 Schmieden passten) und lief jede Runde neu.
         # Jetzt: Teilplan nehmen, sobald mindestens eine Schmiede und ein Gerber passen; sonst erst nach WERKPLAN_PAUSE wieder
-        if self.stufe == 0 and mitte and hoefe and len(minen) >= minenkern and st["t"] >= getattr(self, "werk_naechster", 0):
+        # B-223 (Daniel 24.10. 21:40 "es wird gar nicht auf Waffenproduktion gelegt"; gemessen Lauf 213406: 17-19 Eisenminen,
+        # keine Werkstatt - die Hoefe fanden keinen Platz/kein Material, und der Werkstattplan wartete auf sie): stehen Minen,
+        # aber nach HOF_FRIST Takten noch kein Hof, wird der Werkstattplan ohne Hoefe gemacht (Leder dann vom Markt)
+        if len(minen) >= minenkern and not hoefe and not hasattr(self, "hof_frist"):
+            self.hof_frist = st["t"] + self.HOF_FRIST
+            aus.append("PRODUKTION: Minen stehen, Hoefe fehlen - Werkstattplan spaetestens ab Tick %d auch ohne Hoefe" % self.hof_frist)
+        if self.stufe == 0 and mitte and (hoefe or st["t"] >= getattr(self, "hof_frist", 10 ** 9)) and len(minen) >= minenkern                 and st["t"] >= getattr(self, "werk_naechster", 0):
             lager_g = waffenlager[0] if waffenlager else None
             we = (lager_g["x"] + 2, lager_g["y"] + 4) if lager_g else None
             fehlen_s = max(0, self.schmieden - len(schmieden))
@@ -3555,14 +3562,20 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                                                gebiete=getattr(getattr(feldzug, "_karte", None), "gebiete", None))
                             gs_lerner.runde(st["t"], L, lage_r)
                             tz = uhr("r_lage", tz)
+                            brand.tick = st.get("t")                        # B-217: Takt fuer die Brand-Frist
                             ereignis += brand.schritt(L, G, befehl, lage_r)
                             tz = uhr("r_brand", tz)
+                            # B-222 (Daniel 24.10. 21:40): greift das Heer an, ziehen die Reiter die Schuetzen am Lord auf sich
+                            reiter.angriff = feldzug is not None and getattr(feldzug, "phase", None) == "angriff"
+                            reiter.lord_ort = next(((e["x"], e["y"]) for e in L.values() if e["typ"] == 55
+                                                    and e["besitzer"] not in freunde_von(SP)), None) if reiter.angriff else None
                             ereignis += reiter.schritt(L, G, befehl, lage_r)
                             tz = uhr("r_reiter", tz)
                             if posten_h is not None and not es_an and not hunger_r and runde % 2 == 1:
                                 import bauen as BA_r
                                 for typ_r, n_r in RA.werbung(st["gold"] - wirt.ruecklage(G, ohne_heer=HEER_ANTEIL > 0)["gold"], st.get("feuer", 0),
-                                                             len(brand.einheiten(L)), len(reiter.einheiten(L)), len(deckung.einheiten(L))):
+                                                             len(brand.einheiten(L)), len(reiter.einheiten(L)), len(deckung.einheiten(L)),
+                                                             reiter_ziele=getattr(reiter, "ziele_zuletzt", None)):   # B-220
                                     for _ in range(n_r):
                                         BA_r.werbe(typ_r, posten_h)
                                     if HEER_ANTEIL > 0:

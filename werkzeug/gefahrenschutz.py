@@ -40,7 +40,7 @@ ZIEL_UMKREIS = 8                 # wie gefahr.ZIEL_UMKREIS: ist das Ziel nicht b
 LAUF = 101                       # Zustand "laeuft" (Lagebild; Sklaven unterwegs, 22.10.)
 # Verweilen am Ziel (gemessen 19.10. raid_messen.py): Sklave - Holzfaellerhuette brennt nach ~165 Takten; Pferdebogen - erster
 # Pfeil toetet einen Holzfaeller in <= 44 Takten
-VERWEILEN = {71: 165, 74: 44}
+VERWEILEN = {71: 211, 74: 44}       # 71: gemessen 24.10. (Lauf 213406, 95 Schlag-Episoden, Median 211 Takte; vorher 165)
 RISIKO_MAX = 0.5                 # vertretbar: eher ueberleben als sterben (Startwert, UNGEMESSEN - Trockentest 22.10.: ohne
                                  # Grenze ging ein Sklave bei P(Tod) 0,85 auf einen Hopfenhof)
 WECHSEL = 0.9                    # ein ferneres Ziel loest das jetzige erst ab, wenn das jetzige unter 90 % seines Rangs faellt
@@ -244,13 +244,14 @@ class Lage:
         return pkt
 
 
-def bewerte(lage, start, typ, leben, ziele):
-    """ziele: [(wert, ziel_ort, kennung)]. Gibt [(rang, kennung, plan)] - nur Ziele mit P(Tod) <= RISIKO_MAX, bester zuerst.
+def bewerte(lage, start, typ, leben, ziele, risiko=None):
+    """ziele: [(wert, ziel_ort, kennung)]. Gibt [(rang, kennung, plan)] - nur Ziele mit P(Tod) <= risiko (RISIKO_MAX), bester zuerst.
     Rang = Wert x (1 - P(Tod)) / (Takte Weg + Verweilen)."""
+    grenze = RISIKO_MAX if risiko is None else risiko
     aus = []
     for wert, ort, k in ziele:
         p = lage.plan(start, ort, typ, leben)
-        if p is None or p["p_tod"] > RISIKO_MAX:
+        if p is None or p["p_tod"] > grenze:
             continue
         aus.append((wert * (1.0 - p["p_tod"]) / float(max(1.0, p["takte"] + VERWEILEN.get(typ, 0))), k, p))
     return sorted(aus, key=lambda z: -z[0])

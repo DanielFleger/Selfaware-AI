@@ -726,17 +726,25 @@ class Feldzug:
         if self._karte is None or self._karte.gebiete is None or not nah_kampf:
             return set().union(*auftraege.values()) if auftraege else set()
         weg = GF.sicherer_weg(start, ziel, self._karte) or [ziel]
-        er = {b[4] for b in GF.erreichbare_schuetzen(start, self._karte)}
+        # B-224 (Daniel 24.10. 21:41 "Einheiten auf den Mauern bleiben stehen, obwohl Zugang zu den Fernkaempfern besteht";
+        # gemessen Lauf 213406: 'ABFANG ZU TEUER' 1.236x/1.447x gegen 52/38 Abfaenge): erreichbar ist ein Schuetze, wenn IRGENDEIN
+        # freier Nahkaempfer in seinem Gebiet steht (wer oben auf der Mauer ist, hat das Mauer-Gebiet) - nicht nur vom
+        # Startpunkt am Boden aus; und keine Anteil-Grenze mehr - die Mindestzahl je Schuetze begrenzt von selbst
         frei = [n for n in nah_kampf if not any(n in v for v in auftraege.values())]
-        rest = len(nah_kampf) // self.ABFANG_ANTEIL - sum(len(v) for v in auftraege.values())
+        gebiete_frei = {self._karte.gebiet_bei((L[n]["x"], L[n]["y"])) for n in frei if n in L} - {0}
+        er = {b[4] for b in GF.erreichbare_schuetzen(start, self._karte)}
+        import gefecht as GE_a
+        for k_e, e_e in L.items():
+            if e_e.get("besitzer") not in freunde_von(self.sp) and e_e.get("typ") in GE_a.FERN_REICH                     and self._karte.drin((e_e["x"], e_e["y"])) and int(self._karte.gebiete[e_e["x"], e_e["y"]]) in gebiete_frei:
+                er.add("schuetze %d" % k_e)
+        rest = len(frei)
         for treffer, art, ort in GF.schuetzen_am_weg(start, weg, self._karte):
             k = int(art.split()[1])
             if art not in er or k in auftraege or k not in L:
                 continue
             noetig = GF.mindestzahl(L[k].get("leben", 1), self.ABFANG_TAKTE)
-            if noetig > rest or noetig > len(frei):
-                aus.append("FELDZUG ABFANG ZU TEUER: Schuetze %d bei %s braucht %d, frei %d (Anteil-Rest %d)" % (
-                    k, ort, noetig, len(frei), rest))
+            if noetig > len(frei):
+                aus.append("FELDZUG ABFANG ZU TEUER: Schuetze %d bei %s braucht %d, frei %d" % (k, ort, noetig, len(frei)))
                 continue
             frei.sort(key=lambda n: schach((L[n]["x"], L[n]["y"]), ort))
             auftraege[k], frei, rest = frei[:noetig], frei[noetig:], rest - noetig
@@ -762,8 +770,8 @@ class Feldzug:
                     or (e.get("zieleinheit") not in meine and not ballista_nah)):
                 continue
             p_e = (e["x"], e["y"])
-            if not g_start or not self._karte.drin(p_e) or int(self._karte.gebiete[p_e[0], p_e[1]]) != g_start:
-                continue                                    # auf Mauer/Turm oder hinter einer Mauer - zu Fuss nicht erreichbar
+            if not self._karte.drin(p_e) or int(self._karte.gebiete[p_e[0], p_e[1]]) not in (gebiete_frei | {g_start}) - {0}:
+                continue                                    # in keinem Gebiet eines freien Nahkaempfers - zu Fuss nicht erreichbar (B-224)
             noetig = GF.mindestzahl(e.get("leben", 1), self.ABFANG_TAKTE)
             if e.get("typ") == BALLISTE:
                 noetig = max(noetig, self.BALLISTE_MIN)
