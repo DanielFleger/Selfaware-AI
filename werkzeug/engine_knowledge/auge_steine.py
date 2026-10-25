@@ -107,6 +107,10 @@ def auswerten(pfad, k=None):
              "liegt_echt": [liegt[0], liegt[1]["jetzt_feld"][0], liegt[1]["jetzt_feld"][1], liegt[1]["jetzt_mikro"][2]] if liegt else None,
              "letzt": [letzt[0], letzt[1]["sre_zustand"], letzt[1]["jetzt_feld"], letzt[1]["jetzt_mikro"][2], letzt[1]["logicalState"]],
              "abweichung_takte": ((t0 + land[0]) - liegt[0]) if (land and liegt) else None,
+             # Steine verschwinden beim Einschlag (Mauer/Gebaeude/Einheit) statt zu liegen: letzte Sichtung + 1 = Einschlag-Takt
+             "einschlag_echt_takt": (letzt[0] + 1) if liegt is None else liegt[0],
+             "einschlag_abweichung_takte": ((t0 + land[0]) - ((letzt[0] + 1) if liegt is None else liegt[0])) if land else None,
+             "einschlag_feld_abstand": (max(abs(land[4] - letzt[1]["jetzt_feld"][0]), abs(land[5] - letzt[1]["jetzt_feld"][1])) if land else None),
              "abw_k_dh_dx_dy": abw[:3] + abw[-3:]}
         erg.append(e)
         print(json.dumps(e, ensure_ascii=False))
