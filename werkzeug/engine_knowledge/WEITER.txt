@@ -138,3 +138,11 @@ Pythagoras-Naeherung, alle 128 Takte erneuert. SAI prueft gegen Lauf 222651 nach
 Abklingzeit Neubau 400 (Mensch) / 2000 Takte (KI im Gefecht), nach Loeschen 2000 - das ist der sichtbare "Zufall";
 Flammen je Feld 0-119 Takte verzoegert; Ueberspringen 4 Versuche je Feuer, <= 2 Felder, Staerke-1, eigene nie; kein Wind.
 SAI misst parallel im Sandkasten (Sklave an Holzfaellerhuette).
+
+--- SRE 25.10. 15:50 - Das Auge (B-251), Zwischenstand ---
+werkzeug/auge.py: Schnappschuss in 3 ms, alle Bloecke; Register AU1-AU10. Gemessen: Geschosse (Schuetze/Ziel/Abschuss-Takt/
+Flugbahn/Landung), Wegplan-Richtungen, Takt-Treue. Offen: Restdauer der Phase im Auge rechnen (Tabellen aus spielwerte),
+KI-Felder gegen Verhalten messen (Trupp-Absicht), Fallgruben-Feld, Gebaeude-Eingaenge, Stein-Flugbahn (Kurventyp 1/2),
+Punkt-fuer-Punkt-Abnahme mit SAI.
+Pruefung: python werkzeug/engine_knowledge/auge_pruefen.py (Sandkasten Instanz 5, 12 s, 4 Bogenschuetzen gegen 3 Speere).
+Grosse Rohaufnahmen daten/auge_pruefung_*.jsonl (120-260 MB) bleiben lokal, nicht im Repo.
