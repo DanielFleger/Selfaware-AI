@@ -371,13 +371,26 @@ def abgeleitet(w, sch, hk):
         "bedeutung": "Alle wie viele Takte eine Art nach Feinden sucht (enemy_notice_range + 1); 0 = sucht nie (Arbeiter)",
         "werte": [n + 1 if n else 0 for n in w["einheit.enemy_notice_range"]["werte"]]}
     aus["sicht.assassine"] = {
-        "adresse": "Code 0x0054B0D0 acquireShootTarget (UT_A_ASSASSIN: assassinsMicroDistanceToEnemyUnk > 160 -> kein Ziel)",
+        "adresse": "Code 0x0054A7B0 findNearestEnemyAndHeadTowardsIt (misst), 0x00579300 updateUnits (speichert alle 128 Takte), "
+                   "0x0054B0D0 acquireShootTarget (> 160 -> kein Ziel), 0x004E7810 renderUnits (< 161 sichtbar, 120-160 verblasst)",
         "form": "Text",
-        "bedeutung": "KANDIDAT (abgelesen, nicht geprueft): Schuetzen nehmen eine Assassine nur ins Visier, wenn ihr beim letzten "
-                     "Feind-Takt gemessener Abstand zum naechsten Feind <= 160 Mikroschritte (20 Felder) war; Startwert 32000 = "
-                     "unsichtbar. Nahkaempfer greifen anliegende Assassinen immer an (processMeleeInitiation prueft keine Sicht). "
-                     "Fuer B-234: Flucht erst, wenn ein Schuetze in 20 Feldern steht UND seit dessen letztem Feind-Takt",
-        "werte": {"sichtbar_ab_mikroschritte": 160, "sichtbar_ab_felder": 20, "startwert": 32000}}
+        "bedeutung": "Ein Meuchelmoerder (A_ASSASSIN 73) ist fuer Schuetzen zielbar und auf dem Bildschirm sichtbar, wenn sein "
+                     "gespeicherter Abstand zur naechsten feindlichen NAHKAMPF-/BELAGERUNGS-Einheit <= 160 Mikroschritte ist. "
+                     "Gemessen wird nur gegen Einheiten mit Flag isSelectable (gesetzt in UpdateSpearman/Pikeman/Maceman/Swordsman/"
+                     "Knight/Monk/Lord/Slave/Assassin/ArabianSwordsman/HorseArcher/Engineer/alle Belagerungsgeraete - NICHT in "
+                     "UpdateCrusaderArcher/Crossbowman/ArabianArcher/Slinger/FireThrower): Fussschuetzen decken ihn also nicht durch "
+                     "Naehe auf, Nahkaempfer, Berittene Bogenschuetzen, Baumeister und Geraete schon. Abstand = Pythagoras-Naeherung "
+                     "max(dx,dy) + 0,4*min^2/max in Mikroschritten (8 je Feld): gerade 20 Felder, schraeg ~14. Der Wert wird nur beim "
+                     "eigenen Feind-Takt des Meuchelmoerders (alle 128 Takte) neu gesetzt, Startwert 32000 = unsichtbar. Der Schuetze "
+                     "braucht zusaetzlich: Ziel in seiner Reichweite (54 Felder), freie Schusslinie, eigener Feind-Takt (64 Takte). "
+                     "SAI-Gegenprobe 25.10. (6.172 Proben): alle 30 Beschuss-Faelle hatten eine Feindtruppe <= 10 Felder, 989 Proben "
+                     "mit Truppe <= 20 ohne Beschuss - passt zur Lesart, dass nur Nahkaempfer/Geraete zaehlen und der Wert alle 128 Takte "
+                     "hinterherlaeuft; noch nicht gegen die Einheitenart der naechsten Truppe geprueft",
+        "werte": {"sichtbar_ab_mikroschritte": 160, "sichtbar_ab_felder_gerade": 20, "sichtbar_ab_felder_schraeg": 14,
+                  "verblasst_ab_mikroschritte": 120, "aktualisierung_takte": 128, "startwert": 32000,
+                  "aufdecker": ["E_SPEAR", "E_PIKE", "E_MACE", "E_SWORD", "E_KNIGHT", "E_MONK", "LORD", "A_SLAVE", "A_ASSASSIN",
+                                "A_SWORDSMAN", "A_HARCHER", "E_ENGINEER", "S_*"],
+                  "keine_aufdecker": ["E_ARCHER", "E_XBOW", "A_ARCHER", "A_SLINGER", "A_FIRETHROWER"]}}
     aus["zustand.dauer"] = {
         "adresse": "Zustandsnummern UnitState; Dauern teils gemessen (SAI), teils aus Tabellen", "form": "Text",
         "bedeutung": "101 Gehen: 8 x (Stufe+1) Takte je Feld; 106 Nahkampf: Schlag jeden Takt; 4/5/6 Nachladen/Zielen/Schiessen: "
