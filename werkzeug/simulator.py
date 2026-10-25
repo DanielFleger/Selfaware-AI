@@ -29,8 +29,9 @@ Regeln je Takt:
   6 Tod         Leben <= 0 -> stirbt, verlaesst sofort die Felder
 Nicht enthalten: neue Befehle (Absicht der Gegner-KI), neue Einheiten, freie Schusslinie, Fremdtreffer vor dem Ziel (AU20),
 Zug-Phase je Einheit (Zaehler nicht gelesen), Feuer, Gebaeude.
-Stand 25.10. 23:00 (gehirn_pruefen ... 90 30 ... sim): 200603 neue Begegnungen 89,8 %, Opfer-Quote 98,2 %, Praezision 94,2 %;
-Gegenprobe 191847 82,3 % / 95,7 % / 94,1 % (Baustein 2: 54 % bzw. 51 %).
+Stand 25.10. 23:30 mit AU21 (gehirn_pruefen ... 90 30 ... sim): 200603 neue Begegnungen 89,8 %, Opfer-Quote 98,2 %, Praezision
+94,3 %; Gegenprobe 191847 83,4 % / 95,9 % / 94,1 % (Baustein 2: 54 % bzw. 51 %). Je Einheit gemessen: Nahkampf VOR dem eigenen
+Laufen (nsl/snl/nls 87,9 %, Laufen zuerst 60,6 % - Ankoemmlinge kaempfen erst im naechsten Takt, wie am Pruefstein gesehen).
 """
 import os
 import sys
@@ -85,10 +86,14 @@ class Simulator(object):
     NEUWAHL = True
     FEUERVERTEILUNG = True
     KETTE_AUFSTEIGEND = True
-    VERTEILUNG_ALLE = False         # True: auch Armbrust & Co. nehmen das beste unmarkierte Ziel (AU20 offen)
-    # P14 "+50 x Zielflagge": LESART VON SAI, von SRE noch nicht bestaetigt - Flagge = Ziel wird schon von einem anderen
-    # Schuetzen beschossen. Gemessen (H=90): 200603 87,8 -> 89,8 %, Gegenprobe 191847 81,2 -> 82,3 %; None schaltet sie ab
-    ZIELFLAGGE = "beschossen"
+    VERTEILUNG_ALLE = True          # AU21: "unmarkiert bevorzugt" gilt fuer jeden, der acquireShootTarget ruft
+    # AU21: Zielflagge = Zaehler +988 = Anzahl Schuetzen, die das Ziel gerade haben (+ je Wahl im Takt) -> Punktzahl + 50 x Anzahl
+    ZIELFLAGGE = "anzahl"           # "beschossen" = alte SAI-Lesart Ja/Nein, None = aus
+    EINHEIT_FUER_EINHEIT = True     # AU21: updateUnits arbeitet die Einheiten aufsteigend ab
+    REIHE_IN_EINHEIT = "nsl"
+    # Lesart (SAI, gemessen): wer per Gegenzuweisung ein Ziel bekommt, bleibt sofort stehen - ohne sie verliert die Abarbeitung
+    # je Einheit das Fenster 41.458 (Laeufer 160/162/169/170 schlagen bei +80 zurueck), mit ihr gleich der Phasen-Reihenfolge
+    GEGEN_STOPPT = True        # je Einheit: n = Nahkampf, s = Feindsuche, l = Laufen (gemessen, s. Register L190)
 
     def __init__(self, sw):
         self.G = gehirn.Gehirn(sw)
@@ -98,6 +103,13 @@ class Simulator(object):
         self._reihen = {f: auge.nahkampf_reihenfolge(f) for f in range(8)}
         rt = sw["tabellen"].get("geschoss.reichweite")
         self.reichweite = rt["werte"] if rt else []
+        try:
+            import spielwerte
+            rueck = {v: k for k, v in spielwerte.UT.items()}
+            self.ohne_liste = {rueck[n] for n in ("TRADER", "TRADERHORSE", "CAMEL", "GHOST", "MOTHER", "CHILD") if n in rueck}
+        except Exception:  # noqa: BLE001
+            self.ohne_liste = set()
+        self._gewaehlt = {}
         self.phasen = {}
         for ut, z in auge._phasen_tabellen().items():
             if ut == "hacken" or z.get("schuss_schritt") is None:
@@ -184,12 +196,14 @@ class Simulator(object):
         return b.own != a.own and b.own != 0 and not b.tot
 
     def _suche(self, U, u):
-        """AU19/AU20: kleinster Feinabstand zur Feindliste (NAEHERUNG: alle lebenden Einheiten anderer Spieler)."""
+        """AU19-AU21: kleinster Abstand (ganzzahlig, auge._spiel_abstand) zur Feindliste; NAEHERUNG der Liste: alle lebenden
+        Einheiten anderer Spieler ohne Haendler/Pferd/Kamel/Geist/Mutter/Kind - die echte ist bis zu 60 Takte alt und ohne
+        versteckte (+856), beides steht nicht im Protokoll."""
         best = None
         for v in U.values():
-            if v.tot or v.own == u.own or v.own == 0:
+            if v.tot or v.own == u.own or v.own == 0 or v.typ in self.ohne_liste:
                 continue
-            d = _fein(u.mx - v.mx, u.my - v.my)
+            d = self.auge._spiel_abstand(v.mx - u.mx, v.my - u.my)
             if best is None or d < best:
                 best = d
         if best is not None:
@@ -226,6 +240,8 @@ class Simulator(object):
         d = max(abs(u.mx - v.mx), abs(u.my - v.my))
         if self.ZIELFLAGGE == "beschossen" and v.id in beschossen:
             d += 50
+        elif self.ZIELFLAGGE == "anzahl":
+            d += 50 * beschossen.get(v.id, 0)
         f, z = _KLASSE.get(v.typ, _SONST)
         return d * f + z
 
@@ -241,6 +257,7 @@ class Simulator(object):
             start = w.schuss_n - p["vor"] - p["zielen"]
             if start <= k <= w.schuss_n + p["nach"] or (w.letzt is not None and k <= w.letzt + p["nach"]):
                 m.add(w.schuss_ziel)
+        m |= self._gewaehlt.get(k, set())        # AU21: jeder Schuetze markiert sein neues Ziel im Takt der Wahl
         return m
 
     def _neuwahl(self, U, u, k):
@@ -249,7 +266,11 @@ class Simulator(object):
         r = self.reichweite[et] if et is not None and et < len(self.reichweite) else 0
         fx, fy = u.feld
         kand = []
-        beschossen = {w.schuss_ziel for w in U.values() if w.id != u.id and not w.tot and w.schuss_ziel} if self.ZIELFLAGGE else ()
+        beschossen = {}
+        if self.ZIELFLAGGE:
+            for w in U.values():
+                if w.id != u.id and not w.tot and w.schuss_ziel:
+                    beschossen[w.schuss_ziel] = beschossen.get(w.schuss_ziel, 0) + 1
         for v in sorted(U.values(), key=lambda x: x.id):
             if not v.id or not self._feind(u, v):      # Nummer 0 heisst im Spiel "kein Ziel"
                 continue
@@ -262,6 +283,12 @@ class Simulator(object):
         if not kand:
             return 0
         best = min(kand)                       # Gleichstand: kleinste Nummer
+        wahl = self._wahl(U, u, k, kand, best)
+        if wahl:
+            self._gewaehlt.setdefault(k, set()).add(wahl)
+        return wahl
+
+    def _wahl(self, U, u, k, kand, best):
         if self.FEUERVERTEILUNG and (u.typ in MARKIEREN or self.VERTEILUNG_ALLE):
             m = self._markiert(U, k, u.id)
             frei = [x for x in kand if x[1] not in m]
@@ -274,31 +301,34 @@ class Simulator(object):
     def _laufen_alle(self, U, felder):
         """L190 (P13 + Messung): Zug alle tpm Takte um (stateBasedSpeed + 1) Mikroschritte zur Wegpunkt-Mitte."""
         for u in U.values():
-            if u.tot or not u.weg:
-                continue
-            u.zaehler += 1
-            if u.zaehler < u.tpm:
-                continue
-            u.zaehler = 0
-            alt = u.feld
-            if len(u.weg) == 1 and u.dest and u.weg[0] != u.dest:
-                fx, fy = u.weg[0]
-                if max(abs(fx - u.dest[0]), abs(fy - u.dest[1])) <= 40:
-                    u.weg.append((fx + (u.dest[0] > fx) - (u.dest[0] < fx), fy + (u.dest[1] > fy) - (u.dest[1] < fy)))
-            for _ in range(u.sbs + 1):
-                if not u.weg:
-                    break
-                zx, zy = u.weg[0][0] * 8 + 4, u.weg[0][1] * 8 + 4
-                dx, dy = (zx > u.mx) - (zx < u.mx), (zy > u.my) - (zy < u.my)
-                u.mx += dx
-                u.my += dy
-                if (dx, dy) in _RICHTUNG_NR:
-                    u.blick = _RICHTUNG_NR[(dx, dy)]
-                if (u.mx, u.my) == (zx, zy):
-                    u.weg.pop(0)
-            if u.feld != alt:
-                self._feld_raus(felder, u, alt)
-                self._feld_rein(felder, u)
+            self._laufen(u, felder)
+
+    def _laufen(self, u, felder):
+        if u.tot or not u.weg:
+            return
+        u.zaehler += 1
+        if u.zaehler < u.tpm:
+            return
+        u.zaehler = 0
+        alt = u.feld
+        if len(u.weg) == 1 and u.dest and u.weg[0] != u.dest:
+            fx, fy = u.weg[0]
+            if max(abs(fx - u.dest[0]), abs(fy - u.dest[1])) <= 40:
+                u.weg.append((fx + (u.dest[0] > fx) - (u.dest[0] < fx), fy + (u.dest[1] > fy) - (u.dest[1] < fy)))
+        for _ in range(u.sbs + 1):
+            if not u.weg:
+                break
+            zx, zy = u.weg[0][0] * 8 + 4, u.weg[0][1] * 8 + 4
+            dx, dy = (zx > u.mx) - (zx < u.mx), (zy > u.my) - (zy < u.my)
+            u.mx += dx
+            u.my += dy
+            if (dx, dy) in _RICHTUNG_NR:
+                u.blick = _RICHTUNG_NR[(dx, dy)]
+            if (u.mx, u.my) == (zx, zy):
+                u.weg.pop(0)
+        if u.feld != alt:
+            self._feld_raus(felder, u, alt)
+            self._feld_rein(felder, u)
 
     # ------------------------------------------------------------------------------------------------- Lauf
     def prognose(self, s, horizont=90, einheiten=None, protokoll=False):
@@ -353,39 +383,56 @@ class Simulator(object):
             # untaetige Schuetzen ohne Ziel suchen NICHT von selbst (AU20: Neuwahl nur nach einem Schiess-Durchgang, bei totem
             # Ziel, als Trupp-Anfuehrer alle 32 / am Sammelplatz alle 40 Takte) - gemessen: mit Selbstsuche 3,3-fache Menge
 
+        def nahkampf(u, k):
+            if u.tot or not u.nah:
+                return
+            v = self._nahkampf_wahl(U, felder, u)
+            if v is None:
+                if u.ziel:
+                    u.ziel = 0
+                    if u.zustand == NAH:
+                        u.zustand = 1
+                return
+            neu = v.id != u.ziel
+            u.ziel = v.id
+            u.zustand = NAH
+            u.weg = u.weg[:1]
+            u.dest = None
+            if neu and v.nah and not v.ziel:          # AU18 (6) Gegenzuweisung (ohne Drehen, L190)
+                v.ziel = u.id
+                if self.GEGEN_STOPPT:
+                    v.weg, v.dest = [], None
+            if spur is not None:
+                spur.append((k, u.id, v.id))
+            if u.weg:
+                return
+            je = self.G._nah({"unitType": u.typ}, {"unitType": v.typ})
+            art = "nahkampf" if u.start_ziel == v.id else "begegnung"
+            schaden(v, je, {"art": art, "angreifer": u.id, "je_takt": je, "takt": k})
+
+        reihe = sorted(U)
+        self._gewaehlt = {}
         for k in range(1, horizont + 1):
             t = t0 + k
-            # 1 Laufen
-            self._laufen_alle(U, felder)
-            # 2 Feindsuche
-            for u in U.values():
-                if not u.tot and u.msk and self.auge.sucht_im_takt(t, u.fr, u.msk):
-                    self._suche(U, u)
-            # 3 Nahkampf
-            for u in list(U.values()):
-                if u.tot or not u.nah:
-                    continue
-                v = self._nahkampf_wahl(U, felder, u)
-                if v is None:
-                    if u.ziel:
-                        u.ziel = 0
-                        if u.zustand == NAH:
-                            u.zustand = 1
-                    continue
-                neu = v.id != u.ziel
-                u.ziel = v.id
-                u.zustand = NAH
-                u.weg = u.weg[:1]
-                u.dest = None
-                if neu and v.nah and not v.ziel:          # AU18 (6) Gegenzuweisung (ohne Drehen, L190)
-                    v.ziel = u.id
-                if spur is not None:
-                    spur.append((k, u.id, v.id))
-                if u.weg:
-                    continue
-                je = self.G._nah({"unitType": u.typ}, {"unitType": v.typ})
-                art = "nahkampf" if u.start_ziel == v.id else "begegnung"
-                schaden(v, je, {"art": art, "angreifer": u.id, "je_takt": je, "takt": k})
+            if self.EINHEIT_FUER_EINHEIT:
+                # AU21: updateUnits aufsteigend - je Einheit Laufen, Feindsuche, Nahkampf; Kleinere stehen schon am neuen Ort
+                for i in reihe:
+                    u = U[i]
+                    for schritt in self.REIHE_IN_EINHEIT:
+                        if schritt == "l":
+                            self._laufen(u, felder)
+                        elif schritt == "s":
+                            if not u.tot and u.msk and self.auge.sucht_im_takt(t, u.fr, u.msk):
+                                self._suche(U, u)
+                        else:
+                            nahkampf(u, k)
+            else:
+                self._laufen_alle(U, felder)
+                for u in U.values():
+                    if not u.tot and u.msk and self.auge.sucht_im_takt(t, u.fr, u.msk):
+                        self._suche(U, u)
+                for i in reihe:
+                    nahkampf(U[i], k)
             # 4 Schuetzen
             for u in U.values():
                 if u.tot or u.schuss_n != k:
