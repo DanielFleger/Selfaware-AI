@@ -77,7 +77,7 @@ def main(argv):
                     zeit_n += 1
                     if any(abs((t0 + q["takt"]) - te) <= 5 for te in echt_geschoss.get(o, ())):
                         zeit_ok += 1
-        for art in ("geschoss", "schuss", "nahkampf", "nahkampf_folge", "begegnung"):
+        for art in ("geschoss", "schuss", "nahkampf", "nahkampf_folge", "begegnung", "begegnung_gegen"):
             summe["progn_" + art] += sum(1 for p in progn.values() for q in p["quellen"] if q["art"] == art)
     quote = summe["echt_getroffen"] / float(max(1, summe["echt"]))
     praez = summe["progn_richtig"] / float(max(1, summe["progn"]))
@@ -88,7 +88,7 @@ def main(argv):
            "zeit_quote_pm5": round(zeit, 3), "zeit_n": zeit_n,
            "neue_begegnungen_erfasst": round(summe["neu_erfasst"] / float(max(1, summe["neu_echt"])), 3), "neu_echt": summe["neu_echt"],
            "echt_verlust": summe["echt"], "progn_verlust": round(summe["progn"]),
-           "quellen_vorhergesagt": {k[6:]: v for k, v in summe.items() if k.startswith("progn_") and k[6:] in ("geschoss", "schuss", "nahkampf", "nahkampf_folge", "begegnung")}}
+           "quellen_vorhergesagt": {k[6:]: v for k, v in summe.items() if k.startswith("progn_") and k[6:] in ("geschoss", "schuss", "nahkampf", "nahkampf_folge", "begegnung", "begegnung_gegen")}}
     urteil = ("ZIEL ERREICHT" if quote >= 0.8 and zeit >= 0.8 else
               "ABBRUCH: Opfer-Quote unter 50 % - Auge pruefen (SRE), nicht nachstellen" if quote < 0.5 else
               "ZWISCHEN 50 und 80 % - Ursachen je Quelle suchen")

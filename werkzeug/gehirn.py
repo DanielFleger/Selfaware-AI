@@ -178,3 +178,8 @@ class Gehirn:
                 continue
             je = self._nah(e, ziel)
             treffer(ziel["id"], je * (horizont - an), {"art": "begegnung", "angreifer": e["id"], "je_takt": je, "takt": an})
+            # SRE AU18 Punkt 6 (processMeleeInitiation): das Opfer bekommt den Waehlenden als Ziel, wenn es noch keins hat,
+            # und schlaegt ab Kontakt zurueck
+            if ziel["id"] not in kaempfen and not (ziel.get("attackedUnitID") or 0) and ziel["unitType"] < len(self.melee):
+                je_r = self._nah(ziel, e)
+                treffer(e["id"], je_r * (horizont - an), {"art": "begegnung_gegen", "angreifer": ziel["id"], "je_takt": je_r, "takt": an})
