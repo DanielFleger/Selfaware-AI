@@ -6618,9 +6618,11 @@
     "daten/auge_protokoll_20261025_191020.npz",
     "daten/auge_protokoll_20261025_191020_absicht.json",
     "daten/auge_protokoll_20261025_191847.npz",
-    "daten/auge_protokoll_20261025_191847_treffer.json"
+    "daten/auge_protokoll_20261025_191847_treffer.json",
+    "werkzeug/taktring.lua",
+    "daten/auge_protokoll_20261025_193230.npz"
    ],
-   "notiz": "SRE 15:10 begonnen; Reihenfolge: Geschosse, Phasen/Sicht, KI-Absicht, Felder/Gebaeude/Spieler | Punkt 7 (Takt-Schnappschuss 3 ms, Taktnummer vor/nach), Punkt 2 (Geschosse: Schuetze, Ziel, Abschuss-Takt, Flugbahn je Takt, Landung) und Punkt 1 Wegpunkte gemessen; Felder fuer 1/3/4/5/6 lesbar, Pruefung je Punkt offen | 19:15 Punkt 6 gemessen: KI-Zustandsautomat alle ~200 Takte, Zustand 2 = 2.700-2.900 Takte Vorlauf, Einheiten-Ziele 1.300-1.800 Takte, Raids nur an Einheiten-Zielen sichtbar (1.593 Takte); AIC live lesbar; Register AU13 | 19:30 Pruefstein 20v20 + Treffer je Takt (99,4 % zugeordnet) geliefert; Takt-Abdeckung von aussen ~75 % (Doppeltakt je Bild), Register AU14",
+   "notiz": "SRE 15:10 begonnen; Reihenfolge: Geschosse, Phasen/Sicht, KI-Absicht, Felder/Gebaeude/Spieler | Punkt 7 (Takt-Schnappschuss 3 ms, Taktnummer vor/nach), Punkt 2 (Geschosse: Schuetze, Ziel, Abschuss-Takt, Flugbahn je Takt, Landung) und Punkt 1 Wegpunkte gemessen; Felder fuer 1/3/4/5/6 lesbar, Pruefung je Punkt offen | 19:15 Punkt 6 gemessen: KI-Zustandsautomat alle ~200 Takte, Zustand 2 = 2.700-2.900 Takte Vorlauf, Einheiten-Ziele 1.300-1.800 Takte, Raids nur an Einheiten-Zielen sichtbar (1.593 Takte); AIC live lesbar; Register AU13 | 19:30 Pruefstein 20v20 + Treffer je Takt (99,4 % zugeordnet) geliefert; Takt-Abdeckung von aussen ~75 % (Doppeltakt je Bild), Register AU14 | 19:35 Taktring im Modul: 100 % Takte (2.009 am Stueck, 0 Luecken), Gebaeude je Takt im Protokoll; Register AU15. Von SRE: Auge steht (Reste: B-252 Stein-Luft-Stopp, Belagerungsgeraete-Phasen, Fallgruben)",
    "verlauf": [
     {
      "zeit": "2026-10-25 15:11",
@@ -6641,6 +6643,10 @@
     {
      "zeit": "2026-10-25 19:23",
      "was": "in Arbeit -> in Arbeit: 19:30 Pruefstein 20v20 + Treffer je Takt (99,4 % zugeordnet) geliefert; Takt-Abdeckung von aussen ~75 % (Doppeltakt je Bild), Register AU14"
+    },
+    {
+     "zeit": "2026-10-25 19:34",
+     "was": "in Arbeit -> in Arbeit: 19:35 Taktring im Modul: 100 % Takte (2.009 am Stueck, 0 Luecken), Gebaeude je Takt im Protokoll; Register AU15. Von SRE: Auge steht (Reste: B-252 Stein-Luft-Stopp, Belagerungsgeraete-Phasen, Fallgruben)"
     }
    ],
    "rang": 1
@@ -6662,7 +6668,7 @@
     "daten/auge_protokoll_20261025_184555.npz",
     "daten/auge_protokoll_20261025_184555_steine.json"
    ],
-   "notiz": "25.10. 15:59: SAI hat bemannen/art in logik_stand_20261025.lua gebaut und nach ucp/villagestudio ausgeliefert; nach Neustart der Instanz kam der Befehl trotzdem als Art 31 an (Modul [selfaware-runtime] loggt ANGRIFF) - Ladeort des angriff-Handlers klaeren; Pruefskript werkzeug/engine_knowledge/auge_steine.py liegt bereit | 18:46 Bemannen wirkt (Art 16); 9 Steine: Formel +-1, Einschlag 3/9 exakt, 6/9 stoppen unerklaert in der Luft (Zustand 7, Hoehe 54-73 ueber flachem Boden); naechster Lauf mit Geschoss-Rohdaten je Takt",
+   "notiz": "25.10. 15:59: SAI hat bemannen/art in logik_stand_20261025.lua gebaut und nach ucp/villagestudio ausgeliefert; nach Neustart der Instanz kam der Befehl trotzdem als Art 31 an (Modul [selfaware-runtime] loggt ANGRIFF) - Ladeort des angriff-Handlers klaeren; Pruefskript werkzeug/engine_knowledge/auge_steine.py liegt bereit | 18:46 Bemannen wirkt (Art 16); 9 Steine: Formel +-1, Einschlag 3/9 exakt, 6/9 stoppen unerklaert in der Luft (Zustand 7, Hoehe 54-73 ueber flachem Boden); naechster Lauf mit Geschoss-Rohdaten je Takt | 19:30 Lauf 192940: Stopp bei Bildzaehler 8 (zwei Steine exakt 8 Takte), keine Einheit/kein Gebaeude darunter; Verdacht LogicLayer-Bit 0x10000000 -> returnSomeHeight; LogicLayer je Takt mitlesen",
    "verlauf": [
     {
      "zeit": "2026-10-25 15:55",
@@ -6675,6 +6681,10 @@
     {
      "zeit": "2026-10-25 18:50",
      "was": "offen -> in Arbeit: 18:46 Bemannen wirkt (Art 16); 9 Steine: Formel +-1, Einschlag 3/9 exakt, 6/9 stoppen unerklaert in der Luft (Zustand 7, Hoehe 54-73 ueber flachem Boden); naechster Lauf mit Geschoss-Rohdaten je Takt"
+    },
+    {
+     "zeit": "2026-10-25 19:34",
+     "was": "in Arbeit -> in Arbeit: 19:30 Lauf 192940: Stopp bei Bildzaehler 8 (zwei Steine exakt 8 Takte), keine Einheit/kein Gebaeude darunter; Verdacht LogicLayer-Bit 0x10000000 -> returnSomeHeight; LogicLayer je Takt mitlesen"
     }
    ]
   }

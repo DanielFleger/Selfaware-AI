@@ -74,7 +74,7 @@ def main():
           struct.unpack_from("<4h", raw, 788), "animationSpeed", struct.unpack_from("<i", raw, 68)[0])
     print("angriff:", befehl({"angriff": {"einheiten": [k], "gebaeude": ziel["id"]}}, 1.0))
     befehl({"pause": False, "tempo": 40}, 0.2)
-    pfad, p = auge.protokollieren(dauer, (1, 2))
+    pfad, p = auge.protokollieren(dauer, None)      # ALLE Besitzer, auch Tiere (Besitzer 0) - Verdacht Luft-Stopp
     befehl({"pause": True}, 0.2)
     print("Protokoll", len(p.takte), "Takte", min(p.takte), "..", max(p.takte), "->", pfad)
     return auswerten(pfad, k)

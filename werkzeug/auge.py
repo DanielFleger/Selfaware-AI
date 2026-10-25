@@ -29,6 +29,7 @@ import sys
 import time
 
 import numpy as np
+import numpy.lib.recfunctions  # noqa: F401  (repack_fields)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import speicher  # noqa: E402
@@ -112,6 +113,11 @@ ENTITY = _dtype([
     ("unitID", "<i2", 160), ("unitID_OR_seaGullID", "<i2", 162), ("hasDoneEffectUnk", "<i2", 178),
     ("field80_0xba", "<i2", 186), ("rng_2", "<i2", 188), ("field90_0xd0", "<i2", 206), ("unitUID", "<i4", 212),
     ("fireIntensity", "<i2", 216),
+    # Luft-Stopp der Steine (B-252): Kandidatenfelder mitlesen
+    ("unknownAnimationFrameRelated", "<i2", 20), ("field37_0x5a", "<i2", 90), ("field50_0x74", "<i2", 116),
+    ("orientation", "<i4", 136), ("field58_0x8c_b", "<i2", 140), ("heightDifference", "<i4", 144), ("field72_0xa8", "<i2", 168),
+    ("hasDoneEffectUnk_b", "<i2", 178), ("someTracker", "<i2", 180), ("field82_0xbe", "<i2", 190), ("field83_0xc0", "<i2", 192),
+    ("displayValue", "<i4", 196), ("unknownDistanceRelatedValue", "<i2", 218),
 ], ENTITY_GROESSE)
 
 # Building (/_HoldStrong/Map/Buildings/Building, 812 Byte)
@@ -185,6 +191,8 @@ def aic_lesen():
     """[20] AICSpecification live (UCP3 kann sie aendern - deshalb nicht aus der Datei)."""
     return np.frombuffer(speicher.lies(AIC_STATE, 20 * 676), dtype=AIC)
 
+
+BUILDING_PACKED = np.lib.recfunctions.repack_fields(BUILDING)   # nur die gelesenen Felder, dicht gepackt (fuer Protokolle)
 
 PITCH_DTYPE = _dtype([("tile", "<i4", 0), ("uid", "<i4", 4), ("owner", "<i2", 8), ("x", "<i2", 10), ("y", "<i2", 12),
                       ("state", "<i2", 16)], 20)
@@ -378,8 +386,11 @@ class Schnappschuss(object):
         me = (e["logicalState"] != 0)
         t = self.trupps
         mt = (t["size"] > 0) if len(t) else np.zeros(0, bool)
+        g = self.gebaeude
+        mg = (g["logicalState"] == 2) if len(g) else np.zeros(0, bool)
+        gp = np.lib.recfunctions.repack_fields(g[mg]) if mg.any() else np.zeros(0, BUILDING_PACKED)
         return {"takt": self.takt, "takt_kern": self.takt_kern, "rein": self.rein, "dauer_ms": self.dauer_ms,
-                "trupps": t[mt].copy(), "trupps_idx": np.flatnonzero(mt),
+                "trupps": t[mt].copy(), "trupps_idx": np.flatnonzero(mt), "gebaeude": gp, "gebaeude_idx": np.flatnonzero(mg),
                 "einheiten": u[m].copy(), "einheiten_idx": np.flatnonzero(m), "entities": e[me].copy(),
                 "entities_idx": np.flatnonzero(me), "spieler": self.spieler.copy(), "hoehe": getattr(self, "hoehe", None),
                 "feldnr": feldnummern() if getattr(self, "hoehe", None) is not None else None}
@@ -395,9 +406,10 @@ class Schnappschuss(object):
         s._einheiten_idx, s._entities_idx = d["einheiten_idx"], d["entities_idx"]
         s.trupps = d.get("trupps", np.zeros(0, TRIBE))
         s._trupps_idx = d.get("trupps_idx")
+        s.gebaeude = d.get("gebaeude", np.zeros(0, BUILDING_PACKED))
+        s._gebaeude_idx = d.get("gebaeude_idx")
         s.hoehe = d.get("hoehe")
         s._feldnr = d.get("feldnr")
-        s.gebaeude = np.zeros(0, BUILDING)
         s.woche = s.monat = s.jahr = 0
         s.teams = [0] * 9
         return s
@@ -595,7 +607,7 @@ class Schnappschuss(object):
             r = g[i]
             lager = {RT.get(k + 2, str(k + 2)): int(v) for k, v in enumerate(r["resources"]) if int(v)}   # 296 = resourceWood (RT 2) ... 384 = resourceIronArmor (RT 24)
             aus.append({
-                "id": int(i), "uid": int(r["uid"]), "buildingType": int(r["buildingType"]), "owner": int(r["owner"]),
+                "id": self._id("gebaeude", i), "uid": int(r["uid"]), "buildingType": int(r["buildingType"]), "owner": int(r["owner"]),
                 "feld": [int(r["x"]), int(r["y"])], "currentHealth": int(r["currentHealth"]), "maxHealth": int(r["maxHealth"]),
                 "state": int(r["state"]), "buildingProgress": int(r["buildingProgress"]), "timeAlive": int(r["timeAlive"]),
                 "cooldownTimer": int(r["cooldownTimer"]), "fireDuration": int(r["fireDuration"]),
@@ -745,6 +757,7 @@ class Protokoll(object):
         self.takte, self.kern, self.rein, self.dauer = [], [], [], []
         self.einheiten, self.einheiten_idx, self.entities, self.entities_idx, self.spieler_bloecke = [], [], [], [], []
         self.trupps, self.trupps_idx = [], []
+        self.gebaeude, self.gebaeude_idx = [], []
         self.hoehe = None          # erste Hoehen-Ebene (Rueckwaertskompatibel)
         self.hoehen = []           # Hoehen-Ebene je Takt (Mauern fallen, Gebaeude brennen ab)
         self.feldnr = None
@@ -756,6 +769,7 @@ class Protokoll(object):
         self.entities.append(d["entities"]); self.entities_idx.append(d["entities_idx"])
         self.spieler_bloecke.append(d["spieler"])
         self.trupps.append(d.get("trupps", np.zeros(0, TRIBE))); self.trupps_idx.append(d.get("trupps_idx", np.zeros(0, np.int64)))
+        self.gebaeude.append(d.get("gebaeude", np.zeros(0, BUILDING_PACKED))); self.gebaeude_idx.append(d.get("gebaeude_idx", np.zeros(0, np.int64)))
         if d.get("hoehe") is not None:
             self.hoehen.append(np.array(d["hoehe"]))
             if self.hoehe is None:
@@ -780,6 +794,9 @@ class Protokoll(object):
             trupps=np.concatenate(self.trupps) if self.trupps else np.zeros(0, TRIBE),
             trupps_idx=np.concatenate(self.trupps_idx) if self.trupps_idx else np.zeros(0, np.int64),
             trupps_grenzen=grenzen(self.trupps),
+            gebaeude=np.concatenate(self.gebaeude) if self.gebaeude else np.zeros(0, BUILDING_PACKED),
+            gebaeude_idx=np.concatenate(self.gebaeude_idx) if self.gebaeude_idx else np.zeros(0, np.int64),
+            gebaeude_grenzen=grenzen(self.gebaeude),
             hoehe=self.hoehe if self.hoehe is not None else np.zeros(0, np.uint8),
             feldnr=self.feldnr if self.feldnr is not None else np.zeros((0, 0), np.int32),
             hoehen=np.stack(self.hoehen) if len(self.hoehen) == len(self.takte) else np.zeros((0, 0), np.uint8),
@@ -794,6 +811,7 @@ class Protokoll(object):
         aus = []
         eg, gg = z["einheiten_grenzen"], z["entities_grenzen"]
         tg = z["trupps_grenzen"] if "trupps_grenzen" in z else None
+        bg = z["gebaeude_grenzen"] if "gebaeude_grenzen" in z else None
         hoehe = z["hoehe"] if len(z["hoehe"]) else None
         feldnr = z["feldnr"] if ("feldnr" in z and z["feldnr"].size) else None
         hoehen = z["hoehen"] if ("hoehen" in z and z["hoehen"].size) else None
@@ -805,7 +823,9 @@ class Protokoll(object):
                  "entities": z["entities"][gg[i]:gg[i + 1]], "entities_idx": z["entities_idx"][gg[i]:gg[i + 1]],
                  "spieler": z["spieler"][i], "hoehe": hoehe, "feldnr": feldnr,
                  "trupps": z["trupps"][tg[i]:tg[i + 1]] if tg is not None else np.zeros(0, TRIBE),
-                 "trupps_idx": z["trupps_idx"][tg[i]:tg[i + 1]] if tg is not None else np.zeros(0, np.int64)}
+                 "trupps_idx": z["trupps_idx"][tg[i]:tg[i + 1]] if tg is not None else np.zeros(0, np.int64),
+                 "gebaeude": z["gebaeude"][bg[i]:bg[i + 1]] if bg is not None else np.zeros(0, BUILDING_PACKED),
+                 "gebaeude_idx": z["gebaeude_idx"][bg[i]:bg[i + 1]] if bg is not None else np.zeros(0, np.int64)}
             aus.append(Schnappschuss.aus_behalten(d))
         return aus
 
@@ -891,11 +911,80 @@ def treffer_folge(schnappschuesse):
     return aus
 
 
+class Taktring(object):
+    """Leser fuer den Taktring des Moduls (werkzeug/engine_knowledge/taktring.lua): das Modul kopiert JEDEN Spieltakt
+    Einheiten + Geschosse in einen Ring im Spielspeicher; hier werden die Plaetze gelesen, die seit dem letzten Mal neu sind -
+    auch die Takte, die das Spiel innerhalb eines Bilds doppelt rechnet. Basisadresse aus ucp/villagestudio/taktring.txt."""
+
+    MAGIC = 0x54414B54
+
+    def __init__(self, spielordner=None):
+        from befehl import SPIEL
+        pfad = os.path.join(spielordner or SPIEL, "ucp", "villagestudio", "taktring.txt")
+        self.basis = int(open(pfad).read().strip())
+        kopf = struct.unpack("<5i", speicher.lies(self.basis, 20))
+        if kopf[0] != self.MAGIC:
+            raise RuntimeError("Taktring: Kennung fehlt bei 0x%X (%r)" % (self.basis, kopf))
+        self.slots, self.slot, self.kopf = kopf[1], kopf[2], 32
+        self.letzter_takt = None
+
+    def _slot(self, i):
+        roh = speicher.lies(self.basis + self.kopf + i * self.slot, self.slot)
+        takt, takt_kern, max_units, max_geb = struct.unpack_from("<4i", roh, 0)
+        n_u = min(max(max_units, 0), UNITS_MAX)
+        u = np.frombuffer(roh, dtype=UNIT, count=n_u, offset=16)
+        e = np.frombuffer(roh, dtype=ENTITY, count=ENTITIES_MAX, offset=16 + UNITS_MAX * UNIT_GROESSE)
+        n_b = min(max(max_geb, 0), BUILDINGS_MAX)
+        g = np.frombuffer(roh, dtype=BUILDING, count=n_b, offset=16 + UNITS_MAX * UNIT_GROESSE + ENTITIES_MAX * ENTITY_GROESSE) if n_b else np.zeros(0, BUILDING)
+        return takt, takt_kern, u, e, g
+
+    def neue(self, spieler=None):
+        """[Schnappschuss, ...] aller Takte seit dem letzten Aufruf (aufsteigend); Spielerdaten/Hoehe aus dem Jetzt-Stand."""
+        index, letzter = struct.unpack("<2i", speicher.lies(self.basis + 12, 8))
+        if index < 0 or letzter == self.letzter_takt:
+            return []
+        jetzt = Schnappschuss(mit_trupps=False, mit_feldern="hoehe")
+        aus = []
+        for k in range(self.slots):
+            i = (index - k) % self.slots
+            takt, takt_kern, u, e, g = self._slot(i)
+            if takt <= 0 or (self.letzter_takt is not None and takt <= self.letzter_takt):
+                break
+            m = (u["logicalState"] == 2)
+            if spieler is not None:
+                m &= np.isin(u["owner"], list(spieler))
+            me = e["logicalState"] != 0
+            d = {"takt": takt, "takt_kern": takt_kern, "rein": True, "dauer_ms": 0.0,
+                 "einheiten": u[m].copy(), "einheiten_idx": np.flatnonzero(m), "entities": e[me].copy(), "entities_idx": np.flatnonzero(me),
+                 "spieler": jetzt.spieler.copy(), "hoehe": jetzt.hoehe, "feldnr": feldnummern(), "trupps": np.zeros(0, TRIBE),
+                 "trupps_idx": np.zeros(0, np.int64)}
+            mg = (g["logicalState"] == 2) if len(g) else np.zeros(0, bool)
+            d["gebaeude"] = np.lib.recfunctions.repack_fields(g[mg]) if mg.any() else np.zeros(0, BUILDING_PACKED)
+            d["gebaeude_idx"] = np.flatnonzero(mg)
+            aus.append(Schnappschuss.aus_behalten(d))
+        aus.reverse()
+        if aus:
+            self.letzter_takt = aus[-1].takt
+        return aus
+
+
 def protokollieren(sekunden, spieler=None, pfad=None, alle_ms=0.0, mit_trupps=False, alle_takte=1):
     """Sekunden lang jeden neuen Takt behalten (kein JSON unterwegs), dann als npz schreiben. Gibt (pfad, Protokoll) zurueck."""
     p = Protokoll(spieler)
     letzter, ende, hoehe_da = None, time.time() + sekunden, False
+    ring = None
+    if alle_takte == 1 and not mit_trupps:
+        try:
+            ring = Taktring()        # Modul-Ring vorhanden -> wirklich jeder Takt
+        except Exception:  # noqa: BLE001
+            ring = None
     while time.time() < ende:
+        if ring is not None:
+            for s in ring.neue(spieler):
+                p.aufnehmen(s)
+                letzter = s.takt
+            time.sleep(0.002)
+            continue
         s = Schnappschuss(mit_trupps=mit_trupps, mit_feldern="hoehe")
         if s.takt != letzter and (letzter is None or s.takt - letzter >= alle_takte):
             p.aufnehmen(s)

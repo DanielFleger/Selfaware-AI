@@ -738,6 +738,7 @@ end
 -- So teilen sich zwei Lenker (Spieler 1 und 2) einen Kanal. GRENZE: spielt ein Mensch mit, gehen seine Klicks in einem
 -- Takt mit festgehaltenem fremden Platz an diesen Spieler.
 local SLOT_ICH = 0x01A275DC
+local taktring = require("taktring")   -- B-251 SRE 25.10.: jeden Spieltakt Einheiten/Geschosse/Gebaeude in einen Ring (werkzeug/taktring.lua)
 local SPIELBEFEHL_ART = { abreissen = true, baue = true, spielbefehl = true, werbe = true }
 local platzFest = nil          -- { sp = Spieler, alt = Platz davor } bis zum naechsten Takt
 local aufgeschoben = {}        -- Spielbefehle eines anderen Spielers aus diesem Takt
@@ -4373,6 +4374,7 @@ local function platzTick()
 end
 
 local function everyTick()
+  pcall(taktring.tick)        -- B-251: Taktring zuerst, damit der Stand VOR den Lenker-Eingriffen dieses Takts im Ring liegt
   if kern ~= nil then pcall(kern.takt, tick(), core.readInteger(SLOT_ICH) or 1) end   -- 19.10. B-115: Rust-Kern je Takt
   pcall(platzTick)            -- 19.10.: Platz zurueck / aufgeschobene Spielbefehle (1v1, zwei Lenker)
   pcall(ladePauseTick)        -- zuerst: die Pause soll vor allem anderen greifen
