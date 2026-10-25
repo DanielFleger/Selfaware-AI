@@ -27,12 +27,12 @@ Regeln je Takt:
                 neues Ziel nach Tod: Zielen + Schiessen bis zum Schussschritt (Bogen 48 Takte, AU6 gemessen 44-46)
   5 Geschosse   in der Luft: Landetakt (sre_rest_takte) auf die anvisierte Einheit am Zielfeld (+-1), sonst Feind auf dem Feld
   6 Tod         Leben <= 0 -> stirbt, verlaesst sofort die Felder
-Nicht enthalten: neue Befehle (Absicht der Gegner-KI), neue Einheiten, freie Schusslinie, Vorhalt und Zufalls-Fehlschuss
-(AU24), alte Feindliste nach Lastverteiler (alte Protokolle ohne ihn), Feuer, Gebaeude.
-Stand 25.10. 23:55 mit AU23/AU24 (Suche vor allen Bewegungen, Eilen zur Feldmitte, Gegenzuweisung mit Blick, Fremdtreffer
-je ueberflogenem Feld ueber auge.bahn_neu / sre_bahn) - gehirn_pruefen ... 90 30 ... sim:
-200603 neue Begegnungen 94,2 %, Opfer-Quote 98,6 %, Praezision 98,2 %, Menge 1,000, Geschoss-Zeit +-5 90,5 %;
-Gegenprobe 191847 86,4 % / 96,0 % / 96,2 % (Baustein 2: 54 % bzw. 51 %). Daniels Ziel: 100 %.
+Nicht enthalten: neue Befehle (Absicht der Gegner-KI), neue Einheiten, freie Schusslinie, Zufalls-Fehlschuss
+(AU25, SEC_RNG), alte Feindliste nach Lastverteiler (alte Protokolle ohne ihn), Feuer, Gebaeude.
+Stand 26.10. 00:05 mit AU23-AU25 (Suche vor allen Bewegungen, Eilen zur Feldmitte, Gegenzuweisung mit Blick, Fremdtreffer
+je ueberflogenem Feld ueber auge.bahn_neu / sre_bahn, Schuetzen-Drehung nur im Zielen je Takt ein Achtel, Vorhalt 133/100)
+- gehirn_pruefen ... 90 30 ... sim: 200603 neue Begegnungen 95,2 %, Opfer-Quote 98,8 %, Praezision 98,7 %, Menge 1,000,
+Geschoss-Zeit +-5 91,5 %; Gegenprobe 191847 87,1 % / 96,2 % / 96,7 % (Baustein 2: 54 % bzw. 51 %). Daniels Ziel: 100 %.
 """
 import os
 import sys
@@ -72,6 +72,28 @@ def _richtung8(dx, dy):
     return int(round(math.atan2(dx, -dy) / (math.pi / 4))) % 8
 
 
+def _zielrichtung(x, y, tx, ty):
+    """AU25 calculatePreferredRelativeOrientation 0x0046C9E0 (aus FELDERN): None = gleiches Feld."""
+    dx, dy = abs(tx - x), abs(ty - y)
+    if not dx and not dy:
+        return None
+    if 2 * dy < dx:
+        return 6 if tx < x else 2
+    if 2 * dx < dy:
+        return 0 if ty < y else 4
+    if ty < y:
+        return 1 if x <= tx else 7
+    return 5 if tx < x else 3
+
+
+def _drehe(blick, ziel):
+    """AU25 setUnitFacingDirectionTowardsTarget 0x0052FD00: je Takt ein Achtel, kuerzester Weg, bei Gegenrichtung +1."""
+    d = (ziel - blick) % 8
+    if d == 0:
+        return blick
+    return (blick + 1) % 8 if d <= 4 else (blick - 1) % 8
+
+
 def _fein(dx, dy):
     dx, dy = abs(dx), abs(dy)
     mx, mn = max(dx, dy), min(dx, dy)
@@ -108,7 +130,8 @@ class Simulator(object):
     SUCHE_ZUERST = True             # AU23: Feindsuche im ersten Durchgang von updateUnits, alle Lagen vom Vortakt
     EILEN = True                    # AU23: mit Ziel im Laufen +978 = 1 -> je Zug ein Mikroschritt mehr bis zur Feldmitte
     GEGEN_BLICK = True
-    FREMDTREFFER = True             # AU4/AU24: Geschoss prueft je Takt das ueberflogene Feld (auge.bahn_neu / sre_bahn)              # AU23: Gegenzuweisung setzt beim Opfer attackedUnitID UND Blickrichtung          # Schuetzen drehen beim Zielen/Schiessen zum Ziel (gemessen, 91 % der Schiess-Takte)        # je Einheit: n = Nahkampf, s = Feindsuche, l = Laufen (gemessen, s. Register L190)
+    FREMDTREFFER = True
+    VORHALT = True                  # AU25: Vorhalt bei laufendem Ziel             # AU4/AU24: Geschoss prueft je Takt das ueberflogene Feld (auge.bahn_neu / sre_bahn)              # AU23: Gegenzuweisung setzt beim Opfer attackedUnitID UND Blickrichtung          # Schuetzen drehen beim Zielen/Schiessen zum Ziel (gemessen, 91 % der Schiess-Takte)        # je Einheit: n = Nahkampf, s = Feindsuche, l = Laufen (gemessen, s. Register L190)
 
     def __init__(self, sw):
         self.G = gehirn.Gehirn(sw)
@@ -323,7 +346,16 @@ class Simulator(object):
             return []
         plus = self.auge.ABSCHUSS_HOEHE_PFERD if u.typ == 72 else self.auge.ABSCHUSS_HOEHE.get(et, 30)
         zx, zy = z.feld
-        return self.auge.bahn_neu((u.mx, u.my), u.hz + plus, (zx * 8 + 4, zy * 8 + 4), z.hz + 30, et)
+        tx, ty = zx * 8 + 4, zy * 8 + 4
+        if self.VORHALT and z.weg:
+            # AU25 prepareProjectileTarget 0x0053CBD0: laufendes Ziel + v Mikroschritte in SEINER Blickrichtung,
+            # i = Strecke * 133 // 100 (Strecke = Sichtlinie max(|dx|,|dy|) - 1), v nach Tempo
+            i = (max(abs(tx - u.mx), abs(ty - u.my)) - 1) * 133 // 100
+            cms = z.tpm - 1 - z.sbs
+            v = i // 8 if z.sbs else (i // 16 if cms < 2 else i // (cms * 16))
+            ddx, ddy = _RICHTUNG.get(z.blick, (0, 0))
+            tx, ty = tx + ddx * v, ty + ddy * v
+        return self.auge.bahn_neu((u.mx, u.my), u.hz + plus, (tx, ty), z.hz + 30, et)
 
     def _laufen_alle(self, U, felder):
         """L190 (P13 + Messung): Zug alle tpm Takte um (stateBasedSpeed + 1) Mikroschritte zur Wegpunkt-Mitte."""
@@ -501,18 +533,19 @@ class Simulator(object):
                         self._suche(U, u)
                 for i in reihe:
                     nahkampf(U[i], k)
-            # 4 Schuetzen - Blick zum Ziel ab Beginn des Zielens (gemessen, s. _richtung8)
+            # 4 Schuetzen - AU25: nur im Zielen (5) je Takt ein Achtel zur Zielrichtung (aus Feldern); Schiessen/Nachladen
+            #   halten die Richtung
             if self.SCHUETZEN_BLICK:
                 for u in U.values():
                     p = self.phasen.get(u.typ)
                     if u.tot or u.schuss_n is None or not p or not u.schuss_ziel:
                         continue
-                    if u.schuss_n - p["vor"] - p["zielen"] <= k <= u.schuss_n:
+                    if u.schuss_n - p["vor"] - p["zielen"] <= k < u.schuss_n - p["vor"]:
                         z = U.get(u.schuss_ziel)
                         if z is not None and not z.tot:
-                            r = _richtung8(z.mx - u.mx, z.my - u.my)
+                            r = _zielrichtung(u.feld[0], u.feld[1], z.feld[0], z.feld[1])
                             if r is not None:
-                                u.blick = r
+                                u.blick = _drehe(u.blick, r)
             for u in U.values():
                 if u.tot or u.schuss_n != k:
                     continue
