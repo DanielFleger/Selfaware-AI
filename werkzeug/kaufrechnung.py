@@ -32,6 +32,11 @@ KASERNE, SOELDNER, STALL = 9, 8, 35                 # BT: BARRACKS, MERCENARYPOS
 KASERNE_ARTEN = (22, 23, 24, 25, 26, 27, 28)        # Reihenfolge truppe.kaserne_gold / einheit.euro_resource_costs (UT)
 SOELDNER_ARTEN = (70, 71, 72, 73, 74, 75, 76)       # Reihenfolge truppe.soeldner_gold (nonEuroRecruit)
 ABSTAND = 12                                        # Felder zwischen beiden Seiten in der Rechnung (Schuetzen schiessen erst)
+# SRE 25.10. 09:59 (processEntityDamageToUnit 0x00531920): Geschossschaden je Schuetzenart aus verschiedenen Tabellen -
+# Bogen/arab. Bogen/Pferdebogen arrow_damage, Armbrust bolt_damage, Schleuderer stone_damage; der Feuerwerfer wirkt ueber
+# Feuer-Entities (Tabelle gibt 0) - fuer ihn bleibt die Duellmessung (gefecht.tabelle, FERN)
+GESCHOSS_TABELLE = {22: "einheit.arrow_damage", 70: "einheit.arrow_damage", 74: "einheit.arrow_damage",
+                    23: "einheit.bolt_damage", 72: "einheit.stone_damage"}
 MIN_PAARE = 3                                       # so viele gemessene Paare braucht ein Faktor je Art
 
 
@@ -107,7 +112,8 @@ def kalibrierung(sw, duelle=None):
             gemessen.add(a)
     for a, zeile in (F or {}).items():
         zyk = schuss_zyklus(sw, a)
-        q = [v / ad[z] for z, v in zeile.items() if z < n and ad[z] > 0]
+        gd = _w(sw, GESCHOSS_TABELLE[a]) if a in GESCHOSS_TABELLE else ad
+        q = [v / gd[z] for z, v in zeile.items() if z < n and gd[z] > 0]
         if len(q) >= MIN_PAARE:
             fern[a] = statistics.median(q) * zyk if zyk else statistics.median(q)
             gemessen.add(a)
@@ -135,12 +141,17 @@ def schadenstabelle(sw, duelle=None):
         je = max(1, treffer[a] if a < len(treffer) and treffer[a] else 1)
         schaden[a] = {z: md[a][z] / float(je) for z in range(n) if hp[z] > 0 and md[a][z] > 0}
         if a in gefecht.FERN_REICH:
+            if a not in GESCHOSS_TABELLE:
+                if a in (F or {}):
+                    fernt[a] = dict(F[a])                    # Feuerwerfer: Feuer-Entities, nur die Duellmessung kennt den Wert
+                continue
+            gd = _w(sw, GESCHOSS_TABELLE[a])
             zyk = zyklen.get(a)
             if not zyk:
                 ungelesen.append(a)
                 zyk = zyk_std
             if zyk:
-                fernt[a] = {z: ad[z] / float(zyk) for z in range(n) if hp[z] > 0 and ad[z] > 0}
+                fernt[a] = {z: gd[z] / float(zyk) for z in range(n) if hp[z] > 0 and gd[z] > 0}
     kalib = {"nah": nah, "fern": fern, "gemessen": sorted(gemessen), "zyklus_standard": zyk_std, "ungelesen": ungelesen}
     return schaden, fernt, leben, kalib
 
