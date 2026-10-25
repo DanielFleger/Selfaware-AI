@@ -434,6 +434,52 @@ def feindliste_neu(lastverteiler, spieler):
     return lastverteiler is not None and int(lastverteiler) - int(spieler) in (10, 60, 100, 160)
 
 
+def _spiel_abstand(dx, dy):
+    """findNearestEnemyAndHeadTowardsIt 0x0054A7B0, ganzzahlig wie im Spiel (Mikroschritte): kleiner Wert m, grosser M:
+    ((m * 2) // 5 * m) // M + M; dx == 0 und dy == 0 -> 0."""
+    dx, dy = abs(int(dx)), abs(int(dy))
+    if dx < dy:
+        return ((dx * 2) // 5 * dx) // dy + dy
+    if dx == 0:
+        return 0
+    return ((dy * 2) // 5 * dy) // dx + dx
+
+
+_OHNE_FEINDLISTE = None
+
+
+def feind_abstand(vorher, jetzt, nr):
+    """closestEnemyMicroDistance der Einheit `nr`, wie das Spiel es im Suchtakt von `jetzt` rechnet: Minimum ueber die
+    Feindliste ohne Artfilter; updateUnits bewegt die Einheiten AUFSTEIGEND, also stehen Feinde mit kleinerer Nummer schon am
+    Ort von `jetzt`, groessere noch am Ort von `vorher`. Feindliste angenaehert: alle lebenden, nicht sterbenden Einheiten
+    anderer Besitzer (Besitzer != 0), ohne Haendler/Pferd/Kamel/Geist/Mutter/Kind - die echte Liste ist bis zu 60 Takte alt
+    (AU20) und schliesst versteckte Einheiten (+856) aus; beides steht nicht im Protokoll. Rueckgabe hoechstens 32000."""
+    global _OHNE_FEINDLISTE
+    if _OHNE_FEINDLISTE is None:
+        try:
+            import spielwerte
+            rueck = {v: k for k, v in spielwerte.UT.items()}
+            _OHNE_FEINDLISTE = {rueck[n] for n in ("TRADER", "TRADERHORSE", "CAMEL", "GHOST", "MOTHER", "CHILD") if n in rueck}
+        except Exception:  # noqa: BLE001
+            _OHNE_FEINDLISTE = {64}
+
+    def tabelle(s):
+        idx = s._einheiten_idx if getattr(s, "_einheiten_idx", None) is not None else np.arange(len(s.einheiten))
+        return {int(idx[j]): s.einheiten[j] for j in range(len(s.einheiten))}
+    tv, tj = tabelle(vorher), tabelle(jetzt)
+    ich = tj.get(int(nr)) if int(nr) in tj else tv.get(int(nr))
+    if ich is None:
+        return None
+    x0, y0, own = int(ich["microXPosition"]), int(ich["microYPosition"]), int(ich["owner"])
+    best = 100000
+    for k in set(tv) | set(tj):
+        r = tj.get(k) if k < int(nr) and k in tj else tv.get(k, tj.get(k))
+        if r is None or int(r["logicalState"]) != 2 or int(r["dying"]) or int(r["owner"]) in (0, own) or int(r["unitType"]) in _OHNE_FEINDLISTE:
+            continue
+        best = min(best, _spiel_abstand(int(r["microXPosition"]) - x0, int(r["microYPosition"]) - y0))
+    return min(best, 32000)
+
+
 def _i4(adr):
     return struct.unpack("<i", speicher.lies(adr, 4))[0]
 
