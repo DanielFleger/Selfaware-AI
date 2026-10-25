@@ -313,14 +313,47 @@ def abgeleitet(w, sch, hk):
     aus["belagerung.gesamt"] = {
         "adresse": "zusammengefuehrt aus gebaeude.kosten (BT 80-87), base_hp, geschoss.reichweite, takt.schuss_zyklus",
         "form": "UT -> dict",
-        "bedeutung": "Belagerungsgeraet auf einen Blick; Bauzeit beim Ingenieur und Bedienerzahl aus dem Code noch offen "
-                     "(Daniel-Wissen: Katapult/Tribok/Mangonel 2 Ingenieure, Ramme/Turm/Schild 4 - ungeprueft)",
+        "bedeutung": "Belagerungsgeraet auf einen Blick; Bauzeit siehe belagerung.bauzeit",
         "werte": {UT[ut]: {"leben": hp[ut], "kosten_gold": w["gebaeude.kosten"]["werte"][bt][4],
                            "kosten_holz": w["gebaeude.kosten"]["werte"][bt][0],
                            "reichweite_felder": w["geschoss.reichweite"]["werte"][et] if et else None,
                            "zyklus_takte": sch[ut]["zyklus_takte"] if ut in sch else None}
                   for ut, bt, et in ((39, 80, 2), (40, 81, 3), (41, 86, 4), (61, 87, 20), (77, 54, 37), (59, 82, 0), (58, 83, 0), (60, 84, 0))}}
     rc = w["einheit.euro_resource_costs"]["werte"]
+    aus["belagerung.bauzeit"] = {
+        "adresse": "Code Update*Building 0x0041F3B0 (Katapult), 0x0041F7C0 (Tribok), 0x0041FC90 (Turm), 0x00420120 (Ramme), "
+                   "0x004205B0 (Schild), 0x0041E240 (Feuerballiste)", "form": "BT -> dict",
+        "bedeutung": "Baustelle (BT 80-87/54) zaehlt je Takt die anwesenden Baumeister (E_ENGINEER 30) auf buildingProgress; ist die "
+                     "Schwelle ueberschritten, entsteht das Geraet und die Baumeister werden Bediener. Bauzeit in Takten = Schwelle / "
+                     "Baumeister vor Ort. Bedienerzahl steht nicht in einer Tabelle (arbeiter_zahl 0); Katapult: bei genau 2 werden beide "
+                     "Bediener (Code), die uebrigen Zahlen sind Spielwissen (ungeprueft)",
+        "werte": {"CATAPULT": {"schwelle": 320, "baumeister_angenommen": 2, "takte": 160},
+                  "TREBUCHET": {"schwelle": 640, "baumeister_angenommen": 3, "takte": 213},
+                  "SIEGETOWER": {"schwelle": 1280, "baumeister_angenommen": 4, "takte": 320},
+                  "BATTERINGRAM": {"schwelle": 640, "baumeister_angenommen": 4, "takte": 160},
+                  "SHIELD": {"schwelle": 120, "baumeister_angenommen": 1, "takte": 120},
+                  "FIREBALLISTA": {"schwelle": 320, "baumeister_angenommen": 2, "takte": 160},
+                  "MANGONEL/BALLISTA": "Turmgeraete, kein Zeltbau - Code nicht gelesen"}}
+    aus["feuer.regeln"] = {
+        "adresse": "Code 0x00410920 getBuildingFlammabilityFactor, 0x0041C810 lightUpBuilding, 0x004052E0 IgniteFireAtMiniTile, "
+                   "0x00405680 UpdateFireEntity, 0x00422E20 updateBuildings, 0x00571C00 UpdateSlave, 0x00422C60", "form": "Text",
+        "bedeutung": "Brennbarkeit je Gebaeudeart: 0 = brennt nicht (Lager, Bergfriede, Torhaeuser, Tuerme, Mauern, Markt? nein: Markt 1), "
+                     "1 = normal (Huetten, Werkstaetten, Hoefe, Kaserne, Soeldnerposten, Waffenlager, Kornspeicher, Kirchen), 5 = sehr "
+                     "(Schmiede, Baeckerei, Gasthaus, Pechkocher), 4 = Exerzier-/Lagerplatz. ZUENDUNG ist KEIN Zufall: Sklave zuendet ein "
+                     "brennbares Fremdgebaeude bei jedem zweiten Hieb (alle ~186 Takte) sicher, ausser es wurde gerade geloescht "
+                     "(cooldownTimer); an nicht brennbaren macht er 8 Schaden je Hieb. Brand: fireDuration zaehlt je Takt hoch, alle 20 "
+                     "Takte 1 Schaden (Huette/Holzfaeller/Jaeger/Farmen 4); auf jedem Gebaeudefeld entsteht ein Feuer (Staerke 2) mit "
+                     "zufaelliger Verzoegerung 0-120 Takte. AUSBREITUNG: ein Feuer mit Staerke >= 2 zuendet zufaellig versetzte "
+                     "Nachbar-Minifelder (Hoehenunterschied <= 24) mit Staerke-1, Gebaeude dort werden angezuendet, Baeume auch; "
+                     "Torhaeuser/Tuerme nie. ENDE: keine feste Brenndauer gefunden - brennt bis zerstoert oder geloescht (Feuerwache "
+                     "UpdateFireWatch 0x00543340, Brunnen); Zufalls-Ausbreitung auf andere Gebaeude des Spielers nur als KI-Ereignis "
+                     "(spreadFireRandomlyToBuildings, Gewicht 1, sehr brennbare 5)",
+        "werte": {"brennbarkeit": {"0": "Lager, Bergfriede, Torhaeuser, Tuerme, Mauern, Brunnen, Stall? (siehe Code)",
+                                   "1": "Huetten, Werkstaetten, Hoefe, Kaserne, Soeldnerposten, Waffenlager, Kornspeicher, Markt, Kirchen",
+                                   "4": "Exerzierplatz, Lagerplatz", "5": "Schmiede, Baeckerei, Gasthaus, Pechkocher"},
+                  "zuendung_sklave_takte": 186, "schaden_je_20_takte": 1, "schaden_holzbau_je_20_takte": 4,
+                  "feuer_staerke_gebaeude": 2, "verzoegerung_takte_max": 120, "ausbreitung_hoehenunterschied_max": 24,
+                  "brenndauer": "unbegrenzt bis Loeschen/Zerstoerung (nicht gefunden)"}}
     aus["anwerben.voraussetzung"] = {
         "adresse": "Code 0x00464EF0 ProcessRecruitUnit, 0x0052E960 euroRecruit, 0x0052EC10 nonEuroRecruit, 0x00464DA0",
         "form": "UT -> dict",
