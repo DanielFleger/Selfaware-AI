@@ -406,7 +406,13 @@ def abgeleitet(w, sch, hk):
                   "verblasst_ab_mikroschritte": 120, "aktualisierung_takte": 128, "startwert": 32000,
                   "aufdecker": ["E_SPEAR", "E_PIKE", "E_MACE", "E_SWORD", "E_KNIGHT", "E_MONK", "LORD", "A_SLAVE", "A_ASSASSIN",
                                 "A_SWORDSMAN", "A_HARCHER", "E_ENGINEER", "S_*"],
-                  "keine_aufdecker": ["E_ARCHER", "E_XBOW", "A_ARCHER", "A_SLINGER", "A_FIRETHROWER"]}}
+                  "keine_aufdecker": ["E_ARCHER", "E_XBOW", "A_ARCHER", "A_SLINGER", "A_FIRETHROWER"],
+                  "zielhaltung": "Die 160-Regel gilt nur beim ERWERBEN des Ziels (acquireShootTarget). Ein Schuetze, der den "
+                                 "Meuchelmoerder einmal hat, prueft bei jedem Schuss (UpdateCrusaderArcher, Zustand 6, Bild 6) nur: "
+                                 "Ziel lebt, gleiche uid, freie Schusslinie (arrowShootingRelated) - KEINE Reichweite, KEIN "
+                                 "Sichtbarkeitswert. Er schiesst also weiter, bis der Meuchelmoerder tot ist, die Linie verdeckt ist "
+                                 "oder der Pfeil ihn nicht mehr erreicht; erst dann sucht er neu (und dann greift die 160-Regel wieder). "
+                                 "SAI-Messung 25.10. (10 von 30 Beschuss-Faellen bei 20-31 Feldern, alle auf dem Rueckweg) passt dazu"}}
     aus["zustand.dauer"] = {
         "adresse": "Zustandsnummern UnitState; Dauern teils gemessen (SAI), teils aus Tabellen", "form": "Text",
         "bedeutung": "101 Gehen: 8 x (Stufe+1) Takte je Feld; 106 Nahkampf: Schlag jeden Takt; 4/5/6 Nachladen/Zielen/Schiessen: "
