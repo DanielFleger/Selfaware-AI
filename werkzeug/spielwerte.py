@@ -16,7 +16,8 @@ Herkunft der Adressen und Aufbauten: OpenSHC-Ghidra-Projekt (Codex-Index 23.10.2
 und symbols.json). Je Tabelle steht die Ghidra-Struktur dabei. Marke je Wert: "abgelesen" (aus der Datei gelesen,
 Aufbau aus Ghidra), bis ein Test im Spiel ihn bestaetigt (Wissensregister).
 
-Aufruf: python werkzeug/spielwerte.py [--exe <pfad>] [--vergleich] [--still]
+Aufruf: python werkzeug/spielwerte.py [--exe <pfad>] [--spiel <ordner>] [--vergleich] [--still]
+Anzeigenamen (Einheiten, Waren) kommen aus cr.tex im Spielordner, nicht aus der exe (A7).
 """
 import argparse
 import json
@@ -139,6 +140,30 @@ TABELLEN = {
 }
 
 
+SPIELORDNER = r"C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme Instanz5"
+
+
+def namen(spielordner=SPIELORDNER):
+    """Anzeigenamen aus cr.tex (TextManager::loadCRTex 0x00473870): 260 int32 Gruppen-Offsets (in UTF-16-Zeichen),
+    danach der Text UTF-16-LE, Eintraege mit NUL getrennt, je Eintrag eine Leerzeile. Gruppe 88 (eTextSections, OpenSHC) =
+    Einheitenarten in UT-Reihenfolge (Eintrag 2*UT), Gruppe 2 = Waren (2*RT). Sprache = Gruppe 6."""
+    pfad = os.path.join(spielordner, "cr.tex")
+    if not os.path.exists(pfad):
+        return {"fehler": "cr.tex nicht gefunden: %s" % pfad}
+    d = open(pfad, "rb").read()
+    offs = list(struct.unpack("<260i", d[:0x410]))
+    txt = d[0x410:]
+
+    def gruppe(i):
+        a = offs[i]
+        b = next((o for o in offs[i + 1:] if o > a), len(txt) // 2)
+        return txt[a * 2:b * 2].decode("utf-16-le", errors="replace").split("\x00")
+    g88, g2 = gruppe(88), gruppe(2)
+    return {"datei": pfad, "sprache": gruppe(6)[0],
+            "einheit": {ut: g88[2 * ut] for ut in range(1, 80) if 2 * ut < len(g88) and g88[2 * ut]},
+            "ware": {rt: g2[2 * rt] for rt in range(1, 25) if 2 * rt < len(g2) and g2[2 * rt]}}
+
+
 def quelle_live():
     import speicher
     speicher.griff()
@@ -201,6 +226,7 @@ def gegenproben(w):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--exe", default=REFERENZ_EXE)
+    ap.add_argument("--spiel", default=SPIELORDNER, help="Spielordner mit cr.tex (Anzeigenamen)")
     ap.add_argument("--vergleich", action="store_true", help="live UND Datei lesen und Abweichungen zeigen")
     ap.add_argument("--still", action="store_true")
     a = ap.parse_args()
@@ -215,7 +241,8 @@ def main():
     ergebnisse = [(q, lesen(l)) for q, l in quellen]
     q, w = ergebnisse[0]
     aus = {"erstellt": time.strftime("%Y-%m-%d %H:%M:%S"), "quelle": q, "marke": "abgelesen (Datei/Speicher, Aufbau aus Ghidra OpenSHC)",
-           "aufzaehlungen": {"UT": UT, "BT": BT, "RT": RT, "ET": ET}, "tabellen": w, "gegenproben": gegenproben(w)}
+           "aufzaehlungen": {"UT": UT, "BT": BT, "RT": RT, "ET": ET}, "namen": namen(a.spiel), "tabellen": w,
+           "gegenproben": gegenproben(w)}
     if len(ergebnisse) > 1:
         q2, w2 = ergebnisse[1]
         abw = {k: {"live": w[k]["werte"], "datei": w2[k]["werte"]} for k in w if w[k]["werte"] != w2[k]["werte"]}
@@ -225,6 +252,8 @@ def main():
     if not a.still:
         print("Quelle:", q)
         print("Gegenproben:", json.dumps(aus["gegenproben"]))
+        n = aus["namen"]
+        print("Namen (%s): %s" % (n.get("sprache", "?"), {k: n["einheit"].get(k) for k in (22, 26, 55, 73)} if "einheit" in n else n))
         if "vergleich" in aus:
             print("Abweichende Tabellen live/Datei:", aus["vergleich"]["abweichende_tabellen"] or "keine")
         print("Geschrieben:", ziel)
