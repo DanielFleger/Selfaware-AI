@@ -167,6 +167,25 @@ TRIBE = _dtype([
     ("targetBuildingID", "<i2", 720), ("targetBuildingUID", "<i4", 724),
 ], TRIBE_GROESSE)
 
+# AICSpecification (676 Byte, 20 Stueck ab DAT_AICState 0x023FC8E8): die "Persoenlichkeit" je KI-Art (aiType 1..16 -> Index aiType-1)
+AIC_STATE = 0x023FC8E8
+AIC = _dtype([
+    ("criticalPopularity", "<i4", 24), ("lowestPopularity", "<i4", 28), ("highestPopularity", "<i4", 32),
+    ("taxesMin", "<i4", 36), ("taxesMax", "<i4", 40), ("buildInterval", "<i4", 120), ("recruitGoldThreshold", "<i4", 196),
+    ("RaidRetargetDelay", "<i4", 496), ("AttForceBase", "<i4", 500), ("AttForceRandom", "<i4", 504),
+    ("AttForceSupportAllyThreshold", "<i4", 508), ("AttForceRallyPercentage", "<i4", 512), ("AttMovingTribesThreshold", "<i4", 516),
+    ("AttAssaultDelay", "<i4", 520), ("AttUnitPatrolRecommandDelay", "<i4", 524), ("AttCoordinationPreference", "<i4", 528),
+    ("SiegeEngine", ("<i4", (8,)), 532), ("CowThrowInterval", "<i4", 564), ("AttMaxEngineers", "<i4", 572),
+    ("AttDiggingUnit", "<i4", 576), ("AttDiggingUnitMax", "<i4", 580), ("AttUnit2", "<i4", 584), ("AttUnit2Max", "<i4", 588),
+    ("AttMaxAssassins", "<i4", 592),
+], 676)
+
+
+def aic_lesen():
+    """[20] AICSpecification live (UCP3 kann sie aendern - deshalb nicht aus der Datei)."""
+    return np.frombuffer(speicher.lies(AIC_STATE, 20 * 676), dtype=AIC)
+
+
 PITCH_DTYPE = _dtype([("tile", "<i4", 0), ("uid", "<i4", 4), ("owner", "<i2", 8), ("x", "<i2", 10), ("y", "<i2", 12),
                       ("state", "<i2", 16)], 20)
 
@@ -357,7 +376,10 @@ class Schnappschuss(object):
             m &= np.isin(u["owner"], list(spieler))
         e = self.entities
         me = (e["logicalState"] != 0)
+        t = self.trupps
+        mt = (t["size"] > 0) if len(t) else np.zeros(0, bool)
         return {"takt": self.takt, "takt_kern": self.takt_kern, "rein": self.rein, "dauer_ms": self.dauer_ms,
+                "trupps": t[mt].copy(), "trupps_idx": np.flatnonzero(mt),
                 "einheiten": u[m].copy(), "einheiten_idx": np.flatnonzero(m), "entities": e[me].copy(),
                 "entities_idx": np.flatnonzero(me), "spieler": self.spieler.copy(), "hoehe": getattr(self, "hoehe", None),
                 "feldnr": feldnummern() if getattr(self, "hoehe", None) is not None else None}
@@ -368,9 +390,11 @@ class Schnappschuss(object):
         s.takt, s.takt_kern, s.rein, s.dauer_ms, s.versuch = d["takt"], d["takt_kern"], d["rein"], d["dauer_ms"], 1
         s.einheiten, s.entities, s.spieler = d["einheiten"], d["entities"], d["spieler"]
         s._einheiten_idx, s._entities_idx = d["einheiten_idx"], d["entities_idx"]
+        s.trupps = d.get("trupps", np.zeros(0, TRIBE))
+        s._trupps_idx = d.get("trupps_idx")
         s.hoehe = d.get("hoehe")
         s._feldnr = d.get("feldnr")
-        s.gebaeude, s.trupps = np.zeros(0, BUILDING), np.zeros(0, TRIBE)
+        s.gebaeude = np.zeros(0, BUILDING)
         s.woche = s.monat = s.jahr = 0
         s.teams = [0] * 9
         return s
@@ -660,7 +684,7 @@ class Schnappschuss(object):
             r = t[i]
             k = int(r["rallyPointCount"])
             aus.append({
-                "id": int(i), "owner": int(r["owner"]), "tribeState": int(r["tribeState"]), "tribeType": int(r["tribeType"]),
+                "id": self._id("trupps", i), "owner": int(r["owner"]), "tribeState": int(r["tribeState"]), "tribeType": int(r["tribeType"]),
                 "sre_tribeType_name": TRIBE_TYPE.get(int(r["tribeType"]), ""), "tribeBehaviorType": int(r["tribeBehaviorType"]),
                 "unitType": int(r["unitType"]), "size": int(r["size"]), "unitStance": STANCE.get(int(r["unitStance"]), int(r["unitStance"])),
                 "target": [int(r["targetX"]), int(r["targetY"])], "targetBuildingID": int(r["targetBuildingID"]),
@@ -717,6 +741,7 @@ class Protokoll(object):
         self.spieler = spieler
         self.takte, self.kern, self.rein, self.dauer = [], [], [], []
         self.einheiten, self.einheiten_idx, self.entities, self.entities_idx, self.spieler_bloecke = [], [], [], [], []
+        self.trupps, self.trupps_idx = [], []
         self.hoehe = None          # erste Hoehen-Ebene (Rueckwaertskompatibel)
         self.hoehen = []           # Hoehen-Ebene je Takt (Mauern fallen, Gebaeude brennen ab)
         self.feldnr = None
@@ -727,6 +752,7 @@ class Protokoll(object):
         self.einheiten.append(d["einheiten"]); self.einheiten_idx.append(d["einheiten_idx"])
         self.entities.append(d["entities"]); self.entities_idx.append(d["entities_idx"])
         self.spieler_bloecke.append(d["spieler"])
+        self.trupps.append(d.get("trupps", np.zeros(0, TRIBE))); self.trupps_idx.append(d.get("trupps_idx", np.zeros(0, np.int64)))
         if d.get("hoehe") is not None:
             self.hoehen.append(np.array(d["hoehe"]))
             if self.hoehe is None:
@@ -748,6 +774,9 @@ class Protokoll(object):
             entities_idx=np.concatenate(self.entities_idx) if self.entities_idx else np.zeros(0, np.int64),
             entities_grenzen=grenzen(self.entities),
             spieler=np.stack(self.spieler_bloecke) if self.spieler_bloecke else np.zeros((0, SPIELER_ANZAHL), PLAYER),
+            trupps=np.concatenate(self.trupps) if self.trupps else np.zeros(0, TRIBE),
+            trupps_idx=np.concatenate(self.trupps_idx) if self.trupps_idx else np.zeros(0, np.int64),
+            trupps_grenzen=grenzen(self.trupps),
             hoehe=self.hoehe if self.hoehe is not None else np.zeros(0, np.uint8),
             feldnr=self.feldnr if self.feldnr is not None else np.zeros((0, 0), np.int32),
             hoehen=np.stack(self.hoehen) if len(self.hoehen) == len(self.takte) else np.zeros((0, 0), np.uint8),
@@ -761,6 +790,7 @@ class Protokoll(object):
             z = {k: npz[k] for k in npz.files}     # jedes Feld EINMAL entpacken (npz[k] entpackt sonst bei jedem Zugriff neu)
         aus = []
         eg, gg = z["einheiten_grenzen"], z["entities_grenzen"]
+        tg = z["trupps_grenzen"] if "trupps_grenzen" in z else None
         hoehe = z["hoehe"] if len(z["hoehe"]) else None
         feldnr = z["feldnr"] if ("feldnr" in z and z["feldnr"].size) else None
         hoehen = z["hoehen"] if ("hoehen" in z and z["hoehen"].size) else None
@@ -770,18 +800,20 @@ class Protokoll(object):
             d = {"takt": int(takt), "takt_kern": int(z["takt_kern"][i]), "rein": bool(z["rein"][i]), "dauer_ms": float(z["dauer_ms"][i]),
                  "einheiten": z["einheiten"][eg[i]:eg[i + 1]], "einheiten_idx": z["einheiten_idx"][eg[i]:eg[i + 1]],
                  "entities": z["entities"][gg[i]:gg[i + 1]], "entities_idx": z["entities_idx"][gg[i]:gg[i + 1]],
-                 "spieler": z["spieler"][i], "hoehe": hoehe, "feldnr": feldnr}
+                 "spieler": z["spieler"][i], "hoehe": hoehe, "feldnr": feldnr,
+                 "trupps": z["trupps"][tg[i]:tg[i + 1]] if tg is not None else np.zeros(0, TRIBE),
+                 "trupps_idx": z["trupps_idx"][tg[i]:tg[i + 1]] if tg is not None else np.zeros(0, np.int64)}
             aus.append(Schnappschuss.aus_behalten(d))
         return aus
 
 
-def protokollieren(sekunden, spieler=None, pfad=None, alle_ms=0.0):
+def protokollieren(sekunden, spieler=None, pfad=None, alle_ms=0.0, mit_trupps=False, alle_takte=1):
     """Sekunden lang jeden neuen Takt behalten (kein JSON unterwegs), dann als npz schreiben. Gibt (pfad, Protokoll) zurueck."""
     p = Protokoll(spieler)
     letzter, ende, hoehe_da = None, time.time() + sekunden, False
     while time.time() < ende:
-        s = Schnappschuss(mit_trupps=False, mit_feldern="hoehe")
-        if s.takt != letzter:
+        s = Schnappschuss(mit_trupps=mit_trupps, mit_feldern="hoehe")
+        if s.takt != letzter and (letzter is None or s.takt - letzter >= alle_takte):
             p.aufnehmen(s)
             letzter = s.takt
         if alle_ms > 0:
@@ -801,6 +833,7 @@ def main():
     ap.add_argument("--alle", type=float, default=50.0)
     ap.add_argument("--ziel", default="")
     ap.add_argument("--protokoll", type=float, default=0.0, help="Sekunden lang jeden Takt als Rohblock behalten -> npz (fuer das Gehirn)")
+    ap.add_argument("--alle_takte", type=int, default=1, help="Protokoll: nur jeden n-ten Takt behalten (Langzeit)")
     ap.add_argument("--still", action="store_true")
     a = ap.parse_args()
     teile = tuple(a.teile.split(","))
@@ -808,7 +841,7 @@ def main():
     stempel = time.strftime("%Y%m%d_%H%M%S")
     daten = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "daten")
     if a.protokoll > 0:
-        pfad, p = protokollieren(a.protokoll, nur, a.ziel or None)
+        pfad, p = protokollieren(a.protokoll, nur, a.ziel or None, mit_trupps="trupps" in teile, alle_takte=a.alle_takte)
         print("OK: Protokoll %d Takte (%d..%d), %d unrein, Datei %.1f MB -> %s" % (
             len(p.takte), min(p.takte) if p.takte else 0, max(p.takte) if p.takte else 0, sum(1 for r in p.rein if not r),
             os.path.getsize(pfad) / 1e6, pfad))
