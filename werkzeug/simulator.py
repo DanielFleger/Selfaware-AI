@@ -27,11 +27,12 @@ Regeln je Takt:
                 neues Ziel nach Tod: Zielen + Schiessen bis zum Schussschritt (Bogen 48 Takte, AU6 gemessen 44-46)
   5 Geschosse   in der Luft: Landetakt (sre_rest_takte) auf die anvisierte Einheit am Zielfeld (+-1), sonst Feind auf dem Feld
   6 Tod         Leben <= 0 -> stirbt, verlaesst sofort die Felder
-Nicht enthalten: neue Befehle (Absicht der Gegner-KI), neue Einheiten, freie Schusslinie, Fremdtreffer vor dem Ziel (AU20),
-Zug-Phase je Einheit (Zaehler nicht gelesen), Feuer, Gebaeude.
-Stand 25.10. 23:15 mit AU22 (Zug-Phase aus der Vorgeschichte) und Schuetzen-Blick (gehirn_pruefen ... 90 30 ... sim):
-200603 neue Begegnungen 90,4 % (ZIEL >= 90 erreicht), Opfer-Quote 98,3 %, Praezision 94,6 %; Gegenprobe 191847 83,6 % / 96,0 % /
-95,7 % (Baustein 2: 54 % bzw. 51 %). Daniel 22:51 (ueber SRE): Ziel ist 100 %, 95-99 % nur uebergangsweise.
+Nicht enthalten: neue Befehle (Absicht der Gegner-KI), neue Einheiten, freie Schusslinie, Vorhalt und Zufalls-Fehlschuss
+(AU24), alte Feindliste nach Lastverteiler (alte Protokolle ohne ihn), Feuer, Gebaeude.
+Stand 25.10. 23:55 mit AU23/AU24 (Suche vor allen Bewegungen, Eilen zur Feldmitte, Gegenzuweisung mit Blick, Fremdtreffer
+je ueberflogenem Feld ueber auge.bahn_neu / sre_bahn) - gehirn_pruefen ... 90 30 ... sim:
+200603 neue Begegnungen 94,2 %, Opfer-Quote 98,6 %, Praezision 98,2 %, Menge 1,000, Geschoss-Zeit +-5 90,5 %;
+Gegenprobe 191847 86,4 % / 96,0 % / 96,2 % (Baustein 2: 54 % bzw. 51 %). Daniels Ziel: 100 %.
 """
 import os
 import sys
@@ -83,7 +84,7 @@ _RICHTUNG_NR = {v: k for k, v in _RICHTUNG.items()}
 
 class _E(object):
     __slots__ = ("id", "typ", "own", "mx", "my", "h", "leben", "tot", "zustand", "ziel", "start_ziel", "fr", "msk", "cemd",
-                 "sel", "sbs", "tpm", "weg", "dest", "blick", "zaehler", "nah", "sicht", "schuss_n", "schuss_ziel", "letzt")
+                 "sel", "sbs", "tpm", "weg", "dest", "blick", "zaehler", "nah", "sicht", "schuss_n", "schuss_ziel", "letzt", "hz")
 
     @property
     def feld(self):
@@ -102,8 +103,12 @@ class Simulator(object):
     REIHE_IN_EINHEIT = "nsl"
     # Lesart (SAI, gemessen): wer per Gegenzuweisung ein Ziel bekommt, bleibt sofort stehen - ohne sie verliert die Abarbeitung
     # je Einheit das Fenster 41.458 (Laeufer 160/162/169/170 schlagen bei +80 zurueck), mit ihr gleich der Phasen-Reihenfolge
-    GEGEN_STOPPT = True
-    SCHUETZEN_BLICK = True          # Schuetzen drehen beim Zielen/Schiessen zum Ziel (gemessen, 91 % der Schiess-Takte)        # je Einheit: n = Nahkampf, s = Feindsuche, l = Laufen (gemessen, s. Register L190)
+    GEGEN_STOPPT = False            # AU23: Opfer laufen bis zur Feldmitte weiter (14/14); Stopp mass 191847 +1,1 Punkte (offen)
+    SCHUETZEN_BLICK = True
+    SUCHE_ZUERST = True             # AU23: Feindsuche im ersten Durchgang von updateUnits, alle Lagen vom Vortakt
+    EILEN = True                    # AU23: mit Ziel im Laufen +978 = 1 -> je Zug ein Mikroschritt mehr bis zur Feldmitte
+    GEGEN_BLICK = True
+    FREMDTREFFER = True             # AU4/AU24: Geschoss prueft je Takt das ueberflogene Feld (auge.bahn_neu / sre_bahn)              # AU23: Gegenzuweisung setzt beim Opfer attackedUnitID UND Blickrichtung          # Schuetzen drehen beim Zielen/Schiessen zum Ziel (gemessen, 91 % der Schiess-Takte)        # je Einheit: n = Nahkampf, s = Feindsuche, l = Laufen (gemessen, s. Register L190)
 
     def __init__(self, sw):
         self.G = gehirn.Gehirn(sw)
@@ -141,6 +146,7 @@ class Simulator(object):
             u.id, u.typ, u.own = e["id"], e["unitType"], e["owner"]
             u.mx, u.my = e["mikro"]
             u.h = e.get("terrainOrClimbHeight", 0)
+            u.hz = u.h + (e.get("buildingHeight") or 0)          # AU4: Einheitenhoehe fuer Geschoss-Treffer
             u.leben = float(e["health"])
             u.tot = False
             u.zustand = e["state"]
@@ -310,6 +316,15 @@ class Simulator(object):
                     return bf[1]
         return best[1]
 
+    def _bahn(self, u, z):
+        """AU24: Flugbahn des geplanten Schusses von u auf z (Feldmitte des Ziels, Zielhoehe Boden + 30; Vorhalt fehlt)."""
+        et = GESCHOSS_ET.get(u.typ)
+        if et is None or et not in self.auge.SCHUSS_KURVE:
+            return []
+        plus = self.auge.ABSCHUSS_HOEHE_PFERD if u.typ == 72 else self.auge.ABSCHUSS_HOEHE.get(et, 30)
+        zx, zy = z.feld
+        return self.auge.bahn_neu((u.mx, u.my), u.hz + plus, (zx * 8 + 4, zy * 8 + 4), z.hz + 30, et)
+
     def _laufen_alle(self, U, felder):
         """L190 (P13 + Messung): Zug alle tpm Takte um (stateBasedSpeed + 1) Mikroschritte zur Wegpunkt-Mitte."""
         for u in U.values():
@@ -331,7 +346,7 @@ class Simulator(object):
             fx, fy = u.weg[0]
             if max(abs(fx - u.dest[0]), abs(fy - u.dest[1])) <= 40:
                 u.weg.append((fx + (u.dest[0] > fx) - (u.dest[0] < fx), fy + (u.dest[1] > fy) - (u.dest[1] < fy)))
-        for _ in range(u.sbs + 1):
+        for _ in range(u.sbs + 1 + (1 if self.EILEN and u.ziel else 0)):
             if not u.weg:
                 break
             zx, zy = u.weg[0][0] * 8 + 4, u.weg[0][1] * 8 + 4
@@ -390,12 +405,17 @@ class Simulator(object):
 
         # Geschosse in der Luft: Landetakt -> Opfer
         landen = {}
+        fluege = []
         for g in s.geschosse():
             tab = gehirn.GESCHOSS_TABELLE_ET.get(g.get("entityType"))
             if tab is None or g.get("sre_zustand") not in (None, "fliegt"):
                 continue
             rest = g.get("sre_rest_takte")
             if rest is None or rest > horizont:
+                continue
+            if self.FREMDTREFFER and g.get("sre_bahn"):
+                fluege.append({"bahn": {int(b[0]): b for b in g["sre_bahn"]}, "ende": int(g["sre_bahn"][-1][0]), "own": g.get("owner"),
+                               "tab": tab, "quelle": {"art": "geschoss", "uid": g.get("uid"), "schuetze": g.get("unitID_OR_seaGullID")}})
                 continue
             landen.setdefault(max(1, int(rest)), []).append(("luft", g, tab))
         # Schuetzen: naechster Schuss (Phasenrest, AU6)
@@ -435,8 +455,12 @@ class Simulator(object):
             u.zustand = NAH
             u.weg = u.weg[:1]
             u.dest = None
-            if neu and v.nah and not v.ziel:          # AU18 (6) Gegenzuweisung (ohne Drehen, L190)
+            if neu and v.nah and not v.ziel:          # AU18 (6) / AU23 Gegenzuweisung: Ziel + Blick zum Waehlenden
                 v.ziel = u.id
+                if self.GEGEN_BLICK:
+                    r = _richtung8(u.mx - v.mx, u.my - v.my)
+                    if r is not None:
+                        v.blick = r
                 if self.GEGEN_STOPPT:
                     v.weg, v.dest = [], None
             if spur is not None:
@@ -451,11 +475,18 @@ class Simulator(object):
         self._gewaehlt = {}
         for k in range(1, horizont + 1):
             t = t0 + k
+            if self.SUCHE_ZUERST:
+                for i in reihe:
+                    u = U[i]
+                    if not u.tot and u.msk and self.auge.sucht_im_takt(t, u.fr, u.msk):
+                        self._suche(U, u)
             if self.EINHEIT_FUER_EINHEIT:
-                # AU21: updateUnits aufsteigend - je Einheit Laufen, Feindsuche, Nahkampf; Kleinere stehen schon am neuen Ort
+                # AU21: updateUnits aufsteigend je Einheit (Nahkampf vor dem eigenen Laufen, gemessen)
                 for i in reihe:
                     u = U[i]
                     for schritt in self.REIHE_IN_EINHEIT:
+                        if schritt == "s" and self.SUCHE_ZUERST:
+                            continue
                         if schritt == "l":
                             self._laufen(u, felder)
                         elif schritt == "s":
@@ -498,8 +529,13 @@ class Simulator(object):
                 if z is None or z.tot:
                     u.schuss_n = None
                     continue
-                flug = int(round(max(abs(u.feld[0] - z.feld[0]), abs(u.feld[1] - z.feld[1])) / gehirn.FELDER_JE_TAKT))
-                landen.setdefault(k + max(1, flug), []).append(("schuss", u, z))
+                bahn = self._bahn(u, z) if self.FREMDTREFFER else []
+                if bahn:
+                    fluege.append({"bahn": {k + int(b[0]): b for b in bahn[1:]}, "ende": k + int(bahn[-1][0]), "own": u.own,
+                                   "tab": gehirn.GESCHOSS_TABELLE_UT[u.typ], "quelle": {"art": "schuss", "schuetze": u.id}})
+                else:
+                    flug = int(round(max(abs(u.feld[0] - z.feld[0]), abs(u.feld[1] - z.feld[1])) / gehirn.FELDER_JE_TAKT))
+                    landen.setdefault(k + max(1, flug), []).append(("schuss", u, z))
                 if spur is not None:
                     spur.append(("schuss", k, u.id, z.id))
                 u.letzt = k
@@ -510,6 +546,25 @@ class Simulator(object):
             for u in entscheid.pop(k, ()):
                 if not u.tot and u.zustand != NAH:
                     u.schuss_ziel = self._neuwahl(U, u, k) or u.schuss_ziel
+            # 5a Geschosse im Flug: erstes fremdes Ziel auf dem ueberflogenen Feld (Kette aufsteigend, Hoehe [Einheit, +42])
+            for f in list(fluege):
+                b = f["bahn"].get(k)
+                if b is not None:
+                    h, fx, fy = b[3], b[4], b[5]
+                    for i in felder.get((fx, fy), ()):
+                        v = U[i]
+                        if v.tot or v.own == f["own"]:
+                            continue
+                        if v.hz <= h <= v.hz + 42:
+                            q = dict(f["quelle"], takt=k)
+                            schaden(v, self.G._geschoss_schaden(f["tab"], v.typ), q)
+                            fluege.remove(f)
+                            break
+                    else:
+                        if k >= f["ende"]:
+                            fluege.remove(f)
+                elif k > f["ende"]:
+                    fluege.remove(f)
             # 5 Geschosse landen
             for art, a, b in landen.pop(k, ()):
                 if art == "luft":
