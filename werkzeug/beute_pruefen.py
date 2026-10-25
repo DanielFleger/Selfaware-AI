@@ -51,7 +51,8 @@ def main():
         ok.append(bool(bed)); print("%-4s %d %s" % ("OK" if bed else "ROT", nr, text))
     G0 = {900: {"besitzer": 2, "typ": 32, "x": 230, "y": 270, "leben": 100, "uid": 1, "erreichbar": 1}}
     def szene(schuetze=(206, 270), extra=None, G=None):
-        L = {100: einheit(73, 1, 200, 270), 600: einheit(22, 2, schuetze[0], schuetze[1], leben=5000)}
+        # B-234: "der Schuetze sieht ihn" heisst seit 25.10. Spielwahrheit - er hat die Assassine als Ziel (zieleinheit)
+        L = {100: einheit(73, 1, 200, 270), 600: dict(einheit(22, 2, schuetze[0], schuetze[1], leben=5000), zieleinheit=100)}
         L.update(extra or {})
         G1 = dict(G0); G1.update(G or {})
         return L, G1
