@@ -19,7 +19,7 @@ Regeln je Takt (Reihenfolge wie updateUnits 0x00579300, soweit bekannt):
                 (isSelectable) / 270 (stateBasedSpeed >= 1); Suchraum eigenes Feld + 24 Felder nach Blickrichtung
                 (auge.nahkampf_reihenfolge), Hoehe +-32; Behalten, solange das alte Ziel das erste Feind eines Felds ist;
                 sonst erstes Feind des ersten besetzten Felds; Gegenzuweisung an ein Opfer ohne Ziel; Schaden melee_damage
-                je Takt (P23); ein Kaempfer bleibt stehen (Weg geloescht - gemessen: nach dem Kampf Ziel = eigenes Feld)
+                je Takt (P23); ein Laeufer laeuft bis zur Wegpunkt-Mitte, dann steht er; die Blickrichtung dreht nicht zum Ziel (L190)
   4 Schuesse    Geschosse in der Luft und Schuetzen wie Baustein 1 (Landetakt, naechster Schuss + Flug, je Zyklus) - aber
                 nur, solange Schuetze und Ziel im Simulator leben und der Schuetze nicht im Nahkampf steht
   5 Tod         Leben <= 0 -> stirbt, verlaesst sofort die Felder; wer ihn als Ziel hatte, waehlt im naechsten Takt neu
@@ -291,15 +291,10 @@ class Simulator(object):
                 # gemessen (Takt 41.446, Armbrust 157): wer im Laufen ein Ziel waehlt, laeuft noch bis zur Mitte seines
                 # Wegpunkts und schlaegt erst dann zu (5 Takte spaeter); Stehende schlagen sofort
                 u.weg = u.weg[:1]
-                if not u.weg:
-                    r = _richtung(v.mx - u.mx, v.my - u.my)
-                    if r is not None:
-                        u.blick = r
-                if neu and v.kaempfer and not v.ziel:          # AU18 (6) Gegenzuweisung
+                # Blickrichtung (+692) dreht NICHT zum Ziel - gemessen 200603: bei 44 von 44 Zielwechseln blieb sie gleich,
+                # in 10.520 von 13.110 Kampftakten zeigt sie am Ziel vorbei; sie folgt nur dem Laufen (AU19)
+                if neu and v.kaempfer and not v.ziel:          # AU18 (6) Gegenzuweisung (ohne Drehen, s. oben)
                     v.ziel = u.id
-                    rv = _richtung(u.mx - v.mx, u.my - v.my)
-                    if rv is not None:
-                        v.blick = rv
                 if spur is not None:
                     spur.append((k, u.id, v.id))
                 if u.weg:
