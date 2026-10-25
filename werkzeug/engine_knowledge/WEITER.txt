@@ -98,3 +98,12 @@ OFFEN: Saat-Maske (Logik-Ebene) fuer eine exakte Nachbildung der Gebiete (W35, 1
 (Mannschaftstabelle 0x0117D548, "Gebaeude offen" +0x2c6); Leitern (Typ 1) und permitClimb; Mauerbruch/Belagerungsturm.
 Fuer die SamurAI-Lenker nutzbar ab jetzt: Gebiet gleich -> Weg ohne Abfrage; Gebiet 0 -> kein Weg; Torhaus trennt
 immer (innen/aussen), Gebietsnummern nie ueber eine Neuberechnung (200 Takte) merken.
+
+--- SRE 25.10.2026 08:50 - B-242 Spielwerte (Auftrag Daniel ueber SAI) ---
+werkzeug/spielwerte.py liest die Stammtabellen (Einheiten 80 Arten, Nahkampf 80x80, Geschosse, Preise, Gebaeude, Markt,
+Zuzug, Lord-Leben je KI) aus Datei ODER laufendem Spiel; --vergleich zeigt Patches. Register P1-P12.
+Gegenproben: Lord 150.000 ja; Streitkolben->Lord 75 (gemessen ~70) ja; Pfeil 54 ja; Assassine 60 statt 70 (Daniel) -
+live pruefen; Marktpreise Datei != S2 gemessen (Keule 290 vs 300, Leder 125 vs 160, Eisen 225 vs 270) - live pruefen.
+NAECHSTE SCHRITTE: sobald ein Spiel laeuft: python werkzeug/spielwerte.py --vergleich (klaert Assassine + Markt).
+Dann A6 Takte je Feld (Stufe -> Takte, moveUnit lesen), A3 Tiere (Update*-Funktionen), B8 EntityState (Geschosse im
+Flug: 0x02350300, Struktur Entity), C9 Zustandsuebergaenge (Update*-Funktionen je Art, PTR_UpdateUnitFunctions 0x00B4DF60).
