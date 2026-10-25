@@ -192,6 +192,22 @@ SCHUSS = {   # UT: Phasen (Name, Adresse der Bildtabelle, animationSpeed), Gesch
 }
 
 
+# Schlagtakt gegen Gebaeude/Mauer (Zustand 107 US_MELEE_ATTACK_WALL): ein Treffer je Durchlauf der Hack-Animation,
+# Dauer = Bilder x (animationSpeed + 1). Tabellen je Art aus den Update-Funktionen (SRE 25.10. 10:00). Lord hat keinen Zustand 107.
+HACKEN = {22: (ANIM + 0xF84, 3), 23: (ANIM + 0x152C, 3), 24: (ANIM + 0x1C04, 3), 25: (ANIM + 0x11F8, 3), 26: (ANIM + 0x1388, 3),
+          27: (ANIM + 0x1E7C, 3), 28: (ANIM + 0x2290, 3), 37: (ANIM + 0x172C, 3), 70: (0x00B592B0, 3), 71: (ANIM + 0x2538, 2),
+          72: (0x00B594E8, 3), 73: (ANIM + 0x2C94, 2), 74: (ANIM + 0x2FC0, 3), 75: (0x00B59CD0, 3), 76: (ANIM + 0x33F4, 3)}
+
+
+def hacken(lies):
+    aus = [0] * 80
+    for ut, (adr, speed) in HACKEN.items():
+        roh = lies(adr, 200)
+        bilder = next((i for i, b in enumerate(roh) if (b if b < 128 else b - 256) < 1), 200)
+        aus[ut] = bilder * (speed + 1)
+    return aus
+
+
 def schuss(lies):
     """Je Schuetzenart: Bilder und Takte je Phase und der ganze Zyklus (ohne Zielsuche/Laufen/Drehen)."""
     aus = {}
@@ -231,7 +247,7 @@ CODE_KONSTANTEN = {
 }
 
 
-def abgeleitet(w, sch):
+def abgeleitet(w, sch, hk):
     """Zusaetzliche Tabellen im selben Format (adresse/form/bedeutung/werte), fuer SAIs Kaufrechnung und Anschluss
     (SAI 25.10. 09:52). Quelle: Code-Stellen (abgelesen) und aus den gelesenen Tabellen gerechnet."""
     stufe = w["einheit.movement_speed"]["werte"]
@@ -273,6 +289,11 @@ def abgeleitet(w, sch):
                      "Gebaeudeleben = gebaeude.leben. Bergfried: nicht beschaedigbar (hat_leben 0). Schlagtakt gegen Gebaeude offen "
                      "(nextAttackHurtsWall wechselt je Schlag, Animationstakt nicht gelesen)",
         "werte": werte}
+    aus["gebaeude_schaden.takt_je_schlag"] = {
+        "adresse": "Animationstabellen Zustand 107 je Art (HACKEN in spielwerte.py), Update-Funktionen", "form": "UT",
+        "bedeutung": "Takte zwischen zwei Schlaegen gegen Gebaeude/Mauer (ein Treffer je Hack-Animation). Schaden je Takt = "
+                     "gebaeude_schaden.je_schlag / takt_je_schlag. 0 = hackt nicht (Lord, Arbeiter) oder nicht gelesen",
+        "werte": hk}
     aus["gebaeude_schaden.geschosse"] = {
         "adresse": "Code 0x00407190 processEntityHitBuildingOrUnit, 0x00422E20 updateBuildings (Feuer)", "form": "Text",
         "bedeutung": "Pfeil/Bolzen 1, Balliste 2, Feuerballiste 10, Stein (Katapult/Tribok/Mangonel) 10 am Feld + 10 Umfeld, an "
@@ -410,7 +431,7 @@ def main():
     ergebnisse = [(q, lesen(l)) for q, l in quellen]
     q, w = ergebnisse[0]
     sch = schuss(quellen[0][1])
-    w.update(abgeleitet(w, sch))
+    w.update(abgeleitet(w, sch, hacken(quellen[0][1])))
     aus = {"erstellt": time.strftime("%Y-%m-%d %H:%M:%S"), "quelle": q, "marke": "abgelesen (Datei/Speicher, Aufbau aus Ghidra OpenSHC)",
            "aufzaehlungen": {"UT": UT, "BT": BT, "RT": RT, "ET": ET}, "namen": namen(a.spiel), "tabellen": w,
            "schuss": sch, "code_konstanten": CODE_KONSTANTEN, "gegenproben": gegenproben(w)}
