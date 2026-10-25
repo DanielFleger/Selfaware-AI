@@ -179,9 +179,11 @@ ANIM = 0x00B56AC4   # DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimb
 SCHUSS = {   # UT: Phasen (Name, Adresse der Bildtabelle, animationSpeed), Geschoss-Moment
     22: {"phasen": [("nachladen", ANIM + 0xBF4, 2), ("zielen", ANIM + 0xC1C, 2), ("schiessen", ANIM + 0xC74, 2)], "schuss_bei": "Bild 6"},
     23: {"phasen": [("nachladen", ANIM + 0x154C, 2), ("zielen", ANIM + 0x1590, 2), ("schiessen", ANIM + 0x15E4, 2)], "schuss_bei": "Zyklus 2"},
-    70: {"phasen": [("nachladen", 0x00B59250, 2), ("zielen", 0x00B59270, 2), ("schiessen", 0x00B59288, 2)], "schuss_bei": "Zyklus 0"},
-    72: {"phasen": [("nachladen", 0x00B596EC, 2), ("zielen", 0x00B59708, 0), ("schiessen", ANIM + 0x2C7C, 1)], "schuss_bei": "Zyklus 0"},
-    76: {"phasen": [("nachladen", ANIM + 0x34D4, 6), ("zielen", ANIM + 0x34EC, 1), ("schiessen", ANIM + 0x3510, 2)], "schuss_bei": "Zyklus 0"},
+    # 25.10. 20:12 (SAI: arab. Bogen ~28 Takte zu frueh): Abschuss bei animationFrame 0x16 (UpdateArabianArcher 0x00570400),
+    # gemessen 43/43 im Schritt 9 der Schiessphase (Pruefstein 200603). Vorher falsch "Zyklus 0".
+    70: {"phasen": [("nachladen", 0x00B59250, 2), ("zielen", 0x00B59270, 2), ("schiessen", 0x00B59288, 2)], "schuss_bei": "Bild 22"},
+    72: {"phasen": [("nachladen", 0x00B596EC, 2), ("zielen", 0x00B59708, 0), ("schiessen", ANIM + 0x2C7C, 1)], "schuss_bei": "Bild 12"},   # UpdateSlinger: animationFrame 0x0C = Schritt 0
+    76: {"phasen": [("nachladen", ANIM + 0x34D4, 6), ("zielen", ANIM + 0x34EC, 1), ("schiessen", ANIM + 0x3510, 2)], "schuss_bei": "Bild 20"},   # UpdateFireThrower: animationFrame 0x14 = Schritt 6 (vorher falsch "Zyklus 0")
     # Berittener Bogenschuetze (HorseArcher_DoShooting 0x00575820): drei Tabellen, Speed 1 (Bild = 2 Takte), Pfeil bei Bild 27
     74: {"phasen": [("nachladen", ANIM + 0x30E4, 1), ("zielen", ANIM + 0x314C, 1), ("schiessen", ANIM + 0x31A4, 1)], "schuss_bei": "Bild 27"},
     # Belagerungsgeraete (UpdateCatapult 0x00568320, Trebuchet 0x00569410, Mangonel 0x0056A3F0, Ballista 0x0056ECD0,
