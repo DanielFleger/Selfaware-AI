@@ -363,7 +363,13 @@ def abgeleitet(w, sch, hk):
                   "abklingzeit_neubau_mensch": 400, "abklingzeit_neubau_ki_gefecht": 2000, "abklingzeit_nach_loeschen": 2000,
                   "schaden_je_20_takte": 1, "schaden_holzbau_je_20_takte": 4, "feuer_staerke_gebaeude": 2,
                   "verzoegerung_takte_max": 119, "ausbreitung_versuche_je_feuer": 4, "ausbreitung_hoehenunterschied_max": 24,
-                  "ausbreitung_reichweite_felder": 2, "brennt_eigene_gebaeude": False}}
+                  "ausbreitung_reichweite_felder": 2, "brennt_eigene_gebaeude": False,
+                  "zaehler": "Zuendzaehler (nextAttackHurtsWall 0/1) und Animationsfortschritt (animationCycleNumber) leben am SKLAVEN, "
+                             "nicht am Gebaeude. Unterbrechung (Laufbefehl, Nahkampf-Zwischenfall, Zielwechsel) setzt den "
+                             "Animationsfortschritt hart auf 0 - die 93 Takte beginnen von vorn; der Zuendzaehler bleibt stehen "
+                             "(wird nur beim Zuenden oder beim Ueberlauf 2 -> 0 zurueckgesetzt). Pfeiltreffer aendern nichts. Stirbt der "
+                             "Sklave, ist sein Zaehler weg; der naechste beginnt bei 0 (zuendet nach seinem ersten Durchlauf). Kein "
+                             "Zerfall ueber Takte; die Abklingzeit des Gebaeudes zaehlt je Takt hart herunter"}}
     aus["anwerben.voraussetzung"] = {
         "adresse": "Code 0x00464EF0 ProcessRecruitUnit, 0x0052E960 euroRecruit, 0x0052EC10 nonEuroRecruit, 0x00464DA0",
         "form": "UT -> dict",
