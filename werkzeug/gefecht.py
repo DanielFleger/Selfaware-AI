@@ -145,13 +145,12 @@ def dps(x, y, schaden, fern=None, d=1):
     return sum(zeile.values()) / len(zeile)
 
 
-def simuliere(wir, sie, schaden=None, bis=BIS, rest_aus=None, fokus=None):
+def simuliere(wir, sie, schaden=None, bis=BIS, rest_aus=None, fokus=None, fern=None):
     """wir/sie: Listen von dict(typ, leben, x, y, steht=False). Gibt (wir_leben_rest, sie_leben_rest, takte, sieg) -
     sieg = True, wenn alle von "sie" tot sind und von "wir" noch jemand lebt."""
-    fern = None
     if schaden is None:
         tb = tabelle()
-        schaden, fern = tb[0], (tb[2] if len(tb) > 2 else None)
+        schaden, fern = tb[0], (tb[2] if len(tb) > 2 else None)      # B-241: fern kommt sonst vom Aufrufer (kaufrechnung)
     seiten = [[dict(e) for e in wir], [dict(e) for e in sie]]
     for s in seiten:
         for e in s:
