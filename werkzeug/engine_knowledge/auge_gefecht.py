@@ -76,7 +76,7 @@ def main():
     print("Einheiten Spieler 1:", n1, "Spieler 2:", n2, "Takt", s.takt)
     befehl({"pause": False, "tempo": tempo}, 0.2)
     t0 = time.time()
-    pfad, p = auge.protokollieren(sek, (1, 2), mit_trupps=False, alle_takte=1)
+    pfad, p = auge.protokollieren(sek, None, mit_trupps=False, alle_takte=1)   # alle Besitzer: Feindliste enthaelt auch Besitzer 0 (AU23)
     befehl({"pause": True}, 0.2)
     print("Aufnahme %.1f s, %d Takte (%d..%d) -> %s" % (time.time() - t0, len(p.takte), min(p.takte), max(p.takte), pfad))
     return auswerten(pfad)

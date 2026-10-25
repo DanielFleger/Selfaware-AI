@@ -95,6 +95,7 @@ UNIT = _dtype([
     ("fixedRng", "<u4", 900), ("buildingID", "<i2", 920), ("targetingType", "<i2", 924),
     ("targetedUnitID__OR__engineerMannedSiegeEngineRef", "<i2", 926), ("targetedBuildingTile", "<u4", 936),
     ("lookForEnemy", "<i2", 940), ("attackedBy", "<i2", 942), ("huntedBy", "<i2", 946),
+    ("digTileX__OR__countCurrentlyManningEnginers", "<i2", 948),
     ("health", "<i4", 968), ("maxHealth", "<i4", 972), ("field276_0x3d2", "<i2", 978), ("attackAtTileX", "<i2", 1000), ("attackAtTileY", "<i2", 1002),
     ("nextAttackHurtsWall", "i1", 1006), ("lastEncounteredEnemyPlayerID", "<i2", 1024),
     ("horseArcherShootCheckInterval", "<i2", 1062), ("aiUnitBehaviourType", "<i2", 1066), ("siegeTargetPlayerID", "<i2", 1074),
@@ -449,35 +450,208 @@ def _spiel_abstand(dx, dy):
 _OHNE_FEINDLISTE = None
 
 
-def feind_abstand(vorher, jetzt, nr):
-    """closestEnemyMicroDistance der Einheit `nr`, wie das Spiel es im Suchtakt von `jetzt` rechnet: Minimum ueber die
-    Feindliste ohne Artfilter; updateUnits bewegt die Einheiten AUFSTEIGEND, also stehen Feinde mit kleinerer Nummer schon am
-    Ort von `jetzt`, groessere noch am Ort von `vorher`. Feindliste angenaehert: alle lebenden, nicht sterbenden Einheiten
-    anderer Besitzer (Besitzer != 0), ohne Haendler/Pferd/Kamel/Geist/Mutter/Kind - die echte Liste ist bis zu 60 Takte alt
-    (AU20) und schliesst versteckte Einheiten (+856) aus; beides steht nicht im Protokoll. Rueckgabe hoechstens 32000."""
-    global _OHNE_FEINDLISTE
-    if _OHNE_FEINDLISTE is None:
+# Geplanter Schuss (AU24): Startwerte wie initializeProjectileVelocities 0x00403A20 / setProjectileEntityValues2 0x004011D0.
+# Tabellen aus EntityDefinedData 0x005B6004 (+1060 Kurventyp, +1268 Geschwindigkeit bzw. Winkel, +1476 Zeitschritt),
+# gelesen 25.10. aus der Referenz-exe; Konstanten 0x0059E840.. (0,4999 / pi / 180 / 1 / 96,275344 / g = 9,812).
+SCHUSS_KURVE = {1: 0, 2: 2, 3: 1, 4: 1, 7: 0, 20: 0, 23: 1, 24: 6, 25: 6, 33: 0, 34: 0, 35: 6, 36: 6, 37: 0}
+SCHUSS_TABELLE = {1: 125, 2: 10, 3: 30, 4: 15, 7: 125, 20: 170, 23: 30, 24: 81, 25: 81, 33: 100, 34: 80, 35: 70, 36: 60, 37: 125}
+SCHUSS_DT = {1: 0.18, 2: 0.08, 3: 0.14, 4: 0.10, 7: 0.20, 20: 0.18, 23: 0.14, 24: 0.14, 25: 0.16, 33: 0.20, 34: 0.20,
+             35: 0.14, 36: 0.14, 37: 0.18}
+SCHUSS_ART = {"pfeil": 1, "bolzen": 7, "stein": 2, "katapult": 2, "tribok": 3, "mangonel": 4, "kuh": 23, "balliste": 20,
+              "schleuder": 33, "feuer": 34}
+# Abschusshoehe ueber buildingHeight + terrainOrClimbHeight des Schuetzen (shootProjectile 0x00532700); Katapult/Mangonel
+# zusaetzlich mit Versatz je Blickrichtung
+ABSCHUSS_HOEHE = {1: 30, 7: 30, 33: 30, 34: 30, 20: 25, 2: 56, 4: 64, 3: 130, 23: 130}
+ABSCHUSS_HOEHE_PFERD = 45     # berittener Bogenschuetze (A_HARCHER)
+_PI = 3.1415926535
+_G = 9.812
+
+
+def _cdiv(a, b):
+    return int(a / b) if b else 0      # C-Ganzzahldivision (Richtung 0)
+
+
+def _schuss_winkel(v, strecke, hd):
+    """math_atan_1 0x00402C50: flacherer der beiden Wurfwinkel, ganzzahlig (+0,4999, Richtung 0); ohne Loesung 45."""
+    v2 = float(v) * v
+    D = float(strecke * 4)
+    if D == 0:
+        return 45
+    a = v2 / (D * _G)
+    innen = (v2 * v2) / (96.275344 * D * D) - ((v2 + v2) * _cdiv(hd, 2)) / (D * D * _G) - 1.0
+    if innen < 0:
+        return 45
+    r = math.sqrt(innen)
+    w1 = int(math.atan(a - r) * 180.0 / _PI + 0.4999000132083893)
+    w2 = int(math.atan(a + r) * 180.0 / _PI + 0.4999000132083893)
+    w = min(w1, w2)
+    if w < -90:
+        w = max(w1, w2)
+        if w < -90:
+            return 45
+    return 45 if w > 90 else w
+
+
+def _schuss_geschw(winkel, strecke, hd):
+    """computeVelocity 0x00402DA0: Geschwindigkeit fuer festen Winkel (Steine), ganzzahlig Richtung 0."""
+    f = winkel * _PI / 180.0
+    c = math.cos(f)
+    D2 = float(strecke * 2)
+    nenner = math.tan(f) * D2 - _cdiv(hd, 4)
+    if not nenner or not c:
+        return 0
+    wert = (_G * D2 * D2) / (c * c) / nenner
+    return int(math.sqrt(wert)) if wert > 0 and not math.isinf(wert) else 0
+
+
+def schuss_start(art, start_mikro, start_hoehe, ziel_mikro, ziel_hoehe):
+    """Startwerte eines Geschosses: {winkel, v, strecke, vCos, vSin, dt, kurve}. Strecke = computeLineOfSightDistance(.., 1)
+    = max(|dx|, |dy|) - 1 in Mikroschritten. Pruefstein: Strecke, Winkel, Geschwindigkeit, vCos, vSin exakt bei allen im
+    Abschusstakt gesehenen Pfeilen, Bolzen und Katapultsteinen (AU24). art: Entity-Art (1 Pfeil, 7 Bolzen, 2 Stein, ...)
+    oder Name aus SCHUSS_ART; 24/25 sind die Pfeil-/Bolzen-Varianten mit Kurventyp 6."""
+    art = SCHUSS_ART.get(art, art) if isinstance(art, str) else int(art)
+    if art not in SCHUSS_KURVE:
+        return None
+    sx, sy = int(start_mikro[0]), int(start_mikro[1])
+    tx, ty = int(ziel_mikro[0]), int(ziel_mikro[1])
+    h, tz = int(start_hoehe), int(ziel_hoehe)
+    hd = tz - h
+    strecke = max(abs(tx - sx), abs(ty - sy)) - 1
+    k = SCHUSS_KURVE[art]
+    if k in (0, 6):
+        v = SCHUSS_TABELLE[art]
+        if k == 6 and strecke > 150:
+            v = 125
+        w = _schuss_winkel(v, strecke, hd)
+    elif k == 1:
+        w = SCHUSS_TABELLE[art]
+        v = _schuss_geschw(w, strecke, hd)
+    else:   # 2: Katapult
+        w = 3 if tz < h else SCHUSS_TABELLE[art]
+        v = _schuss_geschw(w, strecke, hd)
+        if v < 1:
+            w = 15
+            v = _schuss_geschw(w, strecke, hd)
+    f = w * _PI / 180.0
+    return {"art": art, "winkel": w, "v": v, "strecke": strecke, "kurve": k, "dt": SCHUSS_DT[art],
+            "vCos": float(np.float32(math.cos(f) * v)), "vSin": float(np.float32(math.sin(f) * v))}
+
+
+def abschuss_punkt(schuetze, art):
+    """(mikroX, mikroY, hoehe) des Abschusses aus der Zeile des Schuetzen (shootProjectile 0x00532700): Mitte der Einheit,
+    Hoehe = buildingHeight + terrainOrClimbHeight + ABSCHUSS_HOEHE (Pferdebogen 45). Katapult/Mangonel-Versatz je
+    Blickrichtung NICHT enthalten (Steine: Lage aus dem Spiel nehmen)."""
+    art = SCHUSS_ART.get(art, art) if isinstance(art, str) else int(art)
+    plus = ABSCHUSS_HOEHE_PFERD if int(schuetze["unitType"]) == 72 else ABSCHUSS_HOEHE.get(art, 30)
+    return (int(schuetze["microXPosition"]), int(schuetze["microYPosition"]),
+            int(schuetze["buildingHeight"]) + int(schuetze["terrainOrClimbHeight"]) + plus)
+
+
+def bahn_neu(schuetze_mikro, schuetze_hoehe, ziel_mikro, ziel_hoehe, geschossart, schnappschuss=None, max_takte=400):
+    """Flugbahn eines GEPLANTEN Schusses je Takt: [[k, mikroX, mikroY, hoehe, feld_x, feld_y, boden], ...], k = Takte seit
+    dem Abschuss (k = 0: Abschusstakt, das Geschoss steht noch am Start - gemessen: im Abschusstakt ist speedUnk = dt,
+    travelledDistance = 0). Je Takt T = k * dt, Strecke 0,25 * vCos * T entlang Start->Ziel, Hoehe = Start + 2 (vSin T -
+    4,906 T^2) (AU3/AU4). Ende wie sre_bahn: mit `schnappschuss` beim ersten Feld, dessen Bodenhoehe (Dach eingeschlossen)
+    ueber der Bahn liegt (Pfeile erst nach der halben Strecke, Steine sofort); ohne Schnappschuss, sobald nach der halben
+    Strecke die Zielhoehe unterschritten ist. Treffer an Einheiten: Feldkette aufsteigend, Hoehe in [Einheit, +42]."""
+    st = schuss_start(geschossart, schuetze_mikro, schuetze_hoehe, ziel_mikro, ziel_hoehe)
+    if st is None:
+        return []
+    sx, sy, sh = int(schuetze_mikro[0]), int(schuetze_mikro[1]), int(schuetze_hoehe)
+    tx, ty = int(ziel_mikro[0]), int(ziel_mikro[1])
+    gesamt = max(st["strecke"], 1)
+    ex, ey = (tx - sx) / float(gesamt), (ty - sy) / float(gesamt)
+    stein = st["art"] in (2, 3, 4, 23)
+    dt, vcos, vsin = float(np.float32(st["dt"])), st["vCos"], st["vSin"]
+    aus = []
+    for k in range(0, max_takte + 1):
+        T = k * dt
+        d = FLUG_FAKTOR * vcos * T
+        h = sh + 2.0 * (vsin * T - GRAVITY_DIV_2 * T * T)
+        mx, my = int(round(sx + ex * d)), int(round(sy + ey * d))
+        fx, fy = mx // 8, my // 8
+        boden = schnappschuss._boden(fx, fy) if schnappschuss is not None else None
+        aus.append([k, mx, my, int(round(h)), fx, fy, boden])
+        if boden is not None:
+            if h < boden and (stein or d > gesamt / 2.0):
+                break
+        elif k and d > gesamt / 2.0 and h < int(ziel_hoehe):
+            break
+        if h < -50 or not (0 <= fx < 400 and 0 <= fy < 400):
+            break
+    return aus
+
+
+def _feld(r, name):
+    return int(r[name]) if name in (r.dtype.names or ()) else None
+
+
+_BELAGERUNG = None
+
+
+def feindliste(s, spieler, teams=None):
+    """Feindliste von `spieler`, wie recomputeTroopValuesForPlayer 0x00532BA0 sie baut (Plaetze aufsteigend): lebend
+    (logicalState 2), nicht sterbend, nicht versteckt (+856), ANDERES TEAM (mapAndTime.playerTeams; Besitzer 0 zaehlt mit,
+    wenn sein Team verschieden ist), nicht Haendler/Haendlerpferd/Kamel/Geist/Mutter/Kind, Belagerungsgeraet nur mit
+    Bedienung (+948 > 0). Ohne Teamdaten: Besitzer != spieler. Neu gebaut bei Lastverteiler p+10/60/100/160 (AU20)."""
+    global _OHNE_FEINDLISTE, _BELAGERUNG
+    if _OHNE_FEINDLISTE is None or _BELAGERUNG is None:
         try:
             import spielwerte
             rueck = {v: k for k, v in spielwerte.UT.items()}
-            _OHNE_FEINDLISTE = {rueck[n] for n in ("TRADER", "TRADERHORSE", "CAMEL", "GHOST", "MOTHER", "CHILD") if n in rueck}
+            _OHNE_FEINDLISTE = {rueck[n] for n in ("TRADER", "TRADERHORSE", "CAMEL", "CAMELSHBEAR", "GHOST", "MOTHER", "CHILD") if n in rueck}
+            _BELAGERUNG = {rueck[n] for n in ("S_CATAPULT", "S_TREBUCHET", "S_MANGONEL", "S_TOWER", "S_SHIELD", "S_BALLISTA", "S_FBALLISTA") if n in rueck}
         except Exception:  # noqa: BLE001
-            _OHNE_FEINDLISTE = {64}
-
-    def tabelle(s):
-        idx = s._einheiten_idx if getattr(s, "_einheiten_idx", None) is not None else np.arange(len(s.einheiten))
-        return {int(idx[j]): s.einheiten[j] for j in range(len(s.einheiten))}
-    tv, tj = tabelle(vorher), tabelle(jetzt)
-    ich = tj.get(int(nr)) if int(nr) in tj else tv.get(int(nr))
-    if ich is None:
-        return None
-    x0, y0, own = int(ich["microXPosition"]), int(ich["microYPosition"]), int(ich["owner"])
-    best = 100000
-    for k in set(tv) | set(tj):
-        r = tj.get(k) if k < int(nr) and k in tj else tv.get(k, tj.get(k))
-        if r is None or int(r["logicalState"]) != 2 or int(r["dying"]) or int(r["owner"]) in (0, own) or int(r["unitType"]) in _OHNE_FEINDLISTE:
+            _OHNE_FEINDLISTE, _BELAGERUNG = {64}, set()
+    teams = teams if teams is not None else getattr(s, "teams", None)
+    mit_team = bool(teams) and any(int(x) for x in teams)
+    u = s.einheiten
+    idx = s._einheiten_idx if getattr(s, "_einheiten_idx", None) is not None else np.arange(len(u))
+    aus = []
+    for j in np.argsort(idx, kind="stable"):
+        r, nr = u[j], int(idx[j])
+        if nr <= 0 or int(r["logicalState"]) != 2 or int(r["dying"]) or (_feld(r, "unknownTestAgainst0_2") or 0):
             continue
-        best = min(best, _spiel_abstand(int(r["microXPosition"]) - x0, int(r["microYPosition"]) - y0))
+        o = int(r["owner"])
+        if (int(teams[o]) == int(teams[int(spieler)])) if mit_team else (o == int(spieler)):
+            continue
+        typ = int(r["unitType"])
+        if typ in _OHNE_FEINDLISTE:
+            continue
+        if typ in _BELAGERUNG and o != 0 and not (_feld(r, "digTileX__OR__countCurrentlyManningEnginers") or 0):
+            continue
+        aus.append(nr)
+    return aus
+
+
+def feind_abstand(vorher, jetzt=None, nr=None, liste=None, teams=None, lagen=None):
+    """closestEnemyMicroDistance der Einheit `nr`, wie updateUnits 0x00579300 es im Suchtakt rechnet. Die Suche laeuft im
+    ERSTEN Durchgang ueber alle Einheiten, bevor sich in diesem Takt eine bewegt - also ALLE Lagen (auch die eigene) aus
+    `vorher` (Stand Ende Vortakt); `jetzt` wird nicht gebraucht (Aufruf wie bisher, oder feind_abstand(vorher, nr)).
+    Minimum ueber die Feindliste OHNE Lebens- oder uid-Pruefung: `liste` = Plaetze aus dem letzten Neuaufbau (feindliste()
+    im Takt des Neuaufbaus), sonst frisch aus `vorher`. Plaetze, die in `vorher` fehlen (tot), nehmen ihre Lage aus `lagen`
+    {Platz: (mx, my)} - die letzte bekannte, eine Annaeherung. Abstand ganzzahlig ((m*2)//5*m)//M + M, hoechstens 32000.
+    Besitzer 0 sucht anders (computeDistanceToNearestEnemyForLegacyMissions) - dann None."""
+    if nr is None:      # feind_abstand(vorher, nr)
+        jetzt, nr = None, jetzt
+    idx = vorher._einheiten_idx if getattr(vorher, "_einheiten_idx", None) is not None else np.arange(len(vorher.einheiten))
+    tab = {int(idx[j]): vorher.einheiten[j] for j in range(len(idx))}
+    ich = tab.get(int(nr))
+    if ich is None or int(ich["owner"]) == 0:
+        return None
+    x0, y0 = int(ich["microXPosition"]), int(ich["microYPosition"])
+    if liste is None:
+        liste = feindliste(vorher, int(ich["owner"]), teams)
+    best = 100000
+    for k in liste:
+        r = tab.get(int(k))
+        if r is not None:
+            mx, my = int(r["microXPosition"]), int(r["microYPosition"])
+        elif lagen is not None and int(k) in lagen:
+            mx, my = lagen[int(k)]
+        else:
+            continue
+        best = min(best, _spiel_abstand(mx - x0, my - y0))
     return min(best, 32000)
 
 
@@ -628,7 +802,7 @@ class Schnappschuss(object):
                 "entities_idx": echt("entities", me), "spieler": self.spieler.copy(), "hoehe": getattr(self, "hoehe", None),
                 "feldnr": feldnummern() if getattr(self, "hoehe", None) is not None else None,
                 "bau": getattr(self, "bau", None), "logik": getattr(self, "logik", None),
-                "lastverteiler": getattr(self, "lastverteiler", None)}
+                "lastverteiler": getattr(self, "lastverteiler", None), "teams": list(getattr(self, "teams", None) or [])}
 
     def treffer(self):
         return treffer_folge(self)
@@ -649,7 +823,7 @@ class Schnappschuss(object):
         s.logik = d.get("logik")
         s._feldnr = d.get("feldnr")
         s.woche = s.monat = s.jahr = 0
-        s.teams = [0] * 9
+        s.teams = list(d.get("teams") or [0] * 9)
         return s
 
     def _id(self, art, i):
@@ -825,6 +999,11 @@ class Schnappschuss(object):
             "movementSpeed": int(r["movementSpeed"]), "calculatedMovementSpeed": int(r["calculatedMovementSpeed"]),
             "stateBasedSpeed": int(r["stateBasedSpeed"]), "tunnelerFinishedDigging": int(r["tunnelerFinishedDigging"]),
             "climbDataID": int(r["climbDataID"]),
+            # Zugtakt (AU22) - nur in Protokollen ab 25.10. 23:00, sonst None
+            "field216_0x354_zaehler": _feld(r, "field216_0x354"), "field215_0x350_merker": _feld(r, "field215_0x350"),
+            "usingTeleport": _feld(r, "usingTeleport"), "field276_0x3d2": _feld(r, "field276_0x3d2"),
+            "movementRelated": _feld(r, "movementRelated"), "unknownTestAgainst0_2_versteckt": _feld(r, "unknownTestAgainst0_2"),
+            "sre_takte_bis_zug": (takte_bis_zug(r) if "field216_0x354" in (r.dtype.names or ()) else None),
             # Sonstiges
             "sre_fearFactorLevel_owner": angst.get(int(r["owner"])), "tribeID": int(r["tribeID"]),
             "aiUnitBehaviourType": int(r["aiUnitBehaviourType"]), "siegeTargetPlayerID": int(r["siegeTargetPlayerID"]),
@@ -1014,6 +1193,7 @@ class Protokoll(object):
         self.trupps, self.trupps_idx = [], []
         self.gebaeude, self.gebaeude_idx = [], []
         self.lastverteiler = []
+        self.teams = None          # mapAndTime.playerTeams (ZEIT + 3516), einmal je Partie
         self.hoehe = None          # erste Hoehen-Ebene (Rueckwaertskompatibel)
         # Ebenen nur bei Aenderung (20.10. 19:59: je Takt 0,56 MB, 90 s mit Taktring sonst 5 GB): Liste eindeutiger Staende +
         # Takt-Index, ab dem der Stand gilt
@@ -1027,6 +1207,8 @@ class Protokoll(object):
         self.entities.append(d["entities"]); self.entities_idx.append(d["entities_idx"])
         self.spieler_bloecke.append(d["spieler"])
         self.lastverteiler.append(-1 if d.get("lastverteiler") is None else int(d["lastverteiler"]))
+        if self.teams is None and d.get("teams"):
+            self.teams = [int(x) for x in d["teams"]]
         self.trupps.append(d.get("trupps", np.zeros(0, TRIBE))); self.trupps_idx.append(d.get("trupps_idx", np.zeros(0, np.int64)))
         self.gebaeude.append(d.get("gebaeude", np.zeros(0, BUILDING_PACKED))); self.gebaeude_idx.append(d.get("gebaeude_idx", np.zeros(0, np.int64)))
         i = len(self.takte) - 1
@@ -1072,6 +1254,7 @@ class Protokoll(object):
             logiken=np.stack(self.ebenen["logik"][0]) if self.ebenen["logik"][0] else np.zeros((0, 0), np.uint32),
             logiken_ab=np.array(self.ebenen["logik"][1], np.int64),
             lastverteiler=np.array(self.lastverteiler, np.int32),
+            teams=np.array(self.teams or [], np.int32),
             spieler_filter=np.array(self.spieler or [], np.int64))
         return pfad
 
@@ -1114,7 +1297,8 @@ class Protokoll(object):
                  "gebaeude": z["gebaeude"][bg[i]:bg[i + 1]] if bg is not None else np.zeros(0, BUILDING_PACKED),
                  "gebaeude_idx": z["gebaeude_idx"][bg[i]:bg[i + 1]] if bg is not None else np.zeros(0, np.int64),
                  "bau": bau_i, "logik": logik_i,
-                 "lastverteiler": (int(z["lastverteiler"][i]) if "lastverteiler" in z and int(z["lastverteiler"][i]) >= 0 else None)}
+                 "lastverteiler": (int(z["lastverteiler"][i]) if "lastverteiler" in z and int(z["lastverteiler"][i]) >= 0 else None),
+                 "teams": ([int(x) for x in z["teams"]] if "teams" in z and len(z["teams"]) else None)}
             aus.append(Schnappschuss.aus_behalten(d))
         return aus
 
