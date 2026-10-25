@@ -336,24 +336,34 @@ def abgeleitet(w, sch, hk):
                   "MANGONEL/BALLISTA": "Turmgeraete, kein Zeltbau - Code nicht gelesen"}}
     aus["feuer.regeln"] = {
         "adresse": "Code 0x00410920 getBuildingFlammabilityFactor, 0x0041C810 lightUpBuilding, 0x004052E0 IgniteFireAtMiniTile, "
-                   "0x00405680 UpdateFireEntity, 0x00422E20 updateBuildings, 0x00571C00 UpdateSlave, 0x00422C60", "form": "Text",
-        "bedeutung": "Brennbarkeit je Gebaeudeart: 0 = brennt nicht (Lager, Bergfriede, Torhaeuser, Tuerme, Mauern, Markt? nein: Markt 1), "
-                     "1 = normal (Huetten, Werkstaetten, Hoefe, Kaserne, Soeldnerposten, Waffenlager, Kornspeicher, Kirchen), 5 = sehr "
-                     "(Schmiede, Baeckerei, Gasthaus, Pechkocher), 4 = Exerzier-/Lagerplatz. ZUENDUNG ist KEIN Zufall: Sklave zuendet ein "
-                     "brennbares Fremdgebaeude bei jedem zweiten Hieb (alle ~186 Takte) sicher, ausser es wurde gerade geloescht "
-                     "(cooldownTimer); an nicht brennbaren macht er 8 Schaden je Hieb. Brand: fireDuration zaehlt je Takt hoch, alle 20 "
-                     "Takte 1 Schaden (Huette/Holzfaeller/Jaeger/Farmen 4); auf jedem Gebaeudefeld entsteht ein Feuer (Staerke 2) mit "
-                     "zufaelliger Verzoegerung 0-120 Takte. AUSBREITUNG: ein Feuer mit Staerke >= 2 zuendet zufaellig versetzte "
-                     "Nachbar-Minifelder (Hoehenunterschied <= 24) mit Staerke-1, Gebaeude dort werden angezuendet, Baeume auch; "
-                     "Torhaeuser/Tuerme nie. ENDE: keine feste Brenndauer gefunden - brennt bis zerstoert oder geloescht (Feuerwache "
-                     "UpdateFireWatch 0x00543340, Brunnen); Zufalls-Ausbreitung auf andere Gebaeude des Spielers nur als KI-Ereignis "
-                     "(spreadFireRandomlyToBuildings, Gewicht 1, sehr brennbare 5)",
-        "werte": {"brennbarkeit": {"0": "Lager, Bergfriede, Torhaeuser, Tuerme, Mauern, Brunnen, Stall? (siehe Code)",
-                                   "1": "Huetten, Werkstaetten, Hoefe, Kaserne, Soeldnerposten, Waffenlager, Kornspeicher, Markt, Kirchen",
-                                   "4": "Exerzierplatz, Lagerplatz", "5": "Schmiede, Baeckerei, Gasthaus, Pechkocher"},
-                  "zuendung_sklave_takte": 186, "schaden_je_20_takte": 1, "schaden_holzbau_je_20_takte": 4,
-                  "feuer_staerke_gebaeude": 2, "verzoegerung_takte_max": 120, "ausbreitung_hoehenunterschied_max": 24,
-                  "brenndauer": "unbegrenzt bis Loeschen/Zerstoerung (nicht gefunden)"}}
+                   "0x00405680 UpdateFireEntity, 0x00422E20 updateBuildings, 0x00571C00 UpdateSlave, 0x004109F0 extinguish, "
+                   "0x00420D20 setupBuildingData, 0x00543340 UpdateFireWatch", "form": "Text",
+        "bedeutung": "ZUENDUNG (deterministisch, kein Zufallsaufruf): der Sklave zaehlt je abgeschlossener Hack-Animation (31 Bilder x 3 = "
+                     "93 Takte) einen Zaehler 0->1->0; bei 1 ruft er lightUpBuilding - also nach dem ERSTEN Durchlauf (~93 Takte "
+                     "Kontakt) und dann jeden zweiten. lightUpBuilding zuendet sicher, WENN: Brennbarkeit != 0, Gebaeude brennt nicht "
+                     "schon, Abklingzeit 0 und Besitzer != Brandstifter (eigene Gebaeude nie, Exerzierplatz ausgenommen). ABKLINGZEIT: "
+                     "jedes neu gebaute Gebaeude ist 400 Takte unanzuendbar (Mensch/Einzelspieler) bzw. 2000 Takte (KI-Spieler im Gefecht); "
+                     "nach dem Loeschen 2000 Takte. Das ist der 'Zufall', den man sieht: frische KI-Gebaeude fangen 2000 Takte lang kein "
+                     "Feuer. Beim Zuenden: fireDuration = 1 sofort, auf jedem Gebaeudefeld ein Feuer (Staerke 2) mit ZUFAELLIGER "
+                     "Verzoegerung 0-119 Takte (nur Anzeige/Ausbreitung, der Schaden laeuft ab Takt 1: alle 20 Takte 1, Holzbauten 4). "
+                     "AUSBREITUNG: jedes Feuer mit Staerke >= 2 macht genau 4 Versuche (einen je Richtung: x-1, x+1, y+1, y-1 Feld), "
+                     "je einen beim Animationsstart, nur wenn Hoehenunterschied zum Zielfeld <= 24; der Funke landet mit Zufallsversatz "
+                     "von 0-1 Feld (64er-Tabelle, 8 Richtungen) und hat Staerke-1 -> Gebaeudefeuer (2) erzeugt Bodenfeuer (1), das sich "
+                     "nicht weiter ausbreitet. Landet der Funke auf einem fremden brennbaren Gebaeude ohne Abklingzeit, brennt es (sicher); "
+                     "auf einem Baum: Baum brennt. Nie auf Torhaeuser/Tuerme/gesperrte Felder/schon brennende Felder. Reichweite des "
+                     "Ueberspringens damit <= 2 Felder vom brennenden Gebaeudefeld. Kein Wind, keine Jahreszeit, keine Schwierigkeit im "
+                     "Code dieser Funktionen. Bodenfeuer erlischt nach seiner Animation (8 Durchlaeufe), Gebaeudefeuer brennt bis "
+                     "Zerstoerung oder Loeschen. LOESCHEN: Feuerwache (UpdateFireWatch) laeuft zum Eingang des brennenden Gebaeudes, "
+                     "loescht nach ihrer Animation komplett (fireDuration 0, alle Feuer auf den Feldern aus) und setzt 2000 Takte "
+                     "Abklingzeit; Reichweite = Laufweg, Dauer der Loesch-Animation nicht ausgezaehlt",
+        "werte": {"brennbarkeit": {"0": "Lager, Bergfriede, Torhaeuser, Tuerme, Mauern, Brunnen", "1": "Huetten, Werkstaetten, Hoefe, "
+                                   "Kaserne, Soeldnerposten, Waffenlager, Kornspeicher, Markt, Kirchen", "4": "Exerzierplatz, Lagerplatz",
+                                   "5": "Schmiede, Baeckerei, Gasthaus, Pechkocher"},
+                  "zuendung_erster_versuch_takte": 93, "zuendung_wiederholung_takte": 186,
+                  "abklingzeit_neubau_mensch": 400, "abklingzeit_neubau_ki_gefecht": 2000, "abklingzeit_nach_loeschen": 2000,
+                  "schaden_je_20_takte": 1, "schaden_holzbau_je_20_takte": 4, "feuer_staerke_gebaeude": 2,
+                  "verzoegerung_takte_max": 119, "ausbreitung_versuche_je_feuer": 4, "ausbreitung_hoehenunterschied_max": 24,
+                  "ausbreitung_reichweite_felder": 2, "brennt_eigene_gebaeude": False}}
     aus["anwerben.voraussetzung"] = {
         "adresse": "Code 0x00464EF0 ProcessRecruitUnit, 0x0052E960 euroRecruit, 0x0052EC10 nonEuroRecruit, 0x00464DA0",
         "form": "UT -> dict",
