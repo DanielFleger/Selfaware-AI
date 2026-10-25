@@ -6,7 +6,8 @@
   DAZU       Mengen-Verhaeltnis (vorhergesagt / echt) und Trefferquote der Prognose (Anteil vorhergesagten Verlusts auf
              Opfern, die wirklich verloren) - als Hinweis, nicht als Ziel
 Fenster: ab jedem Schnappschuss alle SCHRITT Takte, Laenge H. Echte Verluste aus <protokoll>_treffer.json (auge.treffer).
-Aufruf: python werkzeug/gehirn_pruefen.py [protokoll.npz] [H=30] [schritt=30] [spielwerte.json]"""
+Aufruf: python werkzeug/gehirn_pruefen.py [protokoll.npz] [H=30] [schritt=30] [spielwerte.json] [gehirn|sim]
+  sim = Baustein 3 (simulator.py, Takt fuer Takt); Basis fuer "neue Begegnungen" bleibt Baustein 1 allein"""
 import collections
 import json
 import os
@@ -33,9 +34,13 @@ def main(argv):
     H = int(argv[1]) if len(argv) > 1 else 30
     schritt = int(argv[2]) if len(argv) > 2 else 30
     sw_pfad = argv[3] if len(argv) > 3 else os.path.join(D, "spielwerte_20261025_145546.json")   # live, mit bewegung.*
+    motor = argv[4] if len(argv) > 4 else "gehirn"
     import gehirn
     sw = json.load(open(sw_pfad, encoding="utf-8"))
     G = gehirn.Gehirn(sw)
+    if motor == "sim":
+        import simulator
+        S = simulator.Simulator(sw)
     P = laden(pfad)
     tr = json.load(open(pfad.replace(".npz", "_treffer.json"), encoding="utf-8"))["treffer"]
     echt_je_takt = collections.defaultdict(list)            # takt -> [(opfer, verlust, quellen)]
@@ -53,7 +58,7 @@ def main(argv):
             continue
         letzter = t0
         einh = s.einheiten_liste()
-        progn = G.prognose(s, H, einh)
+        progn = S.prognose(s, H, einh) if motor == "sim" else G.prognose(s, H, einh)
         basis = G.prognose(s, H, einh, begegnung=False)     # Baustein 1 allein - fuer "neue Begegnungen erfasst"
         echt = collections.Counter()
         echt_geschoss = collections.defaultdict(list)
@@ -82,7 +87,7 @@ def main(argv):
     quote = summe["echt_getroffen"] / float(max(1, summe["echt"]))
     praez = summe["progn_richtig"] / float(max(1, summe["progn"]))
     zeit = zeit_ok / float(max(1, zeit_n))
-    erg = {"protokoll": os.path.basename(pfad), "H": H, "schritt": schritt, "fenster": fenster,
+    erg = {"protokoll": os.path.basename(pfad), "motor": motor, "H": H, "schritt": schritt, "fenster": fenster,
            "opfer_quote": round(quote, 3), "praezision": round(praez, 3),
            "menge_verhaeltnis": round(summe["progn"] / float(max(1, summe["echt"])), 3),
            "zeit_quote_pm5": round(zeit, 3), "zeit_n": zeit_n,
@@ -92,6 +97,12 @@ def main(argv):
     urteil = ("ZIEL ERREICHT" if quote >= 0.8 and zeit >= 0.8 else
               "ABBRUCH: Opfer-Quote unter 50 % - Auge pruefen (SRE), nicht nachstellen" if quote < 0.5 else
               "ZWISCHEN 50 und 80 % - Ursachen je Quelle suchen")
+    if motor == "sim":
+        # Baustein 3 (Daniel 21:53): Ziel >= 90 % neue Begegnungen ohne Rueckschritt bei Opfer-Quote/Praezision; Abbruch < 75 %
+        nb = erg["neue_begegnungen_erfasst"]
+        urteil = ("BAUSTEIN 3 ZIEL ERREICHT" if nb >= 0.9 and quote >= 0.8 else
+                  "BAUSTEIN 3 ABBRUCH: neue Begegnungen unter 75 % - fehlende Auge-Regel an SRE, nicht nachstellen" if nb < 0.75 else
+                  "BAUSTEIN 3 ZWISCHEN 75 und 90 % - Luecke je Quelle zerlegen")
     erg["urteil"] = urteil
     print(json.dumps(erg, ensure_ascii=False, indent=1))
     with open(os.path.join(D, "gehirn_pruefung.jsonl"), "a", encoding="utf-8") as f:
