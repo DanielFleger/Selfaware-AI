@@ -50,9 +50,9 @@ def main():
     def pruefe(nr, text, bed):
         ok.append(bool(bed)); print("%-4s %d %s" % ("OK" if bed else "ROT", nr, text))
     G0 = {900: {"besitzer": 2, "typ": 32, "x": 230, "y": 270, "leben": 100, "uid": 1, "erreichbar": 1}}
-    def szene(schuetze=(206, 270), extra=None, G=None):
+    def szene(schuetze=(206, 270), extra=None, G=None, sieht=True):
         # B-234: "der Schuetze sieht ihn" heisst seit 25.10. Spielwahrheit - er hat die Assassine als Ziel (zieleinheit)
-        L = {100: einheit(73, 1, 200, 270), 600: dict(einheit(22, 2, schuetze[0], schuetze[1], leben=5000), zieleinheit=100)}
+        L = {100: einheit(73, 1, 200, 270), 600: dict(einheit(22, 2, schuetze[0], schuetze[1], leben=5000), zieleinheit=100 if sieht else 0)}
         L.update(extra or {})
         G1 = dict(G0); G1.update(G or {})
         return L, G1
@@ -65,7 +65,7 @@ def main():
     pruefe(3, "Schuetze mit 2 Nahkaempfern: keine Jagd (%s)" % jagd, jagd != 600)
     jagd, bef, _ = lauf(*szene(extra={700: einheit(55, 2, 209, 270, leben=1500000)}))
     pruefe(4, "Schuetze 3 Felder neben ihrem Lord: keine Jagd (%s)" % jagd, jagd != 600)
-    jagd, bef, _ = lauf(*szene(schuetze=(230, 270)))
+    jagd, bef, _ = lauf(*szene(schuetze=(230, 270), sieht=False))     # 30 Felder, sieht ihn nicht: keine Beute-Jagd
     pruefe(5, "Schuetze 30 Felder weg: keine Jagd (%s)" % jagd, jagd != 600)
     viele = {610 + i: einheit(23, 2, 214 + (i % 4), 266 + i // 4 * 3, leben=17500) for i in range(12)}
     jagd, bef, t6 = lauf(*szene(extra=viele))
