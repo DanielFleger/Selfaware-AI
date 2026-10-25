@@ -73,6 +73,14 @@ def spielwerte_live(spielordner=None):
         return KR.spielwerte_laden()
 
 
+def name(sw, typ):
+    """Spielname + Codename/Nummer (Daniel 25.10.: keine Eindeutschungen): 'Streitkolbenkaempfer (E_MACE 26)'."""
+    n = (sw.get("namen") or {}).get("einheit", {}).get(str(typ))
+    code = (sw.get("aufzaehlungen") or {}).get("UT", {}).get(str(typ), str(typ))
+    n = (n or code).split(" (")[0]
+    return "%s (%s %d)" % (n, code, typ)
+
+
 def gebaeude_wert(sw, typ):
     """Baukosten zu Marktpreisen: Holz, Stein (Kaufpreis je Stueck) + Gold (gebaeude.kosten: Holz, Stein, ?, ?, Gold)."""
     k = KR._w(sw, "gebaeude.kosten")
@@ -249,15 +257,15 @@ class Einkaeufer:
             if wert <= 0:
                 continue
             geb = posten if p["gebaeude"] == SOELDNER else kaserne
-            if geb is None or (p["stall"] and stall is None) or (p["waren"] and waffenlager is None):
-                if p["gebaeude"] == KASERNE and kaserne is None:
-                    self.wunsch["kaserne"] = True
-                if p["stall"] and stall is None:
-                    self.wunsch["stall"] = True
-                if p["waren"] and waffenlager is None:
-                    self.wunsch["waffenlager"] = True
+            fehlt_geb = [k for k, da in (("kaserne", geb is not None or p["gebaeude"] == SOELDNER), ("stall", not p["stall"] or stall is not None),
+                                        ("waffenlager", not p["waren"] or waffenlager is not None)) if not da]
+            if p["gebaeude"] == SOELDNER and geb is None:
+                fehlt_geb = ["soeldnerposten"]
+            if fehlt_geb:
+                for k in fehlt_geb:
+                    self.wunsch[k] = max(self.wunsch.get(k, 0.0), wert)
                 ereignis.append("EINKAUF wartet auf %s fuer %s (%s, %.0f Gold je Einheit)" % (
-                    ", ".join(k for k in ("kaserne", "stall", "waffenlager") if self.wunsch.get(k)), KR.name(self.sw, typ), text, wert))
+                    ", ".join(fehlt_geb), name(self.sw, typ), text, wert))
                 continue
             n = min(int(n_max), gold_frei // max(1, int(p["gold"])), feuer_frei)
             if n <= 0:
@@ -270,13 +278,13 @@ class Einkaeufer:
                     if rt not in markt and gold_frei >= kauf5[rt]:
                         markt.append(rt)
                         gold_frei -= kauf5[rt]
-                        ereignis.append("EINKAUF Markt: 5 %s (%d Gold) fuer %s - %s" % (RT_NAME.get(rt, rt), kauf5[rt], KR.name(self.sw, typ), text))
+                        ereignis.append("EINKAUF Markt: 5 %s (%d Gold) fuer %s - %s" % (RT_NAME.get(rt, rt), kauf5[rt], name(self.sw, typ), text))
                 continue
             werbungen.append((typ, n, geb))
             gold_frei -= n * int(p["gold"])
             feuer_frei -= n
             ereignis.append("EINKAUF %s: %d x %s (je %.0f Gold, Wert %.0f je Einheit) - %s" % (
-                aufgabe, n, KR.name(self.sw, typ), p["gold"], wert, text))
+                aufgabe, n, name(self.sw, typ), p["gold"], wert, text))
             if gold_frei <= 0 or feuer_frei <= 0:
                 break
         return werbungen, markt, ereignis
