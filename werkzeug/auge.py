@@ -228,6 +228,15 @@ def aic_lesen():
 
 
 BUILDING_PACKED = np.lib.recfunctions.repack_fields(BUILDING)   # nur die gelesenen Felder, dicht gepackt (fuer Protokolle)
+UNIT_PACKED = np.lib.recfunctions.repack_fields(UNIT)
+ENTITY_PACKED = np.lib.recfunctions.repack_fields(ENTITY)
+
+
+def _packen(a, packed):
+    """Nur die gelesenen Felder behalten (Einheit 1168 -> ~600 Byte, Geschoss 232 -> ~120); schon gepackte bleiben."""
+    if a.dtype == packed:
+        return a.copy()
+    return np.lib.recfunctions.repack_fields(a) if len(a) else np.zeros(0, packed)
 
 PITCH_DTYPE = _dtype([("tile", "<i4", 0), ("uid", "<i4", 4), ("owner", "<i2", 8), ("x", "<i2", 10), ("y", "<i2", 12),
                       ("state", "<i2", 16)], 20)
@@ -436,7 +445,7 @@ class Schnappschuss(object):
             return basis[maske] if basis is not None else np.flatnonzero(maske)
         return {"takt": self.takt, "takt_kern": self.takt_kern, "rein": self.rein, "dauer_ms": self.dauer_ms,
                 "trupps": t[mt].copy(), "trupps_idx": echt("trupps", mt), "gebaeude": gp, "gebaeude_idx": echt("gebaeude", mg),
-                "einheiten": u[m].copy(), "einheiten_idx": echt("einheiten", m), "entities": e[me].copy(),
+                "einheiten": _packen(u[m], UNIT_PACKED), "einheiten_idx": echt("einheiten", m), "entities": _packen(e[me], ENTITY_PACKED),
                 "entities_idx": echt("entities", me), "spieler": self.spieler.copy(), "hoehe": getattr(self, "hoehe", None),
                 "feldnr": feldnummern() if getattr(self, "hoehe", None) is not None else None,
                 "bau": getattr(self, "bau", None), "logik": getattr(self, "logik", None)}
@@ -824,8 +833,9 @@ class Protokoll(object):
         self.trupps, self.trupps_idx = [], []
         self.gebaeude, self.gebaeude_idx = [], []
         self.hoehe = None          # erste Hoehen-Ebene (Rueckwaertskompatibel)
-        self.hoehen = []           # Hoehen-Ebene je Takt (Mauern fallen, Gebaeude brennen ab)
-        self.bauten, self.logiken = [], []   # Gebaeude-/Logik-Ebene je Takt (Daecher = Aufschlaghoehe)
+        # Ebenen nur bei Aenderung (20.10. 19:59: je Takt 0,56 MB, 90 s mit Taktring sonst 5 GB): Liste eindeutiger Staende +
+        # Takt-Index, ab dem der Stand gilt
+        self.ebenen = {"hoehe": ([], []), "bau": ([], []), "logik": ([], [])}
         self.feldnr = None
 
     def aufnehmen(self, s):
@@ -836,15 +846,18 @@ class Protokoll(object):
         self.spieler_bloecke.append(d["spieler"])
         self.trupps.append(d.get("trupps", np.zeros(0, TRIBE))); self.trupps_idx.append(d.get("trupps_idx", np.zeros(0, np.int64)))
         self.gebaeude.append(d.get("gebaeude", np.zeros(0, BUILDING_PACKED))); self.gebaeude_idx.append(d.get("gebaeude_idx", np.zeros(0, np.int64)))
-        if d.get("hoehe") is not None:
-            self.hoehen.append(np.array(d["hoehe"]))
-            if d.get("bau") is not None:
-                self.bauten.append(np.array(d["bau"]))
-            if d.get("logik") is not None:
-                self.logiken.append(np.array(d["logik"]))
-            if self.hoehe is None:
-                self.hoehe = self.hoehen[0]
-                self.feldnr = d.get("feldnr")
+        i = len(self.takte) - 1
+        for art in ("hoehe", "bau", "logik"):
+            a = d.get(art)
+            if a is None:
+                continue
+            staende, ab = self.ebenen[art]
+            if not staende or not np.array_equal(staende[-1], a):
+                staende.append(np.array(a))
+                ab.append(i)
+        if self.hoehe is None and d.get("hoehe") is not None:
+            self.hoehe = np.array(d["hoehe"])
+            self.feldnr = d.get("feldnr")
 
     def schreiben(self, pfad):
         def grenzen(liste):
@@ -854,10 +867,10 @@ class Protokoll(object):
         np.savez_compressed(
             pfad, takt=np.array(self.takte, np.int64), takt_kern=np.array(self.kern, np.int64),
             rein=np.array(self.rein, bool), dauer_ms=np.array(self.dauer, np.float32),
-            einheiten=np.concatenate(self.einheiten) if self.einheiten else np.zeros(0, UNIT),
+            einheiten=np.concatenate(self.einheiten) if self.einheiten else np.zeros(0, UNIT_PACKED),
             einheiten_idx=np.concatenate(self.einheiten_idx) if self.einheiten_idx else np.zeros(0, np.int64),
             einheiten_grenzen=grenzen(self.einheiten),
-            entities=np.concatenate(self.entities) if self.entities else np.zeros(0, ENTITY),
+            entities=np.concatenate(self.entities) if self.entities else np.zeros(0, ENTITY_PACKED),
             entities_idx=np.concatenate(self.entities_idx) if self.entities_idx else np.zeros(0, np.int64),
             entities_grenzen=grenzen(self.entities),
             spieler=np.stack(self.spieler_bloecke) if self.spieler_bloecke else np.zeros((0, SPIELER_ANZAHL), PLAYER),
@@ -869,9 +882,12 @@ class Protokoll(object):
             gebaeude_grenzen=grenzen(self.gebaeude),
             hoehe=self.hoehe if self.hoehe is not None else np.zeros(0, np.uint8),
             feldnr=self.feldnr if self.feldnr is not None else np.zeros((0, 0), np.int32),
-            hoehen=np.stack(self.hoehen) if len(self.hoehen) == len(self.takte) else np.zeros((0, 0), np.uint8),
-            bauten=np.stack(self.bauten) if len(self.bauten) == len(self.takte) else np.zeros((0, 0), np.uint16),
-            logiken=np.stack(self.logiken) if len(self.logiken) == len(self.takte) else np.zeros((0, 0), np.uint32),
+            hoehen=np.stack(self.ebenen["hoehe"][0]) if self.ebenen["hoehe"][0] else np.zeros((0, 0), np.uint8),
+            hoehen_ab=np.array(self.ebenen["hoehe"][1], np.int64),
+            bauten=np.stack(self.ebenen["bau"][0]) if self.ebenen["bau"][0] else np.zeros((0, 0), np.uint16),
+            bauten_ab=np.array(self.ebenen["bau"][1], np.int64),
+            logiken=np.stack(self.ebenen["logik"][0]) if self.ebenen["logik"][0] else np.zeros((0, 0), np.uint32),
+            logiken_ab=np.array(self.ebenen["logik"][1], np.int64),
             spieler_filter=np.array(self.spieler or [], np.int64))
         return pfad
 
@@ -889,11 +905,22 @@ class Protokoll(object):
         hoehen = z["hoehen"] if ("hoehen" in z and z["hoehen"].size) else None
         bauten = z["bauten"] if ("bauten" in z and z["bauten"].size) else None
         logiken = z["logiken"] if ("logiken" in z and z["logiken"].size) else None
+        n_takte = len(z["takt"])
+
+        def stand(staende, schluessel, i):
+            """Ebene fuer Takt-Index i: neue Dateien speichern nur Aenderungen (<art>_ab), alte je Takt."""
+            if staende is None:
+                return None
+            ab = z.get(schluessel)
+            if ab is None or (len(ab) == 0 and len(staende) == n_takte):
+                return staende[i] if i < len(staende) else None
+            j = int(np.searchsorted(ab, i, side="right")) - 1
+            return staende[j] if j >= 0 else None
         for i, takt in enumerate(z["takt"]):
             if hoehen is not None:
-                hoehe = hoehen[i]
-            bau_i = bauten[i] if bauten is not None else None
-            logik_i = logiken[i] if logiken is not None else None
+                hoehe = stand(hoehen, "hoehen_ab", i)
+            bau_i = stand(bauten, "bauten_ab", i)
+            logik_i = stand(logiken, "logiken_ab", i)
             d = {"takt": int(takt), "takt_kern": int(z["takt_kern"][i]), "rein": bool(z["rein"][i]), "dauer_ms": float(z["dauer_ms"][i]),
                  "einheiten": z["einheiten"][eg[i]:eg[i + 1]], "einheiten_idx": z["einheiten_idx"][eg[i]:eg[i + 1]],
                  "entities": z["entities"][gg[i]:gg[i + 1]], "entities_idx": z["entities_idx"][gg[i]:gg[i + 1]],

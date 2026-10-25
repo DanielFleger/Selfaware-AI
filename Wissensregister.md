@@ -127,7 +127,7 @@ dem Code; "getestet" erst nach Messung im Spiel. Index = Einheitenart (UT 0..79)
 
 ## Das Auge (B-251, SRE 25.10.2026) - `werkzeug/auge.py`, Pruefung `werkzeug/engine_knowledge/auge_pruefen.py`, Belege `daten/auge_pruefung_20261025_152725.json`, `_153231.json`, `_153627.json`
 
-Auftrag SAI/Daniel 15:10: alles sehen, was das Lagebild (logik.lua einheiten/gebaeude) nicht sieht. Feldnamen sind die Namen aus dem Programm (types.json der Codex-Pipeline); eigene Zusatzspalten heissen `sre_...`. Alle Adressen gelten fuer die Referenz-Exe 1.41 und unveraendert unter UCP3 (gemessen an Instanz 5).
+**Abgenommen von Daniel 25.10.2026 20:00** ("Ich nehme das Auge ab.") - Stufe: getestet + Daniel. Offene Reste stehen je Zeile (Belagerungsgeraete-Phasen, Fallgruben-Feld, Gebaeude-Eingaenge, KI-Felder 3-5 nur abgelesen + live plausibel). Auftrag SAI/Daniel 15:10: alles sehen, was das Lagebild (logik.lua einheiten/gebaeude) nicht sieht. Feldnamen sind die Namen aus dem Programm (types.json der Codex-Pipeline); eigene Zusatzspalten heissen `sre_...`. Alle Adressen gelten fuer die Referenz-Exe 1.41 und unveraendert unter UCP3 (gemessen an Instanz 5).
 
 | Nr | Was | Marke | Beleg | Datum |
 |---|---|---|---|---|
