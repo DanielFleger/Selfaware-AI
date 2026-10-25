@@ -894,8 +894,11 @@ class Einzeln:
         jetzt = getattr(self, "jetzt", self.runde * self.RUNDE_TICKS)
         self._sicht = sicht.Lage(L, G, self.sp, self._haltung if self.lies_haltung else None,
                                  noch_sichtbar={k for k, b in sb.items() if b > jetzt and k in L})
+        # B-234 (Lauf 222643: 17 von 24 ENTDECKT ohne Treffer und ohne Feind, der ihn anvisierte - die Haelfte bei "Spaehern"
+        # 25-45 Felder weit, also aus dieser Nachwirkung des eigenen Modells): nachwirken darf nur, was das Spiel zeigt
+        verletzt_v = getattr(self, "_verletzt_runde", set())
         for k in self.mitglieder:
-            if k in L and self._sicht.sichtbar((L[k]["x"], L[k]["y"])):
+            if k in L and self._sicht.sichtbar((L[k]["x"], L[k]["y"])) and (k in verletzt_v or self._bemerkt_von(k, L)):
                 sb[k] = jetzt + self.ENTDECKT_TICKS      # 19.10.: 400 statt 128 (Bolzen bis ~300 Takte spaeter)
         self._sicht_bis = sb
         self._sicht_runde = self.runde
@@ -1439,6 +1442,11 @@ class Einzeln:
         return {k for k, e in L.items() if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in sicht.REICHWEITE
                 and schach(ort, (e["x"], e["y"])) <= r}
 
+    def _bemerkt_von(self, n, L):
+        """B-234: Spielwahrheit - Nummern feindlicher Truppen, deren Ziel (zieleinheit) diese Assassine ist."""
+        return {k for k, e in L.items() if e.get("zieleinheit") == n and e.get("typ") in TRUPPE
+                and e.get("besitzer") not in freunde_von(self.sp) and e.get("leben", 1) > 0}
+
     def _entdeckt_pruefen(self, L, G, ereignis, flieh, jagen=None, angriffe=None):
         """19.10. (Daniel: "wenn 5 gestorben sind dann sofort stoppen und verhindern"; Partie 1018p): sichtbar (waehlbarer Feind
         <= 160 Feinmass, L75) UND ein Schuetze erreicht ihn mit freier Linie -> entdeckt: Auftrag ab, Laufbefehl ausser Sicht
@@ -1501,10 +1509,18 @@ class Einzeln:
                 e["schuetzen"].update(k for k in self._jaeger if k in L and schach(ort, (L[k]["x"], L[k]["y"])) <= 60)
                 e["bis"] = max(e.get("bis", 0), self.jetzt + self.ENTDECKT_TICKS)
                 e["ziel_ok"] = None                # Aussendienst nicht neben dem Trupp
-            if s.sichtbar(ort):
+            bemerkt = self._bemerkt_von(n, L)
+            if s.sichtbar(ort) or bemerkt:
                 sehen = [k for k, (p, r, erh, steht, art) in zip(s.schuetzen_nr, s.schuetzen)
                          if (p[0] - ort[0]) ** 2 + (p[1] - ort[1]) ** 2 <= (r + self.ENTDECKT_RAND) ** 2
                          and (erh or s.linie_frei(p, steht, ort))]
+                if bemerkt:
+                    sehen = sorted(set(sehen) | {k for k in bemerkt if k in s.schuetzen_nr})   # das Spiel weiss es besser
+                elif sehen and e is None and n not in getattr(self, "_verletzt_runde", ()):
+                    # B-234 (Daniel 25.10. 00:10 "sie haben Angst, obwohl sie noch nicht erkannt wurden"): das Modell sagt
+                    # sichtbar, aber kein Feind visiert ihn an und nichts hat ihn getroffen -> weiterarbeiten, nur zaehlen
+                    self.bilanz["sichtbar_unbemerkt"] = self.bilanz.get("sichtbar_unbemerkt", 0) + 1
+                    sehen = []
                 if e is None and n in self.jagd and set(sehen) <= {self.jagd[n]}:
                     sehen = []                 # jagt den einzigen Schuetzen, der ihn erreicht (Beute, 3b): weiter jagen
                 if e is None and sehen and self._spaeher_erledigen(n, ort, sehen, L, ereignis, jagen if jagen is not None else []):
@@ -2121,6 +2137,7 @@ class Einzeln:
             if spielziel or self._steht.get(n, (None,))[0] != f or reisst:
                 self._steht[n] = (f, self.jetzt)
         verletzt = set()
+        self._verletzt_runde = verletzt          # B-234: diese Runde getroffen (fuer ENTDECKT und die Sicht-Nachwirkung)
         for n in self.mitglieder:
             u = self.umgebung(n, L, G, fern, nah)
             alt = self.leben.get(n)

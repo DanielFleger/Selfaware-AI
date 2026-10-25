@@ -119,9 +119,17 @@ def ohne_nr(L):
     return {n: {k: v for k, v in e.items() if k not in ("nr", "gruppe")} for n, e in L.items()}
 
 
-def neu():
+def neu(spielwahrheit=False):
     t = A.Einzeln(1, pruefe_begehbar=lambda pkt: set(pkt), wegtest=lambda nr, p: [True] * len(p))
     t._lord_bedarf = lambda L, G, ereignis: (5, "belegt", None)
+    if not spielwahrheit:
+        # B-234: ENTDECKT braucht seit 25.10. die Spielwahrheit (ein Feind visiert ihn an oder er wurde getroffen). Die alten
+        # Pruefungen beschreiben "ein Speer sieht ihn" - hier gilt: ist er nach dem Sichtmodell sichtbar, hat ihn jeder
+        # Feind bis 44 Felder im Visier; unsichtbar bleibt unsichtbar. Die Regel selbst prueft Fall 58 mit der echten Methode.
+        t._bemerkt_von = lambda n, L, _t=t: (
+            {k for k, e in L.items() if e["besitzer"] not in (0, 1) and e["typ"] in A.TRUPPE
+             and max(abs(e["x"] - L[n]["x"]), abs(e["y"] - L[n]["y"])) <= 44}
+            if n in L and _t._sicht is not None and _t._sicht.sichtbar((L[n]["x"], L[n]["y"])) else set())
     return t
 
 
@@ -375,7 +383,7 @@ def main():
             return [not (sperre_bester and i == 0) for i in range(len(punkte))]
         t = A.Einzeln(1, pruefe_begehbar=lambda pkt: set(pkt), wegtest=wt); t._raid_plaetze = 99
         L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
-             600: einheit(23, 2, 130, 100, leben=17500), 601: einheit(24, 2, 112, 100, leben=10000)}
+             600: dict(einheit(23, 2, 130, 100, leben=17500), zieleinheit=100), 601: einheit(24, 2, 112, 100, leben=10000)}
         G = {900: {"besitzer": 2, "typ": 3, "x": 160, "y": 140, "leben": 100, "uid": 1, "erreichbar": 1}}
         t.aufnehmen([100])
         t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
@@ -399,7 +407,7 @@ def main():
     # 20
     t = neu(); t._raid_plaetze = 99
     L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
-         600: einheit(23, 2, 130, 100, leben=17500), 601: einheit(24, 2, 112, 100, leben=10000)}
+         600: dict(einheit(23, 2, 130, 100, leben=17500), zieleinheit=100), 601: einheit(24, 2, 112, 100, leben=10000)}
     G = {900: {"besitzer": 2, "typ": 3, "x": 160, "y": 140, "leben": 100, "uid": 1, "erreichbar": 1}}
     t.aufnehmen([100])
     t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
@@ -413,7 +421,7 @@ def main():
     # 21
     t = neu(); t._raid_plaetze = 99
     L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
-         600: einheit(23, 2, 130, 100, leben=17500), 601: einheit(24, 2, 112, 100, leben=10000)}
+         600: dict(einheit(23, 2, 130, 100, leben=17500), zieleinheit=100), 601: einheit(24, 2, 112, 100, leben=10000)}
     G = {900: {"besitzer": 2, "typ": 3, "x": 160, "y": 140, "leben": 100, "uid": 1, "erreichbar": 1}}
     t.aufnehmen([100])
     t.flucht[100] = {"seit": 0, "ruhig": 0, "letzt": (100, 100), "mitte": (80, 80)}
@@ -436,7 +444,7 @@ def main():
     # 23
     t = A.Einzeln(1, pruefe_begehbar=lambda pkt: set(), wegtest=lambda n, p: [True] * len(p)); t._raid_plaetze = 99
     L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
-         600: einheit(23, 2, 130, 100, leben=17500), 601: einheit(24, 2, 112, 100, leben=10000)}
+         600: dict(einheit(23, 2, 130, 100, leben=17500), zieleinheit=100), 601: einheit(24, 2, 112, 100, leben=10000)}
     t.aufnehmen([100])
     t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
     erg, bef = t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
@@ -461,7 +469,7 @@ def main():
         return [len(aufrufe) > 1] * len(punkte)          # erster Aufruf (8 beste Punkte): alle unerreichbar
     t = A.Einzeln(1, pruefe_begehbar=lambda pkt: set(pkt), wegtest=wt25); t._raid_plaetze = 99
     L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000),
-         600: einheit(23, 2, 130, 100, leben=17500), 601: einheit(24, 2, 112, 100, leben=10000)}
+         600: dict(einheit(23, 2, 130, 100, leben=17500), zieleinheit=100), 601: einheit(24, 2, 112, 100, leben=10000)}
     G = {900: {"besitzer": 2, "typ": 3, "x": 160, "y": 140, "leben": 100, "uid": 1, "erreichbar": 1}}
     t.aufnehmen([100])
     t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
@@ -949,6 +957,29 @@ def main():
         p57, le57, m57, ld57, ln57, p57o, le57o),
            p57 is None and le57 and le57.get("fehl") == 1 and len(m57) >= 1 and p57o == "bereit" and not le57o
            and ln57 is not None and ld57 < ln57 < A.Einzeln.VOLL)
+    # 58 (B-234, Daniel 25.10. 00:10 "Assassinen haben Angst, obwohl sie noch nicht erkannt wurden"; Lauf 222643: 17 von 24
+    #     ENTDECKT ohne Treffer und ohne Feind im Visier): ein Speer 12 Felder weit (Modell: sichtbar), 8 Armbrueste 30 Felder
+    #     weit mit Linie, NIEMAND visiert ihn an, volles Leben -> kein ENTDECKT, Zaehler sichtbar_unbemerkt; Gegenproben: eine
+    #     Armbrust hat ihn als Ziel -> ENTDECKT; niemand visiert, aber er verliert Leben -> ENTDECKT
+    def spielwahrheit(ziel, treffer):
+        t = neu(spielwahrheit=True); t._raid_plaetze = 99
+        L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000), 601: einheit(24, 2, 112, 100, leben=10000)}
+        for i in range(8):
+            L[610 + i] = einheit(23, 2, 130 + i % 4, 96 + i // 4 * 2, leben=17500)
+        if ziel:
+            L[610]["zieleinheit"] = 100
+        t.aufnehmen([100])
+        erg, _ = t.schritt(L, {}, sichere_orte=[(50, 50)], tick=10000)
+        if treffer:
+            L[100]["leben"] = 11300
+            erg2, _ = t.schritt(L, {}, sichere_orte=[(50, 50)], tick=10050)
+            erg += erg2
+        return 100 in t.entdeckt, t.bilanz.get("sichtbar_unbemerkt", 0), [z[:50] for z in erg if z.startswith("ENTDECKT")][:1]
+    e58, u58, m58 = spielwahrheit(False, False)
+    e58z, _, m58z = spielwahrheit(True, False)
+    e58t, _, m58t = spielwahrheit(False, True)
+    pruefe(58, "niemand visiert: entdeckt %s, unbemerkt gezaehlt %d %s | Armbrust visiert: %s %s | Treffer: %s %s" % (
+        e58, u58, m58, e58z, m58z, e58t, m58t), not e58 and u58 >= 1 and e58z and m58z and e58t and m58t)
     pruefe(55, "ein Bogen: Jagd %s, entdeckt %s %s | 8 Armbrueste dazu: Jagd %s, entdeckt %s %s" % (j55, e55, m55, j55b, e55b, m55b),
            j55 == 600 and not e55 and j55b is None and e55b)
     print("%d von %d gruen" % (sum(ok), len(ok)))
