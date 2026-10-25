@@ -2,15 +2,15 @@
 """B-241 Kaufrechnung aus den Spielwerten (Daniel 25.10.2026 08:27 "die Liste von Preisen und die Rechnung steht im Spielcode -
 egal welche Modifikation, Balance, Namen oder Anzahl"; 09:37 "ja bau die Kaufrechnung aus den Spielwerten").
 
-Nichts hier ist eine Liste von uns: Preise, Leben, Schaden und Namen kommen aus daten/spielwerte_<stempel>.json (SRE, B-242,
-spielwerte.py liest sie einmal je Partie aus dem laufenden Spiel). Gemessen wird nur, was das Spiel nicht hergibt: wie oft je Takt
-geschlagen bzw. geschossen wird. Dazu die Duell-Messungen (gefecht.tabelle):
-  - Nahkampf: gemessen je Takt / Tabelle je Treffer liegt bei 0,8-1,5 (25.10., 118 Paare; Lord, Speer, Sklave, Assassine 1,0;
-    Schwert/arab. Schwert 1,3-1,5) -> je Angreifer-Art EIN Faktor (Median), ohne Messung 1,0 (UNGEMESSEN)
-  - Fernkampf: gemessen je Takt / arrow_damage[Ziel] = Schussrate je Schuetzen-Art (Bogen 0,009, Armbrust 0,02, arab. Bogen 0,012,
-    Feuerwerfer 0,02); ohne Messung der Median der gemessenen Schuetzen (UNGEMESSEN)
-So liefert gefecht.simuliere fuer JEDE Art der Tabelle (auch unbekannte eines Mods) einen Wert - gemessene Paare bleiben wie bisher
-die Grundlage, die Tabelle fuellt die Luecken mit der Spielformel statt mit "Mittel/20".
+Nichts hier ist eine Liste von uns: Preise, Leben, Schaden, Schlag- und Schusstakt und Namen kommen aus daten/spielwerte_<stempel>.json
+(SRE, B-242, spielwerte.py liest sie einmal je Partie aus dem laufenden Spiel):
+  - Nahkampf: melee_damage[Angreifer][Ziel] ist Schaden je TAKT (processMeleeInitiation schlaegt bei anliegendem Gegner jeden Takt,
+    SRE 25.10. 09:53; takt.nahkampf_je_treffer = 1) - Daniels 70/Takt Streitkolben am Lord = Tabelle 70
+  - Fernkampf: arrow_damage[Ziel] je Geschoss / takt.schuss_zyklus[Schuetze] (Animationstabellen: Bogen 129, Armbrust 228,
+    arab. Bogen 90, Schleuderer 57, Feuerwerfer 143; Katapult 84, Tribok 183, Mangonel 90, Balliste 78, Feuerballiste 66)
+Die Duell-Messungen (gefecht.tabelle) dienen nur noch der Gegenprobe (kalibrierung: gemessen / Spielwert je Art; Nahkampf 0,8-1,5
+= Pausen und Gedraenge, Bogen 0,009 gegen 0,0078 passt, Armbrust gemessen 0,02 gegen 0,0044 passt NICHT - offen, nachmessen).
+So liefert gefecht.simuliere fuer JEDE Art der Tabelle (auch unbekannte eines Mods) einen Wert aus dem Spiel selbst.
 
 Preis einer Einheit = Gold (truppe.kaserne_gold / truppe.soeldner_gold) + Marktpreis je Stueck der Waffe/Ruestung
 (einheit.euro_resource_costs, markt.kaufpreis_je5 / 5); Ritter brauchen zusaetzlich ein Pferd aus dem Stall (-1 in der Tabelle).
@@ -82,8 +82,17 @@ def preise(sw):
     return aus
 
 
+def schuss_zyklus(sw, typ):
+    """Takte zwischen zwei Geschossen aus takt.schuss_zyklus (0 = kein Schuetze / nicht gelesen); None ohne Tabelle."""
+    t = sw["tabellen"].get("takt.schuss_zyklus")
+    if t is None or typ >= len(t["werte"]):
+        return None
+    return t["werte"][typ] or None
+
+
 def kalibrierung(sw, duelle=None):
-    """(nah {Angreifer: Faktor}, fern {Schuetze: Rate}, gemessen {Art}) aus den Duell-Messungen gegen die Spieltabellen."""
+    """Gegenprobe Duell-Messung gegen Spielwert: (nah {Angreifer: gemessen je Takt / melee_damage}, fern {Schuetze: gemessene
+    Rate / Spielrate}, gemessen {Art}). Geht NICHT in die Rechnung ein - sie zeigt, wo Messung und Spiel auseinanderliegen."""
     import gefecht
     S, _, F = duelle if duelle is not None else gefecht.tabelle()
     md, ad = _w(sw, "einheit.melee_damage"), _w(sw, "einheit.arrow_damage")
@@ -97,42 +106,42 @@ def kalibrierung(sw, duelle=None):
             nah[a] = statistics.median(q)
             gemessen.add(a)
     for a, zeile in (F or {}).items():
+        zyk = schuss_zyklus(sw, a)
         q = [v / ad[z] for z, v in zeile.items() if z < n and ad[z] > 0]
         if len(q) >= MIN_PAARE:
-            fern[a] = statistics.median(q)
+            fern[a] = statistics.median(q) * zyk if zyk else statistics.median(q)
             gemessen.add(a)
     return nah, fern, gemessen
 
 
 def schadenstabelle(sw, duelle=None):
-    """(SCHADEN {x: {y: je Takt}}, FERN {x: {y: je Takt}}, LEBEN {x}, kalib) fuer gefecht.simuliere aus den Spielwerten.
-    Gemessene Paare bleiben die Messung; Luecken fuellt die Spieltabelle x Faktor der Art (sonst 1,0 bzw. Median der Schuetzen)."""
+    """(SCHADEN {x: {y: je Takt}}, FERN {x: {y: je Takt}}, LEBEN {x}, kalib) fuer gefecht.simuliere - alles aus den Spielwerten:
+    Nahkampf = melee_damage / takt.nahkampf_je_treffer (1), Fernkampf = arrow_damage[Ziel] / takt.schuss_zyklus[Schuetze].
+    Schuetzen ohne gelesenen Zyklus bekommen den Median der gelesenen (kalib["ungelesen"])."""
     import gefecht
     S, LEB, F = duelle if duelle is not None else gefecht.tabelle()
     nah, fern, gemessen = kalibrierung(sw, (S, LEB, F))
     md, ad, hp = _w(sw, "einheit.melee_damage"), _w(sw, "einheit.arrow_damage"), _w(sw, "einheit.base_hp")
-    reich = gefecht.FERN_REICH
     n = len(md)
-    rate_std = statistics.median(fern.values()) if fern else None
-    schaden, fernt, leben = {}, {}, {}
+    treffer = (sw["tabellen"].get("takt.nahkampf_je_treffer") or {}).get("werte") or [1] * n
+    zyklen = {a: schuss_zyklus(sw, a) for a in range(n)}
+    gelesen = [z for z in zyklen.values() if z]
+    zyk_std = statistics.median(gelesen) if gelesen else None
+    schaden, fernt, leben, ungelesen = {}, {}, {}, []
     for a in range(n):
         if hp[a] <= 0:
             continue
         leben[a] = hp[a]
-        f_a = nah.get(a, 1.0)
-        zeile = dict(S.get(a, {}))
-        for z in range(n):
-            if hp[z] > 0 and z not in zeile and md[a][z] > 0:
-                zeile[z] = md[a][z] * f_a
-        schaden[a] = zeile
-        if a in reich and a in (F or {}) or (a in reich and rate_std is not None):
-            r = fern.get(a, rate_std)
-            zf = dict((F or {}).get(a, {}))
-            for z in range(n):
-                if hp[z] > 0 and z not in zf and ad[z] > 0:
-                    zf[z] = ad[z] * r
-            fernt[a] = zf
-    kalib = {"nah": nah, "fern": fern, "gemessen": sorted(gemessen), "rate_standard": rate_std}
+        je = max(1, treffer[a] if a < len(treffer) and treffer[a] else 1)
+        schaden[a] = {z: md[a][z] / float(je) for z in range(n) if hp[z] > 0 and md[a][z] > 0}
+        if a in gefecht.FERN_REICH:
+            zyk = zyklen.get(a)
+            if not zyk:
+                ungelesen.append(a)
+                zyk = zyk_std
+            if zyk:
+                fernt[a] = {z: ad[z] / float(zyk) for z in range(n) if hp[z] > 0 and ad[z] > 0}
+    kalib = {"nah": nah, "fern": fern, "gemessen": sorted(gemessen), "zyklus_standard": zyk_std, "ungelesen": ungelesen}
     return schaden, fernt, leben, kalib
 
 
@@ -176,7 +185,7 @@ def bewerte(sw, gold, feinde, feuer=None, duelle=None, arten=None, bis=None):
         aus.append({"typ": typ, "name": name(sw, typ), "n": n, "gold": ausgegeben, "preis": p["gold"], "gebaeude": p["gebaeude"],
                     "stall": p["stall"], "waren": p["waren"], "sieg": bool(sieg), "rest": rest_w / float(max(1, voll)),
                     "feind_rest": rest_s / float(max(1, sie_voll)) if sie_voll else 0.0, "takte": takte, "wert": wert,
-                    "ungemessen": typ not in kalib["gemessen"]})
+                    "ungelesen": typ in kalib["ungelesen"]})
     aus.sort(key=lambda r: (not r["sieg"], -r["wert"]))
     return aus
 
@@ -190,14 +199,14 @@ def main(argv):
     feinde = feinde_aus(argv[1]) if len(argv) > 1 else [{"typ": 22, "n": 10}, {"typ": 24, "n": 10}]
     feuer = int(argv[2]) if len(argv) > 2 else None
     _, _, _, kalib = schadenstabelle(sw)
-    print("Spielwerte:", os.path.basename(sw["_pfad"]), "| Faktoren Nahkampf:", {k: round(v, 2) for k, v in kalib["nah"].items()},
-          "| Schussraten:", {k: round(v, 4) for k, v in kalib["fern"].items()})
+    print("Spielwerte:", os.path.basename(sw["_pfad"]), "| Gegenprobe Duell/Spiel Nahkampf:", {k: round(v, 2) for k, v in kalib["nah"].items()},
+          "| Fernkampf:", {k: round(v, 2) for k, v in kalib["fern"].items()}, "| Zyklus ungelesen:", kalib["ungelesen"])
     print("Preise:", {t: round(p["gold"], 1) for t, p in sorted(preise(sw).items())})
     print("Gold %d gegen %s%s:" % (gold, ",".join("%dx%d" % (f["typ"], f["n"]) for f in feinde), " (Feuer %d)" % feuer if feuer else ""))
     for r in bewerte(sw, gold, feinde, feuer):
         print("  %-22s x%3d fuer %5d (je %5.1f%s) | %s nach %4d Takten, Rest %3.0f %%, Feind-Rest %3.0f %% | Wert je Gold %6.1f%s" % (
             r["name"], r["n"], r["gold"], r["preis"], ", Stall" if r["stall"] else "", "SIEG     " if r["sieg"] else "Niederlage",
-            r["takte"], 100 * r["rest"], 100 * r["feind_rest"], r["wert"], " UNGEMESSEN" if r["ungemessen"] else ""))
+            r["takte"], 100 * r["rest"], 100 * r["feind_rest"], r["wert"], " ZYKLUS UNGELESEN" if r["ungelesen"] else ""))
     return 0
 
 
