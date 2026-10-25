@@ -384,6 +384,9 @@ class Schnappschuss(object):
                 "entities_idx": np.flatnonzero(me), "spieler": self.spieler.copy(), "hoehe": getattr(self, "hoehe", None),
                 "feldnr": feldnummern() if getattr(self, "hoehe", None) is not None else None}
 
+    def treffer(self):
+        return treffer_folge(self)
+
     @classmethod
     def aus_behalten(cls, d):
         s = cls.__new__(cls)
@@ -805,6 +808,87 @@ class Protokoll(object):
                  "trupps_idx": z["trupps_idx"][tg[i]:tg[i + 1]] if tg is not None else np.zeros(0, np.int64)}
             aus.append(Schnappschuss.aus_behalten(d))
         return aus
+
+
+def treffer(a, b):
+    """Lebensverluste zwischen zwei aufeinanderfolgenden Schnappschuessen a -> b und ihre Quelle (SAI 25.10. 19:15).
+    Je Einheit mit weniger health in b: Quelle 'geschoss' wenn in a ein Geschoss flog, das in b weg/eingeschlagen ist und
+    (a) auf diese Einheit zielte (unitID) oder (b) zuletzt auf/neben ihrem Feld war; 'nahkampf' wenn in a/b ein Gegner im
+    Zustand 106 (US_MELEE_ATTACK) mit attackedUnitID == Einheit anliegt (oder attackedBy der Einheit auf ihn zeigt);
+    sonst 'unbekannt' (Feuer, Belagerungsgeraet-Stein ohne Ziel, Seuche ...). Mehrere Quellen moeglich -> Liste."""
+    ua, ub = a.einheiten, b.einheiten
+    ida, idb = a._einheiten_idx if a._einheiten_idx is not None else np.arange(len(ua)), b._einheiten_idx if b._einheiten_idx is not None else np.arange(len(ub))
+    pos_a = {int(ua[i]["uid"]): i for i in range(len(ua)) if int(ua[i]["logicalState"]) == 2}
+    # Geschosse, die in a flogen und in b nicht mehr fliegen (weg, Zustand 3/7 oder liegen)
+    ea, eb = a.entities, b.entities
+    flog = {int(ea[i]["uid"]): i for i in range(len(ea)) if int(ea[i]["entityType"]) in GESCHOSSE and int(ea[i]["logicalState"]) == 2 and int(ea[i]["someCounter_OR_hitGround"]) == 0}
+    noch = {int(eb[i]["uid"]): i for i in range(len(eb)) if int(eb[i]["entityType"]) in GESCHOSSE and int(eb[i]["logicalState"]) == 2 and int(eb[i]["someCounter_OR_hitGround"]) == 0}
+    eingeschlagen = [i for u, i in flog.items() if u not in noch]
+    # Nahkaempfer in b (und a) im Zustand 106 mit Opfer
+    def schlaeger(u, idx):
+        aus = {}
+        for i in range(len(u)):
+            if int(u[i]["logicalState"]) == 2 and int(u[i]["state"]) == 106 and int(u[i]["attackedUnitID"]) > 0:
+                aus.setdefault(int(u[i]["attackedUnitID"]), []).append((int(idx[i]), int(u[i]["uid"]), int(u[i]["unitType"]), int(u[i]["owner"]), int(u[i]["x"]), int(u[i]["y"])))
+        return aus
+    sb, sa = schlaeger(ub, idb), schlaeger(ua, ida)
+    aus = []
+    for j in range(len(ub)):
+        r = ub[j]
+        if int(r["logicalState"]) != 2:
+            continue
+        uid = int(r["uid"])
+        i = pos_a.get(uid)
+        if i is None:
+            continue
+        verlust = int(ua[i]["health"]) - int(r["health"])
+        if verlust <= 0:
+            continue
+        nr, x, y, owner = int(idb[j]), int(r["x"]), int(r["y"]), int(r["owner"])
+        quellen = []
+        for k in eingeschlagen:
+            g = ea[k]
+            if int(g["owner"]) == owner:
+                continue
+            nah = max(abs(int(g["xPosition"]) - x), abs(int(g["yPosition"]) - y)) <= 1
+            if int(g["unitID"]) == nr or nah:
+                quellen.append({"quelle": "geschoss", "geschoss_uid": int(g["uid"]), "entityType": int(g["entityType"]),
+                                "sre_art": ENTITY_TYPE.get(int(g["entityType"]), ""), "schuetze": int(g["unitID_OR_seaGullID"]),
+                                "gezielt": int(g["unitID"]) == nr, "nah": nah})
+        for liste in (sb.get(nr, []), sa.get(nr, [])):
+            for (anr, auid, aut, aown, ax, ay) in liste:
+                if aown != owner and max(abs(ax - x), abs(ay - y)) <= 2 and not any(q.get("angreifer") == anr for q in quellen):
+                    quellen.append({"quelle": "nahkampf", "angreifer": anr, "angreifer_uid": auid, "angreifer_art": aut, "gezielt": True})
+        # Nahkampf wirkt jeden Takt (P4): jeder Gegner im Zustand 106 bis 2 Felder (Mikro-Position an der Feldgrenze; gemessen
+        # Lauf 191847: Angreifer stehen in x/y oft 2 Felder vom Opfer) ist ein Kandidat, auch ohne attackedUnitID
+        for u, idx in ((ub, idb), (ua, ida)):
+            m = (u["logicalState"] == 2) & (u["state"] == 106) & (u["owner"] != owner) & (np.abs(u["x"].astype(int) - x) <= 2) & (np.abs(u["y"].astype(int) - y) <= 2)
+            for w in np.flatnonzero(m):
+                anr = int(idx[w])
+                if not any(q.get("angreifer") == anr for q in quellen):
+                    quellen.append({"quelle": "nahkampf", "angreifer": anr, "angreifer_uid": int(u[w]["uid"]), "angreifer_art": int(u[w]["unitType"]), "gezielt": False,
+                                    "abstand_mikro": int(max(abs(int(u[w]["microXPosition"]) - int(r["microXPosition"])), abs(int(u[w]["microYPosition"]) - int(r["microYPosition"]))))})
+        ab = int(r["attackedBy"])
+        if ab > 0 and not quellen and not any(q.get("angreifer") == ab for q in quellen):   # nur als Notnagel: attackedBy veraltet, wenn der Platz neu vergeben wurde
+            # attackedBy (+942) nennt die Einheitennummer des letzten Angreifers - Art und uid aus b (sonst a) nachschlagen
+            q = {"quelle": "attackedBy", "angreifer": ab}
+            for u, idx in ((ub, idb), (ua, ida)):
+                w = np.flatnonzero(idx == ab)
+                if len(w):
+                    q.update(angreifer_uid=int(u[w[0]]["uid"]), angreifer_art=int(u[w[0]]["unitType"]), angreifer_state=int(u[w[0]]["state"]),
+                             angreifer_abstand=int(max(abs(int(u[w[0]]["x"]) - x), abs(int(u[w[0]]["y"]) - y))))
+                    break
+            quellen.append(q)
+        aus.append({"takt": int(b.takt), "takt_vorher": int(a.takt), "id": nr, "uid": uid, "unitType": int(r["unitType"]), "owner": owner,
+                    "feld": [x, y], "health": int(r["health"]), "verlust": verlust, "quellen": quellen or [{"quelle": "unbekannt"}]})
+    return aus
+
+
+def treffer_folge(schnappschuesse):
+    aus = []
+    for a, b in zip(schnappschuesse, schnappschuesse[1:]):
+        aus.extend(treffer(a, b))
+    return aus
 
 
 def protokollieren(sekunden, spieler=None, pfad=None, alle_ms=0.0, mit_trupps=False, alle_takte=1):
