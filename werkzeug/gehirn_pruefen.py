@@ -1,0 +1,98 @@
+# -*- coding: utf-8 -*-
+"""Gehirn-Baustein 1 gegen den Pruefstein (offline, kein Spiel). Vorher festgelegt (Daniel 25.10. 20:01 "ja"):
+  ZIEL       mindestens 80 % der echten Lebensverluste eines Fensters liegen auf Opfern, die die Prognose genannt hat
+             (Opfer-Quote), und Geschoss-/Schusstreffer kommen zu mindestens 80 % auf +-5 Takte
+  ABBRUCH    Opfer-Quote unter 50 % -> ein Auge-Teil stimmt nicht: zurueck zu SRE, kein Nachstellen von Werten
+  DAZU       Mengen-Verhaeltnis (vorhergesagt / echt) und Trefferquote der Prognose (Anteil vorhergesagten Verlusts auf
+             Opfern, die wirklich verloren) - als Hinweis, nicht als Ziel
+Fenster: ab jedem Schnappschuss alle SCHRITT Takte, Laenge H. Echte Verluste aus <protokoll>_treffer.json (auge.treffer).
+Aufruf: python werkzeug/gehirn_pruefen.py [protokoll.npz] [H=30] [schritt=30] [spielwerte.json]"""
+import collections
+import json
+import os
+import sys
+
+HIER = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HIER)
+D = os.path.join(HIER, "..", "daten")
+
+
+def laden(pfad):
+    import auge
+    import speicher
+    # offline: auge liest die Phasentabellen dann aus der Programmdatei (SRE-Fix 25.10. 20:05)
+
+    def _offline():
+        raise RuntimeError("offline")
+    speicher.griff = _offline
+    return auge.Protokoll.laden(pfad)
+
+
+def main(argv):
+    pfad = argv[0] if argv else os.path.join(D, "auge_protokoll_20261025_191847.npz")
+    H = int(argv[1]) if len(argv) > 1 else 30
+    schritt = int(argv[2]) if len(argv) > 2 else 30
+    sw_pfad = argv[3] if len(argv) > 3 else os.path.join(D, "spielwerte_20261025_095417.json")
+    import gehirn
+    sw = json.load(open(sw_pfad, encoding="utf-8"))
+    G = gehirn.Gehirn(sw)
+    P = laden(pfad)
+    tr = json.load(open(pfad.replace(".npz", "_treffer.json"), encoding="utf-8"))["treffer"]
+    echt_je_takt = collections.defaultdict(list)            # takt -> [(opfer, verlust, quellen)]
+    for t in tr:
+        echt_je_takt[t["takt"]].append(t)
+    takte = sorted(echt_je_takt)
+    import bisect
+    summe = collections.Counter()
+    zeit_ok = zeit_n = 0
+    fenster = 0
+    letzter = None
+    for s in P:
+        t0 = s.kopf()["takt"]
+        if letzter is not None and t0 - letzter < schritt:
+            continue
+        letzter = t0
+        progn = G.prognose(s, H)
+        echt = collections.Counter()
+        echt_geschoss = collections.defaultdict(list)
+        for t in takte[bisect.bisect_right(takte, t0):bisect.bisect_right(takte, t0 + H)]:
+            for ev in echt_je_takt[t]:
+                echt[ev["id"]] += ev["verlust"]
+                if any(q.get("quelle") == "geschoss" for q in ev["quellen"]):
+                    echt_geschoss[ev["id"]].append(t)
+        if not echt and not progn:
+            continue
+        fenster += 1
+        summe["echt"] += sum(echt.values())
+        summe["echt_getroffen"] += sum(v for o, v in echt.items() if o in progn)
+        summe["progn"] += sum(p["verlust"] for p in progn.values())
+        summe["progn_richtig"] += sum(p["verlust"] for o, p in progn.items() if echt.get(o, 0) > 0)
+        for o, p in progn.items():
+            for q in p["quellen"]:
+                if q["art"] in ("geschoss", "schuss") and q["takt"] <= H:
+                    zeit_n += 1
+                    if any(abs((t0 + q["takt"]) - te) <= 5 for te in echt_geschoss.get(o, ())):
+                        zeit_ok += 1
+        for art in ("geschoss", "schuss", "nahkampf", "nahkampf_folge"):
+            summe["progn_" + art] += sum(1 for p in progn.values() for q in p["quellen"] if q["art"] == art)
+    quote = summe["echt_getroffen"] / float(max(1, summe["echt"]))
+    praez = summe["progn_richtig"] / float(max(1, summe["progn"]))
+    zeit = zeit_ok / float(max(1, zeit_n))
+    erg = {"protokoll": os.path.basename(pfad), "H": H, "schritt": schritt, "fenster": fenster,
+           "opfer_quote": round(quote, 3), "praezision": round(praez, 3),
+           "menge_verhaeltnis": round(summe["progn"] / float(max(1, summe["echt"])), 3),
+           "zeit_quote_pm5": round(zeit, 3), "zeit_n": zeit_n,
+           "echt_verlust": summe["echt"], "progn_verlust": round(summe["progn"]),
+           "quellen_vorhergesagt": {k[6:]: v for k, v in summe.items() if k.startswith("progn_") and k[6:] in ("geschoss", "schuss", "nahkampf", "nahkampf_folge")}}
+    urteil = ("ZIEL ERREICHT" if quote >= 0.8 and zeit >= 0.8 else
+              "ABBRUCH: Opfer-Quote unter 50 % - Auge pruefen (SRE), nicht nachstellen" if quote < 0.5 else
+              "ZWISCHEN 50 und 80 % - Ursachen je Quelle suchen")
+    erg["urteil"] = urteil
+    print(json.dumps(erg, ensure_ascii=False, indent=1))
+    with open(os.path.join(D, "gehirn_pruefung.jsonl"), "a", encoding="utf-8") as f:
+        f.write(json.dumps(erg, ensure_ascii=False) + "\n")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
