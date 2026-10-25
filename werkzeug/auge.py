@@ -426,11 +426,18 @@ class Schnappschuss(object):
         mt = (t["size"] > 0) if len(t) else np.zeros(0, bool)
         g = self.gebaeude
         mg = (g["logicalState"] == 2) if len(g) else np.zeros(0, bool)
-        gp = np.lib.recfunctions.repack_fields(g[mg]) if mg.any() else np.zeros(0, BUILDING_PACKED)
+        gp = g[mg] if g.dtype == BUILDING_PACKED else (np.lib.recfunctions.repack_fields(g[mg]) if mg.any() else np.zeros(0, BUILDING_PACKED))
+
+        # B-252 19:55: Schnappschuesse aus dem Taktring/Protokoll sind schon verdichtet - die echten Platznummern stehen in
+        # _<art>_idx und muessen durchgereicht werden, sonst zaehlt flatnonzero() nur die Position in der Teilliste
+        # (Fehler 19:32-19:51: Gebaeude 246 = Hof wurde als Platz 246 der Teilliste = Kaserne gelesen).
+        def echt(art, maske):
+            basis = getattr(self, "_%s_idx" % art, None)
+            return basis[maske] if basis is not None else np.flatnonzero(maske)
         return {"takt": self.takt, "takt_kern": self.takt_kern, "rein": self.rein, "dauer_ms": self.dauer_ms,
-                "trupps": t[mt].copy(), "trupps_idx": np.flatnonzero(mt), "gebaeude": gp, "gebaeude_idx": np.flatnonzero(mg),
-                "einheiten": u[m].copy(), "einheiten_idx": np.flatnonzero(m), "entities": e[me].copy(),
-                "entities_idx": np.flatnonzero(me), "spieler": self.spieler.copy(), "hoehe": getattr(self, "hoehe", None),
+                "trupps": t[mt].copy(), "trupps_idx": echt("trupps", mt), "gebaeude": gp, "gebaeude_idx": echt("gebaeude", mg),
+                "einheiten": u[m].copy(), "einheiten_idx": echt("einheiten", m), "entities": e[me].copy(),
+                "entities_idx": echt("entities", me), "spieler": self.spieler.copy(), "hoehe": getattr(self, "hoehe", None),
                 "feldnr": feldnummern() if getattr(self, "hoehe", None) is not None else None,
                 "bau": getattr(self, "bau", None), "logik": getattr(self, "logik", None)}
 

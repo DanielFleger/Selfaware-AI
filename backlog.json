@@ -6655,10 +6655,10 @@
    "nr": "B-252",
    "titel": "Bemannen-Befehl im Befehlskanal (Spielbefehl 36 Art 16 UIT_MAN_SIEGE_EQUIPMENT, Baumeister -> Geraet), dann Stein-Flugbahn Katapult/Tribok/Mangonel messen (auge sre_bahn fuer Kurventyp 1/2 ist abgelesen, ungemessen)",
    "bereich": "Forschung",
-   "status": "in_arbeit",
+   "status": "gebaut",
    "seit": "2026-10-25 15:55",
    "herkunft": "SRE 25.10. 15:55, Lauf auge_protokoll_154951 (unbemanntes Katapult schiesst nicht)",
-   "gebaut": null,
+   "gebaut": "2026-10-25 19:57",
    "commits": [],
    "wo": [
     "werkzeug/logik_stand_*.lua angriff/befehlAbsetzen(36)",
@@ -6667,9 +6667,11 @@
    "belege": [
     "daten/auge_protokoll_20261025_184555.npz",
     "daten/auge_protokoll_20261025_184555_steine.json",
-    "daten/auge_protokoll_20261025_194408_steine.json"
+    "daten/auge_protokoll_20261025_194408_steine.json",
+    "daten/auge_protokoll_20261025_195653_steine.json",
+    "daten/auge_protokoll_20261025_195131.npz"
    ],
-   "notiz": "25.10. 15:59: SAI hat bemannen/art in logik_stand_20261025.lua gebaut und nach ucp/villagestudio ausgeliefert; nach Neustart der Instanz kam der Befehl trotzdem als Art 31 an (Modul [selfaware-runtime] loggt ANGRIFF) - Ladeort des angriff-Handlers klaeren; Pruefskript werkzeug/engine_knowledge/auge_steine.py liegt bereit | 18:46 Bemannen wirkt (Art 16); 9 Steine: Formel +-1, Einschlag 3/9 exakt, 6/9 stoppen unerklaert in der Luft (Zustand 7, Hoehe 54-73 ueber flachem Boden); naechster Lauf mit Geschoss-Rohdaten je Takt | 19:30 Lauf 192940: Stopp bei Bildzaehler 8 (zwei Steine exakt 8 Takte), keine Einheit/kein Gebaeude darunter; Verdacht LogicLayer-Bit 0x10000000 -> returnSomeHeight; LogicLayer je Takt mitlesen | 19:45 Dachhoehe-Regel (returnSomeHeight) erklaert 5 von 10 Stopps exakt; 5 stoppen ueber Gebaeude 246 (Art 31) bei Hoehe 65-76 trotz Dach 48 - Rest offen; Ebenen je Takt jetzt im Taktring",
+   "notiz": "25.10. 15:59: SAI hat bemannen/art in logik_stand_20261025.lua gebaut und nach ucp/villagestudio ausgeliefert; nach Neustart der Instanz kam der Befehl trotzdem als Art 31 an (Modul [selfaware-runtime] loggt ANGRIFF) - Ladeort des angriff-Handlers klaeren; Pruefskript werkzeug/engine_knowledge/auge_steine.py liegt bereit | 18:46 Bemannen wirkt (Art 16); 9 Steine: Formel +-1, Einschlag 3/9 exakt, 6/9 stoppen unerklaert in der Luft (Zustand 7, Hoehe 54-73 ueber flachem Boden); naechster Lauf mit Geschoss-Rohdaten je Takt | 19:30 Lauf 192940: Stopp bei Bildzaehler 8 (zwei Steine exakt 8 Takte), keine Einheit/kein Gebaeude darunter; Verdacht LogicLayer-Bit 0x10000000 -> returnSomeHeight; LogicLayer je Takt mitlesen | 19:45 Dachhoehe-Regel (returnSomeHeight) erklaert 5 von 10 Stopps exakt; 5 stoppen ueber Gebaeude 246 (Art 31) bei Hoehe 65-76 trotz Dach 48 - Rest offen; Ebenen je Takt jetzt im Taktring | 19:57 geloest: Luft-Stopp = Dachhoehe (returnSomeHeight), Rest war Platznummern-Fehler in auge.behalten (doppelt verdichtet); freie Karte 10/10 ohne Stopp, Sandkasten 10/10 Einschlaege exakt",
    "verlauf": [
     {
      "zeit": "2026-10-25 15:55",
@@ -6690,6 +6692,10 @@
     {
      "zeit": "2026-10-25 19:46",
      "was": "in Arbeit -> in Arbeit: 19:45 Dachhoehe-Regel (returnSomeHeight) erklaert 5 von 10 Stopps exakt; 5 stoppen ueber Gebaeude 246 (Art 31) bei Hoehe 65-76 trotz Dach 48 - Rest offen; Ebenen je Takt jetzt im Taktring"
+    },
+    {
+     "zeit": "2026-10-25 19:57",
+     "was": "in Arbeit -> gebaut: 19:57 geloest: Luft-Stopp = Dachhoehe (returnSomeHeight), Rest war Platznummern-Fehler in auge.behalten (doppelt verdichtet); freie Karte 10/10 ohne Stopp, Sandkasten 10/10 Einschlaege exakt"
     }
    ]
   }
