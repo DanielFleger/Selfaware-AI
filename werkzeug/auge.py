@@ -1,0 +1,641 @@
+# -*- coding: utf-8 -*-
+"""B-251 Das Auge - ein Takt-treuer Schnappschuss des ganzen Spielzustands, nur lesend (speicher.lies).
+
+Auftrag SAI/Daniel 25.10.2026 15:10: alles sehen, was das Lagebild (villagestudio logik.lua: Tabellen einheiten/gebaeude)
+nicht sieht - Geschosse in der Luft, Zustandsphasen und Restdauer, Sichtwert des Meuchelmoerders, vorausberechnetes
+Zielfeld, Wegpunkte und Restweg, Hoehe, Treffer-Historie; Gegner-KI-Absicht; Felder; Gebaeude-Innenleben; Gegnerwirtschaft.
+
+Bauweise: je Schnappschuss werden die grossen Bloecke mit wenigen ReadProcessMemory-Aufrufen am Stueck gelesen
+(Einheiten, Geschosse, Gebaeude, Spieler, Trupps, Zeit), davor und danach die Taktnummer; stimmen beide ueberein, ist
+der Schnappschuss "rein" (innerhalb eines Takts gelesen). Die Felder werden mit numpy-Strukturtypen ohne Kopie gelesen.
+
+Alle Feldnamen sind die Namen aus dem Programm (Codex-Pipeline types.json, Ghidra-Analyse der Referenz-Exe); eigene
+Uebersetzungen gibt es nur als Zusatzspalten mit dem Vorsatz "sre_" und sind im Wissensregister (B-251) erklaert.
+
+Adressen (Referenz-Exe 1.41, Image-Base 0x400000; UCP3 aendert sie nicht):
+  DAT_GameState 0x0112B0B8  playerDataArray +200000 (9 x 14836), mapAndTime +333524 (MapAndTimeState)
+  totalGameTicksUnk 0x0117CADC (= mapAndTime+848; logik.lua TICKZAEHLER), DAT_GameCore.mapTimeInTicks 0x01FE7DA8
+  DAT_UnitsState 0x01387F38  maxUnitCount +0, units +1556 (2500 x 1168)
+  DAT_EntityState 0x02350300 maxEntityCount +0, fireCount +16, entityArray +20 (3000 x 232)
+  DAT_BuildingsState 0x00F98520 structCount +0, maxBuildingsCount +8, buildings +20 (2000 x 812)
+  DAT_TribesState 0x01667F78 tribes +40 (1250 x 820)
+  DAT_TileMapState 0x01A93208 UnitLayer +2349024, EntityLayer +2509824, DamageLayer +3313824, pitchDitches +5501060
+"""
+import json
+import math
+import os
+import struct
+import sys
+import time
+
+import numpy as np
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import speicher  # noqa: E402
+
+TAKT = 0x0117CADC
+TAKT_KERN = 0x01FE7DA8                 # DAT_GameCore.mapTimeInTicks (Abschuss-Takt der Geschosse)
+GAME_STATE = 0x0112B0B8
+SPIELER = GAME_STATE + 200000
+SPIELER_GROESSE, SPIELER_ANZAHL = 14836, 9
+ZEIT = GAME_STATE + 333524
+UNITS_STATE = 0x01387F38
+UNITS = UNITS_STATE + 1556
+UNIT_GROESSE, UNITS_MAX = 1168, 2500
+ENTITY_STATE = 0x02350300
+ENTITIES = ENTITY_STATE + 20
+ENTITY_GROESSE, ENTITIES_MAX = 232, 3000
+BUILDINGS_STATE = 0x00F98520
+BUILDINGS = BUILDINGS_STATE + 20
+BUILDING_GROESSE, BUILDINGS_MAX = 812, 2000
+TRIBES_STATE = 0x01667F78
+TRIBES = TRIBES_STATE + 40
+TRIBE_GROESSE, TRIBES_MAX = 820, 1250
+TILEMAP = 0x01A93208
+UNIT_LAYER = TILEMAP + 2349024          # ushort je Feld: erste Einheit auf dem Feld (Kette ueber nextUnitOnTheSameTile)
+ENTITY_LAYER = TILEMAP + 2509824        # short je Feld: erstes Geschoss/Feuer auf dem Feld (Kette nextEntityOnThisTileByID)
+DAMAGE_LAYER = TILEMAP + 3313824        # byte je Feld
+PITCH = TILEMAP + 5501060               # PitchDitch[4000] x 20 Byte
+PITCH_ANZAHL = TILEMAP + 5581060
+FELDER = 80400
+
+# Flugbahn (initializeProjectileVelocities 0x00403A20, moveProjectileEntity 0x004084A0): Winkel in Grad, Geschwindigkeit
+# aus Tabelle; je Takt waechst speedUnk um den Zeitschritt (field43_0x5c4, z. B. Pfeil 0,18), zurueckgelegte Strecke in
+# Mikroschritten = vCos * speedUnk * 0,25. Gesamtstrecke = field58_0x8c (Sichtlinien-Schritte, computeLineOfSightDistance).
+FLUG_FAKTOR = 0.25
+GRAVITY_DIV_2 = 9.812 / 2
+
+
+def _dtype(felder, groesse):
+    namen, formate, offsets = zip(*felder)
+    return np.dtype({"names": namen, "formats": formate, "offsets": offsets, "itemsize": groesse})
+
+
+# Unit (types.json /_HoldStrong/Map/Units/Unit, 1168 Byte) - nur die Felder, die das Auge braucht
+UNIT = _dtype([
+    ("animationTicker", "<i4", 64), ("animationSpeed", "<i4", 68), ("animationFrame", "<i4", 72),
+    ("logicalState", "<i2", 140), ("unitType", "<i2", 142), ("owner", "<i2", 150), ("uid", "<i4", 152),
+    ("targetUID", "<i4", 160), ("microXPosition", "<i2", 182), ("microYPosition", "<i2", 184),
+    ("terrainOrClimbHeight", "<i2", 186), ("buildingHeight", "<i2", 188),
+    ("shootTargetMicroX", "<i2", 190), ("shootTargetMicroY", "<i2", 192), ("shootTargetZ", "<i2", 194),
+    ("x", "<i2", 196), ("y", "<i2", 198), ("destinationXPosition", "<i2", 200), ("destinationYPosition", "<i2", 202),
+    ("tile", "<i4", 212), ("destinationTilePosition", "<i4", 216), ("moveDelay", "<i2", 244),
+    ("tunnelerFinishedDigging", "<i2", 246), ("currentIndexInPathPlan", "<i2", 250), ("totalSizeOfPathPlan", "<i2", 252),
+    ("pathPlanStart", "u1", (400,), 254) if False else ("pathPlanStart", ("u1", (400,)), 254),
+    ("climbDataID", "<i2", 660), ("dying", "<i2", 672), ("nextUnitOnTheSameTile", "<u2", 674),
+    ("isSelectable_OR_matchTime", "<i2", 676), ("closestEnemyMicroDistance", "<i2", 678),
+    ("animationCycleNumber", "<i4", 688), ("facingDirection", "<i2", 692), ("stateBasedSpeed", "<i2", 702),
+    ("state", "<i2", 704), ("cachedState", "<i2", 706), ("state_2", "<i2", 716), ("healthPercentage", "<i2", 724),
+    ("tribeID", "<i2", 728), ("plannedDestinationX", "<i2", 732), ("plannedDestinationY", "<i2", 734),
+    ("idle", "<i2", 778), ("targetID_OR_targetBuildingID", "<i2", 822), ("attackedUnitID", "<i2", 830),
+    ("shootTargetedUnit", "<i2", 836), ("calculatedMovementSpeed", "<i2", 842), ("movementSpeed", "<i2", 844),
+    ("stoneAmmunition", "<i2", 866), ("workplaceBuildingUID", "<i4", 872), ("substate", "<i2", 896),
+    ("fixedRng", "<u4", 900), ("buildingID", "<i2", 920), ("targetingType", "<i2", 924),
+    ("targetedUnitID__OR__engineerMannedSiegeEngineRef", "<i2", 926), ("targetedBuildingTile", "<u4", 936),
+    ("lookForEnemy", "<i2", 940), ("attackedBy", "<i2", 942), ("huntedBy", "<i2", 946),
+    ("health", "<i4", 968), ("maxHealth", "<i4", 972), ("attackAtTileX", "<i2", 1000), ("attackAtTileY", "<i2", 1002),
+    ("nextAttackHurtsWall", "i1", 1006), ("lastEncounteredEnemyPlayerID", "<i2", 1024),
+    ("aiUnitBehaviourType", "<i2", 1066), ("siegeTargetPlayerID", "<i2", 1074),
+    ("lastEncounteredEnemyUnitIDUnk", "<i2", 1078), ("assassinsMicroDistanceToEnemyUnk", "<i4", 1080),
+    ("enemyNoticeFrequencyUnk", "<i4", 1084), ("idleCounterUnk", "<i2", 1092),
+], UNIT_GROESSE)
+
+# Entity (/_HoldStrong/Map/Entities/Entity, 232 Byte): Geschosse, Feuer, Fahnen, Staub ...
+ENTITY = _dtype([
+    ("logicalState", "<i2", 40), ("entityType", "<i2", 42), ("owner", "<i2", 44), ("uid", "<i4", 48),
+    ("field21_0x34", "<i4", 52), ("microX", "<i2", 56), ("microY", "<i2", 58), ("height", "<i2", 60),
+    ("targetX", "<i2", 62), ("targetY", "<i2", 64), ("targetZ", "<i2", 66), ("xPosition", "<i2", 68),
+    ("yPosition", "<i2", 70), ("tile", "<i4", 76), ("x_2", "<i2", 80), ("y_2", "<i2", 82),
+    ("startingHeight", "<i2", 88), ("someCounter_OR_hitGround", "<i2", 108), ("speedUnk", "<f4", 120),
+    ("vCos", "<f4", 124), ("vSin", "<f4", 128), ("travelledDistance", "<i2", 132), ("field58_0x8c", "<i2", 140),
+    ("velocityUnk", "<i2", 150), ("_elapsedTimeOrGravityAccumulator", "<f4", 152), ("startingAngle", "<i2", 156),
+    ("unitID", "<i2", 160), ("unitID_OR_seaGullID", "<i2", 162), ("hasDoneEffectUnk", "<i2", 178),
+    ("field80_0xba", "<i2", 186), ("rng_2", "<i2", 188), ("field90_0xd0", "<i2", 206), ("unitUID", "<i4", 212),
+    ("fireIntensity", "<i2", 216),
+], ENTITY_GROESSE)
+
+# Building (/_HoldStrong/Map/Buildings/Building, 812 Byte)
+BUILDING = _dtype([
+    ("recruitTimer", "<i2", 192), ("logicalState", "<i2", 208), ("buildingType", "<i2", 210), ("owner", "<i2", 214),
+    ("uid", "<i4", 216), ("x", "<i2", 238), ("y", "<i2", 240), ("currentHealth", "<i2", 268), ("maxHealth", "<i2", 270),
+    ("state", "<i2", 280), ("resources", ("<i4", (23,)), 296), ("currentNumberOfResource", "<u4", 388),
+    ("currentLimitOfResource", "<u4", 392), ("currentStoredResourceType", "<i2", 396),
+    ("buildingTypeBasedEmployeeCount", "<i2", 408), ("currentEmployeeCount", "<i2", 410),
+    ("currentlyNeededEmployeeCount", "<i2", 412), ("workerID", ("<i2", (4,)), 414), ("buildingProgress", "<i4", 632),
+    ("timeAlive", "<u4", 636), ("producedItemType", "<i2", 656), ("drawbridgeState2", "u1", 659),
+    ("drawBridgeState1", "u1", 660), ("containsSiegeMangonel1OrBallista2", "u1", 661), ("gateState", "u1", 675),
+    ("gateCloseOpenTimer", "<i2", 696), ("fireDuration", "<i2", 702), ("gateState2", "<i2", 704),
+    ("cooldownTimer", "<i2", 708), ("ifFireThenResponsiblePlayer", "<u2", 734), ("insideUnitID", ("<i2", (4,)), 736),
+    ("hasUnitsOntop", "<i2", 760),
+], BUILDING_GROESSE)
+
+# PlayerData (/_HoldStrong/Game/Player/PlayerData, 14836 Byte)
+PLAYER = _dtype([
+    ("popularity", "<i4", 96), ("populationCap", "<i4", 116), ("availablePeasantsAtFire", "<i4", 136),
+    ("currentResources", ("<i4", (25,)), 1232), ("armySize", "<i4", 1340), ("totalFood", "<i4", 8348),
+    ("foodTypesInStock", "<i4", 8352), ("weeksWithoutFood", "<i4", 8356), ("currentCrossbowmen", "<i4", 8380),
+    ("currentSpearmen", "<i4", 8384), ("currentPikemen", "<i4", 8388), ("currentMacemen", "<i4", 8392),
+    ("currentSwordsmen", "<i4", 8396), ("countArabSwordsman", "<i4", 8436), ("fearFactorLevel", "<i4", 8500),
+    ("totalEnemyUnitsCount", "<i4", 8520), ("currentPopulation", "<i4", 8576), ("taxesSetting", "<i4", 8584),
+    ("rationsSetting", "<i4", 8588), ("lordID", "<i4", 8696), ("lordUID", "<i4", 8700), ("troopsLost", "<i4", 8752),
+    ("troopsKilled", "<i4", 8756), ("aivID", "<i4", 8956), ("aiType", "<i4", 8960),
+    ("countAssassinsAndArabianSwordsman", "<i4", 10804), ("resourcesToAcquireArray", ("<i4", (24,)), 10864),
+    ("closestEnemyDistanceToTheLord", "<i4", 11108), ("idlePeasantsCount", "<i4", 11116),
+    ("aiStrengthState", "<i4", 11124), ("aiPlayerState", "<i4", 11172), ("totalAssassinTroops", "<i4", 11184),
+    ("totalLaddermenTroops", "<i4", 11192), ("totalTunnelerTroops", "<i4", 11196), ("totalUnitPatrolTroops", "<i4", 11200),
+    ("totalUnitBackupTroops", "<i4", 11204), ("totalUnitEngageTroops", "<i4", 11208),
+    ("totalUnitSiegeDefTroops", "<i4", 11212), ("attackedPlayerID", "<i4", 11224),
+    ("totalDefensiveTroopsUnk", "<i4", 12520), ("totalRaidingTroopsUnk", "<i4", 12524), ("totalAttackTroops", "<i4", 12528),
+    ("aiStrengthFeeling", "<i4", 12532), ("aiRecruitUnitChoiceState", "<i4", 12536),
+    ("aiRecruitIntervalTracker", "<i4", 12540), ("aiTribeIDs", ("<i2", (200,)), 12556),
+    ("top100TargetableBuildings", ("<i2", (100,)), 13756), ("attackAssaultDelayRelatedValue", "<i4", 14364),
+    ("isNotNervousByEnemyTroopValue", "<i4", 14368), ("requestedAttackTargetUnk", "<i4", 14416),
+    ("currentWaveRandomAttackingStrength", "<i4", 14496), ("totalEnemyTroopValueByPlayerID", ("<i4", (9,)), 14520),
+    ("totalEnemyTroopValue", "<i4", 14560), ("totalTroopValue", "<i4", 14568), ("currentAttackRaidParameter", "<i4", 14580),
+    ("totalEnemyRangedTroopValue", "<i4", 14608), ("currentAttackWave", "<i4", 14628),
+    ("aiCoordinatedAttackPatience", "<i4", 14640), ("attackTicker", "<i4", 14704),
+    ("relativeStrengthOfTeamComparedToEnemy", "<i2", 14784), ("aiStateCounter", "<i2", 14786),
+], SPIELER_GROESSE)
+
+# Tribe (/_HoldStrong/Map/Units/Tribe, 820 Byte) - KI-Trupps
+TRIBE = _dtype([
+    ("owner", "<i4", 4), ("tribeState", "<i2", 24), ("tribeType", "<i2", 26), ("tribeBehaviorType", "<i2", 40),
+    ("selectionTargetUnitID", "<i2", 50), ("size", "<i2", 52), ("countdown2", "<i2", 488), ("isRallyingUnk", "<i2", 518),
+    ("targetX", "<i2", 526), ("targetY", "<i2", 528), ("unitType", "<i2", 552), ("rallyPointArray", ("<i2", (9, 2)), 568),
+    ("currentRallyPointIndex", "<i2", 608), ("rallyPointCount", "<i2", 610), ("countdown", "<i2", 654),
+    ("attackWave", "<i2", 660), ("unitStance", "<i2", 696), ("targetPlayer_outpost", "<i2", 718),
+    ("targetBuildingID", "<i2", 720), ("targetBuildingUID", "<i4", 724),
+], TRIBE_GROESSE)
+
+PITCH_DTYPE = _dtype([("tile", "<i4", 0), ("uid", "<i4", 4), ("owner", "<i2", 8), ("x", "<i2", 10), ("y", "<i2", 12),
+                      ("state", "<i2", 16)], 20)
+
+# Aufzaehlungen aus types.json
+UNIT_STATE = {0: "US_DETERMINE_NEXT_STATE", 1: "US_IDLE", 4: "US_RELOAD_WEAPON", 5: "US_AIM_WEAPON", 6: "US_FIRE_WEAPON",
+              7: "US_LOOK_AROUND", 8: "US_STAND_UP", 11: "US_SIT_DOWN", 101: "US_MOVE_TO_DESTINATION", 106: "US_MELEE_ATTACK",
+              107: "US_MELEE_ATTACK_WALL", 109: "US_JESTER_ROAM_TO", 110: "US_DISAPPEAR", 111: "US_DEATH_01",
+              112: "US_DEATH_02", 113: "US_DEATH_03", 114: "US_STONE_DEATH_01", 115: "US_STONE_DEATH_02",
+              116: "US_STONE_DEATH_03", 122: "US_APPEAR", 125: "US_DIG", 126: "US_ASSASSIN_THROWING_HOOK",
+              127: "US_ASSASSIN_CLIMBING_UP", 128: "US_ASSASSIN_START_CLIMBING_DOWN", 129: "US_ASSASSIN_CLIMBING_DOWN"}
+INSTRUCTION = {3: "UIT_NO_INSTRUCTION_OR_MOVE", 4: "UIT_UNIT_ATTACK_UNIT", 5: "UIT_ATTACK_LAND", 6: "UIT_DIG_MOAT",
+               7: "UIT_FILL_MOAT", 9: "UIT_ATTACK_BUILDING", 15: "UIT_CONSTRUCT_SIEGE_EQUIPMENT", 16: "UIT_MAN_SIEGE_EQUIPMENT",
+               17: "UIT_EXIT_SIEGE_EQUIPMENT", 20: "UIT_THROW_OIL", 22: "UIT_THROW_COW", 23: "UIT_ATTACK_WALL",
+               24: "UIT_SET_LADDER", 30: "UIT_DISBAND", 31: "UIT_STOP", 33: "UIT_SHOOT_TARGET", 34: "UIT_LIGHT_PITCH"}
+ENTITY_TYPE = {0: "ET_UNKNOWN", 1: "ET_ARROW_AND_DEFAULT", 2: "ET_CATAPULT", 3: "ET_TREBUCHET", 4: "ET_MANGONEL",
+               7: "ET_CROSSBOWARROW", 9: "ET_FIRE", 10: "ET_FLAG_1", 11: "ET_FLAG_4", 12: "ET_FLAG_2", 13: "ET_FLAG_3",
+               14: "ET_BRAZIER", 15: "ET_HEADS_ON_SPIKES", 20: "ET_BALLISTA", 21: "ET_DUST_CLOUD", 22: "ET_COW_POISON_CLOUD",
+               23: "ET_COW_FLYING", 29: "ET_SEAGULL", 33: "ET_SLINGER", 34: "ET_FIRETHROWER", 36: "ET_FIRETHROWER_UNTARGETED",
+               37: "ET_FIREBALLISTA"}
+GESCHOSSE = {1, 2, 3, 4, 7, 20, 22, 23, 33, 34}
+AI_STRENGTH = {0: "AIST_DEFAULT", 1: "AIST_WEAK", 2: "AIST_STRONG"}
+AI_RECRUIT = {0: "AIRUC_DEFENSIVE", 1: "AIRUC_RAIDING", 2: "AIRUC_ATTACKING"}
+STANCE = {0: "USE_STAND_GROUND", 1: "USE_DEFENSIVE", 2: "USE_AGGRESSIVE"}
+TRIBE_TYPE = {2: "AITT_TUNNELERS", 3: "AITT_ARCHERS", 4: "AITT_LADDERMEN", 5: "AITT_SPEARMEN", 6: "AITT_PIKEMEN",
+              7: "AITT_CROSSBOWMEN", 8: "AITT_SWORDSMEN", 9: "AITT_MACEMEN", 10: "AITT_KNIGHTS", 11: "AITT_ENGINEERS"}
+RT = {1: "LOGS", 2: "WOOD", 3: "HOPS", 4: "STONE", 5: "PARTIALSTONE", 6: "IRON", 7: "PITCH", 8: "PARTIALPITCH", 9: "WHEAT",
+      10: "BREAD", 11: "CHEESE", 12: "MEAT", 13: "APPLE", 14: "ALE", 15: "GOLD", 16: "FLOUR", 17: "BOW", 18: "CROSSBOW",
+      19: "SPEAR", 20: "PIKE", 21: "MACE", 22: "SWORD", 23: "LEATHERARMOR", 24: "IRONARMOR"}
+# Richtungen wie facingDirection (prepareProjectileTarget 0x0053CBD0: 0 = y-1, 1 = x+1/y-1, 2 = x+1 ... im Uhrzeigersinn)
+RICHTUNG = {0: (0, -1), 1: (1, -1), 2: (1, 0), 3: (1, 1), 4: (0, 1), 5: (-1, 1), 6: (-1, 0), 7: (-1, -1)}
+
+
+def _i4(adr):
+    return struct.unpack("<i", speicher.lies(adr, 4))[0]
+
+
+def _u4(adr):
+    return struct.unpack("<I", speicher.lies(adr, 4))[0]
+
+
+class Schnappschuss(object):
+    """Ein Lesevorgang. rein = Taktnummer vor und nach dem Lesen gleich."""
+
+    def __init__(self, versuche=3, mit_trupps=True, mit_feldern=True):
+        for versuch in range(1, versuche + 1):
+            t0 = time.perf_counter()
+            self.takt = _u4(TAKT)
+            self.takt_kern = _u4(TAKT_KERN)
+            n_u = min(max(_i4(UNITS_STATE), 0), UNITS_MAX)
+            n_e = ENTITIES_MAX   # maxEntityCount (+0) haengt hinterher - immer alle 3000 lesen (0,7 MB, < 1 ms)
+            n_b = min(max(_i4(BUILDINGS_STATE + 8), 0), BUILDINGS_MAX)
+            self.einheiten = np.frombuffer(speicher.lies(UNITS, n_u * UNIT_GROESSE), dtype=UNIT) if n_u else np.zeros(0, UNIT)
+            self.entities = np.frombuffer(speicher.lies(ENTITIES, n_e * ENTITY_GROESSE), dtype=ENTITY) if n_e else np.zeros(0, ENTITY)
+            self.gebaeude = np.frombuffer(speicher.lies(BUILDINGS, n_b * BUILDING_GROESSE), dtype=BUILDING) if n_b else np.zeros(0, BUILDING)
+            self.spieler = np.frombuffer(speicher.lies(SPIELER, SPIELER_ANZAHL * SPIELER_GROESSE), dtype=PLAYER)
+            zeit = speicher.lies(ZEIT + 804, 48)
+            self.woche, self.monat, self.jahr = struct.unpack_from("<iii", zeit, 0)
+            self.teams = list(struct.unpack("<9i", speicher.lies(ZEIT + 3516, 36)))
+            if mit_trupps:
+                self.trupps = np.frombuffer(speicher.lies(TRIBES, TRIBES_MAX * TRIBE_GROESSE), dtype=TRIBE)
+            else:
+                self.trupps = np.zeros(0, TRIBE)
+            if mit_feldern:
+                n_p = min(max(_i4(PITCH_ANZAHL), 0), 4000)
+                self.pech = np.frombuffer(speicher.lies(PITCH, n_p * 20), dtype=PITCH_DTYPE) if n_p else np.zeros(0, PITCH_DTYPE)
+                self.schaden = np.frombuffer(speicher.lies(DAMAGE_LAYER, FELDER), dtype="u1")
+                self.hoehe = np.frombuffer(speicher.lies(speicher.HOEHE, FELDER), dtype="u1")
+                self.logik = np.frombuffer(speicher.lies(speicher.LOGIK, FELDER * 4), dtype="<u4")
+            takt_danach = _u4(TAKT)
+            self.dauer_ms = (time.perf_counter() - t0) * 1000.0
+            self.rein = takt_danach == self.takt
+            self.versuch = versuch
+            if self.rein:
+                break
+
+    def behalten(self, spieler=None):
+        """Kompakte Kopie fuer Aufnahmen (Serialisierung spaeter): Geschosse/Feuer, Einheiten der Spieler, Spielerdaten."""
+        u = self.einheiten
+        m = u["logicalState"] == 2
+        if spieler is not None:
+            m &= np.isin(u["owner"], list(spieler))
+        e = self.entities
+        me = (e["logicalState"] != 0)
+        return {"takt": self.takt, "takt_kern": self.takt_kern, "rein": self.rein, "dauer_ms": self.dauer_ms,
+                "einheiten": u[m].copy(), "einheiten_idx": np.flatnonzero(m), "entities": e[me].copy(),
+                "entities_idx": np.flatnonzero(me), "spieler": self.spieler.copy(), "hoehe": getattr(self, "hoehe", None)}
+
+    @classmethod
+    def aus_behalten(cls, d):
+        s = cls.__new__(cls)
+        s.takt, s.takt_kern, s.rein, s.dauer_ms, s.versuch = d["takt"], d["takt_kern"], d["rein"], d["dauer_ms"], 1
+        s.einheiten, s.entities, s.spieler = d["einheiten"], d["entities"], d["spieler"]
+        s._einheiten_idx, s._entities_idx = d["einheiten_idx"], d["entities_idx"]
+        s.hoehe = d.get("hoehe")
+        s.gebaeude, s.trupps = np.zeros(0, BUILDING), np.zeros(0, TRIBE)
+        s.woche = s.monat = s.jahr = 0
+        s.teams = [0] * 9
+        return s
+
+    def _id(self, art, i):
+        idx = getattr(self, "_%s_idx" % art, None)
+        return int(idx[i]) if idx is not None else int(i)
+
+    # ----------------------------------------------------------------------------------------------- Geschosse (Punkt 2)
+    def geschosse(self):
+        """Alles, was fliegt oder gerade aufgeschlagen ist (Entity-Arten Pfeil, Bolzen, Stein, Balliste, Schleuder,
+        Feuertopf, Kuh, Seuchenwolke). Ankunft = Rest-Mikroschritte / Mikroschritte je Takt (Flugformel)."""
+        e = self.entities
+        aus = []
+        maske = np.isin(e["entityType"], list(GESCHOSSE)) & (e["logicalState"] > 0) & (e["logicalState"] < 3)
+        for i in np.flatnonzero(maske):
+            r = e[i]
+            je_takt = abs(float(r["vCos"])) * float(r["_elapsedTimeOrGravityAccumulator"]) * FLUG_FAKTOR
+            rest = int(r["field58_0x8c"]) - int(r["travelledDistance"])
+            liegt = int(r["someCounter_OR_hitGround"]) != 0
+            aus.append({
+                "id": self._id("entities", i), "uid": int(r["uid"]), "entityType": int(r["entityType"]),
+                "sre_art": ENTITY_TYPE.get(int(r["entityType"]), str(int(r["entityType"]))), "owner": int(r["owner"]),
+                "logicalState": int(r["logicalState"]),
+                "unitID_OR_seaGullID": int(r["unitID_OR_seaGullID"]),      # Schuetze (spawnProjectileEntity: unitID-Parameter)
+                "unitID": int(r["unitID"]),                                # anvisierte Einheit (shootTargetedUnit), 0 = Feld/Gebaeude
+                "field21_0x34": int(r["field21_0x34"]),                    # Abschuss-Takt (GameCore.mapTimeInTicks)
+                "sre_flugtakte": int(self.takt_kern) - int(r["field21_0x34"]),
+                "start": [int(r["x_2"]) // 8, int(r["y_2"]) // 8, int(r["startingHeight"])],
+                "jetzt_mikro": [int(r["microX"]), int(r["microY"]), int(r["height"])],
+                "jetzt_feld": [int(r["xPosition"]), int(r["yPosition"])], "tile": int(r["tile"]),
+                "ziel_mikro": [int(r["targetX"]), int(r["targetY"]), int(r["targetZ"])],
+                "ziel_feld": [int(r["targetX"]) // 8, int(r["targetY"]) // 8],
+                "field58_0x8c": int(r["field58_0x8c"]), "travelledDistance": int(r["travelledDistance"]),
+                "sre_rest_mikroschritte": rest, "sre_mikroschritte_je_takt": round(je_takt, 3),
+                "sre_rest_takte": (int(math.ceil(rest / je_takt)) if je_takt > 0 and rest > 0 else 0),
+                "velocityUnk": int(r["velocityUnk"]), "startingAngle": int(r["startingAngle"]),
+                "vCos": round(float(r["vCos"]), 3), "vSin": round(float(r["vSin"]), 3), "speedUnk": round(float(r["speedUnk"]), 4),
+                "sre_bahn": self._bahn(r),
+                "field80_0xba": int(r["field80_0xba"]), "rng_2": int(r["rng_2"]),                 # rng_2 1 = Feuerpfeil, 2 = Pech-Zuender
+                "field90_0xd0": int(r["field90_0xd0"]),                                           # 1 = Feuerballiste
+                "someCounter_OR_hitGround": int(r["someCounter_OR_hitGround"]),
+                "sre_zustand": "liegt" if liegt else "fliegt",
+            })
+        return aus
+
+    def _bahn(self, r, max_takte=400):
+        """Vorhersage je Takt ab jetzt: [takt_offset, mikroX, mikroY, hoehe, feld_x, feld_y, boden] bis der Pfeil unter die
+        Bodenhoehe seines Feldes faellt (processEntityHitBuildingOrUnit: Aufschlag erst nach der halben Strecke; Treffer an
+        einer Einheit, wenn hoehe in [Einheitenhoehe, +42]). Formeln aus moveProjectileEntity 0x004084A0:
+        T = speedUnk - Zeitschritt (speedUnk wird erst NACH dem Schritt erhoeht), je Takt T += Zeitschritt,
+        Strecke = 0,25 * vCos * T (Mikroschritte, Zaehlung wie travelledDistance), Hoehe = startingHeight + 2 * (vSin * T -
+        4,906 * T^2). Gemessen 25.10. (Lauf 153231, 20 Pfeile, alle Stuetzstellen auf +-1 Mikroschritt/Hoehenpunkt).
+        Nur fuer Kurventyp 0/6 (Pfeil, Bolzen, Balliste, Schleuder); sonst []."""
+        if int(r["entityType"]) not in (1, 7, 20, 33) or int(r["someCounter_OR_hitGround"]) != 0:
+            return []
+        dt = float(r["_elapsedTimeOrGravityAccumulator"])
+        vcos, vsin = float(r["vCos"]), float(r["vSin"])
+        if dt <= 0 or vcos == 0:
+            return []
+        sx, sy, sh = int(r["x_2"]), int(r["y_2"]), int(r["startingHeight"])
+        tx, ty = int(r["targetX"]), int(r["targetY"])
+        gesamt = max(int(r["field58_0x8c"]), 1)
+        ex, ey = (tx - sx) / float(gesamt), (ty - sy) / float(gesamt)
+        T = float(r["speedUnk"]) - dt
+        aus = []
+        for k in range(1, max_takte + 1):
+            T += dt
+            d = FLUG_FAKTOR * vcos * T
+            h = sh + 2.0 * (vsin * T - GRAVITY_DIV_2 * T * T)
+            mx, my = int(round(sx + ex * d)), int(round(sy + ey * d))
+            fx, fy = mx // 8, my // 8
+            boden = self._boden(fx, fy)
+            aus.append([k, mx, my, int(round(h)), fx, fy, boden])
+            if (boden is not None and h < boden and d > gesamt / 2.0) or h < -50 or not (0 <= fx < 400 and 0 <= fy < 400):
+                break
+        return aus
+
+    def _boden(self, fx, fy):
+        if getattr(self, "hoehe", None) is None or not len(self.hoehe):
+            return None
+        xs, ys, ks = speicher.felder()
+        if not hasattr(self, "_feldnr"):
+            fn = np.full((400, 400), -1, np.int32)
+            fn[xs, ys] = ks
+            self._feldnr = fn
+        if not (0 <= fx < 400 and 0 <= fy < 400):
+            return None
+        k = int(self._feldnr[fx, fy])
+        return int(self.hoehe[k]) if k >= 0 else None
+
+    def feuer(self):
+        e = self.entities
+        maske = (e["entityType"] == 9) & (e["logicalState"] > 0) & (e["logicalState"] < 3)
+        return [{"id": self._id("entities", i), "tile": int(e[i]["tile"]), "feld": [int(e[i]["xPosition"]), int(e[i]["yPosition"])],
+                 "owner": int(e[i]["owner"]), "fireIntensity": int(e[i]["fireIntensity"]),
+                 "logicalState": int(e[i]["logicalState"])} for i in np.flatnonzero(maske)]
+
+    # ----------------------------------------------------------------------------------------------- Einheiten (Punkt 1)
+    def einheiten_liste(self, nur_spieler=None):
+        u = self.einheiten
+        maske = u["logicalState"] == 2
+        if nur_spieler is not None:
+            maske &= np.isin(u["owner"], list(nur_spieler))
+        angst = {p: int(self.spieler[p]["fearFactorLevel"]) for p in range(SPIELER_ANZAHL)}
+        aus = []
+        for i in np.flatnonzero(maske):
+            r = u[i]
+            aus.append(self._einheit(self._id("einheiten", i), r, angst))
+        return aus
+
+    def _einheit(self, i, r, angst):
+        zustand = int(r["state"])
+        idx, n = int(r["currentIndexInPathPlan"]), int(r["totalSizeOfPathPlan"])
+        rest_weg = self._wegpunkte(r, idx, n)
+        return {
+            "id": i, "uid": int(r["uid"]), "unitType": int(r["unitType"]), "owner": int(r["owner"]),
+            "feld": [int(r["x"]), int(r["y"])], "tile": int(r["tile"]),
+            "mikro": [int(r["microXPosition"]), int(r["microYPosition"])],
+            "terrainOrClimbHeight": int(r["terrainOrClimbHeight"]), "buildingHeight": int(r["buildingHeight"]),
+            "health": int(r["health"]), "maxHealth": int(r["maxHealth"]), "healthPercentage": int(r["healthPercentage"]),
+            "dying": int(r["dying"]),
+            # Phase
+            "state": zustand, "sre_state_name": UNIT_STATE.get(zustand, str(zustand)), "substate": int(r["substate"]),
+            "cachedState": int(r["cachedState"]), "state_2": int(r["state_2"]),
+            "animationFrame": int(r["animationFrame"]), "animationTicker": int(r["animationTicker"]),
+            "animationSpeed": int(r["animationSpeed"]), "animationCycleNumber": int(r["animationCycleNumber"]),
+            "idle": int(r["idle"]), "idleCounterUnk": int(r["idleCounterUnk"]),
+            # Zielwahl / Vorhalt
+            "targetingType": int(r["targetingType"]), "sre_targeting_name": INSTRUCTION.get(int(r["targetingType"]), ""),
+            "targetUID": int(r["targetUID"]), "shootTargetedUnit": int(r["shootTargetedUnit"]),
+            "attackedUnitID": int(r["attackedUnitID"]),
+            "targetedUnitID__OR__engineerMannedSiegeEngineRef": int(r["targetedUnitID__OR__engineerMannedSiegeEngineRef"]),
+            "targetID_OR_targetBuildingID": int(r["targetID_OR_targetBuildingID"]),
+            "targetedBuildingTile": int(r["targetedBuildingTile"]),
+            "shootTarget_mikro": [int(r["shootTargetMicroX"]), int(r["shootTargetMicroY"]), int(r["shootTargetZ"])],
+            "shootTarget_feld": [int(r["shootTargetMicroX"]) // 8, int(r["shootTargetMicroY"]) // 8],
+            "attackAtTile": [int(r["attackAtTileX"]), int(r["attackAtTileY"])],
+            "lookForEnemy": int(r["lookForEnemy"]), "enemyNoticeFrequencyUnk": int(r["enemyNoticeFrequencyUnk"]),
+            # Sicht
+            "closestEnemyMicroDistance": int(r["closestEnemyMicroDistance"]),
+            "assassinsMicroDistanceToEnemyUnk": int(r["assassinsMicroDistanceToEnemyUnk"]),
+            "isSelectable_OR_matchTime": int(r["isSelectable_OR_matchTime"]),
+            # Treffer-Historie
+            "attackedBy": int(r["attackedBy"]), "huntedBy": int(r["huntedBy"]),
+            "lastEncounteredEnemyPlayerID": int(r["lastEncounteredEnemyPlayerID"]),
+            "lastEncounteredEnemyUnitIDUnk": int(r["lastEncounteredEnemyUnitIDUnk"]),
+            # Weg
+            "destination": [int(r["destinationXPosition"]), int(r["destinationYPosition"])],
+            "plannedDestination": [int(r["plannedDestinationX"]), int(r["plannedDestinationY"])],
+            "currentIndexInPathPlan": idx, "totalSizeOfPathPlan": n, "sre_wegpunkte": rest_weg,
+            "sre_restweg_felder": len(rest_weg),
+            "wegplan_roh": (bytes(r["pathPlanStart"][idx // 2:(n + 1) // 2]).hex() if 0 <= idx < n <= 800 else ""),
+            "wegplan_roh_ab": idx // 2, "moveDelay": int(r["moveDelay"]), "facingDirection": int(r["facingDirection"]),
+            "movementSpeed": int(r["movementSpeed"]), "calculatedMovementSpeed": int(r["calculatedMovementSpeed"]),
+            "stateBasedSpeed": int(r["stateBasedSpeed"]), "tunnelerFinishedDigging": int(r["tunnelerFinishedDigging"]),
+            "climbDataID": int(r["climbDataID"]),
+            # Sonstiges
+            "sre_fearFactorLevel_owner": angst.get(int(r["owner"])), "tribeID": int(r["tribeID"]),
+            "aiUnitBehaviourType": int(r["aiUnitBehaviourType"]), "siegeTargetPlayerID": int(r["siegeTargetPlayerID"]),
+            "stoneAmmunition": int(r["stoneAmmunition"]), "nextAttackHurtsWall": int(r["nextAttackHurtsWall"]),
+            "workplaceBuildingUID": int(r["workplaceBuildingUID"]), "buildingID": int(r["buildingID"]),
+            "fixedRng": int(r["fixedRng"]), "nextUnitOnTheSameTile": int(r["nextUnitOnTheSameTile"]),
+        }
+
+    @staticmethod
+    def _wegpunkte(r, idx, n):
+        """pathPlanStart: 400 Byte, je Byte zwei Schritte: tiefes Halbbyte = gerader Index, hohes = ungerader; Wert 0-7 =
+        Richtung N, NO, O, SO, S, SW, W, NW (wie facingDirection). Gemessen 25.10. (Lauf 152725, 2.082 Schritte: je
+        Halbbyte 85-92 % die genannte Richtung, der Rest Neuplanungen zwischen zwei Schnappschuessen)."""
+        if n <= 0 or idx < 0 or idx >= n or n > 800:
+            return []
+        plan = r["pathPlanStart"]
+        x, y = int(r["x"]), int(r["y"])
+        aus = []
+        for k in range(idx, min(n, idx + 400)):
+            b = int(plan[k // 2])
+            d = (b & 0xF) if k % 2 == 0 else (b >> 4)
+            dx, dy = RICHTUNG.get(d & 7, (0, 0))
+            x, y = x + dx, y + dy
+            aus.append([x, y])
+        return aus
+
+    # ------------------------------------------------------------------------------------------------- Gebaeude (Punkt 4)
+    def gebaeude_liste(self, nur_spieler=None):
+        g = self.gebaeude
+        maske = g["logicalState"] == 2
+        if nur_spieler is not None:
+            maske &= np.isin(g["owner"], list(nur_spieler))
+        aus = []
+        for i in np.flatnonzero(maske):
+            r = g[i]
+            lager = {RT.get(k + 2, str(k + 2)): int(v) for k, v in enumerate(r["resources"]) if int(v)}   # 296 = resourceWood (RT 2) ... 384 = resourceIronArmor (RT 24)
+            aus.append({
+                "id": int(i), "uid": int(r["uid"]), "buildingType": int(r["buildingType"]), "owner": int(r["owner"]),
+                "feld": [int(r["x"]), int(r["y"])], "currentHealth": int(r["currentHealth"]), "maxHealth": int(r["maxHealth"]),
+                "state": int(r["state"]), "buildingProgress": int(r["buildingProgress"]), "timeAlive": int(r["timeAlive"]),
+                "cooldownTimer": int(r["cooldownTimer"]), "fireDuration": int(r["fireDuration"]),
+                "ifFireThenResponsiblePlayer": int(r["ifFireThenResponsiblePlayer"]),
+                "buildingTypeBasedEmployeeCount": int(r["buildingTypeBasedEmployeeCount"]),
+                "currentEmployeeCount": int(r["currentEmployeeCount"]),
+                "currentlyNeededEmployeeCount": int(r["currentlyNeededEmployeeCount"]),
+                "workerID": [int(w) for w in r["workerID"]], "lager": lager,
+                "currentNumberOfResource": int(r["currentNumberOfResource"]),
+                "currentLimitOfResource": int(r["currentLimitOfResource"]),
+                "currentStoredResourceType": int(r["currentStoredResourceType"]), "producedItemType": int(r["producedItemType"]),
+                "recruitTimer": int(r["recruitTimer"]), "gateState": int(r["gateState"]), "gateState2": int(r["gateState2"]),
+                "gateCloseOpenTimer": int(r["gateCloseOpenTimer"]), "drawBridgeState1": int(r["drawBridgeState1"]),
+                "drawbridgeState2": int(r["drawbridgeState2"]),
+                "containsSiegeMangonel1OrBallista2": int(r["containsSiegeMangonel1OrBallista2"]),
+                "insideUnitID": [int(w) for w in r["insideUnitID"]], "hasUnitsOntop": int(r["hasUnitsOntop"]),
+            })
+        return aus
+
+    # -------------------------------------------------------------------------------------------------- Spieler (Punkt 5/6)
+    def spieler_liste(self):
+        aus = []
+        lord_leben = {}
+        u = self.einheiten
+        for p in range(1, SPIELER_ANZAHL):
+            r = self.spieler[p]
+            lid = int(r["lordID"])
+            if 0 < lid < len(u) and int(u[lid]["logicalState"]) == 2:
+                lord_leben = {"id": lid, "health": int(u[lid]["health"]), "maxHealth": int(u[lid]["maxHealth"]),
+                              "feld": [int(u[lid]["x"]), int(u[lid]["y"])]}
+            else:
+                lord_leben = {"id": lid}
+            waren = {RT.get(k, str(k)): int(v) for k, v in enumerate(r["currentResources"]) if k in RT}
+            ziele = [int(b) for b in r["top100TargetableBuildings"] if int(b)]
+            aus.append({
+                "spieler": p, "team": self.teams[p] if p < len(self.teams) else None, "aiType": int(r["aiType"]),
+                "aivID": int(r["aivID"]), "gold": waren.get("GOLD"), "waren": waren,
+                "popularity": int(r["popularity"]), "currentPopulation": int(r["currentPopulation"]),
+                "populationCap": int(r["populationCap"]), "availablePeasantsAtFire": int(r["availablePeasantsAtFire"]),
+                "idlePeasantsCount": int(r["idlePeasantsCount"]), "totalFood": int(r["totalFood"]),
+                "foodTypesInStock": int(r["foodTypesInStock"]), "weeksWithoutFood": int(r["weeksWithoutFood"]),
+                "rationsSetting": int(r["rationsSetting"]), "taxesSetting": int(r["taxesSetting"]),
+                "fearFactorLevel": int(r["fearFactorLevel"]), "armySize": int(r["armySize"]),
+                "soldaten": {"currentCrossbowmen": int(r["currentCrossbowmen"]), "currentSpearmen": int(r["currentSpearmen"]),
+                             "currentPikemen": int(r["currentPikemen"]), "currentMacemen": int(r["currentMacemen"]),
+                             "currentSwordsmen": int(r["currentSwordsmen"]), "countArabSwordsman": int(r["countArabSwordsman"]),
+                             "countAssassinsAndArabianSwordsman": int(r["countAssassinsAndArabianSwordsman"])},
+                "troopsLost": int(r["troopsLost"]), "troopsKilled": int(r["troopsKilled"]), "lord": lord_leben,
+                "totalEnemyUnitsCount": int(r["totalEnemyUnitsCount"]),
+                "ki": {
+                    "aiPlayerState": int(r["aiPlayerState"]), "aiStateCounter": int(r["aiStateCounter"]),
+                    "aiStrengthState": int(r["aiStrengthState"]), "aiStrengthFeeling": AI_STRENGTH.get(int(r["aiStrengthFeeling"]), int(r["aiStrengthFeeling"])),
+                    "aiRecruitUnitChoiceState": AI_RECRUIT.get(int(r["aiRecruitUnitChoiceState"]), int(r["aiRecruitUnitChoiceState"])),
+                    "aiRecruitIntervalTracker": int(r["aiRecruitIntervalTracker"]),
+                    "attackedPlayerID": int(r["attackedPlayerID"]), "requestedAttackTargetUnk": int(r["requestedAttackTargetUnk"]),
+                    "currentAttackWave": int(r["currentAttackWave"]), "attackTicker": int(r["attackTicker"]),
+                    "attackAssaultDelayRelatedValue": int(r["attackAssaultDelayRelatedValue"]),
+                    "aiCoordinatedAttackPatience": int(r["aiCoordinatedAttackPatience"]),
+                    "currentAttackRaidParameter": int(r["currentAttackRaidParameter"]),
+                    "currentWaveRandomAttackingStrength": int(r["currentWaveRandomAttackingStrength"]),
+                    "totalAttackTroops": int(r["totalAttackTroops"]), "totalDefensiveTroopsUnk": int(r["totalDefensiveTroopsUnk"]),
+                    "totalRaidingTroopsUnk": int(r["totalRaidingTroopsUnk"]), "totalUnitEngageTroops": int(r["totalUnitEngageTroops"]),
+                    "totalUnitBackupTroops": int(r["totalUnitBackupTroops"]), "totalUnitPatrolTroops": int(r["totalUnitPatrolTroops"]),
+                    "totalUnitSiegeDefTroops": int(r["totalUnitSiegeDefTroops"]), "totalAssassinTroops": int(r["totalAssassinTroops"]),
+                    "totalLaddermenTroops": int(r["totalLaddermenTroops"]), "totalTunnelerTroops": int(r["totalTunnelerTroops"]),
+                    "totalTroopValue": int(r["totalTroopValue"]), "totalEnemyTroopValue": int(r["totalEnemyTroopValue"]),
+                    "totalEnemyRangedTroopValue": int(r["totalEnemyRangedTroopValue"]),
+                    "totalEnemyTroopValueByPlayerID": [int(v) for v in r["totalEnemyTroopValueByPlayerID"]],
+                    "isNotNervousByEnemyTroopValue": int(r["isNotNervousByEnemyTroopValue"]),
+                    "relativeStrengthOfTeamComparedToEnemy": int(r["relativeStrengthOfTeamComparedToEnemy"]),
+                    "closestEnemyDistanceToTheLord": int(r["closestEnemyDistanceToTheLord"]),
+                    "top100TargetableBuildings": ziele[:20],
+                    "aiTribeIDs": [int(t) for t in r["aiTribeIDs"] if int(t)],
+                    "resourcesToAcquireArray_index_ungeprueft": {RT.get(k + 1, str(k + 1)): int(v) for k, v in enumerate(r["resourcesToAcquireArray"]) if int(v)},
+                },
+            })
+        return aus
+
+    # ---------------------------------------------------------------------------------------------------- Trupps (Punkt 6)
+    def trupps_liste(self, nur_spieler=None):
+        t = self.trupps
+        if not len(t):
+            return []
+        maske = t["size"] > 0
+        if nur_spieler is not None:
+            maske &= np.isin(t["owner"], list(nur_spieler))
+        aus = []
+        for i in np.flatnonzero(maske):
+            r = t[i]
+            k = int(r["rallyPointCount"])
+            aus.append({
+                "id": int(i), "owner": int(r["owner"]), "tribeState": int(r["tribeState"]), "tribeType": int(r["tribeType"]),
+                "sre_tribeType_name": TRIBE_TYPE.get(int(r["tribeType"]), ""), "tribeBehaviorType": int(r["tribeBehaviorType"]),
+                "unitType": int(r["unitType"]), "size": int(r["size"]), "unitStance": STANCE.get(int(r["unitStance"]), int(r["unitStance"])),
+                "target": [int(r["targetX"]), int(r["targetY"])], "targetBuildingID": int(r["targetBuildingID"]),
+                "targetBuildingUID": int(r["targetBuildingUID"]), "targetPlayer_outpost": int(r["targetPlayer_outpost"]),
+                "attackWave": int(r["attackWave"]), "countdown": int(r["countdown"]), "countdown2": int(r["countdown2"]),
+                "isRallyingUnk": int(r["isRallyingUnk"]), "selectionTargetUnitID": int(r["selectionTargetUnitID"]),
+                "rallyPoints": [[int(a), int(b)] for a, b in r["rallyPointArray"][:max(0, min(k, 9))]],
+                "currentRallyPointIndex": int(r["currentRallyPointIndex"]),
+            })
+        return aus
+
+    # ---------------------------------------------------------------------------------------------------- Felder (Punkt 3)
+    def felder(self):
+        """Je Feld, was Einheiten nicht sehen: Pechgraeben (Liste), Schadensebene, Feuer-Entities; Hoehe und Logik-Bits
+        als Rohfelder (80.400) fuer numpy-Auswertung. Fallgruben: kein eigenes Feld gefunden - offen."""
+        pech = [{"tile": int(p["tile"]), "feld": [int(p["x"]), int(p["y"])], "owner": int(p["owner"]), "state": int(p["state"])}
+                for p in self.pech if int(p["tile"])]
+        return {"pech": pech, "feuer": self.feuer(), "schaden_felder": int(np.count_nonzero(self.schaden)),
+                "hoehe": self.hoehe, "logik": self.logik, "schaden": self.schaden}
+
+    # --------------------------------------------------------------------------------------------------------- Ausgabe
+    def kopf(self):
+        return {"takt": int(self.takt), "takt_kern": int(self.takt_kern), "rein": bool(self.rein), "versuch": self.versuch,
+                "dauer_ms": round(self.dauer_ms, 2), "datum": {"woche": self.woche, "monat": self.monat, "jahr": self.jahr},
+                "anzahl": {"einheiten": int(np.count_nonzero(self.einheiten["logicalState"] == 2)),
+                           "entities": int(len(self.entities)), "gebaeude": int(np.count_nonzero(self.gebaeude["logicalState"] == 2)),
+                           "trupps": int(np.count_nonzero(self.trupps["size"] > 0)) if len(self.trupps) else 0}}
+
+    def alles(self, teile=("geschosse", "einheiten", "gebaeude", "spieler", "trupps", "felder"), nur_spieler=None):
+        aus = {"kopf": self.kopf()}
+        if "geschosse" in teile:
+            aus["geschosse"] = self.geschosse()
+        if "einheiten" in teile:
+            aus["einheiten"] = self.einheiten_liste(nur_spieler)
+        if "gebaeude" in teile:
+            aus["gebaeude"] = self.gebaeude_liste(nur_spieler)
+        if "spieler" in teile:
+            aus["spieler"] = self.spieler_liste()
+        if "trupps" in teile:
+            aus["trupps"] = self.trupps_liste(nur_spieler)
+        if "felder" in teile:
+            f = self.felder()
+            aus["felder"] = {"pech": f["pech"], "feuer": f["feuer"], "schaden_felder": f["schaden_felder"]}
+        return aus
+
+
+def main():
+    import argparse
+    ap = argparse.ArgumentParser(description="B-251 Das Auge - Takt-Schnappschuss aus dem Spielspeicher (nur lesen)")
+    ap.add_argument("--teile", default="geschosse,einheiten,gebaeude,spieler,trupps,felder")
+    ap.add_argument("--spieler", default="", help="nur diese Besitzer, z. B. 1,2")
+    ap.add_argument("--serie", type=float, default=0.0, help="Sekunden lang alle --alle ms einen Schnappschuss (JSONL)")
+    ap.add_argument("--alle", type=float, default=50.0)
+    ap.add_argument("--ziel", default="")
+    ap.add_argument("--still", action="store_true")
+    a = ap.parse_args()
+    teile = tuple(a.teile.split(","))
+    nur = [int(s) for s in a.spieler.split(",") if s.strip()] or None
+    stempel = time.strftime("%Y%m%d_%H%M%S")
+    daten = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "daten")
+    if a.serie > 0:
+        pfad = a.ziel or os.path.join(daten, "auge_serie_%s.jsonl" % stempel)
+        ende = time.time() + a.serie
+        n = 0
+        letzter = None
+        with open(pfad, "w", encoding="utf-8") as f:
+            while time.time() < ende:
+                s = Schnappschuss(mit_trupps="trupps" in teile, mit_feldern="felder" in teile)
+                if s.takt != letzter:
+                    f.write(json.dumps(s.alles(teile, nur), ensure_ascii=False) + "\n")
+                    n += 1
+                    letzter = s.takt
+                time.sleep(a.alle / 1000.0)
+        print("OK: %d Schnappschuesse -> %s" % (n, pfad))
+        return 0
+    s = Schnappschuss(mit_trupps="trupps" in teile, mit_feldern="felder" in teile)
+    aus = s.alles(teile, nur)
+    pfad = a.ziel or os.path.join(daten, "auge_%s.json" % stempel)
+    with open(pfad, "w", encoding="utf-8") as f:
+        json.dump(aus, f, ensure_ascii=False, indent=1)
+    if not a.still:
+        print("OK: Takt %d (Kern %d), rein=%s, Versuch %d, %.1f ms; %s -> %s" % (
+            s.takt, s.takt_kern, s.rein, s.versuch, s.dauer_ms, json.dumps(aus["kopf"]["anzahl"]), pfad))
+        print("    Geschosse %d, Feuer %d, Pech %d" % (len(aus.get("geschosse", [])), len(aus.get("felder", {}).get("feuer", [])),
+                                                       len(aus.get("felder", {}).get("pech", []))))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
