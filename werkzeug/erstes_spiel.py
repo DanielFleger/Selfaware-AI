@@ -1131,8 +1131,10 @@ NOT_R, NOT_JE_RUNDE = 12, 2  # 19.10.: Notwerbung nur gegen Feinde so nah an uns
 HEER_GOLD_RAND = 150    # B-141 (Daniel 21:56 "keine Heer-Obergrenze"): HEER_MAX (100) entfernt - Grenze sind nur Gold und Bauern
 RA_SOELDNER_ARTEN = (70, 71, 72, 73, 74, 75, 76)   # Soeldnerposten-Arten (Loewen am Posten: keine Werbung dort)
 HEER_JE_RUNDE = 10      # B-141: Werbungen je Runde, gebuendelt in EINER Befehlsliste (einzeln je 0,8 s Wartezeit)
-EINKAUF = "neu"         # B-241 (Daniel 25.10.): "neu" = ein Einkaeufer (einkauf.py) kauft alles mit einer Muenze Gold-Gegenwert;
-                        # "alt" = die sechs alten Kaufstellen - NUR fuer den Vergleichslauf, danach weg (Grundregel 8)
+EINKAUF = "alt"         # B-241 (Daniel 25.10. 15:02 "offensichtlich laeuft es viel schlechter, weil die Einheiten noch kein
+                        # Kampfgehirn haben"): Standard wieder der bewaehrte Weg (Massstab 34.774). "neu" = der Einkaeufer
+                        # (einkauf.py, eine Muenze Gold-Gegenwert) - erst wieder scharf, wenn Auge (SRE) und Gehirn stehen
+                        # und jede gekaufte Art einen Lenker hat (Daniel 15:10: Auge -> Gehirn -> Haende)
 EINKAEUFER = None       # die Instanz von einkauf.Einkaeufer in Phase 2 (None = alter Weg)
 # 19.10. (1019j: assassinen=20 zaehlte ALLE Anwerbungen - nach der 20. kam keine mehr, 15 starben, zuletzt 6 Raider bei
 # 2.700-6.000 Gold; Daniel: "die Raids aussenrum waren am effektivsten, wurden aber zu wenig eingesetzt"): assassinen= gilt
