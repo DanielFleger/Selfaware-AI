@@ -18,6 +18,9 @@ sys.path.insert(0, HIER)
 D = os.path.join(HIER, "..", "daten")
 
 
+VORGESCHICHTE = 64       # Takte vor dem Fenster fuer die Zug-Phase (laengster Zugabstand im Pruefstein deutlich darunter)
+
+
 def laden(pfad):
     import auge
     import speicher
@@ -52,13 +55,16 @@ def main(argv):
     zeit_ok = zeit_n = 0
     fenster = 0
     letzter = None
+    vorher = collections.deque(maxlen=VORGESCHICHTE)     # Baustein 3: Zug-Phase aus den Takten VOR dem Fenster (AU22)
     for s in P:
+        vg = list(vorher)
+        vorher.append(s)
         t0 = s.kopf()["takt"]
         if letzter is not None and t0 - letzter < schritt:
             continue
         letzter = t0
         einh = s.einheiten_liste()
-        progn = S.prognose(s, H, einh) if motor == "sim" else G.prognose(s, H, einh)
+        progn = S.prognose(s, H, einh, vorgeschichte=vg) if motor == "sim" else G.prognose(s, H, einh)
         basis = G.prognose(s, H, einh, begegnung=False)     # Baustein 1 allein - fuer "neue Begegnungen erfasst"
         echt = collections.Counter()
         echt_geschoss = collections.defaultdict(list)
@@ -91,7 +97,7 @@ def main(argv):
            "opfer_quote": round(quote, 3), "praezision": round(praez, 3),
            "menge_verhaeltnis": round(summe["progn"] / float(max(1, summe["echt"])), 3),
            "zeit_quote_pm5": round(zeit, 3), "zeit_n": zeit_n,
-           "neue_begegnungen_erfasst": round(summe["neu_erfasst"] / float(max(1, summe["neu_echt"])), 3), "neu_echt": summe["neu_echt"],
+           "neue_begegnungen_erfasst": round(summe["neu_erfasst"] / float(max(1, summe["neu_echt"])), 4), "neu_echt": summe["neu_echt"], "neu_erfasst": summe["neu_erfasst"],
            "echt_verlust": summe["echt"], "progn_verlust": round(summe["progn"]),
            "quellen_vorhergesagt": {k[6:]: v for k, v in summe.items() if k.startswith("progn_") and k[6:] in ("geschoss", "schuss", "nahkampf", "nahkampf_folge", "begegnung", "begegnung_gegen")}}
     urteil = ("ZIEL ERREICHT" if quote >= 0.8 and zeit >= 0.8 else

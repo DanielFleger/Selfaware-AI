@@ -29,9 +29,9 @@ Regeln je Takt:
   6 Tod         Leben <= 0 -> stirbt, verlaesst sofort die Felder
 Nicht enthalten: neue Befehle (Absicht der Gegner-KI), neue Einheiten, freie Schusslinie, Fremdtreffer vor dem Ziel (AU20),
 Zug-Phase je Einheit (Zaehler nicht gelesen), Feuer, Gebaeude.
-Stand 25.10. 23:30 mit AU21 (gehirn_pruefen ... 90 30 ... sim): 200603 neue Begegnungen 89,8 %, Opfer-Quote 98,2 %, Praezision
-94,3 %; Gegenprobe 191847 83,4 % / 95,9 % / 94,1 % (Baustein 2: 54 % bzw. 51 %). Je Einheit gemessen: Nahkampf VOR dem eigenen
-Laufen (nsl/snl/nls 87,9 %, Laufen zuerst 60,6 % - Ankoemmlinge kaempfen erst im naechsten Takt, wie am Pruefstein gesehen).
+Stand 25.10. 23:15 mit AU22 (Zug-Phase aus der Vorgeschichte) und Schuetzen-Blick (gehirn_pruefen ... 90 30 ... sim):
+200603 neue Begegnungen 90,4 % (ZIEL >= 90 erreicht), Opfer-Quote 98,3 %, Praezision 94,6 %; Gegenprobe 191847 83,6 % / 96,0 % /
+95,7 % (Baustein 2: 54 % bzw. 51 %). Daniel 22:51 (ueber SRE): Ziel ist 100 %, 95-99 % nur uebergangsweise.
 """
 import os
 import sys
@@ -60,6 +60,15 @@ _KLASSE[76] = (1, 0)
 _SONST = (10, 400)
 GESCHOSS_ET = {22: 1, 70: 1, 74: 1, 23: 7, 72: 33}        # Schuetzenart -> Geschossart (gehirn.GESCHOSS_TABELLE_*)
 MARKIEREN = (22, 70)                                   # AU20: nur Bogen und arab. Bogen markieren ihr Ziel
+
+
+def _richtung8(dx, dy):
+    """Naechste der 8 Blickrichtungen nach Winkel (0 = N, im Uhrzeigersinn) - gemessen: so blicken Schuetzen beim Zielen
+    (237 von 277) und Schiessen (1.973 von 2.162 Takten) auf ihr Ziel."""
+    import math
+    if not dx and not dy:
+        return None
+    return int(round(math.atan2(dx, -dy) / (math.pi / 4))) % 8
 
 
 def _fein(dx, dy):
@@ -93,7 +102,8 @@ class Simulator(object):
     REIHE_IN_EINHEIT = "nsl"
     # Lesart (SAI, gemessen): wer per Gegenzuweisung ein Ziel bekommt, bleibt sofort stehen - ohne sie verliert die Abarbeitung
     # je Einheit das Fenster 41.458 (Laeufer 160/162/169/170 schlagen bei +80 zurueck), mit ihr gleich der Phasen-Reihenfolge
-    GEGEN_STOPPT = True        # je Einheit: n = Nahkampf, s = Feindsuche, l = Laufen (gemessen, s. Register L190)
+    GEGEN_STOPPT = True
+    SCHUETZEN_BLICK = True          # Schuetzen drehen beim Zielen/Schiessen zum Ziel (gemessen, 91 % der Schiess-Takte)        # je Einheit: n = Nahkampf, s = Feindsuche, l = Laufen (gemessen, s. Register L190)
 
     def __init__(self, sw):
         self.G = gehirn.Gehirn(sw)
@@ -121,10 +131,11 @@ class Simulator(object):
             self.phasen[ut] = {"vor": ss * (sp_s + 1), "zielen": n_z * (sp_z + 1), "nach": (n_s - ss) * (sp_s + 1)}
 
     # ------------------------------------------------------------------------------------------------- Aufbau
-    def _aufbau(self, einheiten):
+    def _aufbau(self, einheiten, seit=None):
+        """seit: {nr: Takte seit der letzten Zug-Gelegenheit} (AU22) - aus den Feldern +848/+852 oder der Vorgeschichte."""
         U = {}
         for e in einheiten:
-            if e.get("dying") or e["state"] in STERBEN:
+            if e.get("dying") or e["state"] in STERBEN or not e["id"]:      # AU22: Nr 0 ist keine Einheit
                 continue
             u = _E()
             u.id, u.typ, u.own = e["id"], e["unitType"], e["owner"]
@@ -147,7 +158,8 @@ class Simulator(object):
             d = tuple(e.get("destination") or (0, 0))
             u.dest = d if u.weg and d != (0, 0) and d != tuple(e["feld"]) else None
             u.blick = e.get("facingDirection", 0)
-            u.zaehler = u.tpm // 2          # Zug-Phase je Einheit unbekannt (Zaehler vom Auge nicht gelesen, L190)
+            # AU22: Zaehler +852 - Merker +848 = Takte seit der letzten Zug-Gelegenheit; ohne sie Phase unbekannt (Mitte)
+            u.zaehler = seit[u.id] if seit and u.id in seit else u.tpm // 2
             u.nah = u.typ in KANN_NAHKAMPF
             u.schuss_n = e.get("sre_naechster_schuss_takte")
             u.schuss_ziel = e.get("shootTargetedUnit") or 0
@@ -304,12 +316,16 @@ class Simulator(object):
             self._laufen(u, felder)
 
     def _laufen(self, u, felder):
-        if u.tot or not u.weg:
+        """AU22: jede lebende Einheit zaehlt je Takt hoch; ist der Abstand > cMS + sBS + moveDelay, ist Zug-Gelegenheit - der
+        Merker springt auch dann, wenn sie nicht laeuft."""
+        if u.tot:
             return
         u.zaehler += 1
         if u.zaehler < u.tpm:
             return
         u.zaehler = 0
+        if not u.weg:
+            return
         alt = u.feld
         if len(u.weg) == 1 and u.dest and u.weg[0] != u.dest:
             fx, fy = u.weg[0]
@@ -331,9 +347,30 @@ class Simulator(object):
             self._feld_rein(felder, u)
 
     # ------------------------------------------------------------------------------------------------- Lauf
-    def prognose(self, s, horizont=90, einheiten=None, protokoll=False):
+    def zug_phasen(self, s, vorgeschichte=None):
+        """{nr: Takte seit der letzten Zug-Gelegenheit}: live/neue Protokolle aus +848/+852 (auge.takte_bis_zug), sonst aus der
+        Vorgeschichte (auge.zug_gelegenheiten ueber die Schnappschuesse VOR s und s selbst - nichts aus der Zukunft)."""
+        aus = {}
+        roh = s.einheiten
+        idx = s._einheiten_idx if getattr(s, "_einheiten_idx", None) is not None else None
+        namen = roh.dtype.names or ()
+        if "field216_0x354" in namen and idx is not None:
+            for j, nr in enumerate(idx):
+                aus[int(nr)] = int(roh[j]["field216_0x354"]) - int(roh[j]["field215_0x350"])
+            return aus
+        if not vorgeschichte:
+            return aus
+        kette = list(vorgeschichte) + [s]
+        t0 = int(s.takt)
+        for nr in (idx if idx is not None else ()):
+            g = self.auge.zug_gelegenheiten(kette, int(nr))
+            if g:
+                aus[int(nr)] = t0 - g[-1]
+        return aus
+
+    def prognose(self, s, horizont=90, einheiten=None, protokoll=False, vorgeschichte=None):
         einheiten = einheiten if einheiten is not None else s.einheiten_liste()
-        U, felder = self._aufbau(einheiten)
+        U, felder = self._aufbau(einheiten, self.zug_phasen(s, vorgeschichte))
         t0 = s.kopf()["takt"]
         aus = {}
         spur = [] if protokoll else None
@@ -433,7 +470,18 @@ class Simulator(object):
                         self._suche(U, u)
                 for i in reihe:
                     nahkampf(U[i], k)
-            # 4 Schuetzen
+            # 4 Schuetzen - Blick zum Ziel ab Beginn des Zielens (gemessen, s. _richtung8)
+            if self.SCHUETZEN_BLICK:
+                for u in U.values():
+                    p = self.phasen.get(u.typ)
+                    if u.tot or u.schuss_n is None or not p or not u.schuss_ziel:
+                        continue
+                    if u.schuss_n - p["vor"] - p["zielen"] <= k <= u.schuss_n:
+                        z = U.get(u.schuss_ziel)
+                        if z is not None and not z.tot:
+                            r = _richtung8(z.mx - u.mx, z.my - u.my)
+                            if r is not None:
+                                u.blick = r
             for u in U.values():
                 if u.tot or u.schuss_n != k:
                     continue
