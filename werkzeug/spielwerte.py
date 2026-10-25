@@ -221,8 +221,8 @@ def gegenproben(w):
     m = w["einheit.melee_damage"]["werte"]
     return {
         "lord_leben_150000": g[55] == 150000,
-        "streitkolben_gegen_lord_75": m[26][55],
-        "assassine_gold_60_nicht_70": w["truppe.soeldner_gold"]["werte"][3],
+        "streitkolben_gegen_lord": m[26][55],
+        "assassine_gold": w["truppe.soeldner_gold"]["werte"][3],
         "pfeil_reichweite_54": w["geschoss.reichweite"]["werte"][1],
         "bogenschuetze_gold_12": w["truppe.kaserne_gold"]["werte"][0],
         "huette_8_plaetze": w["gebaeude.bevoelkerung"]["werte"][1],
