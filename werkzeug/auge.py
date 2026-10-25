@@ -423,6 +423,17 @@ def naechster_suchtakt(takt, fixed_rng, maske):
     return basis if basis >= int(takt) else basis + m + 1
 
 
+# Lastverteiler (processSingleTimeTick 0x0045CA20): GameState.gameTicksLoadBalancer, +1 je Takt, 0..199. Die Feindliste
+# (PlayerData.enemyIDArray, aufsteigende Einheitennummer) eines Spielers p wird NUR bei Zaehler p+10, p+60, p+100, p+160 neu
+# gebaut (recomputeTroopValuesForPlayer 0x00532BA0) - dazwischen bis zu 60 Takte alt (Mitglieder alt, Orte live).
+LASTVERTEILER = 0x0112B0B8 + 596132
+
+
+def feindliste_neu(lastverteiler, spieler):
+    """True, wenn in diesem Takt (Zaehler `lastverteiler`) die Feindliste von `spieler` neu gebaut wird."""
+    return lastverteiler is not None and int(lastverteiler) - int(spieler) in (10, 60, 100, 160)
+
+
 def _i4(adr):
     return struct.unpack("<i", speicher.lies(adr, 4))[0]
 
@@ -439,6 +450,7 @@ class Schnappschuss(object):
             t0 = time.perf_counter()
             self.takt = _u4(TAKT)
             self.takt_kern = _u4(TAKT_KERN)
+            self.lastverteiler = _i4(LASTVERTEILER)
             n_u = min(max(_i4(UNITS_STATE), 0), UNITS_MAX)
             n_e = ENTITIES_MAX   # maxEntityCount (+0) haengt hinterher - immer alle 3000 lesen (0,7 MB, < 1 ms)
             n_b = min(max(_i4(BUILDINGS_STATE + 8), 0), BUILDINGS_MAX)
@@ -496,7 +508,8 @@ class Schnappschuss(object):
                 "einheiten": _packen(u[m], UNIT_PACKED), "einheiten_idx": echt("einheiten", m), "entities": _packen(e[me], ENTITY_PACKED),
                 "entities_idx": echt("entities", me), "spieler": self.spieler.copy(), "hoehe": getattr(self, "hoehe", None),
                 "feldnr": feldnummern() if getattr(self, "hoehe", None) is not None else None,
-                "bau": getattr(self, "bau", None), "logik": getattr(self, "logik", None)}
+                "bau": getattr(self, "bau", None), "logik": getattr(self, "logik", None),
+                "lastverteiler": getattr(self, "lastverteiler", None)}
 
     def treffer(self):
         return treffer_folge(self)
@@ -512,6 +525,7 @@ class Schnappschuss(object):
         s.gebaeude = d.get("gebaeude", np.zeros(0, BUILDING_PACKED))
         s._gebaeude_idx = d.get("gebaeude_idx")
         s.hoehe = d.get("hoehe")
+        s.lastverteiler = d.get("lastverteiler")
         s.bau = d.get("bau")
         s.logik = d.get("logik")
         s._feldnr = d.get("feldnr")
@@ -880,6 +894,7 @@ class Protokoll(object):
         self.einheiten, self.einheiten_idx, self.entities, self.entities_idx, self.spieler_bloecke = [], [], [], [], []
         self.trupps, self.trupps_idx = [], []
         self.gebaeude, self.gebaeude_idx = [], []
+        self.lastverteiler = []
         self.hoehe = None          # erste Hoehen-Ebene (Rueckwaertskompatibel)
         # Ebenen nur bei Aenderung (20.10. 19:59: je Takt 0,56 MB, 90 s mit Taktring sonst 5 GB): Liste eindeutiger Staende +
         # Takt-Index, ab dem der Stand gilt
@@ -892,6 +907,7 @@ class Protokoll(object):
         self.einheiten.append(d["einheiten"]); self.einheiten_idx.append(d["einheiten_idx"])
         self.entities.append(d["entities"]); self.entities_idx.append(d["entities_idx"])
         self.spieler_bloecke.append(d["spieler"])
+        self.lastverteiler.append(-1 if d.get("lastverteiler") is None else int(d["lastverteiler"]))
         self.trupps.append(d.get("trupps", np.zeros(0, TRIBE))); self.trupps_idx.append(d.get("trupps_idx", np.zeros(0, np.int64)))
         self.gebaeude.append(d.get("gebaeude", np.zeros(0, BUILDING_PACKED))); self.gebaeude_idx.append(d.get("gebaeude_idx", np.zeros(0, np.int64)))
         i = len(self.takte) - 1
@@ -936,6 +952,7 @@ class Protokoll(object):
             bauten_ab=np.array(self.ebenen["bau"][1], np.int64),
             logiken=np.stack(self.ebenen["logik"][0]) if self.ebenen["logik"][0] else np.zeros((0, 0), np.uint32),
             logiken_ab=np.array(self.ebenen["logik"][1], np.int64),
+            lastverteiler=np.array(self.lastverteiler, np.int32),
             spieler_filter=np.array(self.spieler or [], np.int64))
         return pfad
 
@@ -977,7 +994,8 @@ class Protokoll(object):
                  "trupps_idx": z["trupps_idx"][tg[i]:tg[i + 1]] if tg is not None else np.zeros(0, np.int64),
                  "gebaeude": z["gebaeude"][bg[i]:bg[i + 1]] if bg is not None else np.zeros(0, BUILDING_PACKED),
                  "gebaeude_idx": z["gebaeude_idx"][bg[i]:bg[i + 1]] if bg is not None else np.zeros(0, np.int64),
-                 "bau": bau_i, "logik": logik_i}
+                 "bau": bau_i, "logik": logik_i,
+                 "lastverteiler": (int(z["lastverteiler"][i]) if "lastverteiler" in z and int(z["lastverteiler"][i]) >= 0 else None)}
             aus.append(Schnappschuss.aus_behalten(d))
         return aus
 
@@ -1126,7 +1144,8 @@ class Taktring(object):
                  "einheiten": u[m].copy(), "einheiten_idx": np.flatnonzero(m), "entities": e[me].copy(), "entities_idx": np.flatnonzero(me),
                  "spieler": jetzt.spieler.copy(), "hoehe": ebenen[0] if ebenen else jetzt.hoehe, "feldnr": feldnummern(), "trupps": np.zeros(0, TRIBE),
                  "bau": ebenen[1] if ebenen else getattr(jetzt, "bau", None), "logik": ebenen[2] if ebenen else getattr(jetzt, "logik", None),
-                 "trupps_idx": np.zeros(0, np.int64)}
+                 "trupps_idx": np.zeros(0, np.int64),
+                 "lastverteiler": (int(jetzt.lastverteiler) - (int(jetzt.takt) - int(takt))) % 200}
             mg = (g["logicalState"] == 2) if len(g) else np.zeros(0, bool)
             d["gebaeude"] = np.lib.recfunctions.repack_fields(g[mg]) if mg.any() else np.zeros(0, BUILDING_PACKED)
             d["gebaeude_idx"] = np.flatnonzero(mg)
