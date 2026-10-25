@@ -174,6 +174,41 @@ TRIBE = _dtype([
 ], TRIBE_GROESSE)
 
 # AICSpecification (676 Byte, 20 Stueck ab DAT_AICState 0x023FC8E8): die "Persoenlichkeit" je KI-Art (aiType 1..16 -> Index aiType-1)
+BUILDING_HEIGHTS = 0x005BB910    # DAT_BuildingHeights, 100 int je Gebaeudeart (Dachhoehe fuer returnSomeHeight 0x004FF990)
+BUILDING_LAYER = 0x01C95BB8
+_bauhoehen = None
+
+
+def bauhoehen():
+    global _bauhoehen
+    if _bauhoehen is None:
+        _bauhoehen = np.frombuffer(speicher.lies(BUILDING_HEIGHTS, 400), dtype="<i4").copy()
+    return _bauhoehen
+
+
+# getBuildingHeightForBuildingID 0x00409DB0: feste Hoehen fuer Herrenhaus/Bergfriede/Torhaeuser/Tuerme, sonst 0
+FESTE_BAUHOEHE = {11: 0x40, 12: 0x5C, 13: 0xBE, 40: 0x80, 41: 0x80, 74: 0x128, 75: 0x94, 76: 0xB4, 77: 0xC0, 78: 0xC0}
+
+
+def boden_hoehe(hoehe, logik, btyp, organism=0):
+    """returnSomeHeight(tile, 0) nachgerechnet: die Hoehe, unter der ein Geschoss aufschlaegt. btyp = Gebaeudeart auf dem
+    Feld (0 = keins). Gemessen 25.10. (B-252): Steine stoppen genau dort, wo Hoehe < HeightLayer + BuildingHeights[Art]."""
+    if logik & 0x10000000:
+        return hoehe + FESTE_BAUHOEHE.get(btyp, 0)
+    if (logik & 0x400) == 0:
+        if (logik & 0x80) and (logik & 0x100) == 0 and organism > 1999:
+            return hoehe + 0x32
+        return hoehe
+    if btyp in (40, 41, 42, 43, 44):
+        return hoehe + FESTE_BAUHOEHE.get(btyp, 0)
+    if btyp in (45, 46, 61, 74, 75, 76, 77, 78):
+        return hoehe + FESTE_BAUHOEHE.get(btyp, 0) + 10
+    if btyp == 7:
+        return hoehe
+    bh = bauhoehen()
+    return hoehe + int(bh[btyp]) if 0 <= btyp < len(bh) else hoehe
+
+
 AIC_STATE = 0x023FC8E8
 AIC = _dtype([
     ("criticalPopularity", "<i4", 24), ("lowestPopularity", "<i4", 28), ("highestPopularity", "<i4", 32),
@@ -363,11 +398,14 @@ class Schnappschuss(object):
                 self.trupps = np.zeros(0, TRIBE)
             if mit_feldern == "hoehe":
                 self.hoehe = np.frombuffer(speicher.lies(speicher.HOEHE, FELDER), dtype="u1")
+                self.bau = np.frombuffer(speicher.lies(BUILDING_LAYER, FELDER * 2), dtype="<u2")
+                self.logik = np.frombuffer(speicher.lies(speicher.LOGIK, FELDER * 4), dtype="<u4")
             elif mit_feldern:
                 n_p = min(max(_i4(PITCH_ANZAHL), 0), 4000)
                 self.pech = np.frombuffer(speicher.lies(PITCH, n_p * 20), dtype=PITCH_DTYPE) if n_p else np.zeros(0, PITCH_DTYPE)
                 self.schaden = np.frombuffer(speicher.lies(DAMAGE_LAYER, FELDER), dtype="u1")
                 self.hoehe = np.frombuffer(speicher.lies(speicher.HOEHE, FELDER), dtype="u1")
+                self.bau = np.frombuffer(speicher.lies(BUILDING_LAYER, FELDER * 2), dtype="<u2")
                 self.logik = np.frombuffer(speicher.lies(speicher.LOGIK, FELDER * 4), dtype="<u4")
             takt_danach = _u4(TAKT)
             self.dauer_ms = (time.perf_counter() - t0) * 1000.0
@@ -393,7 +431,8 @@ class Schnappschuss(object):
                 "trupps": t[mt].copy(), "trupps_idx": np.flatnonzero(mt), "gebaeude": gp, "gebaeude_idx": np.flatnonzero(mg),
                 "einheiten": u[m].copy(), "einheiten_idx": np.flatnonzero(m), "entities": e[me].copy(),
                 "entities_idx": np.flatnonzero(me), "spieler": self.spieler.copy(), "hoehe": getattr(self, "hoehe", None),
-                "feldnr": feldnummern() if getattr(self, "hoehe", None) is not None else None}
+                "feldnr": feldnummern() if getattr(self, "hoehe", None) is not None else None,
+                "bau": getattr(self, "bau", None), "logik": getattr(self, "logik", None)}
 
     def treffer(self):
         return treffer_folge(self)
@@ -409,6 +448,8 @@ class Schnappschuss(object):
         s.gebaeude = d.get("gebaeude", np.zeros(0, BUILDING_PACKED))
         s._gebaeude_idx = d.get("gebaeude_idx")
         s.hoehe = d.get("hoehe")
+        s.bau = d.get("bau")
+        s.logik = d.get("logik")
         s._feldnr = d.get("feldnr")
         s.woche = s.monat = s.jahr = 0
         s.teams = [0] * 9
@@ -499,7 +540,24 @@ class Schnappschuss(object):
         if not (0 <= fx < 400 and 0 <= fy < 400):
             return None
         k = int(self._feldnr[fx, fy])
-        return int(self.hoehe[k]) if k >= 0 else None
+        if k < 0:
+            return None
+        h = int(self.hoehe[k])
+        bau, logik = getattr(self, "bau", None), getattr(self, "logik", None)
+        if bau is None or logik is None or not len(bau) or not len(logik):
+            return h
+        bid = int(bau[k])
+        btyp = 0
+        if bid:
+            g = self.gebaeude
+            idx = getattr(self, "_gebaeude_idx", None)
+            if idx is not None:
+                w = np.flatnonzero(idx == bid)
+                if len(w):
+                    btyp = int(g[w[0]]["buildingType"])
+            elif bid < len(g):
+                btyp = int(g[bid]["buildingType"])
+        return boden_hoehe(h, int(logik[k]), btyp)
 
     def feuer(self):
         e = self.entities
@@ -760,6 +818,7 @@ class Protokoll(object):
         self.gebaeude, self.gebaeude_idx = [], []
         self.hoehe = None          # erste Hoehen-Ebene (Rueckwaertskompatibel)
         self.hoehen = []           # Hoehen-Ebene je Takt (Mauern fallen, Gebaeude brennen ab)
+        self.bauten, self.logiken = [], []   # Gebaeude-/Logik-Ebene je Takt (Daecher = Aufschlaghoehe)
         self.feldnr = None
 
     def aufnehmen(self, s):
@@ -772,6 +831,10 @@ class Protokoll(object):
         self.gebaeude.append(d.get("gebaeude", np.zeros(0, BUILDING_PACKED))); self.gebaeude_idx.append(d.get("gebaeude_idx", np.zeros(0, np.int64)))
         if d.get("hoehe") is not None:
             self.hoehen.append(np.array(d["hoehe"]))
+            if d.get("bau") is not None:
+                self.bauten.append(np.array(d["bau"]))
+            if d.get("logik") is not None:
+                self.logiken.append(np.array(d["logik"]))
             if self.hoehe is None:
                 self.hoehe = self.hoehen[0]
                 self.feldnr = d.get("feldnr")
@@ -800,6 +863,8 @@ class Protokoll(object):
             hoehe=self.hoehe if self.hoehe is not None else np.zeros(0, np.uint8),
             feldnr=self.feldnr if self.feldnr is not None else np.zeros((0, 0), np.int32),
             hoehen=np.stack(self.hoehen) if len(self.hoehen) == len(self.takte) else np.zeros((0, 0), np.uint8),
+            bauten=np.stack(self.bauten) if len(self.bauten) == len(self.takte) else np.zeros((0, 0), np.uint16),
+            logiken=np.stack(self.logiken) if len(self.logiken) == len(self.takte) else np.zeros((0, 0), np.uint32),
             spieler_filter=np.array(self.spieler or [], np.int64))
         return pfad
 
@@ -815,9 +880,13 @@ class Protokoll(object):
         hoehe = z["hoehe"] if len(z["hoehe"]) else None
         feldnr = z["feldnr"] if ("feldnr" in z and z["feldnr"].size) else None
         hoehen = z["hoehen"] if ("hoehen" in z and z["hoehen"].size) else None
+        bauten = z["bauten"] if ("bauten" in z and z["bauten"].size) else None
+        logiken = z["logiken"] if ("logiken" in z and z["logiken"].size) else None
         for i, takt in enumerate(z["takt"]):
             if hoehen is not None:
                 hoehe = hoehen[i]
+            bau_i = bauten[i] if bauten is not None else None
+            logik_i = logiken[i] if logiken is not None else None
             d = {"takt": int(takt), "takt_kern": int(z["takt_kern"][i]), "rein": bool(z["rein"][i]), "dauer_ms": float(z["dauer_ms"][i]),
                  "einheiten": z["einheiten"][eg[i]:eg[i + 1]], "einheiten_idx": z["einheiten_idx"][eg[i]:eg[i + 1]],
                  "entities": z["entities"][gg[i]:gg[i + 1]], "entities_idx": z["entities_idx"][gg[i]:gg[i + 1]],
@@ -825,7 +894,8 @@ class Protokoll(object):
                  "trupps": z["trupps"][tg[i]:tg[i + 1]] if tg is not None else np.zeros(0, TRIBE),
                  "trupps_idx": z["trupps_idx"][tg[i]:tg[i + 1]] if tg is not None else np.zeros(0, np.int64),
                  "gebaeude": z["gebaeude"][bg[i]:bg[i + 1]] if bg is not None else np.zeros(0, BUILDING_PACKED),
-                 "gebaeude_idx": z["gebaeude_idx"][bg[i]:bg[i + 1]] if bg is not None else np.zeros(0, np.int64)}
+                 "gebaeude_idx": z["gebaeude_idx"][bg[i]:bg[i + 1]] if bg is not None else np.zeros(0, np.int64),
+                 "bau": bau_i, "logik": logik_i}
             aus.append(Schnappschuss.aus_behalten(d))
         return aus
 
@@ -935,8 +1005,15 @@ class Taktring(object):
         u = np.frombuffer(roh, dtype=UNIT, count=n_u, offset=16)
         e = np.frombuffer(roh, dtype=ENTITY, count=ENTITIES_MAX, offset=16 + UNITS_MAX * UNIT_GROESSE)
         n_b = min(max(max_geb, 0), BUILDINGS_MAX)
-        g = np.frombuffer(roh, dtype=BUILDING, count=n_b, offset=16 + UNITS_MAX * UNIT_GROESSE + ENTITIES_MAX * ENTITY_GROESSE) if n_b else np.zeros(0, BUILDING)
-        return takt, takt_kern, u, e, g
+        o = 16 + UNITS_MAX * UNIT_GROESSE + ENTITIES_MAX * ENTITY_GROESSE
+        g = np.frombuffer(roh, dtype=BUILDING, count=n_b, offset=o) if n_b else np.zeros(0, BUILDING)
+        o += BUILDINGS_MAX * BUILDING_GROESSE
+        ebenen = None
+        if len(roh) >= o + FELDER * 7:
+            ebenen = (np.frombuffer(roh, dtype="u1", count=FELDER, offset=o).copy(),
+                      np.frombuffer(roh, dtype="<u2", count=FELDER, offset=o + FELDER).copy(),
+                      np.frombuffer(roh, dtype="<u4", count=FELDER, offset=o + FELDER * 3).copy())
+        return takt, takt_kern, u, e, g, ebenen
 
     def neue(self, spieler=None):
         """[Schnappschuss, ...] aller Takte seit dem letzten Aufruf (aufsteigend); Spielerdaten/Hoehe aus dem Jetzt-Stand."""
@@ -947,7 +1024,7 @@ class Taktring(object):
         aus = []
         for k in range(self.slots):
             i = (index - k) % self.slots
-            takt, takt_kern, u, e, g = self._slot(i)
+            takt, takt_kern, u, e, g, ebenen = self._slot(i)
             if takt <= 0 or (self.letzter_takt is not None and takt <= self.letzter_takt):
                 break
             m = (u["logicalState"] == 2)
@@ -956,7 +1033,8 @@ class Taktring(object):
             me = e["logicalState"] != 0
             d = {"takt": takt, "takt_kern": takt_kern, "rein": True, "dauer_ms": 0.0,
                  "einheiten": u[m].copy(), "einheiten_idx": np.flatnonzero(m), "entities": e[me].copy(), "entities_idx": np.flatnonzero(me),
-                 "spieler": jetzt.spieler.copy(), "hoehe": jetzt.hoehe, "feldnr": feldnummern(), "trupps": np.zeros(0, TRIBE),
+                 "spieler": jetzt.spieler.copy(), "hoehe": ebenen[0] if ebenen else jetzt.hoehe, "feldnr": feldnummern(), "trupps": np.zeros(0, TRIBE),
+                 "bau": ebenen[1] if ebenen else getattr(jetzt, "bau", None), "logik": ebenen[2] if ebenen else getattr(jetzt, "logik", None),
                  "trupps_idx": np.zeros(0, np.int64)}
             mg = (g["logicalState"] == 2) if len(g) else np.zeros(0, bool)
             d["gebaeude"] = np.lib.recfunctions.repack_fields(g[mg]) if mg.any() else np.zeros(0, BUILDING_PACKED)

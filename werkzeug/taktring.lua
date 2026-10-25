@@ -9,7 +9,8 @@
 -- Aufbau: RING = core.allocate(KOPF + SLOTS * SLOT); Kopf: int32 magic 0x54414B54 ("TAKT"), int32 SLOTS, int32 SLOT,
 -- int32 letzter_index, int32 letzter_takt. Slot i bei RING + KOPF + i * SLOT: int32 takt, int32 takt_kern, int32 maxUnitCount,
 -- int32 maxBuildingsCount, dann Einheiten (2500 x 1168 ab 0x0138854C), Geschosse (3000 x 232 ab 0x02350314), Gebaeude
--- (2000 x 812 ab 0x00F98534; SAI 19:29: Feuer/Abklingzeit/Leben je Takt). Je Platz 5,3 MB, 16 Plaetze = 85 MB.
+-- (2000 x 812 ab 0x00F98534; SAI 19:29: Feuer/Abklingzeit/Leben je Takt), dann HeightLayer (80400 x 1), BuildingLayer
+-- (80400 x 2), LogicLayer (80400 x 4). Je Platz 5,8 MB, 16 Plaetze = 93 MB.
 -- Die Basisadresse schreibt start() nach ucp/villagestudio/taktring.txt (eine Zeile, dezimal), Python liest sie dort.
 
 local M = {}
@@ -24,11 +25,17 @@ local ENTITIES_BYTES = 3000 * 232
 local BUILDINGS_STATE = 0x00F98520
 local BUILDINGS = 0x00F98534
 local BUILDINGS_BYTES = 2000 * 812
+-- Karten-Ebenen (B-252, 19:40: Steine prallen an Daechern ab - Boden = HeightLayer + Gebaeudehoehe; dafuer je Takt noetig)
+local HEIGHT_LAYER = 0x01D32C38      -- 1 Byte je Feld
+local BUILDING_LAYER = 0x01C95BB8    -- 2 Byte je Feld
+local LOGIC_LAYER = 0x01BF8368       -- 4 Byte je Feld
+local FELDER = 80400
 local MEMCPY = 0x00582050            -- _HoldStrong::OS::_memcpy (cdecl: dst, src, n)
 
 local SLOTS = 16
 local KOPF = 32
-local SLOT = 16 + UNITS_BYTES + ENTITIES_BYTES + BUILDINGS_BYTES
+local LAYER_BYTES = FELDER * (1 + 2 + 4)
+local SLOT = 16 + UNITS_BYTES + ENTITIES_BYTES + BUILDINGS_BYTES + LAYER_BYTES
 
 local ring, memcpy, index = nil, nil, -1
 
@@ -60,6 +67,10 @@ function M.tick()
   memcpy(s + 16, UNITS, UNITS_BYTES)
   memcpy(s + 16 + UNITS_BYTES, ENTITIES, ENTITIES_BYTES)
   memcpy(s + 16 + UNITS_BYTES + ENTITIES_BYTES, BUILDINGS, BUILDINGS_BYTES)
+  local l = s + 16 + UNITS_BYTES + ENTITIES_BYTES + BUILDINGS_BYTES
+  memcpy(l, HEIGHT_LAYER, FELDER)
+  memcpy(l + FELDER, BUILDING_LAYER, FELDER * 2)
+  memcpy(l + FELDER * 3, LOGIC_LAYER, FELDER * 4)
   core.writeInteger(ring + 12, index)
   core.writeInteger(ring + 16, t)
 end

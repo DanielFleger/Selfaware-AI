@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.dirname(HIER))
 sys.path.insert(0, HIER)
 import auge  # noqa: E402
 import shc  # noqa: E402
+import speicher  # noqa: E402
 from laden import befehl  # noqa: E402
 from auge_pruefen import freie_reihe  # noqa: E402
 
@@ -74,10 +75,46 @@ def main():
           struct.unpack_from("<4h", raw, 788), "animationSpeed", struct.unpack_from("<i", raw, 68)[0])
     print("angriff:", befehl({"angriff": {"einheiten": [k], "gebaeude": ziel["id"]}}, 1.0))
     befehl({"pause": False, "tempo": 40}, 0.2)
-    pfad, p = auge.protokollieren(dauer, None)      # ALLE Besitzer, auch Tiere (Besitzer 0) - Verdacht Luft-Stopp
+    # Luft-Stopp (Daniel 19:36): Logik-Ebene je Takt in einem Fenster um das Katapult mitlesen (ganze Ebene je Takt = 800 MB)
+    import numpy as np
+    pfad, p, logik = aufnahme_mit_logik(dauer, (kat[0]["feld"][0], kat[0]["feld"][1]))
+    np.savez_compressed(pfad.replace(".npz", "_logik.npz"), takte=np.array(sorted(logik)), fenster=np.stack([logik[t] for t in sorted(logik)]),
+                        x0=FENSTER_X0, y0=FENSTER_Y0, groesse=FENSTER)
     befehl({"pause": True}, 0.2)
     print("Protokoll", len(p.takte), "Takte", min(p.takte), "..", max(p.takte), "->", pfad)
     return auswerten(pfad, k)
+
+
+FENSTER = 64
+FENSTER_X0 = FENSTER_Y0 = 0
+
+
+def aufnahme_mit_logik(dauer, mitte):
+    """Wie auge.protokollieren ueber den Taktring, dazu je Bild die Logik-Ebene (4 Byte je Feld) im Fenster um `mitte`;
+    jedem Takt des Bilds wird dasselbe Fenster zugeordnet (das Bit 0x10000000 wechselt nur, wenn eine Einheit das Feld wechselt)."""
+    global FENSTER_X0, FENSTER_Y0
+    import numpy as np
+    fn = auge.feldnummern()
+    FENSTER_X0, FENSTER_Y0 = max(0, mitte[0] - FENSTER // 2), max(0, mitte[1] - FENSTER // 2 - 16)
+    xs = np.arange(FENSTER_X0, FENSTER_X0 + FENSTER)
+    ys = np.arange(FENSTER_Y0, FENSTER_Y0 + FENSTER)
+    ks = fn[np.ix_(xs, ys)]                      # [x, y] -> Feldnummer
+    ring = auge.Taktring()
+    p = auge.Protokoll(None)
+    logik = {}
+    ende = time.time() + dauer
+    while time.time() < ende:
+        neue = ring.neue(None)
+        if neue:
+            voll = np.frombuffer(speicher.lies(speicher.LOGIK, 80400 * 4), dtype="<u4")
+            fenster = np.where(ks >= 0, voll[np.clip(ks, 0, 80399)], 0).astype(np.uint32)
+            for s in neue:
+                p.aufnehmen(s)
+                logik[s.takt] = fenster
+        time.sleep(0.002)
+    pfad = os.path.join(DATEN, "auge_protokoll_%s.npz" % time.strftime("%Y%m%d_%H%M%S"))
+    p.schreiben(pfad)
+    return pfad, p, logik
 
 
 def auswerten(pfad, k=None):
