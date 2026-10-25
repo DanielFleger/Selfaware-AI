@@ -199,6 +199,97 @@ RT = {1: "LOGS", 2: "WOOD", 3: "HOPS", 4: "STONE", 5: "PARTIALSTONE", 6: "IRON",
 RICHTUNG = {0: (0, -1), 1: (1, -1), 2: (1, 0), 3: (1, 1), 4: (0, 1), 5: (-1, 1), 6: (-1, 0), 7: (-1, -1)}
 
 
+# --- Phasen-Tabellen (Bild je Animationsschritt) aus spielwerte.SCHUSS/HACKEN: live, sonst aus der Referenz-Exe ------------
+# Gemessen 25.10. (Lauf 153627, Bogenschuetze 96): state = Phase (4 nachladen, 5 zielen, 6 schiessen), animationCycleNumber
+# = Schritt in der Phase ab 0, Bild = Tabelle[Schritt], Schritt alle (speed+1) Takte, Phase endet nach dem letzten Schritt,
+# dazwischen 1 Takt state 0. Der Pfeil entsteht im Schritt, in dem die Tabelle zum ersten Mal das "schuss_bei"-Bild zeigt
+# (Bogenschuetze: Bild 6 = Schritt 15 = 46 Takte nach Phasenstart). animationTicker zaehlt je Takt, ist aber nicht an den
+# Phasenstart gebunden - der Rest im laufenden Schritt ist deshalb nur auf +-speed Takte bekannt (Mitte angenommen).
+PHASEN_ZUSTAND = {4: "nachladen", 5: "zielen", 6: "schiessen"}
+_phasen = {}
+
+
+def _phasen_tabellen():
+    """{UT: {"phasen": {name: (schritte, speed, tabelle)}, "schuss_schritt": n}} fuer die Schuetzen mit drei Phasen; {UT: (schritte, speed)}
+    fuer Hacken (Zustand 107) unter dem Schluessel "hacken"."""
+    if _phasen:
+        return _phasen
+    try:
+        import spielwerte
+    except Exception:  # noqa: BLE001
+        return _phasen
+    lies = None
+    try:
+        speicher.griff()
+        lies = speicher.lies
+    except Exception:  # noqa: BLE001
+        try:
+            lies = spielwerte.quelle_datei(spielwerte.REFERENZ_EXE)
+        except Exception:  # noqa: BLE001
+            return _phasen
+
+    def tabelle(adr):
+        roh = lies(adr, 200)
+        b = [(x if x < 128 else x - 256) for x in roh]
+        n = next((i for i, v in enumerate(b) if v < 1), 200)
+        return b[:n]
+    for ut, z in spielwerte.SCHUSS.items():
+        if len(z["phasen"]) != 3:
+            continue
+        ph = {}
+        for name, adr, speed in z["phasen"]:
+            t = tabelle(adr)
+            ph[name] = (len(t), speed, t)
+        sb = z["schuss_bei"]
+        schritt = None
+        if sb.startswith("Bild "):
+            bild = int(sb.split()[1])
+            schritt = next((i for i, v in enumerate(ph["schiessen"][2]) if v == bild), None)
+        elif sb.startswith("Zyklus "):
+            schritt = int(sb.split()[1])
+        _phasen[ut] = {"phasen": ph, "schuss_schritt": schritt}
+    hk = {}
+    for ut, tabellen in spielwerte.HACKEN.items():
+        n = [len(tabelle(adr)) for adr, sp in tabellen]
+        hk[ut] = (int(round(sum(n) / float(len(n)))), tabellen[0][1])
+    _phasen["hacken"] = hk
+    return _phasen
+
+
+def phase_rest(ut, zustand, schritt, ticker=None):
+    """(rest_takte_der_phase, schritte_der_phase, takte_bis_naechster_schuss) oder (None, None, None).
+    Mitte des laufenden Schritts angenommen: Unsicherheit +-speed Takte."""
+    tab = _phasen_tabellen()
+    if ut in tab and zustand in PHASEN_ZUSTAND:
+        ph = tab[ut]["phasen"]
+        name = PHASEN_ZUSTAND[zustand]
+        n, sp, _ = ph[name]
+        rest = max(0, (n - schritt - 1)) * (sp + 1) + (sp + 1) // 2 + 1
+        ss = tab[ut]["schuss_schritt"]
+        schuss = None
+        if ss is not None:
+            n_l, sp_l, _ = ph["nachladen"]
+            n_z, sp_z, _ = ph["zielen"]
+            n_s, sp_s, _ = ph["schiessen"]
+            bis_schuss_in_schiessen = ss * (sp_s + 1)
+            if zustand == 6:
+                if schritt < ss:
+                    schuss = (ss - schritt - 1) * (sp_s + 1) + (sp_s + 1) // 2 + 1
+                elif schritt == ss:
+                    schuss = 0          # der Schuss faellt im ersten Takt dieses Schritts (gemessen: Bogenschuetze Schritt 15)
+                else:
+                    schuss = rest + 1 + n_l * (sp_l + 1) + n_z * (sp_z + 1) + bis_schuss_in_schiessen
+            elif zustand == 4:
+                schuss = rest + n_z * (sp_z + 1) + bis_schuss_in_schiessen
+            else:
+                schuss = rest + bis_schuss_in_schiessen
+        return rest, n, schuss
+    if zustand == 107 and "hacken" in tab and ut in tab["hacken"]:
+        n, sp = tab["hacken"][ut]
+        return max(0, (n - schritt - 1)) * (sp + 1) + (sp + 1) // 2 + 1, n, None
+    return None, None, None
+
+
 def _i4(adr):
     return struct.unpack("<i", speicher.lies(adr, 4))[0]
 
@@ -315,9 +406,12 @@ class Schnappschuss(object):
         T = speedUnk - Zeitschritt (speedUnk wird erst NACH dem Schritt erhoeht), je Takt T += Zeitschritt,
         Strecke = 0,25 * vCos * T (Mikroschritte, Zaehlung wie travelledDistance), Hoehe = startingHeight + 2 * (vSin * T -
         4,906 * T^2). Gemessen 25.10. (Lauf 153231, 20 Pfeile, alle Stuetzstellen auf +-1 Mikroschritt/Hoehenpunkt).
-        Nur fuer Kurventyp 0/6 (Pfeil, Bolzen, Balliste, Schleuder); sonst []."""
-        if int(r["entityType"]) not in (1, 7, 20, 33) or int(r["someCounter_OR_hitGround"]) != 0:
+        Pfeil, Bolzen, Balliste, Schleuder (Kurventyp 0/6, gemessen) und Steine/Kuh (Kurventyp 1/2: gleiche Bewegungsformel,
+        Winkel aus Tabelle, Geschwindigkeit per computeVelocity - Landung sobald unter Bodenhoehe; UNGEMESSEN bis Katapult-Lauf)."""
+        art = int(r["entityType"])
+        if art not in (1, 7, 20, 33, 2, 3, 4, 23) or int(r["someCounter_OR_hitGround"]) != 0:
             return []
+        stein = art in (2, 3, 4, 23)   # Katapult/Tribok/Mangonel/Kuh: Aufschlag sobald unter Bodenhoehe, ohne Halbstrecken-Regel
         dt = float(r["_elapsedTimeOrGravityAccumulator"])
         vcos, vsin = float(r["vCos"]), float(r["vSin"])
         if dt <= 0 or vcos == 0:
@@ -336,7 +430,7 @@ class Schnappschuss(object):
             fx, fy = mx // 8, my // 8
             boden = self._boden(fx, fy)
             aus.append([k, mx, my, int(round(h)), fx, fy, boden])
-            if (boden is not None and h < boden and d > gesamt / 2.0) or h < -50 or not (0 <= fx < 400 and 0 <= fy < 400):
+            if (boden is not None and h < boden and (stein or d > gesamt / 2.0)) or h < -50 or not (0 <= fx < 400 and 0 <= fy < 400):
                 break
         return aus
 
@@ -375,6 +469,7 @@ class Schnappschuss(object):
 
     def _einheit(self, i, r, angst):
         zustand = int(r["state"])
+        rest, schritte, schuss = phase_rest(int(r["unitType"]), zustand, int(r["animationCycleNumber"]))
         idx, n = int(r["currentIndexInPathPlan"]), int(r["totalSizeOfPathPlan"])
         rest_weg = self._wegpunkte(r, idx, n)
         return {
@@ -390,6 +485,8 @@ class Schnappschuss(object):
             "animationFrame": int(r["animationFrame"]), "animationTicker": int(r["animationTicker"]),
             "animationSpeed": int(r["animationSpeed"]), "animationCycleNumber": int(r["animationCycleNumber"]),
             "idle": int(r["idle"]), "idleCounterUnk": int(r["idleCounterUnk"]),
+            "sre_phase_schritte": schritte, "sre_phase_rest_takte": rest,
+            "sre_naechster_schuss_takte": (schuss if int(r["shootTargetedUnit"]) or zustand in (4, 5, 6) else None),
             # Zielwahl / Vorhalt
             "targetingType": int(r["targetingType"]), "sre_targeting_name": INSTRUCTION.get(int(r["targetingType"]), ""),
             "targetUID": int(r["targetUID"]), "shootTargetedUnit": int(r["shootTargetedUnit"]),
@@ -595,6 +692,80 @@ class Schnappschuss(object):
         return aus
 
 
+class Protokoll(object):
+    """SAI 25.10. 15:40: Schnappschuesse als Protokoll ablegen (Takt + Rohbloecke, gepackt), damit das Gehirn seine Vorhersage
+    spaeter gegen echte Folgetakte pruefen kann, ohne dass das Spiel laeuft. Je Takt werden die Einheiten der gewaehlten
+    Spieler, alle belegten Entity-Slots und die 9 Spielerdatensaetze als Rohbytes behalten; Hoehen-Ebene einmal.
+    Datei: npz (zlib) mit zusammenhaengenden Strukturfeldern und Grenzen je Takt; `laden()` gibt die Schnappschuesse zurueck."""
+
+    def __init__(self, spieler=None):
+        self.spieler = spieler
+        self.takte, self.kern, self.rein, self.dauer = [], [], [], []
+        self.einheiten, self.einheiten_idx, self.entities, self.entities_idx, self.spieler_bloecke = [], [], [], [], []
+        self.hoehe = None
+
+    def aufnehmen(self, s):
+        d = s.behalten(self.spieler)
+        self.takte.append(d["takt"]); self.kern.append(d["takt_kern"]); self.rein.append(d["rein"]); self.dauer.append(d["dauer_ms"])
+        self.einheiten.append(d["einheiten"]); self.einheiten_idx.append(d["einheiten_idx"])
+        self.entities.append(d["entities"]); self.entities_idx.append(d["entities_idx"])
+        self.spieler_bloecke.append(d["spieler"])
+        if self.hoehe is None and d.get("hoehe") is not None:
+            self.hoehe = np.array(d["hoehe"])
+
+    def schreiben(self, pfad):
+        def grenzen(liste):
+            g = np.zeros(len(liste) + 1, np.int64)
+            g[1:] = np.cumsum([len(x) for x in liste])
+            return g
+        np.savez_compressed(
+            pfad, takt=np.array(self.takte, np.int64), takt_kern=np.array(self.kern, np.int64),
+            rein=np.array(self.rein, bool), dauer_ms=np.array(self.dauer, np.float32),
+            einheiten=np.concatenate(self.einheiten) if self.einheiten else np.zeros(0, UNIT),
+            einheiten_idx=np.concatenate(self.einheiten_idx) if self.einheiten_idx else np.zeros(0, np.int64),
+            einheiten_grenzen=grenzen(self.einheiten),
+            entities=np.concatenate(self.entities) if self.entities else np.zeros(0, ENTITY),
+            entities_idx=np.concatenate(self.entities_idx) if self.entities_idx else np.zeros(0, np.int64),
+            entities_grenzen=grenzen(self.entities),
+            spieler=np.stack(self.spieler_bloecke) if self.spieler_bloecke else np.zeros((0, SPIELER_ANZAHL), PLAYER),
+            hoehe=self.hoehe if self.hoehe is not None else np.zeros(0, np.uint8),
+            spieler_filter=np.array(self.spieler or [], np.int64))
+        return pfad
+
+    @staticmethod
+    def laden(pfad):
+        """[Schnappschuss, ...] aus einer Protokolldatei - ohne Spiel, mit allen Ableitungen (geschosse(), einheiten_liste() ...)."""
+        z = np.load(pfad, allow_pickle=False)
+        aus = []
+        eg, gg = z["einheiten_grenzen"], z["entities_grenzen"]
+        hoehe = z["hoehe"] if len(z["hoehe"]) else None
+        for i, takt in enumerate(z["takt"]):
+            d = {"takt": int(takt), "takt_kern": int(z["takt_kern"][i]), "rein": bool(z["rein"][i]), "dauer_ms": float(z["dauer_ms"][i]),
+                 "einheiten": z["einheiten"][eg[i]:eg[i + 1]], "einheiten_idx": z["einheiten_idx"][eg[i]:eg[i + 1]],
+                 "entities": z["entities"][gg[i]:gg[i + 1]], "entities_idx": z["entities_idx"][gg[i]:gg[i + 1]],
+                 "spieler": z["spieler"][i], "hoehe": hoehe}
+            aus.append(Schnappschuss.aus_behalten(d))
+        return aus
+
+
+def protokollieren(sekunden, spieler=None, pfad=None, alle_ms=0.0):
+    """Sekunden lang jeden neuen Takt behalten (kein JSON unterwegs), dann als npz schreiben. Gibt (pfad, Protokoll) zurueck."""
+    p = Protokoll(spieler)
+    letzter, ende, hoehe_da = None, time.time() + sekunden, False
+    while time.time() < ende:
+        s = Schnappschuss(mit_trupps=False, mit_feldern=not hoehe_da)
+        hoehe_da = True
+        if s.takt != letzter:
+            p.aufnehmen(s)
+            letzter = s.takt
+        if alle_ms > 0:
+            time.sleep(alle_ms / 1000.0)
+    if pfad is None:
+        daten = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "daten")
+        pfad = os.path.join(daten, "auge_protokoll_%s.npz" % time.strftime("%Y%m%d_%H%M%S"))
+    return p.schreiben(pfad), p
+
+
 def main():
     import argparse
     ap = argparse.ArgumentParser(description="B-251 Das Auge - Takt-Schnappschuss aus dem Spielspeicher (nur lesen)")
@@ -603,12 +774,19 @@ def main():
     ap.add_argument("--serie", type=float, default=0.0, help="Sekunden lang alle --alle ms einen Schnappschuss (JSONL)")
     ap.add_argument("--alle", type=float, default=50.0)
     ap.add_argument("--ziel", default="")
+    ap.add_argument("--protokoll", type=float, default=0.0, help="Sekunden lang jeden Takt als Rohblock behalten -> npz (fuer das Gehirn)")
     ap.add_argument("--still", action="store_true")
     a = ap.parse_args()
     teile = tuple(a.teile.split(","))
     nur = [int(s) for s in a.spieler.split(",") if s.strip()] or None
     stempel = time.strftime("%Y%m%d_%H%M%S")
     daten = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "daten")
+    if a.protokoll > 0:
+        pfad, p = protokollieren(a.protokoll, nur, a.ziel or None)
+        print("OK: Protokoll %d Takte (%d..%d), %d unrein, Datei %.1f MB -> %s" % (
+            len(p.takte), min(p.takte) if p.takte else 0, max(p.takte) if p.takte else 0, sum(1 for r in p.rein if not r),
+            os.path.getsize(pfad) / 1e6, pfad))
+        return 0
     if a.serie > 0:
         pfad = a.ziel or os.path.join(daten, "auge_serie_%s.jsonl" % stempel)
         ende = time.time() + a.serie
