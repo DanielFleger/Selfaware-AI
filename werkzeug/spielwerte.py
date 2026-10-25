@@ -369,7 +369,15 @@ def abgeleitet(w, sch, hk):
                              "Animationsfortschritt hart auf 0 - die 93 Takte beginnen von vorn; der Zuendzaehler bleibt stehen "
                              "(wird nur beim Zuenden oder beim Ueberlauf 2 -> 0 zurueckgesetzt). Pfeiltreffer aendern nichts. Stirbt der "
                              "Sklave, ist sein Zaehler weg; der naechste beginnt bei 0 (zuendet nach seinem ersten Durchlauf). Kein "
-                             "Zerfall ueber Takte; die Abklingzeit des Gebaeudes zaehlt je Takt hart herunter"}}
+                             "Zerfall ueber Takte; die Abklingzeit des Gebaeudes zaehlt je Takt hart herunter",
+                  "abklingzeit_beleg": "setupBuildingData 0x00420D20 (jeder Bau, auch AIV-Start und KI): cooldownTimer = 400, wenn "
+                                       "Einzelspieler-Modus ODER Besitzer-Slot ein Mensch (currentPlayerFullIDArray != -1) ODER Besitzer "
+                                       "kein KI (currentAIArray == 0); sonst 2000 - also nur KI-Spieler im Mehrspieler/Gefecht. Keine "
+                                       "Schwierigkeit, keine Karte. Gilt fuer JEDE Zuendung, weil alle Wege ueber lightUpBuilding gehen: "
+                                       "Sklave, Funkenflug (IgniteFireAtMiniTile), Feuerballiste/Pechgraben-Treffer "
+                                       "(processEntityHitBuildingOrUnit), KI-Zufallsbrand. AIV-Gebaeude vom Spielstart sind damit nur die "
+                                       "ersten 2000 Takte der Partie immun. Hieb und Feuer laufen NICHT parallel: an brennbaren Gebaeuden "
+                                       "macht der Sklave 0 Hieb-Schaden (nur Zuendversuch), an unbrennbaren 8 je Hieb"}}
     aus["anwerben.voraussetzung"] = {
         "adresse": "Code 0x00464EF0 ProcessRecruitUnit, 0x0052E960 euroRecruit, 0x0052EC10 nonEuroRecruit, 0x00464DA0",
         "form": "UT -> dict",
