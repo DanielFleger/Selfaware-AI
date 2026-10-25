@@ -295,7 +295,7 @@ def _phasen_tabellen():
         lies = speicher.lies
     except Exception:  # noqa: BLE001
         try:
-            lies = spielwerte.quelle_datei(spielwerte.REFERENZ_EXE)
+            lies = spielwerte.quelle_datei(spielwerte.REFERENZ_EXE)[1]   # gibt (quelle, lies) zurueck (SAI 20:01)
         except Exception:  # noqa: BLE001
             return _phasen
 
@@ -1054,13 +1054,22 @@ class Taktring(object):
         index, letzter = struct.unpack("<2i", speicher.lies(self.basis + 12, 8))
         if index < 0 or letzter == self.letzter_takt:
             return []
+        if self.letzter_takt is not None and letzter < self.letzter_takt:
+            self.letzter_takt = None          # Spieluhr sprang zurueck (Laden/neue Partie): von vorn
         jetzt = Schnappschuss(mit_trupps=False, mit_feldern="hoehe")
         aus = []
+        vorher = None
         for k in range(self.slots):
             i = (index - k) % self.slots
             takt, takt_kern, u, e, g, ebenen = self._slot(i)
-            if takt <= 0 or (self.letzter_takt is not None and takt <= self.letzter_takt):
+            # 20:03 (Pruefstein 200135: 4 Takte doppelt, ausser der Reihe): waehrend 16 Plaetze gelesen werden, ueberschreibt das
+            # Spiel die aeltesten schon mit neuen Takten - nur streng absteigende Takte gelten, und der Platz muss nach dem Lesen
+            # noch denselben Takt tragen
+            if takt <= 0 or (self.letzter_takt is not None and takt <= self.letzter_takt) or (vorher is not None and takt >= vorher):
                 break
+            if struct.unpack("<i", speicher.lies(self.basis + self.kopf + i * self.slot, 4))[0] != takt:
+                break
+            vorher = takt
             m = (u["logicalState"] == 2)
             if spieler is not None:
                 m &= np.isin(u["owner"], list(spieler))
@@ -1093,6 +1102,8 @@ def protokollieren(sekunden, spieler=None, pfad=None, alle_ms=0.0, mit_trupps=Fa
     while time.time() < ende:
         if ring is not None:
             for s in ring.neue(spieler):
+                if letzter is not None and s.takt <= letzter:
+                    continue                  # nie doppelt, nie rueckwaerts
                 p.aufnehmen(s)
                 letzter = s.takt
             time.sleep(0.002)

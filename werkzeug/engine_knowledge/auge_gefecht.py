@@ -100,6 +100,7 @@ def auswerten(pfad):
         return int(u["health"][m].sum()), int(m.sum())
     erg = {"protokoll": os.path.basename(pfad), "takte": [takte[0], takte[-1]], "schnappschuesse": len(takte),
            "takt_luecken": len(luecken), "fehlende_takte": int(sum(l - 1 for l in luecken)),
+           "takte_rueckwaerts_oder_doppelt": int(sum(1 for a, b in zip(takte, takte[1:]) if b <= a)),
            "anteil_takte_erfasst": round(len(takte) / float(takte[-1] - takte[0] + 1), 3),
            "treffer_ereignisse": len(tr), "verlust_summe": int(sum(t["verlust"] for t in tr)),
            "nach_quelle_ereignisse": dict(quellen), "nach_quelle_verlust": dict(verlust),
