@@ -170,6 +170,61 @@ def namen(spielordner=SPIELORDNER):
             "ware": {rt: g2[2 * rt] for rt in range(1, 25) if 2 * rt < len(g2) and g2[2 * rt]}}
 
 
+# --- Schussrhythmus: Animationstabellen (1 Byte je Bild, 0 = Ende) der Zustaende Nachladen (4) / Zielen (5) / Schiessen (6).
+# Ein Bild dauert (animationSpeed + 1) Takte (updateUnits 0x00579300: animationTicker > animationSpeed + leap -> naechstes
+# Bild). Takte je Zustand = Bilder x (Speed + 1). Das Geschoss entsteht beim Bild "schuss_bei" (animationFrame bzw.
+# animationCycleNumber laut Update-Funktion). Tabellen aus den Update-Funktionen abgelesen (SRE 25.10.):
+#   Bogen 0x0055A800, Armbrust 0x0055C7B0, arab. Bogen 0x00570400, Schleuderer 0x00572E80, Feuerwerfer 0x005769F0.
+ANIM = 0x00B56AC4   # DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp (AnimationFrameData)
+SCHUSS = {
+    22: {"nachladen": (ANIM + 0xBF4, 2), "zielen": (ANIM + 0xC1C, 2), "schiessen": (ANIM + 0xC74, 2), "schuss_bei": "Bild 6"},
+    23: {"nachladen": (ANIM + 0x154C, 2), "zielen": (ANIM + 0x1590, 2), "schiessen": (ANIM + 0x15E4, 2), "schuss_bei": "Zyklus 2"},
+    70: {"nachladen": (0x00B59250, 2), "zielen": (0x00B59270, 2), "schiessen": (0x00B59288, 2), "schuss_bei": "Zyklus 0"},
+    72: {"nachladen": (0x00B596EC, 2), "zielen": (0x00B59708, 0), "schiessen": (ANIM + 0x2C7C, 1), "schuss_bei": "Zyklus 0"},
+    76: {"nachladen": (ANIM + 0x34D4, 6), "zielen": (ANIM + 0x34EC, 1), "schiessen": (ANIM + 0x3510, 2), "schuss_bei": "Zyklus 0"},
+}
+
+
+def schuss(lies):
+    """Je Schuetzenart: Bilder und Takte fuer Nachladen/Zielen/Schiessen und der ganze Zyklus (ohne Zielsuche/Laufen)."""
+    aus = {}
+    for ut, z in SCHUSS.items():
+        e = {"schuss_bei": z["schuss_bei"]}
+        gesamt = 0
+        for name in ("nachladen", "zielen", "schiessen"):
+            adr, speed = z[name]
+            roh = lies(adr, 64)
+            bilder = next((i for i, b in enumerate(roh) if (b if b < 128 else b - 256) < 1), 64)
+            e[name] = {"adresse": "0x%08X" % adr, "bilder": bilder, "speed": speed, "takte": bilder * (speed + 1)}
+            gesamt += bilder * (speed + 1)
+        e["zyklus_takte"] = gesamt
+        e["schuesse_je_1000_takte"] = round(1000.0 / gesamt, 1) if gesamt else None
+        aus[ut] = e
+    return aus
+
+
+# --- Werte, die fest im Code stehen (nicht als Tabelle lesbar; abgelesen SRE 25.10., Datei-Stand) --------------------
+CODE_KONSTANTEN = {
+    "nahkampf_je_takt": "processMeleeInitiation 0x00549C70 laeuft jeden Takt je Einheit (updateUnits) und ruft bei "
+                        "anliegendem Gegner jedes Mal processUnitAttackOtherUnit: melee_damage ist Schaden je TAKT "
+                        "(Daniel gemessen: Streitkolben 70/Takt am Lord = live-Tabelle 70)",
+    "gebaeude_schaden_je_schlag": {
+        # (Gebaeude, Tor/Turm, Mauer) - Update-Funktionen, Zustand 107 US_MELEE_ATTACK_WALL
+        "E_ARCHER": (4, 1, 2), "E_XBOW": (4, 2, 2), "E_SPEAR": (8, 3, 4), "E_PIKE": (20, 4, 6), "E_MACE": (35, 4, 6),
+        "E_SWORD": (70, 6, 10), "E_KNIGHT": (70, 6, 10), "E_MONK": (20, 4, 4), "LORD": (70, 6, 10),
+        "A_ARCHER": (4, 1, 2), "A_SLINGER": (4, 1, 2), "A_HARCHER": (4, 1, 2), "A_FIRETHROWER": (4, 1, 2),
+        "A_ASSASSIN": (70, 6, 10), "A_SWORDSMAN": (70, 6, 10), "A_SLAVE": "8 nur an nicht brennbaren Gebaeuden, sonst Feuer",
+        "TUNNELER": "10 + 10 Umfeld beim Einsturz", "S_BATTERINGRAM": 50,
+        "Geschoss Pfeil/Bolzen an Gebaeude": 1, "Geschoss Balliste": 2, "Geschoss Feuerballiste": 10,
+        "Feuer": "alle 20 Takte 1; Huette/Holzfaeller/Jaeger/Farmen 4",
+    },
+    "mauer": "Schaden = Hoehenabbau in Punkten (HeightLayer -1 je Punkt bis Bodenhoehe, dann Mauer weg); einzeln "
+             "stehendes Mauerstueck (unter 2 Nachbarn) x1,5, von 3+ Seiten umgeben x0,5 (processDamageToBuilding 0x00516B80)",
+    "kuh_nachspawn": "Milchhof: 32 Takte nach Ende der Melk-Animation eine neue Kuh in den naechsten freien Platz (bis 3)",
+    "ochse_nachspawn": "Ochsenpfahl: 100 Takte nach Verlust ein neuer Ochse, solange ein Arbeiter zugeteilt ist",
+}
+
+
 def quelle_live():
     import speicher
     speicher.griff()
@@ -248,7 +303,8 @@ def main():
     q, w = ergebnisse[0]
     aus = {"erstellt": time.strftime("%Y-%m-%d %H:%M:%S"), "quelle": q, "marke": "abgelesen (Datei/Speicher, Aufbau aus Ghidra OpenSHC)",
            "aufzaehlungen": {"UT": UT, "BT": BT, "RT": RT, "ET": ET}, "namen": namen(a.spiel), "tabellen": w,
-           "gegenproben": gegenproben(w)}
+           "schuss": {q: schuss(l) for q, l in quellen} if False else schuss(quellen[0][1]),
+           "code_konstanten": CODE_KONSTANTEN, "gegenproben": gegenproben(w)}
     if len(ergebnisse) > 1:
         q2, w2 = ergebnisse[1]
         abw = {k: {"live": w[k]["werte"], "datei": w2[k]["werte"]} for k in w if w[k]["werte"] != w2[k]["werte"]}
@@ -262,6 +318,10 @@ def main():
         print("Namen (%s): %s" % (n.get("sprache", "?"), {k: n["einheit"].get(k) for k in (22, 26, 55, 73)} if "einheit" in n else n))
         if "vergleich" in aus:
             print("Abweichende Tabellen live/Datei:", aus["vergleich"]["abweichende_tabellen"] or "keine")
+        for ut, e in aus["schuss"].items():
+            print("Schuss %-14s Nachladen %3d Zielen %3d Schiessen %3d Takte -> Zyklus %3d (%s je 1.000 Takte), Geschoss bei %s" % (
+                UT[ut], e["nachladen"]["takte"], e["zielen"]["takte"], e["schiessen"]["takte"], e["zyklus_takte"],
+                e["schuesse_je_1000_takte"], e["schuss_bei"]))
         print("Geschrieben:", ziel)
     return ziel
 
