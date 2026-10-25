@@ -182,7 +182,12 @@ _bauhoehen = None
 def bauhoehen():
     global _bauhoehen
     if _bauhoehen is None:
-        _bauhoehen = np.frombuffer(speicher.lies(BUILDING_HEIGHTS, 400), dtype="<i4").copy()
+        try:
+            roh = speicher.lies(BUILDING_HEIGHTS, 400)
+        except Exception:  # noqa: BLE001  - ohne Spiel (SAI 20:12): aus der Referenz-Exe; live == Exe gemessen 25.10. 20:13
+            import spielwerte
+            roh = spielwerte.quelle_datei(spielwerte.REFERENZ_EXE)[1](BUILDING_HEIGHTS, 400)
+        _bauhoehen = np.frombuffer(roh, dtype="<i4").copy()
     return _bauhoehen
 
 
