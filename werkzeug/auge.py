@@ -380,6 +380,49 @@ def feldnummern():
     return _feldnr_karte
 
 
+# --- Nahkampf-Zielwahl und Suchtakt (B-251, AU18/AU19, SAI 25.10. 21:53) -----------------------------------------------------
+NAHKAMPF_TABELLE = 0x00B4DF4C + 0x11CF4      # UnitPropertiesDefinedData.field117: int[9][24], Feld-Index je Blickrichtung
+# Feld-Index (local_78 in processMeleeInitiation 0x00549C70) -> (dx, dy); innen 0-7, aeusserer 5x5-Ring 8-23 im Uhrzeigersinn
+NAHKAMPF_FELD = {0: (-1, -1), 1: (-1, 0), 2: (-1, 1), 3: (0, 1), 4: (1, 1), 5: (1, 0), 6: (1, -1), 7: (0, -1),
+                 8: (-1, -2), 9: (-2, -2), 10: (-2, -1), 11: (-2, 0), 12: (-2, 1), 13: (-2, 2), 14: (-1, 2), 15: (0, 2),
+                 16: (1, 2), 17: (2, 2), 18: (2, 1), 19: (2, 0), 20: (2, -1), 21: (2, -2), 22: (1, -2), 23: (0, -2)}
+_nahkampf_tab = None
+
+
+def nahkampf_reihenfolge(facing):
+    """Reihenfolge, in der ein Nahkaempfer mit Blickrichtung `facing` (facingDirection +692, 0 = N ... 7 = NW) die Felder um
+    sich nach einem Gegner absucht: [(0, 0)] (eigenes Feld) + 24 (dx, dy) aus der Spieltabelle (live, sonst Referenz-Exe;
+    live == Exe geprueft 25.10.). Originalfehler bleibt drin: bei facing 6 (W) steht (-2, 0) doppelt und (1, 2) fehlt.
+    Auf jedem Feld gilt das erste lebende Feind-Mitglied der Kette UnitLayer -> nextUnitOnTheSameTile mit +-32 Hoehe."""
+    global _nahkampf_tab
+    if _nahkampf_tab is None:
+        try:
+            roh = speicher.lies(NAHKAMPF_TABELLE, 9 * 24 * 4)
+        except Exception:  # noqa: BLE001
+            import spielwerte
+            roh = spielwerte.quelle_datei(spielwerte.REFERENZ_EXE)[1](NAHKAMPF_TABELLE, 9 * 24 * 4)
+        _nahkampf_tab = np.frombuffer(roh, dtype="<i4").reshape(9, 24).copy()
+    if not 0 <= int(facing) < 8:
+        return [(0, 0)]
+    return [(0, 0)] + [NAHKAMPF_FELD[int(i)] for i in _nahkampf_tab[int(facing)]]
+
+
+def sucht_im_takt(takt, fixed_rng, maske):
+    """updateUnits 0x00579300: findNearestEnemyAndHeadTowardsIt laeuft, wenn maske (enemyNoticeFrequencyUnk +1084: 63/127/255)
+    != 0 und (Takt & maske) == (fixedRng +900 & maske); Takt = totalGameTicksUnk 0x0117CADC (= Schnappschuss.takt, ohne Versatz
+    gemessen: 3.722 von 4.106 Abstandsaenderungen im Pruefstein 200603 fallen genau in diese Takte)."""
+    return maske != 0 and (int(takt) & int(maske)) == (int(fixed_rng) & int(maske))
+
+
+def naechster_suchtakt(takt, fixed_rng, maske):
+    """Erster Takt >= takt, in dem die Einheit sucht (None, wenn sie nie sucht)."""
+    if not maske:
+        return None
+    m = int(maske)
+    basis = (int(takt) & ~m) | (int(fixed_rng) & m)
+    return basis if basis >= int(takt) else basis + m + 1
+
+
 def _i4(adr):
     return struct.unpack("<i", speicher.lies(adr, 4))[0]
 
