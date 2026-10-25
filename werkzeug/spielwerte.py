@@ -355,7 +355,8 @@ def abgeleitet(w, sch, hk):
                      "Code dieser Funktionen. Bodenfeuer erlischt nach seiner Animation (8 Durchlaeufe), Gebaeudefeuer brennt bis "
                      "Zerstoerung oder Loeschen. LOESCHEN: Feuerwache (UpdateFireWatch) laeuft zum Eingang des brennenden Gebaeudes, "
                      "loescht nach ihrer Animation komplett (fireDuration 0, alle Feuer auf den Feldern aus) und setzt 2000 Takte "
-                     "Abklingzeit; Reichweite = Laufweg, Dauer der Loesch-Animation nicht ausgezaehlt",
+                     "Abklingzeit; Reichweite = Laufweg; Loesch-Animation 16 Bilder x 4 = 64 Takte (field411_0x82d0, Speed 3); kein Wasserholen im Code "
+                     "(kein Bezug auf Brunnen/Wassertopf in UpdateFireWatch) - EINE Feuerwache loescht ein ganzes Gebaeude in einem Gang",
         "werte": {"brennbarkeit": {"0": "Lager, Bergfriede, Torhaeuser, Tuerme, Mauern, Brunnen", "1": "Huetten, Werkstaetten, Hoefe, "
                                    "Kaserne, Soeldnerposten, Waffenlager, Kornspeicher, Markt, Kirchen", "4": "Exerzierplatz, Lagerplatz",
                                    "5": "Schmiede, Baeckerei, Gasthaus, Pechkocher"},
@@ -378,6 +379,26 @@ def abgeleitet(w, sch, hk):
                                        "(processEntityHitBuildingOrUnit), KI-Zufallsbrand. AIV-Gebaeude vom Spielstart sind damit nur die "
                                        "ersten 2000 Takte der Partie immun. Hieb und Feuer laufen NICHT parallel: an brennbaren Gebaeuden "
                                        "macht der Sklave 0 Hieb-Schaden (nur Zuendversuch), an unbrennbaren 8 je Hieb"}}
+    # Brennbarkeit je Gebaeudeart, fest im Code (getBuildingFlammabilityFactor 0x00410920): 0 brennt nicht, 1 normal, 4 Exerzier-/
+    # Lagerplatz (zaehlt nicht fuer Ausbreitung), 5 sehr brennbar.
+    brenn = [0] * 110
+    for bt in (1, 3, 4, 5, 7, 8, 9, 11, 12, 14, 15, 16, 18, 19, 20, 23, 24, 25, 26, 30, 31, 32, 33, 34, 35, 36, 37, 38, 62, 63, 65, 92, 93, 95, 97, 103, 106, 107):
+        brenn[bt] = 1
+    for bt in (13, 17, 22, 28):
+        brenn[bt] = 5
+    for bt in (53, 55, 56, 57, 58, 59):
+        brenn[bt] = 4
+    aus["gebaeude.brennbarkeit"] = {"adresse": "Code 0x00410920 getBuildingFlammabilityFactor (switch)", "form": "BT",
+                                    "bedeutung": "0 = brennt nicht, 1 = normal, 4 = Exerzier-/Lagerplatz, 5 = sehr brennbar (Schmiede 13, Baeckerei 17, Gasthaus 22, Pechkocher 28)",
+                                    "werte": brenn}
+    aus["gebaeude.speicher_offsets"] = {
+        "adresse": "DAT_BuildingsState 0x00F98520, Eintraege ab +0x14 (0x00F98534), je 812 Byte (0x32C), Anzahl bei +8 (maxBuildingsCount)",
+        "form": "Feldname -> Byte-Offset im Eintrag (Ghidra-Struktur Building, types.json)",
+        "bedeutung": "Fuer das Lagebild: Abklingzeit (cooldownTimer, short) und Brand (fireDuration, short) je Gebaeude direkt lesbar; "
+                     "cooldownTimer > 0 heisst: unanzuendbar, zaehlt je Takt um 1 herunter",
+        "werte": {"logicalState": 208, "buildingType": 210, "owner": 214, "uid": 216, "x": 238, "y": 240, "widthOrHeight": 248,
+                  "currentHealth": 268, "timeAlive": 636, "fireDuration": 702, "cooldownTimer": 708, "ifFireThenResponsiblePlayer": 734,
+                  "eintrag_bytes": 812, "basis_eintrag_0": "0x00F98534"}}
     aus["anwerben.voraussetzung"] = {
         "adresse": "Code 0x00464EF0 ProcessRecruitUnit, 0x0052E960 euroRecruit, 0x0052EC10 nonEuroRecruit, 0x00464DA0",
         "form": "UT -> dict",
