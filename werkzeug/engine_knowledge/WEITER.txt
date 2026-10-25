@@ -107,3 +107,6 @@ live pruefen; Marktpreise Datei != S2 gemessen (Keule 290 vs 300, Leder 125 vs 1
 NAECHSTE SCHRITTE: sobald ein Spiel laeuft: python werkzeug/spielwerte.py --vergleich (klaert Assassine + Markt).
 Dann A6 Takte je Feld (Stufe -> Takte, moveUnit lesen), A3 Tiere (Update*-Funktionen), B8 EntityState (Geschosse im
 Flug: 0x02350300, Struktur Entity), C9 Zustandsuebergaenge (Update*-Funktionen je Art, PTR_UpdateUnitFunctions 0x00B4DF60).
+09:10 SRE: P13-P18 - Takte je Feld = 8 x (Stufe + 1) (L1 stuetzt), Zielwahl der Schuetzen (Punktzahl je Klasse),
+Feind-Wahrnehmung alle 64/128/256 Takte + Assassinen-Kandidat (<= 20 Felder), Geschosse lesbar (EntityState
+0x02350300, 3000 x 232 Byte), Tiere/Nachspawn (Ochse 100 Takte, Rehe nur Einzelspieler). Offen P12.
