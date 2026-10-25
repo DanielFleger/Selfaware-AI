@@ -158,9 +158,15 @@ def namen(spielordner=SPIELORDNER):
         a = offs[i]
         b = next((o for o in offs[i + 1:] if o > a), len(txt) // 2)
         return txt[a * 2:b * 2].decode("utf-16-le", errors="replace").split("\x00")
-    g88, g2 = gruppe(88), gruppe(2)
-    return {"datei": pfad, "sprache": gruppe(6)[0],
-            "einheit": {ut: g88[2 * ut] for ut in range(1, 80) if 2 * ut < len(g88) and g88[2 * ut]},
+    g88, g2, g64 = gruppe(88), gruppe(2), gruppe(64)
+    # Gruppe 88 endet bei UT 66 (Stronghold-1-Liste). Die Crusader-Araber (70-76) stehen in cr.tex nur im Plural im
+    # Aussenposten-Menue (Gruppe 64): 20 Bogenschuetzen, 22 Schwertkaempfer, 24 Sklaven, 26 Berittene Bogenschuetzen,
+    # 28 Feuerwerfer, 30 Schleuderschuetzen, 32 Arab. Ballisten; der Assassine hat dort keinen Eintrag.
+    einheit = {ut: g88[2 * ut] for ut in range(1, 80) if 2 * ut < len(g88) and g88[2 * ut]}
+    for ut, k in ((70, 20), (75, 22), (71, 24), (74, 26), (76, 28), (72, 30), (77, 32)):
+        if k < len(g64) and g64[k]:
+            einheit[ut] = g64[k] + " (Plural, Aussenposten-Menue)"
+    return {"datei": pfad, "sprache": gruppe(6)[0], "einheit": einheit,
             "ware": {rt: g2[2 * rt] for rt in range(1, 25) if 2 * rt < len(g2) and g2[2 * rt]}}
 
 
