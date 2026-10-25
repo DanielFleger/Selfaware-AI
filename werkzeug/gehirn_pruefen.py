@@ -25,12 +25,6 @@ def laden(pfad):
     def _offline():
         raise RuntimeError("offline")
     speicher.griff = _offline
-    if getattr(auge, "_bauhoehen", None) is None and hasattr(auge, "BUILDING_HEIGHTS"):
-        # auge.bauhoehen() liest die Gebaeudehoehen-Tabelle nur live (bei SRE gemeldet 25.10. 20:12) - offline aus der Exe
-        import numpy as np
-        import spielwerte
-        lies = spielwerte.quelle_datei(spielwerte.REFERENZ_EXE)[1]
-        auge._bauhoehen = np.frombuffer(bytes(lies(auge.BUILDING_HEIGHTS, 400)), dtype="<i4").copy()
     return auge.Protokoll.laden(pfad)
 
 
