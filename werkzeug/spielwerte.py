@@ -182,6 +182,8 @@ SCHUSS = {   # UT: Phasen (Name, Adresse der Bildtabelle, animationSpeed), Gesch
     70: {"phasen": [("nachladen", 0x00B59250, 2), ("zielen", 0x00B59270, 2), ("schiessen", 0x00B59288, 2)], "schuss_bei": "Zyklus 0"},
     72: {"phasen": [("nachladen", 0x00B596EC, 2), ("zielen", 0x00B59708, 0), ("schiessen", ANIM + 0x2C7C, 1)], "schuss_bei": "Zyklus 0"},
     76: {"phasen": [("nachladen", ANIM + 0x34D4, 6), ("zielen", ANIM + 0x34EC, 1), ("schiessen", ANIM + 0x3510, 2)], "schuss_bei": "Zyklus 0"},
+    # Berittener Bogenschuetze (HorseArcher_DoShooting 0x00575820): drei Tabellen, Speed 1 (Bild = 2 Takte), Pfeil bei Bild 27
+    74: {"phasen": [("nachladen", ANIM + 0x30E4, 1), ("zielen", ANIM + 0x314C, 1), ("schiessen", ANIM + 0x31A4, 1)], "schuss_bei": "Bild 27"},
     # Belagerungsgeraete (UpdateCatapult 0x00568320, Trebuchet 0x00569410, Mangonel 0x0056A3F0, Ballista 0x0056ECD0,
     # FireBallista 0x00577CC0): zwei Bildtabellen je Zyklus (Spannen, Schuss), Speed 2; unbemannt Speed 10000 = steht.
     39: {"phasen": [("spannen", ANIM + 0x1784, 2), ("schiessen", ANIM + 0x17D4, 2)], "schuss_bei": "Bild 23 (Index 9 der Schusstabelle)"},
@@ -193,18 +195,24 @@ SCHUSS = {   # UT: Phasen (Name, Adresse der Bildtabelle, animationSpeed), Gesch
 
 
 # Schlagtakt gegen Gebaeude/Mauer (Zustand 107 US_MELEE_ATTACK_WALL): ein Treffer je Durchlauf der Hack-Animation,
-# Dauer = Bilder x (animationSpeed + 1). Tabellen je Art aus den Update-Funktionen (SRE 25.10. 10:00). Lord hat keinen Zustand 107.
-HACKEN = {22: (ANIM + 0xF84, 3), 23: (ANIM + 0x152C, 3), 24: (ANIM + 0x1C04, 3), 25: (ANIM + 0x11F8, 3), 26: (ANIM + 0x1388, 3),
-          27: (ANIM + 0x1E7C, 3), 28: (ANIM + 0x2290, 3), 37: (ANIM + 0x172C, 3), 70: (0x00B592B0, 3), 71: (ANIM + 0x2538, 2),
-          72: (0x00B594E8, 3), 73: (ANIM + 0x2C94, 2), 74: (ANIM + 0x2FC0, 3), 75: (0x00B59CD0, 3), 76: (ANIM + 0x33F4, 3)}
+# Dauer = Bilder x (animationSpeed + 1). Tabellen je Art aus den Update-Funktionen (SRE 25.10. 10:00). Der Burgherr (55,
+# UpdateLord 0x0056C560) wechselt je Schlag durch vier Hieb-Animationen (Tabellen 17/14/12/14 Bilder) - Mittel der vier.
+HACKEN = {22: [(ANIM + 0xF84, 3)], 23: [(ANIM + 0x152C, 3)], 24: [(ANIM + 0x1C04, 3)], 25: [(ANIM + 0x11F8, 3)],
+          26: [(ANIM + 0x1388, 3)], 27: [(ANIM + 0x1E7C, 3)], 28: [(ANIM + 0x2290, 3)], 37: [(ANIM + 0x172C, 3)],
+          55: [(ANIM + 0x6124, 3), (ANIM + 0x614C, 3), (ANIM + 0x6170, 3), (ANIM + 0x614C, 3)],
+          70: [(0x00B592B0, 3)], 71: [(ANIM + 0x2538, 2)], 72: [(0x00B594E8, 3)], 73: [(ANIM + 0x2C94, 2)],
+          74: [(ANIM + 0x2FC0, 3)], 75: [(0x00B59CD0, 3)], 76: [(ANIM + 0x33F4, 3)]}
 
 
 def hacken(lies):
     aus = [0] * 80
-    for ut, (adr, speed) in HACKEN.items():
-        roh = lies(adr, 200)
-        bilder = next((i for i, b in enumerate(roh) if (b if b < 128 else b - 256) < 1), 200)
-        aus[ut] = bilder * (speed + 1)
+    for ut, tabellen in HACKEN.items():
+        takte = []
+        for adr, speed in tabellen:
+            roh = lies(adr, 200)
+            bilder = next((i for i, b in enumerate(roh) if (b if b < 128 else b - 256) < 1), 200)
+            takte.append(bilder * (speed + 1))
+        aus[ut] = int(round(sum(takte) / len(takte)))
     return aus
 
 
@@ -261,7 +269,7 @@ def abgeleitet(w, sch, hk):
     aus["takt.schuss_zyklus"] = {
         "adresse": "Animationstabellen, siehe schuss_phasen", "form": "UT",
         "bedeutung": "Takte zwischen zwei Geschossen (Nachladen + Zielen + Schiessen bzw. Spannen + Schuss), ohne Zielsuche/"
-                     "Drehen/Laufen; 0 = kein Schuetze oder nicht gelesen (Pferdebogen 74 offen)",
+                     "Drehen/Laufen; 0 = kein Schuetze",
         "werte": [sch[ut]["zyklus_takte"] if ut in sch else 0 for ut in range(80)]}
     aus["takt.schuss_phasen"] = {"adresse": "Animationstabellen (1 Byte je Bild, Bild = Speed+1 Takte)", "form": "UT -> Phasen",
                                  "bedeutung": "Bilder, Speed und Takte je Phase, Geschoss-Moment", "werte": sch}
@@ -292,7 +300,7 @@ def abgeleitet(w, sch, hk):
     aus["gebaeude_schaden.takt_je_schlag"] = {
         "adresse": "Animationstabellen Zustand 107 je Art (HACKEN in spielwerte.py), Update-Funktionen", "form": "UT",
         "bedeutung": "Takte zwischen zwei Schlaegen gegen Gebaeude/Mauer (ein Treffer je Hack-Animation). Schaden je Takt = "
-                     "gebaeude_schaden.je_schlag / takt_je_schlag. 0 = hackt nicht (Lord, Arbeiter) oder nicht gelesen",
+                     "gebaeude_schaden.je_schlag / takt_je_schlag. 0 = hackt nicht (Arbeiter) oder nicht gelesen; Burgherr = Mittel seiner vier Hiebe",
         "werte": hk}
     aus["gebaeude_schaden.geschosse"] = {
         "adresse": "Code 0x00407190 processEntityHitBuildingOrUnit, 0x00422E20 updateBuildings (Feuer)", "form": "Text",
