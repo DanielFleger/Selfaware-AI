@@ -664,12 +664,15 @@ class Deckung:
                 self.getoetet += 1
                 self.befohlen.pop(r)
         f = self.front(G, brand)
+        fr = freunde_von(self.sp)
+        feinde_l = [(k, a) for k, a in L.items() if a["besitzer"] not in fr and a.get("leben", 1) > 0]
+        # B-241 (Lauf 142712: 133 Schleuderer, je Einheit ein Befehl mit 1 s Wartezeit - die Runde kam nie zu Ende): ein Befehl
+        # je Ziel bzw. je Front mit allen betroffenen Schleuderern
+        ziele, laeufe = {}, {}
         for r in sorted(self.einheiten(L)):
             o = (L[r]["x"], L[r]["y"])
             kand = []
-            for k, a in L.items():
-                if a["besitzer"] in freunde_von(self.sp) or a.get("leben", 1) <= 0:
-                    continue
+            for k, a in feinde_l:
                 d = schach(o, (a["x"], a["y"]))
                 if d > SCHUSS_R:
                     continue
@@ -679,14 +682,19 @@ class Deckung:
             if kand:
                 k = min(kand)[2]
                 if alt is None or alt[:2] != ("ziel", k) or self.runde - alt[2] >= NEU_ALLE:
-                    befehl({"angriff": {"einheiten": [r], "ziel": k}}, 1.0, bis="ANGRIFF")
-                    self.befohlen[r] = ("ziel", k, self.runde)
+                    ziele.setdefault(k, []).append(r)
                     if alt is None or alt[:2] != ("ziel", k):
                         aus.append("DECKUNG: Schleuderer %d greift Typ %d in %d Feldern an" % (r, L[k]["typ"], schach(o, (L[k]["x"], L[k]["y"]))))
+                    self.befohlen[r] = ("ziel", k, self.runde)
             elif f is not None and schach(o, f) > 4:
                 if alt is None or alt[0] != "front" or alt[1] != f or self.runde - alt[2] >= NEU_ALLE:
-                    befehl({"angriff": {"einheiten": [r], "lauf": [f[0], f[1]]}}, 1.0, bis="ANGRIFF")
+                    laeufe.setdefault(f, []).append(r)
                     self.befohlen[r] = ("front", f, self.runde)
+        for k, rs in ziele.items():
+            befehl({"angriff": {"einheiten": rs, "ziel": k}}, 1.0, bis="ANGRIFF")
+        for f_, rs in laeufe.items():
+            befehl({"angriff": {"einheiten": rs, "lauf": [f_[0], f_[1]]}}, 1.0, bis="ANGRIFF")
+            aus.append("DECKUNG: %d Schleuderer zur Front %s" % (len(rs), f_))
         return aus
 
     def bericht(self):

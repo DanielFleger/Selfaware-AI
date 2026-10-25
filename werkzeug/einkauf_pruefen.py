@@ -101,5 +101,17 @@ E.FELDZUG_ALLE = alt
 pruefe(5, "ohne Keulen: Markt %s, Werbungen %s | mit 5 Keulen + 5 Leder: Werbungen %s" % (m5, w5, w5b),
        21 in m5 and 23 in m5 and not any(t == 26 for t, _, _ in w5) and any(t == 26 and g == 4 for t, _, g in w5b) and not m5b)
 
+# 6 (Lauf 142712, Daniel 14:33 "Schleuderer stehen nur rum"): Feldzug-Bedarf fuer Schleuderer (72) wird ohne Deckung nicht
+#    gekauft, mit deckung_an=True schon; ein Bedarf mit Wert unter dem Preis wird nie gekauft
+ek6 = E.Einkaeufer(1, sw, freunde=lambda s: {0, s})
+ek6._feldzug = (-99, [(72, 100.0, 4, "Pruefung: Schleuderer"), (75, 50.0, 2, "Pruefung: unter Preis (100)")])
+E.FELDZUG_ALLE, alt6 = 10 ** 9, E.FELDZUG_ALLE
+w6, _, _ = ek6.einkaufen({"gold": 1500, "feuer": 8}, L, G, {}, 0, lage=None, heer=[10, 11])
+w6d, _, _ = ek6.einkaufen({"gold": 1500, "feuer": 8}, L, G, {}, 0, lage=None, heer=[10, 11], deckung_an=True)
+E.FELDZUG_ALLE = alt6
+pruefe(6, "Schleuderer ohne Deckung: %s | mit Deckung: %s | arab. Schwert unter Preis gekauft: %s" % (
+    w6, w6d, any(t == 75 for t, _, _ in w6d)),
+       not any(t == 72 for t, _, _ in w6) and any(t == 72 for t, _, _ in w6d) and not any(t == 75 for t, _, _ in w6d))
+
 print("%d von %d gruen" % (sum(ok), len(ok)))
 raise SystemExit(0 if all(ok) else 1)

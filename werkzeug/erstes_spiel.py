@@ -3603,7 +3603,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                                 werb_e, markt_e, erg_e = EINKAEUFER.einkaufen(
                                     st, L, G, vorrat_e, wirt.ruecklage(G, ohne_heer=True)["gold"], lage=lage_r,
                                     heer=feldzug.einheiten(L) if feldzug else (), reiter_ziele=getattr(reiter, "ziele_zuletzt", None),
-                                    reiter_da=len(reiter.einheiten(L)), heim_ort=BERGFRIED, gesperrt=gesperrt_e)
+                                    reiter_da=len(reiter.einheiten(L)), heim_ort=BERGFRIED, gesperrt=gesperrt_e,
+                                    deckung_an=DECKUNG_SOLL > 0)
                                 for rt_e in markt_e:
                                     befehl({"spielbefehl": {"nr": 38, "werte": [0, rt_e]}}, 1.0, bis="SPIELBEFEHL")
                                 for typ_e, n_e, geb_e in werb_e:

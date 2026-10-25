@@ -33,10 +33,14 @@ import kaufrechnung as KR
 
 KASERNE, SOELDNER, STALL, WAFFENLAGER = 9, 8, 35, 11
 RT_NAME = {17: "bogen", 18: "armbrust", 19: "speer", 20: "pike", 21: "keule", 22: "schwert", 23: "leder", 24: "ruestung"}
-RAID_ARTEN = (71, 73)             # zuenden / abreissen
-REITER = 74
-FELDZUG_ARTEN = (22, 23, 24, 25, 26, 27, 28, 70, 72, 73, 75, 76)
-HEIM_ARTEN = (22, 23, 24, 25, 26, 27, 28, 70, 72, 75, 76)
+RAID_ARTEN = (71, 73)             # zuenden / abreissen (raids.Brandtrupp, assassinen.Einzeln)
+REITER = 74                       # raids.Reiterjagd
+SCHLEUDER = 72                    # raids.Deckung - nur kaufen, wenn die Deckung an ist (deckung_an)
+# Lauf 142712 (25.10., Daniel 14:33 "die stehen einfach nur rum"): der Einkaeufer kaufte 133 Schleuderer, die kein Modul
+# fuehrte. Gekauft wird nur, was ein Lenker fuehrt: das Heer des Feldzugs (feldzug.HEER), die Raid-Arten, Reiter, Schleuderer
+# mit Deckung. Und nie unter Preis: eine Einheit muss mindestens ihren Preis an Gegenwert bringen.
+FELDZUG_ARTEN = (24, 25, 26, 27, 28, 75, 22, 23, 70)      # = feldzug.HEER
+HEIM_ARTEN = (24, 25, 26, 27, 28, 75, 22, 23, 70)
 TRUPPE = {22, 23, 24, 25, 26, 27, 28, 37, 55, 70, 71, 72, 73, 74, 75, 76}
 HEIM_R = 20                       # Raider so nah an eigenen Gebaeuden bedrohen sie (Startwert, UNGEMESSEN)
 LORD_UMKREIS = 25                 # wie feldzug.LORD_UMKREIS: Wachen so nah am Lord kaempfen mit
@@ -60,8 +64,9 @@ def spielwerte_live(spielordner=None):
         w = SW.lesen(lies)
         sch = SW.schuss(lies)
         w.update(SW.abgeleitet(w, sch, SW.hacken(lies)))
+        auf = lambda d: {str(k): v for k, v in d.items()}          # wie in der JSON: Schluessel als Text
         aus = {"erstellt": time.strftime("%Y-%m-%d %H:%M:%S"), "quelle": q, "marke": "abgelesen (Speicher, Aufbau aus Ghidra OpenSHC)",
-               "aufzaehlungen": {"UT": SW.UT, "BT": SW.BT, "RT": SW.RT, "ET": SW.ET},
+               "aufzaehlungen": {"UT": auf(SW.UT), "BT": auf(SW.BT), "RT": auf(SW.RT), "ET": auf(SW.ET)},
                "namen": SW.namen(spielordner or SW.SPIELORDNER), "tabellen": w, "schuss": sch,
                "code_konstanten": SW.CODE_KONSTANTEN, "gegenproben": SW.gegenproben(w)}
         import json
@@ -75,8 +80,10 @@ def spielwerte_live(spielordner=None):
 
 def name(sw, typ):
     """Spielname + Codename/Nummer (Daniel 25.10.: keine Eindeutschungen): 'Streitkolbenkaempfer (E_MACE 26)'."""
-    n = (sw.get("namen") or {}).get("einheit", {}).get(str(typ))
-    code = (sw.get("aufzaehlungen") or {}).get("UT", {}).get(str(typ), str(typ))
+    ne = (sw.get("namen") or {}).get("einheit") or {}
+    n = ne.get(str(typ)) or ne.get(typ)
+    ut = (sw.get("aufzaehlungen") or {}).get("UT") or {}
+    code = ut.get(str(typ)) or ut.get(typ) or str(typ)
     n = (n or code).split(" (")[0]
     return "%s (%s %d)" % (n, code, typ)
 
@@ -219,7 +226,7 @@ class Einkaeufer:
 
     # ---- Einkauf ---------------------------------------------------------------------------------------------------------
     def einkaufen(self, st, L, G, vorrat, ruecklage_gold, lage=None, heer=(), reiter_ziele=None, reiter_da=0, heim_ort=None,
-                  gesperrt=()):
+                  gesperrt=(), deckung_an=False):
         """Gibt (werbungen [(typ, n, gebaeude_nr)], marktkaeufe [RT], ereignisse). gesperrt: Arten, die diese Runde nicht
         gekauft werden (Loewen am Posten, Hunger: erstes_spiel)."""
         self.runde += 1
@@ -241,6 +248,9 @@ class Einkaeufer:
         bedarfe += [b + ("feldzug",) for b in self._feldzug[1]]
         if heim_ort is not None:
             bedarfe += [b + ("heim",) for b in self.bedarf_heim(L, G, heim_ort)]
+        # nur Arten mit Lenker, und nur, wenn eine Einheit mindestens ihren Preis an Gegenwert bringt
+        bedarfe = [b for b in bedarfe if b[0] in self.preise and (b[0] != SCHLEUDER or deckung_an)
+                   and b[1] >= self.preise[b[0]]["gold"]]
         self.letzte = bedarfe
         if not bedarfe:
             return [], [], ereignis
