@@ -1129,7 +1129,11 @@ HEIM_FERN, HEIM_NAH = 6, 4   # 19.10.: Heimwache (Schuetzen, Nahkaempfer) - der 
 NOT_R, NOT_JE_RUNDE = 12, 2  # 19.10.: Notwerbung nur gegen Feinde so nah an unseren Gebaeuden, hoechstens so viele je Runde
 # 19.10. (1019g): Soeldner fuers Heer nur mit so viel Gold ueber der Ruecklage, hoechstens so viele (1019h: bei 60 lagen 3.400 Gold)
 HEER_GOLD_RAND = 150    # B-141 (Daniel 21:56 "keine Heer-Obergrenze"): HEER_MAX (100) entfernt - Grenze sind nur Gold und Bauern
+RA_SOELDNER_ARTEN = (70, 71, 72, 73, 74, 75, 76)   # Soeldnerposten-Arten (Loewen am Posten: keine Werbung dort)
 HEER_JE_RUNDE = 10      # B-141: Werbungen je Runde, gebuendelt in EINER Befehlsliste (einzeln je 0,8 s Wartezeit)
+EINKAUF = "neu"         # B-241 (Daniel 25.10.): "neu" = ein Einkaeufer (einkauf.py) kauft alles mit einer Muenze Gold-Gegenwert;
+                        # "alt" = die sechs alten Kaufstellen - NUR fuer den Vergleichslauf, danach weg (Grundregel 8)
+EINKAEUFER = None       # die Instanz von einkauf.Einkaeufer in Phase 2 (None = alter Weg)
 # 19.10. (1019j: assassinen=20 zaehlte ALLE Anwerbungen - nach der 20. kam keine mehr, 15 starben, zuletzt 6 Raider bei
 # 2.700-6.000 Gold; Daniel: "die Raids aussenrum waren am effektivsten, wurden aber zu wenig eingesetzt"): assassinen= gilt
 # fuer LEBENDE (Tote werden ersetzt); dazu bis ASSASSINEN_EXTRA mehr, solange jede ein Ziel hat, es weitere lohnende
@@ -1433,6 +1437,12 @@ def ruestung_kaufen(st, G, wirt, ausbau, ziel, marken):
     # Wert, bevor nicht Waffen reinkommen" - Waffenlager und Kaserne erst, wenn das Gold fuer das erste Los Keulen + Leder
     # + Anwerben ueber der Ruecklage liegt; gekauft wird in der Runde danach.
     erstes_los = LOS_PREIS[21] + LOS_PREIS[23] + KAEMPFER_GOLD + rl["gold"]
+    if EINKAEUFER is not None:
+        # B-241: der Einkaeufer meldet, ob Kasernen-Arten lohnen (wunsch) - dann Waffenlager + Kaserne bauen; kaufen und
+        # werben tut er selbst
+        w_ = getattr(EINKAEUFER, "wunsch", {})
+        if not (w_.get("kaserne") or w_.get("waffenlager")):
+            return aus
     if st["gold"] >= erstes_los or (waf and kas):
         if not waf and st["holz"] >= 5 + rl["holz"]:
             aus.append("Waffenlager gesetzt %s (Gold %d)" % (baue_schnell(11, BERGFRIED[0] - 14, BERGFRIED[1] + 14, 25), st["gold"]))
@@ -1445,7 +1455,7 @@ def ruestung_kaufen(st, G, wirt, ausbau, ziel, marken):
             # 1.163 Gold lagen): den Stein fuer die Kaserne am Markt kaufen (5er-Los, Spielbefehl 38: kaufen = 0, Stein = 4)
             befehl({"spielbefehl": {"nr": 38, "werte": [0, WAREN_NR["stein"]]}}, 1.0, bis="SPIELBEFEHL")
             aus.append("Stein fuer die Kaserne gekauft (5, Stein vorher %d, Gold %d)" % (st["stein"], st["gold"]))
-    if not (waf and kas) or not [n for n, g in eig.items() if g["typ"] == 26]:
+    if not (waf and kas) or not [n for n, g in eig.items() if g["typ"] == 26] or EINKAEUFER is not None:
         return aus
     v = vorrat(SP)
     gold = st["gold"] - rl["gold"]
@@ -2232,7 +2242,7 @@ class Produktion:
 
 def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0, trainingsstand=None, trainingsstand_ab=40,
            gold_ziel=None, streitkolben=0, weg="kauf"):
-    global BEV_ZIEL, GZ
+    global BEV_ZIEL, GZ, EINKAEUFER
     schreib("== Phase 2: Echtzeit, Tempo %d, %d Minuten, Waechter %s" % (tempo, minuten, "an" if mit_waechter else "aus"))
     partie_pruefen()
     # Halte-Liste des Moduls ueberlebt das Laden einer Partie (04.10.: alte Eintraege zogen neue Assassinen mit
@@ -2445,6 +2455,19 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         # B-168: Verlust je Einheitentyp unter Beschuss und Takte je Feld - jede Runde selbst nachgelernt (gefahrenschutz.py)
         import gefahrenschutz as GS_r
         gs_lerner = GS_r.Lerner(SP, (71, 74, 72, 70, 75, 26, 73))     # B-229: auch Assassinen-Baender lernen
+    EINKAEUFER = None
+    if EINKAUF == "neu":
+        # B-241 Schritt 3: Preise, Leben, Schaden, Schusszyklen, Gebaeudekosten aus dem laufenden Spiel (spielwerte.py) - einmal je
+        # Partie; dann kauft ausschliesslich der Einkaeufer (Heer, Raid, Heimwache), die alten Stellen sind abgeschaltet
+        try:
+            import einkauf as EK_
+            sw_e = EK_.spielwerte_live()
+            EINKAEUFER = EK_.Einkaeufer(SP, sw_e, freunde_von)
+            schreib("EINKAUF: Einkaeufer an, Spielwerte %s (%s), %d kaufbare Arten" % (
+                os.path.basename(sw_e.get("_pfad", "?")), sw_e.get("quelle"), len(EINKAEUFER.preise)))
+        except Exception as ex_e:
+            EINKAEUFER = None
+            schreib("EINKAUF FEHLER %r - alter Weg (einkauf=alt)" % (ex_e,))
     if weg == "feldzug" and streitkolben:
         from feldzug import Feldzug
         feldzug = Feldzug(SP, BERGFRIED, LORD_SCHUTZ_BIS, n=streitkolben)
@@ -3245,7 +3268,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # nicht am Lagerplatz (9i: Markt/Soeldnerlager belegten ihn - 14 Holzfaeller warteten Tick 4500-9035)
                     soeldner = baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25)
                     ereignis.append("Soeldnerlager gesetzt %s (Gold %d)" % (soeldner, st["gold"]))
-                elif posten and not hunger_r and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] and st["feuer"] >= 1 \
+                elif posten and EINKAEUFER is None and not hunger_r and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] and st["feuer"] >= 1 \
                         and (assassinen < 0 or a_stand["lebend"] < ziel_a) and st["t"] - a_stand["zuletzt"] >= WERB_ABSTAND \
                         and (getattr(trupp, "ohne_ziel_zuletzt", None) or 0) < A_OHNE_ZIEL_MAX \
                         and not ausbau.braucht_gold \
@@ -3517,7 +3540,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         if n_h:
                             ereignis.append("ENDSPURT-WERBUNG: %d arab. Schwertkaempfer (Gold %d, Feuer %d, Heer jetzt %d)" % (
                                 n_h, st["gold"], st.get("feuer", 0), len(feldzug.einheiten(L)) + n_h))
-                    elif posten_h is not None:
+                    elif posten_h is not None and EINKAEUFER is None:
                         # B-141 (Daniel 21:54, gemessen Pruefstand: Gold 6.409 -> 10.938 bei 2 Soeldnern je zweiter Runde): jede
                         # Runde alles Gold ueber Ruecklage + Rand ins Heer, so weit Bauern am Feuer stehen, bis HEER_JE_RUNDE
                         if HEER_ANTEIL > 0:
@@ -3571,7 +3594,24 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                                                     and e["besitzer"] not in freunde_von(SP)), None) if reiter.angriff else None
                             ereignis += reiter.schritt(L, G, befehl, lage_r)
                             tz = uhr("r_reiter", tz)
-                            if posten_h is not None and not es_an and not hunger_r and runde % 2 == 1:
+                            if posten_h is not None and EINKAEUFER is not None and not es_an and not hunger_r and runde % 2 == 1:
+                                # B-241: EIN Einkauf fuer Heer, Raid und Heimwache - Muenze Gold-Gegenwert (einkauf.py)
+                                import bauen as BA_e
+                                kas_e = EINKAEUFER.gebaeude_da(G, 9)
+                                vorrat_e = vorrat(SP) if kas_e is not None else {}
+                                gesperrt_e = set(RA_SOELDNER_ARTEN) if loewen_am_posten(L, G, posten_h) else set()
+                                werb_e, markt_e, erg_e = EINKAEUFER.einkaufen(
+                                    st, L, G, vorrat_e, wirt.ruecklage(G, ohne_heer=True)["gold"], lage=lage_r,
+                                    heer=feldzug.einheiten(L) if feldzug else (), reiter_ziele=getattr(reiter, "ziele_zuletzt", None),
+                                    reiter_da=len(reiter.einheiten(L)), heim_ort=BERGFRIED, gesperrt=gesperrt_e)
+                                for rt_e in markt_e:
+                                    befehl({"spielbefehl": {"nr": 38, "werte": [0, rt_e]}}, 1.0, bis="SPIELBEFEHL")
+                                for typ_e, n_e, geb_e in werb_e:
+                                    werbe_viele([typ_e] * n_e, geb_e)
+                                    if HEER_ANTEIL > 0:
+                                        wirt.heer_ausgabe(n_e * EINKAEUFER.preise[typ_e]["basis"])
+                                ereignis += erg_e
+                            elif posten_h is not None and not es_an and not hunger_r and runde % 2 == 1:
                                 import bauen as BA_r
                                 for typ_r, n_r in RA.werbung(st["gold"] - wirt.ruecklage(G, ohne_heer=HEER_ANTEIL > 0)["gold"], st.get("feuer", 0),
                                                              len(brand.einheiten(L)), len(reiter.einheiten(L)), len(deckung.einheiten(L)),
@@ -3956,11 +3996,14 @@ def main():
     # der Rechenhorizont des Kausalmodells (jede Apfelplantage "wert" Tausende, Partie 20261019_2240). Offen: Kausalmodell mit
     # mitlaufendem Fenster (jetzt + kausal_horizont); alles andere (Planer, Produktion) rechnet wie bisher mit bis_tick
     global OFFENES_ENDE, KAUSAL_SPAREN
-    global STEIN_FRUEH, DECKUNG_SOLL, HEER_ANTEIL, HEER_GOLD_RAND, ASSASSINEN_EXTRA
+    global STEIN_FRUEH, DECKUNG_SOLL, HEER_ANTEIL, HEER_GOLD_RAND, ASSASSINEN_EXTRA, EINKAUF
     ASSASSINEN_EXTRA = int(arg.get('assassinen_extra', ASSASSINEN_EXTRA))
     if ASSASSINEN_EXTRA < 0:
         raise SystemExit('assassinen_extra muss mindestens 0 sein')
     HEER_GOLD_RAND = int(arg.get("heer_gold_rand", HEER_GOLD_RAND))
+    EINKAUF = arg.get("einkauf", EINKAUF)
+    if EINKAUF not in ("neu", "alt"):
+        raise SystemExit("einkauf muss neu oder alt sein")
     if HEER_GOLD_RAND < 0:
         raise SystemExit("heer_gold_rand muss mindestens 0 sein")
     HEER_ANTEIL = float(arg.get("heer_anteil", HEER_ANTEIL))
