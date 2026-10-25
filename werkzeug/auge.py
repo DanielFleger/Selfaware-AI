@@ -81,22 +81,23 @@ UNIT = _dtype([
     ("shootTargetMicroX", "<i2", 190), ("shootTargetMicroY", "<i2", 192), ("shootTargetZ", "<i2", 194),
     ("x", "<i2", 196), ("y", "<i2", 198), ("destinationXPosition", "<i2", 200), ("destinationYPosition", "<i2", 202),
     ("tile", "<i4", 212), ("destinationTilePosition", "<i4", 216), ("moveDelay", "<i2", 244),
-    ("tunnelerFinishedDigging", "<i2", 246), ("currentIndexInPathPlan", "<i2", 250), ("totalSizeOfPathPlan", "<i2", 252),
+    ("tunnelerFinishedDigging", "<i2", 246), ("movementRelated", "<i2", 248), ("currentIndexInPathPlan", "<i2", 250), ("totalSizeOfPathPlan", "<i2", 252),
     ("pathPlanStart", "u1", (400,), 254) if False else ("pathPlanStart", ("u1", (400,)), 254),
-    ("climbDataID", "<i2", 660), ("dying", "<i2", 672), ("nextUnitOnTheSameTile", "<u2", 674),
+    ("climbDataID", "<i2", 660), ("usingTeleport", "<i2", 670), ("dying", "<i2", 672), ("nextUnitOnTheSameTile", "<u2", 674),
     ("isSelectable_OR_matchTime", "<i2", 676), ("closestEnemyMicroDistance", "<i2", 678),
     ("animationCycleNumber", "<i4", 688), ("facingDirection", "<i2", 692), ("stateBasedSpeed", "<i2", 702),
     ("state", "<i2", 704), ("cachedState", "<i2", 706), ("state_2", "<i2", 716), ("healthPercentage", "<i2", 724),
     ("tribeID", "<i2", 728), ("plannedDestinationX", "<i2", 732), ("plannedDestinationY", "<i2", 734),
     ("idle", "<i2", 778), ("targetID_OR_targetBuildingID", "<i2", 822), ("attackedUnitID", "<i2", 830),
     ("shootTargetedUnit", "<i2", 836), ("calculatedMovementSpeed", "<i2", 842), ("movementSpeed", "<i2", 844),
+    ("field215_0x350", "<i4", 848), ("field216_0x354", "<i4", 852), ("unknownTestAgainst0_2", "<i2", 856),
     ("stoneAmmunition", "<i2", 866), ("workplaceBuildingUID", "<i4", 872), ("substate", "<i2", 896),
     ("fixedRng", "<u4", 900), ("buildingID", "<i2", 920), ("targetingType", "<i2", 924),
     ("targetedUnitID__OR__engineerMannedSiegeEngineRef", "<i2", 926), ("targetedBuildingTile", "<u4", 936),
     ("lookForEnemy", "<i2", 940), ("attackedBy", "<i2", 942), ("huntedBy", "<i2", 946),
-    ("health", "<i4", 968), ("maxHealth", "<i4", 972), ("attackAtTileX", "<i2", 1000), ("attackAtTileY", "<i2", 1002),
+    ("health", "<i4", 968), ("maxHealth", "<i4", 972), ("field276_0x3d2", "<i2", 978), ("attackAtTileX", "<i2", 1000), ("attackAtTileY", "<i2", 1002),
     ("nextAttackHurtsWall", "i1", 1006), ("lastEncounteredEnemyPlayerID", "<i2", 1024),
-    ("aiUnitBehaviourType", "<i2", 1066), ("siegeTargetPlayerID", "<i2", 1074),
+    ("horseArcherShootCheckInterval", "<i2", 1062), ("aiUnitBehaviourType", "<i2", 1066), ("siegeTargetPlayerID", "<i2", 1074),
     ("lastEncounteredEnemyUnitIDUnk", "<i2", 1078), ("assassinsMicroDistanceToEnemyUnk", "<i4", 1080),
     ("enemyNoticeFrequencyUnk", "<i4", 1084), ("idleCounterUnk", "<i2", 1092),
 ], UNIT_GROESSE)
@@ -478,6 +479,78 @@ def feind_abstand(vorher, jetzt, nr):
             continue
         best = min(best, _spiel_abstand(int(r["microXPosition"]) - x0, int(r["microYPosition"]) - y0))
     return min(best, 32000)
+
+
+# Zugtakt (AU22, updateUnits 0x00579300 / processUnitMove 0x00578C40): je Takt zaehlt eine lebende Einheit, die nicht
+# klettert (usingTeleport +670 == 0), ihren Zaehler +852 (field216) hoch; ist cMS + sBS + moveDelay < Zaehler - Merker +848
+# (field215), setzt sie den Merker = Zaehler und ruft processUnitMove - der Merker wird auch gesetzt, wenn sie dabei nicht
+# laeuft. processUnitMove macht sBS + field276 (+978) + 1 Mikroschritte. Werte im Vergleich: cMS vom Vortakt
+# (calculateUnitMovementSpeed laeuft erst nach dem Zug), sBS von jetzt (Update<Typ> setzt es vorher), moveDelay so wie vor
+# dem Zug: processUnitMove zieht 2 ab, setMoveDelayForUnitsOnSameTiles setzt es danach neu, Zielsuche/Schuetzen-Zielwahl
+# setzen es beim neuen Ziel auf 0. Assassinen-Hakenklettern (Zustand 126-129) verschiebt die Lage ohne Zug.
+ZUG_HAKEN = (126, 127, 128, 129)
+
+
+def _lage(r):
+    return int(r["microXPosition"]), int(r["microYPosition"])
+
+
+def zug_schwelle(vorher, jetzt):
+    """S im Zug-Vergleich des Takts von `jetzt` (Zeilen DERSELBEN Einheit aus zwei aufeinanderfolgenden Takten, Stand je
+    Taktende): cMS vom Vortakt + sBS von jetzt + moveDelay (vom Vortakt, wenn die Einheit in `jetzt` gelaufen ist, sonst von
+    jetzt). Gezogen wird, wenn Takte seit der letzten Gelegenheit > S. Pruefstein 200603 (8.989 Takte, alle Einheiten ausser
+    Nr 0): 437.062 von 437.063 Zugabstaenden exakt; der eine Rest ist moveDelay = 0 aus der Schussprobe des berittenen
+    Bogenschuetzen (alle 101 Takte, Zaehler +1062 stand nicht im Protokoll)."""
+    md = int(vorher["moveDelay"]) if _lage(jetzt) != _lage(vorher) else int(jetzt["moveDelay"])
+    return int(vorher["calculatedMovementSpeed"]) + int(jetzt["stateBasedSpeed"]) + md
+
+
+def ist_zug(vorher, jetzt):
+    """True, wenn die Lage zwischen den Takten durch einen Zug wechselte (lebend, kein Assassinen-Hakenklettern)."""
+    return (_lage(jetzt) != _lage(vorher) and int(jetzt["logicalState"]) == 2
+            and int(jetzt["state"]) not in ZUG_HAKEN and int(vorher["state"]) not in ZUG_HAKEN)
+
+
+def zug_gelegenheiten(schnappschuesse, nr):
+    """Takte, in denen Einheit `nr` ziehen durfte (Merker +848 gesetzt), aus einem Protokoll ohne die Zaehlerfelder: die
+    Kette beginnt beim ersten beobachteten Zug; ohne Zug davor ist die Phase unbekannt. Jeder sichtbare Zug setzt die Kette
+    neu an. Bricht bei Takt-Luecken, neu belegtem Platz (uid) und nicht lebenden Einheiten ab.
+    Klettern (usingTeleport) haelt den Zaehler an - in Protokollen mit Feld +670 wird das beruecksichtigt."""
+    zeilen = []
+    for s in schnappschuesse:
+        idx = s._einheiten_idx if getattr(s, "_einheiten_idx", None) is not None else np.arange(len(s.einheiten))
+        j = np.flatnonzero(idx == int(nr))
+        zeilen.append((int(s.takt), s.einheiten[j[0]] if len(j) else None))
+    aus, o = [], None
+    for (ta, a), (tb, b) in zip(zeilen, zeilen[1:]):
+        if (a is None or b is None or tb != ta + 1 or int(a["uid"]) != int(b["uid"]) or int(b["logicalState"]) != 2):
+            o = None    # Luecke, neu belegter Platz (setUnitValues setzt Zaehler und Merker auf 0) oder nicht lebend
+            continue
+        if "usingTeleport" in (b.dtype.names or ()) and int(b["usingTeleport"]):
+            if o is not None:
+                o += 1  # Zaehler steht, Abstand zum Merker bleibt
+            continue
+        # ein sichtbarer Zug beweist die Gelegenheit (setzt auch nach versteckter moveDelay-Loeschung neu an)
+        if ist_zug(a, b) or (o is not None and tb - o > zug_schwelle(a, b)):
+            o = tb
+            aus.append(tb)
+    return aus
+
+
+def takte_bis_zug(einheit):
+    """Live/neue Protokolle (Felder +848/+852): Takte bis zur naechsten Zug-Gelegenheit, wenn cMS, sBS und moveDelay so
+    bleiben (abgelesen aus updateUnits, noch nicht live gemessen)."""
+    seit = int(einheit["field216_0x354"]) - int(einheit["field215_0x350"])
+    S = int(einheit["calculatedMovementSpeed"]) + int(einheit["stateBasedSpeed"]) + int(einheit["moveDelay"])
+    return max(1, S + 1 - seit)
+
+
+def mikroschritte_je_zug(einheit):
+    """processUnitMove: sBS + field276 (+978, sonst 0) + 1 Mikroschritte je Zug. Pruefstein 200603: 437.573 von 437.729
+    Lagewechseln passen zu sBS + 1; der Rest sind Lagen, die anderer Code setzt (Arbeits-/Tierzustaende, Klettern,
+    Aufstellen) und zwei Assassinen mit vermutlich field276 = 1 (stand nicht im Protokoll)."""
+    extra = int(einheit["field276_0x3d2"]) if "field276_0x3d2" in (einheit.dtype.names or ()) else 0
+    return int(einheit["stateBasedSpeed"]) + extra + 1
 
 
 def _i4(adr):
