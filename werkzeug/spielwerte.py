@@ -231,6 +231,108 @@ CODE_KONSTANTEN = {
 }
 
 
+def abgeleitet(w, sch):
+    """Zusaetzliche Tabellen im selben Format (adresse/form/bedeutung/werte), fuer SAIs Kaufrechnung und Anschluss
+    (SAI 25.10. 09:52). Quelle: Code-Stellen (abgelesen) und aus den gelesenen Tabellen gerechnet."""
+    stufe = w["einheit.movement_speed"]["werte"]
+    hp = w["einheit.base_hp"]["werte"]
+    aus = {}
+    aus["takt.nahkampf_je_treffer"] = {
+        "adresse": "Code 0x00549C70 processMeleeInitiation, 0x00579300 updateUnits", "form": "UT",
+        "bedeutung": "Takte zwischen zwei Nahkampftreffern bei anliegendem Gegner: 1 fuer jede Art, die can_melee hat "
+                     "(Schlag jeden Takt, Schaden = melee_damage[Angreifer][Ziel] je Takt; Daniel gemessen Streitkolben 70/Takt)",
+        "werte": [1 if w["einheit.can_melee"]["werte"][ut] else 0 for ut in range(80)]}
+    aus["takt.schuss_zyklus"] = {
+        "adresse": "Animationstabellen, siehe schuss_phasen", "form": "UT",
+        "bedeutung": "Takte zwischen zwei Geschossen (Nachladen + Zielen + Schiessen bzw. Spannen + Schuss), ohne Zielsuche/"
+                     "Drehen/Laufen; 0 = kein Schuetze oder nicht gelesen (Pferdebogen 74 offen)",
+        "werte": [sch[ut]["zyklus_takte"] if ut in sch else 0 for ut in range(80)]}
+    aus["takt.schuss_phasen"] = {"adresse": "Animationstabellen (1 Byte je Bild, Bild = Speed+1 Takte)", "form": "UT -> Phasen",
+                                 "bedeutung": "Bilder, Speed und Takte je Phase, Geschoss-Moment", "werte": sch}
+    aus["bewegung.takte_je_feld"] = {
+        "adresse": "Code 0x00578C40 processUnitMove (8 Mikroschritte je Feld), 0x00579300 (Schritt alle Stufe+1 Takte)",
+        "form": "UT",
+        "bedeutung": "Takte je Feld auf ebenem Boden = 8 x (movement_speed + 1); schraeg = gerade. Zuschlaege je Takt-Schritt: "
+                     "Steigen +1..+5 (Hoehenunterschied 2/4/8/12/16), Gelaende-Bit 0x200000 +2, Bit 0x20000000 +4/+6, "
+                     "Gedraenge moveDelay, Trupp = langsamste Einheit (Trupp-Takte = 8 x (max Stufe + 1)). Tiere/Arbeiter "
+                     "setzen die Stufe in ihren Update-Funktionen zeitweise um (Flucht Hirsch/Loewe/Kamel Stufe 20 = 168 Takte, "
+                     "Hase 40, Ochse 1/3, Kuh 2, Jaeger 1-10, Betrunkener 6-9) - dann gilt 8 x (Stufe + 1) mit dieser Stufe",
+        "werte": [8 * (int(st) + 1) if st > 0 else 0 for st in stufe]}
+    GEB = CODE_KONSTANTEN["gebaeude_schaden_je_schlag"]
+    namen = {v: k for k, v in UT.items()}
+    werte = [None] * 80
+    for name, v in GEB.items():
+        if name in namen and isinstance(v, tuple):
+            werte[namen[name]] = list(v)
+    werte[71] = [8, 0, 0]; werte[5] = [10, 10, 10]; werte[59] = [0, 50, 0]
+    aus["gebaeude_schaden.je_schlag"] = {
+        "adresse": "Code der Update-Funktionen (Zustand 107), z. B. Streitkolben 0x00560700, Schwert 0x00561C10",
+        "form": "UT -> [Gebaeude, Tor/Turm, Mauer]",
+        "bedeutung": "Schadenspunkte je Schlag an Wirtschaftsgebaeude / Torhaus+Turm / Mauer (Mauer: Hoehenpunkte). "
+                     "Sklave 8 nur an nicht brennbaren Gebaeuden (sonst Feuer), Tunnelbauer 10 + 10 Umfeld, Ramme 50 ans Tor. "
+                     "Gebaeudeleben = gebaeude.leben. Bergfried: nicht beschaedigbar (hat_leben 0). Schlagtakt gegen Gebaeude offen "
+                     "(nextAttackHurtsWall wechselt je Schlag, Animationstakt nicht gelesen)",
+        "werte": werte}
+    aus["gebaeude_schaden.geschosse"] = {
+        "adresse": "Code 0x00407190 processEntityHitBuildingOrUnit, 0x00422E20 updateBuildings (Feuer)", "form": "Text",
+        "bedeutung": "Pfeil/Bolzen 1, Balliste 2, Feuerballiste 10, Stein (Katapult/Tribok/Mangonel) 10 am Feld + 10 Umfeld, an "
+                     "Mauer 10 Hoehenpunkte; Feuer: alle 20 Takte 1 Punkt, Huette/Holzfaeller/Jaeger/Farmen 4 Punkte; Mauer-Faktor: "
+                     "Stueck mit unter 2 Mauer-Nachbarn x1,5, mit 3+ Nachbarn x0,5. Zuendwahrscheinlichkeit/Brenndauer/Ausbreitung "
+                     "nicht gelesen (getBuildingFlammabilityFactor, fireDuration)",
+        "werte": {"pfeil": 1, "bolzen": 1, "balliste": 2, "feuerballiste": 10, "stein": 10, "stein_umfeld": 10,
+                  "feuer_je_20_takte": 1, "feuer_holzbau_je_20_takte": 4}}
+    aus["belagerung.gesamt"] = {
+        "adresse": "zusammengefuehrt aus gebaeude.kosten (BT 80-87), base_hp, geschoss.reichweite, takt.schuss_zyklus",
+        "form": "UT -> dict",
+        "bedeutung": "Belagerungsgeraet auf einen Blick; Bauzeit beim Ingenieur und Bedienerzahl aus dem Code noch offen "
+                     "(Daniel-Wissen: Katapult/Tribok/Mangonel 2 Ingenieure, Ramme/Turm/Schild 4 - ungeprueft)",
+        "werte": {UT[ut]: {"leben": hp[ut], "kosten_gold": w["gebaeude.kosten"]["werte"][bt][4],
+                           "kosten_holz": w["gebaeude.kosten"]["werte"][bt][0],
+                           "reichweite_felder": w["geschoss.reichweite"]["werte"][et] if et else None,
+                           "zyklus_takte": sch[ut]["zyklus_takte"] if ut in sch else None}
+                  for ut, bt, et in ((39, 80, 2), (40, 81, 3), (41, 86, 4), (61, 87, 20), (77, 54, 37), (59, 82, 0), (58, 83, 0), (60, 84, 0))}}
+    rc = w["einheit.euro_resource_costs"]["werte"]
+    aus["anwerben.voraussetzung"] = {
+        "adresse": "Code 0x00464EF0 ProcessRecruitUnit, 0x0052E960 euroRecruit, 0x0052EC10 nonEuroRecruit, 0x00464DA0",
+        "form": "UT -> dict",
+        "bedeutung": "Gebaeude (BT), Gold, Waffe/Ruestung (RT aus dem Waffenlager BT 11), Pferd (Stall BT 35); immer: ein freier "
+                     "Bauer am Lagerfeuer (sonst Fehlgrund 3) und Heer unter armySizeLimit; Soeldner nur Gold + Bauer. Anwerben "
+                     "wandelt den Bauern um (Bevoelkerung -1 am Feuer, kein Beliebtheitseffekt im Code gesehen)",
+        "werte": {**{UT[22 + i]: {"gebaeude": 9, "gold": w["truppe.kaserne_gold"]["werte"][i],
+                                  "waffen_rt": [x for x in rc[i] if x > 0], "pferd": rc[i][3] == -1} for i in range(7)},
+                  **{UT[ut]: {"gebaeude": 8, "gold": w["truppe.soeldner_gold"]["werte"][k], "waffen_rt": [], "pferd": False}
+                     for k, ut in enumerate((70, 71, 72, 73, 74, 75, 76))},
+                  "E_ENGINEER": {"gebaeude": 24, "gold": 30}, "TUNNELER": {"gebaeude": 25, "gold": 30},
+                  "E_LADDER": {"gebaeude": 24, "gold": 4}, "E_MONK": {"gebaeude": 37, "gold": 10}}}
+    aus["sicht.feind_takt"] = {
+        "adresse": "Code 0x00579300 updateUnits (Maske enemy_notice_range gegen Spieltakt), 0x0054A7B0", "form": "UT",
+        "bedeutung": "Alle wie viele Takte eine Art nach Feinden sucht (enemy_notice_range + 1); 0 = sucht nie (Arbeiter)",
+        "werte": [n + 1 if n else 0 for n in w["einheit.enemy_notice_range"]["werte"]]}
+    aus["sicht.assassine"] = {
+        "adresse": "Code 0x0054B0D0 acquireShootTarget (UT_A_ASSASSIN: assassinsMicroDistanceToEnemyUnk > 160 -> kein Ziel)",
+        "form": "Text",
+        "bedeutung": "KANDIDAT (abgelesen, nicht geprueft): Schuetzen nehmen eine Assassine nur ins Visier, wenn ihr beim letzten "
+                     "Feind-Takt gemessener Abstand zum naechsten Feind <= 160 Mikroschritte (20 Felder) war; Startwert 32000 = "
+                     "unsichtbar. Nahkaempfer greifen anliegende Assassinen immer an (processMeleeInitiation prueft keine Sicht). "
+                     "Fuer B-234: Flucht erst, wenn ein Schuetze in 20 Feldern steht UND seit dessen letztem Feind-Takt",
+        "werte": {"sichtbar_ab_mikroschritte": 160, "sichtbar_ab_felder": 20, "startwert": 32000}}
+    aus["zustand.dauer"] = {
+        "adresse": "Zustandsnummern UnitState; Dauern teils gemessen (SAI), teils aus Tabellen", "form": "Text",
+        "bedeutung": "101 Gehen: 8 x (Stufe+1) Takte je Feld; 106 Nahkampf: Schlag jeden Takt; 4/5/6 Nachladen/Zielen/Schiessen: "
+                     "takt.schuss_phasen; 127 Assassine klettert: gemessen 291 Takte am Torhaus (SAI lage_20261024_222651_i5), "
+                     "Tabelle nicht gelesen; 107 Mauer hacken: Schlagtakt offen; 125 graben, 109/110/122 Umwandeln/Verschwinden/"
+                     "Erscheinen: Dauern offen",
+        "werte": {"klettern_torhaus_gemessen": 291}}
+    aus["nachspawn.tiere"] = {
+        "adresse": "Code 0x0041CA00 UpdateOxTether, 0x004167E0 UpdateDairyFarm, 0x005261B0 respawnDeer, 0x00525F20", "form": "Text",
+        "bedeutung": "Ochse: 100 Takte nach Verlust neu (Arbeiter noetig); Kuh: 32 Takte nach Melk-Animation in freien Platz (bis 3); "
+                     "Rehe: Nachwuchs NUR Einzelspieler, im Gefecht keiner; Loewen/Rehe/Hasen vermehren sich je Rudel mit Zufall; "
+                     "Flucht: Hirsch/Loewe Stufe 20 (168 Takte je Feld, also Sprint 1 Feld je ~2 Takte? nein: Stufe 20 = LANGSAM - "
+                     "Flucht-Logik nicht gelesen, nur Stufenwerte 1/2/3/20 gesehen)",
+        "werte": {"ochse_takte": 100, "kuh_takte": 32, "rehe_gefecht": 0}}
+    return aus
+
+
 def quelle_live():
     import speicher
     speicher.griff()
@@ -307,13 +409,14 @@ def main():
         quellen.append(quelle_datei(a.exe))
     ergebnisse = [(q, lesen(l)) for q, l in quellen]
     q, w = ergebnisse[0]
+    sch = schuss(quellen[0][1])
+    w.update(abgeleitet(w, sch))
     aus = {"erstellt": time.strftime("%Y-%m-%d %H:%M:%S"), "quelle": q, "marke": "abgelesen (Datei/Speicher, Aufbau aus Ghidra OpenSHC)",
            "aufzaehlungen": {"UT": UT, "BT": BT, "RT": RT, "ET": ET}, "namen": namen(a.spiel), "tabellen": w,
-           "schuss": {q: schuss(l) for q, l in quellen} if False else schuss(quellen[0][1]),
-           "code_konstanten": CODE_KONSTANTEN, "gegenproben": gegenproben(w)}
+           "schuss": sch, "code_konstanten": CODE_KONSTANTEN, "gegenproben": gegenproben(w)}
     if len(ergebnisse) > 1:
         q2, w2 = ergebnisse[1]
-        abw = {k: {"live": w[k]["werte"], "datei": w2[k]["werte"]} for k in w if w[k]["werte"] != w2[k]["werte"]}
+        abw = {k: {"live": w[k]["werte"], "datei": w2[k]["werte"]} for k in w if k in w2 and w[k]["werte"] != w2[k]["werte"]}
         aus["vergleich"] = {"gegen": q2, "abweichende_tabellen": sorted(abw), "abweichungen": abw}
     ziel = os.path.join(D, time.strftime("spielwerte_%Y%m%d_%H%M%S.json"))
     json.dump(aus, open(ziel, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
