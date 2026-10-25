@@ -36,13 +36,26 @@ def main():
     s = auge.Schnappschuss()
     ziel = sorted(s.gebaeude_liste((2,)), key=lambda g: (g["buildingType"] != 11, g["id"]))[0]
     print("Zielgebaeude", ziel["id"], "Typ", ziel["buildingType"], "bei", ziel["feld"], "Leben", ziel["currentHealth"])
-    reihe = freie_reihe((ziel["feld"][0], ziel["feld"][1] + 12), 5, suchweite=25)
-    print("freie Reihe", reihe)
+    # setzeEinheit stellt die Einheit ein Feld weiter (x+1, y+1, gemessen 17.10.); updateUnits 0x00579300 raeumt Einheiten
+    # auf Feldern ohne Wegnetz-Gebiet still ab (Lauf 155856: Katapult nach ~1000 Takten weg) - deshalb BEIDE Reihen pruefen
+    import speicher
+    k = speicher.wegkarte()
+    reihe = None
+    for versuch in range(40):
+        r = freie_reihe((ziel["feld"][0], ziel["feld"][1] + 12 + versuch), 6, suchweite=25)
+        if r and (k["gebiet"][r[1]:r[1] + 6, r[2] + 1] > 0).all() and (k["gebaeude"][r[1]:r[1] + 6, r[2] + 1] == 0).all():
+            reihe = r
+            break
+    print("freie Reihe (beide Zeilen)", reihe)
     _, x0, y = reihe
     print(shc.setze("1", "39", str(x0), str(y), "1"))
     print(shc.setze("1", "30", str(x0 + 2), str(y), "2"))
     takt_vor(5)
     s = auge.Schnappschuss()
+    for u in s.einheiten_liste((1,)):
+        if u["unitType"] in (39, 30):
+            fx, fy = u["feld"]
+            print("  Einheit", u["id"], "Art", u["unitType"], "steht auf", (fx, fy), "Gebiet", int(k["gebiet"][fx, fy]), "Gebaeude", int(k["gebaeude"][fx, fy]))
     kat = [u for u in s.einheiten_liste((1,)) if u["unitType"] == 39]
     bau = [u for u in s.einheiten_liste((1,)) if u["unitType"] == 30]
     print("Katapult", [(u["id"], u["feld"]) for u in kat], "Baumeister", [(u["id"], u["feld"]) for u in bau])
