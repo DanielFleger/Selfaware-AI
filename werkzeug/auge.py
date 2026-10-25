@@ -735,7 +735,8 @@ class Protokoll(object):
     @staticmethod
     def laden(pfad):
         """[Schnappschuss, ...] aus einer Protokolldatei - ohne Spiel, mit allen Ableitungen (geschosse(), einheiten_liste() ...)."""
-        z = np.load(pfad, allow_pickle=False)
+        with np.load(pfad, allow_pickle=False) as npz:
+            z = {k: npz[k] for k in npz.files}     # jedes Feld EINMAL entpacken (npz[k] entpackt sonst bei jedem Zugriff neu)
         aus = []
         eg, gg = z["einheiten_grenzen"], z["entities_grenzen"]
         hoehe = z["hoehe"] if len(z["hoehe"]) else None
