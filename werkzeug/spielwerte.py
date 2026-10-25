@@ -327,8 +327,8 @@ def abgeleitet(w, sch):
         "adresse": "Code 0x0041CA00 UpdateOxTether, 0x004167E0 UpdateDairyFarm, 0x005261B0 respawnDeer, 0x00525F20", "form": "Text",
         "bedeutung": "Ochse: 100 Takte nach Verlust neu (Arbeiter noetig); Kuh: 32 Takte nach Melk-Animation in freien Platz (bis 3); "
                      "Rehe: Nachwuchs NUR Einzelspieler, im Gefecht keiner; Loewen/Rehe/Hasen vermehren sich je Rudel mit Zufall; "
-                     "Flucht: Hirsch/Loewe Stufe 20 (168 Takte je Feld, also Sprint 1 Feld je ~2 Takte? nein: Stufe 20 = LANGSAM - "
-                     "Flucht-Logik nicht gelesen, nur Stufenwerte 1/2/3/20 gesehen)",
+                     "Flucht/Verhalten: die Update-Funktionen setzen Stufen 1/2/3 und zeitweise 20 (Hirsch, Loewe, Kamel, Kaefighund) - "
+                     "Stufe 20 waere nach der Formel 168 Takte je Feld, also Stillstand/Warten, nicht Sprint; Flucht-Logik selbst nicht gelesen",
         "werte": {"ochse_takte": 100, "kuh_takte": 32, "rehe_gefecht": 0}}
     return aus
 
