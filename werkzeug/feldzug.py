@@ -180,6 +180,10 @@ class Feldzug:
     TRUPP = 1                 # Daniel 22.10.: jede Einheit einzeln, gleicher Angriffspunkt statt Formation.
     MAUER_R = 30              # B-147: so weit um den Lord sucht logik.lua die Mauerkachel (Burgradius wie BURG_R-Groessenordnung)
     SICHER = 50               # Felder Abstand des Sammelpunkts zu feindlichen Fernkaempfern (Reichweite 44 + Rand)
+    SAMMEL_HEIM = 12          # B-247 (Daniel 25.10. 14:51, Lauf 144300: der Einkaeufer kauft 1-2 je Runde, jede lief einzeln zum
+                              # Sammelpunkt 48 Felder vor dem Feind-Lord und starb): gesammelt wird so viele Felder vor dem
+                              # eigenen Bergfried Richtung Feind; vorgerueckt wird erst, wenn die Gefechtsrechnung lohnt - dann
+                              # alle zusammen (Phase angriff, sicherer Weg). Nach einem Sieg gilt die Front des Heeres (Startwert)
     GEB_ABSTAND = 30          # ... und zu feindlichen Gebaeuden (Tuerme, Mauern mit Schuetzen)
     AM_PUNKT = 10             # so nah am Sammelpunkt gilt als "da"
     VERTEIDIGEN = 18          # Feind so nah am Sammelpunkt -> angreifen
@@ -286,6 +290,7 @@ class Feldzug:
         #                             Angriffszeitpunkt ab so vielen Truppen statt der Gefechtsrechnung (Schalter angriff_ab)
         self.bresche_leben = None   # B-138: (niedrigstes Leben der Bresche, seit Tick)
         self.verworfen = set()      # B-138: zaehe Breschen - nicht noch einmal waehlen
+        self.vp_verworfen = set()   # B-248: Vorposten, die der Wegtest spaeter als unerreichbar meldete - nicht noch einmal
         self._bresche_pruef = (None, -99)   # B-140: (Bresche, Runde) der letzten Pruefung mit dem Wegfinder
         self.mauer_seit = None      # B-147: Tick, seit dem die Mauer am eingemauerten Lord aufgehackt wird
         # B-170 (Daniel 22.10. 08:39 "er geht immer noch gegen Tuerme und einsame Mauern statt die aufzumachen, die zum Lord
@@ -887,7 +892,7 @@ class Feldzug:
     ZIEL_BIS = 4000           # B-140: Rechengrenze (Takte) fuer die Gefechtsrechnung am Ziel
     LORD_PRUEF_RUNDEN = 20
 
-    def _erreichbar_bei(self, ziel, nr, mitte, ringe, gefahr=None):
+    def _erreichbar_bei(self, ziel, nr, mitte, ringe, gefahr=None, meiden=()):
         """Der naechste vom Wegfinder des Spiels erreichbare Punkt auf Ringen um ziel (je 8 Richtungen), bei gleichem Ring der
         naechste an mitte; None ohne Wegtest oder ohne Treffer. Mit gefahr (Punkt -> Zahl Feindschuetzen in Reichweite, B-146):
         zuerst Punkte bis TOR_R (dort kommt der Angriffsbefehl), darunter der mit den wenigsten Schuetzen."""
@@ -899,7 +904,7 @@ class Feldzug:
             gut = self.wegtest(nr, punkte)
         except Exception:
             return None
-        treffer = [q for q, g in zip(punkte, gut) if g]
+        treffer = [q for q, g in zip(punkte, gut) if g and q not in meiden]      # B-248: verworfene Vorposten nie wieder
         # B-150 (Pruefstand 21.10.: der Vorposten (128,151) lag 4 Felder neben dem brennenden Gebaeude 298 - dort stand das
         # Heer, als daneben 291 angezuendet wurde): kein Punkt im Feuer, solange es freie gibt
         treffer = [q for q in treffer if not im_feuer(q, self._orte_f)] or treffer
@@ -920,7 +925,7 @@ class Feldzug:
         schuetzen = [((e["x"], e["y"]), gefecht.FERN_REICH[e["typ"]]) for e in L.values()
                      if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in gefecht.FERN_REICH and e.get("leben", 1) > 0]
         return self._erreichbar_bei(tor, nah_kampf[0], mitte, self.RINGE,
-                                    gefahr=lambda q: sum(1 for f, r in schuetzen if schach(q, f) <= r))
+                                    gefahr=lambda q: sum(1 for f, r in schuetzen if schach(q, f) <= r), meiden=self.vp_verworfen)
 
     def _lords(self, L):
         return {n: e for n, e in L.items() if e["typ"] == LORD and e["besitzer"] not in freunde_von(self.sp) and e["leben"] > 0}
@@ -932,6 +937,14 @@ class Feldzug:
         geb = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] not in freunde_von(self.sp)]
         h, z = getattr(self,"_sammel_von",self.heim), (lord["x"], lord["y"])
         d = max(1, schach(h, z))
+        if not hasattr(self, "_sammel_von"):
+            # B-247: erste Front - daheim sammeln, SAMMEL_HEIM Felder vor dem Bergfried Richtung Feind (nicht im Feuer, nicht
+            # im Schussfeld); erst der Angriff fuehrt das Heer geschlossen nach vorn
+            for k in range(min(self.SAMMEL_HEIM, d), -1, -2):
+                q = (h[0] + (z[0] - h[0]) * k // d, h[1] + (z[1] - h[1]) * k // d)
+                if all(schach(q, f) > self.SICHER for f in fern) and not im_feuer(q, self._orte_f or ()):
+                    return q
+            return h
         for k in range(d, -1, -2):
             q = (h[0] + (z[0] - h[0]) * k // d, h[1] + (z[1] - h[1]) * k // d)
             # B-192 (Daniel 22.10. 18:19: "wenn der Sammelpunkt brennt, sollen sie nicht staendig versuchen, zu diesem zu laufen,
@@ -1405,9 +1418,11 @@ class Feldzug:
                     if not self._schwachstelle(G, lp, orte, aus, "abgeschnitten"):
                         self.lord_versuch = t
                 elif gut_b is not None and vp_alt and not gut_b[-1]:
+                    # B-248 (Lauf 144300: 227x dieselbe Meldung, jede Runde derselbe Vorposten neu gewaehlt und wieder verworfen)
+                    self.vp_verworfen.add(tuple(vp_alt))
                     self.vorposten = None
-                    aus.append("FELDZUG VORPOSTEN ABGESCHNITTEN: %s vor Gebaeude %d nicht mehr erreichbar - neu suchen" % (
-                        vp_alt, b_alt))
+                    aus.append("FELDZUG VORPOSTEN ABGESCHNITTEN: %s vor Gebaeude %d nicht mehr erreichbar - neu suchen (%d verworfen)" % (
+                        vp_alt, b_alt, len(self.vp_verworfen)))
             lord_ziel = None      # B-139: erreichbarer Punkt am Lord (Wegtest); None = keiner gefunden oder ohne Wegtest
             if ll is not None:
                 # B-163: die Wegkarte sagt es jede Runde - kein Wegtest, keine Schwachstelle "Lord eingemauert" (Schredder)

@@ -220,6 +220,7 @@ def main():
     #    Gegenprobe: ohne Torhaus kein Gebaeudeangriff und keine SCHWACHSTELLE.
     def burg(mit_tor):
         f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+        f._sammel_von = heim                      # B-247: Heer schon an der Front (Sammelpunkt vorn wie vor dem 25.10.)
         f.schritt({"t": 12000}, *lage(10, heim), Befehle())
         L_, G_ = lage(30, f.punkt)
         if mit_tor:
@@ -1289,6 +1290,24 @@ def main():
     del P63._FEST[1]
     pruefe(64, "27 Partner-Assassinen: %s %s | 27 Arbeiter: %s %s" % (ok64, t64[:45], ok64f, t64f[:45]),
            ok64 and "mit 27 Truppen" in t64 and not ok64f and "Verbuendeten" not in t64f)
+    # 65 (B-247, Daniel 25.10. 14:51 "ohne Einheitenkontrolle schickt die KI einzeln die Einheiten nach vorne"): ein frischer
+    #    Feldzug sammelt hoechstens SAMMEL_HEIM Felder vor dem Bergfried; nach einem Sieg (_sammel_von gesetzt) vorn wie bisher
+    f65 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f65.schritt({"t": 12000}, *lage(10, heim), Befehle())
+    f65v = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f65v._sammel_von = heim
+    f65v.schritt({"t": 12000}, *lage(10, heim), Befehle())
+    pruefe(65, "Sammelpunkt frisch %s (%d Felder vom Bergfried %s) | nach Sieg %s (%d Felder vom Lord)" % (
+        f65.punkt, F.schach(f65.punkt, heim), heim, f65v.punkt, F.schach(f65v.punkt, (300, 100))),
+           F.schach(f65.punkt, heim) <= F.Feldzug.SAMMEL_HEIM and F.schach(f65v.punkt, (300, 100)) < F.schach(f65.punkt, (300, 100)))
+    # 66 (B-248, Lauf 144300: 227x "VORPOSTEN ABGESCHNITTEN ... neu suchen" fuer denselben Punkt): ein verworfener Vorposten
+    #    wird von _erreichbar_bei nicht mehr geliefert; Gegenprobe ohne Verwerfen liefert ihn
+    f66 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f66.wegtest = lambda nr, p: [True] * len(p)
+    vp66 = f66._erreichbar_bei((306, 106), 10, (250, 100), (4,))
+    f66.vp_verworfen.add(vp66)
+    vp66b = f66._erreichbar_bei((306, 106), 10, (250, 100), (4,), meiden=f66.vp_verworfen)
+    pruefe(66, "Vorposten %s, nach Verwerfen %s" % (vp66, vp66b), vp66 is not None and vp66b is not None and vp66b != vp66)
     # 57 (B-191): Heer 1 plant (275,100), Heer 2 mit derselben Absprache-Datei uebernimmt den Plan ohne eigenen Planer-Aufruf;
     #    ohne Datei plant Heer 2 selbst
     import tempfile
