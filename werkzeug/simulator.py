@@ -65,7 +65,7 @@ _RICHTUNG = {0: (0, -1), 1: (1, -1), 2: (1, 0), 3: (1, 1), 4: (0, 1), 5: (-1, 1)
 
 class _E(object):
     __slots__ = ("id", "typ", "own", "mx", "my", "h", "leben", "tot", "zustand", "ziel", "fr", "msk", "cemd", "sel",
-                 "sbs", "tpm", "weg", "blick", "zaehler", "kette", "lauf", "kaempfer", "schuss_n", "schuss_ziel",
+                 "sbs", "tpm", "weg", "dest", "blick", "zaehler", "kette", "lauf", "kaempfer", "schuss_n", "schuss_ziel",
                  "start_ziel")
 
     @property
@@ -103,6 +103,10 @@ class Simulator(object):
             u.tpm = e.get("calculatedMovementSpeed", 0) + u.sbs + e.get("moveDelay", 0) + 1
             u.weg = [tuple(p) for p in (e.get("sre_wegpunkte") or [])] if e["state"] in LAUF_ZUSTAENDE else []
             u.lauf = bool(u.weg)
+            # NAEHERUNG (gemessen 191847, Takt 41.291: Meuchelmoerder 172 hatte 4 Wegpunkte bis (152,292), Ziel (151,291) - im
+            # Spiel lief er weiter bis zum Ziel): der Wegplan im Schnappschuss ist nur ein Abschnitt; danach geradeaus zum Ziel
+            d = tuple(e.get("destination") or (0, 0))
+            u.dest = d if u.lauf and d != (0, 0) and d != tuple(e["feld"]) else None
             u.blick = e.get("facingDirection", 0)
             u.zaehler = u.tpm // 2          # Phase des Mikroschritts unbekannt (Restfehler hoechstens tpm Takte)
             u.kaempfer = u.typ in KAEMPFER
@@ -194,6 +198,10 @@ class Simulator(object):
                 continue
             u.zaehler = 0
             alt = u.feld
+            if len(u.weg) == 1 and u.dest and u.weg[0] != u.dest:
+                fx, fy = u.weg[0]
+                if max(abs(fx - u.dest[0]), abs(fy - u.dest[1])) <= 40:
+                    u.weg.append((fx + (u.dest[0] > fx) - (u.dest[0] < fx), fy + (u.dest[1] > fy) - (u.dest[1] < fy)))
             for _ in range(u.sbs + 1):
                 if not u.weg:
                     break
@@ -291,6 +299,7 @@ class Simulator(object):
                 # gemessen (Takt 41.446, Armbrust 157): wer im Laufen ein Ziel waehlt, laeuft noch bis zur Mitte seines
                 # Wegpunkts und schlaegt erst dann zu (5 Takte spaeter); Stehende schlagen sofort
                 u.weg = u.weg[:1]
+                u.dest = None
                 # Blickrichtung (+692) dreht NICHT zum Ziel - gemessen 200603: bei 44 von 44 Zielwechseln blieb sie gleich,
                 # in 10.520 von 13.110 Kampftakten zeigt sie am Ziel vorbei; sie folgt nur dem Laufen (AU19)
                 if neu and v.kaempfer and not v.ziel:          # AU18 (6) Gegenzuweisung (ohne Drehen, s. oben)
