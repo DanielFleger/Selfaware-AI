@@ -290,6 +290,20 @@ def phase_rest(ut, zustand, schritt, ticker=None):
     return None, None, None
 
 
+_feldnr_karte = None
+
+
+def feldnummern():
+    """int32 [x, y] -> Feldnummer (-1 ausserhalb der Raute), einmal aus der translationMatrix gelesen."""
+    global _feldnr_karte
+    if _feldnr_karte is None:
+        xs, ys, ks = speicher.felder()
+        fn = np.full((400, 400), -1, np.int32)
+        fn[xs, ys] = ks
+        _feldnr_karte = fn
+    return _feldnr_karte
+
+
 def _i4(adr):
     return struct.unpack("<i", speicher.lies(adr, 4))[0]
 
@@ -320,7 +334,9 @@ class Schnappschuss(object):
                 self.trupps = np.frombuffer(speicher.lies(TRIBES, TRIBES_MAX * TRIBE_GROESSE), dtype=TRIBE)
             else:
                 self.trupps = np.zeros(0, TRIBE)
-            if mit_feldern:
+            if mit_feldern == "hoehe":
+                self.hoehe = np.frombuffer(speicher.lies(speicher.HOEHE, FELDER), dtype="u1")
+            elif mit_feldern:
                 n_p = min(max(_i4(PITCH_ANZAHL), 0), 4000)
                 self.pech = np.frombuffer(speicher.lies(PITCH, n_p * 20), dtype=PITCH_DTYPE) if n_p else np.zeros(0, PITCH_DTYPE)
                 self.schaden = np.frombuffer(speicher.lies(DAMAGE_LAYER, FELDER), dtype="u1")
@@ -343,7 +359,8 @@ class Schnappschuss(object):
         me = (e["logicalState"] != 0)
         return {"takt": self.takt, "takt_kern": self.takt_kern, "rein": self.rein, "dauer_ms": self.dauer_ms,
                 "einheiten": u[m].copy(), "einheiten_idx": np.flatnonzero(m), "entities": e[me].copy(),
-                "entities_idx": np.flatnonzero(me), "spieler": self.spieler.copy(), "hoehe": getattr(self, "hoehe", None)}
+                "entities_idx": np.flatnonzero(me), "spieler": self.spieler.copy(), "hoehe": getattr(self, "hoehe", None),
+                "feldnr": feldnummern() if getattr(self, "hoehe", None) is not None else None}
 
     @classmethod
     def aus_behalten(cls, d):
@@ -352,6 +369,7 @@ class Schnappschuss(object):
         s.einheiten, s.entities, s.spieler = d["einheiten"], d["entities"], d["spieler"]
         s._einheiten_idx, s._entities_idx = d["einheiten_idx"], d["entities_idx"]
         s.hoehe = d.get("hoehe")
+        s._feldnr = d.get("feldnr")
         s.gebaeude, s.trupps = np.zeros(0, BUILDING), np.zeros(0, TRIBE)
         s.woche = s.monat = s.jahr = 0
         s.teams = [0] * 9
@@ -437,11 +455,8 @@ class Schnappschuss(object):
     def _boden(self, fx, fy):
         if getattr(self, "hoehe", None) is None or not len(self.hoehe):
             return None
-        xs, ys, ks = speicher.felder()
-        if not hasattr(self, "_feldnr"):
-            fn = np.full((400, 400), -1, np.int32)
-            fn[xs, ys] = ks
-            self._feldnr = fn
+        if getattr(self, "_feldnr", None) is None:
+            self._feldnr = feldnummern()
         if not (0 <= fx < 400 and 0 <= fy < 400):
             return None
         k = int(self._feldnr[fx, fy])
@@ -702,7 +717,9 @@ class Protokoll(object):
         self.spieler = spieler
         self.takte, self.kern, self.rein, self.dauer = [], [], [], []
         self.einheiten, self.einheiten_idx, self.entities, self.entities_idx, self.spieler_bloecke = [], [], [], [], []
-        self.hoehe = None
+        self.hoehe = None          # erste Hoehen-Ebene (Rueckwaertskompatibel)
+        self.hoehen = []           # Hoehen-Ebene je Takt (Mauern fallen, Gebaeude brennen ab)
+        self.feldnr = None
 
     def aufnehmen(self, s):
         d = s.behalten(self.spieler)
@@ -710,8 +727,11 @@ class Protokoll(object):
         self.einheiten.append(d["einheiten"]); self.einheiten_idx.append(d["einheiten_idx"])
         self.entities.append(d["entities"]); self.entities_idx.append(d["entities_idx"])
         self.spieler_bloecke.append(d["spieler"])
-        if self.hoehe is None and d.get("hoehe") is not None:
-            self.hoehe = np.array(d["hoehe"])
+        if d.get("hoehe") is not None:
+            self.hoehen.append(np.array(d["hoehe"]))
+            if self.hoehe is None:
+                self.hoehe = self.hoehen[0]
+                self.feldnr = d.get("feldnr")
 
     def schreiben(self, pfad):
         def grenzen(liste):
@@ -729,6 +749,8 @@ class Protokoll(object):
             entities_grenzen=grenzen(self.entities),
             spieler=np.stack(self.spieler_bloecke) if self.spieler_bloecke else np.zeros((0, SPIELER_ANZAHL), PLAYER),
             hoehe=self.hoehe if self.hoehe is not None else np.zeros(0, np.uint8),
+            feldnr=self.feldnr if self.feldnr is not None else np.zeros((0, 0), np.int32),
+            hoehen=np.stack(self.hoehen) if len(self.hoehen) == len(self.takte) else np.zeros((0, 0), np.uint8),
             spieler_filter=np.array(self.spieler or [], np.int64))
         return pfad
 
@@ -740,11 +762,15 @@ class Protokoll(object):
         aus = []
         eg, gg = z["einheiten_grenzen"], z["entities_grenzen"]
         hoehe = z["hoehe"] if len(z["hoehe"]) else None
+        feldnr = z["feldnr"] if ("feldnr" in z and z["feldnr"].size) else None
+        hoehen = z["hoehen"] if ("hoehen" in z and z["hoehen"].size) else None
         for i, takt in enumerate(z["takt"]):
+            if hoehen is not None:
+                hoehe = hoehen[i]
             d = {"takt": int(takt), "takt_kern": int(z["takt_kern"][i]), "rein": bool(z["rein"][i]), "dauer_ms": float(z["dauer_ms"][i]),
                  "einheiten": z["einheiten"][eg[i]:eg[i + 1]], "einheiten_idx": z["einheiten_idx"][eg[i]:eg[i + 1]],
                  "entities": z["entities"][gg[i]:gg[i + 1]], "entities_idx": z["entities_idx"][gg[i]:gg[i + 1]],
-                 "spieler": z["spieler"][i], "hoehe": hoehe}
+                 "spieler": z["spieler"][i], "hoehe": hoehe, "feldnr": feldnr}
             aus.append(Schnappschuss.aus_behalten(d))
         return aus
 
@@ -754,8 +780,7 @@ def protokollieren(sekunden, spieler=None, pfad=None, alle_ms=0.0):
     p = Protokoll(spieler)
     letzter, ende, hoehe_da = None, time.time() + sekunden, False
     while time.time() < ende:
-        s = Schnappschuss(mit_trupps=False, mit_feldern=not hoehe_da)
-        hoehe_da = True
+        s = Schnappschuss(mit_trupps=False, mit_feldern="hoehe")
         if s.takt != letzter:
             p.aufnehmen(s)
             letzter = s.takt
