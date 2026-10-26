@@ -137,6 +137,7 @@ class Simulator(object):
     GEGEN_BLICK = True
     FREMDTREFFER = True
     VORHALT = True
+    LAUF_NACH_246 = True            # AU33: Laufen nach +246 == 2 statt nach Zustandsnummer
     MIKROSCHRITTE = True            # AU31: Treffer je Mikroschritt der Bahn (Index 7)
     ZIEL_PRUEFEN = True             # AU30 (1): Zielpruefung am Ende des Zielens
     LEERLAUF = True                 # AU28: untaetige Schuetzen ohne Trupp suchen am Ende jeder Leerlauf-Animation                  # AU25: Vorhalt bei laufendem Ziel             # AU4/AU24: Geschoss prueft je Takt das ueberflogene Feld (auge.bahn_neu / sre_bahn)              # AU23: Gegenzuweisung setzt beim Opfer attackedUnitID UND Blickrichtung          # Schuetzen drehen beim Zielen/Schiessen zum Ziel (gemessen, 91 % der Schiess-Takte)        # je Einheit: n = Nahkampf, s = Feindsuche, l = Laufen (gemessen, s. Register L190)
@@ -195,10 +196,13 @@ class Simulator(object):
             u.sicht = e.get("assassinsMicroDistanceToEnemyUnk", 32000)
             u.sbs = e.get("stateBasedSpeed", 0)
             u.tpm = e.get("calculatedMovementSpeed", 0) + u.sbs + e.get("moveDelay", 0) + 1
-            # Soldaten/Schuetzen laufen nur in den gemessenen Lauf-Zustaenden; Arbeiter und Tiere haben eigene Zustandsnummern
-            # (gemessen 200603: Arbeiter 274, Art 64, laeuft in Zustand 4) - bei ihnen zaehlt der Weg selbst
-            soldat = u.typ in KANN_NAHKAMPF or u.typ in SCHUSS_TAB_UT
-            laeuft = e["state"] in LAUF_ZUSTAENDE if soldat else (e["state"] not in STERBEN and e["state"] != NAH)
+            # AU33 processUnitMove: gezogen wird genau dann, wenn +246 (tunnelerFinishedDigging) == 2 ist - Zustand egal
+            #   (436.538 von 437.729 Zuegen; der Rest ist der erste Schritt eines im selben Takt neu gesetzten Wegs)
+            if "tunnelerFinishedDigging" in e and self.LAUF_NACH_246:
+                laeuft = e["tunnelerFinishedDigging"] == 2
+            else:
+                soldat = u.typ in KANN_NAHKAMPF or u.typ in SCHUSS_TAB_UT
+                laeuft = e["state"] in LAUF_ZUSTAENDE if soldat else (e["state"] not in STERBEN and e["state"] != NAH)
             u.weg = [tuple(p) for p in (e.get("sre_wegpunkte") or [])] if laeuft else []
             # NAEHERUNG (191847, Takt 41.291: Meuchelmoerder 172 hatte 4 Wegpunkte bis (152,292), Ziel (151,291) - im Spiel lief
             # er weiter): der Wegplan im Schnappschuss ist nur ein Abschnitt; danach geradeaus zum Ziel
