@@ -2984,9 +2984,13 @@ class Einzeln:
                     continue
             ohne += 1
             gruende["keins erreichbar" if not erreichbar else "alle voll" if not frei else "alle gefaehrlich"] += 1
-            if erreichbar and frei and abgelehnt is not None:
-                # B-257 (Daniel 23:07, Bild: Assassinen liessen Hopfen/Apfel/Steinbruch stehen): WARUM sichtbar machen
+            gm = getattr(self, "_gefaehrlich_gemeldet", {})
+            self._gefaehrlich_gemeldet = gm
+            if erreichbar and frei and abgelehnt is not None and gm.get(n) != abgelehnt[1][0]:
+                # B-257 (Daniel 23:07, Bild: Assassinen liessen Hopfen/Apfel/Steinbruch stehen): WARUM sichtbar machen - je
+                # Assassine nur, wenn sich das verworfene Ziel aendert (Partie 234348: dieselbe Zeile bis 24-mal)
                 _, k_a, p_a, g_a, b_a = abgelehnt
+                gm[n] = k_a[0]
                 ereignis.append("GEFAEHRLICH %d: bestes Ziel %d (Typ %d) in %d Feldern - Todesrisiko %.0f %% ueber der Grenze %.0f %%, "
                                 "Beschuss am Ziel %.2f/Takt, Leben %d" % (n, k_a[0], k_a[2], schach(ort, k_a[1]), 100 * p_a, 100 * g_a,
                                                                           b_a, L[n]["leben"]))

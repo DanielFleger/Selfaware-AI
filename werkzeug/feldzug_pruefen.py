@@ -1467,6 +1467,32 @@ def main():
     z73g, v73g, _ = plan73(False)
     pruefe(73, "mit Wegtest: Ziel %s, verworfen %s, %d Planungen | ohne: Ziel %s" % (z73, v73, a73, z73g),
            z73 == (30, 30) and v73 == [109] and z73g == 109)
+    # 74 B-258 Typ lernen (Partie 234348: Turm 187 Typ 75, bis 48 Mann daneben, keiner hatte ihn als Ziel, Leben 1.500): 20 Mann
+    #    mit zielgebaeude 0 stehen an der Bresche (Typ 75), ihr Leben sinkt nicht -> nach dem Verwerfen ist Typ 75 aus und der
+    #    Planer bekommt alle Typ-75-Gebaeude als verworfen. Gegenprobe: dieselben Maenner zielen auf die Bresche -> nichts gelernt.
+    import tempfile
+    def typ_lernen(zielt):
+        F.Feldzug.TYPEN_DATEI = os.path.join(tempfile.mkdtemp(), "feldzug_typen.json")
+        f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=20)
+        f.schritt({"t": 12000}, *lage(10, heim), Befehle())
+        L_, G_ = lage(0, heim)
+        G_[900] = {"typ": 75, "besitzer": 2, "x": 306, "y": 106, "leben": 1500}
+        G_[901] = {"typ": 75, "besitzer": 2, "x": 290, "y": 95, "leben": 1500}
+        for i in range(20):
+            L_[10 + i] = einheit(75, 1, 304 + i % 3, 108 + i // 10, 28000)
+            L_[10 + i]["zielgebaeude"] = 900 if zielt else 0
+            L_[10 + i]["zustand"] = 107 if zielt else 1
+        f.bresche = 900
+        m_ = []
+        for t in range(12050, 12050 + F.Feldzug.BRESCHE_ZAEH + F.Feldzug.DRAN_TAKTE + 300, 100):
+            f._stau = (0, t)
+            m_ += f.schritt({"t": t}, L_, G_, Befehle())
+            if 900 in f.verworfen:
+                break
+        return f._typen_aus(), [m[:60] for m in m_ if "TYP NICHT" in m]
+    a74, m74 = typ_lernen(False)
+    a74g, _ = typ_lernen(True)
+    pruefe(74, "keiner zielt: Typen aus %s %s | alle zielen: %s" % (sorted(a74), m74, sorted(a74g)), a74 == {75} and m74 and not a74g)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

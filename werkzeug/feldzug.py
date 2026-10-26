@@ -468,6 +468,38 @@ class Feldzug:
         return bool(g and g.get("besitzer") not in freunde_von(self.sp)
                     and g.get("leben",0)>0 and angreifbar(g))
 
+    TYPEN_DATEI = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "daten", "feldzug_typen.json")
+    TYPEN_PARTIEN = 2          # B-258: so viele Partien "Angriff vom Spiel nicht angenommen", dann ist der Typ dauerhaft aus
+
+    def _typen_aus(self):
+        """B-258 (Partie 234348: Turm 187/186, Typ 75 - bis 48 Mann daneben, KEINER hatte ihn als Ziel, Leben blieb 1.500,
+        2 x 1.000 Takte verloren): Gebaeudetypen, deren Angriffsbefehl das Spiel nicht annimmt - in dieser Partie gemerkt
+        (self.typ_ohne_ziel) und aus frueheren Partien (TYPEN_DATEI, ab TYPEN_PARTIEN Beobachtungen)."""
+        if not hasattr(self, "_typen_gelernt"):
+            try:
+                import json
+                d = json.load(open(self.TYPEN_DATEI, encoding="utf-8"))
+                self._typen_gelernt = {int(k): v for k, v in d.get("ohne_ziel", {}).items()}
+            except (OSError, ValueError):
+                self._typen_gelernt = {}
+        return set(getattr(self, "typ_ohne_ziel", set())) | {k for k, v in self._typen_gelernt.items() if v >= self.TYPEN_PARTIEN}
+
+    def _typ_lernen(self, typ, aus):
+        """B-258: Typ fuer diese Partie aus, Beobachtung in TYPEN_DATEI (einmal je Partie und Typ)."""
+        self.typ_ohne_ziel = getattr(self, "typ_ohne_ziel", set())
+        if typ in self.typ_ohne_ziel:
+            return
+        self.typ_ohne_ziel.add(typ)
+        self._typen_aus()
+        self._typen_gelernt[typ] = self._typen_gelernt.get(typ, 0) + 1
+        try:
+            import json
+            json.dump({"ohne_ziel": {str(k): v for k, v in self._typen_gelernt.items()}}, open(self.TYPEN_DATEI, "w", encoding="utf-8"))
+        except OSError:
+            pass
+        aus.append("FELDZUG TYP NICHT ANGREIFBAR: Gebaeudetyp %d - das Spiel nahm keinen Angriffsbefehl an (niemand hatte es als Ziel); "
+                   "in dieser Partie aus, gesehen in %d Partie(n)" % (typ, self._typen_gelernt[typ]))
+
     PLAN_VERSUCHE = 3          # B-256: so oft wird neu geplant, wenn der Zugang des Plans fuer uns nicht erreichbar ist
 
     def _durchbruch_neu(self, m, start, lp, maenner, pruef=None):
@@ -501,21 +533,26 @@ class Feldzug:
         # B-256 (Partie 230627: Gebaeude 109, 146, 145, 149 und Torhaus 180 gewaehlt, je 1-3 s spaeter "BRESCHE ABGESCHNITTEN" -
         # bei 146 erst nach 7.000 Takten Anmarsch): der Wegfinder des Spiels prueft den Zugang, BEVOR der Plan gilt; ist er nicht
         # erreichbar, wird die Stelle verworfen und neu geplant
+        aus_typ = {nr for nr, g_ in (getattr(self, "_gebaeudebild", {}) or {}).items() if g_.get("typ") in self._typen_aus()}
         for _v in range(self.PLAN_VERSUCHE):
             try:
                 neu = self.durchbruch(self.sp, tuple(start), max(1, maenner), tuple(lp),
-                                      verworfen=set(self.mauer_verworfen) | set(self.verworfen))
+                                      verworfen=set(self.mauer_verworfen) | set(self.verworfen) | aus_typ)
             except Exception as ex:
                 self.wegkarte_fehler = "Durchbruch: %s" % str(ex)[:120]
                 neu = None
             if (neu is None or neu.get("art") not in ("mauer", "tor", "gebaeude") or not neu.get("zug")
                     or self.wegtest is None or pruef is None):
                 break
+            # (Partie 234348: Torhaus 77, 90, Gebaeude 95, 183, 320, 72 bestanden den Zugang-Test und waren 1-3 s spaeter
+            # "ABGESCHNITTEN" - die Nachpruefung verlangt ein erreichbares Feld bis 3 um das Gebaeude; hier dieselbe Pruefung)
+            G_b = getattr(self, "_gebaeudebild", {}) or {}
+            nb = self._nachbar_punkte(G_b, neu["ziel"]) if neu["art"] != "mauer" and neu["ziel"] in G_b else []
             try:
-                gut = self.wegtest(pruef, [tuple(neu["zug"])])
+                gut = self.wegtest(pruef, [tuple(neu["zug"])] + nb)
             except Exception:
                 gut = None
-            if gut is None or gut[0]:
+            if gut is None or (gut[0] and (not nb or any(gut[1:]))):
                 break
             if neu["art"] == "mauer":
                 self.mauer_verworfen.add(tuple(neu["ziel"]))
@@ -1569,7 +1606,11 @@ class Feldzug:
                 nah_b = [n for n in nah_kampf if schach((L[n]["x"], L[n]["y"]), tor) <= self.WIRKUNG_NAH]
                 # B-256 (Partie 230627: Torhaus 268 nach 544 Takten "keine Wirkung", alle 8 Mann daneben liefen noch - 101): es
                 # zaehlt, wer zuschlaegt (106/107); wer nur daneben steht, bekommt den Befehl neu, bis DRAN_TAKTE um sind
-                hack_b = [n for n in nah_b if L[n].get("zustand") in (106, 107)]
+                hack_b = [n for n in nah_b if L[n].get("zustand") in (106, 107) and L[n].get("zielgebaeude", bresche) == bresche]
+                # B-258: hatte je einer der Maenner die Bresche als Ziel? (zielgebaeude im Lagebild)
+                gez = getattr(self, "_bresche_gezielt", {})
+                self._bresche_gezielt = gez
+                gez[bresche] = max(gez.get(bresche, 0), sum(1 for n in nah_kampf if L[n].get("zielgebaeude") == bresche))
                 ohne_b = self._wirkung(("bresche", bresche), leben_b, len(hack_b), t)
                 if ohne_b is None:
                     ohne_b = self._nicht_dran(("bresche", bresche), len(nah_b), len(hack_b), t, leben_b)
@@ -1583,6 +1624,9 @@ class Feldzug:
                                    "naechste Schwachstelle" % (bresche, G[bresche]["typ"], t - self.bresche_leben[1], leben_b,
                                                                len(am_tor)))
                     self.verworfen.add(bresche)
+                    if (len(nah_b) >= self.TOR_MIN and self._bresche_gezielt.get(bresche, 0) == 0
+                            and any("zielgebaeude" in L[n] for n in nah_b)):
+                        self._typ_lernen(G[bresche]["typ"], aus)
                     self.bresche, self.bresche_leben, self._stau = None, None, (None, t)
                 else:
                     # B-134/B-139: alle Nahkaempfer auf das Tor/den Turm, ohne Sammeln davor. 20.10. gegen Franz gemessen: der
