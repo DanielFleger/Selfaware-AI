@@ -8,6 +8,13 @@ nichts doppelt bestellt. Gebaut wird nur mit genug Holz und Gold laut Preisen im
 Ein volles Lager haelt die Kette an - dafuer sorgt der Stillstand-Waechter (stillstand.py)."""
 
 SPERRE = 300
+# B-254 (Daniel 26.10. 23:08 "warum nutzt sie nicht den Weizen fuer noch mehr Brot"; Partie 230627 Sp2: 1 Getreidefarm fuer
+# 6 Baeckereien, Weizen und Mehl im Lager fast immer 0): steht die Kette, kommen Getreidefarmen dazu, bis der Weizen die
+# Baeckereien laut Nahrungsmodell auslastet - hoechstens MEHR_FARMEN zusaetzlich
+MEHR_FARMEN = 3
+MEHR_R = 15                   # Umkreis um die erste Getreidefarm fuer weitere (die Platzsuche des Spiels prueft den Boden)
+# Eine weitere Muehle nur, wenn sich Weizen im Lager staut (Muehlen-Durchsatz ist ungemessen - das Lager misst ihn)
+WEIZEN_STAU = 10
 TYPEN = (30, 34, 19, 17)      # Getreidefarm, Muehle, Kornspeicher an den Baeckereien (falls geplant), Baeckerei
 NAME = {30: "Getreidefarm", 34: "Muehle", 19: "Kornspeicher (Baeckereien)", 17: "Baeckerei"}
 
@@ -33,9 +40,15 @@ class BrotBau:
     def bedarf(self, t, G):
         """Holz/Gold fuer den naechsten fehlenden Bau - die Wirtschaft haelt es frei (Ruecklage). Lauf 23:16 auf Two Montains:
         ohne Ruecklage wartete die Muehle von Tick 2.027 bis 6.049 auf Holz, die Kette stand erst bei 9.604."""
-        if not self.brot or self.fertig or t < self.brot.get("ab_tick", 0):
+        if not self.brot or t < self.brot.get("ab_tick", 0):
             return {}
         steht = self._steht(G)
+        if self.fertig:
+            # B-254: Holz/Gold fuer die naechste Getreidefarm zuruecklegen (dann kauft der Lenker auch Holz dafuer)
+            if steht[30] < self.farmen_soll(steht):
+                k = self.kosten(30)
+                return {"holz": k.get("holz", 0), "gold": k.get("gold", 0)}
+            return {}
         ziel = self.ziel()
         for typ in TYPEN:
             if steht[typ] < ziel[typ]:
@@ -43,10 +56,38 @@ class BrotBau:
                 return {"holz": k.get("holz", 0), "gold": k.get("gold", 0)}
         return {}
 
+    def farmen_soll(self, steht):
+        """B-254: so viele Getreidefarmen, wie die stehenden Baeckereien Weizen verarbeiten (nahrungsmodell), hoechstens
+        geplante + MEHR_FARMEN."""
+        import nahrungsmodell as M
+        f0 = self.brot["getreide"][0]
+        weizen_brot = M.je_1000("weizen", schach((f0[0] + 4, f0[1] + 4), self.lager)) * M.BROT_JE_MEHL
+        kap = steht[17] * M.baeckerei_je_1000(max(4, schach(self.lager, self.ks)))
+        n = len(self.brot["getreide"])
+        return min(n + MEHR_FARMEN, max(n, int(kap / weizen_brot + 0.5))) if weizen_brot > 0 else n
+
+    def _nachbau(self, t, st, steht):
+        """B-254: nach der Kette Getreidefarmen bis farmen_soll; eine Muehle mehr, wenn WEIZEN_STAU Weizen im Lager liegt."""
+        for typ, noetig in ((34, st.get("weizen", 0) >= WEIZEN_STAU and steht[34] < steht[30]),
+                            (30, steht[30] < self.farmen_soll(steht))):
+            if not noetig or t - self.offen.get(typ, -10 ** 9) < SPERRE:
+                continue
+            k = self.kosten(typ)
+            if any(k.get(w, 0) > st.get(w, 0) for w in ("holz", "stein", "gold")):
+                return []
+            f0 = self.brot["getreide"][0]
+            ort = self.baue(30, f0[0], f0[1], MEHR_R) if typ == 30 else self.baue(34, self.lager[0], self.lager[1], 10)
+            self.offen[typ] = t
+            return ["BROTKETTE MEHR %s bestellt bei %s (Tick %d: %d Getreidefarm(en) fuer %d Baeckereien, Soll %d; Weizen im Lager %d)" % (
+                NAME[typ], ort, t, steht[30], steht[17], self.farmen_soll(steht), st.get("weizen", 0))]
+        return []
+
     def schritt(self, t, st, G):
-        if not self.brot or self.fertig or t < self.brot.get("ab_tick", 0):
+        if not self.brot or t < self.brot.get("ab_tick", 0):
             return []
         steht = self._steht(G)
+        if self.fertig:
+            return self._nachbau(t, st, steht)
         ziel = self.ziel()
         if all(steht[typ] >= ziel[typ] for typ in TYPEN):
             self.fertig = True

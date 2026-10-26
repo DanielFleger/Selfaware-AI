@@ -550,6 +550,33 @@ def kosten_spiel(typ):
         _KOSTEN_SPIEL[typ] = kosten(typ)
     return _KOSTEN_SPIEL[typ]
 
+HOLZKAUF_TAKTE = 100            # B-254: so oft hoechstens ein Los Holz kaufen (wie der Stein-Holz-Tausch)
+
+
+def holz_kaufpreis():
+    """B-254: Kaufpreis fuer 5 Holz aus dem Spielspeicher (spielwerte markt.kaufpreis_je5, Ware 2) - None, wenn nicht lesbar."""
+    try:
+        import struct
+        import speicher
+        import spielwerte
+        speicher.griff()
+        adr = spielwerte.TABELLEN["markt.kaufpreis_je5"][0]
+        p = struct.unpack("<i", speicher.lies(adr + 4 * WAREN_NR["holz"], 4))[0]
+        if 0 < p < 1000:
+            return p
+    except Exception:
+        pass
+    # Lesegriff fehlt (z. B. Spiel mit erhoehten Rechten): die zuletzt aus dem Spiel gelesene Tabelle (spielwerte.py)
+    try:
+        import glob
+        import json
+        f = sorted(glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "daten", "spielwerte_*.json")))[-1]
+        p = json.load(open(f, encoding="utf-8"))["tabellen"]["markt.kaufpreis_je5"]["werte"][WAREN_NR["holz"]]
+        return p if 0 < p < 1000 else None
+    except Exception:
+        return None
+
+
 def preis(typ, ware):
     """Echter Baupreis aus dem Spiel. SAI 11.10.: Instanz 4 laeuft mit Ascension-Balance (Pflicht fuer den Nomade) - dort
     kostet die Eisenmine 40 Holz statt 20 Holz + 6 Stein, der Milchviehhof 12 Holz statt 7 Holz + 15 Gold. Feste
@@ -2323,6 +2350,21 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             return True
         return bool(assassinen) and (assassinen < 0 or a_stand["lebend"] < assassinen) and st.get("gold", 0) < 70 + wirt.ruecklage(G)["gold"]
 
+    def holz_kaufen(st, G, gold_knapp):
+        """B-254 (Daniel 26.10. 23:10 "man koennte auch Holz kaufen fuer noch mehr Wirtschaft"; Partie 230627 Sp2: Brotkette
+        6x "wartet auf holz fuer Muehle", Gold bis 917): wartet ein geplanter Bau auf Holz (Ruecklage > Bestand) und bremst
+        Gold nichts, wird ein Los Holz gekauft - Preis aus dem laufenden Spiel (spielwerte markt.kaufpreis_je5), ohne Preis
+        kein Kauf. Hoechstens ein Los je HOLZKAUF_TAKTE."""
+        R = wirt.ruecklage(G)
+        if gold_knapp or R["holz"] <= st.get("holz", 0) or st["t"] - fruehpruefung.get("holzkauf_t", -10 ** 9) < HOLZKAUF_TAKTE:
+            return None
+        preis5 = holz_kaufpreis()
+        if preis5 is None or st.get("gold", 0) - R["gold"] - 70 < preis5:
+            return None
+        befehl({"spielbefehl": {"nr": 38, "werte": [0, WAREN_NR["holz"]]}}, 1.0, bis="SPIELBEFEHL")
+        fruehpruefung["holzkauf_t"] = st["t"]
+        return "HOLZ GEKAUFT: 5 Holz fuer %d Gold (Holz %d, zurueckgelegt %d, Gold %d)" % (preis5, st.get("holz", 0), R["holz"], st.get("gold", 0))
+
     def holz_verwerten(st, L, G):
         """Altes Lager: Holz verkaufen, solange Gold das Anwerben bremst (Daniel 06.10. 19:33, vorerst); sonst Holzfaeller."""
         if prod is not None:
@@ -2851,7 +2893,14 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 ereignis += brot_bau.schritt(st["t"], st, G)
                 b_r = brot_bau.bedarf(st["t"], G)
                 rueck = {w: rueck.get(w, 0) + b_r.get(w, 0) for w in ("holz", "gold")}
-            if jagd_bau is not None or brot_bau is not None:
+            # B-254 (Partie 222338: Kornspeicher-Nachbau 361x "fehlt holz 5, gold 9", Tick 47.384-151.357 - Anwerben und Planer
+            # nahmen jedes Holz und Gold vorher weg): fehlt der Kornspeicher, geht er allen vor - seine Kosten kommen in die
+            # Ruecklage (Anwerben, Planer, Huetten warten; fehlt Holz, kauft der Lenker es)
+            speicher_fehlt = not any(g["besitzer"] == SP and g["typ"] == 19 for g in G.values())
+            if speicher_fehlt:
+                k_ks = kosten_spiel(19)
+                rueck = {w: rueck.get(w, 0) + k_ks.get(w, 0) for w in ("holz", "gold")}
+            if jagd_bau is not None or brot_bau is not None or speicher_fehlt:
                 wirt.brot = rueck                             # Ruecklage: Planer/Huetten/Holzfaeller halten das Holz frei
             if BUCH is not None:
                 ereignis += BUCH.abgleich(G, L, st)            # jeder Bau bestaetigt oder gescheitert, jede Belegung
@@ -3261,6 +3310,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                               ({"holz": max(60, wirt.ruecklage(G)["holz"] + 40)} if ENTSCHEIDER == "kausal" else None))
                 if v:
                     ereignis.append(v)
+                kauf_h = holz_kaufen(st, G, bremst or es_an)
+                if kauf_h:
+                    ereignis.append(kauf_h)
                 # Daniel 07.10. (Lauf 14: 9 statt 10 Kaempfer, "hier fehlt ein Arbeiter, schlecht kalkuliert"): nach dem Endspiel-
                 # Abriss lagen 59 Holz, daraus wurde ein Holzfaeller statt Gold - im Endspiel und ohne Holzbedarf nie
                 if (not bremst and st["holz"] > HOLZ_RESERVE + 4 and not endspiel["fertig"]
