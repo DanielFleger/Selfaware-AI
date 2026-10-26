@@ -3629,13 +3629,18 @@
    "seit": "2026-10-21 00:53",
    "herkunft": "Daniel 21.10. 00:47: ja, Mauer einreissen bauen und wieder messen",
    "gebaut": null,
-   "commits": [],
+   "commits": [
+    "HEAD"
+   ],
    "wo": [
     "werkzeug/feldzug.py (MAUER_TYPEN",
-    "mauer_seit); werkzeug/logik_stand_20261021.lua (angriff.mauer); Pruefung 29 + 22"
+    "mauer_seit); werkzeug/logik_stand_20261021.lua (angriff.mauer); Pruefung 29 + 22",
+    "werkzeug/feldzug.py (_kette_zum_zug",
+    "KETTE_DA)",
+    "feldzug_pruefen 62"
    ],
    "belege": [],
-   "notiz": "21.10. 00:58 gemessen (L173): Befehl wird eingereiht und angenommen, aber vom Spiel nicht ausgefuehrt (12 Einheiten, 6.600 Takte, Zielart nie 23, kein Schritt); Lauf 3: 0 von 607 Mauerkacheln gefallen. Verdacht: selectionTargetUnitID der Gruppe nicht gesetzt -> falsches Gebiet beim Freiplatz-Suchen. Naechster Schritt: im Spielcode pruefen | 21.10. 18:35: Mauer aufhacken wirkt (L174/L175); Rueckzug laesst beschaeftigte Mauerhacker stehen (Pruefung 30), Kern 17 zaehlt Hacker an der Mauer als HAT ZIEL | 26.10. 22:16 Daniel (ueber SRE): 'Momentan kann die selfaware noch nicht so schnell einen eingang finden/freihauen kannst du das fixen?' - Vorschlag an Daniel: Beispiel holen, dann Sandkasten-Messung; Verdacht: Hackbefehl wird angenommen, aber nicht ausgefuehrt (21.10.)",
+   "notiz": "21.10. 00:58 gemessen (L173): Befehl wird eingereiht und angenommen, aber vom Spiel nicht ausgefuehrt (12 Einheiten, 6.600 Takte, Zielart nie 23, kein Schritt); Lauf 3: 0 von 607 Mauerkacheln gefallen. Verdacht: selectionTargetUnitID der Gruppe nicht gesetzt -> falsches Gebiet beim Freiplatz-Suchen. Naechster Schritt: im Spielcode pruefen | 21.10. 18:35: Mauer aufhacken wirkt (L174/L175); Rueckzug laesst beschaeftigte Mauerhacker stehen (Pruefung 30), Kern 17 zaehlt Hacker an der Mauer als HAT ZIEL | 26.10. 22:16 Daniel (ueber SRE): 'Momentan kann die selfaware noch nicht so schnell einen eingang finden/freihauen kannst du das fixen?' - Vorschlag an Daniel: Beispiel holen, dann Sandkasten-Messung; Verdacht: Hackbefehl wird angenommen, aber nicht ausgefuehrt (21.10.) | 26.10. 23:20 Schritt 1+Fix A: Ursache gemessen (Partie 220717, Lord 137 eingemauert): 112 arab. Schwertkaempfer standen 55-60 Felder vom Zugang, 30-68 davon untaetig GENAU an ihrem Laufziel = naechster Planpunkt; jede Runde neuer Kettenbefehl ab diesem Punkt loeste die Kette im Spielmodul -> kein Fortschritt. Fix: Kette ab dem naechsten Kettenpunkt. Offen: Ziel halten (springt alle 3.000-6.000 Takte), Gebaeude-Durchbruch nur erreichbar",
    "verlauf": [
     {
      "zeit": "2026-10-21 00:53",
@@ -3656,6 +3661,10 @@
     {
      "zeit": "2026-10-26 22:21",
      "was": "in Arbeit -> in Arbeit: 26.10. 22:16 Daniel (ueber SRE): 'Momentan kann die selfaware noch nicht so schnell einen eingang finden/freihauen kannst du das fixen?' - Vorschlag an Daniel: Beispiel holen, dann Sandkasten-Messung; Verdacht: Hackbefehl wird angenommen, aber nicht ausgefuehrt (21.10.)"
+    },
+    {
+     "zeit": "2026-10-26 22:57",
+     "was": "in Arbeit -> in Arbeit (Commit HEAD): 26.10. 23:20 Schritt 1+Fix A: Ursache gemessen (Partie 220717, Lord 137 eingemauert): 112 arab. Schwertkaempfer standen 55-60 Felder vom Zugang, 30-68 davon untaetig GENAU an ihrem Laufziel = naechster Planpunkt; jede Runde neuer Kettenbefehl ab diesem Punkt loeste die Kette im Spielmodul -> kein Fortschritt. Fix: Kette ab dem naechsten Kettenpunkt. Offen: Ziel halten (springt alle 3.000-6.000 Takte), Gebaeude-Durchbruch nur erreichbar"
     }
    ],
    "rang": 12
