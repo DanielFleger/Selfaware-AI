@@ -106,7 +106,8 @@ _RICHTUNG_NR = {v: k for k, v in _RICHTUNG.items()}
 
 class _E(object):
     __slots__ = ("id", "typ", "own", "mx", "my", "h", "leben", "tot", "zustand", "ziel", "start_ziel", "fr", "msk", "cemd",
-                 "sel", "sbs", "tpm", "weg", "dest", "blick", "zaehler", "nah", "sicht", "schuss_n", "schuss_ziel", "letzt", "hz")
+                 "sel", "sbs", "tpm", "weg", "dest", "blick", "zaehler", "nah", "sicht", "schuss_n", "schuss_ziel", "letzt", "hz",
+                 "versteckt", "klettert")
 
     @property
     def feld(self):
@@ -148,6 +149,7 @@ class Simulator(object):
         except Exception:  # noqa: BLE001
             self.ohne_liste = set()
         self._gewaehlt = {}
+        self._liste, self._geister, self._teams = None, {}, None
         self.phasen = {}
         for ut, z in auge._phasen_tabellen().items():
             if ut == "hacken" or z.get("schuss_schritt") is None:
@@ -193,6 +195,8 @@ class Simulator(object):
             u.schuss_n = e.get("sre_naechster_schuss_takte")
             u.schuss_ziel = e.get("shootTargetedUnit") or 0
             u.letzt = None
+            u.versteckt = bool(e.get("unknownTestAgainst0_2_versteckt") or 0)      # +856 (AU21/AU23)
+            u.klettert = bool(e.get("usingTeleport") or 0)                          # +670: Zaehler steht (AU22)
             U[u.id] = u
         felder = {}
         for u in U.values():
@@ -236,15 +240,28 @@ class Simulator(object):
     def _feind(a, b):
         return b.own != a.own and b.own != 0 and not b.tot
 
+    def _team(self, o):
+        t = self._teams
+        return int(t[o]) if t and o < len(t) else o
+
+    def _liste_bauen(self, U, p):
+        """AU23 recomputeTroopValuesForPlayer: lebend, nicht versteckt, anderes Team (Besitzer 0 zaehlt mit), ohne Haendler & Co."""
+        tp = self._team(p)
+        return {v.id for v in U.values() if not v.tot and not v.versteckt and v.typ not in self.ohne_liste and self._team(v.own) != tp}
+
     def _suche(self, U, u):
-        """AU19-AU21: kleinster Abstand (ganzzahlig, auge._spiel_abstand) zur Feindliste; NAEHERUNG der Liste: alle lebenden
-        Einheiten anderer Spieler ohne Haendler/Pferd/Kamel/Geist/Mutter/Kind - die echte ist bis zu 60 Takte alt und ohne
-        versteckte (+856), beides steht nicht im Protokoll."""
+        """AU19-AU23/AU26: kleinster Abstand (ganzzahlig) zur Feindliste des Spielers; mit Lastverteiler die ALTE Liste
+        (Mitglieder vom letzten Neubau, Tote mit ihrer letzten Lage, ohne Lebenspruefung), sonst alle lebenden Feinde."""
         best = None
-        for v in U.values():
-            if v.tot or v.own == u.own or v.own == 0 or v.typ in self.ohne_liste:
-                continue
-            d = self.auge._spiel_abstand(v.mx - u.mx, v.my - u.my)
+        if self._liste is not None:
+            ids = self._liste.get(u.own)
+            if ids is None:
+                ids = self._liste[u.own] = self._liste_bauen(U, u.own)
+            lagen = [(U[i].mx, U[i].my) for i in ids if i in U] + [self._geister[i] for i in ids if i not in U and i in self._geister]
+        else:
+            lagen = [(v.mx, v.my) for v in U.values() if not v.tot and v.own not in (0, u.own) and v.typ not in self.ohne_liste]
+        for vx, vy in lagen:
+            d = self.auge._spiel_abstand(vx - u.mx, vy - u.my)
             if best is None or d < best:
                 best = d
         if best is not None:
@@ -312,8 +329,15 @@ class Simulator(object):
             for w in U.values():
                 if w.id != u.id and not w.tot and w.schuss_ziel:
                     beschossen[w.schuss_ziel] = beschossen.get(w.schuss_ziel, 0) + 1
-        for v in sorted(U.values(), key=lambda x: x.id):
-            if not v.id or not self._feind(u, v):      # Nummer 0 heisst im Spiel "kein Ziel"
+        if self._liste is not None:                    # AU20: Kandidaten = Feindliste des Spielers (aufsteigend)
+            ids = self._liste.get(u.own)
+            if ids is None:
+                ids = self._liste[u.own] = self._liste_bauen(U, u.own)
+            menge = [U[i] for i in sorted(ids) if i in U and not U[i].tot]
+        else:
+            menge = [v for v in sorted(U.values(), key=lambda x: x.id) if self._feind(u, v)]
+        for v in menge:
+            if not v.id:                               # Nummer 0 heisst im Spiel "kein Ziel"
                 continue
             vx, vy = v.feld
             if (vx - fx) ** 2 + (vy - fy) ** 2 > r * r:
@@ -365,7 +389,7 @@ class Simulator(object):
     def _laufen(self, u, felder):
         """AU22: jede lebende Einheit zaehlt je Takt hoch; ist der Abstand > cMS + sBS + moveDelay, ist Zug-Gelegenheit - der
         Merker springt auch dann, wenn sie nicht laeuft."""
-        if u.tot:
+        if u.tot or u.klettert:
             return
         u.zaehler += 1
         if u.zaehler < u.tpm:
@@ -415,7 +439,7 @@ class Simulator(object):
                 aus[int(nr)] = t0 - g[-1]
         return aus
 
-    def prognose(self, s, horizont=90, einheiten=None, protokoll=False, vorgeschichte=None):
+    def prognose(self, s, horizont=90, einheiten=None, protokoll=False, vorgeschichte=None, teams=None):
         einheiten = einheiten if einheiten is not None else s.einheiten_liste()
         U, felder = self._aufbau(einheiten, self.zug_phasen(s, vorgeschichte))
         t0 = s.kopf()["takt"]
@@ -505,8 +529,33 @@ class Simulator(object):
 
         reihe = sorted(U)
         self._gewaehlt = {}
+        # AU20/AU26: Feindlisten je Spieler, neu gebaut nur bei Lastverteiler = Spieler + 10/60/100/160
+        lv0 = getattr(s, "lastverteiler", None)
+        lv0 = None if lv0 is None or int(lv0) < 0 else int(lv0)
+        t_ = getattr(s, "teams", None)
+        self._teams = list(teams) if teams else (list(t_) if t_ and any(int(x) for x in t_) else None)
+        self._liste = None if lv0 is None else {}
+        self._geister = {}
+        spieler = sorted(set(u.own for u in U.values() if u.own))
+        if self._liste is not None:
+            kette = list(vorgeschichte or []) + [s]
+            for p in spieler:
+                for back in range(len(kette)):
+                    # gebaut im Takt t0-back aus dem Stand des Vortakts (kette[-2-back])
+                    if self.auge.feindliste_neu((lv0 - back) % 200, p) and len(kette) >= back + 2:
+                        alt = kette[-2 - back]
+                        ids = self.auge.feindliste(alt, p, teams=self._teams)
+                        self._liste[p] = set(ids)
+                        for e in alt.einheiten_liste():
+                            if e["id"] in self._liste[p] and e["id"] not in U:
+                                self._geister[e["id"]] = tuple(e["mikro"])
+                        break
         for k in range(1, horizont + 1):
             t = t0 + k
+            if self._liste is not None:
+                for p in spieler:
+                    if self.auge.feindliste_neu((lv0 + k) % 200, p):
+                        self._liste[p] = self._liste_bauen(U, p)
             if self.SUCHE_ZUERST:
                 for i in reihe:
                     u = U[i]

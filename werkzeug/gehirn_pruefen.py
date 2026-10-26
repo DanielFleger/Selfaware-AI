@@ -38,6 +38,9 @@ def main(argv):
     schritt = int(argv[2]) if len(argv) > 2 else 30
     sw_pfad = argv[3] if len(argv) > 3 else os.path.join(D, "spielwerte_20261025_145546.json")   # live, mit bewegung.*
     motor = argv[4] if len(argv) > 4 else "gehirn"
+    # argv[5] "von-bis": nur Fenster ganz in diesem Taktbereich (z. B. lueckenloser Abschnitt, AU26); argv[6] Teams "0,2,1,..."
+    bereich = tuple(int(x) for x in argv[5].split("-")) if len(argv) > 5 and argv[5] not in ("", "-") else None
+    teams = [int(x) for x in argv[6].split(",")] if len(argv) > 6 else None
     import gehirn
     sw = json.load(open(sw_pfad, encoding="utf-8"))
     G = gehirn.Gehirn(sw)
@@ -60,17 +63,21 @@ def main(argv):
         vg = list(vorher)
         vorher.append(s)
         t0 = s.kopf()["takt"]
+        if bereich and (t0 < bereich[0] + VORGESCHICHTE or t0 + H > bereich[1]):
+            continue
         if letzter is not None and t0 - letzter < schritt:
             continue
         letzter = t0
         einh = s.einheiten_liste()
-        progn = S.prognose(s, H, einh, vorgeschichte=vg) if motor == "sim" else G.prognose(s, H, einh)
+        progn = S.prognose(s, H, einh, vorgeschichte=vg, teams=teams) if motor == "sim" else G.prognose(s, H, einh)
         basis = G.prognose(s, H, einh, begegnung=False)     # Baustein 1 allein - fuer "neue Begegnungen erfasst"
         echt = collections.Counter()
+        besitzer = {}
         echt_geschoss = collections.defaultdict(list)
         for t in takte[bisect.bisect_right(takte, t0):bisect.bisect_right(takte, t0 + H)]:
             for ev in echt_je_takt[t]:
                 echt[ev["id"]] += ev["verlust"]
+                besitzer[ev["id"]] = ev.get("owner")
                 if any(q.get("quelle") == "geschoss" for q in ev["quellen"]):
                     echt_geschoss[ev["id"]].append(t)
         if not echt and not progn:
@@ -80,6 +87,9 @@ def main(argv):
         summe["echt_getroffen"] += sum(v for o, v in echt.items() if o in progn)
         summe["neu_echt"] += sum(v for o, v in echt.items() if o not in basis)
         summe["neu_erfasst"] += sum(v for o, v in echt.items() if o not in basis and o in progn)
+        # getrennt ausgewiesen: Opfer ohne Besitzer (Tiere - Jagd, kein Kampf); Besitzer aus der Treffer-Datei
+        summe["neu_echt_tiere"] += sum(v for o, v in echt.items() if o not in basis and besitzer.get(o) == 0)
+        summe["neu_erfasst_tiere"] += sum(v for o, v in echt.items() if o not in basis and o in progn and besitzer.get(o) == 0)
         summe["progn"] += sum(p["verlust"] for p in progn.values())
         summe["progn_richtig"] += sum(p["verlust"] for o, p in progn.items() if echt.get(o, 0) > 0)
         for o, p in progn.items():
@@ -93,11 +103,13 @@ def main(argv):
     quote = summe["echt_getroffen"] / float(max(1, summe["echt"]))
     praez = summe["progn_richtig"] / float(max(1, summe["progn"]))
     zeit = zeit_ok / float(max(1, zeit_n))
-    erg = {"protokoll": os.path.basename(pfad), "motor": motor, "H": H, "schritt": schritt, "fenster": fenster,
+    erg = {"protokoll": os.path.basename(pfad), "motor": motor, "bereich": bereich, "H": H, "schritt": schritt, "fenster": fenster,
            "opfer_quote": round(quote, 3), "praezision": round(praez, 3),
            "menge_verhaeltnis": round(summe["progn"] / float(max(1, summe["echt"])), 3),
            "zeit_quote_pm5": round(zeit, 3), "zeit_n": zeit_n,
            "neue_begegnungen_erfasst": round(summe["neu_erfasst"] / float(max(1, summe["neu_echt"])), 4), "neu_echt": summe["neu_echt"], "neu_erfasst": summe["neu_erfasst"],
+           "neue_begegnungen_ohne_tiere": round((summe["neu_erfasst"] - summe["neu_erfasst_tiere"]) / float(max(1, summe["neu_echt"] - summe["neu_echt_tiere"])), 4),
+           "neu_echt_tiere": summe["neu_echt_tiere"], "neu_erfasst_tiere": summe["neu_erfasst_tiere"],
            "echt_verlust": summe["echt"], "progn_verlust": round(summe["progn"]),
            "quellen_vorhergesagt": {k[6:]: v for k, v in summe.items() if k.startswith("progn_") and k[6:] in ("geschoss", "schuss", "nahkampf", "nahkampf_folge", "begegnung", "begegnung_gegen")}}
     urteil = ("ZIEL ERREICHT" if quote >= 0.8 and zeit >= 0.8 else
