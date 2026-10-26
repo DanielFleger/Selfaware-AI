@@ -61,6 +61,7 @@ _KLASSE[76] = (1, 0)
 _SONST = (10, 400)
 GESCHOSS_ET = {22: 1, 70: 1, 74: 1, 23: 7, 72: 33}        # Schuetzenart -> Geschossart (gehirn.GESCHOSS_TABELLE_*)
 MARKIEREN = (22, 70)
+WILD = 44                                              # AU35: Gangart des Wilds
 JAEGER = 6                                             # AU27: Jaeger schiesst Wild (Art 44) mit Pfeilen
 SCHUSS_TAB_UT = dict(gehirn.GESCHOSS_TABELLE_UT)
 SCHUSS_TAB_UT[JAEGER] = "einheit.arrow_damage"
@@ -111,7 +112,7 @@ _RICHTUNG_NR = {v: k for k, v in _RICHTUNG.items()}
 class _E(object):
     __slots__ = ("id", "typ", "own", "mx", "my", "h", "leben", "tot", "zustand", "ziel", "start_ziel", "fr", "msk", "cemd",
                  "sel", "sbs", "tpm", "weg", "dest", "blick", "zaehler", "nah", "sicht", "schuss_n", "schuss_ziel", "letzt", "hz",
-                 "versteckt", "klettert", "schritt", "leer_n", "leer_art")
+                 "versteckt", "klettert", "schritt", "leer_n", "leer_art", "cms", "md", "aufschlag", "grund", "gel")
 
     @property
     def feld(self):
@@ -137,6 +138,7 @@ class Simulator(object):
     GEGEN_BLICK = True
     FREMDTREFFER = True
     VORHALT = True
+    WILD_GANGART = True             # AU35: Wild rennt/geht, cMS nur jede 8. Zug-Gelegenheit
     LAUF_NACH_246 = True            # AU33: Laufen nach +246 == 2 statt nach Zustandsnummer
     MIKROSCHRITTE = True            # AU31: Treffer je Mikroschritt der Bahn (Index 7)
     ZIEL_PRUEFEN = True             # AU30 (1): Zielpruefung am Ende des Zielens
@@ -158,6 +160,7 @@ class Simulator(object):
             self.ohne_liste = set()
         self._gewaehlt = {}
         self._liste, self._geister, self._teams = None, {}, None
+        self._el_cache = {}
         self.jaeger = self._jaeger_tabelle()
         self.phasen = {}
         for ut, z in auge._phasen_tabellen().items():
@@ -195,7 +198,10 @@ class Simulator(object):
             u.sel = e.get("isSelectable_OR_matchTime", 0) == 1
             u.sicht = e.get("assassinsMicroDistanceToEnemyUnk", 32000)
             u.sbs = e.get("stateBasedSpeed", 0)
-            u.tpm = e.get("calculatedMovementSpeed", 0) + u.sbs + e.get("moveDelay", 0) + 1
+            u.cms, u.md = e.get("calculatedMovementSpeed", 0), e.get("moveDelay", 0)
+            u.tpm = u.cms + u.sbs + u.md + 1
+            u.aufschlag = u.cms - e.get("movementSpeed", u.cms)       # cMS = movementSpeed + Gelaende-Aufschlag (AU35)
+            u.grund, u.gel = None, None
             # AU33 processUnitMove: gezogen wird genau dann, wenn +246 (tunnelerFinishedDigging) == 2 ist - Zustand egal
             #   (436.538 von 437.729 Zuegen; der Rest ist der erste Schritt eines im selben Takt neu gesetzten Wegs)
             if "tunnelerFinishedDigging" in e and self.LAUF_NACH_246:
@@ -477,10 +483,20 @@ class Simulator(object):
         Merker springt auch dann, wenn sie nicht laeuft."""
         if u.tot or u.klettert:
             return
+        if self.WILD_GANGART and u.typ == WILD and u.sbs == 1 and len(u.weg) < 2:
+            # AU35: in den letzten 2 Wegschritten geht Wild (sBS 0, Grundtempo); cMS folgt erst bei der naechsten 8er-Gelegenheit
+            u.sbs = 0
+            u.tpm = u.cms + u.sbs + u.md + 1
         u.zaehler += 1
         if u.zaehler < u.tpm:
             return
         u.zaehler = 0
+        if self.WILD_GANGART and u.typ == WILD and u.gel is not None:
+            u.gel += 1
+            if u.gel % 8 == 0 and u.grund is not None and u.sbs == 0 and u.cms != u.grund + u.aufschlag:
+                u.cms = u.grund + u.aufschlag              # calculateUnitMovementSpeed nur jede 8. Gelegenheit (AU35)
+                u.tpm = u.cms + u.sbs + u.md + 1
+                u.gel = 0
         if not u.weg:
             return
         alt = u.feld
@@ -525,9 +541,38 @@ class Simulator(object):
                 aus[int(nr)] = t0 - g[-1]
         return aus
 
+    def _wild_aus_vorgeschichte(self, U, s, vorgeschichte):
+        """AU35: Grundtempo = movementSpeed beim letzten Gehen (sBS 0, nicht 20); 8er-Phase = Zug-Gelegenheiten seit der letzten
+        cMS-Aenderung. Beides aus den Takten VOR dem Fenster; ohne Beleg bleibt es offen (None)."""
+        kette = list(vorgeschichte or []) + [s]
+        wild = [u for u in U.values() if u.typ == WILD]
+        if not wild or len(kette) < 2:
+            return
+        verlauf = {u.id: [] for u in wild}
+        for sn in kette:
+            el = self._el_cache.get(int(sn.takt))
+            if el is None:
+                el = self._el_cache[int(sn.takt)] = sn.einheiten_liste()
+                if len(self._el_cache) > 200:                  # nur das gleitende Fenster der Vorgeschichte behalten
+                    for t in sorted(self._el_cache)[:100]:
+                        del self._el_cache[t]
+            for e in el:
+                if e["id"] in verlauf:
+                    verlauf[e["id"]].append((int(sn.takt), e["calculatedMovementSpeed"], e["stateBasedSpeed"], e["movementSpeed"]))
+        for u in wild:
+            v = verlauf[u.id]
+            gehen = [ms for _, _, sbs, ms in v if sbs == 0 and ms != 20]
+            u.grund = gehen[-1] if gehen else None
+            wechsel = [t for (t, c, _, _), (_, c0, _, _) in zip(v[1:], v[:-1]) if c != c0]
+            if wechsel:
+                gel = self.auge.zug_gelegenheiten(kette, u.id)
+                u.gel = sum(1 for t in gel if t > wechsel[-1])
+
     def prognose(self, s, horizont=90, einheiten=None, protokoll=False, vorgeschichte=None, teams=None):
         einheiten = einheiten if einheiten is not None else s.einheiten_liste()
         U, felder = self._aufbau(einheiten, self.zug_phasen(s, vorgeschichte))
+        if self.WILD_GANGART:
+            self._wild_aus_vorgeschichte(U, s, vorgeschichte)
         self._s = s                                     # Boden/Gebaeudehoehen fuer auge.bahn_neu (AU32)
         t0 = s.kopf()["takt"]
         aus = {}
