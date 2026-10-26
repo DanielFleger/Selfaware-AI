@@ -195,7 +195,11 @@ class Simulator(object):
             u.sicht = e.get("assassinsMicroDistanceToEnemyUnk", 32000)
             u.sbs = e.get("stateBasedSpeed", 0)
             u.tpm = e.get("calculatedMovementSpeed", 0) + u.sbs + e.get("moveDelay", 0) + 1
-            u.weg = [tuple(p) for p in (e.get("sre_wegpunkte") or [])] if e["state"] in LAUF_ZUSTAENDE else []
+            # Soldaten/Schuetzen laufen nur in den gemessenen Lauf-Zustaenden; Arbeiter und Tiere haben eigene Zustandsnummern
+            # (gemessen 200603: Arbeiter 274, Art 64, laeuft in Zustand 4) - bei ihnen zaehlt der Weg selbst
+            soldat = u.typ in KANN_NAHKAMPF or u.typ in SCHUSS_TAB_UT
+            laeuft = e["state"] in LAUF_ZUSTAENDE if soldat else (e["state"] not in STERBEN and e["state"] != NAH)
+            u.weg = [tuple(p) for p in (e.get("sre_wegpunkte") or [])] if laeuft else []
             # NAEHERUNG (191847, Takt 41.291: Meuchelmoerder 172 hatte 4 Wegpunkte bis (152,292), Ziel (151,291) - im Spiel lief
             # er weiter): der Wegplan im Schnappschuss ist nur ein Abschnitt; danach geradeaus zum Ziel
             d = tuple(e.get("destination") or (0, 0))
@@ -457,7 +461,7 @@ class Simulator(object):
             v = i // 8 if z.sbs else (i // 16 if cms < 2 else i // (cms * 16))
             ddx, ddy = _RICHTUNG.get(z.blick, (0, 0))
             tx, ty = tx + ddx * v, ty + ddy * v
-        return self.auge.bahn_neu((u.mx, u.my), u.hz + plus, (tx, ty), z.hz + 30, et)
+        return self.auge.bahn_neu((u.mx, u.my), u.hz + plus, (tx, ty), z.hz + 30, et, schnappschuss=self._s)
 
     def _laufen_alle(self, U, felder):
         """L190 (P13 + Messung): Zug alle tpm Takte um (stateBasedSpeed + 1) Mikroschritte zur Wegpunkt-Mitte."""
@@ -520,6 +524,7 @@ class Simulator(object):
     def prognose(self, s, horizont=90, einheiten=None, protokoll=False, vorgeschichte=None, teams=None):
         einheiten = einheiten if einheiten is not None else s.einheiten_liste()
         U, felder = self._aufbau(einheiten, self.zug_phasen(s, vorgeschichte))
+        self._s = s                                     # Boden/Gebaeudehoehen fuer auge.bahn_neu (AU32)
         t0 = s.kopf()["takt"]
         aus = {}
         spur = [] if protokoll else None
