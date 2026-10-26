@@ -1882,9 +1882,11 @@ def _schritt_gemessen(f):
         aus = f(self, *a, **k)
         z = self.__dict__.setdefault("_zeiten", {})
         z["schritt"] = z.get("schritt", 0.0) + _time.perf_counter() - t0
+        z.update(_GF_ZEIT)
         if self.runde % ZEIT_RUNDEN == 0 and z.get("schritt", 0) > 0 and isinstance(aus, list):
             aus.append("FELDZUG ZEITEN bis Runde %d (s, inkl. Unteraufrufe): %s" % (
-                self.runde, ", ".join("%s %.1f" % (k_, v_) for k_, v_ in sorted(z.items(), key=lambda kv: -kv[1]) if v_ >= 0.05)))
+                self.runde, ", ".join("%s %.1f%s" % (k_, v_, " (%dx)" % _GF_ZAHL[k_] if k_ in _GF_ZAHL else "")
+                                      for k_, v_ in sorted(z.items(), key=lambda kv: -kv[1]) if v_ >= 0.05)))
         return aus
     w.__name__ = f.__name__
     return w
@@ -1894,3 +1896,43 @@ for _n in _GEMESSEN:
     if hasattr(Feldzug, _n):
         setattr(Feldzug, _n, _gemessen(getattr(Feldzug, _n), _n))
 Feldzug.schritt = _schritt_gemessen(Feldzug.schritt)
+
+
+# B-259: die Gefahrenkarten-Aufrufe einzeln messen (in _abfangen 4,5 s in 20 Runden, Partie 000151)
+def _gf_gemessen(f, name):
+    def w(*a, **k):
+        t0 = _time.perf_counter()
+        try:
+            return f(*a, **k)
+        finally:
+            _GF_ZEIT[name] = _GF_ZEIT.get(name, 0.0) + _time.perf_counter() - t0
+            _GF_ZAHL[name] = _GF_ZAHL.get(name, 0) + 1
+    return w
+
+
+_GF_ZAHL = {}
+
+
+def _suche_gemessen(f):
+    """B-259: echte Suchen (nicht aus dem Rundenspeicher) der Gefahrenkarte zaehlen und messen."""
+    def w(self, start):
+        neu = tuple(start) not in self._suche
+        t0 = _time.perf_counter()
+        try:
+            return f(self, start)
+        finally:
+            if neu:
+                _GF_ZEIT["Karte.suche neu"] = _GF_ZEIT.get("Karte.suche neu", 0.0) + _time.perf_counter() - t0
+                _GF_ZAHL["Karte.suche neu"] = _GF_ZAHL.get("Karte.suche neu", 0) + 1
+    w._gemessen = True
+    return w
+
+
+_GF_ZEIT = {}
+if hasattr(GF, "Karte") and not getattr(GF.Karte.suche, "_gemessen", False):
+    GF.Karte.suche = _suche_gemessen(GF.Karte.suche)
+for _n in ("sicherer_weg", "erreichbare_schuetzen", "schuetzen_am_weg", "mindestzahl"):
+    if hasattr(GF, _n) and not getattr(getattr(GF, _n), "_gemessen", False):
+        _f = _gf_gemessen(getattr(GF, _n), "GF." + _n)
+        _f._gemessen = True
+        setattr(GF, _n, _f)
