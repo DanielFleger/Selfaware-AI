@@ -202,6 +202,14 @@ class Simulator(object):
             u.tpm = u.cms + u.sbs + u.md + 1
             u.aufschlag = u.cms - e.get("movementSpeed", u.cms)       # cMS = movementSpeed + Gelaende-Aufschlag (AU35)
             u.grund, u.gel = None, None
+            if u.typ == WILD and e.get("antelopeBasedRngValue") is not None:
+                u.grund = int(e["antelopeBasedRngValue"]) + 1          # AU36: Grundtempo beim Gehen = +113 + 1
+            if u.typ == WILD and e.get("field339_0x440_tempozaehler") is not None:
+                # AU36: Gelegenheiten bis zur naechsten cMS-Neuberechnung -> als Zaehler, der bei % 8 == 0 rechnet
+                # wie auge.gelegenheiten_bis_cms (dort fuer Rohzeilen): naechstes k mit ((Zaehler + k) + Nummer) & 7 == 0
+                z = int(e["field339_0x440_tempozaehler"])
+                bis = next(k for k in range(1, 9) if ((z + k) + u.id) & 7 == 0)
+                u.gel = (8 - bis) % 8
             # AU33 processUnitMove: gezogen wird genau dann, wenn +246 (tunnelerFinishedDigging) == 2 ist - Zustand egal
             #   (436.538 von 437.729 Zuegen; der Rest ist der erste Schritt eines im selben Takt neu gesetzten Wegs)
             if "tunnelerFinishedDigging" in e and self.LAUF_NACH_246:
@@ -545,7 +553,7 @@ class Simulator(object):
         """AU35: Grundtempo = movementSpeed beim letzten Gehen (sBS 0, nicht 20); 8er-Phase = Zug-Gelegenheiten seit der letzten
         cMS-Aenderung. Beides aus den Takten VOR dem Fenster; ohne Beleg bleibt es offen (None)."""
         kette = list(vorgeschichte or []) + [s]
-        wild = [u for u in U.values() if u.typ == WILD]
+        wild = [u for u in U.values() if u.typ == WILD and (u.grund is None or u.gel is None)]
         if not wild or len(kette) < 2:
             return
         verlauf = {u.id: [] for u in wild}
@@ -560,6 +568,8 @@ class Simulator(object):
                 if e["id"] in verlauf:
                     verlauf[e["id"]].append((int(sn.takt), e["calculatedMovementSpeed"], e["stateBasedSpeed"], e["movementSpeed"]))
         for u in wild:
+            if u.grund is not None and u.gel is not None:
+                continue                                       # aus den Feldern (neue Protokolle/live), keine Vorgeschichte
             v = verlauf[u.id]
             gehen = [ms for _, _, sbs, ms in v if sbs == 0 and ms != 20]
             u.grund = gehen[-1] if gehen else None
