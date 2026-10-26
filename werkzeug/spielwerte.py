@@ -186,6 +186,9 @@ SCHUSS = {   # UT: Phasen (Name, Adresse der Bildtabelle, animationSpeed), Gesch
     76: {"phasen": [("nachladen", ANIM + 0x34D4, 6), ("zielen", ANIM + 0x34EC, 1), ("schiessen", ANIM + 0x3510, 2)], "schuss_bei": "Bild 20"},   # UpdateFireThrower: animationFrame 0x14 = Schritt 6 (vorher falsch "Zyklus 0")
     # Berittener Bogenschuetze (HorseArcher_DoShooting 0x00575820): drei Tabellen, Speed 1 (Bild = 2 Takte), Pfeil bei Bild 27
     74: {"phasen": [("nachladen", ANIM + 0x30E4, 1), ("zielen", ANIM + 0x314C, 1), ("schiessen", ANIM + 0x31A4, 1)], "schuss_bei": "Bild 27"},
+    # Jaeger (UpdateHunter 0x0054F860, AU27): Zustand 9 = auf das Wild drehen (1 Achtel je Takt), Zustand 10 = schiessen,
+    # EINE Tabelle (46 Bilder, Speed 2), Pfeil (Art 1) bei Bild 22 = Schritt 21; gemessen 29/29 (Pruefstein 201153)
+    6: {"phasen": [("schiessen", ANIM + 0x3D2C, 2)], "schuss_bei": "Bild 22"},
     # Belagerungsgeraete (UpdateCatapult 0x00568320, Trebuchet 0x00569410, Mangonel 0x0056A3F0, Ballista 0x0056ECD0,
     # FireBallista 0x00577CC0): zwei Bildtabellen je Zyklus (Spannen, Schuss), Speed 2; unbemannt Speed 10000 = steht.
     39: {"phasen": [("spannen", ANIM + 0x1784, 2), ("schiessen", ANIM + 0x17D4, 2)], "schuss_bei": "Bild 23 (Index 9 der Schusstabelle)"},
