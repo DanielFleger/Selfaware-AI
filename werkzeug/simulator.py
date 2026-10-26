@@ -137,6 +137,7 @@ class Simulator(object):
     GEGEN_BLICK = True
     FREMDTREFFER = True
     VORHALT = True
+    ZIEL_PRUEFEN = True             # AU30 (1): Zielpruefung am Ende des Zielens
     LEERLAUF = True                 # AU28: untaetige Schuetzen ohne Trupp suchen am Ende jeder Leerlauf-Animation                  # AU25: Vorhalt bei laufendem Ziel             # AU4/AU24: Geschoss prueft je Takt das ueberflogene Feld (auge.bahn_neu / sre_bahn)              # AU23: Gegenzuweisung setzt beim Opfer attackedUnitID UND Blickrichtung          # Schuetzen drehen beim Zielen/Schiessen zum Ziel (gemessen, 91 % der Schiess-Takte)        # je Einheit: n = Nahkampf, s = Feindsuche, l = Laufen (gemessen, s. Register L190)
 
     def __init__(self, sw):
@@ -580,7 +581,10 @@ class Simulator(object):
                     u.leer_n, u.leer_art = 1, 0
                 else:
                     d, tsch = self._leer_dauer(u, u.zustand)
-                    if d:
+                    if u.typ == 70 and u.zustand == 8:
+                        # AU30: Zaehler ist animationCycleNumber selbst, +1 je Takt und +1 alle 6 Takte, Ende bei > 200
+                        u.leer_n, u.leer_art = max(1, -(-(201 - u.schritt) * 6 // 7)), 8
+                    elif d:
                         u.leer_n, u.leer_art = max(1, d - u.schritt * tsch), u.zustand
 
         def nahkampf(u, k):
@@ -682,6 +686,21 @@ class Simulator(object):
                             r = _zielrichtung(u.feld[0], u.feld[1], z.feld[0], z.feld[1])
                             if r is not None:
                                 u.blick = _drehe(u.blick, r)
+            if self.ZIEL_PRUEFEN:
+                # AU30 (1): Ende des Zielens - Ziel tot/ungueltig -> neu suchen (Erfolg: weiter zielen, sonst Zustand 0)
+                for u in U.values():
+                    p = self.phasen.get(u.typ)
+                    if u.tot or u.schuss_n is None or not p or u.schuss_n - p["vor"] != k or u.zustand == NAH:
+                        continue
+                    z = U.get(u.schuss_ziel) if u.schuss_ziel else None
+                    if z is None or z.tot:
+                        u.schuss_ziel = self._neuwahl(U, u, k)
+                        if u.schuss_ziel:
+                            u.schuss_n = k + p["zielen"] + p["vor"]
+                        else:
+                            u.schuss_n = None
+                            if self.LEERLAUF:
+                                self._leer_start(u, k)
             for u in U.values():
                 if u.tot or u.schuss_n != k:
                     continue
@@ -691,9 +710,14 @@ class Simulator(object):
                 p = self.phasen.get(u.typ)
                 z = U.get(u.schuss_ziel) if u.schuss_ziel else None    # 0 = kein Ziel (Einheit 0 gibt es trotzdem)
                 if (z is None or z.tot) and self.NEUWAHL and p:
-                    # Ziel tot/ungueltig: neu waehlen, dann zielen und schiessen bis zum Schussschritt (AU6: 44-46 Takte)
+                    # AU30 (2): im Schussbild Ziel tot/ungueltig -> kein Pfeil, neu suchen: Erfolg -> Zielen (5), sonst Zustand 0
                     u.schuss_ziel = self._neuwahl(U, u, k)
-                    u.schuss_n = k + p["zielen"] + p["vor"] if u.schuss_ziel else k + 1
+                    if u.schuss_ziel:
+                        u.schuss_n = k + p["zielen"] + p["vor"]
+                    else:
+                        u.schuss_n = None
+                        if self.LEERLAUF:
+                            self._leer_start(u, k)
                     continue
                 if z is None or z.tot:
                     u.schuss_n = None
