@@ -431,9 +431,13 @@ class Simulator(object):
             if c < j["ss"]:
                 return (j["ss"] - c - 1) * tsch + tsch // 2 + 1
             return None if c > j["ss"] else 1
+        # AU29: Zustand 9 wartet, bis der Jaeger in der Feldmitte steht (Zugregel AU22, Schleichtempo), dann ein Achtel je Takt
+        cx, cy = u.feld[0] * 8 + 4, u.feld[1] * 8 + 4
+        rest = max(abs(cx - u.mx), abs(cy - u.my))
+        warten = max(0, rest * u.tpm - u.zaehler) if rest else 0
         r = _zielrichtung(u.feld[0], u.feld[1], z.feld[0], z.feld[1])
         dreh = 0 if r is None else min((r - u.blick) % 8, (u.blick - r) % 8)
-        return dreh + 1 + j["ss"] * tsch
+        return warten + dreh + 1 + j["ss"] * tsch
 
     def _bahn(self, u, z):
         """AU24: Flugbahn des geplanten Schusses von u auf z (Feldmitte des Ziels, Zielhoehe Boden + 30; Vorhalt fehlt)."""
@@ -550,7 +554,9 @@ class Simulator(object):
         entscheid = {}
         for u in U.values():
             if u.typ == JAEGER and self.jaeger and u.zustand in (9, 10) and u.schuss_ziel and u.schuss_ziel in U:
-                u.schuss_n = self._jaeger_bis_schuss(u, U[u.schuss_ziel])     # Auge liefert ihn (noch) nicht
+                if u.schuss_n is None:          # AU29: in Zustand 10 vor dem Schuss liefert das Auge ihn exakt, sonst selbst
+                    u.schuss_n = self._jaeger_bis_schuss(u, U[u.schuss_ziel])
+                u.schuss_n = max(1, int(u.schuss_n)) if u.schuss_n is not None else None
                 continue
             if u.typ not in gehirn.GESCHOSS_TABELLE_UT:
                 u.schuss_n = None
@@ -703,10 +709,10 @@ class Simulator(object):
                     spur.append(("schuss", k, u.id, z.id))
                 u.letzt = k
                 zyk = self.G.zyklus[u.typ] if u.typ < len(self.G.zyklus) and self.G.zyklus[u.typ] else None
-                if u.typ == JAEGER and self.jaeger:
-                    # AU27: Rest des Durchgangs, 1 Takt entscheiden, (Ziel ausgerichtet) Schritte bis zum Pfeil
-                    j = self.jaeger
-                    zyk = (j["n"] - j["ss"]) * (j["sp"] + 1) + 1 + j["ss"] * (j["sp"] + 1)
+                if u.typ == JAEGER:
+                    # AU29: nie zweimal dasselbe Wild (getroffenes stirbt), danach Anschleichen zum naechsten (2-480 Takte) -
+                    # der naechste Pfeil faellt fruehestens 75 + 1 + 2 + 83 + 62 Takte spaeter: nicht im Fenster
+                    zyk = None
                 u.schuss_n = k + zyk if zyk else None
                 if self.NEUWAHL and p:                 # AU20: Neuwahl am Ende des Schiess-Durchgangs
                     entscheid.setdefault(k + p["nach"], []).append(u)
