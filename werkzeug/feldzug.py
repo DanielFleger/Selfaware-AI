@@ -544,6 +544,7 @@ class Feldzug:
     BALLISTE_R = 30            # B-205: Feuerballiste so nah an einem unserer Nahkaempfer -> Ziel (Startwert, UNGEMESSEN)
     BALLISTE_MIN = 2           # B-182: so viele Nahkaempfer mindestens je Feuerballiste (im Sturm abgesprochen, Daniel 22.10.)
     ZUG_STILL = 300            # B-180: so lange nicht naeher am Zugang (und kein Gegner) -> Weg neu (wie RUECKZUG_TAKTE, L170)
+    HACK_ANLAUF = 6           # B-147: Hackbefehl schon im Anmarsch so viele Felder vor dem Zugang (SRE AU36: nur aus 101)
     KETTE_DA = 4              # logik.lua wegketteTick: "da" bis 4 Felder um den Kettenpunkt
     KETTE_ABSTAND = 15         # B-180: Wegpunkte entlang des Plans (wie sturm.py NAH)
 
@@ -592,7 +593,12 @@ class Feldzug:
         if self._angesetzt_kachel != kq:
             self._mauerziel_los(befehl)
             self._angesetzt_kachel = kq
-        an = [n for n in wand if schach((L[n]["x"], L[n]["y"]), zug) <= 1]
+        # B-147 (SRE AU36, handleUnitMovementWhenTargetingBuildings 0x0054C4F0): gehackt wird nur, wer LAUFEND (101) mit gesetztem
+        # Mauerziel auf einem geraden Nachbarfeld ankommt - wer erst im Stand den Befehl bekommt, bleibt in 0/1 (Partie 220717:
+        # 47 von 71 Mann untaetig neben (175,80), Hoehe 447 Takte unveraendert). Darum bekommt den Hackbefehl schon, wer im
+        # Anmarsch (101) bis HACK_ANLAUF Felder vor dem Zugang ist; wer schon dort steht, wie bisher
+        an = [n for n in wand if schach((L[n]["x"], L[n]["y"]), zug) <= 1
+              or (L[n]["zustand"] == 101 and schach((L[n]["x"], L[n]["y"]), zug) <= self.HACK_ANLAUF)]
         # B-180: wer seit ZUG_STILL Takten nicht naeher kommt und niemanden angreift, bekommt den Weg neu
         spur = getattr(self, "_zug_spur", {})
         self._zug_spur = spur

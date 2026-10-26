@@ -1391,6 +1391,17 @@ def main():
     erst62 = {n: tuple(x["angriff"]["lauf"]) for x in b62.liste if x.get("angriff") for n in x["angriff"]["einheiten"]}
     pruefe(62, "erstes Laufziel am Planpunkt stehend: %s (soll (115, 50)) | 6 Felder daneben: %s (soll (100, 50))" % (
         erst62.get(39), erst62.get(40)), erst62.get(39) == (115, 50) and erst62.get(40) == (100, 50))
+    # 63 (B-147, SRE AU36): wer im Anmarsch (101) 5 Felder vor dem Zugang ist, bekommt den Hackbefehl schon jetzt; wer 5 Felder
+    #    davor STEHT (1), nicht (er bekommt weiter den Laufbefehl)
+    f63 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f63.feldnr = lambda q: q[0] * 400 + q[1]
+    f63.blick = None
+    L63 = {500: einheit(55, 2, 200, 100, 30000), 41: dict(einheit(75, 1, 150, 95), zustand=101), 42: einheit(75, 1, 150, 95)}
+    b63 = Befehle()
+    f63.ziel = 500
+    f63._mauer_am_zug(L63, [41, 42], (150, 101), (150, 100), (200, 100), {}, b63, [], 1000)
+    hack63 = [n for x in b63.liste if x.get("angriff", {}).get("mauer") for n in x["angriff"]["einheiten"]]
+    pruefe(63, "Hackbefehl an: %s (soll [41])" % hack63, hack63 == [41])
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
