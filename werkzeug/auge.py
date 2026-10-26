@@ -1208,7 +1208,7 @@ class Protokoll(object):
         self.entities.append(d["entities"]); self.entities_idx.append(d["entities_idx"])
         self.spieler_bloecke.append(d["spieler"])
         self.lastverteiler.append(-1 if d.get("lastverteiler") is None else int(d["lastverteiler"]))
-        if self.teams is None and d.get("teams"):
+        if self.teams is None and d.get("teams") and any(int(x) for x in d["teams"]):
             self.teams = [int(x) for x in d["teams"]]
         self.trupps.append(d.get("trupps", np.zeros(0, TRIBE))); self.trupps_idx.append(d.get("trupps_idx", np.zeros(0, np.int64)))
         self.gebaeude.append(d.get("gebaeude", np.zeros(0, BUILDING_PACKED))); self.gebaeude_idx.append(d.get("gebaeude_idx", np.zeros(0, np.int64)))
@@ -1449,7 +1449,8 @@ class Taktring(object):
                  "spieler": jetzt.spieler.copy(), "hoehe": ebenen[0] if ebenen else jetzt.hoehe, "feldnr": feldnummern(), "trupps": np.zeros(0, TRIBE),
                  "bau": ebenen[1] if ebenen else getattr(jetzt, "bau", None), "logik": ebenen[2] if ebenen else getattr(jetzt, "logik", None),
                  "trupps_idx": np.zeros(0, np.int64),
-                 "lastverteiler": (int(jetzt.lastverteiler) - (int(jetzt.takt) - int(takt))) % 200}
+                 "lastverteiler": (int(jetzt.lastverteiler) - (int(jetzt.takt) - int(takt))) % 200,
+                 "teams": list(getattr(jetzt, "teams", None) or [])}   # 26.10.: fehlte, Protokoll 201153 hatte nur Nullen
             mg = (g["logicalState"] == 2) if len(g) else np.zeros(0, bool)
             d["gebaeude"] = np.lib.recfunctions.repack_fields(g[mg]) if mg.any() else np.zeros(0, BUILDING_PACKED)
             d["gebaeude_idx"] = np.flatnonzero(mg)
