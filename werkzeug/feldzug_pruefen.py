@@ -346,6 +346,7 @@ def main():
         G_[901] = {"typ": 46, "besitzer": 2, "x": 301, "y": 110, "leben": 1500}
         for i in range(20):
             L_[10 + i] = einheit(75, 1, 300 + i % 3, 108 + i // 10, 28000)
+            L_[10 + i]["zustand"] = 107                # B-256: sie schlagen zu (wie gegen Franz) - ohne Wirkung zaehlt nur, wer haut
         m_ = []
         dauer = F.Feldzug.BRESCHE_ZAEH + 300 if sinkt else F.Feldzug.WIRKUNG_TAKTE + 200
         for k, t in enumerate(range(12050, 12050 + dauer, 100)):
@@ -1402,6 +1403,70 @@ def main():
     f63._mauer_am_zug(L63, [41, 42], (150, 101), (150, 100), (200, 100), {}, b63, [], 1000)
     hack63 = [n for x in b63.liste if x.get("angriff", {}).get("mauer") for n in x["angriff"]["einheiten"]]
     pruefe(63, "Hackbefehl an: %s (soll [41])" % hack63, hack63 == [41])
+    # 69-73 B-256 (Daniel 26.10. 23:11/23:14 "schwirrt hin und her, laesst sich abschiessen, findet keinen Punkt"; "durch das
+    #    Torhaus, aber die Zugbruecke wird ignoriert"; Partie 230627 Sp2 gegen Lord 3)
+    # 69 Nie zurueck: Heer bei (185,90), Wegpunkt 1 (194,298) an der eigenen Burg, Lord (210,83) -> kein Laufbefehl zurueck;
+    #    ein Nachzuegler bei (193,320) bekommt ihn. (Negativlauf 26.10.: Regel im Lenker entfernt -> rot)
+    f69 = F.Feldzug(2, (193, 320), n=20)
+    L69 = {1: einheit(75, 2, 185, 90), 2: einheit(75, 2, 193, 320)}
+    z69 = f69._nicht_zurueck(L69, [1, 2], (194, 298), (210, 83))
+    pruefe(69, "Laufbefehl zum Wegpunkt an der Burg: %s (soll [2])" % (z69,), z69 == [2])
+    # 70 Fortschritt entlang des Plans: der Weg fuehrt U-foermig um eine Mauer (erst weg vom Ziel); ein Mann geht ihn 10 Felder
+    #    weiter -> Restweg sinkt, obwohl die Luftlinie waechst. Gegenprobe: die Luftlinie (die alte Messung) waechst.
+    f70 = F.Feldzug(1, (0, 0), n=20)
+    weg70 = [(50, 50 + i) for i in range(30)] + [(50 + i, 79) for i in range(1, 5)] + [(54, 79 - i) for i in range(1, 30)]
+    f70.dplan = {"weg": weg70}
+    ziel70 = weg70[-1]
+    r70a = f70._rest_weg({1: einheit(75, 1, 50, 55)}, [1], ziel70)
+    r70b = f70._rest_weg({1: einheit(75, 1, 50, 65)}, [1], ziel70)
+    l70a, l70b = F.schach((50, 55), ziel70), F.schach((50, 65), ziel70)
+    pruefe(70, "Restweg %d -> %d (soll sinken) | Luftlinie %d -> %d (waechst)" % (r70a, r70b, l70a, l70b), r70b < r70a and l70b > l70a)
+    # 71 Nicht dran: 8 Mann daneben, keiner haut, Hoehe steht -> nach DRAN_TAKTE verworfen; Gegenproben: einer haut / Hoehe sinkt
+    def dran(hack, sinkt):
+        f = F.Feldzug(1, (0, 0), n=20)
+        r = None
+        for k, t in enumerate(range(1000, 1000 + F.Feldzug.DRAN_TAKTE + 200, 100)):
+            r = f._nicht_dran(("kachel", (5, 5)), 8, hack, t, 90 - (k if sinkt else 0)) or r
+        return r
+    d71, d71h, d71s = dran(0, False), dran(1, False), dran(0, True)
+    pruefe(71, "keiner haut: %s | einer haut: %s | Hoehe sinkt: %s" % (d71, d71h, d71s), d71 is not None and d71h is None and d71s is None)
+    # 72 Zugbruecke: feindliche Bruecke (Typ 49) und Torhaus (Typ 46) sind fuer den Durchbruch-Planer gesperrt; 46 bekommt den
+    #    Torrand. Gegenprobe (Sabotage): mit ZUGBRUECKE = -1 ist die Bruecke wieder ein Weg.
+    import numpy as np
+    import durchbruch as D72
+    bau72 = np.zeros((40, 40), int)
+    bau72[10:15, 10:15] = 7
+    bau72[15:20, 10:15] = 8
+    G72 = {7: {"typ": 46, "besitzer": 2, "x": 12, "y": 12}, 8: {"typ": 49, "besitzer": 2, "x": 17, "y": 12}}
+    s72 = D72.sperre_feindbau(bau72, G72, 1)
+    alt72 = D72.ZUGBRUECKE
+    D72.ZUGBRUECKE = -1
+    try:
+        s72g = D72.sperre_feindbau(bau72, G72, 1)
+    finally:
+        D72.ZUGBRUECKE = alt72
+    pruefe(72, "Bruecke gesperrt %s, Torrand (12,8) gesperrt %s | Sabotage: Bruecke gesperrt (19,12) %s" % (
+        bool(s72[17, 12]), bool(s72[12, 8]), bool(s72g[19, 12])), s72[17, 12] and s72[19, 12] and s72[12, 8] and not s72g[19, 12])
+    # 73 Zugang vor dem Anmarsch pruefen: der Planer liefert erst Gebaeude 109 (Zugang auf der Bruecke, nicht erreichbar), dann
+    #    die Mauerkachel (30,30) -> der Plan ist die Kachel, 109 verworfen. Gegenprobe: ohne Wegtest bleibt 109 (das alte Verhalten).
+    def plan73(mit_test):
+        f = F.Feldzug(1, (0, 0), n=40)
+        aufrufe = []
+        def planer(sp, start, maenner, lord, verworfen=()):
+            aufrufe.append(set(verworfen))
+            if 109 not in verworfen:
+                return {"art": "gebaeude", "ziel": 109, "zug": (235, 85), "weg": [(235, 85)], "takte": 1, "belastung": 1, "kandidaten": []}
+            return {"art": "mauer", "ziel": (30, 30), "zug": (30, 29), "weg": [(30, 29), (30, 30)], "takte": 2, "belastung": 2, "kandidaten": []}
+        f.durchbruch, f.ziel = planer, 500
+        f.wegtest = (lambda nr, punkte: [tuple(q) != (235, 85) for q in punkte]) if mit_test else None
+        m = np.zeros((40, 40), bool)
+        m[30, 30] = True
+        dp = f._durchbruch_neu(m, (0, 0), (35, 35), 10, pruef=1)
+        return dp["ziel"], sorted(v for v in f.verworfen if isinstance(v, int)), len(aufrufe)
+    z73, v73, a73 = plan73(True)
+    z73g, v73g, _ = plan73(False)
+    pruefe(73, "mit Wegtest: Ziel %s, verworfen %s, %d Planungen | ohne: Ziel %s" % (z73, v73, a73, z73g),
+           z73 == (30, 30) and v73 == [109] and z73g == 109)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

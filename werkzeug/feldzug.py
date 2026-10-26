@@ -31,6 +31,7 @@ HEER = {24, 25, 26, 27, 28, 75, 22, 23, 70}
 # B-134 Burg knacken: Torhaeuser (45 gross, 46 klein), Tuerme 74-78 (bauen.NACH_TYP). Zugbruecke 49 nicht mehr (20.10. gegen
 # Franz: 6 Mal Ziel, ihr Leben blieb bei 100 stehen, keine einzige fiel - gefallen sind nur Torhaeuser 46 und ein Turm 74)
 BURG_TEILE = {45, 46, 74, 75, 76, 77, 78}
+ZUGBRUECKE = 49                  # B-256: nie Weg, nie Ziel (durchbruch.ZUGBRUECKE)
 BALLISTE = 77                    # Einheitentyp Feuerballiste (sturm.py)
 FERN_REICH = {22: 44, 23: 44, 70: 44}
 LORD = 55
@@ -237,8 +238,9 @@ class Feldzug:
     SCHREDDER_PAUSE = 1500    # B-165: Schredder ohne Wirkung -> so lange Bresche (Turm/Torhaus) statt Mauer
     # B-164 Durchbruch (Daniel 22:24 "er muss wirklich durch die ganze Mauer, nicht nur durch eine Schicht"; "rennt wieder aufs
     # Torhaus und laesst sich von der Feuerballiste abschiessen"):
-    TORE = {75}               # gemessen 22:27 an Franz' Burg: nur Typ 75 hat einen Durchgang (4x4, Durchgang daneben ohne
-    #                           Gebaeudenummer); Typ 46 und 76 sind Tuerme (5x5)
+    TORE = {45, 46, 75}       # gemessen 22:27 an Franz' Burg: Typ 75 hat einen Durchgang (4x4, Durchgang daneben ohne
+    #                           Gebaeudenummer). B-256 (Partie 230627, bauen.NACH_TYP): 45/46 SIND die Torhaeuser
+    #                           (BT_GATEHOUSELARGE/SMALL, je eine Zugbruecke 49 davor), 75 ist BT_TOWER2 - "46 ist ein Turm" war falsch
     TOR_RAND = 2              # so weit um den Torhaus-Grundriss ist fuer uns kein Weg (der Durchgang liegt am Rand)
     WAND_KOSTEN = 5           # Kosten je Hoehenpunkt einer Mauerkachel gegen 1 je gelaufenem Feld - UNGEMESSEN
     ANKUNFT_TAKTE = 1500      # so lange niemand bis 3 an der gewaehlten Kachel -> "KOMMT NICHT AN", verworfen (L80: ~77 Felder)
@@ -400,7 +402,8 @@ class Feldzug:
             # B-164 (Daniel 22:15 "keine Kompression auf eine Mauer"; 22:24 "durch die ganze Mauer"): EINE Kachel fuer alle - die
             # erste auf dem Durchbruch-Weg vom Heer zum Lord; sie bleibt, solange sie steht und nicht verworfen ist
             if self.durchbruch is not None:
-                dp = self._durchbruch_neu(m, mitte or lp, lp, len(nah_kampf))
+                pruef = min(nah_kampf, key=lambda n: schach((L[n]["x"], L[n]["y"]), mitte or lp))
+                dp = self._durchbruch_neu(m, mitte or lp, lp, len(nah_kampf), pruef=pruef)
                 if dp is not None and dp["art"] == "lord" and dp.get("weg"):
                     # B-193 (2v2 22.10. 18:19: "frei bis None" - der Planer fand einen Weg ohne Mauer, das Heer tat nichts): ein Weg
                     # ohne Hindernis ist freie Fahrt bis vor den Lord
@@ -465,7 +468,9 @@ class Feldzug:
         return bool(g and g.get("besitzer") not in freunde_von(self.sp)
                     and g.get("leben",0)>0 and angreifbar(g))
 
-    def _durchbruch_neu(self, m, start, lp, maenner):
+    PLAN_VERSUCHE = 3          # B-256: so oft wird neu geplant, wenn der Zugang des Plans fuer uns nicht erreichbar ist
+
+    def _durchbruch_neu(self, m, start, lp, maenner, pruef=None):
         """B-170: Durchbruch-Plan (durchbruch.plane) - neu, wenn keiner da ist, das Ziel gefallen/verworfen ist, der Lord woanders
         steht oder DPLAN_RUNDEN um sind; sonst der alte (die Planung kostet Sekunden)."""
         # B-191 (Daniel 22.10. 18:16 "eine Absprache mit dem Teammate beim Angriff, sodass nicht doppelt an zwei Stellen
@@ -493,11 +498,30 @@ class Feldzug:
                 return dp
             if dp["art"] in ("tor", "gebaeude") and dp["ziel"] not in self.verworfen and ((dp["art"] == "gebaeude" and self._abriss_gueltig(dp["ziel"])) or (dp["art"] == "tor" and (not self._feindbau or dp["ziel"] in self._feindbau))):
                 return dp
-        try:
-            neu = self.durchbruch(self.sp, tuple(start), max(1, maenner), tuple(lp),
-                                  verworfen=set(self.mauer_verworfen) | set(self.verworfen))
-        except Exception as ex:
-            self.wegkarte_fehler = "Durchbruch: %s" % str(ex)[:120]
+        # B-256 (Partie 230627: Gebaeude 109, 146, 145, 149 und Torhaus 180 gewaehlt, je 1-3 s spaeter "BRESCHE ABGESCHNITTEN" -
+        # bei 146 erst nach 7.000 Takten Anmarsch): der Wegfinder des Spiels prueft den Zugang, BEVOR der Plan gilt; ist er nicht
+        # erreichbar, wird die Stelle verworfen und neu geplant
+        for _v in range(self.PLAN_VERSUCHE):
+            try:
+                neu = self.durchbruch(self.sp, tuple(start), max(1, maenner), tuple(lp),
+                                      verworfen=set(self.mauer_verworfen) | set(self.verworfen))
+            except Exception as ex:
+                self.wegkarte_fehler = "Durchbruch: %s" % str(ex)[:120]
+                neu = None
+            if (neu is None or neu.get("art") not in ("mauer", "tor", "gebaeude") or not neu.get("zug")
+                    or self.wegtest is None or pruef is None):
+                break
+            try:
+                gut = self.wegtest(pruef, [tuple(neu["zug"])])
+            except Exception:
+                gut = None
+            if gut is None or gut[0]:
+                break
+            if neu["art"] == "mauer":
+                self.mauer_verworfen.add(tuple(neu["ziel"]))
+            else:
+                self.verworfen.add(neu["ziel"])
+            self._zugang_verworfen = getattr(self, "_zugang_verworfen", []) + [(neu["art"], neu["ziel"], tuple(neu["zug"]))]
             neu = None
         if neu is not None:
             neu = dict({k: neu.get(k) for k in ("art", "ziel", "zug", "weg", "takte", "belastung", "kandidaten")},
@@ -575,6 +599,28 @@ class Feldzug:
             if len(pk) > 1:
                 a_["danach"] = [[q[0], q[1]] for q in pk[1:]]
             befehl({"angriff": a_}, 1.0, bis="ANGRIFF")
+
+    def _nicht_zurueck(self, L, ns, p, lp):
+        """B-256: nur wer nicht naeher am Lord steht als der Wegpunkt p, darf einen Laufbefehl zu p bekommen."""
+        return [n for n in ns if schach((L[n]["x"], L[n]["y"]), lp) >= schach(p, lp)]
+
+    def _rest_weg(self, L, ns, ziel):
+        """B-256 (Partie 230627: 5-mal "KOMMT NICHT AN" mit 65-99 Mann im Anmarsch - der sichere Weg fuehrt erst aussen herum,
+        die Luftlinie zur Kachel wuchs dabei von 24 auf 32): Fortschritt = Restweg des vordersten Mannes ENTLANG des Plans bis
+        ziel (Wegfelder ab seinem naechsten Planfeld plus sein Abstand dazu). Ohne Plan-Weg: die Luftlinie wie bisher."""
+        weg = list((self.dplan or {}).get("weg") or [])
+        if not ns:
+            return 999
+        if tuple(ziel) not in weg:
+            return min(schach((L[n]["x"], L[n]["y"]), ziel) for n in ns)
+        w_ = weg[:weg.index(tuple(ziel)) + 1]
+        best = None
+        for n in ns:
+            o = (L[n]["x"], L[n]["y"])
+            i = min(range(len(w_)), key=lambda j: schach(w_[j], o))
+            r = len(w_) - 1 - i + schach(w_[i], o)
+            best = r if best is None else min(best, r)
+        return best
 
     def _mauerziel_los(self, befehl):
         """B-170: festgehaltenes Mauerziel dieses Lenkers loesen (logik.lua: mauerziel ohne halten -> aus)."""
@@ -676,6 +722,9 @@ class Feldzug:
         den Gebieten geschnitten; zerfaellt ein Gebiet dadurch, bekommt jeder weitere Teil eine eigene Nummer ab 60000."""
         nrs = [nr for nr, g_ in G.items() if g_.get("besitzer") not in freunde_von(self.sp) and g_.get("typ") in BURG_TEILE]
         self._bau, self._feindbau = bau, nrs
+        # B-256 (Daniel 26.10. 23:14 "die Zugbruecke wird ignoriert"): eine feindliche Zugbruecke ist fuer uns kein Weg - das Spiel
+        # zaehlt sie heruntergelassen zum Gebiet, oben ist sie zu, wenn wir ankommen
+        nrs = nrs + [nr for nr, g_ in G.items() if g_.get("besitzer") not in freunde_von(self.sp) and g_.get("typ") == ZUGBRUECKE]
         if bau is None or not nrs:
             return geb
         # (22:27 gemessen: der Durchgang eines Torhauses liegt NEBEN seinem Grundriss und traegt keine Gebaeudenummer - der
@@ -707,6 +756,25 @@ class Feldzug:
         if t - alt[1] >= self.WIRKUNG_TAKTE:
             del self._wirkung_stand[ziel]
             return t - alt[1]
+        return None
+
+    DRAN_TAKTE = 900           # B-256: so lange TOR_MIN daneben und keiner schlaegt zu -> Ziel verworfen (3 x WIRKUNG_TAKTE, UNGEMESSEN)
+
+    def _nicht_dran(self, ziel, nah, hack, t, wert):
+        """B-256: stehen TOR_MIN daneben, schlaegt DRAN_TAKTE lang keiner zu und sinkt wert (Leben/Hoehe) nicht, kommen wir nicht an
+        das Ziel heran - Takte, sonst None."""
+        st = getattr(self, "_dran_stand", {})
+        self._dran_stand = st
+        alt = st.get(ziel)
+        if nah < self.TOR_MIN or hack > 0 or (alt is not None and wert < alt[1]):
+            st.pop(ziel, None)
+            return None
+        if alt is None:
+            st[ziel] = alt = (t, wert)
+        t0 = alt[0]
+        if t - t0 >= self.DRAN_TAKTE:
+            del st[ziel]
+            return t - t0
         return None
 
     def _zustaende(self, L, ns):
@@ -1301,6 +1369,10 @@ class Feldzug:
             if self._dplan_meldung:
                 aus.append(self._dplan_meldung)
                 self._dplan_meldung = None
+            for art_z, ziel_z, zug_z in getattr(self, "_zugang_verworfen", []):
+                aus.append("FELDZUG ZUGANG UNERREICHBAR: %s %s - der Wegfinder kommt nicht an den Zugang %s, verworfen vor dem "
+                           "Anmarsch" % (art_z, ziel_z, zug_z))
+            self._zugang_verworfen = []
             if ll is not None:
                 if (ll["frei"] is not None) != self._lord_frei_alt:
                     self._lord_frei_alt = ll["frei"] is not None
@@ -1495,7 +1567,12 @@ class Feldzug:
                 # B-165 (Siegpartie 21:57: Torhaus 240 1.125 Takte bei 1.500 Leben mit 52 Mann "davor"): Wirkung messen statt
                 # 1.000 Takte warten - stehen TOR_MIN bis WIRKUNG_NAH daneben und das Leben sinkt WIRKUNG_TAKTE lang nicht, weg
                 nah_b = [n for n in nah_kampf if schach((L[n]["x"], L[n]["y"]), tor) <= self.WIRKUNG_NAH]
-                ohne_b = self._wirkung(("bresche", bresche), leben_b, len(nah_b), t)
+                # B-256 (Partie 230627: Torhaus 268 nach 544 Takten "keine Wirkung", alle 8 Mann daneben liefen noch - 101): es
+                # zaehlt, wer zuschlaegt (106/107); wer nur daneben steht, bekommt den Befehl neu, bis DRAN_TAKTE um sind
+                hack_b = [n for n in nah_b if L[n].get("zustand") in (106, 107)]
+                ohne_b = self._wirkung(("bresche", bresche), leben_b, len(hack_b), t)
+                if ohne_b is None:
+                    ohne_b = self._nicht_dran(("bresche", bresche), len(nah_b), len(hack_b), t, leben_b)
                 if ohne_b is not None:
                     aus.append("FELDZUG KEINE WIRKUNG: Gebaeude %d (Typ %d) %d Takte bei %d Leben, %d Mann bis %d Felder daneben "
                                "(Zustaende %s) - verworfen, naechste Stelle" % (bresche, G[bresche]["typ"], ohne_b, leben_b,
@@ -1578,7 +1655,7 @@ class Feldzug:
                     # ANKUNFT_TAKTE lang niemand an die Kachel, ist sie fuer uns nicht erreichbar - verwerfen
                     # B-180 (2v2 17:54: 47/54/81 Mann mit Mauerauftrag, nach 1.500 Takten niemand bis 3 daneben - viele waren
                     # noch unterwegs): verworfen wird erst, wenn ANKUNFT_TAKTE lang niemand NAEHER kommt
-                    best_w = min((schach((L[n]["x"], L[n]["y"]), kq) for n in wand), default=999)
+                    best_w = self._rest_weg(L, wand, tuple(ll.get("zug") or kq))
                     if (nah_w or self._kachel_an is None or self._kachel_an[0] != kq
                             or best_w < (self._kachel_an[2] if len(self._kachel_an) > 2 else 999)):
                         self._kachel_an = (kq, t, best_w)
@@ -1592,7 +1669,18 @@ class Feldzug:
                         aus.append("FELDZUG SCHREDDER STAND Tick %d: Kachel %s Hoehe %d, %d Mann bis 3 daneben (Zustaende %s), "
                                    "Mauerhoehe bis %d um den Lord %d" % (t, kq, ll["hoehe_kachel"], len(nah_w),
                                                                        self._zustaende(L, nah_w), self.MAUER_R, ll["hoehe"]))
-                    ohne_w = self._wirkung(("kachel", kq), ll["hoehe_kachel"], len(nah_w), t) if wand else None
+                    # B-256 (Partie 230627: (188,88) nach 343 und (187,88) nach 390 Takten "keine Wirkung" mit 16/21 Mann daneben -
+                    # 13/16 davon liefen noch (101), keiner hackte (107); 10 Minuten spaeter hackten an derselben Mauer 51 Mann, die
+                    # Hoehe sank je Kachel 90 -> 60): ohne Wirkung ist eine Kachel nur, wenn TOR_MIN HACKEN und die Hoehe steht
+                    hack_w = [n for n in nah_w if L[n].get("zustand") == 107]
+                    ohne_w = self._wirkung(("kachel", kq), ll["hoehe_kachel"], len(hack_w), t) if wand else None
+                    dran_w = self._nicht_dran(("kachel", kq), len(nah_w), len(hack_w), t, ll["hoehe_kachel"]) if wand and ohne_w is None else None
+                    if dran_w is not None:
+                        aus.append("FELDZUG KOMMT NICHT DRAN: Mauerkachel %s - %d Takte %d Mann bis 3 daneben, keiner hackt (Zustaende %s) "
+                                   "- verworfen" % (kq, dran_w, len(nah_w), self._zustaende(L, nah_w)))
+                        self.mauer_verworfen.add(kq)
+                        self.mauer_kachel = None
+                        wand = []
                     if ohne_w is not None:
                         self.mauer_verworfen.add(kq)
                         self.mauer_kachel = None
@@ -1646,8 +1734,11 @@ class Feldzug:
                     befohlen[n] = ("schuss", k)
             # 19.10. (1019h: Laufbefehle jede Runde neu - das Spiel meldet als Laufziel seinen naechsten Wegknoten, nicht
             # unseren Punkt): nur, wer noch keinen Befehl zu p hat oder steht
-            unterwegs = [n for n in kolben if n not in am_lord and n not in schiessen and n not in belegt
-                         and (befohlen.get(n) != ("lauf", p) or L[n]["zustand"] in (0, 1))]
+            # B-256 (Partie 230627: 6-mal liefen 65-116 Mann zum Wegpunkt 1 (194,298) neben der eigenen Burg zurueck - jedes Mal in
+            # der Runde, in der eine Kachel/Bresche verworfen wurde, fiel das Heer auf den alten Marschweg zurueck): niemand wird
+            # zu einem Wegpunkt geschickt, der weiter vom Lord liegt als er selbst - er behaelt seinen Befehl bis zum neuen Plan
+            unterwegs = [n for n in self._nicht_zurueck(L, kolben, p, lp) if n not in am_lord and n not in schiessen
+                         and n not in belegt and (befohlen.get(n) != ("lauf", p) or L[n]["zustand"] in (0, 1))]
             if unterwegs:
                 befehl({"angriff": {"einheiten": unterwegs, "lauf": [p[0], p[1]]}}, 1.0, bis="ANGRIFF")
                 for n in unterwegs:

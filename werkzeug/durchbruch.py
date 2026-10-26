@@ -20,7 +20,14 @@ import numpy as np
 import mechanik
 import speicher
 
-TORHAUS = 75
+# B-256 (Daniel 26.10. 23:14 "versucht immer wieder durch das Torhaus zu gehen, aber die Zugbruecke wird ignoriert"; Partie
+# 230627 Sp2 gegen Lord 3, Lage Tick 62083: vor jedem Typ 46 liegt 5 Felder davor eine Typ 49 - 109/110, 145/157, 146/158, 149/160;
+# bauen.NACH_TYP: 45 BT_GATEHOUSELARGE, 46 BT_GATEHOUSESMALL, 49 BT_DRAWBRIDGE, 75 BT_TOWER2): Torhaeuser sind 45 und 46 - bis
+# heute stand hier nur 75 (ein Turm). 75 bleibt als Einschlag-Stelle (Messung 22:27: Durchgang neben dem Grundriss)
+TORHAEUSER = {45, 46, 75}
+# Die Zugbruecke ist fuer uns nie ein Weg und kein Abrissziel (20.10. gegen Franz: 6-mal Ziel, Leben blieb bei 100; Partie 230627:
+# 4 Plaene ueber eine Bruecke, alle "BRESCHE ABGESCHNITTEN" - der Planer rechnete sie als Gebaeude mit 100 Leben zum Abreissen)
+ZUGBRUECKE = 49
 
 
 def ebenen():
@@ -42,8 +49,8 @@ def sperre_feindbau(bau, G, sp):
     from scipy import ndimage
     from feldzug import BURG_TEILE
     from parteien import freunde_von
-    feind = [nr for nr, g_ in G.items() if g_.get("besitzer") not in freunde_von(sp) and g_["typ"] in BURG_TEILE]
-    tore = [nr for nr in feind if G[nr]["typ"] == TORHAUS]
+    feind = [nr for nr, g_ in G.items() if g_.get("besitzer") not in freunde_von(sp) and g_["typ"] in BURG_TEILE | {ZUGBRUECKE}]
+    tore = [nr for nr in feind if G[nr]["typ"] in TORHAEUSER]
     s = np.isin(bau, feind)
     if tore:
         s |= ndimage.binary_dilation(np.isin(bau, tore), structure=np.ones((3, 3), bool), iterations=2)
@@ -89,7 +96,7 @@ def plane(sp, start, maenner, lord, mk=None, L=None, G=None, gf=None, verworfen=
     abriss = np.zeros(e["bau"].shape, float)
     ab_ids = set()
     for nr, g_ in G.items():
-        if (g_.get("besitzer") in freunde_von(sp) or nr in verworfen
+        if (g_.get("besitzer") in freunde_von(sp) or nr in verworfen or g_["typ"] == ZUGBRUECKE
                 or not angreifbar(g_) or g_.get("leben",0) <= 0 or g_.get("feuer",0)>0):
             continue
         schaden_bau = mk["tor_turm"] if g_["typ"] in BURG_TEILE else mk["gebaeude"]
@@ -100,10 +107,13 @@ def plane(sp, start, maenner, lord, mk=None, L=None, G=None, gf=None, verworfen=
         ra = mechanik.durchbruch_schritte(*args, sperre=sperre, gefahr=gf, freunde=freunde, abriss=abriss)
         if ra["weg"]:
             kand.append(("gebaeude", None, ra, abriss))
+    bruecken = np.isin(e["bau"], [nr for nr, g_ in G.items() if g_["typ"] == ZUGBRUECKE
+                                  and g_.get("besitzer") not in freunde_von(sp)])
     for nr, g_ in G.items():
-        if (g_.get("besitzer") in freunde_von(sp) or g_["typ"] != TORHAUS or g_.get("leben", 1) <= 0 or nr in verworfen):
+        if (g_.get("besitzer") in freunde_von(sp) or g_["typ"] not in TORHAEUSER or g_.get("leben", 1) <= 0 or nr in verworfen):
             continue
-        rand = ndimage.binary_dilation(e["bau"] == nr, structure=np.ones((3, 3), bool), iterations=2)
+        # (B-256: der Rand gibt keine Zugbruecke frei - sie bleibt gesperrt, auch wenn sie bis 2 Felder am Torhaus liegt)
+        rand = ndimage.binary_dilation(e["bau"] == nr, structure=np.ones((3, 3), bool), iterations=2) & ~bruecken
         # Einschlagen: Leben / Schaden je Treffer an Tor und Turm (Code UpdateMaceman), je Runde ein Treffer je Mann
         kosten = math.ceil(g_.get("leben", 1500) / float(mk["tor_turm"]) / max(1, maenner)) * mk["takte_je_treffer"]
         rt = mechanik.durchbruch_schritte(*args, sperre=sperre & ~rand, gefahr=gf, frei=rand, frei_kosten=kosten, freunde=freunde)
