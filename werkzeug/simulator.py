@@ -60,7 +60,11 @@ for _a in (30, 55):
 _KLASSE[76] = (1, 0)
 _SONST = (10, 400)
 GESCHOSS_ET = {22: 1, 70: 1, 74: 1, 23: 7, 72: 33}        # Schuetzenart -> Geschossart (gehirn.GESCHOSS_TABELLE_*)
-MARKIEREN = (22, 70)                                   # AU20: nur Bogen und arab. Bogen markieren ihr Ziel
+MARKIEREN = (22, 70)
+JAEGER = 6                                             # AU27: Jaeger schiesst Wild (Art 44) mit Pfeilen
+SCHUSS_TAB_UT = dict(gehirn.GESCHOSS_TABELLE_UT)
+SCHUSS_TAB_UT[JAEGER] = "einheit.arrow_damage"
+GESCHOSS_ET[JAEGER] = 1                                   # AU20: nur Bogen und arab. Bogen markieren ihr Ziel
 
 
 def _richtung8(dx, dy):
@@ -107,7 +111,7 @@ _RICHTUNG_NR = {v: k for k, v in _RICHTUNG.items()}
 class _E(object):
     __slots__ = ("id", "typ", "own", "mx", "my", "h", "leben", "tot", "zustand", "ziel", "start_ziel", "fr", "msk", "cemd",
                  "sel", "sbs", "tpm", "weg", "dest", "blick", "zaehler", "nah", "sicht", "schuss_n", "schuss_ziel", "letzt", "hz",
-                 "versteckt", "klettert")
+                 "versteckt", "klettert", "schritt")
 
     @property
     def feld(self):
@@ -150,6 +154,7 @@ class Simulator(object):
             self.ohne_liste = set()
         self._gewaehlt = {}
         self._liste, self._geister, self._teams = None, {}, None
+        self.jaeger = self._jaeger_tabelle()
         self.phasen = {}
         for ut, z in auge._phasen_tabellen().items():
             if ut == "hacken" or z.get("schuss_schritt") is None:
@@ -195,6 +200,7 @@ class Simulator(object):
             u.schuss_n = e.get("sre_naechster_schuss_takte")
             u.schuss_ziel = e.get("shootTargetedUnit") or 0
             u.letzt = None
+            u.schritt = e.get("animationCycleNumber", 0)
             u.versteckt = bool(e.get("unknownTestAgainst0_2_versteckt") or 0)      # +856 (AU21/AU23)
             u.klettert = bool(e.get("usingTeleport") or 0)                          # +670: Zaehler steht (AU22)
             U[u.id] = u
@@ -363,6 +369,40 @@ class Simulator(object):
                     return bf[1]
         return best[1]
 
+    def _jaeger_tabelle(self):
+        """AU27 UpdateHunter: Zustand 10 = EINE Bildtabelle (spielwerte.SCHUSS[6]), Speed 2, Pfeil im ersten Takt des Schritts mit
+        Bild 22. Gelesen wie auge._phasen_tabellen (live, sonst Referenz-Exe). -> {n, sp, ss} oder None."""
+        try:
+            import spielwerte
+            z = spielwerte.SCHUSS[JAEGER]
+            name, adr, sp = z["phasen"][0]
+            try:
+                self.auge.speicher.griff()
+                lies = self.auge.speicher.lies
+            except Exception:  # noqa: BLE001
+                lies = spielwerte.quelle_datei(spielwerte.REFERENZ_EXE)[1]
+            roh = lies(adr, 200)
+            b = [(x if x < 128 else x - 256) for x in roh]
+            n = next((i for i, v in enumerate(b) if v < 1), 200)
+            bild = int(z["schuss_bei"].split()[1])
+            ss = next(i for i, v in enumerate(b[:n]) if v == bild)
+            return {"n": n, "sp": sp, "ss": ss}
+        except Exception:  # noqa: BLE001
+            return None
+
+    def _jaeger_bis_schuss(self, u, z):
+        """AU27: Zustand 9 dreht je Takt ein Achtel (AU25), ausgerichtet -> 10 ab Schritt 0; Zustand 10 Schritt c."""
+        j = self.jaeger
+        tsch = j["sp"] + 1
+        if u.zustand == 10:
+            c = u.schritt
+            if c < j["ss"]:
+                return (j["ss"] - c - 1) * tsch + tsch // 2 + 1
+            return None if c > j["ss"] else 1
+        r = _zielrichtung(u.feld[0], u.feld[1], z.feld[0], z.feld[1])
+        dreh = 0 if r is None else min((r - u.blick) % 8, (u.blick - r) % 8)
+        return dreh + 1 + j["ss"] * tsch
+
     def _bahn(self, u, z):
         """AU24: Flugbahn des geplanten Schusses von u auf z (Feldmitte des Ziels, Zielhoehe Boden + 30; Vorhalt fehlt)."""
         et = GESCHOSS_ET.get(u.typ)
@@ -477,6 +517,9 @@ class Simulator(object):
         # Schuetzen: naechster Schuss (Phasenrest, AU6)
         entscheid = {}
         for u in U.values():
+            if u.typ == JAEGER and self.jaeger and u.zustand in (9, 10) and u.schuss_ziel and u.schuss_ziel in U:
+                u.schuss_n = self._jaeger_bis_schuss(u, U[u.schuss_ziel])     # Auge liefert ihn (noch) nicht
+                continue
             if u.typ not in gehirn.GESCHOSS_TABELLE_UT:
                 u.schuss_n = None
                 continue
@@ -614,7 +657,7 @@ class Simulator(object):
                 bahn = self._bahn(u, z) if self.FREMDTREFFER else []
                 if bahn:
                     fluege.append({"bahn": {k + int(b[0]): b for b in bahn[1:]}, "ende": k + int(bahn[-1][0]), "own": u.own,
-                                   "tab": gehirn.GESCHOSS_TABELLE_UT[u.typ], "quelle": {"art": "schuss", "schuetze": u.id}})
+                                   "tab": SCHUSS_TAB_UT[u.typ], "quelle": {"art": "schuss", "schuetze": u.id}})
                 else:
                     flug = int(round(max(abs(u.feld[0] - z.feld[0]), abs(u.feld[1] - z.feld[1])) / gehirn.FELDER_JE_TAKT))
                     landen.setdefault(k + max(1, flug), []).append(("schuss", u, z))
@@ -622,6 +665,10 @@ class Simulator(object):
                     spur.append(("schuss", k, u.id, z.id))
                 u.letzt = k
                 zyk = self.G.zyklus[u.typ] if u.typ < len(self.G.zyklus) and self.G.zyklus[u.typ] else None
+                if u.typ == JAEGER and self.jaeger:
+                    # AU27: Rest des Durchgangs, 1 Takt entscheiden, (Ziel ausgerichtet) Schritte bis zum Pfeil
+                    j = self.jaeger
+                    zyk = (j["n"] - j["ss"]) * (j["sp"] + 1) + 1 + j["ss"] * (j["sp"] + 1)
                 u.schuss_n = k + zyk if zyk else None
                 if self.NEUWAHL and p:                 # AU20: Neuwahl am Ende des Schiess-Durchgangs
                     entscheid.setdefault(k + p["nach"], []).append(u)
@@ -665,7 +712,7 @@ class Simulator(object):
                 else:
                     u, z = a, b
                     if not z.tot:
-                        schaden(z, self.G._geschoss_schaden(gehirn.GESCHOSS_TABELLE_UT[u.typ], z.typ),
+                        schaden(z, self.G._geschoss_schaden(SCHUSS_TAB_UT[u.typ], z.typ),
                                 {"art": "schuss", "schuetze": u.id, "takt": k})
         if protokoll:
             return aus, spur, U
