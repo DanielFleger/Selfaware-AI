@@ -3625,22 +3625,26 @@
    "nr": "B-147",
    "titel": "Mauer einreissen: ist der Lord eingemauert und kein Turm erreichbar, hacken die Nahkaempfer die naechste erreichbare Mauer am Lord auf (logik.lua 'mauer', Spielbefehl 36 Art 23) - gemessen gegen die 107 (L170) und L172",
    "bereich": "Feldzug",
-   "status": "in_arbeit",
+   "status": "gebaut",
    "seit": "2026-10-21 00:53",
    "herkunft": "Daniel 21.10. 00:47: ja, Mauer einreissen bauen und wieder messen",
-   "gebaut": null,
+   "gebaut": "2026-10-26 23:05",
    "commits": [
-    "HEAD"
+    "HEAD",
+    "99b0f97"
    ],
    "wo": [
     "werkzeug/feldzug.py (MAUER_TYPEN",
     "mauer_seit); werkzeug/logik_stand_20261021.lua (angriff.mauer); Pruefung 29 + 22",
     "werkzeug/feldzug.py (_kette_zum_zug",
     "KETTE_DA)",
-    "feldzug_pruefen 62"
+    "feldzug_pruefen 62",
+    "werkzeug/feldzug.py (_kette_zum_zug KETTE_DA",
+    "_mauer_am_zug HACK_ANLAUF)",
+    "feldzug_pruefen 62/63"
    ],
    "belege": [],
-   "notiz": "21.10. 00:58 gemessen (L173): Befehl wird eingereiht und angenommen, aber vom Spiel nicht ausgefuehrt (12 Einheiten, 6.600 Takte, Zielart nie 23, kein Schritt); Lauf 3: 0 von 607 Mauerkacheln gefallen. Verdacht: selectionTargetUnitID der Gruppe nicht gesetzt -> falsches Gebiet beim Freiplatz-Suchen. Naechster Schritt: im Spielcode pruefen | 21.10. 18:35: Mauer aufhacken wirkt (L174/L175); Rueckzug laesst beschaeftigte Mauerhacker stehen (Pruefung 30), Kern 17 zaehlt Hacker an der Mauer als HAT ZIEL | 26.10. 22:16 Daniel (ueber SRE): 'Momentan kann die selfaware noch nicht so schnell einen eingang finden/freihauen kannst du das fixen?' - Vorschlag an Daniel: Beispiel holen, dann Sandkasten-Messung; Verdacht: Hackbefehl wird angenommen, aber nicht ausgefuehrt (21.10.) | 26.10. 23:20 Schritt 1+Fix A: Ursache gemessen (Partie 220717, Lord 137 eingemauert): 112 arab. Schwertkaempfer standen 55-60 Felder vom Zugang, 30-68 davon untaetig GENAU an ihrem Laufziel = naechster Planpunkt; jede Runde neuer Kettenbefehl ab diesem Punkt loeste die Kette im Spielmodul -> kein Fortschritt. Fix: Kette ab dem naechsten Kettenpunkt. Offen: Ziel halten (springt alle 3.000-6.000 Takte), Gebaeude-Durchbruch nur erreichbar | 26.10. 23:05 SRE AU36 (aus dem Code, nicht live gemessen): UIT_ATTACK_WALL gibt im Gefecht bei strongWalls2 != 0 (Option 'starke Mauern', 0x0117CAD0) NUR Rammen ein Mauerziel - Nahkaempfer nie; sonst 107 nur aus 101 auf GERADEM Nachbarfeld (N/O/S/W) in Feldmitte mit +936 gesetzt; Zustand 0 kennt den Befehl nicht -> Leerlauf. Offen: strongWalls2 in Daniels Partie lesen (Spiel lief nicht); unser Code setzt die Option nicht. Danach: Zugang nur gerade Nachbarfelder, kein Umlenken waehrend 101 | 26.10. 23:05 KORREKTUR (Daniel 23:03): 'starke Mauern' ist NICHT die Ursache - nicht eingestellt, und in Partie 220717 sank Kachel (178,84) von 68 auf 42 durch Nahkaempfer. Weiter mit SRE AU36: Hacken nur von GERADEM Nachbarfeld (N/O/S/W) in Feldmitte aus Zustand 101, kein Umlenken unterwegs",
+   "notiz": "21.10. 00:58 gemessen (L173): Befehl wird eingereiht und angenommen, aber vom Spiel nicht ausgefuehrt (12 Einheiten, 6.600 Takte, Zielart nie 23, kein Schritt); Lauf 3: 0 von 607 Mauerkacheln gefallen. Verdacht: selectionTargetUnitID der Gruppe nicht gesetzt -> falsches Gebiet beim Freiplatz-Suchen. Naechster Schritt: im Spielcode pruefen | 21.10. 18:35: Mauer aufhacken wirkt (L174/L175); Rueckzug laesst beschaeftigte Mauerhacker stehen (Pruefung 30), Kern 17 zaehlt Hacker an der Mauer als HAT ZIEL | 26.10. 22:16 Daniel (ueber SRE): 'Momentan kann die selfaware noch nicht so schnell einen eingang finden/freihauen kannst du das fixen?' - Vorschlag an Daniel: Beispiel holen, dann Sandkasten-Messung; Verdacht: Hackbefehl wird angenommen, aber nicht ausgefuehrt (21.10.) | 26.10. 23:20 Schritt 1+Fix A: Ursache gemessen (Partie 220717, Lord 137 eingemauert): 112 arab. Schwertkaempfer standen 55-60 Felder vom Zugang, 30-68 davon untaetig GENAU an ihrem Laufziel = naechster Planpunkt; jede Runde neuer Kettenbefehl ab diesem Punkt loeste die Kette im Spielmodul -> kein Fortschritt. Fix: Kette ab dem naechsten Kettenpunkt. Offen: Ziel halten (springt alle 3.000-6.000 Takte), Gebaeude-Durchbruch nur erreichbar | 26.10. 23:05 SRE AU36 (aus dem Code, nicht live gemessen): UIT_ATTACK_WALL gibt im Gefecht bei strongWalls2 != 0 (Option 'starke Mauern', 0x0117CAD0) NUR Rammen ein Mauerziel - Nahkaempfer nie; sonst 107 nur aus 101 auf GERADEM Nachbarfeld (N/O/S/W) in Feldmitte mit +936 gesetzt; Zustand 0 kennt den Befehl nicht -> Leerlauf. Offen: strongWalls2 in Daniels Partie lesen (Spiel lief nicht); unser Code setzt die Option nicht. Danach: Zugang nur gerade Nachbarfelder, kein Umlenken waehrend 101 | 26.10. 23:05 KORREKTUR (Daniel 23:03): 'starke Mauern' ist NICHT die Ursache - nicht eingestellt, und in Partie 220717 sank Kachel (178,84) von 68 auf 42 durch Nahkaempfer. Weiter mit SRE AU36: Hacken nur von GERADEM Nachbarfeld (N/O/S/W) in Feldmitte aus Zustand 101, kein Umlenken unterwegs | 26.10. 23:15 zwei Fixes aus Partie 220717: (A) Wegkette ab naechstem Kettenpunkt (Maenner standen am eigenen Planpunkt), (B) Hackbefehl schon im Anmarsch (SRE AU36: nur aus 101). Beide in Daniels App-Kopie. Pruefen in der naechsten Partie: SCHREDDER STAND > 0 Mann, Zustand 107 an der Kachel, Hoehe sinkt",
    "verlauf": [
     {
      "zeit": "2026-10-21 00:53",
@@ -3673,6 +3677,10 @@
     {
      "zeit": "2026-10-26 23:04",
      "was": "in Arbeit -> in Arbeit: 26.10. 23:05 KORREKTUR (Daniel 23:03): 'starke Mauern' ist NICHT die Ursache - nicht eingestellt, und in Partie 220717 sank Kachel (178,84) von 68 auf 42 durch Nahkaempfer. Weiter mit SRE AU36: Hacken nur von GERADEM Nachbarfeld (N/O/S/W) in Feldmitte aus Zustand 101, kein Umlenken unterwegs"
+    },
+    {
+     "zeit": "2026-10-26 23:05",
+     "was": "in Arbeit -> gebaut (Commit 99b0f97): 26.10. 23:15 zwei Fixes aus Partie 220717: (A) Wegkette ab naechstem Kettenpunkt (Maenner standen am eigenen Planpunkt), (B) Hackbefehl schon im Anmarsch (SRE AU36: nur aus 101). Beide in Daniels App-Kopie. Pruefen in der naechsten Partie: SCHREDDER STAND > 0 Mann, Zustand 107 an der Kachel, Hoehe sinkt"
     }
    ],
    "rang": 12
