@@ -111,7 +111,7 @@ _RICHTUNG_NR = {v: k for k, v in _RICHTUNG.items()}
 class _E(object):
     __slots__ = ("id", "typ", "own", "mx", "my", "h", "leben", "tot", "zustand", "ziel", "start_ziel", "fr", "msk", "cemd",
                  "sel", "sbs", "tpm", "weg", "dest", "blick", "zaehler", "nah", "sicht", "schuss_n", "schuss_ziel", "letzt", "hz",
-                 "versteckt", "klettert", "schritt")
+                 "versteckt", "klettert", "schritt", "leer_n", "leer_art")
 
     @property
     def feld(self):
@@ -136,7 +136,8 @@ class Simulator(object):
     EILEN = True                    # AU23: mit Ziel im Laufen +978 = 1 -> je Zug ein Mikroschritt mehr bis zur Feldmitte
     GEGEN_BLICK = True
     FREMDTREFFER = True
-    VORHALT = True                  # AU25: Vorhalt bei laufendem Ziel             # AU4/AU24: Geschoss prueft je Takt das ueberflogene Feld (auge.bahn_neu / sre_bahn)              # AU23: Gegenzuweisung setzt beim Opfer attackedUnitID UND Blickrichtung          # Schuetzen drehen beim Zielen/Schiessen zum Ziel (gemessen, 91 % der Schiess-Takte)        # je Einheit: n = Nahkampf, s = Feindsuche, l = Laufen (gemessen, s. Register L190)
+    VORHALT = True
+    LEERLAUF = True                 # AU28: untaetige Schuetzen ohne Trupp suchen am Ende jeder Leerlauf-Animation                  # AU25: Vorhalt bei laufendem Ziel             # AU4/AU24: Geschoss prueft je Takt das ueberflogene Feld (auge.bahn_neu / sre_bahn)              # AU23: Gegenzuweisung setzt beim Opfer attackedUnitID UND Blickrichtung          # Schuetzen drehen beim Zielen/Schiessen zum Ziel (gemessen, 91 % der Schiess-Takte)        # je Einheit: n = Nahkampf, s = Feindsuche, l = Laufen (gemessen, s. Register L190)
 
     def __init__(self, sw):
         self.G = gehirn.Gehirn(sw)
@@ -160,10 +161,14 @@ class Simulator(object):
             if ut == "hacken" or z.get("schuss_schritt") is None:
                 continue
             ph = z["phasen"]
+            if "zielen" not in ph or "schiessen" not in ph or "nachladen" not in ph:
+                continue                            # einphasige Tabellen (Jaeger, Geraete) - eigener Weg
             n_z, sp_z, _ = ph["zielen"]
             n_s, sp_s, _ = ph["schiessen"]
             ss = z["schuss_schritt"]
-            self.phasen[ut] = {"vor": ss * (sp_s + 1), "zielen": n_z * (sp_z + 1), "nach": (n_s - ss) * (sp_s + 1)}
+            n_l, sp_l, _ = ph["nachladen"]
+            self.phasen[ut] = {"vor": ss * (sp_s + 1), "zielen": n_z * (sp_z + 1), "nach": (n_s - ss) * (sp_s + 1),
+                               "laden": n_l * (sp_l + 1)}
 
     # ------------------------------------------------------------------------------------------------- Aufbau
     def _aufbau(self, einheiten, seit=None):
@@ -201,6 +206,7 @@ class Simulator(object):
             u.schuss_ziel = e.get("shootTargetedUnit") or 0
             u.letzt = None
             u.schritt = e.get("animationCycleNumber", 0)
+            u.leer_n, u.leer_art = None, None
             u.versteckt = bool(e.get("unknownTestAgainst0_2_versteckt") or 0)      # +856 (AU21/AU23)
             u.klettert = bool(e.get("usingTeleport") or 0)                          # +670: Zaehler steht (AU22)
             U[u.id] = u
@@ -369,6 +375,32 @@ class Simulator(object):
                     return bf[1]
         return best[1]
 
+    # AU28: Leerlauf untaetiger Schuetzen ohne Trupp - Dauer der Animation bis zum naechsten Zustand 0 (gemessen von SRE)
+    #   Bogen 22: Zustand 8, Speed 5, gerade Nummer 34 / ungerade 42 Bilder (203 / 251 Takte); Feind > 400 -> 11 (sitzt)
+    #   Armbrust 23: Zustand 2 (Feind <= 400) 102 / 122 Takte, Zustand 1 (Feind > 400) 327 / 211, nach fixedRng gerade/ungerade;
+    #               Zustand 1 bricht ab, sobald der Feind <= 400 ist
+    #   arab. Bogen 70: Zustand 8, 173 Takte
+    LEER_SUCHE = 400
+
+    def _leer_dauer(self, u, zustand):
+        if u.typ == 22:
+            return (34 if u.id % 2 == 0 else 42) * 6, 6
+        if u.typ == 23:
+            g = u.fr % 2 == 0
+            return ((102 if g else 122), 4) if zustand == 2 else ((327 if g else 211), 4)
+        if u.typ == 70:
+            return 173, 6
+        return None, None
+
+    def _leer_start(self, u, k):
+        """Neuer Leerlauf ab Takt k (Zustand 0 ohne Ziel) - setzt u.leer_n auf den naechsten Versuch."""
+        if u.typ == 22 and u.cemd > self.LEER_SUCHE:
+            u.leer_n, u.leer_art = None, 11            # sitzt (Rueckweg unbekannt)
+            return
+        z = 2 if (u.typ != 23 or u.cemd <= self.LEER_SUCHE) else 1
+        d, _ = self._leer_dauer(u, z)
+        u.leer_n, u.leer_art = (k + d, z) if d else (None, None)
+
     def _jaeger_tabelle(self):
         """AU27 UpdateHunter: Zustand 10 = EINE Bildtabelle (spielwerte.SCHUSS[6]), Speed 2, Pfeil im ersten Takt des Schritts mit
         Bild 22. Gelesen wie auge._phasen_tabellen (live, sonst Referenz-Exe). -> {n, sp, ss} oder None."""
@@ -536,8 +568,14 @@ class Simulator(object):
                     if 1 <= kd < u.schuss_n:
                         u.letzt = u.schuss_n - zyk
                         entscheid.setdefault(kd, []).append(u)
-            # untaetige Schuetzen ohne Ziel suchen NICHT von selbst (AU20: Neuwahl nur nach einem Schiess-Durchgang, bei totem
-            # Ziel, als Trupp-Anfuehrer alle 32 / am Sammelplatz alle 40 Takte) - gemessen: mit Selbstsuche 3,3-fache Menge
+            elif self.LEERLAUF and u.typ in (22, 23, 70) and not u.weg and u.zustand in (0, 1, 2, 8):
+                # AU28: untaetig - naechster Versuch am Ende der laufenden Leerlauf-Animation (Rest aus dem Schritt)
+                if u.zustand == 0:
+                    u.leer_n, u.leer_art = 1, 0
+                else:
+                    d, tsch = self._leer_dauer(u, u.zustand)
+                    if d:
+                        u.leer_n, u.leer_art = max(1, d - u.schritt * tsch), u.zustand
 
         def nahkampf(u, k):
             if u.tot or not u.nah:
@@ -675,6 +713,23 @@ class Simulator(object):
             for u in entscheid.pop(k, ()):
                 if not u.tot and u.zustand != NAH:
                     u.schuss_ziel = self._neuwahl(U, u, k) or u.schuss_ziel
+            # AU28: Leerlauf - Zustand 0 sucht, wenn der naechste Feind <= 400 ist; sonst neue Animation
+            if self.LEERLAUF:
+                for u in U.values():
+                    if u.leer_n is None or u.tot or u.zustand == NAH:
+                        continue
+                    if u.leer_art == 1 and u.typ == 23 and u.cemd <= self.LEER_SUCHE:
+                        u.leer_n = k                      # Zustand 1 bricht ab, sobald der Feind nah ist
+                    if u.leer_n != k:
+                        continue
+                    z = self._neuwahl(U, u, k) if u.cemd <= self.LEER_SUCHE else 0
+                    p = self.phasen.get(u.typ)
+                    if z and p:
+                        # gemessen 200603: nach der Wahl Nachladen (4), Zielen (5), Schiessen bis zum Pfeil
+                        u.schuss_ziel, u.leer_n = z, None
+                        u.schuss_n = k + p["laden"] + p["zielen"] + p["vor"]
+                    else:
+                        self._leer_start(u, k)
             # 5a Geschosse im Flug: erstes fremdes Ziel auf dem ueberflogenen Feld (Kette aufsteigend, Hoehe [Einheit, +42])
             for f in list(fluege):
                 b = f["bahn"].get(k)
