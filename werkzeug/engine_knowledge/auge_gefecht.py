@@ -3,7 +3,7 @@
 danach Treffer je Takt (auge.treffer_folge) und Kennzahlen: Takt-Luecken, Anteil zugeordneter Lebensverluste je Quelle.
 
 Aufstellung je Seite: 4 E_ARCHER 22, 3 E_XBOW 23, 3 A_ARCHER 70, 3 E_SPEAR 24, 3 E_MACE 26, 2 E_SWORD 27, 2 A_ASSASSIN 73.
-Aufruf: python werkzeug/engine_knowledge/auge_gefecht.py [sekunden=90] [tempo=100] [abstand=14]
+Aufruf: python werkzeug/engine_knowledge/auge_gefecht.py [sekunden=90] [tempo=100] [abstand=14] [--gegendruck]
         python werkzeug/engine_knowledge/auge_gefecht.py --nur_auswerten <npz>
 """
 import collections
@@ -76,7 +76,8 @@ def main():
     print("Einheiten Spieler 1:", n1, "Spieler 2:", n2, "Takt", s.takt)
     befehl({"pause": False, "tempo": tempo}, 0.2)
     t0 = time.time()
-    pfad, p = auge.protokollieren(sek, None, mit_trupps=False, alle_takte=1)   # alle Besitzer: Feindliste enthaelt auch Besitzer 0 (AU23)
+    pfad, p = auge.protokollieren(sek, None, mit_trupps=False, alle_takte=1,      # alle Besitzer: Feindliste enthaelt auch Besitzer 0 (AU23)
+                                  gegendruck="--gegendruck" in sys.argv)          # B-253: Spiel wartet auf das Lesen
     befehl({"pause": True}, 0.2)
     print("Aufnahme %.1f s, %d Takte (%d..%d) -> %s" % (time.time() - t0, len(p.takte), min(p.takte), max(p.takte), pfad))
     return auswerten(pfad)

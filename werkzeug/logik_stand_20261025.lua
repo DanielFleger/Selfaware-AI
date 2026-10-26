@@ -1088,6 +1088,11 @@ local function einzelbefehl(cmd)
     return true
   end
 
+  -- B-253 (SRE 26.10.): Gegendruck des Taktrings - Freigabe/Schalter gehen an taktring.lua
+  if cmd.taktring_frei ~= nil or cmd.taktring_gegendruck ~= nil then
+    return taktring.befehl(cmd)
+  end
+
   if cmd.pause ~= nil then
     core.writeInteger(PAUSE, cmd.pause == true and 1 or 0)
     log(INFO, "logik: Spiel " .. (cmd.pause == true and "pausiert" or "fortgesetzt") .. ".")

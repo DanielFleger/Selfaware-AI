@@ -39,6 +39,14 @@ local SLOT = 16 + UNITS_BYTES + ENTITIES_BYTES + BUILDINGS_BYTES + LAYER_BYTES
 
 local ring, memcpy, index = nil, nil, -1
 
+-- B-253 Gegendruck (Daniel 26.10. 21:04, Plan B): waehrend einer Aufnahme haelt das Modul das Spiel an, bevor es Plaetze
+-- ueberschreibt, die das Auge noch nicht gelesen hat. Freigabe kommt ueber den Befehlskanal ({"taktring_frei": T} =
+-- gelesen bis Takt T), weil das Auge nur liest (B-161). Ohne {"taktring_gegendruck": true} bleibt alles wie vorher.
+-- Pausiert wird nur ueber die Spielpause; aufgehoben wird nur eine Pause, die das Modul selbst gesetzt hat.
+local PAUSE = 0x1FEA054
+local VORLAUF = SLOTS - 2            -- zwei Plaetze Reserve fuer Takte, die im selben Bild noch nachkommen
+local gegendruck, frei_bis, eigene_pause = false, 0, false
+
 function M.start()
   if ring ~= nil then return ring end
   ring = core.allocate(KOPF + SLOTS * SLOT)
@@ -73,6 +81,34 @@ function M.tick()
   memcpy(l + FELDER * 3, LOGIC_LAYER, FELDER * 4)
   core.writeInteger(ring + 12, index)
   core.writeInteger(ring + 16, t)
+  if gegendruck and t >= frei_bis and (core.readInteger(PAUSE) or 0) == 0 then
+    core.writeInteger(PAUSE, 1)
+    eigene_pause = true
+  end
+end
+
+-- Befehle aus logik.lua: {"taktring_gegendruck": true|false} und {"taktring_frei": <Takt>}
+function M.befehl(cmd)
+  local t = core.readInteger(TICK) or 0
+  if cmd.taktring_gegendruck ~= nil then
+    gegendruck = (cmd.taktring_gegendruck == true or cmd.taktring_gegendruck == "an")
+    frei_bis = t + VORLAUF
+    if not gegendruck and eigene_pause then
+      core.writeInteger(PAUSE, 0)
+      eigene_pause = false
+    end
+    log(INFO, string.format("TAKTRING: Gegendruck %s (Takt %d)", gegendruck and "an" or "aus", t))
+    return true
+  end
+  if cmd.taktring_frei ~= nil then
+    frei_bis = (tonumber(cmd.taktring_frei) or 0) + VORLAUF
+    if eigene_pause and t < frei_bis then
+      core.writeInteger(PAUSE, 0)
+      eigene_pause = false
+    end
+    return true
+  end
+  return false
 end
 
 return M

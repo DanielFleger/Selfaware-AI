@@ -1615,8 +1615,10 @@ class Taktring(object):
         return aus
 
 
-def protokollieren(sekunden, spieler=None, pfad=None, alle_ms=0.0, mit_trupps=False, alle_takte=1):
-    """Sekunden lang jeden neuen Takt behalten (kein JSON unterwegs), dann als npz schreiben. Gibt (pfad, Protokoll) zurueck."""
+def protokollieren(sekunden, spieler=None, pfad=None, alle_ms=0.0, mit_trupps=False, alle_takte=1, gegendruck=False):
+    """Sekunden lang jeden neuen Takt behalten (kein JSON unterwegs), dann als npz schreiben. Gibt (pfad, Protokoll) zurueck.
+    gegendruck=True (B-253): das Modul haelt das Spiel an, bevor der Ring ungelesene Plaetze ueberschreibt; nach jedem Lesen
+    geht {"taktring_frei": letzter Takt} ueber den Befehlskanal - lueckenlos auch bei vielen Einheiten, dafuer langsamer."""
     p = Protokoll(spieler)
     letzter, ende, hoehe_da = None, time.time() + sekunden, False
     ring = None
@@ -1625,21 +1627,33 @@ def protokollieren(sekunden, spieler=None, pfad=None, alle_ms=0.0, mit_trupps=Fa
             ring = Taktring()        # Modul-Ring vorhanden -> wirklich jeder Takt
         except Exception:  # noqa: BLE001
             ring = None
-    while time.time() < ende:
-        if ring is not None:
-            for s in ring.neue(spieler):
-                if letzter is not None and s.takt <= letzter:
-                    continue                  # nie doppelt, nie rueckwaerts
+    sende = None
+    if ring is not None and gegendruck:
+        from laden import befehl as sende
+        sende({"taktring_gegendruck": True}, 3.0)
+    try:
+        while time.time() < ende:
+            if ring is not None:
+                neu = False
+                for s in ring.neue(spieler):
+                    if letzter is not None and s.takt <= letzter:
+                        continue                  # nie doppelt, nie rueckwaerts
+                    p.aufnehmen(s)
+                    letzter = s.takt
+                    neu = True
+                if sende is not None and neu:
+                    sende({"taktring_frei": int(letzter)}, 3.0)
+                time.sleep(0.002)
+                continue
+            s = Schnappschuss(mit_trupps=mit_trupps, mit_feldern="hoehe")
+            if s.takt != letzter and (letzter is None or s.takt - letzter >= alle_takte):
                 p.aufnehmen(s)
                 letzter = s.takt
-            time.sleep(0.002)
-            continue
-        s = Schnappschuss(mit_trupps=mit_trupps, mit_feldern="hoehe")
-        if s.takt != letzter and (letzter is None or s.takt - letzter >= alle_takte):
-            p.aufnehmen(s)
-            letzter = s.takt
-        if alle_ms > 0:
-            time.sleep(alle_ms / 1000.0)
+            if alle_ms > 0:
+                time.sleep(alle_ms / 1000.0)
+    finally:
+        if sende is not None:
+            sende({"taktring_gegendruck": False}, 3.0)     # Rueckweg: immer aus, auch bei Fehler
     if pfad is None:
         daten = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "daten")
         pfad = os.path.join(daten, "auge_protokoll_%s.npz" % time.strftime("%Y%m%d_%H%M%S"))
