@@ -544,6 +544,7 @@ class Feldzug:
     BALLISTE_R = 30            # B-205: Feuerballiste so nah an einem unserer Nahkaempfer -> Ziel (Startwert, UNGEMESSEN)
     BALLISTE_MIN = 2           # B-182: so viele Nahkaempfer mindestens je Feuerballiste (im Sturm abgesprochen, Daniel 22.10.)
     ZUG_STILL = 300            # B-180: so lange nicht naeher am Zugang (und kein Gegner) -> Weg neu (wie RUECKZUG_TAKTE, L170)
+    KETTE_DA = 4              # logik.lua wegketteTick: "da" bis 4 Felder um den Kettenpunkt
     KETTE_ABSTAND = 15         # B-180: Wegpunkte entlang des Plans (wie sturm.py NAH)
 
     def _kette_zum_zug(self, befehl, wer, L, zug):
@@ -558,6 +559,12 @@ class Feldzug:
         for n in wer:
             o = (L[n]["x"], L[n]["y"])
             i0 = min(range(len(w_)), key=lambda i: schach(w_[i], o))
+            # B-147 (Daniel 26.10. 22:16 "kann noch nicht so schnell einen Eingang finden/freihauen", Partie 220717: Schwertkaempfer 39
+            # stand 3.300 Takte auf (219,24) = seinem naechsten Planpunkt; jede Runde kam ein neuer Kettenbefehl ab genau diesem
+            # Punkt, der loeste im Spielmodul die alte Kette, bevor sie weiterschalten konnte): steht er schon am naechsten
+            # Planpunkt (Radius wie wegketteTick), beginnt seine Kette beim NAECHSTEN Kettenpunkt - jeder Befehl bringt ihn weiter
+            if schach(w_[i0], o) <= self.KETTE_DA and i0 < len(w_) - 1:
+                i0 = min(i0 + self.KETTE_ABSTAND, len(w_) - 1)
             pk = [tuple(q) for q in w_[i0::self.KETTE_ABSTAND]]
             if not pk or pk[-1] != tuple(zug):
                 pk.append(tuple(zug))

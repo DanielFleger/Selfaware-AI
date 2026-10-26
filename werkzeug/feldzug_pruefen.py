@@ -1380,6 +1380,17 @@ def main():
     a61, m61 = nah61(3)
     a61o, _ = nah61(10)
     pruefe(61, "Bogen 3 daneben: %s | 10 weg: %s" % (a61, a61o), a61 and 10 in a61[0]["einheiten"] and not a61o)
+    # 62 (B-147, Partie 220717 Takt 47.637-50.900: Schwertkaempfer 39 stand 3.300 Takte auf seinem naechsten Planpunkt): wer schon
+    #    am naechsten Planpunkt steht, bekommt als erstes Laufziel den naechsten Kettenpunkt (15 weiter); wer weiter weg steht,
+    #    weiterhin den naechsten Planpunkt
+    f62 = F.Feldzug(1, heim, lord_schutz_bis=9600, n=30)
+    f62.dplan = {"weg": [(x, 50) for x in range(100, 160)]}
+    L62 = {39: einheit(75, 1, 100, 50), 40: einheit(75, 1, 100, 56)}
+    b62 = Befehle()
+    f62._kette_zum_zug(b62, [39, 40], L62, (159, 50))
+    erst62 = {n: tuple(x["angriff"]["lauf"]) for x in b62.liste if x.get("angriff") for n in x["angriff"]["einheiten"]}
+    pruefe(62, "erstes Laufziel am Planpunkt stehend: %s (soll (115, 50)) | 6 Felder daneben: %s (soll (100, 50))" % (
+        erst62.get(39), erst62.get(40)), erst62.get(39) == (115, 50) and erst62.get(40) == (100, 50))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
