@@ -1469,7 +1469,8 @@ def main():
            z73 == (30, 30) and v73 == [109] and z73g == 109)
     # 74 B-258 Typ lernen (Partie 234348: Turm 187 Typ 75, bis 48 Mann daneben, keiner hatte ihn als Ziel, Leben 1.500): 20 Mann
     #    mit zielgebaeude 0 stehen an der Bresche (Typ 75), ihr Leben sinkt nicht -> nach dem Verwerfen ist Typ 75 aus und der
-    #    Planer bekommt alle Typ-75-Gebaeude als verworfen. Gegenprobe: dieselben Maenner zielen auf die Bresche -> nichts gelernt.
+    #    Planer bekommt alle Typ-75-Gebaeude als verworfen. Gegenprobe: dieselben Maenner zielen auf die Bresche und ihr Leben
+    #    sinkt -> nichts gelernt. (Partie 001937: zielen allein reicht nicht - Turm 198 blieb trotz Zielenden bei 1.500)
     import tempfile
     def typ_lernen(zielt):
         F.Feldzug.TYPEN_DATEI = os.path.join(tempfile.mkdtemp(), "feldzug_typen.json")
@@ -1486,6 +1487,8 @@ def main():
         m_ = []
         for t in range(12050, 12050 + F.Feldzug.BRESCHE_ZAEH + F.Feldzug.DRAN_TAKTE + 300, 100):
             f._stau = (0, t)
+            if zielt and G_[900]["leben"] > 100:
+                G_[900]["leben"] -= 100                    # Gegenprobe: sie treffen, das Leben sinkt
             m_ += f.schritt({"t": t}, L_, G_, Befehle())
             if 900 in f.verworfen:
                 break
