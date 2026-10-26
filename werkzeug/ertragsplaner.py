@@ -421,6 +421,8 @@ class Ertragsplaner:
         _PACK_MERK[schl] = tuple(aus)
         return aus
 
+    SPERR_R_ROHSTOFF = 3
+
     def _orte_roh(self, typ, L, G):
         """Kandidaten-Orte fuer typ (Ankerpunkte)."""
         eigen = [g for g in G.values() if g["besitzer"] == self.sp]
@@ -428,6 +430,12 @@ class Ertragsplaner:
         b = self.groesse.get(typ, 3)
         # v17: bei mehreren Holzfaellern je Baum sperrt ein Fehlschlag nur seinen eigenen Platz, nicht 8 Felder rundum
         sperr_r = 0 if (typ == 3 and self.huetten_je_baum) else 8
+        # B-255 (Daniel 26.10. 23:10 "warum wird nicht die naehere Eisen oder Stein genutzt, sondern das weiter weg?"; Partie 222338:
+        # Eisenmine (143,310) 2x "kein Platz im Umkreis 1" - die 8-Felder-Sperre nahm das ganze naechste Erzfeld (122 Ankerplaetze,
+        # 45 Felder vom Bergfried), danach baute er bei (83,160), 113 Felder weg): auf Rohstofffeldern sperrt ein Fehlschlag nur
+        # den Umkreis, den die Platzsuche dort schon abgesucht hat (hoechstens 3)
+        if typ in (5, 20):
+            sperr_r = self.SPERR_R_ROHSTOFF
         gesperrt = lambda p: any(t == typ and schach(p, q) <= sperr_r for (t, q) in self.fehlschlag)
         # v18 (Daniel 23:10 "Holzfaeller sollten alle zugaenglich sein"): Holzfaeller-Huetten mit 1 Feld Gang zueinander
         abstand = b + 1 if (typ == 3 and self.huetten_je_baum) else b

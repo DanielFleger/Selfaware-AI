@@ -2905,9 +2905,16 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         if typ_k == 1:
                             o_k = baue_haus()
                         else:
-                            o_k = baue_schnell(typ_k, ort_k[0], ort_k[1], 3, zweck="kausal")
+                            o_k, grund_k = baue_schnell(typ_k, ort_k[0], ort_k[1], 3, zweck="kausal", mit_grund=True)
+                            # B-255 (Partie 222338: Steinbruch (135,310) nach EINER Ablehnung samt 8 Feldern Umkreis gesperrt, der
+                            # naechste Bruch kam 54 Felder vom Bergfried): wie bei den Eisenminen sperrt nur eine wiederholte echte
+                            # Platzablehnung - fehlender Rohstoff und Laufspuren ("schutz") sperren keinen Platz
+                            import aufbau_planer as P_AUF
+                            if not hasattr(ausbau, "kausal_fehlversuche"):
+                                ausbau.kausal_fehlversuche = {}
                             if not o_k:
-                                ausbau.fehlschlag[(typ_k, ort_k)] = ausbau.fehlschlag.get((typ_k, ort_k), 0) + 1
+                                if P_AUF.platzablehnung_merken(ausbau.kausal_fehlversuche, ort_k, grund_k):
+                                    ausbau.fehlschlag[(typ_k, ort_k)] = ausbau.fehlschlag.get((typ_k, ort_k), 0) + 1
                             elif typ_k == 20:          # die Ochsen des Pakets gleich mitbauen
                                 d_k = max(abs(ort_k[0] - lager_m[0]), abs(ort_k[1] - lager_m[1]))
                                 ochsen_k = [baue_schnell(4, ort_k[0], ort_k[1], 10, zweck="kausal Ochse") for _ in range(KM.ochsen_fuer(d_k))]
