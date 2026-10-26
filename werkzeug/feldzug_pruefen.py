@@ -1493,6 +1493,27 @@ def main():
     a74, m74 = typ_lernen(False)
     a74g, _ = typ_lernen(True)
     pruefe(74, "keiner zielt: Typen aus %s %s | alle zielen: %s" % (sorted(a74), m74, sorted(a74g)), a74 == {75} and m74 and not a74g)
+    # 75 B-260 (Partie 000651: Tunnel West nach 8 Kacheln aufgegeben, Burgseite gewechselt): faellt die Plan-Kachel (12,10), geht
+    #    es ohne neue Planung mit der naechsten Kachel (13,10) auf demselben Weg weiter. Gegenprobe: ohne weitere Kachel auf dem
+    #    Weg wird neu geplant.
+    def weiter75(mehr):
+        f = F.Feldzug(1, (0, 0), n=40)
+        aufrufe = []
+        f.durchbruch = lambda *a, **k: aufrufe.append(1) or {"art": "lord", "ziel": None, "zug": None, "weg": [(9, 9), (30, 30)],
+                                                             "takte": 1, "belastung": 0, "kandidaten": []}
+        f.ziel = 500
+        m = np.zeros((40, 40), bool)
+        weg = [(10, 10), (11, 10), (12, 10), (13, 10), (14, 10), (15, 10)]
+        if mehr:
+            m[13, 10] = m[14, 10] = True                   # (12,10) ist gefallen, dahinter noch zwei Kacheln
+        f.dplan = {"art": "mauer", "ziel": (12, 10), "zug": (11, 10), "weg": weg, "lord": (30, 30), "runde": 0}
+        dp = f._durchbruch_neu(m, (5, 5), (30, 30), 10, pruef=None)
+        return dp["ziel"], dp["zug"], len(aufrufe)
+    import numpy as np
+    z75, g75, a75 = weiter75(True)
+    z75g, _, a75g = weiter75(False)
+    pruefe(75, "Kachel gefallen: weiter bei %s ueber %s, %d Planungen | Weg ohne Kachel: %s, %d Planungen" % (z75, g75, a75, z75g, a75g),
+           z75 == (13, 10) and g75 == (12, 10) and a75 == 0 and a75g == 1)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

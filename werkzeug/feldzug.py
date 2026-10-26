@@ -533,6 +533,24 @@ class Feldzug:
         # B-256 (Partie 230627: Gebaeude 109, 146, 145, 149 und Torhaus 180 gewaehlt, je 1-3 s spaeter "BRESCHE ABGESCHNITTEN" -
         # bei 146 erst nach 7.000 Takten Anmarsch): der Wegfinder des Spiels prueft den Zugang, BEVOR der Plan gilt; ist er nicht
         # erreichbar, wird die Stelle verworfen und neu geplant
+        # B-260 (Partie 000651: Tunnel West (187..194, 90) nach 8 Kacheln aufgegeben, dann Nord (208, 58..61), dann Ost (239, 88) -
+        # jede gefallene Kachel liess den Planer vom wandernden Heer aus neu rechnen und die Burgseite wechseln; Partie 234348
+        # ebenso): ist das Ziel gefallen und liegt auf DEMSELBEN Plan-Weg noch eine Mauerkachel, geht es dort weiter - ohne neue
+        # Planung (die kostet ~3 s). Neu geplant wird erst, wenn der Weg keine Kachel mehr hat oder sie verworfen ist.
+        if dp is not None and tuple(dp["lord"]) == tuple(lp) and dp.get("weg") and dp["art"] in ("mauer", "tor", "gebaeude"):
+            gefallen = (not m[dp["ziel"]]) if dp["art"] == "mauer" else (dp["ziel"] not in (getattr(self, "_gebaeudebild", {}) or {}))
+            w_ = [tuple(q) for q in dp["weg"]]
+            if gefallen:
+                zi = w_.index(tuple(dp["zug"])) if dp.get("zug") and tuple(dp["zug"]) in w_ else 0
+                weiter = [i for i in range(zi + 1, len(w_)) if m[w_[i]] and w_[i] not in self.mauer_verworfen]
+                if weiter:
+                    i = weiter[0]
+                    neu = dict(dp, art="mauer", ziel=w_[i], zug=w_[i - 1], runde=self.runde)
+                    self._dplan_meldung = ("FELDZUG DURCHBRUCH WEITER: %s %s gefallen - naechste Kachel %s auf demselben Weg (noch %d "
+                                           "Kacheln), Zugang %s" % (dp["art"], dp["ziel"], w_[i], len(weiter), w_[i - 1]))
+                    self.dplan = neu
+                    self._absprache_schreiben(lp)
+                    return neu
         aus_typ = {nr for nr, g_ in (getattr(self, "_gebaeudebild", {}) or {}).items() if g_.get("typ") in self._typen_aus()}
         for _v in range(self.PLAN_VERSUCHE):
             try:
