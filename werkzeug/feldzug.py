@@ -431,6 +431,8 @@ class Feldzug:
             aus.update(mauern=plan["n"], hoehe=int(h[m & fen].sum()), kachel=kachel,
                        hoehe_kachel=int(h[kachel]) if kachel else None, weg_hoehe=plan["hoehe"])
         elif frei is not None:
+            if self.dplan is not None and self.dplan.get("art") in ("mauer", "tor", "gebaeude"):
+                self._dplan_vor_frei = self.dplan          # B-262: fuer "wieder hinter Mauern"
             self.dplan = None
         return aus
 
@@ -551,6 +553,23 @@ class Feldzug:
                 self.verworfen.add(neu["ziel"])
             self._zugang_verworfen = getattr(self, "_zugang_verworfen", []) + [(neu["art"], neu["ziel"], tuple(neu["zug"]))]
             neu = None
+        # B-262 (Partie 004430: "Lord zu Fuss erreichbar" kam und ging 3-mal - Gebiet am Lord 60000, unser 1, Kachel (217,110)
+        # stand weiter mit Hoehe 80 - der freie Weg fuehrte offenbar durch ein kurz offenes Tor; nach jeder "freien Fahrt" begann
+        # der Durchbruch woanders): ein Hindernis-Plan, der von "frei" abgeloest wurde, gilt wieder, sobald wieder ein Hindernis
+        # im Weg ist und sein Ziel noch steht
+        vorher = getattr(self, "_dplan_vor_frei", None)
+        if (neu is not None and neu.get("art") in ("mauer", "tor", "gebaeude") and vorher is not None
+                and schach(tuple(vorher["lord"]), tuple(lp)) <= 3
+                and ((vorher["art"] == "mauer" and m[vorher["ziel"]] and vorher["ziel"] not in self.mauer_verworfen)
+                     or (vorher["art"] != "mauer" and vorher["ziel"] not in self.verworfen
+                         and vorher["ziel"] in (getattr(self, "_gebaeudebild", {}) or {})))):
+            self._dplan_meldung = "FELDZUG DURCHBRUCH ZURUECK: wieder hinter Mauern - weiter an %s %s statt neu bei %s %s" % (
+                vorher["art"], vorher["ziel"], neu["art"], neu["ziel"])
+            self.dplan, self._dplan_vor_frei = dict(vorher, runde=self.runde), None
+            self._absprache_schreiben(lp)
+            return self.dplan
+        if neu is not None and neu.get("art") == "lord" and dp is not None and dp.get("art") in ("mauer", "tor", "gebaeude"):
+            self._dplan_vor_frei = dp
         if neu is not None:
             neu = dict({k: neu.get(k) for k in ("art", "ziel", "zug", "weg", "takte", "belastung", "kandidaten")},
                        runde=self.runde, lord=tuple(lp))

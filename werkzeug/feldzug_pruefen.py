@@ -1511,6 +1511,29 @@ def main():
     z75g, _, a75g = weiter75(False)
     pruefe(75, "Kachel gefallen: weiter bei %s ueber %s, %d Planungen | Weg ohne Kachel: %s, %d Planungen" % (z75, g75, a75, z75g, a75g),
            z75 == (13, 10) and g75 == (12, 10) and a75 == 0 and a75g == 1)
+    # 76 B-262 (Partie 004430: "Lord erreichbar" kam und ging 3-mal, danach begann der Durchbruch woanders): Plan Kachel (12,10),
+    #    dann liefert der Planer "frei" (Lord erreichbar), dann wieder ein Hindernis woanders (30,5) -> es geht bei (12,10) weiter,
+    #    solange sie steht. Gegenprobe: ist (12,10) inzwischen gefallen, gilt der neue Plan.
+    def zurueck76(steht):
+        import numpy as np
+        f = F.Feldzug(1, (0, 0), n=40)
+        f.ziel = 500
+        A = {"art": "mauer", "ziel": (12, 10), "zug": (11, 10), "weg": [(11, 10), (12, 10)], "lord": (30, 30), "runde": 0}
+        antworten = [{"art": "lord", "ziel": None, "zug": None, "weg": [(9, 9), (30, 30)], "takte": 1, "belastung": 0, "kandidaten": []},
+                     {"art": "mauer", "ziel": (30, 5), "zug": (29, 5), "weg": [(29, 5), (30, 5)], "takte": 1, "belastung": 0, "kandidaten": []}]
+        f.durchbruch = lambda *a, **k: antworten.pop(0)
+        m = np.zeros((40, 40), bool)
+        m[30, 5] = True
+        f.dplan = dict(A)                       # Runde 1: Kachel (12,10) ist (scheinbar) offen, kein Hindernis mehr -> Plan "frei"
+        dp1 = f._durchbruch_neu(m, (5, 5), (30, 30), 10)
+        m[12, 10] = steht                       # Runde 2: die Mauer ist wieder da (Tor zu) - steht (12,10)?
+        f.dplan = None
+        dp2 = f._durchbruch_neu(m, (5, 5), (30, 30), 10)
+        return dp1["art"], dp2["ziel"]
+    a76, z76 = zurueck76(True)
+    a76g, z76g = zurueck76(False)
+    pruefe(76, "erst %s, dann wieder Hindernis: weiter bei %s | alte Kachel gefallen: %s" % (a76, z76, z76g),
+           a76 == "lord" and z76 == (12, 10) and z76g == (30, 5))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
