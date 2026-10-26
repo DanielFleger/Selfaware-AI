@@ -75,6 +75,7 @@ def _dtype(felder, groesse):
 # Unit (types.json /_HoldStrong/Map/Units/Unit, 1168 Byte) - nur die Felder, die das Auge braucht
 UNIT = _dtype([
     ("animationTicker", "<i4", 64), ("animationSpeed", "<i4", 68), ("animationFrame", "<i4", 72),
+    ("animationCycleNumberHasJustIncremented", "<i4", 80),
     ("logicalState", "<i2", 140), ("unitType", "<i2", 142), ("owner", "<i2", 150), ("uid", "<i4", 152),
     ("targetUID", "<i4", 160), ("microXPosition", "<i2", 182), ("microYPosition", "<i2", 184),
     ("terrainOrClimbHeight", "<i2", 186), ("buildingHeight", "<i2", 188),
@@ -92,12 +93,12 @@ UNIT = _dtype([
     ("shootTargetedUnit", "<i2", 836), ("calculatedMovementSpeed", "<i2", 842), ("movementSpeed", "<i2", 844),
     ("field215_0x350", "<i4", 848), ("field216_0x354", "<i4", 852), ("unknownTestAgainst0_2", "<i2", 856),
     ("stoneAmmunition", "<i2", 866), ("workplaceBuildingUID", "<i4", 872), ("substate", "<i2", 896),
-    ("fixedRng", "<u4", 900), ("buildingID", "<i2", 920), ("field250_0x39a", "<i2", 922), ("targetingType", "<i2", 924),
+    ("fixedRng", "<u4", 900), ("jugglerCount", "<i2", 906), ("buildingID", "<i2", 920), ("field250_0x39a", "<i2", 922), ("targetingType", "<i2", 924),
     ("targetedUnitID__OR__engineerMannedSiegeEngineRef", "<i2", 926), ("targetedBuildingTile", "<u4", 936),
     ("lookForEnemy", "<i2", 940), ("attackedBy", "<i2", 942), ("huntedBy", "<i2", 946),
     ("digTileX__OR__countCurrentlyManningEnginers", "<i2", 948),
     ("health", "<i4", 968), ("maxHealth", "<i4", 972), ("field276_0x3d2", "<i2", 978), ("field282_0x3dc", "<i2", 988), ("attackAtTileX", "<i2", 1000), ("attackAtTileY", "<i2", 1002),
-    ("nextAttackHurtsWall", "i1", 1006), ("lastEncounteredEnemyPlayerID", "<i2", 1024),
+    ("nextAttackHurtsWall", "i1", 1006), ("lastEncounteredEnemyPlayerID", "<i2", 1024), ("field_0x40e", "i1", 1038),
     ("horseArcherShootCheckInterval", "<i2", 1062), ("aiUnitBehaviourType", "<i2", 1066), ("siegeTargetPlayerID", "<i2", 1074),
     ("lastEncounteredEnemyUnitIDUnk", "<i2", 1078), ("assassinsMicroDistanceToEnemyUnk", "<i4", 1080),
     ("enemyNoticeFrequencyUnk", "<i4", 1084), ("idleCounterUnk", "<i2", 1092),
