@@ -137,6 +137,7 @@ class Simulator(object):
     GEGEN_BLICK = True
     FREMDTREFFER = True
     VORHALT = True
+    MIKROSCHRITTE = True            # AU31: Treffer je Mikroschritt der Bahn (Index 7)
     ZIEL_PRUEFEN = True             # AU30 (1): Zielpruefung am Ende des Zielens
     LEERLAUF = True                 # AU28: untaetige Schuetzen ohne Trupp suchen am Ende jeder Leerlauf-Animation                  # AU25: Vorhalt bei laufendem Ziel             # AU4/AU24: Geschoss prueft je Takt das ueberflogene Feld (auge.bahn_neu / sre_bahn)              # AU23: Gegenzuweisung setzt beim Opfer attackedUnitID UND Blickrichtung          # Schuetzen drehen beim Zielen/Schiessen zum Ziel (gemessen, 91 % der Schiess-Takte)        # je Einheit: n = Nahkampf, s = Feindsuche, l = Laufen (gemessen, s. Register L190)
 
@@ -548,7 +549,8 @@ class Simulator(object):
                 continue
             if self.FREMDTREFFER and g.get("sre_bahn"):
                 fluege.append({"bahn": {int(b[0]): b for b in g["sre_bahn"]}, "ende": int(g["sre_bahn"][-1][0]), "own": g.get("owner"),
-                               "tab": tab, "quelle": {"art": "geschoss", "uid": g.get("uid"), "schuetze": g.get("unitID_OR_seaGullID")}})
+                               "tab": tab, "quelle": {"art": "geschoss", "uid": g.get("uid"), "schuetze": g.get("unitID_OR_seaGullID")},
+                               "schuetze_id": g.get("unitID_OR_seaGullID")})
                 continue
             landen.setdefault(max(1, int(rest)), []).append(("luft", g, tab))
         # Schuetzen: naechster Schuss (Phasenrest, AU6)
@@ -725,7 +727,7 @@ class Simulator(object):
                 bahn = self._bahn(u, z) if self.FREMDTREFFER else []
                 if bahn:
                     fluege.append({"bahn": {k + int(b[0]): b for b in bahn[1:]}, "ende": k + int(bahn[-1][0]), "own": u.own,
-                                   "tab": SCHUSS_TAB_UT[u.typ], "quelle": {"art": "schuss", "schuetze": u.id}})
+                                   "tab": SCHUSS_TAB_UT[u.typ], "quelle": {"art": "schuss", "schuetze": u.id}, "schuetze_id": u.id})
                 else:
                     flug = int(round(max(abs(u.feld[0] - z.feld[0]), abs(u.feld[1] - z.feld[1])) / gehirn.FELDER_JE_TAKT))
                     landen.setdefault(k + max(1, flug), []).append(("schuss", u, z))
@@ -764,19 +766,25 @@ class Simulator(object):
             for f in list(fluege):
                 b = f["bahn"].get(k)
                 if b is not None:
-                    h, fx, fy = b[3], b[4], b[5]
-                    for i in felder.get((fx, fy), ()):
-                        v = U[i]
-                        if v.tot or v.own == f["own"]:
-                            continue
-                        if v.hz <= h <= v.hz + 42:
-                            q = dict(f["quelle"], takt=k)
-                            schaden(v, self.G._geschoss_schaden(f["tab"], v.typ), q)
-                            fluege.remove(f)
+                    # AU31: Treffer nach JEDEM Mikroschritt (Index 7), sonst Lage am Taktende; Kette aufsteigend, Fenster
+                    # [Einheit, +42]; ausgenommen nur sterbend, der Schuetze selbst, gleiches Team
+                    schritte = b[7] if self.MIKROSCHRITTE and len(b) > 7 and b[7] else [(b[1], b[2], b[3], b[4], b[5])]
+                    getroffen = None
+                    for mx_, my_, h, fx, fy in schritte:
+                        for i in felder.get((fx, fy), ()):
+                            v = U[i]
+                            if v.tot or v.id == f.get("schuetze_id") or self._team(v.own) == self._team(f["own"]):
+                                continue
+                            if v.hz <= h <= v.hz + 42:
+                                getroffen = v
+                                break
+                        if getroffen is not None:
                             break
-                    else:
-                        if k >= f["ende"]:
-                            fluege.remove(f)
+                    if getroffen is not None:
+                        schaden(getroffen, self.G._geschoss_schaden(f["tab"], getroffen.typ), dict(f["quelle"], takt=k))
+                        fluege.remove(f)
+                    elif k >= f["ende"]:
+                        fluege.remove(f)
                 elif k > f["ende"]:
                     fluege.remove(f)
             # 5 Geschosse landen
