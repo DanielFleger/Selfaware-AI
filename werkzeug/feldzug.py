@@ -236,7 +236,10 @@ class Feldzug:
     # jeweils 1er-Stacks auf eine Mauer, mit einem Schredder durch alle Mauern, dann direkt drinnen"; 22:07 "vertraue mir, mit
     # einem Schredder hast du kombinierte Angriffswerte - schon durch den Turm-Test"):
     MAUER_TRUPP = 1           # B-164: jede Einheit ein eigener Mauerbefehl, alle auf dieselbe Kachel - der Schaden addiert sich
-    WIRKUNG_TAKTE = 300       # B-165: so lange ohne Fortschritt am Ziel, obwohl TOR_MIN daneben stehen -> umplanen (UNGEMESSEN)
+    # B-165: so lange ohne Fortschritt am Ziel, obwohl TOR_MIN daneben stehen -> umplanen. Bis 27.10. 300 (UNGEMESSEN); gemessen
+    # 27.10. (Selbstspiel gegen den Zeitreisenden): Abstand zwischen zwei Kachel-Plaenen Median 1.083 Takte (99 Faelle, inkl. Laufen),
+    # Partie 003727: Kachel (190,83) nach 401 Takten mit 15 Hackenden (107) verworfen - die Hoehe sinkt nicht stetig
+    WIRKUNG_TAKTE = 1200
     WIRKUNG_NAH = 8           # B-165: "daneben" = so nah am Gebaeude (bis 7x7) bzw. bis 3 Felder an einer erreichbaren Mauer
     SCHREDDER_PAUSE = 1500    # B-165: Schredder ohne Wirkung -> so lange Bresche (Turm/Torhaus) statt Mauer
     # B-164 Durchbruch (Daniel 22:24 "er muss wirklich durch die ganze Mauer, nicht nur durch eine Schicht"; "rennt wieder aufs
