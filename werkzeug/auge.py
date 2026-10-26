@@ -560,39 +560,110 @@ def abschuss_punkt(schuetze, art):
             int(schuetze["buildingHeight"]) + int(schuetze["terrainOrClimbHeight"]) + plus)
 
 
+def bahn_schritte(sx, sy, sh, tx, ty, vcos, vsin, dt, max_takte=400):
+    """GENAUE Geschossbahn wie moveProjectileEntity 0x004084A0 + updateEntityMicroMovement 0x00402AE0 (AU31):
+    je Takt k (k = 0 Abschusstakt) ziel = int(vCos * speed * 0,25) Mikroschritte insgesamt, Hoehe h8 = int(2 (vSin speed -
+    4,906 speed^2)) ueber Start, speed danach += dt (float32). Die neuen Schritte laufen einzeln auf einer Bresenham-Linie
+    (Fehlerterme aus initializeProjectileVelocities), die Hoehe je Schritt += int((h8 - h) / Schritte), am Taktende genau h8;
+    die Trefferpruefung (processEntityHitBuildingOrUnit) laeuft nach JEDEM Schritt. Rueckgabe [(k, [(mx, my, h), ...],
+    (mx, my, h) Taktende)]. Gemessen: Lage und Hoehe exakt bei 2.734/2.734 (201153) und 3.485/3.485 (200603) Sichtungen
+    fliegender Pfeile/Bolzen; abgeprallte Pfeile (handleProjectileWallBounce) haben danach neue Werte."""
+    f32 = np.float32
+    dx, dy = abs(tx - sx), abs(ty - sy)
+    stx = 1 if sx <= tx else -1
+    sty = 1 if sy <= ty else -1
+    typ = (0 if dy == 0 else 1) if dx == 0 else (2 if dy == 0 else (3 if dx < dy else 4))
+    if typ == 3:
+        f47, f48, f49 = 2 * dx, 2 * dx - 2 * dy, 2 * dx - dy
+    elif typ == 4:
+        f47, f48, f49 = 2 * dy, 2 * dy - 2 * dx, 2 * dy - dx
+    else:
+        f47 = f48 = f49 = 0
+    x, y = int(sx), int(sy)
+    speed = f32(0.0)
+    vc, vs = float(f32(vcos)), float(f32(vsin))
+    trav = hrel = 0
+    aus = []
+    for k in range(max_takte + 1):
+        sp = float(speed)
+        i7 = int(vc * sp * 0.25)
+        i8 = int(2.0 * (vs * sp - GRAVITY_DIV_2 * sp * sp))
+        speed = f32(f32(dt) + speed)
+        n = i7 - trav
+        loc = int((i8 - hrel) / n) if n else 0
+        schritte = []
+        while trav < i7:
+            trav += 1
+            if typ == 1:
+                y += sty
+            elif typ == 2:
+                x += stx
+            elif typ == 3:
+                if f49 > 0:
+                    x += stx; y += sty; f49 += f48
+                else:
+                    y += sty; f49 += f47
+            elif typ == 4:
+                x += stx
+                if f49 > 0:
+                    y += sty; f49 += f48
+                else:
+                    f49 += f47
+            hrel += loc
+            schritte.append((x, y, int(sh) + hrel))
+        hrel = i8
+        aus.append((k, schritte, (x, y, int(sh) + hrel)))
+        if int(sh) + hrel < -60:
+            break
+    return aus
+
+
+def _bahn_liste(schritte_je_takt, gesamt, stein, ziel_hoehe, boden_fn, ab_takt=0):
+    """Ausgabe wie bisher je Takt [k, mx, my, h, fx, fy, boden, [(mx, my, h, fx, fy) je Mikroschritt]] mit Ende am Boden:
+    erster Mikroschritt unter der Bodenhoehe seines Felds (Pfeile erst nach der halben Strecke, Steine sofort); ohne
+    Bodenhoehen, sobald nach der halben Strecke die Zielhoehe unterschritten ist."""
+    aus = []
+    trav = 0
+    for k, schritte, (ex, ey, eh) in schritte_je_takt:
+        ms = []
+        ende = False
+        for (mx, my, h) in schritte:
+            trav += 1
+            fx, fy = mx // 8, my // 8
+            ms.append((mx, my, h, fx, fy))
+            boden = boden_fn(fx, fy) if boden_fn is not None else None
+            if boden is not None:
+                if h < boden and (stein or trav > gesamt / 2.0):
+                    ende = True
+            elif ziel_hoehe is not None and trav > gesamt / 2.0 and h < int(ziel_hoehe):
+                ende = True
+            if ende or not (0 <= fx < 400 and 0 <= fy < 400):
+                ende = True
+                break
+        if k >= ab_takt:
+            mx, my, h = (ms[-1][:3] if ende and ms else (ex, ey, eh))
+            fx, fy = mx // 8, my // 8
+            aus.append([k, mx, my, h, fx, fy, boden_fn(fx, fy) if boden_fn is not None else None, ms])
+        if ende or eh < -50:
+            break
+    return aus
+
+
 def bahn_neu(schuetze_mikro, schuetze_hoehe, ziel_mikro, ziel_hoehe, geschossart, schnappschuss=None, max_takte=400):
-    """Flugbahn eines GEPLANTEN Schusses je Takt: [[k, mikroX, mikroY, hoehe, feld_x, feld_y, boden], ...], k = Takte seit
-    dem Abschuss (k = 0: Abschusstakt, das Geschoss steht noch am Start - gemessen: im Abschusstakt ist speedUnk = dt,
-    travelledDistance = 0). Je Takt T = k * dt, Strecke 0,25 * vCos * T entlang Start->Ziel, Hoehe = Start + 2 (vSin T -
-    4,906 T^2) (AU3/AU4). Ende wie sre_bahn: mit `schnappschuss` beim ersten Feld, dessen Bodenhoehe (Dach eingeschlossen)
-    ueber der Bahn liegt (Pfeile erst nach der halben Strecke, Steine sofort); ohne Schnappschuss, sobald nach der halben
-    Strecke die Zielhoehe unterschritten ist. Treffer an Einheiten: Feldkette aufsteigend, Hoehe in [Einheit, +42]."""
+    """Flugbahn eines GEPLANTEN Schusses je Takt: [[k, mikroX, mikroY, hoehe, feld_x, feld_y, boden, mikroschritte], ...],
+    k = Takte seit dem Abschuss (k = 0: Abschusstakt, das Geschoss steht noch am Start). Seit 26.10. GENAU wie das Spiel
+    (bahn_schritte, AU31): Lage und Hoehe je Takt exakt, dazu je Takt die einzelnen Mikroschritte (mx, my, h, fx, fy) -
+    an JEDEM Mikroschritt prueft das Spiel die Einheiten des Felds (Kette aufsteigend, Hoehe in [Einheit, +42],
+    nicht sterbend, nicht der Schuetze, anderes Team). Ende am Boden wie sre_bahn."""
     st = schuss_start(geschossart, schuetze_mikro, schuetze_hoehe, ziel_mikro, ziel_hoehe)
     if st is None:
         return []
     sx, sy, sh = int(schuetze_mikro[0]), int(schuetze_mikro[1]), int(schuetze_hoehe)
     tx, ty = int(ziel_mikro[0]), int(ziel_mikro[1])
-    gesamt = max(st["strecke"], 1)
-    ex, ey = (tx - sx) / float(gesamt), (ty - sy) / float(gesamt)
+    schr = bahn_schritte(sx, sy, sh, tx, ty, st["vCos"], st["vSin"], st["dt"], max_takte)
     stein = st["art"] in (2, 3, 4, 23)
-    dt, vcos, vsin = float(np.float32(st["dt"])), st["vCos"], st["vSin"]
-    aus = []
-    for k in range(0, max_takte + 1):
-        T = k * dt
-        d = FLUG_FAKTOR * vcos * T
-        h = sh + 2.0 * (vsin * T - GRAVITY_DIV_2 * T * T)
-        mx, my = int(round(sx + ex * d)), int(round(sy + ey * d))
-        fx, fy = mx // 8, my // 8
-        boden = schnappschuss._boden(fx, fy) if schnappschuss is not None else None
-        aus.append([k, mx, my, int(round(h)), fx, fy, boden])
-        if boden is not None:
-            if h < boden and (stein or d > gesamt / 2.0):
-                break
-        elif k and d > gesamt / 2.0 and h < int(ziel_hoehe):
-            break
-        if h < -50 or not (0 <= fx < 400 and 0 <= fy < 400):
-            break
-    return aus
+    boden_fn = schnappschuss._boden if schnappschuss is not None else None
+    return _bahn_liste(schr, max(st["strecke"], 1), stein, ziel_hoehe, boden_fn)
 
 
 def _feld(r, name):
@@ -882,22 +953,33 @@ class Schnappschuss(object):
         return aus
 
     def _bahn(self, r, max_takte=400):
-        """Vorhersage je Takt ab jetzt: [takt_offset, mikroX, mikroY, hoehe, feld_x, feld_y, boden] bis der Pfeil unter die
-        Bodenhoehe seines Feldes faellt (processEntityHitBuildingOrUnit: Aufschlag erst nach der halben Strecke; Treffer an
-        einer Einheit, wenn hoehe in [Einheitenhoehe, +42]). Formeln aus moveProjectileEntity 0x004084A0:
-        T = speedUnk - Zeitschritt (speedUnk wird erst NACH dem Schritt erhoeht), je Takt T += Zeitschritt,
-        Strecke = 0,25 * vCos * T (Mikroschritte, Zaehlung wie travelledDistance), Hoehe = startingHeight + 2 * (vSin * T -
-        4,906 * T^2). Gemessen 25.10. (Lauf 153231, 20 Pfeile, alle Stuetzstellen auf +-1 Mikroschritt/Hoehenpunkt).
-        Pfeil, Bolzen, Balliste, Schleuder (Kurventyp 0/6, gemessen) und Steine/Kuh (Kurventyp 1/2: gleiche Bewegungsformel,
-        Winkel aus Tabelle, Geschwindigkeit per computeVelocity - Landung sobald unter Bodenhoehe; UNGEMESSEN bis Katapult-Lauf)."""
+        """Vorhersage je Takt ab jetzt: [takt_offset, mikroX, mikroY, hoehe, feld_x, feld_y, boden, mikroschritte] - seit
+        26.10. GENAU (bahn_schritte, AU31): aus den Startwerten (x_2, y_2, startingHeight, Ziel, vCos, vSin, Zeitschritt)
+        bis zum jetzigen Takt nachgerechnet (k_jetzt = speedUnk / dt - 1), dann weiter. Stimmt die nachgerechnete Lage
+        nicht mit der echten ueberein (abgeprallter Pfeil), faellt sie auf die alte Naeherung zurueck."""
         art = int(r["entityType"])
         if art not in (1, 7, 20, 33, 2, 3, 4, 23) or int(r["someCounter_OR_hitGround"]) != 0:
             return []
-        stein = art in (2, 3, 4, 23)   # Katapult/Tribok/Mangonel/Kuh: Aufschlag sobald unter Bodenhoehe, ohne Halbstrecken-Regel
+        stein = art in (2, 3, 4, 23)
+        dt = float(r["_elapsedTimeOrGravityAccumulator"])
+        if dt <= 0 or float(r["vCos"]) == 0:
+            return []
+        k_jetzt = int(round(float(r["speedUnk"]) / dt)) - 1
+        schr = bahn_schritte(int(r["x_2"]), int(r["y_2"]), int(r["startingHeight"]), int(r["targetX"]), int(r["targetY"]),
+                             float(r["vCos"]), float(r["vSin"]), dt, k_jetzt + max_takte)
+        if 0 <= k_jetzt < len(schr) and schr[k_jetzt][2] == (int(r["microX"]), int(r["microY"]), int(r["height"])):
+            aus = _bahn_liste(schr, max(int(r["field58_0x8c"]), 1), stein, None, self._boden, ab_takt=k_jetzt + 1)
+            for z in aus:
+                z[0] -= k_jetzt
+            return aus
+        return self._bahn_alt(r, max_takte)
+
+    def _bahn_alt(self, r, max_takte=400):
+        """Alte Naeherung (AU3/AU4, Mikrolage +-1-2, Feld 76 %) - nur noch fuer abgeprallte Pfeile."""
+        art = int(r["entityType"])
+        stein = art in (2, 3, 4, 23)
         dt = float(r["_elapsedTimeOrGravityAccumulator"])
         vcos, vsin = float(r["vCos"]), float(r["vSin"])
-        if dt <= 0 or vcos == 0:
-            return []
         sx, sy, sh = int(r["x_2"]), int(r["y_2"]), int(r["startingHeight"])
         tx, ty = int(r["targetX"]), int(r["targetY"])
         gesamt = max(int(r["field58_0x8c"]), 1)
@@ -911,7 +993,7 @@ class Schnappschuss(object):
             mx, my = int(round(sx + ex * d)), int(round(sy + ey * d))
             fx, fy = mx // 8, my // 8
             boden = self._boden(fx, fy)
-            aus.append([k, mx, my, int(round(h)), fx, fy, boden])
+            aus.append([k, mx, my, int(round(h)), fx, fy, boden, []])
             if (boden is not None and h < boden and (stein or d > gesamt / 2.0)) or h < -50 or not (0 <= fx < 400 and 0 <= fy < 400):
                 break
         return aus
