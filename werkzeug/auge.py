@@ -113,7 +113,7 @@ ENTITY = _dtype([
     ("startingHeight", "<i2", 88), ("someCounter_OR_hitGround", "<i2", 108), ("speedUnk", "<f4", 120),
     ("vCos", "<f4", 124), ("vSin", "<f4", 128), ("travelledDistance", "<i2", 132), ("field58_0x8c", "<i2", 140),
     ("velocityUnk", "<i2", 150), ("_elapsedTimeOrGravityAccumulator", "<f4", 152), ("startingAngle", "<i2", 156),
-    ("unitID", "<i2", 160), ("unitID_OR_seaGullID", "<i2", 162), ("hasDoneEffectUnk", "<i2", 178),
+    ("unitID", "<i2", 160), ("unitID_OR_seaGullID", "<i2", 162), ("hasDoneEffectUnk", "<i2", 178), ("rng_1", "<i4", 172), ("field45_0x6a", "<i2", 106),
     ("field80_0xba", "<i2", 186), ("rng_2", "<i2", 188), ("field90_0xd0", "<i2", 206), ("unitUID", "<i4", 212),
     ("fireIntensity", "<i2", 216),
     # Luft-Stopp der Steine (B-252): Kandidatenfelder mitlesen
@@ -195,7 +195,10 @@ def bauhoehen():
 
 
 # getBuildingHeightForBuildingID 0x00409DB0: feste Hoehen fuer Herrenhaus/Bergfriede/Torhaeuser/Tuerme, sonst 0
-FESTE_BAUHOEHE = {11: 0x40, 12: 0x5C, 13: 0xBE, 40: 0x80, 41: 0x80, 74: 0x128, 75: 0x94, 76: 0xB4, 77: 0xC0, 78: 0xC0}
+# 26.10. korrigiert (SAI 41.098): Schluessel sind BuildingTypeShort - Herrenhaus 40, Stein-Bergfried 41, Festung 42,
+# Torhaeuser 45/46, Belagerungsturm 69, Tuerme 74-78 (vorher 11/12/13 und 40/41 = falsch, Bergfried-Dach 136 statt 100)
+FESTE_BAUHOEHE = {40: 0x40, 41: 0x5C, 42: 0xBE, 45: 0x80, 46: 0x80, 69: 0x76, 74: 0x128, 75: 0x94, 76: 0xB4, 77: 0xC0, 78: 0xC0}
+BERGFRIEDE = (41, 42, 43, 44)
 
 
 def boden_hoehe(hoehe, logik, btyp, organism=0):
@@ -211,9 +214,7 @@ def boden_hoehe(hoehe, logik, btyp, organism=0):
         return hoehe + FESTE_BAUHOEHE.get(btyp, 0)
     if btyp in (45, 46, 61, 74, 75, 76, 77, 78):
         return hoehe + FESTE_BAUHOEHE.get(btyp, 0) + 10
-    if btyp == 7:
-        return hoehe
-    bh = bauhoehen()
+    bh = bauhoehen()      # Art 7 liefert nur mit param_2 != 0 den Boden; Geschosse rufen mit 0 -> Tabelle wie alle
     return hoehe + int(bh[btyp]) if 0 <= btyp < len(bh) else hoehe
 
 
@@ -618,7 +619,34 @@ def bahn_schritte(sx, sy, sh, tx, ty, vcos, vsin, dt, max_takte=400):
     return aus
 
 
-def _bahn_liste(schritte_je_takt, gesamt, stein, ziel_hoehe, boden_fn, ab_takt=0):
+def pfeil_landet(h, trav, gesamt, info, z80, sonder):
+    """processEntityHitBuildingOrUnit 0x00407190, Teil Boden (nach der Einheitenpruefung), fuer Pfeil/Bolzen/Balliste/
+    Schleuder/Feuer: None = fliegt weiter, sonst Grund. info = (boden, logik, btyp, gebaeude_leben); z80 = field80 nach
+    diesem Schritt; sonder = (field45, startingAngle, hasDoneEffect, rng_1)."""
+    boden, logik, btyp, leben = info
+    if boden is None:
+        return None
+    if btyp in (61, 74, 75, 76, 77, 78) and sonder[3] is not None and (int(sonder[3]) & 4):
+        boden += 0x14
+    if h >= boden or trav <= gesamt // 2:
+        return None
+    if logik & 0x40100001:
+        return "wasser"
+    if (logik & 0x10000100) == 0 and (btyp == 0 or btyp not in BERGFRIEDE):
+        if logik & 8:
+            return "pech"
+        if btyp == 0:
+            return "boden"
+        if 74 <= btyp <= 78 or leben == 0 or (logik & 0x0F000000):
+            return None
+        return "gebaeude"
+    f45, winkel, effekt = sonder[0], sonder[1], sonder[2]
+    if (f45 is not None and f45 < 3 and winkel < 0) or effekt or z80 > 0:
+        return None
+    return "prallt"
+
+
+def _bahn_liste(schritte_je_takt, gesamt, stein, ziel_hoehe, boden_fn, ab_takt=0, feld_fn=None, z80=0, sonder=(None, 0, 0, None)):
     """Ausgabe wie bisher je Takt [k, mx, my, h, fx, fy, boden, [(mx, my, h, fx, fy) je Mikroschritt]] mit Ende am Boden:
     erster Mikroschritt unter der Bodenhoehe seines Felds (Pfeile erst nach der halben Strecke, Steine sofort); ohne
     Bodenhoehen, sobald nach der halben Strecke die Zielhoehe unterschritten ist."""
@@ -631,19 +659,28 @@ def _bahn_liste(schritte_je_takt, gesamt, stein, ziel_hoehe, boden_fn, ab_takt=0
             trav += 1
             fx, fy = mx // 8, my // 8
             ms.append((mx, my, h, fx, fy))
-            boden = boden_fn(fx, fy) if boden_fn is not None else None
-            if boden is not None:
-                if h < boden and (stein or trav > gesamt / 2.0):
-                    ende = True
-            elif ziel_hoehe is not None and trav > gesamt / 2.0 and h < int(ziel_hoehe):
-                ende = True
-            if ende or not (0 <= fx < 400 and 0 <= fy < 400):
-                ende = True
+            if not stein and feld_fn is not None:
+                grund = pfeil_landet(h, trav, gesamt, feld_fn(fx, fy), z80 - trav, sonder)
+                if grund is not None:
+                    ende = grund
+            else:
+                boden = boden_fn(fx, fy) if boden_fn is not None else None
+                if boden is not None:
+                    if h < boden and (stein or trav > gesamt / 2.0):
+                        ende = "boden"
+                elif ziel_hoehe is not None and trav > gesamt / 2.0 and h < int(ziel_hoehe):
+                    ende = "zielhoehe"
+            if not (0 <= fx < 400 and 0 <= fy < 400):
+                ende = "karte"
+            if ende:
                 break
         if k >= ab_takt:
             mx, my, h = (ms[-1][:3] if ende and ms else (ex, ey, eh))
             fx, fy = mx // 8, my // 8
-            aus.append([k, mx, my, h, fx, fy, boden_fn(fx, fy) if boden_fn is not None else None, ms])
+            z = [k, mx, my, h, fx, fy, boden_fn(fx, fy) if boden_fn is not None else None, ms]
+            if ende:
+                z.append(ende)      # Index 8: Endgrund (boden/gebaeude/prallt/wasser/pech/zielhoehe/karte)
+            aus.append(z)
         if ende or eh < -50:
             break
     return aus
@@ -663,7 +700,9 @@ def bahn_neu(schuetze_mikro, schuetze_hoehe, ziel_mikro, ziel_hoehe, geschossart
     schr = bahn_schritte(sx, sy, sh, tx, ty, st["vCos"], st["vSin"], st["dt"], max_takte)
     stein = st["art"] in (2, 3, 4, 23)
     boden_fn = schnappschuss._boden if schnappschuss is not None else None
-    return _bahn_liste(schr, max(st["strecke"], 1), stein, ziel_hoehe, boden_fn)
+    feld_fn = schnappschuss._feld_info if schnappschuss is not None else None
+    return _bahn_liste(schr, max(st["strecke"], 1), stein, ziel_hoehe, boden_fn, feld_fn=feld_fn,
+                       sonder=(None, st["winkel"], 0, None))
 
 
 def _feld(r, name):
@@ -968,7 +1007,10 @@ class Schnappschuss(object):
         schr = bahn_schritte(int(r["x_2"]), int(r["y_2"]), int(r["startingHeight"]), int(r["targetX"]), int(r["targetY"]),
                              float(r["vCos"]), float(r["vSin"]), dt, k_jetzt + max_takte)
         if 0 <= k_jetzt < len(schr) and schr[k_jetzt][2] == (int(r["microX"]), int(r["microY"]), int(r["height"])):
-            aus = _bahn_liste(schr, max(int(r["field58_0x8c"]), 1), stein, None, self._boden, ab_takt=k_jetzt + 1)
+            sonder = (_feld(r, "field45_0x6a"), int(r["startingAngle"]), int(r["hasDoneEffectUnk"]), _feld(r, "rng_1"))
+            z80 = int(r["field80_0xba"]) + int(r["travelledDistance"])      # Startwert; je Mikroschritt -1
+            aus = _bahn_liste(schr, max(int(r["field58_0x8c"]), 1), stein, None, self._boden, ab_takt=k_jetzt + 1,
+                              feld_fn=self._feld_info, z80=z80, sonder=sonder)
             for z in aus:
                 z[0] -= k_jetzt
             return aus
@@ -997,6 +1039,23 @@ class Schnappschuss(object):
             if (boden is not None and h < boden and (stein or d > gesamt / 2.0)) or h < -50 or not (0 <= fx < 400 and 0 <= fy < 400):
                 break
         return aus
+
+    def _feld_info(self, fx, fy):
+        """(boden, logik, gebaeudeart, gebaeude_leben) fuer die Landeregel der Pfeile; boden None ohne Ebenen."""
+        b = self._boden(fx, fy)
+        if b is None:
+            return (None, 0, 0, 0)
+        k = int(self._feldnr[fx, fy])
+        logik = int(self.logik[k]) if getattr(self, "logik", None) is not None and len(self.logik) else 0
+        bid = int(self.bau[k]) if getattr(self, "bau", None) is not None and len(self.bau) else 0
+        btyp, leben = 0, 0
+        if bid:
+            g = self.gebaeude
+            idx = getattr(self, "_gebaeude_idx", None)
+            w = np.flatnonzero(idx == bid) if idx is not None else ([bid] if bid < len(g) else [])
+            if len(w):
+                btyp, leben = int(g[w[0]]["buildingType"]), int(g[w[0]]["currentHealth"])
+        return (b, logik, btyp, leben)
 
     def _boden(self, fx, fy):
         if getattr(self, "hoehe", None) is None or not len(self.hoehe):
