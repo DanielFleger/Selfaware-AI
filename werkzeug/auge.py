@@ -312,8 +312,9 @@ def _phasen_tabellen():
         n = next((i for i, v in enumerate(b) if v < 1), 200)
         return b[:n]
     for ut, z in spielwerte.SCHUSS.items():
-        if len(z["phasen"]) != 3:
-            continue
+        zustaende = z.get("zustaende") or (PHASEN_ZUSTAND if len(z["phasen"]) == 3 else None)
+        if not zustaende or "schiessen" not in [p[0] for p in z["phasen"]]:
+            continue    # Belagerungsgeraete: Zustandsnummern der Phasen noch nicht gemessen
         ph = {}
         for name, adr, speed in z["phasen"]:
             t = tabelle(adr)
@@ -325,7 +326,7 @@ def _phasen_tabellen():
             schritt = next((i for i, v in enumerate(ph["schiessen"][2]) if v == bild), None)
         elif sb.startswith("Zyklus "):
             schritt = int(sb.split()[1])
-        _phasen[ut] = {"phasen": ph, "schuss_schritt": schritt}
+        _phasen[ut] = {"phasen": ph, "schuss_schritt": schritt, "zustaende": dict(zustaende)}
     hk = {}
     for ut, tabellen in spielwerte.HACKEN.items():
         n = [len(tabelle(adr)) for adr, sp in tabellen]
@@ -338,14 +339,25 @@ def phase_rest(ut, zustand, schritt, ticker=None):
     """(rest_takte_der_phase, schritte_der_phase, takte_bis_naechster_schuss) oder (None, None, None).
     Mitte des laufenden Schritts angenommen: Unsicherheit +-speed Takte."""
     tab = _phasen_tabellen()
-    if ut in tab and zustand in PHASEN_ZUSTAND:
+    if ut in tab and zustand in tab[ut].get("zustaende", PHASEN_ZUSTAND):
         ph = tab[ut]["phasen"]
-        name = PHASEN_ZUSTAND[zustand]
+        name = tab[ut]["zustaende"][zustand]
         n, sp, _ = ph[name]
         rest = max(0, (n - schritt - 1)) * (sp + 1) + (sp + 1) // 2 + 1
         ss = tab[ut]["schuss_schritt"]
         schuss = None
-        if ss is not None:
+        if ss is not None and len(ph) == 1:
+            # einphasig (Jaeger, AU27): Schuss nur in dieser Phase; danach entscheidet er neu (kein fester naechster Schuss)
+            sp_s = ph["schiessen"][1]
+            if ticker is not None:
+                # exakt mit animationTicker (Jaeger 201153: 1.824 von 1.824): (ss - Schritt) * (Speed+1) - ((Ticker-1) mod (Speed+1))
+                v = (ss - schritt) * (sp_s + 1) - ((int(ticker) - 1) % (sp_s + 1))
+                schuss = v if v >= 0 else None
+            elif schritt < ss:
+                schuss = (ss - schritt - 1) * (sp_s + 1) + (sp_s + 1) // 2 + 1
+            elif schritt == ss:
+                schuss = 0
+        elif ss is not None:
             n_l, sp_l, _ = ph["nachladen"]
             n_z, sp_z, _ = ph["zielen"]
             n_s, sp_s, _ = ph["schiessen"]
@@ -952,7 +964,7 @@ class Schnappschuss(object):
 
     def _einheit(self, i, r, angst):
         zustand = int(r["state"])
-        rest, schritte, schuss = phase_rest(int(r["unitType"]), zustand, int(r["animationCycleNumber"]))
+        rest, schritte, schuss = phase_rest(int(r["unitType"]), zustand, int(r["animationCycleNumber"]), int(r["animationTicker"]))
         idx, n = int(r["currentIndexInPathPlan"]), int(r["totalSizeOfPathPlan"])
         rest_weg = self._wegpunkte(r, idx, n)
         return {
