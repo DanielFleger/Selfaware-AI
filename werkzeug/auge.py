@@ -75,7 +75,7 @@ def _dtype(felder, groesse):
 # Unit (types.json /_HoldStrong/Map/Units/Unit, 1168 Byte) - nur die Felder, die das Auge braucht
 UNIT = _dtype([
     ("animationTicker", "<i4", 64), ("animationSpeed", "<i4", 68), ("animationFrame", "<i4", 72),
-    ("animationCycleNumberHasJustIncremented", "<i4", 80),
+    ("animationCycleNumberHasJustIncremented", "<i4", 80), ("antelopeBasedRngValue", "u1", 113),
     ("logicalState", "<i2", 140), ("unitType", "<i2", 142), ("owner", "<i2", 150), ("uid", "<i4", 152),
     ("targetUID", "<i4", 160), ("microXPosition", "<i2", 182), ("microYPosition", "<i2", 184),
     ("terrainOrClimbHeight", "<i2", 186), ("buildingHeight", "<i2", 188),
@@ -101,7 +101,7 @@ UNIT = _dtype([
     ("nextAttackHurtsWall", "i1", 1006), ("lastEncounteredEnemyPlayerID", "<i2", 1024), ("field_0x40e", "i1", 1038),
     ("horseArcherShootCheckInterval", "<i2", 1062), ("aiUnitBehaviourType", "<i2", 1066), ("siegeTargetPlayerID", "<i2", 1074),
     ("lastEncounteredEnemyUnitIDUnk", "<i2", 1078), ("assassinsMicroDistanceToEnemyUnk", "<i4", 1080),
-    ("enemyNoticeFrequencyUnk", "<i4", 1084), ("idleCounterUnk", "<i2", 1092),
+    ("enemyNoticeFrequencyUnk", "<i4", 1084), ("field339_0x440", "<u2", 1088), ("idleCounterUnk", "<i2", 1092),
 ], UNIT_GROESSE)
 
 # Entity (/_HoldStrong/Map/Entities/Entity, 232 Byte): Geschosse, Feuer, Fahnen, Staub ...
@@ -170,7 +170,7 @@ PLAYER = _dtype([
 TRIBE = _dtype([
     ("owner", "<i4", 4), ("tribeState", "<i2", 24), ("tribeType", "<i2", 26), ("tribeBehaviorType", "<i2", 40),
     ("selectionTargetUnitID", "<i2", 50), ("size", "<i2", 52), ("countdown2", "<i2", 488), ("isRallyingUnk", "<i2", 518),
-    ("targetX", "<i2", 526), ("targetY", "<i2", 528), ("unitType", "<i2", 552), ("rallyPointArray", ("<i2", (9, 2)), 568),
+    ("targetX", "<i2", 526), ("targetY", "<i2", 528), ("unitType", "<i2", 552), ("field133_0x278", "<i2", 632), ("rallyPointArray", ("<i2", (9, 2)), 568),
     ("currentRallyPointIndex", "<i2", 608), ("rallyPointCount", "<i2", 610), ("countdown", "<i2", 654),
     ("attackWave", "<i2", 660), ("unitStance", "<i2", 696), ("targetPlayer_outpost", "<i2", 718),
     ("targetBuildingID", "<i2", 720), ("targetBuildingUID", "<i4", 724),
@@ -842,6 +842,19 @@ def takte_bis_zug(einheit):
     return max(1, S + 1 - seit)
 
 
+def gelegenheiten_bis_cms(einheit, nr, maske=7):
+    """AU35 (calculateUnitMovementSpeed 0x0052F7E0): wie viele Zug-Gelegenheiten bis cMS neu gerechnet wird - bei jeder
+    Gelegenheit zaehlt +1088 hoch, neu gerechnet wird, wenn danach (Zaehler + Nummer) & maske == 0 (maske 7, auf
+    Gebaeuden/Sonderfeldern 3). Nur mit Feld +1088 (Protokolle ab 26.10. 22:20); abgelesen, noch nicht gemessen."""
+    z = _feld(einheit, "field339_0x440")
+    if z is None:
+        return None
+    for k in range(1, maske + 2):
+        if ((z + k) + int(nr)) & maske == 0:
+            return k
+    return None
+
+
 def mikroschritte_je_zug(einheit):
     """processUnitMove: sBS + field276 (+978, sonst 0) + 1 Mikroschritte je Zug. Pruefstein 200603: 437.573 von 437.729
     Lagewechseln passen zu sBS + 1; der Rest sind Lagen, die anderer Code setzt (Arbeits-/Tierzustaende, Klettern,
@@ -1158,6 +1171,9 @@ class Schnappschuss(object):
             "usingTeleport": _feld(r, "usingTeleport"), "field276_0x3d2": _feld(r, "field276_0x3d2"),
             "movementRelated": _feld(r, "movementRelated"), "unknownTestAgainst0_2_versteckt": _feld(r, "unknownTestAgainst0_2"),
             "field250_0x39a_markiert": _feld(r, "field250_0x39a"), "field282_0x3dc_zielflagge": _feld(r, "field282_0x3dc"),
+            # AU35: Gangart Wild - Grundtempo = antelopeBasedRngValue + 1 (+113), Tempo-Zaehler +1088 (cMS neu bei
+            # (Zaehler + Nummer) & 7 == 0 nach dem Hochzaehlen, je Zug-Gelegenheit +1; auf Gebaeuden/Sonderfeldern & 3)
+            "antelopeBasedRngValue": _feld(r, "antelopeBasedRngValue"), "field339_0x440_tempozaehler": _feld(r, "field339_0x440"),
             "sre_takte_bis_zug": (takte_bis_zug(r) if "field216_0x354" in (r.dtype.names or ()) else None),
             # Sonstiges
             "sre_fearFactorLevel_owner": angst.get(int(r["owner"])), "tribeID": int(r["tribeID"]),
