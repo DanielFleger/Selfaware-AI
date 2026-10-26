@@ -348,7 +348,8 @@ def main():
             L_[10 + i] = einheit(75, 1, 300 + i % 3, 108 + i // 10, 28000)
             L_[10 + i]["zustand"] = 107                # B-256: sie schlagen zu (wie gegen Franz) - ohne Wirkung zaehlt nur, wer haut
         m_ = []
-        dauer = F.Feldzug.BRESCHE_ZAEH + 300 if sinkt else F.Feldzug.WIRKUNG_TAKTE + 200
+        # (B-258 korrigiert 27.10.: fuer Gebaeude gilt die gemessene Frist BRESCHE_WIRKUNG statt WIRKUNG_TAKTE)
+        dauer = F.Feldzug.BRESCHE_ZAEH + 300 if sinkt else F.Feldzug.BRESCHE_WIRKUNG + 200
         for k, t in enumerate(range(12050, 12050 + dauer, 100)):
             if sinkt and k % 2 == 1:
                 G_[900]["leben"] -= 5
@@ -1467,35 +1468,28 @@ def main():
     z73g, v73g, _ = plan73(False)
     pruefe(73, "mit Wegtest: Ziel %s, verworfen %s, %d Planungen | ohne: Ziel %s" % (z73, v73, a73, z73g),
            z73 == (30, 30) and v73 == [109] and z73g == 109)
-    # 74 B-258 Typ lernen (Partie 234348: Turm 187 Typ 75, bis 48 Mann daneben, keiner hatte ihn als Ziel, Leben 1.500): 20 Mann
-    #    mit zielgebaeude 0 stehen an der Bresche (Typ 75), ihr Leben sinkt nicht -> nach dem Verwerfen ist Typ 75 aus und der
-    #    Planer bekommt alle Typ-75-Gebaeude als verworfen. Gegenprobe: dieselben Maenner zielen auf die Bresche und ihr Leben
-    #    sinkt -> nichts gelernt. (Partie 001937: zielen allein reicht nicht - Turm 198 blieb trotz Zielenden bei 1.500)
-    import tempfile
-    def typ_lernen(zielt):
-        F.Feldzug.TYPEN_DATEI = os.path.join(tempfile.mkdtemp(), "feldzug_typen.json")
+    # 74 B-258 korrigiert (Partien 001937/003034: Tuerme Typ 75 nahmen erst 740-940 Takte nach der Wahl Schaden, aus Zustand 107,
+    #    ohne zielgebaeude): 20 Mann hacken (107) am Turm, sein Leben steht 1.100 Takte -> bleibt Bresche; steht es 1.300 Takte ->
+    #    verworfen. Gegenprobe: mit der alten Frist 300 waere er nach 1.100 Takten schon verworfen.
+    def turm(dauer, frist=None):
         f = F.Feldzug(1, heim, lord_schutz_bis=9600, n=20)
+        if frist:
+            f.BRESCHE_WIRKUNG = f.BRESCHE_ZAEH = frist
         f.schritt({"t": 12000}, *lage(10, heim), Befehle())
         L_, G_ = lage(0, heim)
         G_[900] = {"typ": 75, "besitzer": 2, "x": 306, "y": 106, "leben": 1500}
         G_[901] = {"typ": 75, "besitzer": 2, "x": 290, "y": 95, "leben": 1500}
         for i in range(20):
             L_[10 + i] = einheit(75, 1, 304 + i % 3, 108 + i // 10, 28000)
-            L_[10 + i]["zielgebaeude"] = 900 if zielt else 0
-            L_[10 + i]["zustand"] = 107 if zielt else 1
+            L_[10 + i]["zustand"], L_[10 + i]["zielgebaeude"] = 107, 0
         f.bresche = 900
-        m_ = []
-        for t in range(12050, 12050 + F.Feldzug.BRESCHE_ZAEH + F.Feldzug.DRAN_TAKTE + 300, 100):
+        for t in range(12050, 12050 + dauer, 100):
             f._stau = (0, t)
-            if zielt and G_[900]["leben"] > 100:
-                G_[900]["leben"] -= 100                    # Gegenprobe: sie treffen, das Leben sinkt
-            m_ += f.schritt({"t": t}, L_, G_, Befehle())
-            if 900 in f.verworfen:
-                break
-        return f._typen_aus(), [m[:60] for m in m_ if "TYP NICHT" in m]
-    a74, m74 = typ_lernen(False)
-    a74g, _ = typ_lernen(True)
-    pruefe(74, "keiner zielt: Typen aus %s %s | alle zielen: %s" % (sorted(a74), m74, sorted(a74g)), a74 == {75} and m74 and not a74g)
+            f.schritt({"t": t}, L_, G_, Befehle())
+        return 900 in f.verworfen
+    v74a, v74b, v74g = turm(1100), turm(1400), turm(1100, frist=300)
+    pruefe(74, "Turm 1.100 Takte ohne Schaden: verworfen %s | 1.400: %s | Gegenprobe Frist 300 nach 1.100: %s" % (v74a, v74b, v74g),
+           not v74a and v74b and v74g)
     # 75 B-260 (Partie 000651: Tunnel West nach 8 Kacheln aufgegeben, Burgseite gewechselt): faellt die Plan-Kachel (12,10), geht
     #    es ohne neue Planung mit der naechsten Kachel (13,10) auf demselben Weg weiter. Gegenprobe: ohne weitere Kachel auf dem
     #    Weg wird neu geplant.

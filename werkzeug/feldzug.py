@@ -222,7 +222,10 @@ class Feldzug:
     TOR_R = 25                # so nah an der Bresche gilt als "davor"
     # B-138: verliert die Bresche BRESCHE_ZAEH Ticks lang kein Leben, obwohl mindestens TOR_MIN davor stehen, ist sie zaeh
     # (Zugbruecke gegen Franz: Leben blieb bei 100) - verwerfen, naechste Schwachstelle
-    BRESCHE_ZAEH = 1000       # (B-140 22:16: 3.000 liess 35 Mann unter Beschuss stehen)
+    BRESCHE_ZAEH = 1200       # (B-140 22:16: 3.000 liess 35 Mann unter Beschuss stehen; 1.000 -> 1.200 s. BRESCHE_WIRKUNG)
+    # B-258 (gemessen 27.10., Partien 001937/003034: Tuerme 198 und 213 - erster Schaden 937 bzw. <= 738 Takte nach der Wahl,
+    # danach 1.500 -> 410 bzw. gefallen in ~1.500 Takten): so lange ohne jeden Lebenspunkt Schaden, bevor ein Gebaeude verworfen wird
+    BRESCHE_WIRKUNG = 1200
     TOR_MIN = 5
     # B-162 Abfangen (Daniel 21.10. 21:16 "Einheiten besiegen, die auf dem Weg sind, z.B. Fernkaempfer - dann nur die minimale
     # Anzahl, die zum Toeten reicht"; 21:40 "erkannt werden, welche Schuetzen ueberhaupt erreichbar sind - viele stehen auf
@@ -468,38 +471,6 @@ class Feldzug:
         return bool(g and g.get("besitzer") not in freunde_von(self.sp)
                     and g.get("leben",0)>0 and angreifbar(g))
 
-    TYPEN_DATEI = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "daten", "feldzug_typen.json")
-    TYPEN_PARTIEN = 2          # B-258: so viele Partien "Angriff vom Spiel nicht angenommen", dann ist der Typ dauerhaft aus
-
-    def _typen_aus(self):
-        """B-258 (Partie 234348: Turm 187/186, Typ 75 - bis 48 Mann daneben, KEINER hatte ihn als Ziel, Leben blieb 1.500,
-        2 x 1.000 Takte verloren): Gebaeudetypen, deren Angriffsbefehl das Spiel nicht annimmt - in dieser Partie gemerkt
-        (self.typ_ohne_ziel) und aus frueheren Partien (TYPEN_DATEI, ab TYPEN_PARTIEN Beobachtungen)."""
-        if not hasattr(self, "_typen_gelernt"):
-            try:
-                import json
-                d = json.load(open(self.TYPEN_DATEI, encoding="utf-8"))
-                self._typen_gelernt = {int(k): v for k, v in d.get("ohne_ziel", {}).items()}
-            except (OSError, ValueError):
-                self._typen_gelernt = {}
-        return set(getattr(self, "typ_ohne_ziel", set())) | {k for k, v in self._typen_gelernt.items() if v >= self.TYPEN_PARTIEN}
-
-    def _typ_lernen(self, typ, aus, grund="niemand hatte es als Ziel"):
-        """B-258: Typ fuer diese Partie aus, Beobachtung in TYPEN_DATEI (einmal je Partie und Typ)."""
-        self.typ_ohne_ziel = getattr(self, "typ_ohne_ziel", set())
-        if typ in self.typ_ohne_ziel:
-            return
-        self.typ_ohne_ziel.add(typ)
-        self._typen_aus()
-        self._typen_gelernt[typ] = self._typen_gelernt.get(typ, 0) + 1
-        try:
-            import json
-            json.dump({"ohne_ziel": {str(k): v for k, v in self._typen_gelernt.items()}}, open(self.TYPEN_DATEI, "w", encoding="utf-8"))
-        except OSError:
-            pass
-        aus.append("FELDZUG TYP NICHT ANGREIFBAR: Gebaeudetyp %d - %s; in dieser Partie aus, gesehen in %d Partie(n)" % (
-            typ, grund, self._typen_gelernt[typ]))
-
     PLAN_VERSUCHE = 3          # B-256: so oft wird neu geplant, wenn der Zugang des Plans fuer uns nicht erreichbar ist
 
     def _durchbruch_neu(self, m, start, lp, maenner, pruef=None):
@@ -551,11 +522,10 @@ class Feldzug:
                     self.dplan = neu
                     self._absprache_schreiben(lp)
                     return neu
-        aus_typ = {nr for nr, g_ in (getattr(self, "_gebaeudebild", {}) or {}).items() if g_.get("typ") in self._typen_aus()}
         for _v in range(self.PLAN_VERSUCHE):
             try:
                 neu = self.durchbruch(self.sp, tuple(start), max(1, maenner), tuple(lp),
-                                      verworfen=set(self.mauer_verworfen) | set(self.verworfen) | aus_typ)
+                                      verworfen=set(self.mauer_verworfen) | set(self.verworfen))
             except Exception as ex:
                 self.wegkarte_fehler = "Durchbruch: %s" % str(ex)[:120]
                 neu = None
@@ -800,7 +770,7 @@ class Feldzug:
                 nr_frei += 1
         return neu
 
-    def _wirkung(self, ziel, wert, nah, t):
+    def _wirkung(self, ziel, wert, nah, t, frist=None):
         """B-165 Wirkungswaechter: Fortschritt am Ziel je Runde (wert sinkt = Wirkung: Leben, Mauerhoehe). Stehen mindestens
         TOR_MIN eigene Nahkaempfer daneben (nah) und sinkt wert WIRKUNG_TAKTE lang nicht, Rueckgabe = Takte ohne Wirkung (und der
         Zaehler beginnt neu), sonst None. Wer nicht daneben steht, zaehlt nicht - Laufen ist keine fehlende Wirkung."""
@@ -808,14 +778,14 @@ class Feldzug:
         if alt is None or wert < alt[0] or nah < self.TOR_MIN:
             self._wirkung_stand[ziel] = (wert, t)
             return None
-        if t - alt[1] >= self.WIRKUNG_TAKTE:
+        if t - alt[1] >= (frist or self.WIRKUNG_TAKTE):
             del self._wirkung_stand[ziel]
             return t - alt[1]
         return None
 
     DRAN_TAKTE = 900           # B-256: so lange TOR_MIN daneben und keiner schlaegt zu -> Ziel verworfen (3 x WIRKUNG_TAKTE, UNGEMESSEN)
 
-    def _nicht_dran(self, ziel, nah, hack, t, wert):
+    def _nicht_dran(self, ziel, nah, hack, t, wert, frist=None):
         """B-256: stehen TOR_MIN daneben, schlaegt DRAN_TAKTE lang keiner zu und sinkt wert (Leben/Hoehe) nicht, kommen wir nicht an
         das Ziel heran - Takte, sonst None."""
         st = getattr(self, "_dran_stand", {})
@@ -827,7 +797,7 @@ class Feldzug:
         if alt is None:
             st[ziel] = alt = (t, wert)
         t0 = alt[0]
-        if t - t0 >= self.DRAN_TAKTE:
+        if t - t0 >= (frist or self.DRAN_TAKTE):
             del st[ziel]
             return t - t0
         return None
@@ -1624,18 +1594,12 @@ class Feldzug:
                 nah_b = [n for n in nah_kampf if schach((L[n]["x"], L[n]["y"]), tor) <= self.WIRKUNG_NAH]
                 # B-256 (Partie 230627: Torhaus 268 nach 544 Takten "keine Wirkung", alle 8 Mann daneben liefen noch - 101): es
                 # zaehlt, wer zuschlaegt (106/107); wer nur daneben steht, bekommt den Befehl neu, bis DRAN_TAKTE um sind
-                hack_b = [n for n in nah_b if L[n].get("zustand") in (106, 107) and L[n].get("zielgebaeude", bresche) == bresche]
-                # B-258: hatte je einer der Maenner die Bresche als Ziel? (zielgebaeude im Lagebild)
-                gez = getattr(self, "_bresche_gezielt", {})
-                self._bresche_gezielt = gez
-                gez[bresche] = max(gez.get(bresche, 0), sum(1 for n in nah_kampf if L[n].get("zielgebaeude") == bresche))
-                # (Partie 001937: Turm 198, Typ 75 - einzelne zielten, 726 Takte Leben 1.500 unveraendert): Leben bei der Wahl merken
-                l0 = getattr(self, "_bresche_leben0", {})
-                self._bresche_leben0 = l0
-                l0.setdefault(bresche, leben_b)
-                ohne_b = self._wirkung(("bresche", bresche), leben_b, len(hack_b), t)
+                # (B-258 korrigiert, Partie 003034/001937: Turm 213 und 198, Typ 75, fielen bzw. sanken auf 410 Leben - KEINER hatte
+                # sie als zielgebaeude, der Schaden kam aus Zustand 107; erster Schaden 740-940 Takte nach der Wahl)
+                hack_b = [n for n in nah_b if L[n].get("zustand") in (106, 107)]
+                ohne_b = self._wirkung(("bresche", bresche), leben_b, len(hack_b), t, frist=self.BRESCHE_WIRKUNG)
                 if ohne_b is None:
-                    ohne_b = self._nicht_dran(("bresche", bresche), len(nah_b), len(hack_b), t, leben_b)
+                    ohne_b = self._nicht_dran(("bresche", bresche), len(nah_b), len(hack_b), t, leben_b, frist=self.BRESCHE_WIRKUNG)
                 if ohne_b is not None:
                     aus.append("FELDZUG KEINE WIRKUNG: Gebaeude %d (Typ %d) %d Takte bei %d Leben, %d Mann bis %d Felder daneben "
                                "(Zustaende %s) - verworfen, naechste Stelle" % (bresche, G[bresche]["typ"], ohne_b, leben_b,
@@ -1646,12 +1610,6 @@ class Feldzug:
                                    "naechste Schwachstelle" % (bresche, G[bresche]["typ"], t - self.bresche_leben[1], leben_b,
                                                                len(am_tor)))
                     self.verworfen.add(bresche)
-                    # B-258: nicht angreifbar, wenn keiner zielte ODER das Leben trotz TOR_MIN daneben keinen Punkt sank
-                    if len(nah_b) >= self.TOR_MIN and (
-                            (self._bresche_gezielt.get(bresche, 0) == 0 and any("zielgebaeude" in L[n] for n in nah_b))
-                            or leben_b >= self._bresche_leben0.get(bresche, -1) > 0):
-                        self._typ_lernen(G[bresche]["typ"], aus, "niemand hatte es als Ziel" if self._bresche_gezielt.get(bresche, 0) == 0
-                                         else "Leben blieb bei %d, obwohl %d Mann daneben standen" % (leben_b, len(nah_b)))
                     self.bresche, self.bresche_leben, self._stau = None, None, (None, t)
                 else:
                     # B-134/B-139: alle Nahkaempfer auf das Tor/den Turm, ohne Sammeln davor. 20.10. gegen Franz gemessen: der
@@ -1886,7 +1844,7 @@ class Feldzug:
 import time as _time
 ZEIT_RUNDEN = 20
 _GEMESSEN = ("_neue_karte", "_lage_lord", "_durchbruch_neu", "_schwachstelle", "_abfangen", "_mauer_am_zug", "_kette_zum_zug",
-             "_steht_nur", "_erreichbar_bei", "_nahe_schuetzen", "_typen_aus")
+             "_steht_nur", "_erreichbar_bei", "_nahe_schuetzen")
 
 
 def _gemessen(f, name):
