@@ -1853,3 +1853,44 @@ class Feldzug:
             return ok_, ("mit %d Truppen des Verbuendeten: " % len(partner) if partner else "") + text_
         except Exception as ex:
             return False, "Rechnung fehlgeschlagen (%s)" % ex
+
+
+# B-259 (Partie 234348: r_feldzug 164 s in 320 Runden; ein Test auf kuenstlicher 400x400-Karte zeigte, dass die Wegsuche des
+# Durchbruch-Planers selbst nur ~0,06 s braucht - die Zeit steckt woanders): Zeit je Teilschritt messen, alle ZEIT_RUNDEN
+# Runden als "FELDZUG ZEITEN" ausgeben (Werte schliessen die Unteraufrufe ein)
+import time as _time
+ZEIT_RUNDEN = 20
+_GEMESSEN = ("_neue_karte", "_lage_lord", "_durchbruch_neu", "_schwachstelle", "_abfangen", "_mauer_am_zug", "_kette_zum_zug",
+             "_steht_nur", "_erreichbar_bei", "_nahe_schuetzen", "_typen_aus")
+
+
+def _gemessen(f, name):
+    def w(self, *a, **k):
+        t0 = _time.perf_counter()
+        try:
+            return f(self, *a, **k)
+        finally:
+            z = self.__dict__.setdefault("_zeiten", {})
+            z[name] = z.get(name, 0.0) + _time.perf_counter() - t0
+    w.__name__ = f.__name__
+    return w
+
+
+def _schritt_gemessen(f):
+    def w(self, *a, **k):
+        t0 = _time.perf_counter()
+        aus = f(self, *a, **k)
+        z = self.__dict__.setdefault("_zeiten", {})
+        z["schritt"] = z.get("schritt", 0.0) + _time.perf_counter() - t0
+        if self.runde % ZEIT_RUNDEN == 0 and z.get("schritt", 0) > 0 and isinstance(aus, list):
+            aus.append("FELDZUG ZEITEN bis Runde %d (s, inkl. Unteraufrufe): %s" % (
+                self.runde, ", ".join("%s %.1f" % (k_, v_) for k_, v_ in sorted(z.items(), key=lambda kv: -kv[1]) if v_ >= 0.05)))
+        return aus
+    w.__name__ = f.__name__
+    return w
+
+
+for _n in _GEMESSEN:
+    if hasattr(Feldzug, _n):
+        setattr(Feldzug, _n, _gemessen(getattr(Feldzug, _n), _n))
+Feldzug.schritt = _schritt_gemessen(Feldzug.schritt)
