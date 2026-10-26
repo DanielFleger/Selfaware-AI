@@ -2877,7 +2877,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # Ketten (kausal.py, Wissensregister L71/L72); Ablage am Lager
                     abgabe_k = {3: lager_m, 32: speicher_m, 7: speicher_m, 31: lager_m, 5: lager_m, 20: lager_m}
                     kand_k = []
-                    for typ_a in (3, 32, 7, 31, 5, 20):
+                    # B-254 (Daniel 26.10. 23:10 "warum so viel Hopfen? es braucht nur 2 Brauereien zu ernaehren, der Rest koennte in
+                    # Nahrung gehen"; Partie 230627 Sp2: 11 Hopfenfarmen [kausal] fuer 2 Brauereien bei Tick 16.202): Hopfen baut nur
+                    # noch die Bierkette (je Brauerei eine Farm), nicht mehr der Kausal-Bauer als Verkaufsware
+                    for typ_a in (3, 32, 7, 5, 20):
                         if typ_a in getattr(ausbau, "ohne", ()):
                             continue
                         b_a = ausbau.groesse.get(typ_a, 3) // 2
