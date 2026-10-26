@@ -77,6 +77,9 @@ WERT = {
     4: 50, 3: 60,                       # Ochsenjoch, Holzfaeller
     22: 40, 18: 40, 17: 35, 34: 35, 33: 40, 30: 30, 36: 40, 37: 40, 38: 40,  # Wirtshaus, Brauerei, Baeckerei, Muehle, Milch, Weizen, Kirchen
     32: 70, 7: 30,                      # Apfelplantage, Jaegerhuette
+    # B-257 (Daniel 26.10. 23:07 "warum koennen unsere Assassinen nicht die Hopfen/Apfelfarm/Steinbruch nehmen"): die Hopfenfarm
+    # (Typ 31) stand nicht in dieser Liste und war darum NIE ein Ziel. Wert wie die Brauerei, die sie beliefert (Startwert)
+    31: 40,                             # Hopfenfarm
     # 19.10. (Daniel: "auf dem Weg nimmt ein Assassine kein Markt mit, den ich als Mensch sofort mitgesnackt haette - die KI ist
     # ohne Markt komplett gelaehmt"): Markt hoechster Wert (vorher 20, unter der Apfelplantage) - der Zielwechsel unterwegs
     # (WECHSEL 1,5 x Wert je Weg) nimmt ihn dann mit; ab TEUER zwei Plaetze. 19.10.: 300 (siehe Soeldnerposten)
@@ -2901,6 +2904,7 @@ class Einzeln:
             # berechnet, aber nicht angewendet: Assassine 163 zog mit 120 Leben los, 17 mit 3.100)
             grenze = self.ZIEL_RISIKO_SCHWACH if schwach else self.ZIEL_RISIKO_WEG
             grenze_bew = min(self.ZIEL_RISIKO, grenze)
+            abgelehnt = None                  # B-257: das beste Ziel, das nur am Todesrisiko scheiterte (fuer die Meldung)
             for k in frei:
                 if k[8] > zahl.get(k[0], 0) + 1:
                     continue                   # 4a: nicht dorthin, wo mehr Nahkampf-Wachen stehen als wir Angreifer haetten
@@ -2934,6 +2938,8 @@ class Einzeln:
                         beste = (je_zeit, k, p_tod, saldo)
                 elif p_tod <= grenze_bew and (beste_bew is None or je_zeit > beste_bew[0]):
                     beste_bew = (je_zeit, k, p_tod, saldo)
+                if p_tod > (grenze if b_ziel <= 0 else grenze_bew) and (abgelehnt is None or je_zeit > abgelehnt[0]):
+                    abgelehnt = (je_zeit, k, p_tod, grenze if b_ziel <= 0 else grenze_bew, b_ziel)
             beste = beste or beste_bew
             if beste:
                 _, k_b, p_tod, saldo = beste
@@ -2978,6 +2984,12 @@ class Einzeln:
                     continue
             ohne += 1
             gruende["keins erreichbar" if not erreichbar else "alle voll" if not frei else "alle gefaehrlich"] += 1
+            if erreichbar and frei and abgelehnt is not None:
+                # B-257 (Daniel 23:07, Bild: Assassinen liessen Hopfen/Apfel/Steinbruch stehen): WARUM sichtbar machen
+                _, k_a, p_a, g_a, b_a = abgelehnt
+                ereignis.append("GEFAEHRLICH %d: bestes Ziel %d (Typ %d) in %d Feldern - Todesrisiko %.0f %% ueber der Grenze %.0f %%, "
+                                "Beschuss am Ziel %.2f/Takt, Leben %d" % (n, k_a[0], k_a[2], schach(ort, k_a[1]), 100 * p_a, 100 * g_a,
+                                                                          b_a, L[n]["leben"]))
             # 17.10.: warten nur dort, wo ihn kein waehlbarer Feind sieht und kein Trupp ihm nachlaeuft (sicht.sicher) - statt
             # 40 Felder von jedem Schuetzen; so warten sie nah am Feind und sind schnell wieder am naechsten Ziel
             if not self._sicher(ort):
