@@ -68,6 +68,17 @@ if __name__ == "__main__":
     g._still[217] = ((158, 194), 3100, None)
     LG = {217: {"x": 158, "y": 194, "zustand": 101, "laufx": 170, "laufy": 180, "leben": 12500}}
     faelle.append(("Gegenprobe: laeuft (Laufziel woanders) -> nichts abgelehnt", g._abgelehnt_loesen(LG) == [] and 217 in g.ziel))
+    # Gelaende (Partie 225249): Wegpunkt (140, 180) liegt auf Fels (Gebiet 0), (150, 190) im eigenen Gebiet 1 -> nur der Fels
+    # faellt weg, das Ziel bleibt
+    import numpy as np
+    k = neu()
+    k.runde, k._geb_runde = 1, 1
+    k._geb = np.ones((400, 400), np.int32)
+    k._geb[140, 180] = 0
+    wp, raus = k._gelaende_filter((158, 194), [(150, 190), (140, 180), (120, 160)])
+    faelle.append(("Wegpunkt auf Fels verworfen, gueltiger und Ziel bleiben", wp == [(150, 190), (120, 160)] and raus == [(140, 180)]))
+    k._geb = None
+    faelle.append(("ohne Wegkarte unveraendert", k._gelaende_filter((158, 194), [(140, 180), (120, 160)]) == ([(140, 180), (120, 160)], [])))
     for name, ok in faelle:
         print("%s %s" % ("OK  " if ok else "ROT ", name))
     print("%d von %d gruen" % (sum(ok for _, ok in faelle), len(faelle)))

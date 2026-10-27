@@ -1053,6 +1053,35 @@ class Einzeln:
         self._gitter_runde = (self.runde, g)
         return g
 
+    def _gelaende_filter(self, start, wp):
+        """Daniel 27.10. 22:56 ("ja bitte lol" - dem Wegplaner das Gelaende beibringen; Partie 225249: jeder erste Wegpunkt lag
+        auf Fels): Zwischenpunkte muessen im selben begehbaren Gebiet der Wegkarte des Spiels liegen wie die Einheit (gebiet > 0
+        und gleich). Ungueltige fallen weg, das Ziel (letzter Punkt) bleibt immer. Ohne Wegkarte: unveraendert.
+        Gibt (Wegpunkte, verworfene)."""
+        geb = self._gebiet_karte()
+        if geb is None or len(wp) <= 1:
+            return wp, []
+        g0 = int(geb[start[0], start[1]]) if 0 <= start[0] < geb.shape[0] and 0 <= start[1] < geb.shape[1] else 0
+        if g0 <= 0:
+            return wp, []
+        gut, raus = [], []
+        for q in wp[:-1]:
+            ok = 0 <= q[0] < geb.shape[0] and 0 <= q[1] < geb.shape[1] and int(geb[q[0], q[1]]) == g0
+            (gut if ok else raus).append(q)
+        return gut + [wp[-1]], raus
+
+    def _gebiet_karte(self):
+        """Gebiete der Wegkarte des Spiels, einmal je Runde gelesen (speicher.wegkarte); None, wenn nicht lesbar."""
+        if getattr(self, "_geb_runde", None) == self.runde:
+            return self._geb
+        self._geb_runde = self.runde
+        try:
+            import speicher
+            self._geb = speicher.wegkarte()["gebiet"]
+        except Exception:
+            self._geb = None
+        return self._geb
+
     def _wege(self, L, G, angriffe, ereignis):
         """12.10.: neue Gebaeude-Angriffe ueber den sicheren Weg schicken. Gibt (direkte Angriffe, Laufbefehle {Ort: [n]})."""
         lauf, direkt = {}, []
@@ -1072,6 +1101,10 @@ class Einzeln:
                 # Stuecken - dann prueft ROUTE GEFAEHRLICH jedes Stueck vor dem Betreten
                 k = schach(start, ziel) // self.GERADE_TEIL + 1
                 wp = [(start[0] + (ziel[0] - start[0]) * i // k, start[1] + (ziel[1] - start[1]) * i // k) for i in range(1, k)] + [ziel]
+            wp, weg_raus = self._gelaende_filter(start, wp)
+            if weg_raus:
+                ereignis.append("WEG %d: %d Wegpunkte auf unbegehbarem Gelaende verworfen (Wegkarte des Spiels) %s" % (
+                    n, len(weg_raus), weg_raus[:4]))
             if len(wp) > 1:
                 self.route[n] = {"punkte": wp[:-1], "gebaeude": gn, "befohlen": self.runde}
                 lauf.setdefault(wp[0], []).append(n)
