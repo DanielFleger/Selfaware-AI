@@ -441,6 +441,15 @@ class Einzeln:
     # die Eichung aus der Messung oben (echt/Modell 2,8/8,4 = 0,33; nahe Feuerwerfern 13-47/57-132 = 0,23-0,36) statt 1,0 - das
     # Modell rechnete den Tod dreimal so wahrscheinlich, wie er war
     KALIB = 0.33
+    # B-278 (Daniel 27.10. 23:27 "mit dem Delay nach Erkennung - Hit and Run", "lernender Ansatz - kombinieren"; Partie 232139:
+    # 72 von 73 Ablehnungen "Todesrisiko 100 %", nachgerechnet 219 -> Farm 97: Ziel 489/Takt, weil jeder freie Schuetze ab dem
+    # ersten Takt schiessen soll). KALIB_LERNEN: die Eichung lernt aus jedem Angriff (risiko_lernen.py, Startwert 0,33, je
+    # Lernprofil). Der Verzug wird NICHT zusaetzlich abgezogen - die 0,33 enthaelt ihn schon (Frage-Agent 23:32, Frage 3).
+    # PROBE: scheitert jedes Ziel am Risiko, geht eine Assassine (>= PROBE_LEBEN) auf das am wenigsten riskante, hoechstens alle
+    # PROBE_PAUSE Takte (Startwerte, UNGEMESSEN). HIT_RUN: wer an seinem Gebaeude entdeckt wird, arbeitet weiter, solange der
+    # erste Treffer (fruehestens VERZUG Takte nach dem Erkennen, L81) nicht vor der naechsten Runde kommen kann.
+    KALIB_LERNEN, PROBE, HIT_RUN = True, True, True
+    PROBE_PAUSE, PROBE_LEBEN, VERZUG, HIT_RUN_ALT = 1500, 6500, 64, 400
     # Lord-Anlauf: die Eichung oben stammt aus Raids; 1017i starben beim gemeinsamen Anlauf alle 5 vor dem Lord, obwohl das
     # Modell "machbar" rechnete - dort bleibt das ungeeichte Modell
     KALIB_LORD = 1.0
@@ -998,6 +1007,45 @@ class Einzeln:
         self._sicht_bis = sb
         self._sicht_runde = self.runde
         return self._sicht
+
+    def _kalib(self):
+        """B-278: gelernte Eichung (risiko_lernen.Eichung) oder fest KALIB."""
+        if not self.KALIB_LERNEN:
+            return self.KALIB
+        if getattr(self, "_eichung", None) is None:
+            import risiko_lernen
+            self._eichung = risiko_lernen.Eichung()
+        return self._eichung.kalib
+
+    def _probe_frei(self, n, L):
+        """B-278: hoechstens eine Probe zugleich, PROBE_PAUSE Takte Abstand, nur mit genug Leben."""
+        if not self.PROBE or L[n]["leben"] < self.PROBE_LEBEN:
+            return False
+        p = getattr(self, "_probe", None)
+        if p is not None and p["n"] in L and self.ziel.get(p["n"]) == p["ziel"]:
+            return False
+        return self.jetzt - getattr(self, "_probe_letzt", -10 ** 9) >= self.PROBE_PAUSE
+
+    def _hit_run(self, n, ereignis):
+        """B-278 Hit & Run: entdeckt an seinem Gebaeude, noch nicht getroffen - weiterarbeiten, solange der erste Treffer
+        (fruehestens VERZUG Takte nach dem Erkennen, L81) nicht vor der naechsten Runde kommen kann. Die Rundenlaenge ist gemessen
+        (_runde_ticks); ist sie laenger als VERZUG, geht er sofort - das sagt die Meldung einmal je Entdeckung."""
+        hr = self.__dict__.setdefault("_hr_seit", {})
+        if not self.HIT_RUN or n not in self.ziel or n in getattr(self, "_verletzt_runde", ()):
+            hr.pop(n, None)
+            return False
+        if n not in hr or self.jetzt - hr[n] > self.HIT_RUN_ALT:
+            hr[n] = self.jetzt
+        rt = getattr(self, "_runde_ticks", self.RUNDE_TICKS)
+        alter = self.jetzt - hr[n]
+        if alter + rt < self.VERZUG:
+            ereignis.append("HIT&RUN %d: an Gebaeude %d gesehen seit %d Takten, erster Treffer fruehestens nach %d (L81), naechste "
+                            "Runde in ~%d - arbeitet weiter" % (n, self.ziel[n], alter, self.VERZUG, rt))
+            return True
+        if alter == 0:
+            ereignis.append("HIT&RUN %d: Runde dauert ~%d Takte, laenger als der Treffer-Verzug %d - kein Hit & Run moeglich, die "
+                            "uebrigen Regeln entscheiden (fertig machen, Gegenwert, sonst raus)" % (n, rt, self.VERZUG))
+        return False
 
     def _arbeit(self, typ, zahl):
         """Takte bis zerstoert bei zahl Assassinen (gemessene Arbeit / Zahl)."""
@@ -1653,6 +1701,8 @@ class Einzeln:
                     sehen = []                 # jagt den einzigen Schuetzen, der ihn erreicht (Beute, 3b): weiter jagen
                 if e is None and sehen and self._spaeher_erledigen(n, ort, sehen, L, ereignis, jagen if jagen is not None else []):
                     continue                   # 19.10.: nur ein Sklave sieht ihn - erledigen statt fliehen
+                if e is None and sehen and self._hit_run(n, ereignis):
+                    continue                   # B-278: Hit & Run - der erste Treffer kommt fruehestens VERZUG Takte nach dem Erkennen
                 if e is None and sehen and self._fertig_zuerst(n, ort, G, L, ereignis):
                     continue                   # 19.10.: fast kaputt - erst fertig abreissen
                 if e is None and sehen and self._schuetzen_schlagen(n, ort, sehen, L, G, ereignis, jagen if jagen is not None else []):
@@ -1773,7 +1823,7 @@ class Einzeln:
         zahl = max(1, sum(1 for z in self.ziel.values() if z == gn))
         takte = schach(ort, (g["x"], g["y"])) * TEMPO + self._arbeit(g["typ"], zahl) * g.get("leben", voll) / float(voll)
         dps = self._feuer_von(ort, set(sehen) | self._nahe_schuetzen(ort, L), L)
-        verlust = dps * takte * self.KALIB
+        verlust = dps * takte * self._kalib()
         p_tod = min(1.0, verlust / max(1.0, float(L[n]["leben"])))
         saldo = WERT.get(g["typ"], 10) * (1 - p_tod) - p_tod * self.KOSTEN
         if p_tod > self.ENTDECKT_RISIKO or saldo <= 0:
@@ -2184,6 +2234,8 @@ class Einzeln:
             rt = self.jetzt - self._letzt_tick
             self._runde_ticks = rt if not hasattr(self, "_runde_ticks") else 0.7 * self._runde_ticks + 0.3 * rt
         self._letzt_tick = self.jetzt
+        if self.KALIB_LERNEN and getattr(self, "_eichung", None) is not None:
+            ereignis += self._eichung.runde(L, dict(self.ziel), self.jetzt)     # B-278: Angriffe abschliessen, Eichung lernt
         self._heim = list(sichere_orte or [])          # 4a: Fluchtrichtung (Lager, Bergfried)
         # begehbare Warteplaetze: wo gerade eine eigene Nicht-Kampfeinheit steht, ist begehbarer Boden
         orte = list(sichere_orte or []) + sorted({(e["x"], e["y"]) for e in L.values()
@@ -3047,6 +3099,7 @@ class Einzeln:
             grenze_bew = min(self.ZIEL_RISIKO, grenze)
             abgelehnt = None                  # B-257: das beste Ziel, das nur am Todesrisiko scheiterte (fuer die Meldung)
             kein_raster = [0]
+            kal, roh, probe_kand = self._kalib(), {}, None        # B-278
             for k in frei:
                 if k[8] > zahl.get(k[0], 0) + 1:
                     gr[k[0]] = (k[2], schach(ort, k[1]), "bewacht (%d Nahkaempfer)" % k[8])
@@ -3073,11 +3126,14 @@ class Einzeln:
                         gr[k[0]] = (k[2], schach(ort, k[1]), "kein Weg im groben Gefahrenraster (Zelle %s nicht erreicht)" % (c,))
                         kein_raster[0] += 1
                         continue
-                    risiko = (r_weg + b_ziel * verweilen) * self.KALIB
+                    risiko = (r_weg + b_ziel * verweilen) * kal
                 else:
                     felder = schach(ort, k[1])
-                    risiko = b_ziel * (verweilen + felder * TEMPO) * self.KALIB
+                    risiko = b_ziel * (verweilen + felder * TEMPO) * kal
                 p_tod = min(1.0, risiko / max(1.0, float(L[n]["leben"])))
+                roh[k[0]] = risiko / kal if kal else risiko        # B-278: Vorhersage ohne Eichung (fuers Lernen)
+                if p_tod > (grenze if b_ziel <= 0 else grenze_bew) and (probe_kand is None or risiko < probe_kand[0]):
+                    probe_kand = (risiko, k, p_tod, WERT.get(k[2], 10) * (1 - p_tod) - p_tod * self.KOSTEN)
                 saldo = WERT.get(k[2], 10) * (1 - p_tod) - p_tod * self.KOSTEN
                 # 19.10. (Daniel: zwei Fronten, "hinten ist keine Verteidigung"): Ruhe-Bonus bis x2 fuer Ziele weit weg von jedem
                 # waehlbaren Feind (Sicht-Abstand in Feldern / RUHE_FELDER) - dort wird er nicht entdeckt, verliert keine Zeit
@@ -3099,6 +3155,14 @@ class Einzeln:
             if beste:
                 gr[beste[1][0]] = (beste[1][2], schach(ort, beste[1][1]), "GEWAEHLT")
             self._ablehnung[n] = gr
+            if not beste and probe_kand is not None and not neu_pruef and self._probe_frei(n, L):
+                r_p, k_p, p_p, s_p = probe_kand
+                beste = (0.0, k_p, p_p, s_p)
+                self._probe, self._probe_letzt = {"n": n, "ziel": k_p[0]}, self.jetzt
+                gr[k_p[0]] = (k_p[2], schach(ort, k_p[1]), "GEWAEHLT (PROBE)")
+                ereignis.append("PROBE %d -> Gebaeude %d (Typ %d): jedes Ziel scheitert am Risiko - das am wenigsten riskante "
+                                "(Modell P(Tod) %.0f %%, Eichung %.3f) wird erprobt; Abbruch bei Entdeckung, das Ergebnis lernt die "
+                                "Eichung" % (n, k_p[0], k_p[2], 100 * p_p, kal))
             if neu_pruef and not beste:
                 continue                          # B-277: kein lohnendes Gebaeude nach dem Neubau - die Jagd laeuft weiter
             if beste:
@@ -3122,6 +3186,8 @@ class Einzeln:
                                 "Beschuss am Ziel %.2f/Takt, Arbeit %s %d Takte" % (
                     n, gn, typ, schach(ort, p), saldo, 100 * p_tod, f30, L[n]["leben"], self._beschuss_angriff(gn, G, ort),
                     "gemessen" if typ in ARBEIT else "geschaetzt", ARBEIT.get(typ, ARBEIT_SONST)))
+                if self.KALIB_LERNEN and gn in roh:
+                    ereignis += self._eichung.start(n, gn, roh[gn], L[n]["leben"], self.jetzt)     # B-278
                 continue
             if (not erreichbar or not frei) and n not in self.jagd:
                 # B-172 (2v2 22.10. 17:48: "warum haengt der Assassine da" - beide warteten >= 200 Takte, "keins erreichbar"): ohne

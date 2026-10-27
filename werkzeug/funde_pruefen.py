@@ -111,6 +111,9 @@ import sicht as S
 if ALT_S:
     S = lade("sicht", ALT_S)
 A = lade("assassinen", ALT_A) if ALT_A else __import__("assassinen")
+# B-278: diese Faelle pruefen die Fluchtregel selbst (Runden zu 15 Takten) - Probe und Hit & Run haben ihre eigene Pruefung
+# (risiko_lernen_pruefen.py) und sind hier aus
+A.Einzeln.PROBE = A.Einzeln.HIT_RUN = False
 from ausweichen_pruefen import einheit
 
 
