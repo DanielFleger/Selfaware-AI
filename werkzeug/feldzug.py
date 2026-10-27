@@ -521,6 +521,11 @@ class Feldzug:
             gefallen = (not m[dp["ziel"]]) if dp["art"] == "mauer" else (dp["ziel"] not in (getattr(self, "_gebaeudebild", {}) or {}))
             w_ = [tuple(q) for q in dp["weg"]]
             if gefallen:
+                # B-265 (Partie 040442, Lord tot erst bei 60.062: nach jeder gefallenen Kachel ohne anschliessende Kachel plante der
+                # Planer vom HEER aus neu und wechselte die Burgseite - Sued, West, Nord, Ost, Tore, West): neu geplant wird vom LOCH
+                # aus - dort steht das Heer gleich, und der billigste Weg fuehrt durch die Bresche weiter nach innen
+                start = tuple(dp["ziel"]) if dp["art"] == "mauer" else tuple(dp.get("zug") or start)
+                self._start_loch = start
                 zi = w_.index(tuple(dp["zug"])) if dp.get("zug") and tuple(dp["zug"]) in w_ else 0
                 weiter = [i for i in range(zi + 1, len(w_)) if m[w_[i]] and w_[i] not in self.mauer_verworfen]
                 # (Partie 010851: nach (204,59) sprang WEITER auf (203,65) - dazwischen kein Mauerfeld, aber auch kein Weg; 25-30 Mann

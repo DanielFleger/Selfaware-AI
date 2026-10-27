@@ -1572,6 +1572,26 @@ def main():
     z78g, a78g = sprung78(1)
     pruefe(78, "naechste Kachel 6 Felder weiter: %s, %d Planungen | anschliessend: %s, %d" % (z78, a78, z78g, a78g),
            z78 == (30, 5) and a78 == 1 and z78g == (12, 11) and a78g == 0)
+    # 79 B-265 (Partie 040442: nach gefallener Kachel plante er vom Heer aus und wechselte die Burgseite): faellt (12,10) und liegt
+    #    keine anschliessende Kachel auf dem Weg, plant der Planer vom Loch (12,10) aus. Gegenprobe: steht das Ziel noch auf einem
+    #    verworfenen Feld (nicht gefallen), plant er vom Heer (5,5) aus.
+    def loch79(gefallen):
+        import numpy as np
+        f = F.Feldzug(1, (0, 0), n=40)
+        f.ziel = 500
+        starts = []
+        f.durchbruch = lambda sp, start, *a, **k: starts.append(tuple(start)) or {
+            "art": "mauer", "ziel": (30, 5), "zug": (29, 5), "weg": [(29, 5), (30, 5)], "takte": 1, "belastung": 0, "kandidaten": []}
+        m = np.zeros((40, 40), bool)
+        m[30, 5] = True
+        m[12, 10] = not gefallen
+        if not gefallen:
+            f.mauer_verworfen.add((12, 10))
+        f.dplan = {"art": "mauer", "ziel": (12, 10), "zug": (11, 10), "weg": [(11, 10), (12, 10), (13, 10)], "lord": (30, 30), "runde": 0}
+        f._durchbruch_neu(m, (5, 5), (30, 30), 10)
+        return starts[0] if starts else None
+    s79, s79g = loch79(True), loch79(False)
+    pruefe(79, "Kachel gefallen: Planung ab %s | verworfen statt gefallen: ab %s" % (s79, s79g), s79 == (12, 10) and s79g == (5, 5))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
