@@ -42,6 +42,10 @@ Sieg damit beweist nichts.
 - **Laufziel einer feindlichen Einheit:** nie lesen; stattdessen aus der **beobachteten Bewegung** vorhersagen (letzte
   Positionen, Richtung, Tempo).
 - **Lord-Leben:** erlaubt - der Lebensbalken ist sichtbar.
+- **Spielregeln vs. gespeicherter Zustand:** die Zielwahl-Regel der Schuetzen (wen ein Schuetze nach Abstand, Schusslinie
+  und Reichweite waehlt) ist Spielmechanik und darf zur Vorhersage genutzt werden - angewendet auf sichtbare Positionen.
+  Das im Speicher gespeicherte Ziel einer feindlichen Einheit, ihren naechsten Schusstakt oder ihr Nahkampfziel zu LESEN
+  ist verboten (`shootTargetedUnit`, `sre_naechster_schuss_takte`, `attackedUnitID` - die Pruefung sucht danach).
 - **Testgefechte und Messwerkzeuge** (Sandkasten, `shc.py`, Startwaren angleichen, Messlaeufe): duerfen setzen und toeten,
   aber **nur im eigenen Testaufbau, nie in einer Partie, die als echtes Ergebnis zaehlt**.
 - **Reverse Engineering (das "Auge"):** erlaubt, um die Spielmechanik zu verstehen (wie Schaden, Sicht, Wege funktionieren).

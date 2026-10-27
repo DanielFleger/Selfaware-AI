@@ -47,8 +47,14 @@ LESER = {
     "feldzug._feuer_lenken": EIGEN, "feldzug._lohnt": EIGEN + " (Verbuendete)", "raids._alle_heerwege": EIGEN + " (Verbuendete)",
     "raids._wirkung_messen": EIGEN, "uebersicht._verbaende": EIGEN, "waechter.lies_lagebild": EIGEN + " (liest die Tabelle ein)",
     "waechter.sichtfilter": "filter (B-274: ersetzt Feind-Laufziel/Angriffsziel durch das Sichtbare)",
+    # Frage-Agent 27.10. 20:02 (Ampel rot): das Gehirn auf den Speicherbildern des Auges liest gespeicherte Ziele und den
+    # naechsten Schuss JEDER Einheit, auch feindlicher - erlaubt zum Erforschen der Mechanik, VERBOTEN im Spielweg
+    "gehirn.prognose": "gehirn-roh", "gehirn._begegnungen": "gehirn-roh", "simulator._aufbau": "gehirn-roh",
 }
-FELD = re.compile(r"\"(laufx|laufy|zieleinheit|nahziel)\"")
+# Laufziel/Angriffsziel im Lagebild (laufx, zieleinheit, nahziel) und dieselben Groessen in den Speicherbildern des Auges
+# (shootTargetedUnit, attackedUnitID, sre_naechster_schuss_takte)
+FELD = re.compile(r"[\"'](laufx|laufy|zieleinheit|nahziel|shootTargetedUnit|attackedUnitID|sre_naechster_schuss_takte)[\"']")
+GEHIRN_MODULE = ("gehirn", "simulator")     # immer durchsucht - auch solange sie noch nicht im Spielweg sind
 
 
 def _funktionen(baum):
@@ -112,7 +118,10 @@ def pruefe(mods=None):
         rot.append("EINZELKAUF kann scharf werden (Waren/Gold per Speicher)")
     if not filter_angeschlossen():
         rot.append("SICHTFILTER nicht angeschlossen oder seine Pruefung rot - feindliche Laufziele/Angriffsziele ungefiltert")
-    les = leser(mods)
+    les = leser(set(mods) | {m for m in GEHIRN_MODULE if os.path.exists(os.path.join(HIER, m + ".py"))})
+    # gehirn-roh ist nur ausserhalb des Spielwegs erlaubt: laedt der Lenker eines dieser Module, ist es Schummeln
+    rot += ["GEHIRN-ROH im Spielweg: %s liest gespeicherte Feindziele/Schusstakte - erst auf Sichtbares umbauen (FAIRNESS.md)"
+            % k for k in les if LESER.get(k) == "gehirn-roh" and k.split(".")[0] in mods]
     rot += ["NEUE Lesestelle fuer Laufziel/Angriffsziel, nicht eingeordnet: %s Zeilen %s" % (k, v) for k, v in les.items()
             if k not in LESER]
     return rot, les

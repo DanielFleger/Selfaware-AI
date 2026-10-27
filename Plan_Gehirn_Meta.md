@@ -85,7 +85,9 @@ verborgenes Gegnerwissen nein.
   jede Runde geprueft, bei Abweichung sofort umplanen: warten, ausweichen, sammeln, anderer Weg.
 - **Wachsen, teilen, zusammenlegen:** Trupps aendern sich mit der Lage.
 - **Steckt schon drin:** feldzug (Sammeln, Durchbruch, Lord-Wettlauf), raids, assassinen (Stapel), sturm.
-- **Erster Bauschritt:** der gebuendelte Sturm als erstes Muster mit Vertrag - braucht Daniels Ja zu B-263.
+- **Erster Bauschritt:** der gebuendelte Sturm als erstes Muster mit Vertrag (Daniel 27.10. 19:59: B-263 ersetzt B-139).
+  Achtung: feldzug.py hat schon eine Sammel-Phase (SICHER = 50, Zeile 183) und feldzug_pruefen.py Faelle dazu (3, 6, 20,
+  25) - B-263 aendert bestehendes Verhalten, die Faelle werden mit umgestellt.
 
 ## Stufe 1 - Feldherr
 
@@ -98,25 +100,46 @@ verborgenes Gegnerwissen nein.
 - **Ein Besitzer:** kein Modul befiehlt Einheiten, die ihm nicht gehoeren - das beendet das gegenseitige Aufhaengen
   (heute: feldzug_ruht, Heimwache, Waechter "Stapeln holte sie heim").
 - **Takt:** jede Runde.
-- **Steckt schon drin:** Sharky-Plan B-97/B-98 (Manager-Liste, Einheiten-Anspruch) - wird hierin aufgenommen.
-- **Erster Bauschritt:** Besitzbuch - jede Einheit hat genau einen Besitzer (Modul), jeder Befehl wird dagegen geprueft;
-  Verhalten zunaechst unveraendert, nur Konflikte sichtbar machen (wie oft befehlen zwei Module dieselbe Einheit).
+- **Steckt schon drin:** Sharky-Plan B-97..B-100 (Manager-Liste, Einheiten-Anspruch) - hierin aufgenommen. Heute gibt es
+  drei Besitz-Mechanismen (ausgenommen/reserve beim Waechter, Heimwache, feldzug_ruht) plus den Filter `raus` im Feldzug;
+  die Reihenfolge der Module in erstes_spiel entscheidet (Waechter vor Feldzug).
+- **Erster Bauschritt:** Besitzbuch an der EINEN Stelle, durch die alle Befehle gehen (`laden.befehl`), mit Absender
+  (Modul). Es liest die Einheiten aus jedem Befehlsschluessel (angriff, mauerziel, halten, lauf, gruppe ...) und zaehlt
+  getrennt: **Uebergabe** (eine Einheit wechselt zwischen zwei Runden den Besitzer - gewollt) und **Doppelbefehl** (zwei
+  Module befehlen dieselbe Einheit in derselben Runde - der Fehler). Vorher zaehlen, an welchen Stellen Einheiten-Listen
+  gebildet werden. Verhalten unveraendert, Schalter zum Abschalten.
 
 ---
 
 ## Bau-Reihenfolge
 
-0. Vorhersage-Tagebuch (fuer alle Stufen).
+0. Vorhersage-Tagebuch (fuer alle Stufen) - zuerst auf dem, was der Lenker heute schon rechnet: Lord-Wettlauf und
+   Gefechtsrechnung (`feldzug._lohnt`, `gefecht.bewerte`) auf dem Lagebild. Mit Schalter (an/aus) und Zeitmessung je
+   Runde (heute 0,15-0,27 s je Takt, partner.py:23 - das Tagebuch darf die Runde nicht spuerbar verlaengern).
+   Erste Kennzahl: vorhergesagter gegen gemessenen Lord-Schaden je Takt (MESSUNG Feindlord steht schon im Log).
 1. Stufe 1: Besitzbuch, dann Gebote und Rollen.
-2. Stufe 2: gebuendelter Sturm mit Vertrag (nach Daniels Ja zu B-263), dann weitere Muster.
+2. Vor Stufe 2 messen: bekommt der Lenker im Spiel jeden Takt genug Daten (Taktring AU15)? Dann gebuendelter Sturm mit
+   Vertrag (B-263), dann weitere Muster.
 3. Stufe 3: Reaktionsmessung, dann Gegnerprofil und Proben.
 4. Stufe 4: Abgleich Vorhersage/Ergebnis, Trick-Buch.
 5. Stufe 5: eine Stelle fuer Siegweg und Waehrung, dann echte Wahl.
 
 Jeder Schritt: Messung vorher, Pruefung mit Negativlauf, Fairness-Pruefung gruen, ein Commit mit B-Nummer.
 
+## Fairness des Gehirns (Frage-Agent 27.10. 20:02, Ampel rot - eingearbeitet)
+
+Das Gehirn auf den Speicherbildern des Auges (`gehirn.py`, `simulator.py`) liest von JEDER Einheit das gespeicherte
+Schussziel (`shootTargetedUnit`), den Takt des naechsten Schusses und das Nahkampfziel (`attackedUnitID`) - auch von
+feindlichen. Zum Erforschen der Mechanik ist das erlaubt, im Spiel nicht. Darum:
+
+- **Mechanik ja, gespeicherter Zustand nein:** fuer feindliche Schuetzen sagt das Gehirn das Ziel mit der Zielwahl-Regel
+  des Spiels voraus (naechste Schuetzen zuerst, freie Schusslinie, Reichweite - eine Regel, die fuer alle Einheiten gilt und
+  die man durch Spielen lernt), angewendet auf die sichtbaren Positionen. Das gespeicherte Ziel wird nicht gelesen.
+- Bevor `gehirn`/`simulator` in den Lenker kommen, bekommen sie einen Sichtmodus mit genau dieser Regel.
+- `werkzeug/fairness_pruefen.py` sucht die drei Feldnamen jetzt mit und durchsucht `gehirn.py`/`simulator.py` immer; laedt
+  der Lenker eines davon mit rohen Feindfeldern, ist die Pruefung **rot** (Negativlauf 27.10. 20:08).
+
 ## Offen
 
 - Ob der Lenker im laufenden Spiel jeden Takt dieselben Daten bekommt wie das Gehirn auf den SRE-Speicherbildern
-  (Taktring AU15) - davon haengt ab, wie fein Stufe 2 rechnen kann. Erst messen.
-- B-263 (Sammeln ersetzt "kein Sammeln" aus B-139) - Daniels Entscheid.
+  (Taktring AU15) - vor Stufe 2 messen.
