@@ -16,7 +16,31 @@ BUILD = ROOT / 'build'
 PYTHON_URL = 'https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip'
 PYTHON_SHA = '009d6bf7e3b2ddca3d784fa09f90fe54336d5b60f0e0f305c37f400bf83cfd3b'
 SEEDS = ('enums_einheit_gebaeude.txt', 'enum_einheiten.txt', 'gebaeude_arbeit.json', 'gebaeude_schadensregel.json',
-         'lord_kampfwerte.json', 'nahkampf_raten.json', 'saat_liga.json', 'schussrate_editor.json')
+         'lord_kampfwerte.json', 'nahkampf_raten.json', 'saat_liga.json', 'schussrate_editor.json',
+         # B-272 (Partie 180423: without these the Lord race used the fallback 20 per tick and never attacked)
+         'editor_duell_*.jsonl', 'lord_nahkampf.jsonl', 'lagen_belegt.json', 'liga_karten.json')
+# B-272: only the newest file of each pattern (the game reads sorted(...)[-1])
+NEWEST = ('spielwerte_*.json',)
+# B-272: read on the game path but deliberately not shipped (werkzeug/paket_daten_pruefen.py checks this list)
+NOT_SHIPPED = {
+    'arbeitsgang_*_wegkarte.txt': 'aufbau_planer test maps (6.7 MB), live play uses the game map',
+    'baeume_M7-04_T600.txt': 'eroeffnung default for the old test map M7-04 only',
+    'eroeffnung_plan.json': 'eroeffnung default without start; live play writes eroeffnung_plan_<start>.json',
+    'haertetest_v5_20261006.txt': 'best-time splits of the v14 hardness test only',
+    'platzkarte_kuehe_Basis_ganz.txt': 'farm sites of the fixed V14 map only',
+    'platzkarte_lager_keins.txt': 'eroeffnung default for the old test map only',
+    'verlust_raten.json': 'the app learns its own per profile (runtime_start.py sets SHC_LEARNING_DIR)',
+    'wissen_ablauf.jsonl': 'written by the game itself (ablaufanalyse appends one line per measurement)',
+}
+
+
+def seed_files(root=ROOT):
+    """Data files shipped in Selfaware-AI/daten: every SEEDS match, and the newest match of each NEWEST pattern."""
+    files = [f for name in SEEDS for f in sorted((root / 'daten').glob(name)) if f.is_file()]
+    for name in NEWEST:
+        found = sorted(f for f in (root / 'daten').glob(name) if f.is_file())
+        files += found[-1:]
+    return files
 
 
 def run(args, **kw):
@@ -87,10 +111,8 @@ def build(resume=False):
     for source in sorted((ROOT / 'werkzeug').glob('*.py')):
         shutil.copy2(source, code / source.name)
     shutil.copy2(ROOT / 'werkzeug/logik_menue_backend.lua', code / 'logik_menue_backend.lua')
-    for name in SEEDS:
-        source = ROOT / 'daten' / name
-        if source.is_file():
-            shutil.copy2(source, data / name)
+    for source in seed_files():
+        shutil.copy2(source, data / source.name)
     # Preserve the catalog layout the existing controller already consumes.
     catalog = runtime / 'VillageStudio/lib'
     catalog.mkdir(parents=True,exist_ok=resume)
