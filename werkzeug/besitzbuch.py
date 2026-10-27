@@ -21,6 +21,59 @@ DOPPELT = {}             # Einheit -> Zahl der Runden mit Befehlen aus zwei vers
 RUNDE = [0]
 _IN_RUNDE = {}           # Einheit -> Modul in der laufenden Runde
 _STILL = {}              # Einheit -> (Feld, seit, zuletzt gemeldet)
+# Haende fuer JEDE Einheit (Daniel 27.10. 22:48 "ja natuerlich und auch fuer jede Einheit"): ein Befehl, den das Spiel nicht
+# annimmt (Einheit steht seit einer Runde, Laufziel = eigenes Feld), wird erkannt und SPERRE_RUNDEN lang nicht wiederholt
+SPERRE_RUNDEN = 5
+ABGELEHNT = {}           # Einheit -> (Zielschluessel, Runde der Ablehnung)
+
+
+def _schluessel(art, w):
+    if not isinstance(w, dict):
+        return (art, None)
+    for k in ("lauf", "ziel", "gebaeude"):
+        if w.get(k) is not None:
+            v = w[k]
+            return (art, k, tuple(v) if isinstance(v, list) else v)
+    return (art, None)
+
+
+def abgelehnt(n):
+    """(Zielschluessel, Runde) der letzten Ablehnung dieser Einheit oder None - fuer Module, die umplanen wollen."""
+    return ABGELEHNT.get(n)
+
+
+def filtern(befehl):
+    """Vor dem Senden: Einheiten aus Befehlen nehmen, deren gleicher Befehl in den letzten SPERRE_RUNDEN abgelehnt wurde.
+    Gibt (Befehl oder None, Meldungen). Wirft nie."""
+    try:
+        liste = befehl.get("befehle") if isinstance(befehl, dict) and "befehle" in befehl else [befehl]
+        meld, leer = [], 0
+        for c in liste or []:
+            if not isinstance(c, dict):
+                continue
+            for art in BEFEHLSARTEN:
+                w = c.get(art)
+                if not isinstance(w, dict) or not isinstance(w.get("einheiten"), list):
+                    continue
+                key = _schluessel(art, w)
+                raus = [n for n in w["einheiten"] if n in ABGELEHNT and ABGELEHNT[n][0] == key
+                        and RUNDE[0] - ABGELEHNT[n][1] <= SPERRE_RUNDEN]
+                if raus:
+                    w["einheiten"] = [n for n in w["einheiten"] if n not in raus]
+                    meld.append("WIEDERHOLUNG VERHINDERT: %s an %s - das Spiel hat genau diesen Befehl vor kurzem abgelehnt" % (
+                        key, raus))
+                    if not w["einheiten"]:
+                        leer += 1
+        # Befehle, deren Einheitenliste leer wurde, fallen weg; bleibt nichts, wird nichts gesendet
+        uebrig = [c for c in (liste or []) if not (isinstance(c, dict) and any(
+            isinstance(c.get(a), dict) and isinstance(c[a].get("einheiten"), list) and not c[a]["einheiten"] for a in BEFEHLSARTEN))]
+        if leer and not uebrig:
+            return None, meld
+        if leer and isinstance(befehl, dict) and "befehle" in befehl:
+            befehl["befehle"] = uebrig
+        return befehl, meld
+    except Exception:
+        return befehl, []
 
 
 def _absender():
@@ -63,7 +116,8 @@ def merken(befehl):
                 ziel = w.get("ziel") or w.get("gebaeude") or w.get("lauf") or (w.get("x"), w.get("y")) if isinstance(w, dict) else None
                 for n in ns:
                     alt = LETZTER.get(n, {})
-                    LETZTER[n] = {"modul": modul, "art": art, "ziel": ziel, "runde": RUNDE[0], "anzahl": alt.get("anzahl", 0) + 1}
+                    LETZTER[n] = {"modul": modul, "art": art, "ziel": ziel, "runde": RUNDE[0], "anzahl": alt.get("anzahl", 0) + 1,
+                                  "schluessel": _schluessel(art, w)}
                     vor = _IN_RUNDE.get(n)
                     if vor is not None and vor != modul.split(".")[0]:
                         DOPPELT[n] = DOPPELT.get(n, 0) + 1
@@ -86,6 +140,12 @@ def steh_runde(t, L, sp, arten):
             _STILL[n] = (f, t, None)
             continue
         seit, gemeldet = alt[1], alt[2]
+        b = LETZTER.get(n)
+        if (b is not None and seit < t and RUNDE[0] - b["runde"] <= 2 and (e.get("laufx"), e.get("laufy")) == f
+                and ABGELEHNT.get(n, (None,))[0] != b.get("schluessel")):
+            ABGELEHNT[n] = (b.get("schluessel"), RUNDE[0])
+            aus.append("BEFEHL ABGELEHNT %d (Art %d) bei %s: %s schickte '%s %s', das Spiel nahm ihn nicht an (Laufziel = eigenes "
+                       "Feld) - %d Runden keine Wiederholung" % (n, e["typ"], f, b["modul"], b["art"], b["ziel"], SPERRE_RUNDEN))
         if t - seit < STEH_ERKLAER or (gemeldet is not None and t - gemeldet < STEH_ERKLAER):
             continue
         _STILL[n] = (f, seit, t)

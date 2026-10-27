@@ -258,6 +258,9 @@ def sende(befehl, warte=3.0, bis=None):
     import lordschutz
     befehl, meld = lordschutz.filtern(befehl)
     import besitzbuch                   # B-273/B-275: je Einheit den letzten Befehl und sein Modul merken (Steh-Augen)
+    befehl, meld_b = besitzbuch.filtern(befehl)   # B-275: abgelehnte Befehle nicht wiederholen (jede Einheit)
+    for m in meld_b:
+        print(m, flush=True)
     besitzbuch.merken(befehl)
     for m in meld:
         print(m, flush=True)

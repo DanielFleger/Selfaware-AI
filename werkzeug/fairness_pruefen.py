@@ -50,6 +50,7 @@ LESER = {
     # Frage-Agent 27.10. 20:02 (Ampel rot): das Gehirn auf den Speicherbildern des Auges liest gespeicherte Ziele und den
     # naechsten Schuss JEDER Einheit, auch feindlicher - erlaubt zum Erforschen der Mechanik, VERBOTEN im Spielweg
     "tagebuch.lord_runde": EIGEN + " (eigene Einheiten, die sichtbar auf den Lord schlagen)",
+    "besitzbuch.steh_runde": EIGEN + " (Laufziel eigener Einheiten: Befehl angenommen?)",
     "assassinen._abgelehnt_loesen": EIGEN + " (Laufziel der eigenen Assassine: hat das Spiel den Befehl angenommen?)",
     "gehirn.prognose": "gehirn-roh", "gehirn._begegnungen": "gehirn-roh", "simulator._aufbau": "gehirn-roh",
 }

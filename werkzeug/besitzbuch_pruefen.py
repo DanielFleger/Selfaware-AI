@@ -46,6 +46,20 @@ if __name__ == "__main__":
         ("nicht jede Runde (4300 leer)", zeilen[4300] == []),
         ("Doppelbefehl zweier Module gezaehlt", B.DOPPELT.get(219) == 1),
     ]
+    # Haende fuer jede Einheit: Schwertkaempfer 548 (Feldzug) bekommt einen Lauf, steht eine Runde spaeter am selben Feld mit
+    # Laufziel = eigenes Feld -> BEFEHL ABGELEHNT; derselbe Befehl wird dann herausgefiltert, ein anderes Ziel geht durch
+    def feldzug_lauf(n, p):
+        return B.filtern({"befehle": [{"player": 1, "id": 2, "angriff": {"einheiten": [n], "lauf": list(p)}}]})
+    LZ = lambda: {548: {"besitzer": 2, "typ": 75, "x": 190, "y": 141, "zustand": 1, "laufx": 190, "laufy": 141}}
+    B.steh_runde(5000, LZ(), 2, {75})
+    b1, _m = feldzug_lauf(548, (139, 182))
+    B.merken(b1)
+    abl = B.steh_runde(5100, LZ(), 2, {75})
+    b2, m2 = feldzug_lauf(548, (139, 182))
+    b3, m3 = feldzug_lauf(548, (170, 180))
+    faelle += [("Schwertkaempfer: BEFEHL ABGELEHNT erkannt", any("BEFEHL ABGELEHNT 548" in z for z in abl)),
+               ("derselbe abgelehnte Lauf wird nicht wiederholt", b2 is None and any("WIEDERHOLUNG VERHINDERT" in z for z in m2)),
+               ("ein anderes Ziel geht durch", b3 is not None and b3["befehle"][0]["angriff"]["einheiten"] == [548] and not m3)]
     for name, ok in faelle:
         print("%s %s" % ("OK  " if ok else "ROT ", name))
     print("%d von %d gruen" % (sum(ok for _, ok in faelle), len(faelle)))
