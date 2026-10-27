@@ -1552,6 +1552,26 @@ def main():
     z77g, a77g = wander77(10)
     pruefe(77, "Lord 2 Felder weiter: Ziel %s, %d Planungen | 10 Felder: %s, %d" % (z77, a77, z77g, a77g),
            z77 == (12, 10) and a77 == 0 and a77g == 1)
+    # 78 B-260 (Partie 010851: WEITER sprang von (204,59) auf (203,65), dazwischen kein Weg): naechste Kachel 6 Felder weiter ->
+    #    neu planen statt WEITER; Gegenprobe: anschliessende Kachel (1 Feld) -> WEITER ohne Planung (wie Pruefung 75).
+    def sprung78(abstand):
+        import numpy as np
+        f = F.Feldzug(1, (0, 0), n=40)
+        f.ziel = 500
+        aufrufe = []
+        f.durchbruch = lambda *a, **k: aufrufe.append(1) or {"art": "mauer", "ziel": (30, 5), "zug": (29, 5), "weg": [(29, 5), (30, 5)],
+                                                             "takte": 1, "belastung": 0, "kandidaten": []}
+        m = np.zeros((40, 40), bool)
+        m[30, 5] = True
+        weg = [(12, 9), (12, 10)] + [(12, 10 + k) for k in range(1, abstand + 1)]
+        m[weg[-1]] = True
+        f.dplan = {"art": "mauer", "ziel": (12, 10), "zug": (12, 9), "weg": weg, "lord": (30, 30), "runde": 0}
+        dp = f._durchbruch_neu(m, (5, 5), (30, 30), 10)
+        return dp["ziel"], len(aufrufe)
+    z78, a78 = sprung78(6)
+    z78g, a78g = sprung78(1)
+    pruefe(78, "naechste Kachel 6 Felder weiter: %s, %d Planungen | anschliessend: %s, %d" % (z78, a78, z78g, a78g),
+           z78 == (30, 5) and a78 == 1 and z78g == (12, 11) and a78g == 0)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

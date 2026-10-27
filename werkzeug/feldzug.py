@@ -476,6 +476,7 @@ class Feldzug:
         return bool(g and g.get("besitzer") not in freunde_von(self.sp)
                     and g.get("leben",0)>0 and angreifbar(g))
 
+    WEITER_NAH, WEITER_NAH_GEB = 2, 6   # B-260: so nah muss die naechste Kachel am gefallenen Ziel liegen (sonst neu planen)
     LORD_WANDER = 5            # B-264: so weit darf der Lord laufen, ohne dass der Durchbruch-Plan neu berechnet wird (gemessen: 2 Felder)
     PLAN_VERSUCHE = 3          # B-256: so oft wird neu geplant, wenn der Zugang des Plans fuer uns nicht erreichbar ist
 
@@ -522,6 +523,12 @@ class Feldzug:
             if gefallen:
                 zi = w_.index(tuple(dp["zug"])) if dp.get("zug") and tuple(dp["zug"]) in w_ else 0
                 weiter = [i for i in range(zi + 1, len(w_)) if m[w_[i]] and w_[i] not in self.mauer_verworfen]
+                # (Partie 010851: nach (204,59) sprang WEITER auf (203,65) - dazwischen kein Mauerfeld, aber auch kein Weg; 25-30 Mann
+                # standen bei y 57-59 untaetig, "KOMMT NICHT AN" 3-mal): nur die anschliessende Kachel - bis WEITER_NAH Felder vom
+                # gefallenen Ziel (nach einem Gebaeude WEITER_NAH_GEB, so breit sind Tor/Turm)
+                nah_w = self.WEITER_NAH if dp["art"] == "mauer" else self.WEITER_NAH_GEB
+                ref = tuple(dp["ziel"]) if dp["art"] == "mauer" else (tuple(dp["zug"]) if dp.get("zug") else w_[zi])
+                weiter = [i for i in weiter if schach(w_[i], ref) <= nah_w]
                 if weiter:
                     i = weiter[0]
                     neu = dict(dp, art="mauer", ziel=w_[i], zug=w_[i - 1], runde=self.runde)
