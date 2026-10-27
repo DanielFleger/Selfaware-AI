@@ -20,6 +20,9 @@ NACHLAUF = 200
 # B-279 (Partie 001807: KALIB fiel von 0,33 auf 0,03 - "vorhergesagt 20.718, echt 0" bei Assassinen, die ihr Ziel unterwegs
 # wechselten und nie dort waren): ein Angriff zaehlt nur, wenn die Assassine bis ANKOMMEN Felder ans Ziel kam oder starb
 ANKOMMEN = 6
+# Partie 002852: der neue Prozess lud die Datei, die der alte (vor B-279, falsche Zaehlung) um 00:25 neu geschrieben hatte -
+# KALIB 0,047 statt 0,33. Gelesen wird nur eine Datei mit dieser FASSUNG; aeltere Staende bleiben liegen und werden uebergangen
+FASSUNG = 2
 
 
 def pfad():
@@ -34,6 +37,8 @@ class Eichung:
         self.vorher, self.echt, self.zahl, self.nahkampf = 0.0, 0.0, 0, 0
         try:
             d = json.load(open(self.datei, encoding="utf-8")) if self.datei else {}
+            if d.get("fassung") != FASSUNG:
+                raise KeyError("fassung")
             self.vorher, self.echt, self.zahl = float(d["vorhergesagt"]), float(d["echt"]), int(d["angriffe"])
         except (OSError, ValueError, KeyError, TypeError):
             pass
@@ -105,7 +110,7 @@ class Eichung:
             os.makedirs(os.path.dirname(self.datei), exist_ok=True)
             tmp = self.datei + ".tmp"
             with open(tmp, "w", encoding="utf-8") as f:
-                json.dump({"quelle": "risiko_lernen.Eichung (B-278)", "vorhergesagt": self.vorher, "echt": self.echt,
+                json.dump({"quelle": "risiko_lernen.Eichung (B-278/B-279)", "fassung": FASSUNG, "vorhergesagt": self.vorher, "echt": self.echt,
                            "angriffe": self.zahl, "kalib": self.kalib, "start": START, "prior": PRIOR}, f, indent=1)
             os.replace(tmp, self.datei)
         except OSError:

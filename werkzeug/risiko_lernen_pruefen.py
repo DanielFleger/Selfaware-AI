@@ -11,6 +11,7 @@ Soll vorher festgelegt:
   9. (B-279) Assassine AM Gebaeude, Arbeiter 1 Feld daneben -> kein Mitnehmen, Ziel bleibt
  10. (B-279) unterwegs (Gebaeude 30 Felder weg) nimmt sie den Arbeiter mit; ist er tot -> zurueck zu ihrem Gebaeude
  11. (B-279) Eichung zaehlt nur Angriffe, die am Ziel ankamen (oder mit Tod endeten)
+ 12. (B-279) eine alte Eichungsdatei ohne Fassung (falsch gezaehlt) wird beim Laden uebergangen
   8. Hit & Run: entdeckt (Armbrust visiert ihn an), nicht getroffen, Runde 15 Takte -> arbeitet weiter, Ziel bleibt;
      Runde 106 Takte (gemessen Partie 232139) -> "kein Hit & Run", die alten Regeln (fertig machen, Gegenwert, raus) entscheiden
 Aufruf: python risiko_lernen_pruefen.py"""
@@ -144,6 +145,12 @@ def main():
     e11.runde({2: {"leben": 11000, "x": 150, "y": 150}}, {}, 10 + RL.NACHLAUF)
     f.append(("11 nie angekommen zaehlt nicht (%d gezaehlt, %d nicht da)" % (e11.zahl, getattr(e11, "nicht_da", 0)),
               e11.zahl == 1 and getattr(e11, "nicht_da", 0) == 1 and abs(e11.echt - 1500) < 1))
+    # 12 alte Datei ohne Fassung (vor B-279 falsch gezaehlt) wird uebergangen
+    import json as _j
+    d12 = tempfile.mkdtemp()
+    _j.dump({"vorhergesagt": 2261444.0, "echt": 96840.0, "angriffe": 156, "kalib": 0.0466}, open(os.path.join(d12, "assassinen_eichung.json"), "w"))
+    e12 = RL.Eichung(os.path.join(d12, "assassinen_eichung.json"))
+    f.append(("12 alte Datei ohne Fassung uebergangen: KALIB %.3f, %d Angriffe" % (e12.kalib, e12.zahl), abs(e12.kalib - 0.33) < 1e-9 and e12.zahl == 0))
     A.Einzeln.PROBE = A.Einzeln.HIT_RUN = True
     for name, ok in f:
         print("%s %s" % ("OK  " if ok else "ROT ", name))
