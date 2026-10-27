@@ -57,7 +57,7 @@ UNIT_LAYER = TILEMAP + 2349024          # ushort je Feld: erste Einheit auf dem 
 ENTITY_LAYER = TILEMAP + 2509824        # short je Feld: erstes Geschoss/Feuer auf dem Feld (Kette nextEntityOnThisTileByID)
 DAMAGE_LAYER = TILEMAP + 3313824        # byte je Feld
 PITCH = TILEMAP + 5501060               # PitchDitch[4000] x 20 Byte
-PITCH_ANZAHL = TILEMAP + 5581060
+PITCH_SUCHENDE = TILEMAP + 5581060       # exklusives Ende der belegten Pechgruben-Suche, nicht aktive Anzahl
 FELDER = 80400
 
 # Flugbahn (initializeProjectileVelocities 0x00403A20, moveProjectileEntity 0x004084A0): Winkel in Grad, Geschwindigkeit
@@ -941,7 +941,7 @@ class Schnappschuss(object):
                 self.bau = np.frombuffer(speicher.lies(BUILDING_LAYER, FELDER * 2), dtype="<u2")
                 self.logik = np.frombuffer(speicher.lies(speicher.LOGIK, FELDER * 4), dtype="<u4")
             elif mit_feldern:
-                n_p = min(max(_i4(PITCH_ANZAHL), 0), 4000)
+                n_p = min(max(_i4(PITCH_SUCHENDE), 0), 4000)
                 self.pech = np.frombuffer(speicher.lies(PITCH, n_p * 20), dtype=PITCH_DTYPE) if n_p else np.zeros(0, PITCH_DTYPE)
                 self.schaden = np.frombuffer(speicher.lies(DAMAGE_LAYER, FELDER), dtype="u1")
                 self.hoehe = np.frombuffer(speicher.lies(speicher.HOEHE, FELDER), dtype="u1")
