@@ -190,6 +190,12 @@ class Feldzug:
     VERTEIDIGEN = 18          # Feind so nah am Sammelpunkt -> angreifen
     WIEDERHOLEN = 5           # Runden zwischen zwei Angriffsbefehlen
     ANGRIFF_NAH = 4           # so nah am Lord: Angriffsbefehl statt Laufbefehl
+    # B-263 gebuendelter Sturm (Daniel 27.10. 19:59 "gerne" - ersetzt B-139 "kein Sammeln"; Eichung L200: gestapelt stimmt der
+    # Lord-Wettlauf auf 10-15 %, im Spiel troepfelten die Truppen einzeln ein und starben vor dem ersten Schlag, L198/L199)
+    STURM_ABSTAENDE = (45, 40, 35, 30, 25, 20)   # Kandidaten fuer den Sammelpunkt (Felder vor dem Lord, auf unserer Seite)
+    STURM_FRIST = 600         # laengstens so lange sammeln (Takte, Startwert aus B-263, UNGEMESSEN)
+    STURM_ABBRUCH_MIN = 1500  # Sturm ohne Lordfall abbrechen nach max(2 x vorhergesagte Takte, so viele) - wie das Tagebuch
+    STURM_VERLUST = 0.9       # oder wenn so viel der Stuermer tot ist
     WEGPUNKT_NAH = 4          # so nah am Wegpunkt (Mitte des Haufens): naechster Wegpunkt
     MIN_ANGRIFF = 8           # 19.10.: so viele am Sammelpunkt mindestens, dann entscheidet die Gefechtsrechnung
     LORD_UMKREIS = 25         # 19.10.: feindliche Truppen so nah am Lord kaempfen mit (Gefechtsrechnung)
@@ -262,6 +268,7 @@ class Feldzug:
         self.ziel = None            # Nr des Ziel-Lords
         self.phase = "sammeln"
         self.punkt = None
+        self.sturm = None         # B-263: {"punkt", "seit", "los", "los_t", "frist", "n_los", "lp"} des gebuendelten Sturms
         self.runde = 0
         self.letzter_befehl = -99
         self.tote_lords = []
@@ -1759,6 +1766,10 @@ class Feldzug:
                         for n in neu_b:
                             befohlen[n] = ("bresche", bresche)
                     am_lord = []
+            if (lord_ziel is not None and (self.bresche is None or self.bresche not in G)
+                    and not self._sturm(L, nah_kampf, lp, mitte, t, befehl, befohlen, aus)):
+                belegt |= set(nah_kampf)          # B-263: alle sammeln am Sturm-Sammelpunkt, keiner troepfelt einzeln zum Lord
+                lord_ziel = None
             if lord_ziel is not None and (self.bresche is None or self.bresche not in G):
                 # Ein gemeinsames Ziel statt Ankunft im Zehn-Felder-Kreis: im Nahbereich
                 # erst einzeln direkt zum Lord-Feld, nach Ankunft einzeln zuschlagen.
@@ -1892,6 +1903,95 @@ class Feldzug:
         """19.10.: das Heer des Feldzugs - alle eigenen Truppen der Arten HEER ausser der Heimwache; der Waechter laesst sie in
         Ruhe (1018y: sein "Stapeln" holte sie heim), ausser als Reserve beim Sammeln."""
         return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] in HEER and n not in self.heimwache}
+
+    def _sturmpunkt(self, L, lp, mitte, nr):
+        """B-263: Sammelpunkt vor dem Lord - auf der Linie Lord -> unser Heer in STURM_ABSTAENDE Feldern, vom Wegfinder erreichbar
+        (ohne Wegtest: alle), mit den wenigsten feindlichen Schuetzen in Reichweite (nur Sichtbares: Position und Art); bei
+        Gleichstand der naehere am Lord. (Punkt, Schuetzenzahl) oder (None, 0)."""
+        import gefecht
+        dx, dy = mitte[0] - lp[0], mitte[1] - lp[1]
+        d = float(max(abs(dx), abs(dy), 1))
+        punkte = [(int(round(lp[0] + dx / d * a)), int(round(lp[1] + dy / d * a))) for a in self.STURM_ABSTAENDE if a < d + 1]
+        if not punkte:
+            return None, 0
+        if self.wegtest is not None and nr is not None:
+            try:
+                gut = self.wegtest(nr, punkte)
+                punkte = [q for q, g in zip(punkte, gut) if g] or punkte
+            except Exception:
+                pass
+        schuetzen = [((e["x"], e["y"]), gefecht.FERN_REICH[e["typ"]]) for e in L.values()
+                     if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in gefecht.FERN_REICH and e.get("leben", 1) > 0]
+
+        def gefahr(q):
+            return sum(1 for o, r in schuetzen if schach(q, o) <= r)
+        best = min(punkte, key=lambda q: (gefahr(q), schach(q, lp)))
+        return best, gefahr(best)
+
+    def _sturm(self, L, nah_kampf, lp, mitte, t, befehl, befohlen, aus):
+        """B-263 gebuendelter Sturm + B-216 Abbruch: True = der Sturm laeuft (alle gemeinsam auf den Lord, der bisherige
+        Stapel-Code befiehlt), False = noch sammeln (hier befohlen). Losgehen, wenn die Haelfte am Sammelpunkt ist, der
+        Lord-Wettlauf mit den Anwesenden den Lord fallen sieht oder STURM_FRIST um ist; abbrechen (zurueck zum Sammeln), wenn
+        der Lord nach max(2 x Vorhersage, STURM_ABBRUCH_MIN) noch lebt oder STURM_VERLUST der Stuermer tot ist."""
+        import gefecht
+        st = self.sturm
+        if st is None or schach(st["lp"], lp) > 5:
+            punkt, n_sch = self._sturmpunkt(L, lp, mitte, nah_kampf[0] if nah_kampf else None)
+            if punkt is None:
+                return True                                   # kein Platz zum Sammeln - wie bisher
+            st = self.sturm = {"punkt": punkt, "seit": t, "los": False, "lp": lp, "schuetzen": n_sch}
+            aus.append("FELDZUG STURM SAMMELPUNKT %s, %d Felder vor dem Lord, %d Feindschuetzen in Reichweite" % (
+                punkt, schach(punkt, lp), n_sch))
+        if st["los"]:
+            lebend = sum(1 for n in st["stuermer"] if n in L)
+            lord = L.get(self.ziel, {})
+            if t - st["los_t"] >= st["frist"] or lebend <= (1 - self.STURM_VERLUST) * max(1, len(st["stuermer"])):
+                aus.append("FELDZUG STURM ABGEBROCHEN nach %d Takten: Lord %d lebt (Leben %s -> %s), von %d Stuermern leben %d - "
+                           "zurueck zum Sammelpunkt %s" % (t - st["los_t"], self.ziel, st.get("lord_leben"), lord.get("leben"),
+                                                           len(st["stuermer"]), lebend, st["punkt"]))
+                st.update(los=False, seit=t)
+                return False
+            return True
+        # wer schon am Lord steht (bis ANGRIFF_NAH), zaehlt als da und wird nicht zurueckgeschickt (feldzug_pruefen 23)
+        da = [n for n in nah_kampf if schach((L[n]["x"], L[n]["y"]), st["punkt"]) <= self.AM_PUNKT
+              or schach((L[n]["x"], L[n]["y"]), lp) <= self.ANGRIFF_NAH]
+        hin = [n for n in nah_kampf if n not in da and (befohlen.get(n) != ("sturm_punkt", st["punkt"]) or L[n]["zustand"] in (0, 1))]
+        if hin:
+            befehl({"angriff": {"einheiten": hin, "lauf": list(st["punkt"])}}, 1.0, bis="ANGRIFF")
+            for n in hin:
+                befohlen[n] = ("sturm_punkt", st["punkt"])
+        grund = None
+        if len(da) * 2 >= len(nah_kampf) and da:
+            grund = "die Haelfte ist da (%d von %d)" % (len(da), len(nah_kampf))
+        elif t - st["seit"] >= self.STURM_FRIST and da:
+            grund = "Sammelfrist %d Takte um (%d von %d da)" % (self.STURM_FRIST, len(da), len(nah_kampf))
+        if da:
+            lord = L.get(self.ziel)
+            wir = [dict(typ=L[n]["typ"], leben=L[n]["leben"], x=st["punkt"][0], y=st["punkt"][1]) for n in da]
+            sie = [dict(typ=gefecht.LORD, leben=lord["leben"] if lord else gefecht.LORD_LEBEN, x=lp[0], y=lp[1], steht=True)]
+            sie += [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=False) for e in L.values()
+                    if e["besitzer"] not in freunde_von(self.sp) and e["typ"] in TRUPPE and e["typ"] != gefecht.LORD
+                    and schach((e["x"], e["y"]), lp) <= self.LORD_UMKREIS]
+            ok_r, _txt = gefecht.lord_rennen(wir, sie, 0, bis=self.ZIEL_BIS)
+            rennen = dict(gefecht.LETZTES_RENNEN or {})
+            if grund is None and ok_r:
+                grund = "der Lord-Wettlauf mit den %d Anwesenden gewinnt" % len(da)
+        if grund is None:
+            if self.runde % 5 == 0:
+                aus.append("FELDZUG STURM SAMMELN: %d von %d am Sammelpunkt %s seit %d Takten (los bei der Haelfte, gewonnenem "
+                           "Wettlauf oder nach %d Takten)" % (len(da), len(nah_kampf), st["punkt"], t - st["seit"], self.STURM_FRIST))
+            return False
+        frist = max(2 * rennen.get("takte", 0), self.STURM_ABBRUCH_MIN)
+        st.update(los=True, los_t=t, frist=frist, stuermer=list(nah_kampf), lord_leben=(L.get(self.ziel) or {}).get("leben"))
+        aus.append("FELDZUG STURM LOS: %d Nahkaempfer gemeinsam vom Sammelpunkt %s auf Lord %d - %s; Abbruch nach %d Takten" % (
+            len(nah_kampf), st["punkt"], self.ziel, grund, frist))
+        if rennen.get("erklaerung"):
+            aus.append("FELDZUG ERKLAERUNG: " + rennen["erklaerung"])
+        import tagebuch
+        tagebuch.lord_angriff(t, "sturm", self.ziel, list(nah_kampf), rennen)
+        for n in nah_kampf:                                   # alle bekommen im Stapel-Code sofort den Lord-Befehl
+            befohlen.pop(n, None)
+        return True
 
     def _lohnt(self, L, da, lord, am_ziel=False, ort=None):
         """19.10.: (lohnt, Text) - unsere am Sammelpunkt gegen den Lord, feindliche Truppen bis LORD_UMKREIS Felder und

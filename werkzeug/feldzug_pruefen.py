@@ -483,13 +483,15 @@ def main():
             b2 = Befehle()
             f.schritt({"t": 12200 + 50 * k}, L_, G_, b2)
             lord_ += [len(x["angriff"]["einheiten"]) for x in b2.liste if x.get("angriff", {}).get("ziel") == 500]
-        return erst, f.bresche, [m[:70] for m in m_ if "LORD" in m or "SCHWACHSTELLE" in m], lauf_, lord_
+        return erst, f.bresche, [m[:70] for m in m_ if "LORD" in m or "SCHWACHSTELLE" in m or "STURM" in m], lauf_, lord_
     e23, z23, m23, l23, _ = lord_frei(False)
     e23g, z23g, m23g, l23g, lord23g = lord_frei(True)
     pruefe(23, "Lord eingemauert: erst %s, dann %s %s | Lord erreichbar: Ziel %s %s, Laufbefehle %s, dort Angriff %s" % (
         e23, z23, m23, z23g, m23g, l23g, lord23g),
            e23 == 901 and z23 == 902 and any("eingemauert" in m for m in m23) and any("SCHWACHSTELLE (Lord eingemauert)" in m for m in m23)
-           and z23g is None and any("erreichbar bei (300, 102)" in m for m in m23g) and ([300, 102], 10) in [tuple(x) for x in l23g]
+           # B-263 (Daniel 27.10. 19:59, ersetzt B-139): erst alle 10 zum Sturm-Sammelpunkt, nicht einzeln an den Lord
+           and z23g is None and any("erreichbar bei (300, 102)" in m for m in m23g) and any(n_ == 10 for _e, n_ in l23g)
+           and any("STURM SAMMELPUNKT" in m for m in m23g)
            and lord23g and all(x == 10 for x in lord23g))   # (B-140: Lord-Befehle alle WIEDERHOLEN Runden, in 6 Runden auch zwei)
     # 24 (B-140, Daniel 21:47 "die beste Position auswaehlen"): zwei Torhaeuser am Lord - eines mit 400 Leben im Schussfeld
     #    beider Feindschuetzen, eines mit 1.500 Leben ausserhalb jeder Reichweite -> Ziel ist das ungedeckte (wenigster Beschuss
@@ -903,7 +905,9 @@ def main():
         [m[:45] for m in m43 if "LORD" in m or "SCHWACHSTELLE" in m], enden43[:3], [m[:45] for m in m43b if "FREIE" in m],
         f43.bresche, [m[:45] for m in m43o if "SCHWACHSTELLE" in m]),
            not any("SCHWACHSTELLE" in m for m in m43) and any("zu Fuss erreichbar" in m for m in m43) and enden43
-           and all(F.schach(tuple(e), (300, 100)) <= 3 for e in enden43) and any("FREIE FAHRT" in m for m in m43b)
+           # B-263: Laufziel ist der Sturm-Sammelpunkt (oder schon der Lord), nicht mehr jeder einzeln an den Lord
+           and all(F.schach(tuple(e), (300, 100)) <= 3 or (f43.sturm and tuple(e) == tuple(f43.sturm["punkt"])) for e in enden43)
+           and any("FREIE FAHRT" in m for m in m43b)
            and f43.bresche is None and any("SCHWACHSTELLE (Angriff): Gebaeude 901" in m for m in m43o))
     geb44 = np41.ones((400, 400), np41.int32)
     geb44[275:326, 75:126] = 0
