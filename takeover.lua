@@ -60,8 +60,9 @@ return {
         for sp,old in pairs(saved) do
           if core.readInteger(abi.currentAI+sp*4)==0 then
             core.writeInteger(abi.currentAI+sp*4,old.ai)
-            core.writeInteger(abi.playerData+sp*abi.playerStride+abi.aiType,old.kind)
-            core.writeInteger(abi.fullID+sp*4,old.full)
+            -- B-280: aus samurai_plaetze.json koennen Typ/Mensch fehlen (Spielstand von vor B-280) - dann nur die KI-Nummer
+            if old.kind~=nil then core.writeInteger(abi.playerData+sp*abi.playerStride+abi.aiType,old.kind) end
+            if old.full~=nil then core.writeInteger(abi.fullID+sp*4,old.full) end
           end
         end
         saved={};active=false;save({active=false})

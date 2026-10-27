@@ -86,6 +86,14 @@ class Uebernahme(unittest.TestCase):
         api2.tick()
         self.assertEqual((m2[AI+8],m2[FULL+8]),(0,1))
         self.assertTrue(rec2[-1]['active']);self.assertEqual(rec2[-1]['slots'],[2]);self.assertEqual(rec2[-1]['original_ai']['2'],16)
+        # alter Spielstand (vor B-280): Datei nur mit KI-Nummer, ohne Typ/Mensch -> Uebernahme klappt, Verlassen schreibt nur KI 16
+        import json as J2
+        m4={0x01fe7d1c:14,0x0117d500:0,TICK:19815,AI+4:5,AI+8:0,FULL+8:0}
+        api4,rec4=self.lauf(m4,{'ucp/villagestudio/samurai_plaetze.json':J2.dumps({'plaetze':[{'sp':2,'ai':16}]})})
+        api4.tick()
+        self.assertEqual((m4[AI+8],m4[FULL+8]),(0,1));self.assertEqual(rec4[-1]['slots'],[2])
+        m4[0x01fe7d1c]=20;api4.tick()
+        self.assertEqual((m4[AI+8],m4[FULL+8]),(16,1))
         # neue Partie aus dem Menue bei Takt 0 mit KI 0 auf Platz 2 (z. B. ein Mensch) -> NICHT uebernehmen
         m3={0x01fe7d1c:14,0x0117d500:0,TICK:0,AI+4:5,AI+8:0,FULL+8:0}
         api3,rec3=self.lauf(m3,dict(dateien))
