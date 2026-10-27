@@ -451,6 +451,12 @@ class Einzeln:
     KALIB_LERNEN, PROBE, HIT_RUN = True, True, True
     AM_GEBAEUDE = 2           # B-279: bis so viele Felder neben der Grundflaeche gilt "arbeitet am Gebaeude" (kein Mitnehmen)
     PROBE_PAUSE, PROBE_LEBEN, VERZUG, HIT_RUN_ALT = 1500, 6500, 64, 400
+    # B-281 (Daniel 28.10. 00:35 "eine Farm ... und das obwohl sie diese besiegen kann - die KI versteht nicht, wie viel sie sich
+    # leisten kann; wir testen und lernen daraus, extrem vorsichtig zu sein ist das Gegenteil"): eine Assassine, die steht, bringt
+    # nichts - JEDE freie probiert ihr am wenigsten riskantes Ziel (PROBE_EINE = False: keine Pause, keine Grenze von einer), die
+    # Eichung lernt aus jedem Versuch. ZU_ZWEIT: ist kein Ziel frei, darf eine zweite an ein belegtes Gebaeude (schneller fertig,
+    # kuerzer im Feuer). Rueckweg: PROBE_EINE = True, ZU_ZWEIT = False
+    PROBE_EINE, ZU_ZWEIT = False, True
     # Lord-Anlauf: die Eichung oben stammt aus Raids; 1017i starben beim gemeinsamen Anlauf alle 5 vor dem Lord, obwohl das
     # Modell "machbar" rechnete - dort bleibt das ungeeichte Modell
     KALIB_LORD = 1.0
@@ -1030,9 +1036,11 @@ class Einzeln:
         return self._eichung.kalib
 
     def _probe_frei(self, n, L):
-        """B-278: hoechstens eine Probe zugleich, PROBE_PAUSE Takte Abstand, nur mit genug Leben."""
+        """B-278: nur mit genug Leben; mit PROBE_EINE hoechstens eine Probe zugleich und PROBE_PAUSE Takte Abstand (B-281: aus)."""
         if not self.PROBE or L[n]["leben"] < self.PROBE_LEBEN:
             return False
+        if not self.PROBE_EINE:
+            return True
         p = getattr(self, "_probe", None)
         if p is not None and p["n"] in L and self.ziel.get(p["n"]) == p["ziel"]:
             return False
@@ -3104,6 +3112,8 @@ class Einzeln:
             schwach = L[n]["leben"] < self.SCHWACH * self.VOLL
             erreichbar = [k for k in kand if k[3]]
             frei = [k for k in erreichbar if zahl.get(k[0], 0) < platz(k)]
+            if not frei and self.ZU_ZWEIT:
+                frei = [k for k in erreichbar if zahl.get(k[0], 0) < platz(k) + 1]    # B-281: zu zweit statt stehen
             # 27.10.: Ablehnungsgrund je nahem Ziel (STEHT-Zeile)
             gr = {k[0]: (k[2], schach(ort, k[1]), "nicht erreichbar (Wegkarte: anderes Gebiet)" if not k[3] else
                          "belegt (%d von %d Plaetzen)" % (zahl.get(k[0], 0), platz(k)))

@@ -7,7 +7,7 @@ Soll vorher festgelegt:
   4. Tod zaehlt das ganze Leben; Angriffe mit Nahkampf zaehlen nicht
   5. Lernprofil: Datei geschrieben und von einer neuen Eichung wieder gelesen
   6. Ziel nur ueber einen Weg im Blick eines Bogens mit Spaeher: ohne Probe kein Ziel; mit Probe PROBE-Zeile und Ziel
-  7. nie zwei Proben zugleich; nicht unter PROBE_LEBEN
+  7. mit PROBE_EINE nie zwei Proben zugleich; nicht unter PROBE_LEBEN; 7b (B-281, Daniel 00:35) ohne: jede freie probiert
   9. (B-279) Assassine AM Gebaeude, Arbeiter 1 Feld daneben -> kein Mitnehmen, Ziel bleibt
  10. (B-279) unterwegs (Gebaeude 30 Felder weg) nimmt sie den Arbeiter mit; ist er tot -> zurueck zu ihrem Gebaeude
  11. (B-279) Eichung zaehlt nur Angriffe, die am Ziel ankamen (oder mit Tod endeten)
@@ -90,11 +90,16 @@ def main():
     t6b, e6b = lage(True)
     f.append(("6 ohne Probe kein Ziel (%s), mit Probe Ziel %s + PROBE-Zeile" % (t6a.ziel.get(100), t6b.ziel.get(100)),
               t6a.ziel.get(100) is None and t6b.ziel.get(100) == 900 and any(z.startswith("PROBE 100") for z in e6b)))
+    A.Einzeln.PROBE_EINE = True
     t7, e7 = lage(True, zwei=True)
+    A.Einzeln.PROBE_EINE = False
+    t7b, e7b = lage(True, zwei=True)
     t7s, e7s = lage(True, leben=5000)
     f.append(("7 zwei Assassinen -> eine Probe (%d); 5.000 Leben -> keine (%s)" % (sum(z.startswith("PROBE") for z in e7),
                                                                                     t7s.ziel.get(100)),
               sum(z.startswith("PROBE") for z in e7) == 1 and t7s.ziel.get(100) is None))
+    f.append(("7b (B-281) jede freie Assassine probiert: %d Proben bei zwei freien (zweite zu zweit am selben Ziel)" % sum(
+        z.startswith("PROBE") for z in e7b), sum(z.startswith("PROBE") for z in e7b) == 2))
 
     # 8 Hit & Run
     def entdeckt(runde_takte):
