@@ -7,7 +7,7 @@ Durchsucht den Spielweg (Importhuelle von erstes_spiel / samurai_wache / local_l
    je (Modul, Funktion) in ERLAUBT stehen - sonst ROT. Der Einzelkauf (Waren/Gold per Speicher) muss fest aus sein.
 2. VERBORGENES: jede Funktion, die Laufziel (laufx/laufy) oder Angriffsziel (zieleinheit/nahziel) liest, ist in LESER
    von Hand eingeordnet (gelesen 27.10. 20:05): "eigen" (eigene/verbuendete Einheiten, Protokoll) oder "feind-laufziel" /
-   "feind-ziel" (verborgenes Gegnerwissen, Umbau offen). Eine NEUE, nicht eingeordnete Funktion macht die Pruefung ROT.
+   "feind-ziel" (sehen seit B-274 Teil 2 nur, was der Sichtfilter waechter.sichtfilter durchlaesst). Eine NEUE, nicht eingeordnete Funktion macht die Pruefung ROT.
 Die Regel selbst steht in FAIRNESS.md (Repo-Wurzel).
 Aufruf: python werkzeug/fairness_pruefen.py [--liste]"""
 import ast
@@ -46,6 +46,7 @@ LESER = {
     "assassinen.schritt": EIGEN, "erstes_spiel.platz_sauber": EIGEN, "feldzug._steht_nur": EIGEN,
     "feldzug._feuer_lenken": EIGEN, "feldzug._lohnt": EIGEN + " (Verbuendete)", "raids._alle_heerwege": EIGEN + " (Verbuendete)",
     "raids._wirkung_messen": EIGEN, "uebersicht._verbaende": EIGEN, "waechter.lies_lagebild": EIGEN + " (liest die Tabelle ein)",
+    "waechter.sichtfilter": "filter (B-274: ersetzt Feind-Laufziel/Angriffsziel durch das Sichtbare)",
 }
 FELD = re.compile(r"\"(laufx|laufy|zieleinheit|nahziel)\"")
 
@@ -93,11 +94,24 @@ def einzelkauf_aus():
     return all(w.strip() == "False" for w in re.findall(r"^\s*EINZELKAUF\s*=\s*([^#\n]+)", text, re.M))
 
 
+def filter_angeschlossen():
+    """B-274 Teil 2: der Lenker liest feindliche Einheiten nur durch waechter.sichtfilter (FAIRNESS.md) - lies_lagebild
+    ruft ihn auf, erstes_spiel.main setzt SICHT_SPIELER, und der Filter selbst besteht seine Pruefung."""
+    w = open(os.path.join(HIER, "waechter.py"), encoding="utf-8").read()
+    e = open(os.path.join(HIER, "erstes_spiel.py"), encoding="utf-8").read()
+    if "sichtfilter(L," not in w or "W_sicht.SICHT_SPIELER = SP" not in e:
+        return False
+    import subprocess
+    return subprocess.call([sys.executable, os.path.join(HIER, "sichtfilter_pruefen.py")], stdout=subprocess.DEVNULL) == 0
+
+
 def pruefe(mods=None):
     mods = mods or P.spielweg()
     rot = ["EINGRIFF ohne Freigabe: %s.%s Zeile %d (%s)" % e for e in eingriffe(mods) if (e[0], e[1]) not in ERLAUBT]
     if not einzelkauf_aus():
         rot.append("EINZELKAUF kann scharf werden (Waren/Gold per Speicher)")
+    if not filter_angeschlossen():
+        rot.append("SICHTFILTER nicht angeschlossen oder seine Pruefung rot - feindliche Laufziele/Angriffsziele ungefiltert")
     les = leser(mods)
     rot += ["NEUE Lesestelle fuer Laufziel/Angriffsziel, nicht eingeordnet: %s Zeilen %s" % (k, v) for k, v in les.items()
             if k not in LESER]
@@ -124,9 +138,9 @@ if __name__ == "__main__":
     for r in rot:
         print("ROT:", r)
     print("Gegenprobe (Freigabe und Einordnung entzogen): %s" % ("schlaegt an" if ok_gegen else "SCHLAEGT NICHT AN"))
-    print("%d Module; %d Eingriffe, alle freigegeben: %s; Einzelkauf fest aus: %s; verborgenes Gegnerwissen in %d Funktionen "
-          "(Laufziel %d, Angriffsziel %d - Umbau offen): %s" % (
+    print("%d Module; %d Eingriffe, alle freigegeben: %s; Einzelkauf fest aus: %s; %d Funktionen lesen Laufziel/Angriffsziel von "
+          "Feinden (Laufziel %d, Angriffsziel %d) - alle nur durch den Sichtfilter: %s: %s" % (
               len(mods), len(eingriffe(mods)), not any(r.startswith("EINGRIFF") for r in rot), einzelkauf_aus(), len(feind),
               sum(1 for k in feind if "laufziel" in LESER[k]), sum(1 for k in feind if "ziel" in LESER[k].replace("laufziel", "")),
-              "GRUEN" if not rot and ok_gegen else "ROT"))
+              filter_angeschlossen(), "GRUEN" if not rot and ok_gegen else "ROT"))
     sys.exit(0 if not rot and ok_gegen else 1)

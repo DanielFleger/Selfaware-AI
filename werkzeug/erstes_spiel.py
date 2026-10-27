@@ -3882,6 +3882,9 @@ def main():
     global EINS_GEGEN_EINS, ANHAENGEN, ANGLEICH_TICK      # 19.10. (1v1) - vor jeder Verwendung in main
     global MENSCH, MENSCH_GEGNER, UEBERNEHMEN
     arg = dict(a.split("=", 1) for a in sys.argv[1:])
+    # B-274 (FAIRNESS.md): ab hier sieht der Lenker feindliche Einheiten nur wie ein Spieler (waechter.sichtfilter)
+    import waechter as W_sicht
+    W_sicht.SICHT_SPIELER = SP
     MENSCH = arg.get("mensch", "nein") == "ja"
     UEBERNEHMEN = arg.get("uebernehmen", "nein") == "ja"
     MENSCH_GEGNER = arg.get("mensch_gegner", "nein") == "ja" or UEBERNEHMEN

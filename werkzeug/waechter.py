@@ -32,6 +32,51 @@ BERGFRIED_EINGANG = (165, 111)
 
 GEBAEUDEDATEI = LAGEBILD.replace("lagebild.txt", "gebaeude.txt")
 
+# B-274 SICHTFILTER (FAIRNESS.md, Daniel 27.10.2026 19:46/19:52): der Lenker sieht von feindlichen Einheiten nur, was ein
+# Spieler sieht. Das Laufziel (laufx/laufy) ist unsichtbar - es wird durch eine Vorhersage aus der beobachteten Bewegung
+# ersetzt (letzte Position -> jetzige, SICHT_VORAUS Felder weiter). Das Angriffsziel (zielart 4/zieleinheit/nahziel) gilt
+# nur, wenn der Angriff sichtbar ist: die Einheit zielt/schiesst/schlaegt (ANGRIFF_SICHTBAR) UND das Ziel hat seit der
+# letzten Beobachtung Leben verloren. Eigene und verbuendete Einheiten bleiben roh. SICHT_SPIELER setzt nur der Lenker
+# (erstes_spiel.main); Mess- und Augenwerkzeuge lesen weiter roh, das Lageprotokoll speichert die Rohdatei.
+SICHT_SPIELER = None
+SICHT_VORAUS = 15                # Felder, die eine laufende Feindeinheit vorausgesagt wird (Startwert, UNGEMESSEN)
+ANGRIFF_SICHTBAR = {4, 5, 106}   # zielt (5), schiesst (4), Nahkampf (106) - L82/AU25, raids.py
+_SICHT = {"t": None, "jetzt": {}, "vorher": {}}
+
+
+def _vorhersage(alt, e):
+    """Laufziel aus Beobachtung: steht die Einheit (oder ist sie neu), ihr eigenes Feld; sonst SICHT_VORAUS Felder in
+    Richtung ihrer letzten Bewegung."""
+    if not alt or (alt[1], alt[2]) == (e["x"], e["y"]):
+        return e["x"], e["y"]
+    dx, dy = e["x"] - alt[1], e["y"] - alt[2]
+    d = float(max(abs(dx), abs(dy)))
+    return (min(398, max(1, int(round(e["x"] + dx / d * SICHT_VORAUS)))),
+            min(398, max(1, int(round(e["y"] + dy / d * SICHT_VORAUS)))))
+
+
+def sichtfilter(L, t, sp):
+    """Wendet die Fairness-Sicht auf L an (in place); merkt sich je neuem Takt die Beobachtung fuer die naechste Runde."""
+    if t is not None and t != _SICHT["t"]:
+        _SICHT["vorher"], _SICHT["t"] = _SICHT["jetzt"], t
+        _SICHT["jetzt"] = {nr: (t, e["x"], e["y"], e["leben"]) for nr, e in L.items()}
+    vorher = _SICHT["vorher"]
+    fr = freunde_von(sp)
+
+    def trifft(ziel):
+        return ziel in L and ziel in vorher and L[ziel]["leben"] < vorher[ziel][3]
+    for nr, e in L.items():
+        if e["besitzer"] in fr:
+            continue
+        e["laufx"], e["laufy"] = _vorhersage(vorher.get(nr), e)
+        if not (e["zustand"] in ANGRIFF_SICHTBAR and trifft(e["zieleinheit"])):
+            e["zieleinheit"] = 0
+            if e["zielart"] == 4:
+                e["zielart"] = 0
+        if not (e["zustand"] == 106 and trifft(e["nahziel"])):
+            e["nahziel"] = -1
+    return L
+
 def lies_gebaeude():
     """Alle Gebaeude aus abzug/gebaeude.txt (schreibt der Modulbefehl lagebild mit): nr -> dict."""
     G = {}
@@ -62,7 +107,8 @@ def lies_lagebild(neu_holen=True):
     if neu_holen:
         befehl({"lagebild": True}, 0.8)
     L = {}
-    for z in open(LAGEBILD).read().split("\n")[2:]:
+    roh = open(LAGEBILD).read().split("\n")
+    for z in roh[2:]:
         w = z.split()
         if len(w) >= 16:
             # 18.10. (Gegenpruefung, belegt in 1017h-j: ~770 Assassinen-Runden Modell 0 bei ~360.000 Leben Verlust): sicht.py
@@ -74,6 +120,9 @@ def lies_lagebild(neu_holen=True):
                             "erreichbar": int(w[22]) if len(w) >= 23 else -1,
                             # Nahkampf (06.10.): wen diese Einheit gerade schlaegt / wie viele sie gerade schlagen
                             "nahziel": int(w[23]) if len(w) >= 25 else -1, "nahangreifer": int(w[24]) if len(w) >= 25 else -1}
+    if SICHT_SPIELER is not None:
+        kopf = roh[0].split() if roh else []
+        sichtfilter(L, int(kopf[1]) if len(kopf) >= 2 and kopf[0] == "tick" else None, SICHT_SPIELER)
     return L
 
 def schach(a, b):

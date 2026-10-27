@@ -53,8 +53,12 @@ Sieg damit beweist nichts.
 
 1. Jeder Befehl, der das Spiel veraendert, muss je Funktion mit Grund freigegeben sein - sonst **rot**.
 2. Der Einzelkauf muss fest aus sein - sonst **rot**.
-3. Jede Funktion, die Laufziel oder Angriffsziel liest, ist von Hand eingeordnet (eigene Einheit / Feind). Eine neue,
-   nicht eingeordnete Stelle macht die Pruefung **rot** - wer sie einordnet, muss diese Regel befolgen.
+3. Der **Sichtfilter** (`waechter.sichtfilter`) muss angeschlossen sein: Der Lenker liest das Lagebild nur ueber
+   `waechter.lies_lagebild`, und dort werden bei feindlichen Einheiten das Laufziel durch die Vorhersage aus der
+   beobachteten Bewegung und das Angriffsziel durch "nur wenn sichtbar" ersetzt (eigene Pruefung:
+   `werkzeug/sichtfilter_pruefen.py`). Ohne Filter ist die Pruefung **rot**.
+4. Jede Funktion, die Laufziel oder Angriffsziel liest, ist von Hand eingeordnet (eigene Einheit / Feind / Filter). Eine
+   neue, nicht eingeordnete Stelle macht die Pruefung **rot** - wer sie einordnet, muss diese Regel befolgen.
 
 Neue Funktionen, die feindliche Einheiten auswerten, nutzen nur sichtbare Felder: Position, Leben, Typ, Besitzer,
 Zustand (sichtbare Taetigkeit). Fuer Bewegung gibt es die Vorhersage aus der Beobachtung.
