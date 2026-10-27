@@ -23,6 +23,7 @@ EINGRIFF = {"poke", "ware", "setzeEinheit", "toeteAlle", "gold", "leereKI"}
 ERLAUBT = {
     ("erstes_spiel", "uebernehmen_start"): "eigenen Platz uebernehmen: eingebaute KI unseres Platzes aus - SamurAI spielt ihn",
     ("samurai_wache", "ki_aus"): "eigenen Platz uebernehmen (Wache)",
+    ("samurai_wache", "platz_zurueckstellen"): "eigenen Platz in der Pause auf seine Platzhalter-KI zurueck (B-280, Gegenstueck zu ki_aus; kein Takt laeuft)",
     ("erstes_spiel", "ki_aus"): "nur Testgefecht 1v1 (eigener Aufbau): eingebaute KI der Gegnerplaetze aus",
     ("erstes_spiel", "angleichen"): "nur Testgefecht 1v1/2v2 (eigener Aufbau): Startwaren/-truppen angleichen",
     ("erstes_spiel", "eins_gegen_eins_start"): "nur Testgefecht 2v2 (eigener Aufbau): Liga-Startgold setzen",

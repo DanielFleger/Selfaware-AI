@@ -194,6 +194,14 @@ def ki_aus(sp):
         befehl({"poke": adr, "wert": wert}, 1.0, bis="POKE")
 
 
+def platz_zurueckstellen(sp, ai, kind, full):
+    """B-280: in der Pause den eigenen SamurAI-Platz auf seine Platzhalter-KI zuruecksetzen (Gegenstueck zu ki_aus; es laeuft
+    kein Takt, die eingebaute KI bekommt keinen Zug - takeover.lua schaltet vor dem naechsten Takt wieder ab)."""
+    from laden import befehl
+    for adr, wert in ((AI_ARRAY + sp * 4, ai), (AI_TYP + sp * PD_SCHRITT, kind), (MENSCH + sp * 4, full)):
+        befehl({"poke": adr, "wert": wert}, 1.0, bis="POKE")
+
+
 AI_IDS = dict(zip(('rat','snake','pig','wolf','saladin','caliph','sultan','richard','frederick','phillip','wazir','emir','nizar','sheriff','marshal','abbot'),range(1,17)))
 
 
@@ -360,8 +368,7 @@ def main():
                         rec=session_record()
                         for sp_,v in sorted((rec.get('saved') or {}).items()):
                             sp_=int(sp_)
-                            for adr,wert in ((AI_ARRAY+sp_*4,v['ai']),(AI_TYP+sp_*PD_SCHRITT,v['kind']),(MENSCH+sp_*4,v['full'])):
-                                befehl({"poke": adr, "wert": wert}, 1.0, bis="POKE")
+                            platz_zurueckstellen(sp_,v['ai'],v['kind'],v['full'])
                             schreib('PAUSE bei Takt %d: Platz %d auf KI %d zurueckgestellt (Spielstand/Neustart sehen SamurAI; vor dem '
                                     'naechsten Takt schaltet takeover.lua wieder ab)'%(takt,sp_,v['ai']))
                     except Exception as ex:
