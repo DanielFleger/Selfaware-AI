@@ -153,7 +153,7 @@ PLAYER = _dtype([
     ("currentSwordsmen", "<i4", 8396), ("currentArabianSwordsmen", "<i4", 8436), ("fearFactorLevel", "<i4", 8500),
     ("currentEnemyUnitsCount", "<i4", 8520), ("currentPopulation", "<i4", 8576), ("taxesSetting", "<i4", 8584),
     ("rationsSetting", "<i4", 8588), ("lordID", "<i4", 8696), ("lordUID", "<i4", 8700), ("troopsLost", "<i4", 8752),
-    ("troopsKilled", "<i4", 8756), ("aivID", "<i4", 8956), ("aiType", "<i4", 8960),
+    ("multiplayerDeathsCreditedToPlayer0", "<i4", 8756), ("aivID", "<i4", 8956), ("aiType", "<i4", 8960),
     ("currentAssassinsAndArabianSwordsmen", "<i4", 10804), ("resourcesToAcquireArray", ("<i4", (24,)), 10864),
     ("closestEnemyDistanceToTheLord", "<i4", 11108), ("idlePeasantsCount", "<i4", 11116),
     ("aiStrengthState", "<i4", 11124), ("aiPlayerState", "<i4", 11172), ("totalAssassinTroops", "<i4", 11184),
@@ -257,6 +257,7 @@ FELD_ALIASE = {
     "currentAttackRaidParameter": "currentRaidUnitBonus",
     "aiCoordinatedAttackPatience": "coordinationWaitCounter",
     "relativeStrengthOfTeamComparedToEnemy": "teamStrengthPercentOfEnemy",
+    "troopsKilled": "multiplayerDeathsCreditedToPlayer0",
 }
 
 # Felder, die nicht einzeln im numpy-Datentyp stehen, sondern als zusammenhaengender Block oder ueber eine feste
@@ -1303,7 +1304,8 @@ class Schnappschuss(object):
                              "currentSwordsmen": int(r["currentSwordsmen"]),
                              "currentArabianSwordsmen": int(r["currentArabianSwordsmen"]),
                              "countAssassinsAndArabianSwordsman": int(r["countAssassinsAndArabianSwordsman"])},
-                "troopsLost": int(r["troopsLost"]), "troopsKilled": int(r["troopsKilled"]), "lord": lord_leben,
+                "troopsLost": int(r["troopsLost"]),
+                "multiplayerDeathsCreditedToPlayer0": int(r["multiplayerDeathsCreditedToPlayer0"]), "lord": lord_leben,
                 "currentEnemyUnitsCount": int(r["currentEnemyUnitsCount"]),
                 "ki": {
                     "aiPlayerState": int(r["aiPlayerState"]), "aiStateCounter": int(r["aiStateCounter"]),
