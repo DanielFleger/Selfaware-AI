@@ -3789,6 +3789,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             m_sw = GF_sw.balance_pruefen(L)
             if m_sw:
                 ereignis.append(m_sw)
+            # B-275 (Daniel 22:35 "das Log auch fuer alle anderen Einheiten"): wer steht, sagt, wer ihn zuletzt befehligt hat
+            import besitzbuch, feldzug as FZ_bb
+            ereignis.extend(besitzbuch.steh_runde(st["t"], L, SP, set(FZ_bb.HEER) | {71, 72, 73, 74, 76}))
             if TB is not None:           # B-273 Schritt 0: Lord-Schaden vorhergesagt gegen gemessen
                 fr_tb = freunde_von(SP)
                 ereignis.extend(TB.lord_runde(st["t"], L, fr_tb, lambda b: b != 0 and b not in fr_tb))

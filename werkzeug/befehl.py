@@ -257,6 +257,8 @@ def sende(befehl, warte=3.0, bis=None):
     # Lord-Sperre fuer jeden Befehlsweg (lordschutz.py; Daniels Regeln 11.10. 16:11 und 16:41)
     import lordschutz
     befehl, meld = lordschutz.filtern(befehl)
+    import besitzbuch                   # B-273/B-275: je Einheit den letzten Befehl und sein Modul merken (Steh-Augen)
+    besitzbuch.merken(befehl)
     for m in meld:
         print(m, flush=True)
     if befehl is None:
