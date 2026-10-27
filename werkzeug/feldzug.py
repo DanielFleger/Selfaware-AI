@@ -476,6 +476,7 @@ class Feldzug:
         return bool(g and g.get("besitzer") not in freunde_von(self.sp)
                     and g.get("leben",0)>0 and angreifbar(g))
 
+    LORD_WANDER = 5            # B-264: so weit darf der Lord laufen, ohne dass der Durchbruch-Plan neu berechnet wird (gemessen: 2 Felder)
     PLAN_VERSUCHE = 3          # B-256: so oft wird neu geplant, wenn der Zugang des Plans fuer uns nicht erreichbar ist
 
     def _durchbruch_neu(self, m, start, lp, maenner, pruef=None):
@@ -501,7 +502,9 @@ class Feldzug:
         dp = self.dplan
         # B-179 (2v2 22.10. 17:54: alle 10 Runden neu geplant vom wandernden Heer aus - (185,96) -> (147,123) -> (135,95), niemand
         # kam zum Hacken): der Plan bleibt, solange sein Ziel steht und nicht verworfen ist - wie sturm.py (Neuplanung nur nach Fall)
-        if dp is not None and tuple(dp["lord"]) == tuple(lp):
+        # B-264 (Partie 010851: Torhaus 209 aufgegeben, weil der Lord von (223,100) nach (225,100) ging): bis LORD_WANDER Felder
+        # Lord-Bewegung gilt der Plan weiter
+        if dp is not None and schach(tuple(dp["lord"]), tuple(lp)) <= self.LORD_WANDER:
             if dp["art"] == "mauer" and m[dp["ziel"]] and dp["ziel"] not in self.mauer_verworfen:
                 return dp
             if dp["art"] in ("tor", "gebaeude") and dp["ziel"] not in self.verworfen and ((dp["art"] == "gebaeude" and self._abriss_gueltig(dp["ziel"])) or (dp["art"] == "tor" and (not self._feindbau or dp["ziel"] in self._feindbau))):
@@ -513,7 +516,7 @@ class Feldzug:
         # jede gefallene Kachel liess den Planer vom wandernden Heer aus neu rechnen und die Burgseite wechseln; Partie 234348
         # ebenso): ist das Ziel gefallen und liegt auf DEMSELBEN Plan-Weg noch eine Mauerkachel, geht es dort weiter - ohne neue
         # Planung (die kostet ~3 s). Neu geplant wird erst, wenn der Weg keine Kachel mehr hat oder sie verworfen ist.
-        if dp is not None and tuple(dp["lord"]) == tuple(lp) and dp.get("weg") and dp["art"] in ("mauer", "tor", "gebaeude"):
+        if dp is not None and schach(tuple(dp["lord"]), tuple(lp)) <= self.LORD_WANDER and dp.get("weg") and dp["art"] in ("mauer", "tor", "gebaeude"):
             gefallen = (not m[dp["ziel"]]) if dp["art"] == "mauer" else (dp["ziel"] not in (getattr(self, "_gebaeudebild", {}) or {}))
             w_ = [tuple(q) for q in dp["weg"]]
             if gefallen:
@@ -531,7 +534,7 @@ class Feldzug:
             # B-264 (Partie 005758: Torhaus 237 nach < 2.000 Takten ohne Verwerf-Meldung durch die Westseite ersetzt): WARUM der
             # alte Plan nicht mehr gilt, steht im Log
             G_d = getattr(self, "_gebaeudebild", {}) or {}
-            grund = ("Lord woanders (%s statt %s)" % (tuple(lp), tuple(dp["lord"])) if tuple(dp["lord"]) != tuple(lp) else
+            grund = ("Lord woanders (%s statt %s)" % (tuple(lp), tuple(dp["lord"])) if schach(tuple(dp["lord"]), tuple(lp)) > self.LORD_WANDER else
                      "Kachel gefallen" if dp["art"] == "mauer" and not m[dp["ziel"]] else
                      "Kachel verworfen" if dp["art"] == "mauer" else
                      "verworfen" if dp["ziel"] in self.verworfen else

@@ -1534,6 +1534,24 @@ def main():
     a76g, z76g = zurueck76(False)
     pruefe(76, "erst %s, dann wieder Hindernis: weiter bei %s | alte Kachel gefallen: %s" % (a76, z76, z76g),
            a76 == "lord" and z76 == (12, 10) and z76g == (30, 5))
+    # 77 B-264 (Partie 010851: Plan aufgegeben, weil der Lord 2 Felder lief): Lord 2 Felder weiter -> Plan bleibt, keine Planung;
+    #    Gegenprobe: 10 Felder -> neu geplant.
+    def wander77(d):
+        import numpy as np
+        f = F.Feldzug(1, (0, 0), n=40)
+        f.ziel = 500
+        aufrufe = []
+        f.durchbruch = lambda *a, **k: aufrufe.append(1) or {"art": "mauer", "ziel": (5, 5), "zug": (4, 5), "weg": [(4, 5), (5, 5)],
+                                                             "takte": 1, "belastung": 0, "kandidaten": []}
+        m = np.zeros((40, 40), bool)
+        m[12, 10] = m[5, 5] = True
+        f.dplan = {"art": "mauer", "ziel": (12, 10), "zug": (11, 10), "weg": [(11, 10), (12, 10)], "lord": (30, 30), "runde": 0}
+        dp = f._durchbruch_neu(m, (5, 5), (30 - d, 30), 10)
+        return dp["ziel"], len(aufrufe)
+    z77, a77 = wander77(2)
+    z77g, a77g = wander77(10)
+    pruefe(77, "Lord 2 Felder weiter: Ziel %s, %d Planungen | 10 Felder: %s, %d" % (z77, a77, z77g, a77g),
+           z77 == (12, 10) and a77 == 0 and a77g == 1)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
