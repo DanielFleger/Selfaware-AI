@@ -28,8 +28,8 @@ def einheit(typ, sp, x, y, leben=25000, zustand=101):
     return {"typ": typ, "besitzer": sp, "x": x, "y": y, "leben": leben, "zustand": zustand}
 
 
-def lage(positionen, schuetzen=True):
-    L = {500: einheit(55, 2, LP[0], LP[1], 150000, 0)}
+def lage(positionen, schuetzen=True, lord=150000):
+    L = {500: einheit(55, 2, LP[0], LP[1], lord, 0)}
     if schuetzen:
         for i in range(6):
             L[600 + i] = einheit(22, 2, 310, 98 + i, 3500, 0)
@@ -61,27 +61,31 @@ if __name__ == "__main__":
                    erg is False and any(len(b["angriff"]["einheiten"]) == 10 and b["angriff"].get("lauf") == list(pkt) for b in bef)))
     faelle.append(("Sammelpunkt = naechster sicherer Punkt (265, 100): 35 Felder vor dem Lord, 0 Schuetzen in Reichweite",
                    pkt == (265, 100) and f.sturm["schuetzen"] == 0))
-    # 2 die Haelfte ist da: Sturm los
-    L2 = lage([pkt] * 5 + [HEER] * 5)
-    erg2, _b, aus2 = schritt(f, L2, 10100)
-    faelle.append(("5 von 10 am Sammelpunkt: STURM LOS", erg2 is True and any("STURM LOS" in m for m in aus2)))
-    # 3 Abbruch: Lord lebt nach der Frist noch -> zurueck zum Sammeln
-    erg3, _b, aus3 = schritt(f, L2, 10100 + f.sturm["frist"] + 1)
-    faelle.append(("Lord lebt nach der Frist (%d Takte): STURM ABGEBROCHEN, zurueck" % f.sturm["frist"],
-                   erg3 is False and any("STURM ABGEBROCHEN" in m for m in aus3)))
-    # 4 nur einer da, Sammelfrist um: los
+    # 2 Partie 221355: die Haelfte (5 Streitkolben) ist da, aber der Wettlauf verliert (gestapelt 5 gegen 150.000 - Eichung L200:
+    #   Lord ueberlebt) -> NICHT los, Meldung nennt den Grund
+    erg2, _b, aus2 = schritt(f, lage([pkt] * 5 + [HEER] * 5), 10100)
+    faelle.append(("5 von 10 da, Wettlauf verliert: kein Sturm, Meldung 'los erst, wenn'", erg2 is False
+                   and any("los erst, wenn der Wettlauf" in m for m in aus2)))
+    # 3 alle 10 da, Lord geschwaecht (40.000) -> Wettlauf gewinnt -> STURM LOS; danach Abbruch nach der Frist
+    L3 = lage([pkt] * 10, lord=40000)
+    erg3, _b, aus3 = schritt(f, L3, 10200)
+    faelle.append(("10 da, Lord 40.000: STURM LOS", erg3 is True and any("STURM LOS" in m for m in aus3)
+                   and F.STURM_LAEUFT == set(range(10, 20))))
+    erg3b, _b, aus3b = schritt(f, L3, 10200 + f.sturm["frist"] + 1)
+    faelle.append(("Lord lebt nach der Frist (%d Takte): STURM ABGEBROCHEN, Sturmliste leer" % f.sturm["frist"],
+                   erg3b is False and any("STURM ABGEBROCHEN" in m for m in aus3b) and not F.STURM_LAEUFT))
+    # 4 Partie 221355: einer da, Frist weit um, Wettlauf verliert -> trotzdem KEIN Sturm (vorher: "Sammelfrist um (1 von 13)")
     f4 = neu()
     schritt(f4, lage([HEER] * 10), 20000)
     p4 = f4.sturm["punkt"]
-    erg4a, _b, _a = schritt(f4, lage([p4] + [HEER] * 9), 20000 + F.Feldzug.STURM_FRIST - 10)
-    erg4, _b, aus4 = schritt(f4, lage([p4] + [HEER] * 9), 20000 + F.Feldzug.STURM_FRIST)
-    faelle.append(("1 von 10 da: vor der Frist sammeln, nach %d Takten los" % F.Feldzug.STURM_FRIST,
-                   erg4a is False and erg4 is True and any("Sammelfrist" in m for m in aus4)))
+    schritt(f4, lage([p4] + [HEER] * 9), 20100)
+    erg4, _b, aus4 = schritt(f4, lage([p4] + [HEER] * 9), 20100 + F.Feldzug.STURM_FRIST + 50)
+    faelle.append(("1 von 10 da, Frist um, Wettlauf verliert: kein Sturm", erg4 is False and not any("STURM LOS" in m for m in aus4)))
     # 5 wer am Lord steht, zaehlt als da und wird nicht zurueckgeschickt
     f5 = neu()
     erg5, bef5, _a = schritt(f5, lage([(301, 100)] * 6 + [HEER] * 4), 30000)
     zurueck = [n for b in bef5 for n in b["angriff"]["einheiten"] if n in range(10, 16)]
-    faelle.append(("6 am Lord + 4 weit weg: Sturm, keiner der 6 wird zurueckgeschickt", erg5 is True and not zurueck))
+    faelle.append(("6 am Lord + 4 weit weg: keiner der 6 wird zurueckgeschickt (sie kaempfen weiter)", not zurueck))
     for name, ok in faelle:
         print("%s %s" % ("OK  " if ok else "ROT ", name))
     print("%d von %d gruen" % (sum(ok for _, ok in faelle), len(faelle)))

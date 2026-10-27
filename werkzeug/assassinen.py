@@ -729,6 +729,9 @@ class Einzeln:
             if (e.get("besitzer") in (0, None) or e.get("besitzer") not in freunde_von(self.sp) or e.get("typ") not in arten
                     or e.get("leben", 0) <= 0 or (e.get("besitzer") == self.sp and n in self.mitglieder)):
                 continue
+            # Partie 221355: eigene Feldzug-Truppen zaehlen nur, wenn sie gerade stuermen (sonst kommen sie nicht mit)
+            if e.get("besitzer") == self.sp and e.get("typ") != 73 and n not in _fz.STURM_LAEUFT:
+                continue
             lauf = (e.get("laufx", 0), e.get("laufy", 0))
             if schach((e["x"], e["y"]), lp) <= self.PARTNER_R or (lauf[0] > 0 and schach(lauf, lp) <= self.PARTNER_R):
                 aus.append(dict(typ=e["typ"], leben=e["leben"], x=lp[0], y=lp[1]))
