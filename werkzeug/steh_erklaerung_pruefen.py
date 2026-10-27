@@ -51,8 +51,18 @@ if __name__ == "__main__":
     BB.LETZTER[217] = {"modul": "x", "art": "angriff", "ziel": [139, 182], "runde": BB.RUNDE[0], "anzahl": 30}
     LH = {217: {"x": 158, "y": 194, "zustand": 1, "laufx": 158, "laufy": 194, "leben": 12500}}
     m = h._abgelehnt_loesen(LH)
-    faelle.append(("abgelehnter Lauf erkannt: Ziel 74 gesperrt, 217 waehlt neu", m and "BEFEHL ABGELEHNT 217" in m[0]
-                   and (217, 74) in h._route_sperre and 217 not in h.ziel))
+    faelle.append(("erste Ablehnung: Direktmodus (Ziel 74 NICHT gesperrt), 217 waehlt neu", m and "Direktmodus" in m[0]
+                   and (217, 74) not in h._route_sperre and h._direkt.get(217, 0) > 3200 and 217 not in h.ziel))
+    h.ziel[217] = 74
+    BB.LETZTER[217]["runde"] = BB.RUNDE[0]
+    m2 = h._abgelehnt_loesen(LH)
+    faelle.append(("Ablehnung im Direktmodus: jetzt Ziel 74 gesperrt", m2 and "auch direkt abgelehnt" in m2[0]
+                   and (217, 74) in h._route_sperre))
+    w = neu()
+    w._direkt, w.jetzt = {217: 5000}, 3200
+    w._gitter = lambda L, G: object()
+    d, lf = w._wege({217: {"x": 158, "y": 194}}, {74: {"x": 120, "y": 160}}, [(217, 74)], [])
+    faelle.append(("Direktmodus: _wege schickt direkt, ohne Wegpunkte", d == [(217, 74)] and lf == {}))
     g = neu()
     g.ziel, g._route_sperre, g.route, g.warte_seit, g.jetzt = {217: 74}, {}, {}, {}, 3200
     g._still[217] = ((158, 194), 3100, None)

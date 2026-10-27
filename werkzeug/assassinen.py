@@ -764,11 +764,20 @@ class Einzeln:
             if b is None or besitzbuch.RUNDE[0] - b["runde"] > 1:
                 continue
             gz = self.ziel[n]
-            self._route_sperre[(n, gz)] = self.jetzt + self.SPERRE_ROUTE
+            # Partie 225249: 68 Ablehnungen, alle Assassinen bei (152-165, 192-200), jeder erste Wegpunkt im Nordwesten auf
+            # unbegehbarem Gelaende - unser Wegplaner kennt nur die Schuetzengefahr, nicht das Gelaende. Darum: erste Ablehnung
+            # -> Direktmodus (Ziel ohne unsere Wegpunkte, das Spiel sucht den Weg); Ablehnung im Direktmodus -> Ziel sperren
+            if not hasattr(self, "_direkt"):
+                self._direkt = {}
+            if self._direkt.get(n, -1) >= self.jetzt:
+                self._route_sperre[(n, gz)] = self.jetzt + self.SPERRE_ROUTE
+                was = "auch direkt abgelehnt - Ziel %s fuer %d Takte gesperrt" % (gz, self.SPERRE_ROUTE)
+            else:
+                self._direkt[n] = self.jetzt + self.SPERRE_ROUTE
+                was = "Direktmodus fuer %d Takte (ohne unsere Wegpunkte, das Spiel sucht den Weg)" % self.SPERRE_ROUTE
             self._vergessen(n)
-            aus.append("BEFEHL ABGELEHNT %d: das Spiel nahm '%s %s' nicht an (steht bei %s, Laufziel = eigenes Feld) - Ziel %s "
-                       "fuer %d Takte gesperrt, neues Ziel in dieser Runde" % (n, b["art"], b["ziel"], (e["x"], e["y"]), gz,
-                                                                            self.SPERRE_ROUTE))
+            aus.append("BEFEHL ABGELEHNT %d: das Spiel nahm '%s %s' nicht an (steht bei %s, Laufziel = eigenes Feld) - %s, "
+                       "neue Wahl in dieser Runde" % (n, b["art"], b["ziel"], (e["x"], e["y"]), was))
         return aus
 
     def _steh_erklaerung(self, L, G):
@@ -1053,8 +1062,8 @@ class Einzeln:
         if g is None:
             return list(angriffe), lauf
         for n, gn in angriffe:
-            if n not in L or gn not in G:
-                direkt.append((n, gn))
+            if n not in L or gn not in G or getattr(self, "_direkt", {}).get(n, -1) >= self.jetzt:
+                direkt.append((n, gn))         # 27.10. Direktmodus: nach abgelehntem Wegpunkt sucht das Spiel den Weg selbst
                 continue
             start, ziel = (L[n]["x"], L[n]["y"]), (G[gn]["x"], G[gn]["y"])
             wp, bw, bg, _ = schussfeld.sicherer_weg(self.gelaende, L, self.sp, start, ziel, gitter=g)
