@@ -3626,7 +3626,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         for _ in range(n_h):
                             BA_h.werbe(ES_SCHWERT, posten_h)
                         if n_h:
-                            ereignis.append("ENDSPURT-WERBUNG: %d arab. Schwertkaempfer (Gold %d, Feuer %d, Heer jetzt %d)" % (
+                            ereignis.append("ENDSPURT-WERBUNG: %d arab. Schwertkaempfer (Gold %d, Feuer %d, Heer jetzt %d) - Grund: "
+                                            "Endspurt, alles Gold ins Heer, so viele wie Bauern am Feuer" % (
                                 n_h, st["gold"], st.get("feuer", 0), len(feldzug.einheiten(L)) + n_h))
                     elif posten_h is not None and EINKAEUFER is None:
                         # B-141 (Daniel 21:54, gemessen Pruefstand: Gold 6.409 -> 10.938 bei 2 Soeldnern je zweiter Runde): jede
@@ -3648,11 +3649,17 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             if HEER_ANTEIL > 0:
                                 wirt.heer_ausgabe(SOELDNER_GOLD[typ_h])
                         if typen_h:
+                            grund_h = ("Gold %d ueber Ruecklage + Rand %d frei (je %s), Bauern am Feuer %d, hoechstens %d je Runde - "
+                                       "Grenze: %s; Mischung jeder vierte arab. Bogen" % (
+                                           frei_h + sum(SOELDNER_GOLD[x] for x in typen_h), HEER_GOLD_RAND,
+                                           "/".join(str(SOELDNER_GOLD[x]) for x in sorted(set(typen_h))), feuer_h, HEER_JE_RUNDE,
+                                           "je Runde" if len(typen_h) == HEER_JE_RUNDE else "Bauern am Feuer"
+                                           if feuer_h - len(typen_h) < 1 else "Gold"))
                             werbe_viele(typen_h, posten_h)
                             n_h = len(typen_h)
                             fruehpruefung["heer_zaehler"] = fruehpruefung.get("heer_zaehler", 0) + n_h
-                            ereignis.append("HEER-WERBUNG: %d Soeldner fuers Heer angeworben (zusammen %d, Heer jetzt %d), Gold %d" % (
-                                n_h, fruehpruefung["heer_zaehler"], heer_n + n_h, st["gold"]))
+                            ereignis.append("HEER-WERBUNG: %d Soeldner fuers Heer angeworben (zusammen %d, Heer jetzt %d), Gold %d - "
+                                            "Grund: %s" % (n_h, fruehpruefung["heer_zaehler"], heer_n + n_h, st["gold"], grund_h))
                     if brand is not None:
                         # 19.10. Raids: steuern jede Runde; werben nur aus Gold ueber der Ruecklage, nicht im Endspurt
                         try:
@@ -3702,14 +3709,20 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                                 ereignis += erg_e
                             elif posten_h is not None and not es_an and not hunger_r and runde % 2 == 1:
                                 import bauen as BA_r
-                                for typ_r, n_r in RA.werbung(st["gold"] - wirt.ruecklage(G, ohne_heer=HEER_ANTEIL > 0)["gold"], st.get("feuer", 0),
-                                                             len(brand.einheiten(L)), len(reiter.einheiten(L)), len(deckung.einheiten(L)),
-                                                             reiter_ziele=getattr(reiter, "ziele_zuletzt", None)):   # B-220
+                                gruende_r = []                               # B-276: je Werbung der Kaufgrund
+                                for i_r, (typ_r, n_r) in enumerate(RA.werbung(
+                                        st["gold"] - wirt.ruecklage(G, ohne_heer=HEER_ANTEIL > 0)["gold"], st.get("feuer", 0),
+                                        len(brand.einheiten(L)), len(reiter.einheiten(L)), len(deckung.einheiten(L)),
+                                        reiter_ziele=getattr(reiter, "ziele_zuletzt", None), gruende=gruende_r)):   # B-220
                                     for _ in range(n_r):
                                         BA_r.werbe(typ_r, posten_h)
                                     if HEER_ANTEIL > 0:
                                         wirt.heer_ausgabe(n_r * {RA.SKLAVE: RA.SKLAVE_GOLD, RA.SCHLEUDER: RA.SCHLEUDER_GOLD}.get(typ_r, RA.PFERD_GOLD))
-                                    ereignis.append("RAID-WERBUNG: %d %s" % (n_r, {RA.SKLAVE: "Sklaven", RA.SCHLEUDER: "Schleuderer (Deckung)"}.get(typ_r, "Pferdebogen")))
+                                    ereignis.append("RAID-WERBUNG: %d %s - Grund: %s%s" % (
+                                        n_r, {RA.SKLAVE: "Sklaven", RA.SCHLEUDER: "Schleuderer (Deckung)"}.get(typ_r, "Pferdebogen"),
+                                        gruende_r[i_r] if i_r < len(gruende_r) else "UNBEKANNT (kein Grund geliefert)",
+                                        "; %s" % reiter.bericht() if typ_r == RA.PFERDEBOGEN else
+                                        "; %s" % brand.bericht() if typ_r == RA.SKLAVE else ""))
                         except Exception as ex_r:
                             ereignis.append("RAIDS FEHLER %r - Partie laeuft weiter" % (ex_r,))
                     if bier is not None and not es_an and runde % 5 == 0:     # Endspurt: keine neuen Betriebe

@@ -701,18 +701,29 @@ class Deckung:
         return "Deckung: %d Feinde getoetet" % self.getoetet
 
 
-def werbung(gold_frei, feuer, sklaven, reiter, schleuder=0, reiter_ziele=None):
+def werbung(gold_frei, feuer, sklaven, reiter, schleuder=0, reiter_ziele=None, gruende=None):
     """[(typ, anzahl)] - erst Sklaven bis SKLAVEN_SOLL, dann Schleuderer bis DECKUNG_SOLL (B-129), dann Reiter bis REITER_SOLL; nur Gold ueber der Ruecklage und nur
-    so viele, dass FEUER_MIN Bauern am Feuer bleiben."""
+    so viele, dass FEUER_MIN Bauern am Feuer bleiben.
+    B-276 (Daniel 27.10. 23:00 "ohne Grund werden Berittene gebaut, es muss auch ein Kaufgrund geloggt werden"): ist gruende eine
+    Liste, kommt je Eintrag der Grund dazu - Soll, Bestand, welche Grenze die Zahl bestimmt hat (Soll, Gold oder Bauern)."""
     aus, frei, f = [], int(gold_frei), int(feuer) - FEUER_MIN
+    grund = gruende.append if isinstance(gruende, list) else (lambda _g: None)
+
+    def grenze(soll_rest, preis, n_):
+        return ("Soll" if n_ == soll_rest else "Gold" if n_ == frei // preis else "Bauern am Feuer")
+
     n = max(0, min(SKLAVEN_SOLL - sklaven, frei // SKLAVE_GOLD, f))
     if n:
         aus.append((SKLAVE, n))
+        grund("Brandtrupp-Soll %d Sklaven, da %d; Gold frei %d (je %d), Bauern am Feuer %d (bleiben %d) - Grenze: %s" % (
+            SKLAVEN_SOLL, sklaven, frei, SKLAVE_GOLD, f + FEUER_MIN, FEUER_MIN, grenze(SKLAVEN_SOLL - sklaven, SKLAVE_GOLD, n)))
         frei -= n * SKLAVE_GOLD
         f -= n
     d = max(0, min(DECKUNG_SOLL - schleuder, frei // SCHLEUDER_GOLD, f))
     if d:
         aus.append((SCHLEUDER, d))
+        grund("Deckungs-Soll %d Schleuderer, da %d; Gold frei %d (je %d) - Grenze: %s" % (
+            DECKUNG_SOLL, schleuder, frei, SCHLEUDER_GOLD, grenze(DECKUNG_SOLL - schleuder, SCHLEUDER_GOLD, d)))
         frei -= d * SCHLEUDER_GOLD
         f -= d
     # B-220 (Daniel 24.10. 21:38: "wenn Berittene nur rumstehen, weil sie nichts finden, duerfen sie gar nicht erst ausgebildet
@@ -722,4 +733,11 @@ def werbung(gold_frei, feuer, sklaven, reiter, schleuder=0, reiter_ziele=None):
     m = max(0, min(soll - reiter, frei // PFERD_GOLD, f))
     if m:
         aus.append((PFERDEBOGEN, m))
+        if reiter_ziele is None:
+            grund("Spaeher: noch kein Reiter da, ob es Jagdziele gibt, ist unbekannt - hoechstens einer schaut nach; Gold frei %d (je %d)" % (
+                frei, PFERD_GOLD))
+        else:
+            grund("Reiterjagd sah zuletzt %d Arbeiter/Schuetzen mit vertretbarem Risiko, %d Reiter da (Soll hoechstens %d) - "
+                  "Gold frei %d (je %d) - Grenze: %s" % (reiter_ziele, reiter, REITER_SOLL, frei, PFERD_GOLD,
+                                                         grenze(soll - reiter, PFERD_GOLD, m)))
     return aus
