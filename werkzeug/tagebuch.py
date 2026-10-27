@@ -21,6 +21,15 @@ D = os.path.join(HIER, "..", "daten")
 LORD = 55
 LORD_NAH = 5            # wie die MESSUNG Feindlord im Lenker
 MELDEN_JE = 10          # alle so viele Abgleiche eine Zusammenfassung
+NACH_FRIST = 1500       # Lord-Angriff: Ergebnis spaetestens nach max(2 x vorhergesagte Takte, NACH_FRIST) Takten
+AKTIV = None            # das Tagebuch des Lenkers (erstes_spiel.main) - Module rufen lord_angriff ohne es zu kennen
+
+
+def lord_angriff(t, quelle, lord_nr, einheiten, zahlen):
+    """B-273: ein Lord-Angriff beginnt - die Vorhersage des Lord-Wettlaufs (gefecht.LETZTES_RENNEN) merken; das Ergebnis
+    schreibt lord_runde, sobald der Lord faellt oder die Frist um ist. Ohne Tagebuch oder ohne Zahlen: nichts."""
+    if AKTIV is not None and AKTIV.an and zahlen:
+        AKTIV.angriff_merken(t, quelle, lord_nr, einheiten, zahlen)
 
 
 def schach(a, b):
@@ -47,6 +56,35 @@ class Tagebuch(object):
         self.datei = datei or os.path.join(D, time.strftime("tagebuch_%Y%m%d_%H%M%S") + "_sp%d.jsonl" % sp)
         self.zeit_s, self.verhaeltnisse = 0.0, []
         self._lord = {}                       # lord_nr -> (takt, leben, vorhersage, eingang) der letzten Beobachtung
+        self._angriffe = []                   # offene Lord-Angriffe mit ihrer Vorhersage
+        self._L = {}
+
+    def angriff_merken(self, t, quelle, lord_nr, einheiten, zahlen):
+        if any(a["lord"] == lord_nr and a["quelle"] == quelle for a in self._angriffe):
+            return
+        leben = sum(self._L[n]["leben"] for n in einheiten if n in self._L)
+        lord = self._L.get(lord_nr, {}).get("leben")
+        self._angriffe.append({"t": t, "quelle": quelle, "lord": lord_nr, "einheiten": list(einheiten), "leben": leben,
+                               "lord_leben": lord, "zahlen": zahlen})
+
+    def _angriffe_pruefen(self, t, L):
+        """Ergebnis jedes offenen Lord-Angriffs: Lord gefallen (nicht mehr im Lagebild) oder Frist um."""
+        for a in list(self._angriffe):
+            z = a["zahlen"]
+            frist = max(2 * z.get("takte", 0), NACH_FRIST)
+            gefallen = a["lord"] not in L or L[a["lord"]].get("leben", 0) <= 0
+            if not gefallen and t - a["t"] < frist:
+                continue
+            self._angriffe.remove(a)
+            rest = sum(L[n]["leben"] for n in a["einheiten"] if n in L)
+            anteil = rest / float(a["leben"]) if a["leben"] else None
+            lord_jetzt = 0 if gefallen else L[a["lord"]]["leben"]
+            self.eintrag(t, "lord_wettlauf", z.get("takte") if z.get("faellt") else None,
+                         (t - a["t"]) if gefallen else None,
+                         {"quelle": a["quelle"], "lord": a["lord"], "vorhersage": z, "gefallen": gefallen,
+                          "lord_leben": [a["lord_leben"], lord_jetzt], "einheiten": len(a["einheiten"]),
+                          "rest_anteil_gemessen": round(anteil, 3) if anteil is not None else None,
+                          "rest_anteil_vorhergesagt": z.get("rest_anteil"), "takte_seit_start": t - a["t"]})
 
     def eintrag(self, t, art, vorhersage, gemessen=None, eingang=None):
         if not self.an:
@@ -69,6 +107,8 @@ class Tagebuch(object):
             return []
         t0 = time.perf_counter()
         aus = []
+        self._L = L
+        self._angriffe_pruefen(t, L)
         for n, e in L.items():
             if e["typ"] != LORD or not feind_von(e["besitzer"]):
                 continue

@@ -99,7 +99,7 @@ def kalibrierung(sw, duelle=None):
     """Gegenprobe Duell-Messung gegen Spielwert: (nah {Angreifer: gemessen je Takt / melee_damage}, fern {Schuetze: gemessene
     Rate / Spielrate}, gemessen {Art}). Geht NICHT in die Rechnung ein - sie zeigt, wo Messung und Spiel auseinanderliegen."""
     import gefecht
-    S, _, F = duelle if duelle is not None else gefecht.tabelle()
+    S, _, F = duelle if duelle is not None else gefecht.tabelle_duelle()
     md, ad = _w(sw, "einheit.melee_damage"), _w(sw, "einheit.arrow_damage")
     n = len(md)
     nah, fern, gemessen = {}, {}, set()
@@ -125,7 +125,7 @@ def schadenstabelle(sw, duelle=None):
     Nahkampf = melee_damage / takt.nahkampf_je_treffer (1), Fernkampf = arrow_damage[Ziel] / takt.schuss_zyklus[Schuetze].
     Schuetzen ohne gelesenen Zyklus bekommen den Median der gelesenen (kalib["ungelesen"])."""
     import gefecht
-    S, LEB, F = duelle if duelle is not None else gefecht.tabelle()
+    S, LEB, F = duelle if duelle is not None else gefecht.tabelle_duelle()
     nah, fern, gemessen = kalibrierung(sw, (S, LEB, F))
     md, ad, hp = _w(sw, "einheit.melee_damage"), _w(sw, "einheit.arrow_damage"), _w(sw, "einheit.base_hp")
     n = len(md)

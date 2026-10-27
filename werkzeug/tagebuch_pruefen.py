@@ -45,6 +45,26 @@ if __name__ == "__main__":
         ("Verhaeltnis gemessen/vorhergesagt", e.get("verhaeltnis") == round(50.0 / soll_v, 3)),
         ("sichtbar zuschlagend: 1 von 2", e.get("eingang", {}).get("schlagen_sichtbar") == 1),
     ]
+    # Lord-Wettlauf: Vorhersage "faellt nach 150 Takten, 80 %% bleiben"; Lord faellt 300 Takte nach dem Start, einer von zwei
+    # Streitkolben lebt noch -> Eintrag mit vorhergesagt 150 / gemessen 300, Rest 0,5
+    datei = os.path.join(tempfile.gettempdir(), "tagebuch_pruefen_rennen.jsonl")
+    if os.path.exists(datei):
+        os.remove(datei)
+    tb2 = TB.Tagebuch(1, datei=datei)
+    TB.AKTIV = tb2
+    L1 = dict([einheit(3, 2, 55, 100, 100, 300000), einheit(10, 1, 26, 101, 100, 25000), einheit(11, 1, 26, 101, 100, 25000)])
+    tb2.lord_runde(1000, L1, {1}, lambda b: b not in (0, 1))
+    TB.lord_angriff(1000, "feldzug", 3, [10, 11], {"takte": 150, "faellt": True, "rest_anteil": 0.8})
+    tb2.lord_runde(1200, L1, {1}, lambda b: b not in (0, 1))
+    L2 = dict([einheit(10, 1, 26, 101, 100, 25000)])
+    tb2.lord_runde(1300, L2, {1}, lambda b: b not in (0, 1))
+    r = [json.loads(z) for z in open(datei, encoding="utf-8") if '"lord_wettlauf"' in z] if os.path.exists(datei) else []
+    r0 = r[0] if r else {}
+    faelle += [("Lord-Wettlauf: ein Ergebnis-Eintrag, erst nach dem Fall", len(r) == 1 and r0.get("t") == 1300),
+               ("vorhergesagt 150 Takte, gemessen 300", r0.get("vorhersage") == 150 and r0.get("gemessen") == 300),
+               ("Rest gemessen 0,5 gegen vorhergesagt 0,8", r0.get("eingang", {}).get("rest_anteil_gemessen") == 0.5
+                and r0.get("eingang", {}).get("rest_anteil_vorhergesagt") == 0.8)]
+    TB.AKTIV = None
     tb_aus, z_aus = lauf(False)
     faelle.append(("Schalter aus: keine Zeile", z_aus == []))
     for name, ok in faelle:

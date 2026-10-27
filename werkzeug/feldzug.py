@@ -1415,6 +1415,8 @@ class Feldzug:
                 self._stau, self.staus, self.direkt = (None, 0), 0, False
                 self.bresche, self.bresche_leben, self.lord_versuch = None, None, None
                 self.weg, self.weg_i, self.weg_ziel = [], 0, None
+                import tagebuch                   # B-273: Vorhersage des Lord-Wettlaufs neben das spaetere Ergebnis
+                tagebuch.lord_angriff(t, "feldzug", self.ziel, list(kolben), getattr(self, "_rennen", {}) if lohnt_alle else {})
                 aus.append("FELDZUG ANGRIFF: %d Truppen (%d am Sammelpunkt) gemeinsam auf Lord %d (Leben %d) bei Tick %d%s" % (
                     len(kolben), len(da), self.ziel, lord["leben"], t, " - " + text if text else ""))
             else:
@@ -1936,6 +1938,7 @@ class Feldzug:
                 # unsere stehen an der Angriffsstelle (mitte_k: Tor/Bresche) und laufen von dort zum Lord - der Weg durch die
                 # Verteidiger zaehlt mit (Streitkolben am Lord gemessen 70 je Takt, Sandkasten 22.10., lord_nahkampf.jsonl)
                 ok_, text_ = gefecht.lord_rennen(wir, sie_l, 0, bis=self.ZIEL_BIS)
+                self._rennen = dict(gefecht.LETZTES_RENNEN or {})     # B-273: fuer das Tagebuch beim Angriffsstart
             else:
                 ok_, text_ = gefecht.bewerte(wir, sie, bis=gefecht.BIS)
             return ok_, ("mit %d Truppen des Verbuendeten: " % len(partner) if partner else "") + text_

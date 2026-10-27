@@ -3780,6 +3780,15 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         ereignis.append("MESSUNG Feindlord %d: leben %d -> %d bei (%d,%d), eigene in 5 Feldern %s" % (
                             n, alt, e["leben"], e["x"], e["y"], bei or "keine"))
                     feindlord[n] = e["leben"]
+            # B-273 (Daniel 20:15): Gefechtsrechnung aus den Spielwerten dieser Partie (einmal lesen, jede Runde gegen das
+            # Sichtbare pruefen - passt die Balance nicht, zurueck auf die Duell-Messungen)
+            import gefecht as GF_sw
+            if not getattr(GF_sw, "_GELESEN", False):
+                GF_sw._GELESEN = True
+                ereignis.append(GF_sw.spielwerte_einlesen())
+            m_sw = GF_sw.balance_pruefen(L)
+            if m_sw:
+                ereignis.append(m_sw)
             if TB is not None:           # B-273 Schritt 0: Lord-Schaden vorhergesagt gegen gemessen
                 fr_tb = freunde_von(SP)
                 ereignis.extend(TB.lord_runde(st["t"], L, fr_tb, lambda b: b != 0 and b not in fr_tb))
@@ -3893,6 +3902,7 @@ def main():
     global TB
     import tagebuch
     TB = tagebuch.Tagebuch(SP, an=arg.get("tagebuch", "ja") == "ja")
+    tagebuch.AKTIV = TB
     MENSCH = arg.get("mensch", "nein") == "ja"
     UEBERNEHMEN = arg.get("uebernehmen", "nein") == "ja"
     MENSCH_GEGNER = arg.get("mensch_gegner", "nein") == "ja" or UEBERNEHMEN

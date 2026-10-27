@@ -2606,6 +2606,8 @@ class Einzeln:
                                       "fingerabdruck": self.bedarf_fa})
                 ereignis.append("LORD GEMEINSAM: %d Assassinen mit %d Verbuendeten am Lord %d (%d Leben, Weg %d-%d) - %s" % (
                     len(frei_g), len(verb), ln, le["leben"], wege_g[0], wege_g[-1], text_g))
+                import tagebuch                   # B-273: Vorhersage des Lord-Wettlaufs neben das spaetere Ergebnis
+                tagebuch.lord_angriff(self.jetzt, "assassinen", ln, list(frei_g), dict(gefecht.LETZTES_RENNEN or {}))
             if lt["phase"] == "bereit" and not machbar:
                 ereignis.append("LORD-BEREITSTELLUNG ABGEBROCHEN: reicht nicht mehr (Lord %d Leben, Beschuss am Lord %.1f je Tick) - alle raiden" % (
                     le["leben"], satz_lord))

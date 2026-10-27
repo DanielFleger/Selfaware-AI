@@ -62,12 +62,96 @@ def raten(r):
 
 
 def tabelle(dateien=None):
+    """(SCHADEN {x: {y: je Takt}}, LEBEN {x: voll}, FERN {x: {y: je Takt}}) fuer die Gefechtsrechnung.
+    B-273 (Daniel 27.10. 20:15 "verknuepfe das mit den Augenwerten, egal welche Balance"): stehen Spielwerte aus dem
+    laufenden Spiel bereit (spielwerte_einlesen, Balance-Gegenprobe balance_pruefen), kommt ALLES aus ihnen - jede Art gegen
+    jede Art, Nahkampf und Geschosse (kaufrechnung.schadenstabelle). Sonst (oder mit dateien) die alten Duell-Messungen."""
+    global _TABELLE
+    if dateien is None and SPIELWERTE is not None:
+        if _TABELLE is None:
+            _TABELLE = _aus_spielwerten(SPIELWERTE)
+        return _TABELLE
+    return tabelle_duelle(dateien)
+
+
+# B-273: Schadenswerte aus dem Spiel (Auge, spielwerte.py) - je Partie frisch gelesen; die Duelle nur noch zur Gegenprobe
+SPIELWERTE = None          # dict wie kaufrechnung.spielwerte_laden, gesetzt von spielwerte_einlesen
+QUELLE = "Duell-Messungen (keine Spielwerte geladen)"
+VERWORFEN = None           # Grund, wenn die Balance-Gegenprobe die Spielwerte verworfen hat
+_DUELLE = None
+_HOECHST = {}              # typ -> hoechstes beobachtetes Leben (Balance-Gegenprobe)
+
+
+def _aus_spielwerten(sw):
+    """(SCHADEN, LEBEN, FERN) aus den Spielwerten. Arten, die nicht schlagen koennen (melee_damage 0), bekommen 0 statt des
+    Zeilenmittels - sonst raechnete dps() fuer sie einen erfundenen Wert."""
+    import kaufrechnung as KR
+    schaden, fern, leben, _kalib = KR.schadenstabelle(sw, duelle=tabelle_duelle())
+    md = sw["tabellen"]["einheit.melee_damage"]["werte"]
+    for a, zeile in schaden.items():
+        for z in leben:
+            if z not in zeile and a < len(md) and z < len(md[a]):
+                zeile[z] = float(md[a][z])
+    return schaden, leben, fern
+
+
+def spielwerte_einlesen():
+    """Spielwerte aus dem laufenden Spiel lesen (spielwerte.py, Speicher) und als daten/spielwerte_<stempel>.json sichern;
+    geht das nicht, die juengste gesicherte live-Datei (dann prueft balance_pruefen, ob sie zur laufenden Balance passt).
+    Gibt eine Meldung zurueck."""
+    global SPIELWERTE, QUELLE, _TABELLE, VERWORFEN
+    import time
+    try:
+        import spielwerte as SW
+        q, lies = SW.quelle_live()
+        w = SW.lesen(lies)
+        sch = SW.schuss(lies)
+        w.update(SW.abgeleitet(w, sch, SW.hacken(lies)))
+        sw = {"erstellt": time.strftime("%Y-%m-%d %H:%M:%S"), "quelle": q, "tabellen": w, "schuss": sch,
+              "aufzaehlungen": {"UT": {str(k): v for k, v in SW.UT.items()}}}
+        pfad = os.path.join(D, time.strftime("spielwerte_%Y%m%d_%H%M%S.json"))
+        json.dump(sw, io.open(pfad, "w", encoding="utf-8"), ensure_ascii=False)
+        sw["_pfad"] = pfad
+        QUELLE = "live aus dem laufenden Spiel (%s)" % os.path.basename(pfad)
+    except Exception as ex:
+        import kaufrechnung as KR
+        sw = KR.spielwerte_laden()
+        if sw is None:
+            return "SPIELWERTE: nicht lesbar (%s) und keine Datei - Gefechtsrechnung mit Duell-Messungen" % ex
+        QUELLE = "Datei %s (live nicht lesbar: %s)" % (os.path.basename(sw.get("_pfad", "?")), ex)
+    SPIELWERTE, _TABELLE, VERWORFEN = sw, None, None
+    _HOECHST.clear()
+    return "SPIELWERTE: Gefechtsrechnung aus %s" % QUELLE
+
+
+def balance_pruefen(L):
+    """Gegenprobe gegen das Sichtbare: hat eine Einheit mehr Leben, als die Spielwerte als volles Leben nennen, gehoeren die
+    Werte zu einer anderen Balance - dann verwerfen (Duell-Messungen). Der Lord ist ausgenommen: sein Leben haengt am
+    einzelnen Lord (Daniel 27.10. 20:16; Feld maxHealthRatingLord, gemessen 300.000 beim Gegner gegen 150.000 bei uns in
+    derselben Partie), nicht an der Balance - die Rechnung nimmt sein Leben aus dem Lagebild. Meldung nur beim Verwerfen."""
+    global SPIELWERTE, _TABELLE, VERWORFEN
+    if SPIELWERTE is None:
+        return None
+    hp = SPIELWERTE["tabellen"]["einheit.base_hp"]["werte"]
+    for e in L.values():
+        t = e.get("typ", -1)
+        if t == LORD or not 0 <= t < len(hp) or hp[t] <= 0:
+            continue
+        _HOECHST[t] = max(_HOECHST.get(t, 0), e.get("leben", 0))
+        if _HOECHST[t] > hp[t]:
+            VERWORFEN = "Art %d mit %d Leben, Spielwerte nennen %d als volles Leben (%s)" % (t, _HOECHST[t], hp[t], QUELLE)
+            SPIELWERTE, _TABELLE = None, None
+            return "SPIELWERTE VERWORFEN: %s - Gefechtsrechnung mit Duell-Messungen" % VERWORFEN
+    return None
+
+
+def tabelle_duelle(dateien=None):
     """(SCHADEN {x: {y: je Takt}}, LEBEN {x: voll}, FERN {x: {y: je Takt}}) aus allen Duell-Messungen. 19.10.: Schuetzen
     machen aus der Ferne mehr Schaden als im Nahkampf (Bogen gegen Speer ~24 statt ~10) - FERN haelt die Werte der
     Duelle, in denen sie aus 3 Feldern schossen, SCHADEN die aus dem Nahkampf (fuer Nahkaempfer nur SCHADEN)."""
-    global _TABELLE
-    if _TABELLE is not None and dateien is None:
-        return _TABELLE
+    global _DUELLE
+    if _DUELLE is not None and dateien is None:
+        return _DUELLE
     dateien = dateien or sorted(glob.glob(os.path.join(D, "editor_duell_*.jsonl")))
     summen, leben, fsum = {}, {}, {}
     for f in dateien:
@@ -119,8 +203,8 @@ def tabelle(dateien=None):
         for x, werte in je.items():
             if len(werte) >= LORD_PROBEN:
                 schaden.setdefault(x, {})[LORD] = sorted(werte)[len(werte) // 2]
-    _TABELLE = (schaden, leben, fern)
-    return _TABELLE
+    _DUELLE = (schaden, leben, fern)
+    return _DUELLE
 
 
 def gemessen(x, y, d=1):
@@ -203,6 +287,7 @@ def bewerte(wir, sie, schaden=None, bis=BIS):
         t, 100 * anteil)
 
 
+LETZTES_RENNEN = None     # B-273: Zahlen des letzten lord_rennen (Tagebuch)
 RENNEN_REST = 0.1         # B-207: so viel unseres Lebens muss bleiben, wenn der Lord faellt (Startwert, UNGEMESSEN)
 
 
@@ -213,8 +298,12 @@ def lord_rennen(wir, sie, lord_i, schaden=None, bis=BIS):
     if not wir:
         return False, "keine eigenen"
     voll = sum(e["leben"] for e in wir)
+    global LETZTES_RENNEN
     r_wir, r_lord, t, gefallen = simuliere(wir, sie, schaden, bis=bis, fokus=lord_i)
     anteil = r_wir / float(max(1, voll))
     lohnt = gefallen and anteil >= RENNEN_REST
+    # B-273: die Zahlen dieser Vorhersage fuer das Tagebuch (tagebuch.lord_angriff stellt sie spaeter neben das Ergebnis)
+    LETZTES_RENNEN = {"takte": t, "faellt": bool(gefallen), "rest_anteil": round(anteil, 3), "wir": len(wir),
+                      "verteidiger": len(sie) - 1, "lord_leben": sie[lord_i]["leben"], "lord_rest": round(r_lord)}
     return lohnt, "Lord-Wettlauf %d eigene (%d Leben) gegen Lord + %d Verteidiger: Lord %s nach %d Takten, uns bleiben %.0f %%" % (
         len(wir), voll, len(sie) - 1, "faellt" if gefallen else "lebt (%d)" % r_lord, t, 100 * anteil)
