@@ -527,6 +527,19 @@ class Feldzug:
                     self.dplan = neu
                     self._absprache_schreiben(lp)
                     return neu
+        if dp is not None:
+            # B-264 (Partie 005758: Torhaus 237 nach < 2.000 Takten ohne Verwerf-Meldung durch die Westseite ersetzt): WARUM der
+            # alte Plan nicht mehr gilt, steht im Log
+            G_d = getattr(self, "_gebaeudebild", {}) or {}
+            grund = ("Lord woanders (%s statt %s)" % (tuple(lp), tuple(dp["lord"])) if tuple(dp["lord"]) != tuple(lp) else
+                     "Kachel gefallen" if dp["art"] == "mauer" and not m[dp["ziel"]] else
+                     "Kachel verworfen" if dp["art"] == "mauer" else
+                     "verworfen" if dp["ziel"] in self.verworfen else
+                     "Gebaeude weg" if dp["ziel"] not in G_d else
+                     "kein gueltiges Abrissziel" if dp["art"] == "gebaeude" else
+                     "nicht in der Feindbau-Liste (%d Eintraege)" % len(self._feindbau or []) if dp["art"] == "tor" else dp["art"])
+            if dp["art"] in ("mauer", "tor", "gebaeude"):
+                self._plan_grund = "FELDZUG PLAN AUFGEGEBEN: %s %s - %s" % (dp["art"], dp["ziel"], grund)
         for _v in range(self.PLAN_VERSUCHE):
             try:
                 neu = self.durchbruch(self.sp, tuple(start), max(1, maenner), tuple(lp),
@@ -1413,6 +1426,9 @@ class Feldzug:
             # B-163/B-164 (Daniel 21:59): mit Wegkarte JEDE Runde, auch mit gewaehlter Bresche - steht der Lord in unserem Gebiet,
             # geht er allem vor; sonst der Schredder (Einer-Stapel auf seine Mauer), solange er Wirkung hat (B-165)
             ll = self._lage_lord(L, lp, [n for n in kolben if L[n]["typ"] not in FERN_REICH], lord["besitzer"], mitte)
+            if getattr(self, "_plan_grund", None):
+                aus.append(self._plan_grund)
+                self._plan_grund = None
             if self._dplan_meldung:
                 aus.append(self._dplan_meldung)
                 self._dplan_meldung = None
