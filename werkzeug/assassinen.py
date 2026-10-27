@@ -321,6 +321,7 @@ class Einzeln:
     HOCH_R = 4               # Umkreis um die Gebaeudemitte, der als "oben" gilt (groesster Turm/Torhaus ~6 Felder breit)
     LORD_ABSTAND = 6         # Beute neben ihrem Lord wird nicht gejagt (der Lord schlaegt Assassinen)
     TEUER = 100              # mehr nur, wenn unsere Assassinen dort angegriffen werden (+1 je angegriffenem) - vorher fest 6
+    NEUBAU_NAH = 3           # B-277: Jaeger naeher als so viele Felder am Gejagten kaempfen schon - kein Neubau-Wechsel
     WECHSEL = 1.5            # 12.10. (Daniel 00:41 "sofort reagieren, auch mit Ziel, auf ein neu gebautes besseres Ziel")
     ZIEL_NAH = 8           # gemessen 05.10.: Gebaeudeangriff -> Laufziel 1-2 Felder neben dem Gebaeude
     NEU_NACH = 4           # Runden (je ~30 Ticks bei Tempo 1000), bis ein Befehl im Spiel sichtbar sein muss
@@ -3013,8 +3014,14 @@ class Einzeln:
             self.stapel["mitglieder"].discard(n)
             self._warten(n, h, halten)
             ereignis.append("RESERVE %d: nur noch %d Leben - jeder Treffer toetet ihn, wartet daheim bei %s" % (n, L[n]["leben"], h))
+        import zielboerse
+        neubau = bool(zielboerse.AN and zielboerse.NEU)
         for n in sorted(self.mitglieder):
-            if n in self.ziel or n in self.jagd or n in self.stapel["mitglieder"] or n in self.lordtrupp["mitglieder"] \
+            # B-277 (Partie 225742: 219 stand 881 Takte "Jagd auf 200", waehrend daneben gebaut wurde): bei einem Neubau beim
+            # Feind waehlen auch Jaeger neu, die nicht schon am Ziel kaempfen (> NEUBAU_NAH Felder vom Gejagten)
+            neu_pruef = (neubau and n in self.jagd and self.jagd[n] in L
+                         and schach((L[n]["x"], L[n]["y"]), (L[self.jagd[n]]["x"], L[self.jagd[n]]["y"])) > self.NEUBAU_NAH)
+            if n in self.ziel or (n in self.jagd and not neu_pruef) or n in self.stapel["mitglieder"] or n in self.lordtrupp["mitglieder"] \
                     or (self.RESERVE_PARKEN and L[n]["leben"] < self.RESERVE_LEBEN and getattr(self, "_heim", None)) \
                     or (n in self.entdeckt and not self._aussendienst_frei(n, L)) \
                     or (n in self.warte and n in verletzt) or n in self.flucht:
@@ -3039,6 +3046,7 @@ class Einzeln:
             grenze = self.ZIEL_RISIKO_SCHWACH if schwach else self.ZIEL_RISIKO_WEG
             grenze_bew = min(self.ZIEL_RISIKO, grenze)
             abgelehnt = None                  # B-257: das beste Ziel, das nur am Todesrisiko scheiterte (fuer die Meldung)
+            kein_raster = [0]
             for k in frei:
                 if k[8] > zahl.get(k[0], 0) + 1:
                     gr[k[0]] = (k[2], schach(ort, k[1]), "bewacht (%d Nahkaempfer)" % k[8])
@@ -3059,6 +3067,12 @@ class Einzeln:
                 if g_r is not None:
                     c = g_r.zelle_von(k[1])
                     r_weg, felder = rk.get(c, (1e9, 999))
+                    if r_weg >= 1e9:
+                        # B-277 C (Frage-Agent 23:12): der Ersatzwert hiess bisher "lohnt nicht, Todesrisiko 100 %" - es ist aber
+                        # nur "im groben Gefahrenraster (schussfeld, Zellen zu ZELLE Feldern) kein Weg"; Verhalten unveraendert
+                        gr[k[0]] = (k[2], schach(ort, k[1]), "kein Weg im groben Gefahrenraster (Zelle %s nicht erreicht)" % (c,))
+                        kein_raster[0] += 1
+                        continue
                     risiko = (r_weg + b_ziel * verweilen) * self.KALIB
                 else:
                     felder = schach(ort, k[1])
@@ -3085,9 +3099,15 @@ class Einzeln:
             if beste:
                 gr[beste[1][0]] = (beste[1][2], schach(ort, beste[1][1]), "GEWAEHLT")
             self._ablehnung[n] = gr
+            if neu_pruef and not beste:
+                continue                          # B-277: kein lohnendes Gebaeude nach dem Neubau - die Jagd laeuft weiter
             if beste:
                 _, k_b, p_tod, saldo = beste
                 gn, p, typ, _, f10, f20, f30, _, _ = k_b
+                if neu_pruef:
+                    ereignis.append("NEUBAU-WECHSEL %d: Jagd auf %d -> Gebaeude %d (Typ %d) nach Neubau beim Feind" % (
+                        n, self.jagd[n], gn, typ))
+                    self.jagd.pop(n, None)
                 if n in self.entdeckt:
                     self.entdeckt[n]["ziel_ok"] = gn
                     ereignis.append("AUSSENDIENST %d: entdeckt, aber ausser Reichweite - raidet Gebaeude %d weit weg von den "
@@ -3127,7 +3147,9 @@ class Einzeln:
                         L[arb[0][1]]["typ"], L[arb[0][1]].get("ladung", 0), arb[0][0]))
                     continue
             ohne += 1
-            gruende["keins erreichbar" if not erreichbar else "alle voll" if not frei else "alle gefaehrlich"] += 1
+            g_ohne = ("keins erreichbar" if not erreichbar else "alle voll" if not frei else
+                      "alle gefaehrlich" if abgelehnt is not None or not kein_raster[0] else "kein Rasterweg")   # B-277 C
+            gruende[g_ohne] = gruende.get(g_ohne, 0) + 1
             gm = getattr(self, "_gefaehrlich_gemeldet", {})
             self._gefaehrlich_gemeldet = gm
             if erreichbar and frei and abgelehnt is not None and gm.get(n) != abgelehnt[1][0]:

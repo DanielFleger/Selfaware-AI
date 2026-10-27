@@ -4,6 +4,20 @@ Daniel 27.10.2026 23:00: „Anfang besser, aber immer noch nicht schnell erkannt
 Verteilung war nicht optimal … alles auch auf alle Einheiten übertragen, nur Assassinen hilft nicht allzu viel.“ — 23:07 „ja“
 zu A–C.
 
+## GEAENDERT nach Frage-Agent (rot, 27.10. 23:12) - Daniel 23:16 "ja"
+
+Was unten unter A steht, gilt NICHT mehr; gebaut ist:
+- **A neu:** Endpunkte werden NIE verschoben (Lordtrupp `assassinen.py:2835`, `lord_sturm.py:63`, Klettern `klettertest.py` laufen
+  absichtlich in ein anderes Gebiet). Kein zentraler Gelaendefilter (Reiter/Feldzug planen schon im Startgebiet,
+  `gefahrenschutz.py:195`). Gebaut: nach abgelehnter WEGKETTE geht die naechste Kette dieser Einheit als Direktlauf zum selben
+  Endpunkt (`besitzbuch.KETTE_ABGELEHNT`, `_direktlauf`); jede Ablehnung nennt, was auffaellt (`besitzbuch.ursache`: Gebiet
+  Einheit/Ziel, Ziel an einem Gebaeude) - Auge vor Hand. Ort aus dem frischen Lagebild in `steh_runde`, kein eigenes ORT.
+- **B:** wie unten (Neubau ab Runde 2, nur Gegner ohne Neutrale; Reiter verteilen sich; Jaeger pruefen bei Neubau neu).
+- **C:** `r_weg >= 1e9` heisst "kein Weg im groben Gefahrenraster" (nicht "Gelaende getrennt" - der Ersatzwert gilt fuer jede
+  Zelle, die der Dijkstra nicht erreicht); Zaehlung "kein Rasterweg" in der Ohne-Ziel-Zeile. Verhalten unveraendert: die naechste
+  Partie misst, ob die Farmen daran oder am echten Risiko scheiterten.
+- Pruefung: `werkzeug/zielboerse_pruefen.py` 11/11, je Teil ein Negativlauf rot (Verteilung, Neubau, Haende, C).
+
 ## Messung vorher (Partie 225742, App-Kopie, gemessen 27.10. ~23:05)
 
 | Was | Zahl | Quelle |

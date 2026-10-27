@@ -494,6 +494,8 @@ class Reiterjagd:
         arbeiter_nr = {k for k, _ in arbeiter}
         self._ziel_nr = arbeiter_nr
         self.ziele_zuletzt = 0
+        # B-277 (Partie 225742, Runde 9048: Reiter 310 und 311 jagten beide Arbeiter 369): ein Ziel je Reiter, solange es freie gibt
+        vergeben = {v[1]: r_ for r_, v in self.befohlen.items() if v[0] in ("jagd", "anritt") and r_ in reiter}
         for r in reiter:
             e = L[r]
             o = (e["x"], e["y"])
@@ -585,6 +587,10 @@ class Reiterjagd:
             rang=GS.bewerte(lage,o,PFERDEBOGEN,e.get('leben',15000),zielpunkte, risiko=ABLENK_RISIKO if lord_ort is not None else None)
             self.ziele_zuletzt = max(self.ziele_zuletzt, len(rang))      # B-220
             rang.sort(key=lambda v:(-v[0],schach(o,(L[v[1]]['x'],L[v[1]]['y']))))
+            andere = {k_: r_ for k_, r_ in vergeben.items() if r_ != r}
+            frei_r = [v for v in rang if v[1] not in andere]
+            geteilt = bool(rang) and not frei_r
+            rang = frei_r or rang
             if not rang:
                 if lage.schaden(o) > 0 and (alt is None or alt[0] != "rueckzug" or self.runde - alt[2] >= NEU_ALLE):
                     q = _rueckzug(lage, o)
@@ -605,6 +611,12 @@ class Reiterjagd:
                 p=p_ab
                 schussgrenze=gefecht.FERN_REICH[PFERDEBOGEN]-5
             art = "jagd" if d <= schussgrenze and lage.schaden(o)<=0 else "anritt"
+            for k_ in [k_ for k_, r_ in vergeben.items() if r_ == r]:
+                del vergeben[k_]
+            if geteilt and (alt is None or alt[1] != k):
+                aus.append("REITERJAGD: Reiter %d teilt Ziel %d mit Reiter %d - kein freies Ziel mit vertretbarem Risiko" % (
+                    r, k, andere.get(k, -1)))
+            vergeben.setdefault(k, r)
             if alt is None or alt[:2] != (art, k) or self.runde - alt[2] >= NEU_ALLE or e.get("zustand") in (0, 1):
                 if art == "jagd":
                     befehl({"angriff": {"einheiten": [r], "ziel": k}}, 1.0, bis="ANGRIFF")

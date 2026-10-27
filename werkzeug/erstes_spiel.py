@@ -2648,6 +2648,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             befehlskanal.belege()
             st, L, G = runde_lesen()
             hunger_r = False
+            if st and G:
+                import zielboerse                   # B-277: Neubau beim Feind in DIESER Runde erkennen, vor allen Modulen
+                zielboerse.runde(G, lambda b_: b_ not in freunde_von(SP) and b_ not in (0, None))
             if st and HEER_ANTEIL > 0 and wirt is not None:
                 wirt.heer_einnahme(st.get("gold", 0), HEER_ANTEIL)     # B-132 Heereskasse
             if st:
@@ -3804,7 +3807,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 ereignis.append(m_sw)
             # B-275 (Daniel 22:35 "das Log auch fuer alle anderen Einheiten"): wer steht, sagt, wer ihn zuletzt befehligt hat
             import besitzbuch, feldzug as FZ_bb
-            ereignis.extend(besitzbuch.steh_runde(st["t"], L, SP, set(FZ_bb.HEER) | {71, 72, 73, 74, 76}))
+            ereignis.extend(besitzbuch.steh_runde(st["t"], L, SP, set(FZ_bb.HEER) | {71, 72, 73, 74, 76}, G))
+            import zielboerse as ZB_r
+            ereignis.extend(ZB_r.MELDUNGEN)
             if TB is not None:           # B-273 Schritt 0: Lord-Schaden vorhergesagt gegen gemessen
                 fr_tb = freunde_von(SP)
                 ereignis.extend(TB.lord_runde(st["t"], L, fr_tb, lambda b: b != 0 and b not in fr_tb))

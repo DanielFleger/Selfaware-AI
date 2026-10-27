@@ -25,6 +25,11 @@ _STILL = {}              # Einheit -> (Feld, seit, zuletzt gemeldet)
 # annimmt (Einheit steht seit einer Runde, Laufziel = eigenes Feld), wird erkannt und SPERRE_RUNDEN lang nicht wiederholt
 SPERRE_RUNDEN = 5
 ABGELEHNT = {}           # Einheit -> (Zielschluessel, Runde der Ablehnung)
+# B-277 A neu (Frage-Agent 23:12 rot: Endpunkte nie verschieben - Lordtrupp, Sturm und Klettern laufen mit Absicht in ein
+# anderes Gebiet): wurde eine WEGKETTE (lauf + danach) abgelehnt, geht die naechste Kette dieser Einheit SPERRE_RUNDEN lang als
+# Direktlauf zum selben Endpunkt - das Spiel sucht den Weg selbst. Rueckweg: HAENDE = False
+HAENDE = True
+KETTE_ABGELEHNT = {}     # Einheit -> Runde, in der ihre Wegkette abgelehnt wurde
 
 
 def _schluessel(art, w):
@@ -71,9 +76,92 @@ def filtern(befehl):
             return None, meld
         if leer and isinstance(befehl, dict) and "befehle" in befehl:
             befehl["befehle"] = uebrig
+        if HAENDE and KETTE_ABGELEHNT:
+            befehl, m_d = _direktlauf(befehl)
+            meld += m_d
         return befehl, meld
     except Exception:
         return befehl, []
+
+
+def _direktlauf(befehl):
+    """Einheiten mit kuerzlich abgelehnter Wegkette aus jeder Wegkette (angriff mit lauf + danach) herausnehmen und als eigenen
+    Befehl direkt zum Endpunkt schicken. Gibt (Befehl, Meldungen)."""
+    liste = befehl.get("befehle") if isinstance(befehl, dict) and "befehle" in befehl else [befehl]
+    neu, meld = [], []
+    for c in list(liste or []):
+        w = c.get("angriff") if isinstance(c, dict) else None
+        if not isinstance(w, dict) or not w.get("danach") or not isinstance(w.get("einheiten"), list):
+            continue
+        direkt = [n for n in w["einheiten"] if n in KETTE_ABGELEHNT and RUNDE[0] - KETTE_ABGELEHNT[n] <= SPERRE_RUNDEN]
+        if not direkt:
+            continue
+        ende = list(w["danach"][-1])
+        d = {k: v for k, v in w.items() if k not in ("danach", "einheiten", "lauf")}
+        d.update({"einheiten": direkt, "lauf": ende})
+        neu.append(dict({k: v for k, v in c.items() if k != "angriff"}, angriff=d))
+        w["einheiten"] = [n for n in w["einheiten"] if n not in direkt]
+        meld.append("HAENDE %s: Direktlauf zum Endpunkt %s statt Wegkette (%d Punkte) - ihre Wegkette wurde vor %s Runden abgelehnt" % (
+            direkt, tuple(ende), 1 + len(w["danach"]), "/".join(str(RUNDE[0] - KETTE_ABGELEHNT[n]) for n in direkt)))
+    if not neu:
+        return befehl, meld
+    liste = [c for c in liste if not (isinstance(c, dict) and isinstance(c.get("angriff"), dict)
+                                      and c["angriff"].get("einheiten") == [])] + neu
+    if isinstance(befehl, dict) and "befehle" in befehl:
+        befehl["befehle"] = liste
+        return befehl, meld
+    return {"befehle": liste}, meld
+
+
+_KARTE = [None, None]    # (Runde, Gebiete der Wegkarte)
+
+
+def _gebiet(p):
+    if _KARTE[0] != RUNDE[0]:
+        _KARTE[0] = RUNDE[0]
+        try:
+            import speicher
+            _KARTE[1] = speicher.wegkarte()["gebiet"]
+        except Exception:
+            _KARTE[1] = None
+    g = _KARTE[1]
+    try:
+        return int(g[p[0], p[1]]) if g is not None else None
+    except Exception:
+        return None
+
+
+def ursache(n, e, b, L, G=None):
+    """B-277 (Auge vor Hand): was am abgelehnten Befehl auffaellt - Gebiet der Einheit gegen Gebiet des Ziels (Wegkarte des
+    Spiels), Ziel-Einheit am/auf einem Gebaeude, Ziel schon tot/weg. Nur sichtbare Dinge. Wirft nie."""
+    try:
+        teile = []
+        k = b.get("schluessel") or ()
+        ziel_ort = None
+        if len(k) >= 3 and k[1] == "lauf":
+            ziel_ort = k[2]
+        elif len(k) >= 3 and k[1] == "ziel":
+            z = L.get(k[2])
+            if z is None:
+                teile.append("Ziel-Einheit %s nicht mehr im Lagebild" % (k[2],))
+            else:
+                ziel_ort = (z["x"], z["y"])
+                teile.append("Ziel %s (Typ %s) bei %s, %d Felder" % (k[2], z.get("typ"), ziel_ort,
+                                                                    max(abs(z["x"] - e["x"]), abs(z["y"] - e["y"]))))
+                if G:
+                    am = [(nr, g.get("typ")) for nr, g in G.items()
+                          if max(abs(g.get("x", -9) - z["x"]), abs(g.get("y", -9) - z["y"])) <= 1]
+                    if am:
+                        teile.append("Ziel steht an/auf Gebaeude %s" % am[:2])
+        elif len(k) >= 3 and k[1] == "gebaeude" and G and k[2] in G:
+            ziel_ort = (G[k[2]]["x"], G[k[2]]["y"])
+        if ziel_ort is not None:
+            g0, g1 = _gebiet((e["x"], e["y"])), _gebiet(ziel_ort)
+            if g0 is not None and g1 is not None:
+                teile.append("Gebiet Einheit %d, Ziel %d%s" % (g0, g1, " (anderes Gebiet)" if g0 != g1 else ""))
+        return "; ".join(teile) or "keine sichtbare Ursache"
+    except Exception as ex:
+        return "Ursache nicht lesbar (%r)" % (ex,)
 
 
 def _absender():
@@ -117,7 +205,7 @@ def merken(befehl):
                 for n in ns:
                     alt = LETZTER.get(n, {})
                     LETZTER[n] = {"modul": modul, "art": art, "ziel": ziel, "runde": RUNDE[0], "anzahl": alt.get("anzahl", 0) + 1,
-                                  "schluessel": _schluessel(art, w)}
+                                  "schluessel": _schluessel(art, w), "kette": bool(isinstance(w, dict) and w.get("danach"))}
                     vor = _IN_RUNDE.get(n)
                     if vor is not None and vor != modul.split(".")[0]:
                         DOPPELT[n] = DOPPELT.get(n, 0) + 1
@@ -126,7 +214,7 @@ def merken(befehl):
         pass
 
 
-def steh_runde(t, L, sp, arten):
+def steh_runde(t, L, sp, arten, G=None):
     """Am Ende jeder Lenker-Runde: Runde weiterzaehlen und STEHT-Zeilen fuer stehende eigene Einheiten der arten."""
     RUNDE[0] += 1
     _IN_RUNDE.clear()
@@ -144,8 +232,13 @@ def steh_runde(t, L, sp, arten):
         if (b is not None and seit < t and RUNDE[0] - b["runde"] <= 2 and (e.get("laufx"), e.get("laufy")) == f
                 and ABGELEHNT.get(n, (None,))[0] != b.get("schluessel")):
             ABGELEHNT[n] = (b.get("schluessel"), RUNDE[0])
-            aus.append("BEFEHL ABGELEHNT %d (Art %d) bei %s: %s schickte '%s %s', das Spiel nahm ihn nicht an (Laufziel = eigenes "
-                       "Feld) - %d Runden keine Wiederholung" % (n, e["typ"], f, b["modul"], b["art"], b["ziel"], SPERRE_RUNDEN))
+            if b.get("kette"):
+                KETTE_ABGELEHNT[n] = RUNDE[0]
+            aus.append("BEFEHL ABGELEHNT %d (Art %d) bei %s: %s schickte '%s %s'%s, das Spiel nahm ihn nicht an (Laufziel = eigenes "
+                       "Feld) - %d Runden keine Wiederholung%s | auffaellig: %s" % (
+                           n, e["typ"], f, b["modul"], b["art"], b["ziel"], " als Wegkette" if b.get("kette") else "",
+                           SPERRE_RUNDEN, ", naechste Wegkette als Direktlauf" if b.get("kette") and HAENDE else "",
+                           ursache(n, e, b, L, G)))
         if t - seit < STEH_ERKLAER or (gemeldet is not None and t - gemeldet < STEH_ERKLAER):
             continue
         _STILL[n] = (f, seit, t)
