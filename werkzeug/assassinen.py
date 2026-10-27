@@ -747,6 +747,30 @@ class Einzeln:
             return "wartet bei %s" % (self.warte[n],)
         return "ohne Auftrag"
 
+    def _abgelehnt_loesen(self, L):
+        """Haende (Daniel 27.10. 22:43 "im Tick darauf entscheiden und handeln"; Partie 224135: Assassine 217 bekam 30-mal
+        einen Lauf nach Westen, das Spiel nahm ihn nie an - Laufziel = eigenes Feld - erst ein Ziel im Osten lief sofort):
+        hat eine Assassine mit Ziel in der Vorrunde einen Befehl bekommen, steht aber seit einer Runde auf demselben Feld und
+        das Spiel zeigt als Laufziel ihr eigenes Feld, hat der Wegfinder den Befehl abgelehnt - das Ziel wird fuer sie
+        gesperrt und sie waehlt in DIESER Runde ein neues (statt denselben unmoeglichen Befehl zu wiederholen)."""
+        import besitzbuch
+        aus = []
+        for n in sorted(self.mitglieder):
+            e, st = L.get(n), self._still.get(n)
+            if (e is None or st is None or n not in self.ziel or e.get("zustand") not in (0, 1)
+                    or (e.get("laufx"), e.get("laufy")) != (e["x"], e["y"]) or st[1] >= self.jetzt):
+                continue
+            b = besitzbuch.LETZTER.get(n)
+            if b is None or besitzbuch.RUNDE[0] - b["runde"] > 1:
+                continue
+            gz = self.ziel[n]
+            self._route_sperre[(n, gz)] = self.jetzt + self.SPERRE_ROUTE
+            self._vergessen(n)
+            aus.append("BEFEHL ABGELEHNT %d: das Spiel nahm '%s %s' nicht an (steht bei %s, Laufziel = eigenes Feld) - Ziel %s "
+                       "fuer %d Takte gesperrt, neues Ziel in dieser Runde" % (n, b["art"], b["ziel"], (e["x"], e["y"]), gz,
+                                                                            self.SPERRE_ROUTE))
+        return aus
+
     def _steh_erklaerung(self, L, G):
         """27.10. (Daniel 22:24 "die naechstschlaueren Augen - Logs"): jede eigene Assassine, die STEH_ERKLAER Takte auf
         demselben Feld steht (Zustand 0/1), meldet - hoechstens alle STEH_ERKLAER Takte - ihren Lenker-Zustand und die
@@ -2869,6 +2893,7 @@ class Einzeln:
             if lt["phase"] == "angriff" and lt["mitglieder"] and self.angriffe:
                 self._lord_messen(L, G, ln, le, lp, fern, nah)
         ereignis.extend(self._steh_erklaerung(L, G))
+        ereignis.extend(self._abgelehnt_loesen(L))
         # 5. Ziele verteilen (Gefahr am Gebaeude beachten); wer keins bekommt, wartet ausser Reichweite
         zahl = {}
         for z in self.ziel.values():

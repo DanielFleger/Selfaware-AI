@@ -43,6 +43,21 @@ if __name__ == "__main__":
         ("nicht jede Runde (11400 leer), wieder nach 300 Takten (11700)", zeilen[11400] == [] and len(zeilen[11700]) == 1),
         ("nach Bewegung neu gezaehlt", weg == [] and neu_z == []),
     ]
+    # Haende (Partie 224135): 217 hat Ziel 74, bekam in der Vorrunde einen Lauf, steht seit einer Runde, Laufziel = eigenes Feld
+    import besitzbuch as BB
+    h = neu()
+    h.ziel, h._route_sperre, h.route, h.warte_seit, h.jetzt = {217: 74}, {}, {}, {}, 3200
+    h._still[217] = ((158, 194), 3100, None)
+    BB.LETZTER[217] = {"modul": "x", "art": "angriff", "ziel": [139, 182], "runde": BB.RUNDE[0], "anzahl": 30}
+    LH = {217: {"x": 158, "y": 194, "zustand": 1, "laufx": 158, "laufy": 194, "leben": 12500}}
+    m = h._abgelehnt_loesen(LH)
+    faelle.append(("abgelehnter Lauf erkannt: Ziel 74 gesperrt, 217 waehlt neu", m and "BEFEHL ABGELEHNT 217" in m[0]
+                   and (217, 74) in h._route_sperre and 217 not in h.ziel))
+    g = neu()
+    g.ziel, g._route_sperre, g.route, g.warte_seit, g.jetzt = {217: 74}, {}, {}, {}, 3200
+    g._still[217] = ((158, 194), 3100, None)
+    LG = {217: {"x": 158, "y": 194, "zustand": 101, "laufx": 170, "laufy": 180, "leben": 12500}}
+    faelle.append(("Gegenprobe: laeuft (Laufziel woanders) -> nichts abgelehnt", g._abgelehnt_loesen(LG) == [] and 217 in g.ziel))
     for name, ok in faelle:
         print("%s %s" % ("OK  " if ok else "ROT ", name))
     print("%d von %d gruen" % (sum(ok for _, ok in faelle), len(faelle)))
