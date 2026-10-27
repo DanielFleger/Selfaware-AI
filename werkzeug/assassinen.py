@@ -85,6 +85,9 @@ WERT = {
     # (WECHSEL 1,5 x Wert je Weg) nimmt ihn dann mit; ab TEUER zwei Plaetze. 19.10.: 300 (siehe Soeldnerposten)
     26: 300}
 from gebaeudeziele import angreifbar, zielwerte
+ZIEL_NAME = {3: "Holzfaellerhuette", 4: "Ochsenjoch", 5: "Eisenmine", 6: "Pechgrube", 8: "Soeldnerposten", 9: "Kaserne",
+             11: "Waffenkammer", 19: "Kornspeicher", 20: "Steinbruch", 26: "Markt", 30: "Weizenfarm", 31: "Hopfenfarm",
+             32: "Apfelplantage", 33: "Milchviehhof"}
 WERT = zielwerte(WERT)
 # Liga-Balance (liga_ai.json ranges): alle Bogen/Armbrust 40 Felder - eine Zahl fuer "in Schussweite" (Daniel 23:18: Schuetzen-
 # Gefahr auf 40; live_6: Assassine starb bei Tick 8.527, naechster Bogenschuetze 26 Felder weg, gezaehlt wurde nur bis 16)
@@ -408,6 +411,12 @@ class Einzeln:
     # alle 5 tot. Beim 2. Angriff kam er herunter: -12.900 Leben. Darum Laufbefehl (Kletterweg) bis direkt neben ihn.
     ANLAUF_NAH = 1                   # naeher am Lord: Angriffsbefehl statt Laufbefehl
     STEH_TICKS = 200                 # ohne Spielziel auf demselben Feld -> Lenker-Zustand loesen
+    # Augen fuer die eigenen Entscheidungen (Daniel 27.10. 22:24, Partie 221355: Assassine 217 stand 2.400 Takte 8 Felder neben
+    # der Hopfenfarm 137, ohne eine Zeile im Log): wer so lange steht, sagt warum - Lenker-Zustand und die naechsten Ziele mit
+    # ihrem Ablehnungsgrund
+    STEH_ERKLAER = 300               # ab so vielen Takten Stillstand eine STEHT-Zeile (dann hoechstens alle so viele Takte)
+    ERKLAER_R = 30                   # Ziele bis so viele Felder um die Einheit bekommen ihren Ablehnungsgrund
+    ERKLAER_ZIELE = 3                # so viele naechste Ziele in der Zeile
     BEREIT_PAUSE = 1000              # nach Abbruch/Ende eines Lord-Versuchs so viele Ticks nur raiden (STARTWERT)
     # Raiden geht vor (Daniel 17.10. "prio ist am Anfang raiden und auch waehrend des laufs spaeter"): eine Lord-Gruppe
     # bekommt nur, wer UEBER die lohnenden Raid-Plaetze hinaus da ist (Plaetze = freie Gebaeude ohne Beschuss am Ziel x
@@ -578,6 +587,8 @@ class Einzeln:
         self.bedarf_grund, self.bedarf_fa = "", None
         self._raid_plaetze = None            # 17.10.: lohnende Raid-Plaetze der letzten Runde (Raiden geht vor)
         self._steht = {}                     # 17.10.: n -> (Feld, seit Tick) - Stillstand ohne Spielziel
+        self._still = {}                     # 27.10.: n -> (Feld, seit Tick, zuletzt gemeldet) - fuer die STEHT-Zeile
+        self._ablehnung = {}                 # 27.10.: n -> {Gebaeude: (Typ, Abstand, Grund)} der letzten Zielwahl
         self._route_sperre = {}              # 18.10.: (n, Gebaeude) -> bis Tick (Route war gefaehrlich)
         self._gegenschlag = set()            # 19.10.: greifen diese Runde gemeinsam an (GEGEN-ASSASSINE, GEGENSCHLAG)
 
@@ -717,6 +728,50 @@ class Einzeln:
         fallback = [q for q in heime if schach(q, lord) > SCHUSSWEITE
                     and all(schach(q, p) > SCHUSSWEITE for _, p, _ in fern)]
         return min(fallback, key=lambda q: schach(q, lord)) if fallback else None
+
+    def _lenker_zustand(self, n):
+        """In welchem Auftrag der Lenker die Einheit fuehrt (fuer die STEHT-Zeile)."""
+        if n in self.lordtrupp["mitglieder"]:
+            return "Lord-Trupp (Phase %s)" % self.lordtrupp.get("phase")
+        if n in self.stapel["mitglieder"]:
+            return "Stapel auf %s" % (self.stapel.get("ziel"),)
+        if n in self.flucht:
+            return "Flucht"
+        if n in self.entdeckt:
+            return "entdeckt (Aussendienst)"
+        if n in self.ziel:
+            return "hat Ziel Gebaeude %d" % self.ziel[n]
+        if n in self.jagd:
+            return "Jagd auf %s" % (self.jagd[n],)
+        if n in self.warte:
+            return "wartet bei %s" % (self.warte[n],)
+        return "ohne Auftrag"
+
+    def _steh_erklaerung(self, L, G):
+        """27.10. (Daniel 22:24 "die naechstschlaueren Augen - Logs"): jede eigene Assassine, die STEH_ERKLAER Takte auf
+        demselben Feld steht (Zustand 0/1), meldet - hoechstens alle STEH_ERKLAER Takte - ihren Lenker-Zustand und die
+        ERKLAER_ZIELE naechsten Ziele mit dem Grund aus ihrer letzten Zielwahl."""
+        aus = []
+        for n in sorted(self.mitglieder):
+            if n not in L:
+                self._still.pop(n, None)
+                continue
+            f = (L[n]["x"], L[n]["y"])
+            alt = self._still.get(n)
+            if L[n].get("zustand") not in (0, 1) or alt is None or alt[0] != f:
+                self._still[n] = (f, self.jetzt, None)
+                continue
+            seit, gemeldet = alt[1], alt[2]
+            if self.jetzt - seit < self.STEH_ERKLAER or (gemeldet is not None and self.jetzt - gemeldet < self.STEH_ERKLAER):
+                continue
+            self._still[n] = (f, seit, self.jetzt)
+            gr = self._ablehnung.get(n) or {}
+            naechste = sorted(gr.items(), key=lambda kv: kv[1][1])[:self.ERKLAER_ZIELE]
+            ziele = "; ".join("Gebaeude %d (%s) in %d: %s" % (gn, ZIEL_NAME.get(typ, "Typ %d" % typ), d, g)
+                              for gn, (typ, d, g) in naechste) or "keine Zielwahl seit dem Stillstand (Lenker ueberspringt ihn)"
+            aus.append("STEHT %d seit %d Takten bei %s: %s | naechste Ziele: %s" % (
+                n, self.jetzt - seit, f, self._lenker_zustand(n), ziele))
+        return aus
 
     def _verbuendete_am_lord(self, L, lp):
         """B-226 (Daniel 24.10. 22:02, Lauf 215535: "Raid-Assassinen haetten mit den Einheiten des Teammates den Lord killen
@@ -2813,6 +2868,7 @@ class Einzeln:
                 lt["seit"] = self.runde
             if lt["phase"] == "angriff" and lt["mitglieder"] and self.angriffe:
                 self._lord_messen(L, G, ln, le, lp, fern, nah)
+        ereignis.extend(self._steh_erklaerung(L, G))
         # 5. Ziele verteilen (Gefahr am Gebaeude beachten); wer keins bekommt, wartet ausser Reichweite
         zahl = {}
         for z in self.ziel.values():
@@ -2900,6 +2956,10 @@ class Einzeln:
             schwach = L[n]["leben"] < self.SCHWACH * self.VOLL
             erreichbar = [k for k in kand if k[3]]
             frei = [k for k in erreichbar if zahl.get(k[0], 0) < platz(k)]
+            # 27.10.: Ablehnungsgrund je nahem Ziel (STEHT-Zeile)
+            gr = {k[0]: (k[2], schach(ort, k[1]), "nicht erreichbar (Wegkarte: anderes Gebiet)" if not k[3] else
+                         "belegt (%d von %d Plaetzen)" % (zahl.get(k[0], 0), platz(k)))
+                  for k in kand if schach(ort, k[1]) <= self.ERKLAER_R}
             # 12.10. 01:54 RISIKO GEGEN ERTRAG statt fester Schwellen (Daniel 01:49 "warum wieder ein fixer Umkreis? frei entscheiden
             # und Risk/Reward abwaegen", 01:52 "ALLE Einheiten muessen wirklich aktiv raiden"): je Ziel kleinster erwarteter Schaden
             # auf dem Weg (Dijkstra ueber die GEMESSENE Gefahrenkarte schussfeld.SCHADEN_SATZ: Entdeckung + Deckung) plus Schaden
@@ -2914,13 +2974,17 @@ class Einzeln:
             abgelehnt = None                  # B-257: das beste Ziel, das nur am Todesrisiko scheiterte (fuer die Meldung)
             for k in frei:
                 if k[8] > zahl.get(k[0], 0) + 1:
+                    gr[k[0]] = (k[2], schach(ort, k[1]), "bewacht (%d Nahkaempfer)" % k[8])
                     continue                   # 4a: nicht dorthin, wo mehr Nahkampf-Wachen stehen als wir Angreifer haetten
                 if self._route_sperre.get((n, k[0]), -1) >= self.jetzt:
+                    gr[k[0]] = (k[2], schach(ort, k[1]), "Route gesperrt bis Takt %d" % self._route_sperre[(n, k[0])])
                     continue                   # 18.10. (1018n, Assassine 17): nach ROUTE GEFAEHRLICH nicht gleich dasselbe Ziel
                 if n in self.entdeckt and not self._weit_von_gesehen(n, ort, k[1], L):
+                    gr[k[0]] = (k[2], schach(ort, k[1]), "entdeckt - zu nah an den Schuetzen, die ihn sahen")
                     continue                   # 19.10.: Aussendienst - Weg und Ziel ausser Reichweite der Schuetzen, die ihn sahen
                 b_ziel = self._beschuss_angriff(k[0], G, ort)
                 if L[n]["leben"] < self.EIN_TREFFER and (b_ziel > 0 or self._sicht.sicht_abstand(k[1]) < sicht.SICHT + self.RAND_SCHWACH):
+                    gr[k[0]] = (k[2], schach(ort, k[1]), "zu schwach (%d Leben) fuer ein bewachtes Ziel" % L[n]["leben"])
                     continue                   # 19.10.: ein Bolzen toetet ihn - nur Ziele weit ab von jedem Spaeher
                 # 17.10.: Zeit am Ziel = gemessene Arbeit / Zahl der Angreifer (statt VERWEILEN 300 ungemessen); Beschuss am
                 # Ziel aus der Sicht (sichtbar nur bei waehlbarem Feind <= 20 Feldern, Schusslinie) statt Schadenssatz L73
@@ -2939,7 +3003,10 @@ class Einzeln:
                 ruhe = 1.0 + min(self._sicht.sicht_abstand(k[1]) / 8.0, self.RUHE_FELDER) / self.RUHE_FELDER
                 je_zeit = ruhe * saldo / (felder * TEMPO + verweilen)
                 if saldo <= 0:
+                    gr[k[0]] = (k[2], schach(ort, k[1]), "lohnt nicht (Saldo %.0f, Todesrisiko %.0f %%)" % (saldo, 100 * p_tod))
                     continue
+                gr[k[0]] = (k[2], schach(ort, k[1]), "Todesrisiko %.0f %% ueber der Grenze" % (100 * p_tod)
+                            if p_tod > (grenze if b_ziel <= 0 else grenze_bew) else "anderes Ziel besser (Wert je Zeit %.3f)" % je_zeit)
                 if b_ziel <= 0:
                     if p_tod <= grenze and (beste is None or je_zeit > beste[0]):
                         beste = (je_zeit, k, p_tod, saldo)
@@ -2948,6 +3015,9 @@ class Einzeln:
                 if p_tod > (grenze if b_ziel <= 0 else grenze_bew) and (abgelehnt is None or je_zeit > abgelehnt[0]):
                     abgelehnt = (je_zeit, k, p_tod, grenze if b_ziel <= 0 else grenze_bew, b_ziel)
             beste = beste or beste_bew
+            if beste:
+                gr[beste[1][0]] = (beste[1][2], schach(ort, beste[1][1]), "GEWAEHLT")
+            self._ablehnung[n] = gr
             if beste:
                 _, k_b, p_tod, saldo = beste
                 gn, p, typ, _, f10, f20, f30, _, _ = k_b
