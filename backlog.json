@@ -7623,11 +7623,13 @@
    "nr": "B-280",
    "titel": "NEUSTART IM SPIEL WIRD NICHT ERKANNT (Daniel 28.10. 00:26 'nach dem Neustart andere Starteinheiten'): Partie 001807 - zwei Neustarts aus dem Spielmenue (Takt 9338->23, 3863->45), die Wache sah keine neue Partie, der ALTE Lenker-Prozess lief weiter (alter Code, legte die verschobene Eichung um 00:25 neu an); Starteinheiten danach 7 Speer + 5 Bogen statt 6 arab. Bogen + 4 Assassine - vermutlich weil ki_aus den Platz auf KI 0 gestellt hat und der Neustart den Platz so neu anlegt (UNGEPRUEFT). Vorschlag: Wache erkennt Takt-Ruecksprung als neue Partie; KI-Nummer vor dem Neustart zuruecksetzen pruefen",
    "bereich": "Werkzeug",
-   "status": "offen",
+   "status": "gebaut",
    "seit": "2026-10-28 00:27",
    "herkunft": "Daniel 28.10. 00:26",
-   "gebaut": null,
-   "commits": [],
+   "gebaut": "2026-10-28 00:47",
+   "commits": [
+    "697198b"
+   ],
    "wo": [],
    "belege": [],
    "notiz": "28.10. 00:37 dazu: Spielstand LADEN (Daniel speicherte bei Tick 19815, Partie 002852) zeigt sofort 'Niederlage - Der Zeitreisende gewinnt', obwohl der eigene Lord lebt; die Wache startete keinen neuen Lenker. Vermutung UNGEPRUEFT: die App schaltet beim Start die native KI des SamurAI-Platzes ab (ki_aus), der Spielstand stellt den Platz anders wieder her. Pruefen auf einer freien Instanz, nicht auf Daniels Instanz 5.",
@@ -7639,6 +7641,10 @@
     {
      "zeit": "2026-10-28 00:38",
      "was": "offen -> offen: 28.10. 00:37 dazu: Spielstand LADEN (Daniel speicherte bei Tick 19815, Partie 002852) zeigt sofort 'Niederlage - Der Zeitreisende gewinnt', obwohl der eigene Lord lebt; die Wache startete keinen neuen Lenker. Vermutung UNGEPRUEFT: die App schaltet beim Start die native KI des SamurAI-Platzes ab (ki_aus), der Spielstand stellt den Platz anders wieder her. Pruefen auf einer freien Instanz, nicht auf Daniels Instanz 5."
+    },
+    {
+     "zeit": "2026-10-28 00:47",
+     "was": "offen -> gebaut (Commit 697198b)"
     }
    ]
   },
