@@ -82,8 +82,8 @@ def auge_namen():
                 namen |= set(v.names)
             except TypeError:
                 pass
-    quelltext = io.open(os.path.join(REPO, "werkzeug", "auge.py"), encoding="utf-8").read()
-    return namen, quelltext
+    alias_originale = {alt for alt, neu in auge.FELD_ALIASE.items() if neu in namen}
+    return namen | alias_originale, auge.INDIREKT_GELESENE_FELDER
 
 
 def main():
@@ -92,7 +92,7 @@ def main():
     parser.add_argument("--ausgabe", default=os.path.join(REPO, "daten"), help="Ausgabeordner (Standard: daten)")
     args = parser.parse_args()
     zeilen = belegzeilen(args.ohne_beleg)
-    namen, quelltext = auge_namen()
+    namen, indirekt = auge_namen()
     # Funktionen
     con = sqlite3.connect(os.path.join(EK, "knowledge.sqlite"))
     fn = con.execute("select address, name from functions").fetchall()
@@ -126,7 +126,7 @@ def main():
             if struktur == "Einheit":
                 muster.append(re.compile(r"\+" + str(off) + r"\b"))
             belege = [(b, mk) for b, mk, tx in zeilen if any(p.search(tx) for p in muster)]
-            liest = feld in namen or re.search(r"\b" + re.escape(feld) + r"\b", quelltext) is not None
+            liest = feld in namen or feld in indirekt.get(struktur, set())
             fe_aus.append({"struktur": struktur, "offset": off, "typ": typ, "groesse": gr, "feld": feld,
                            "erklaert": "ja" if belege else "nein",
                            "beleg": " ".join(sorted(set(b for b, _ in belege)))[:200],

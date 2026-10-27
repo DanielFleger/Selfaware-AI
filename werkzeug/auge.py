@@ -175,10 +175,10 @@ PLAYER = _dtype([
 # Tribe (/_HoldStrong/Map/Units/Tribe, 820 Byte) - KI-Trupps
 TRIBE = _dtype([
     ("owner", "<i4", 4), ("tribeState", "<i2", 24), ("tribeType", "<i2", 26), ("tribeBehaviorType", "<i2", 40),
-    ("selectionTargetUnitID", "<i2", 50), ("size", "<i2", 52), ("countdown2", "<i2", 488), ("isRallyingUnk", "<i2", 518),
-    ("targetX", "<i2", 526), ("targetY", "<i2", 528), ("unitType", "<i2", 552), ("field133_0x278", "<i2", 632), ("rallyPointArray", ("<i2", (9, 2)), 568),
+    ("selectionTargetUnitID", "<i2", 50), ("size", "<i2", 52), ("recentProjectileCountdown", "<i2", 488), ("rallyMode", "<i2", 518),
+    ("targetX", "<i2", 526), ("targetY", "<i2", 528), ("unitType", "<i2", 552), ("herdAlertTimer", "<i2", 632), ("rallyPointArray", ("<i2", (9, 2)), 568),
     ("currentRallyPointIndex", "<i2", 608), ("rallyPointCount", "<i2", 610), ("countdown", "<i2", 654),
-    ("attackWave", "<i2", 660), ("unitStance", "<i2", 696), ("targetPlayer_outpost", "<i2", 718),
+    ("attackWave", "<i2", 660), ("unitStance", "<i2", 696), ("targetPlayerID", "<i2", 718),
     ("targetBuildingID", "<i2", 720), ("targetBuildingUID", "<i4", 724),
 ], TRIBE_GROESSE)
 
@@ -235,6 +235,33 @@ AIC = _dtype([
     ("AttDiggingUnit", "<i4", 576), ("AttDiggingUnitMax", "<i4", 580), ("AttUnit2", "<i4", 584), ("AttUnit2Max", "<i4", 588),
     ("AttMaxAssassins", "<i4", 592),
 ], 676)
+
+# Namen aus der Ghidra-Struktur, die das Auge im Python-Datentyp bereits verstaendlich umbenannt hat.
+# Die Abdeckungsmessung zaehlt den Originalnamen nur, wenn sein neuer Name wirklich im Datentyp steht.
+FELD_ALIASE = {
+    "idleCounterUnk": "assassinIdleRevealCounter",
+    "field37_0x5a": "projectileTypeVisualProperty", "field45_0x6a": "projectileRotationFrame",
+    "field50_0x74": "projectileLineCase", "field72_0xa8": "projectileActivatedFlag",
+    "hasDoneEffectUnk": "effectDoneOrNoBounce", "field80_0xba": "clearanceStepsRemaining",
+    "someTracker": "effectPhase", "field82_0xbe": "popupFontGmID", "field83_0xc0": "popupGraphicBase",
+    "displayValue": "popupDisplayValue", "unitUID": "healerUIDForPoisonCloud",
+    "unknownDistanceRelatedValue": "linkedPoisonEntityID",
+    "countdown2": "recentProjectileCountdown", "isRallyingUnk": "rallyMode",
+    "field133_0x278": "herdAlertTimer", "targetPlayer_outpost": "targetPlayerID",
+}
+
+# Felder, die nicht einzeln im numpy-Datentyp stehen, sondern als zusammenhaengender Block oder ueber eine feste
+# Adresse gelesen werden. Explizit statt Quelltext-Wortsuche: ein Kommentar mit gleichem Namen ist kein Speicherlesen.
+INDIREKT_GELESENE_FELDER = {
+    "Gebaeude": {
+        "resourceWood", "resourceHops", "resourceStone", "resourcePartialStone", "resourceIron", "resourcePitch",
+        "resourcePartialPitch", "resourceWheat", "resourceBread", "resourceCheese", "resourceMeat", "resourceApple",
+        "resourceAle", "resourceGold", "resourceFlour", "resourceBow", "resourceCrossbow", "resourceSpear",
+        "resourcePike", "resourceMace", "resourceSword", "resourceLeatherArmor", "resourceIronArmor",
+    },
+    "Karte/Zeit": {"week", "month", "year", "totalGameTicksUnk", "playerTeams"},
+    "Weltkarte": {"LogicLayer", "BuildingLayer", "HeightLayer", "DamageLayer", "pitchDitches", "maxPitchDitchCount"},
+}
 
 
 def aic_lesen():
@@ -1314,9 +1341,10 @@ class Schnappschuss(object):
                 "sre_tribeType_name": TRIBE_TYPE.get(int(r["tribeType"]), ""), "tribeBehaviorType": int(r["tribeBehaviorType"]),
                 "unitType": int(r["unitType"]), "size": int(r["size"]), "unitStance": STANCE.get(int(r["unitStance"]), int(r["unitStance"])),
                 "target": [int(r["targetX"]), int(r["targetY"])], "targetBuildingID": int(r["targetBuildingID"]),
-                "targetBuildingUID": int(r["targetBuildingUID"]), "targetPlayer_outpost": int(r["targetPlayer_outpost"]),
-                "attackWave": int(r["attackWave"]), "countdown": int(r["countdown"]), "countdown2": int(r["countdown2"]),
-                "isRallyingUnk": int(r["isRallyingUnk"]), "selectionTargetUnitID": int(r["selectionTargetUnitID"]),
+                "targetBuildingUID": int(r["targetBuildingUID"]), "targetPlayerID": int(r["targetPlayerID"]),
+                "attackWave": int(r["attackWave"]), "countdown": int(r["countdown"]),
+                "recentProjectileCountdown": int(r["recentProjectileCountdown"]),
+                "rallyMode": int(r["rallyMode"]), "selectionTargetUnitID": int(r["selectionTargetUnitID"]),
                 "rallyPoints": [[int(a), int(b)] for a, b in r["rallyPointArray"][:max(0, min(k, 9))]],
                 "currentRallyPointIndex": int(r["currentRallyPointIndex"]),
             })

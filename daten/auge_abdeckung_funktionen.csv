@@ -2120,7 +2120,7 @@
 0x004CA4D0;_HoldStrong::AI::AICState::setAICParameters_15;nein;;;nein;ja
 0x004CA8A0;_HoldStrong::AI::AICState::setAICParameters_16;nein;;;nein;ja
 0x004CAC70;_HoldStrong::AI::AICState::clearPlayerDataInformationChunk;nein;;;ja;ja
-0x004CACB0;_HoldStrong::AI::AICState::setTargetForTribeBasedOnTargetChoiceLogic;nein;;;nein;ja
+0x004CACB0;_HoldStrong::AI::AICState::setTargetForTribeBasedOnTargetChoiceLogic;ja;AU42;abgelesen + belegt;nein;ja
 0x004CAEA0;_HoldStrong::AI::AICState::aiUpdateTaxesAndRations;nein;;;nein;ja
 0x004CB060;_HoldStrong::AI::AICState::setFoodBuyPlan;nein;;;nein;ja
 0x004CB120;_HoldStrong::AI::AICState::getAIBuildInterval;nein;;;nein;ja
@@ -2210,7 +2210,7 @@
 0x004CF750;_HoldStrong::AI::AICState::sendTribeToAttack;nein;;;nein;ja
 0x004CF7C0;_HoldStrong::AI::AICState::commandFourTribesToMove;nein;;;nein;ja
 0x004CF870;_HoldStrong::AI::AICState::clearOutdatedAITribes;nein;;;nein;ja
-0x004CF920;_HoldStrong::AI::AICState::giveSomeRaidCommand;nein;;;nein;ja
+0x004CF920;_HoldStrong::AI::AICState::giveSomeRaidCommand;ja;AU42;abgelesen + belegt;nein;ja
 0x004CFA10;_HoldStrong::AI::AICState::addRallyPointForTribe;nein;;;nein;ja
 0x004CFB20;_HoldStrong::AI::AICState::disbandAIPlayerSiegeUnits;nein;;;nein;ja
 0x004CFBC0;_HoldStrong::AI::AICState::countSiegeEngineUnits;nein;;;nein;ja
@@ -2253,7 +2253,7 @@
 0x004D1700;_HoldStrong::Global::StoreCurrentGameIntoTemporarySKMasterEntry;nein;;;nein;ja
 0x004D18B0;_HoldStrong::AI::AICState::setInitialAIC;nein;;;nein;ja
 0x004D1950;_HoldStrong::AI::AICState::aiRegisterTribeAndAssignTarget;nein;;;nein;ja
-0x004D1A00;_HoldStrong::AI::AICState::decideOnTribeAttackLocation;nein;;;nein;ja
+0x004D1A00;_HoldStrong::AI::AICState::decideOnTribeAttackLocation;ja;AU42;abgelesen + belegt;nein;ja
 0x004D1D60;_HoldStrong::AI::AICState::sellExcessGoods;nein;;;nein;ja
 0x004D1F00;_HoldStrong::AI::AICState::requestGoods;nein;;;nein;ja
 0x004D2000;_HoldStrong::AI::AICState::aiCreateSiegeUnits;ja;WS 5;abgelesen;nein;ja
@@ -2265,7 +2265,7 @@
 0x004D2830;_HoldStrong::AI::AICState::ifHasTribe0SendUnitsToKeep;nein;;;nein;ja
 0x004D2870;_HoldStrong::AI::AICState::sendTribeAtOffset1ToCampfire;nein;;;nein;ja
 0x004D28B0;_HoldStrong::AI::AICState::aiGiveOuterPatrolCommand;nein;;;nein;ja
-0x004D2A70;_HoldStrong::AI::AICState::aiGiveRaidInstructions;ja;AU13;abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid);nein;ja
+0x004D2A70;_HoldStrong::AI::AICState::aiGiveRaidInstructions;ja;AU13 AU42;abgelesen + belegt / abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid);nein;ja
 0x004D2E00;_HoldStrong::AI::AICState::sendTribeToAIVLocationSlot;nein;;;nein;ja
 0x004D2EC0;_HoldStrong::AI::AICState::computeAttackPossibilities;nein;;;nein;ja
 0x004D2F80;_HoldStrong::AI::AICState::moveAttackingUnitsToNextRallyPoint;nein;;;nein;ja
@@ -2932,7 +2932,7 @@
 0x005241C0;_HoldStrong::Map::Units::TribesState::tribeContainsUnitThatCanClimb;nein;;;nein;ja
 0x00524230;_HoldStrong::Map::Units::TribesState::selectionContainsHorses;nein;;;nein;ja
 0x005242B0;_HoldStrong::Map::Units::TribesState::getMajorityArcherTypeEuropeanOrArabian;nein;;;nein;ja
-0x00524340;_HoldStrong::Map::Units::TribesState::applyMoveCommandOrRallyCommandToTribe;ja;AU38 L120;abgelesen / gemessen (spieler2_pruefen 6/6, Laufversuche je Einheitenart), abgel;nein;ja
+0x00524340;_HoldStrong::Map::Units::TribesState::applyMoveCommandOrRallyCommandToTribe;ja;AU38 AU42 L120;abgelesen / abgelesen + belegt / gemessen (spieler2_pruefen 6/6, Laufversuche je;nein;ja
 0x005244D0;_HoldStrong::Map::Units::TribesState::assignAttackTargetsForTribe;ja;AU38;abgelesen;nein;ja
 0x00524890;_HoldStrong::Map::Units::TribesState::stopTribeMovementAndCheckIdle;nein;;;nein;ja
 0x00524930;_HoldStrong::Map::Units::TribesState::sortTribePathDestinationsByCost;nein;;;nein;ja
@@ -2963,20 +2963,20 @@
 0x005261B0;_HoldStrong::Map::Units::TribesState::respawnDeer;ja;P17;abgelesen;nein;ja
 0x005262A0;_HoldStrong::Map::Units::TribesState::spawnWildlifeOrMercAtAvailableSlot;nein;;;nein;ja
 0x00526370;_HoldStrong::Map::Units::TribesState::upgradeMapTribesState;nein;;;nein;ja
-0x005263A0;_HoldStrong::Map::Units::TribesState::giveTribeMoveInstruction;ja;AU38 L119;abgelesen / gemessen: werkzeug/spieler2_pruefen.py 6/6 (ein Paket mit Bau fuer S;nein;ja
-0x00526F00;_HoldStrong::Map::Units::TribesState::commandUnitsToLocation;nein;;;nein;ja
+0x005263A0;_HoldStrong::Map::Units::TribesState::giveTribeMoveInstruction;ja;AU38 AU42 L119;abgelesen / abgelesen + belegt / gemessen: werkzeug/spieler2_pruefen.py 6/6 (ein;nein;ja
+0x00526F00;_HoldStrong::Map::Units::TribesState::commandUnitsToLocation;ja;AU42;abgelesen + belegt;nein;ja
 0x005270F0;_HoldStrong::Map::Units::TribesState::computeTribePercentages;nein;;;nein;ja
 0x00527330;_HoldStrong::Map::Units::TribesState::updateTribeUnitAssignments;nein;;;nein;ja
 0x00527440;_HoldStrong::Map::Units::TribesState::spawnQueuedReinforcementWaves;nein;;;nein;ja
 0x00527C80;_HoldStrong::Map::Units::TribesState::giveTribeAnInstruction;ja;AU38 L126;"abgelesen / gemessen werkzeug/graben_pruefen.py 3/3 (Spielstand ""Gute Wirtschaft";nein;ja
 0x0052A640;_HoldStrong::Map::Units::TribesState::moveTribeToNearbyClearTile;nein;;;nein;ja
 0x0052A700;_HoldStrong::Map::Units::TribesState::moveTribeToIndexedNearbyTile;nein;;;nein;ja
-0x0052A7D0;_HoldStrong::Map::Units::TribesState::updateTribeCombatStanceBehavior;nein;;;nein;ja
-0x0052AD50;_HoldStrong::Map::Units::TribesState::processDeerMoving;ja;AU35;abgelesen + gemessen;nein;ja
+0x0052A7D0;_HoldStrong::Map::Units::TribesState::updateTribeCombatStanceBehavior;ja;AU42;abgelesen + belegt;nein;ja
+0x0052AD50;_HoldStrong::Map::Units::TribesState::processDeerMoving;ja;AU35 AU42;abgelesen + belegt / abgelesen + gemessen;nein;ja
 0x0052B110;_HoldStrong::Map::Units::TribesState::updateLionWolfTribeBehavior;nein;;;nein;ja
-0x0052B390;_HoldStrong::Map::Units::TribesState::updateRabbitTribeBehavior;nein;;;nein;ja
+0x0052B390;_HoldStrong::Map::Units::TribesState::updateRabbitTribeBehavior;ja;AU42;abgelesen + belegt;nein;ja
 0x0052B630;_HoldStrong::Map::Units::TribesState::updateCamelTribeBehavior;nein;;;nein;ja
-0x0052B860;_HoldStrong::Map::Units::TribesState::updateTribes;nein;;;nein;ja
+0x0052B860;_HoldStrong::Map::Units::TribesState::updateTribes;ja;AU42;abgelesen + belegt;nein;ja
 0x0052B9F0;_HoldStrong::Map::WildlifeState::clearWildlifeState;nein;;;nein;ja
 0x0052BA10;_HoldStrong::Map::WildlifeState::updateWildlifeGrid;nein;;;nein;ja
 0x0052BF40;_HoldStrong::Map::WildlifeState::renderDebugDataMapData;nein;;;nein;ja
@@ -3047,10 +3047,10 @@
 0x00530FD0;_HoldStrong::Map::Units::UnitsState::checkIfCitizenUnitIsAliveBasedOnState;nein;;;nein;ja
 0x00531000;_HoldStrong::Map::Units::UnitsState::shouldUnitsEngageInMelee;nein;;;nein;ja
 0x005311F0;_HoldStrong::Map::Units::UnitsState::ComputeDamageFearFactorBonus;ja;P3;abgelesen (Gegenprobe Lord passt);nein;ja
-0x00531220;_HoldStrong::Map::Units::UnitsState::processUnitAttackOtherUnit;ja;AU35 AU37 P23 P3;abgelesen / abgelesen (Gegenprobe Lord passt) / abgelesen + Daniel gemessen / ab;nein;ja
-0x00531920;_HoldStrong::Map::Units::UnitsState::processEntityDamageToUnit;ja;AU31 AU35 AU37 AU4 P4;abgelesen / abgelesen + gemessen / abgelesen + gemessen (Fenster);nein;ja
+0x00531220;_HoldStrong::Map::Units::UnitsState::processUnitAttackOtherUnit;ja;AU35 AU37 AU42 P23 P3;abgelesen / abgelesen (Gegenprobe Lord passt) / abgelesen + Daniel gemessen / ab;nein;ja
+0x00531920;_HoldStrong::Map::Units::UnitsState::processEntityDamageToUnit;ja;AU31 AU35 AU37 AU4 AU42 P4;abgelesen / abgelesen + belegt / abgelesen + gemessen / abgelesen + gemessen (Fe;nein;ja
 0x00532460;_HoldStrong::Map::Units::UnitsState::processFireDamageToUnit;nein;;;nein;ja
-0x00532700;_HoldStrong::Map::Units::UnitsState::shootProjectile;ja;AU2 AU24;abgelesen + gemessen / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 La;nein;ja
+0x00532700;_HoldStrong::Map::Units::UnitsState::shootProjectile;ja;AU2 AU24 AU42;abgelesen + belegt / abgelesen + gemessen / abgelesen + gemessen (Schuetze/Ziel/;nein;ja
 0x00532BA0;_HoldStrong::Map::Units::UnitsState::recomputeTroopValuesForPlayer;ja;AU20 AU23;abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + gemessen;nein;ja
 0x00532F60;_HoldStrong::Map::Units::UnitsState::getArmySize;nein;;;nein;ja
 0x00532F80;_HoldStrong::Map::Units::UnitsState::computeDistanceToNearestEnemyForLegacyMissions;nein;;;nein;ja
