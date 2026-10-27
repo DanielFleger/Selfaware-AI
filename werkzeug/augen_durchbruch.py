@@ -245,7 +245,7 @@ def main(wand_typen=None):
                 elif feuer1 <= 0 and haus_stellen:
                     hx, hy = haus_stellen.pop(0)
                     g1 = NACH_TYP[1]
-                    befehl({"baue": {"mapper": g1["mapper"], "x": hx, "y": hy, "groesse": g1["b"], "richtung": 0}}, 0.3)
+                    befehl({"baue": {"mapper": g1["mapper"], "x": hx, "y": hy, "groesse": g1["b"], "richtung": 15}}, 0.3)
                     offen = ("haus", t_, holz1)
             if erwartet > 0:                                # die Neuen erscheinen spaeter - jeden Takt nachsehen, bis alle da sind
                 roh = speicher.lies(E0, 3000 * ES)

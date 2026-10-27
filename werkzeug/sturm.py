@@ -382,7 +382,7 @@ def main(wahl=None):
                 elif feuer1 <= 0 and haus_stellen:
                     hx, hy = haus_stellen.pop(0)
                     befehl({"baue": {"mapper": NACH_TYP[HUETTE]["mapper"], "x": hx, "y": hy, "groesse": NACH_TYP[HUETTE]["b"],
-                                     "richtung": 0}}, 0.3)
+                                     "richtung": 15}}, 0.3)
                     offen = ("haus", t_, holz1)
             if erwartet > 0:
                 neu = [n for n in jetzt if uid_von.get(n) != kennung(roh, n)]

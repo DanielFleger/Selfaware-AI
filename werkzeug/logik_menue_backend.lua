@@ -1946,9 +1946,11 @@ local function einzelbefehl(cmd)
   -- Weg: Parameter in DAT_GameCommandParam0..5 (GameSynchronyState + 0x7A850, je 4 Byte),
   -- dann queueCommand (0x00489100, thiscall GameSynchronyState, 1 Argument). Das Spiel fuehrt
   -- den Befehl als Handlung des eigenen Spielers aus - mit Platz- und Kostenpruefung.
-  --   { "baue": { "mapper": 51, "x": 175, "y": 108, "groesse": 3, "richtung": 0 } }
+  --   { "baue": { "mapper": 51, "x": 175, "y": 108, "groesse": 3, "richtung": 15 } }
   --     GCT_PLACE_BUILDING = 28 -> ClickPlaceBuilding: P0 x, P1 y, P2 Mapper, P3 Groesse,
   --     P4 Drehung, P5 Trupp (abgelesen, daten/dekomp_bauen_anwerben.c). Mapper und Groesse
+  --     B-271 (GRA 27.10.): ohne "richtung" geht 15 (0xF) raus wie beim Mausklick (checkBuildingCanBePlacedHere). Mit
+  --     festem 0/2/4/6 zeichnet das Spiel Haeuser, Hoefe, Steinbrueche in zwei von vier Kartendrehungen kaputt.
   --     je Gebaeude: VillageStudio lib/gebaeude.json.
   --   { "werbe": { "typ": 22, "gebaeude": 12 } }
   --     GCT_RECRUIT_UNIT = 31 -> ClickRecruitUnit -> ProcessRecruitUnit(Spieler, P0 Typ, P1 Gebaeude)
@@ -2772,9 +2774,9 @@ local function einzelbefehl(cmd)
 
   if cmd.baue ~= nil and type(cmd.baue) == "table" then
     local b = cmd.baue
-    local ok, err = befehlAbsetzen(28, { b.x, b.y, b.mapper, b.groesse, b.richtung or 0, b.trupp or 0 })
+    local ok, err = befehlAbsetzen(28, { b.x, b.y, b.mapper, b.groesse, b.richtung or 15, b.trupp or 0 })
     log(INFO, string.format("BAUE Tick %d: Mapper %s bei (%s,%s), Groesse %s, Drehung %s - abgesetzt=%s%s",
-      tick(), tostring(b.mapper), tostring(b.x), tostring(b.y), tostring(b.groesse), tostring(b.richtung or 0),
+      tick(), tostring(b.mapper), tostring(b.x), tostring(b.y), tostring(b.groesse), tostring(b.richtung or 15),
       tostring(ok), ok and "" or (" - " .. tostring(err))))
     return true
   end
