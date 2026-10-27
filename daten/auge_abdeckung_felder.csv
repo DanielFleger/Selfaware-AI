@@ -57,17 +57,17 @@ Einheit;168;int;4;woodcutterTreeUID;nein;;;nein;nein
 Einheit;176;short;2;goToRallyPoint;nein;;;nein;nein
 Einheit;178;short;2;ifSelectedThenPlayerID;nein;;;nein;nein
 Einheit;180;short;2;selectionRelatedFlag;ja;P9;abgelesen;nein;nein
-Einheit;182;short;2;microXPosition;nein;;;ja;nein
-Einheit;184;short;2;microYPosition;nein;;;ja;nein
+Einheit;182;short;2;microXPosition;ja;AU37;abgelesen;ja;nein
+Einheit;184;short;2;microYPosition;ja;AU37;abgelesen;ja;nein
 Einheit;186;short;2;terrainOrClimbHeight;ja;AU32 AU4 AU7;abgelesen + gemessen / abgelesen + gemessen (Fenster) / gemessen (Wegplan) / abg;ja;nein
 Einheit;188;short;2;buildingHeight;ja;AU2 AU4 AU7 G1;abgelesen + gemessen (Fenster) / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Ta;ja;nein
 Einheit;190;short;2;shootTargetMicroX;ja;AU5;abgelesen + Lauf;ja;nein
 Einheit;192;short;2;shootTargetMicroY;ja;AU8;abgelesen, Lager live geprueft;ja;nein
-Einheit;194;short;2;shootTargetZ;nein;;;ja;nein
+Einheit;194;short;2;shootTargetZ;ja;AU37;abgelesen;ja;nein
 Einheit;196;short;2;x;ja;AU1 AU10 AU12 AU14 AU15 AU16 AU20 AU21 AU25 AU28 AU3 AU31 AU5 AU8 AU9 G10 G5 G8 L100 L107 L123 L125 L126 L129 L142 L143 L153 L154 L190 L21 L35 L71 L72 L82 L87 L96 P1 P13 P14 P16 P19 P2 P21 P25 P29 P3 ;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
-Einheit;198;short;2;y;ja;AU10 AU12 AU13 AU14 AU2 AU31 AU5 AU9 G10 G8 L105 L107 L126 L153 P16 P29 W1 WS 1 WS 13 WS 3 WS 5;**getestet** (24.10.) / Die Zeichenflaeche ist roher Speicher und laesst sich di;ja;nein
+Einheit;198;short;2;y;ja;AU10 AU12 AU13 AU14 AU2 AU31 AU37 AU5 AU9 G10 G8 L105 L107 L126 L153 P16 P29 W1 WS 1 WS 13 WS 3 WS 5;**getestet** (24.10.) / Die Zeichenflaeche ist roher Speicher und laesst sich di;ja;nein
 Einheit;200;short;2;destinationXPosition;ja;AU13 L78 L82 P14;abgelesen / abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid) / abgelesen + live g;ja;nein
-Einheit;202;short;2;destinationYPosition;nein;;;ja;nein
+Einheit;202;short;2;destinationYPosition;ja;AU37;abgelesen;ja;nein
 Einheit;204;short;2;ladderExitXPosition;nein;;;nein;nein
 Einheit;206;short;2;ladderExitYPosition;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);nein;nein
 Einheit;208;short;2;field100_0xd0;nein;;;nein;ja
@@ -96,7 +96,7 @@ Einheit;660;short;2;climbDataID;ja;AU8 AU9;"abgelesen, Lager live geprueft / abg
 Einheit;664;int;4;climbDataRelated;nein;;;nein;nein
 Einheit;668;short;2;climbDirection;nein;;;nein;nein
 Einheit;670;short;2;usingTeleport;ja;AU22 AU26 AU34;abgelesen + gemessen / gemessen;ja;nein
-Einheit;672;short;2;dying;nein;;;ja;nein
+Einheit;672;short;2;dying;ja;AU37;abgelesen;ja;nein
 Einheit;674;ushort;2;nextUnitOnTheSameTile;ja;AU10 AU18 AU4;abgelesen (Adressen aus types.json + Code), Pech/Feuer live 0 im Sandkasten / ab;ja;nein
 Einheit;676;short;2;isSelectable_OR_matchTime;ja;AU7;gemessen (Wegplan) / abgelesen (uebrige Felder);ja;ja
 Einheit;678;short;2;closestEnemyMicroDistance;ja;AU18 AU19 AU20 AU21 AU23 AU28 AU7;abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + gemessen / abgele;ja;nein
@@ -109,8 +109,8 @@ Einheit;692;short;2;facingDirection;ja;AU18 AU19 AU5 AU7 L190;abgelesen + Lauf /
 Einheit;698;short;2;unitOrderWhenOnSameTile;ja;AU20;abgelesen (1b/2 Staleness gemessen nur indirekt);nein;nein
 Einheit;700;short;2;movementRunUpTime;nein;;;nein;nein
 Einheit;702;short;2;stateBasedSpeed;ja;AU18 AU5 AU8 L132 L190 P13 P29;"Offsets getestet (live, SAI); Feuerwache abgelesen / abgelesen + Lauf / abgelese";ja;nein
-Einheit;704;UnitStateUnion;2;state;ja;AU10 AU12 AU6 AU8 L81;abgelesen (Adressen aus types.json + Code), Pech/Feuer live 0 im Sandkasten / ab;ja;nein
-Einheit;706;UnitStateShort;2;cachedState;nein;;;ja;nein
+Einheit;704;UnitStateUnion;2;state;ja;AU10 AU12 AU37 AU6 AU8 L81;abgelesen / abgelesen (Adressen aus types.json + Code), Pech/Feuer live 0 im San;ja;nein
+Einheit;706;UnitStateShort;2;cachedState;ja;AU37;abgelesen;ja;nein
 Einheit;708;short;2;field147_0x2c4;ja;AU8 P29;"Offsets getestet (live, SAI); Feuerwache abgelesen / abgelesen, Lager live gepru";nein;ja
 Einheit;710;UnitStateUnion;2;state_3;nein;;;nein;nein
 Einheit;712;short;2;updateTickTracker;nein;;;nein;nein
@@ -119,8 +119,8 @@ Einheit;716;short;2;state_2;ja;WS 3;;ja;nein
 Einheit;718;UnitTypeShort;2;unitType_3;nein;;;nein;nein
 Einheit;720;short;2;someUnitStat2_meleeDamageUnk;ja;AU20 AU9;abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen, live gesehen (Wert;nein;ja
 Einheit;722;short;2;unknownMovementRelated_0x2d2;nein;;;nein;ja
-Einheit;724;short;2;healthPercentage;nein;;;ja;nein
-Einheit;726;short;2;selectionTargetUnitID;nein;;;ja;nein
+Einheit;724;short;2;healthPercentage;ja;AU37;abgelesen;ja;nein
+Einheit;726;short;2;selectionTargetUnitID;ja;AU37;abgelesen;ja;nein
 Einheit;728;short;2;tribeID;ja;AU18;abgelesen + gemessen (Reihenfolge);ja;nein
 Einheit;730;short;2;idInTribe;nein;;;nein;nein
 Einheit;732;short;2;plannedDestinationX;nein;;;ja;nein
@@ -211,8 +211,8 @@ Einheit;962;char;1;field267_0x3c2;nein;;;nein;ja
 Einheit;964;byte;1;field269_0x3c4;nein;;;nein;ja
 Einheit;965;byte;1;field270_0x3c5;nein;;;nein;ja
 Einheit;966;short;2;field271_0x3c6;nein;;;nein;ja
-Einheit;968;int;4;health;ja;AU9 WS 3;"abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nicht gegen das";ja;nein
-Einheit;972;int;4;maxHealth;nein;;;ja;nein
+Einheit;968;int;4;health;ja;AU37 AU9 WS 3;"abgelesen / abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nic";ja;nein
+Einheit;972;int;4;maxHealth;ja;AU37;abgelesen;ja;nein
 Einheit;976;byte;1;occupancyOrFlag;nein;;;nein;nein
 Einheit;977;byte;1;field275_0x3d1;nein;;;nein;ja
 Einheit;978;short;2;field276_0x3d2;ja;AU22 AU23 AU26 AU34 L190;abgelesen + gemessen / gemessen;ja;ja
@@ -343,7 +343,7 @@ Gebaeude;232;ushort;2;microX;ja;AU2 P13 P16;abgelesen (Aufbau) / abgelesen + gem
 Gebaeude;234;ushort;2;microY;nein;;;ja;nein
 Gebaeude;236;short;2;terrainHeightUnk;nein;;;nein;ja
 Gebaeude;238;ushort;2;x;ja;AU1 AU10 AU12 AU14 AU15 AU16 AU20 AU21 AU25 AU28 AU3 AU31 AU5 AU8 AU9 G10 G5 G8 L100 L107 L123 L125 L126 L129 L142 L143 L153 L154 L190 L21 L35 L71 L72 L82 L87 L96 P1 P13 P14 P16 P19 P2 P21 P25 P29 P3 ;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
-Gebaeude;240;ushort;2;y;ja;AU10 AU12 AU13 AU14 AU2 AU31 AU5 AU9 G10 G8 L105 L107 L126 L153 P16 P29 W1 WS 1 WS 13 WS 3 WS 5;**getestet** (24.10.) / Die Zeichenflaeche ist roher Speicher und laesst sich di;ja;nein
+Gebaeude;240;ushort;2;y;ja;AU10 AU12 AU13 AU14 AU2 AU31 AU37 AU5 AU9 G10 G8 L105 L107 L126 L153 P16 P29 W1 WS 1 WS 13 WS 3 WS 5;**getestet** (24.10.) / Die Zeichenflaeche ist roher Speicher und laesst sich di;ja;nein
 Gebaeude;244;uint;4;currentTilePositionAdjusted;nein;;;nein;nein
 Gebaeude;248;uint;4;widthOrHeight;nein;;;nein;nein
 Gebaeude;252;ushort;2;entranceAttemptTileIndex;nein;;;nein;nein
@@ -353,10 +353,10 @@ Gebaeude;258;short;2;buildingVariation;nein;;;nein;nein
 Gebaeude;260;int;4;fireRelatedRNG1;nein;;;nein;nein
 Gebaeude;264;short;2;flag1;nein;;;nein;nein
 Gebaeude;268;short;2;currentHealth;ja;P29;"Offsets getestet (live, SAI); Feuerwache abgelesen";ja;nein
-Gebaeude;270;short;2;maxHealth;nein;;;ja;nein
+Gebaeude;270;short;2;maxHealth;ja;AU37;abgelesen;ja;nein
 Gebaeude;272;short;2;unitRefID;nein;;;nein;nein
 Gebaeude;276;int;4;unitRefUID;nein;;;nein;nein
-Gebaeude;280;short;2;state;ja;AU10 AU12 AU6 L81;abgelesen (Adressen aus types.json + Code), Pech/Feuer live 0 im Sandkasten / ab;ja;nein
+Gebaeude;280;short;2;state;ja;AU10 AU12 AU37 AU6 L81;abgelesen / abgelesen (Adressen aus types.json + Code), Pech/Feuer live 0 im San;ja;nein
 Gebaeude;282;short;2;field117_0x11a;nein;;;nein;ja
 Gebaeude;284;int;4;killingPitField;nein;;;nein;nein
 Gebaeude;288;int[2];8;resourceArray_resourceTypePlus1;nein;;;nein;nein
@@ -621,7 +621,7 @@ Trupp;40;SomeTribeBehaviorTypeShort;2;tribeBehaviorType;ja;AU9;"abgelesen, live 
 Trupp;44;short;2;someUpdateUpperLimit;nein;;;nein;nein
 Trupp;46;short;2;unknownAttackRelatedUpdateCounter;nein;;;nein;ja
 Trupp;48;short;2;field30_0x30;nein;;;nein;ja
-Trupp;50;short;2;selectionTargetUnitID;nein;;;ja;nein
+Trupp;50;short;2;selectionTargetUnitID;ja;AU37;abgelesen;ja;nein
 Trupp;52;short;2;size;ja;AU9;"abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nicht gegen das";ja;nein
 Trupp;54;short;2;size2Unk;nein;;;nein;ja
 Trupp;56;short[200];400;unitSelectionBitMasked;nein;;;nein;nein

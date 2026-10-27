@@ -14,6 +14,7 @@ Das ist "im Register erwaehnt", nicht "vollstaendig verstanden" - die Marke der 
 
 Aufruf: python werkzeug/engine_knowledge/auge_abdeckung.py   -> daten/auge_abdeckung_{funktionen,felder}.csv + .json
 """
+import argparse
 import csv
 import io
 import json
@@ -43,13 +44,15 @@ TECHNIK = ("_HoldStrong::UI", "HoldStrong_lib", "_HoldStrong::Global::Init", "_H
 UNKLAR = re.compile(r"^(field\d+_0x[0-9a-f]+|FUN_|DAT_|_?unknown|.*Unk\d*$|.*_OR_|.*Unknown|.*unk\d)", re.I)
 
 
-def belegzeilen():
+def belegzeilen(ohne_beleg=None):
     """[(beleg, marke_text, text_klein)] aus Register und Wissensstand."""
     aus = []
     reg = io.open(os.path.join(REPO, "Wissensregister.md"), encoding="utf-8").read().splitlines()
     for z in reg:
         m = re.match(r"^\| ([A-Z]+\d+) \|", z)
         if m:
+            if m.group(1) == ohne_beleg:
+                continue
             spalten = [s.strip() for s in z.split("|")]
             marke = spalten[-4] if len(spalten) > 4 else ""
             aus.append((m.group(1), marke, z.lower()))
@@ -84,7 +87,11 @@ def auge_namen():
 
 
 def main():
-    zeilen = belegzeilen()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ohne-beleg", help="Negativlauf: diese Registerzeile bei der Messung ausblenden")
+    parser.add_argument("--ausgabe", default=os.path.join(REPO, "daten"), help="Ausgabeordner (Standard: daten)")
+    args = parser.parse_args()
+    zeilen = belegzeilen(args.ohne_beleg)
     namen, quelltext = auge_namen()
     # Funktionen
     con = sqlite3.connect(os.path.join(EK, "knowledge.sqlite"))
@@ -126,7 +133,8 @@ def main():
                            "marke": " / ".join(sorted(set(mk for _, mk in belege if mk)))[:80],
                            "liest_auge": "ja" if liest else "nein",
                            "name_unklar": "ja" if UNKLAR.match(feld) else "nein"})
-    daten = os.path.join(REPO, "daten")
+    daten = os.path.abspath(args.ausgabe)
+    os.makedirs(daten, exist_ok=True)
     for datei, liste in (("auge_abdeckung_funktionen.csv", f_aus), ("auge_abdeckung_felder.csv", fe_aus)):
         with io.open(os.path.join(daten, datei), "w", encoding="utf-8-sig", newline="") as f:
             w = csv.DictWriter(f, fieldnames=list(liste[0].keys()), delimiter=";")
