@@ -7262,18 +7262,24 @@
    "nr": "B-271",
    "titel": "Drehwert beim Bauen: baue schickt richtung 0, das Spiel nimmt 15 (0xF) - Gebaeude sind in 2 von 4 Kamerastellungen nur flache Flecken (GRA belegt 27.10. 18:22, Instanz 2, Bilder VillageStudio/messungen/20261026_gra_drehen/); Fix: logik.lua Standard 15, Python-Aufrufer 0 -> 15; Eingangslenkung 0/2/4/6 entscheidet Daniel",
    "bereich": "Bauen",
-   "status": "offen",
+   "status": "gebaut",
    "seit": "2026-10-27 18:22",
    "herkunft": "GRA 27.10. 18:22",
-   "gebaut": null,
-   "commits": [],
+   "gebaut": "2026-10-27 18:33",
+   "commits": [
+    "c02b0cd"
+   ],
    "wo": [],
    "belege": [],
-   "notiz": "Fix macht GRA im Repo (Absprache SAI 18:23), lokal committen mit B-271",
+   "notiz": "Fix macht GRA im Repo (Absprache SAI 18:23), lokal committen mit B-271 | Daniel 18:30 bestaetigt (Haus wurde zum Seuchenfeld). 18:40 in die App-Kopie eingespielt (9 Dateien, Sicherung .vor-B271-20261027); die Spielwege senden jetzt richtung 15. Offen: logik.lua im Modul-Zip von Instanz 5 hat noch 'richtung or 0' (nur fuer Befehle ohne richtung) und aufbau_bauen/aufbau_planer/eingang_messen mit 0/2/4/6 - Daniels Entscheid.",
    "verlauf": [
     {
      "zeit": "2026-10-27 18:22",
      "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-27 18:33",
+     "was": "offen -> gebaut (Commit c02b0cd): Daniel 18:30 bestaetigt (Haus wurde zum Seuchenfeld). 18:40 in die App-Kopie eingespielt (9 Dateien, Sicherung .vor-B271-20261027); die Spielwege senden jetzt richtung 15. Offen: logik.lua im Modul-Zip von Instanz 5 hat noch 'richtung or 0' (nur fuer Befehle ohne richtung) und aufbau_bauen/aufbau_planer/eingang_messen mit 0/2/4/6 - Daniels Entscheid."
     }
    ]
   },
