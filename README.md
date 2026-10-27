@@ -12,6 +12,10 @@ Stronghold Crusader / Crusader Extreme under UCP3.
   tiles and walls, and the runtime. Every fact carries a confidence mark
   (proven / measured / read-from-code / assumed).
 
+## Fairness
+SamurAI may act superhumanly fast, but never changes the game and never uses hidden opponent data -
+see [FAIRNESS.md](FAIRNESS.md) (checked by `werkzeug/fairness_pruefen.py`).
+
 ## Status
 Early research. Assumptions are labelled and must not be relied on.
 

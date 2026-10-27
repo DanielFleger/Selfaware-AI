@@ -8,6 +8,7 @@ Durchsucht den Spielweg (Importhuelle von erstes_spiel / samurai_wache / local_l
 2. VERBORGENES: jede Funktion, die Laufziel (laufx/laufy) oder Angriffsziel (zieleinheit/nahziel) liest, ist in LESER
    von Hand eingeordnet (gelesen 27.10. 20:05): "eigen" (eigene/verbuendete Einheiten, Protokoll) oder "feind-laufziel" /
    "feind-ziel" (verborgenes Gegnerwissen, Umbau offen). Eine NEUE, nicht eingeordnete Funktion macht die Pruefung ROT.
+Die Regel selbst steht in FAIRNESS.md (Repo-Wurzel).
 Aufruf: python werkzeug/fairness_pruefen.py [--liste]"""
 import ast
 import os

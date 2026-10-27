@@ -14,3 +14,6 @@ zum obersten Punkt, zurueck dorthin. Was dabei erledigt wird, sofort im Backlog 
 Jede Partie wird Trainingsdaten (Daniel 19.10.2026 22:48): nach jeder Partie `python werkzeug/partie_lernen.py <konsole> <lage>`
 (die SamurAI-Wache startet es am Partieende selbst) - eine Zeile je Partie in `daten/lernen/partien.jsonl`; Lehren ins
 Wissensregister, offene Folgen ins Backlog.
+
+Fairness (Daniel 27.10.2026 19:46): die KI darf uebermenschlich schnell steuern, aber nie das Spiel veraendern und nie
+verborgenes Gegnerwissen nutzen - FAIRNESS.md lesen, vor jedem Commit `python werkzeug/fairness_pruefen.py` (muss GRUEN sein).
