@@ -1135,7 +1135,7 @@ B_VERSATZ = None         # Lernkreis: B-Plantagen so viele Ticks nach "alle A st
 STEUER_RUNTER = 95       # Lernkreis: Steuer senken unter dieser Beliebtheit (Daniel 06.10. 23:53: Steuern als Geldquelle)
 BEV_ZIEL = 0             # Lernkreis: Huetten bauen, bis so viele Wohnplaetze stehen (0 = aus; Daniel 07.10. 00:17 "60-70")
 ABRISS = True            # Lernkreis: im Endspiel alle Betriebe abreissen (nein = direkt anwerben, Daniel 01:51)
-EINZELKAUF = False       # Lernkreis: fehlende 1-4 Waffen einzeln gutschreiben statt 5er kaufen (Daniel 01:35)
+EINZELKAUF = False       # Lernkreis: fehlende 1-4 Waffen einzeln gutschreiben statt 5er kaufen (Daniel 01:35) - seit B-274 fest aus
 AUFLOESEN = False        # Lernkreis: eigene Soldaten (ausser Streitkolbenkaempfern) zu Bauern aufloesen (Daniel 01:29)
 SCHUB = False            # Lernkreis: die ersten 5 Kaempfer schon waehrend der Kasse anwerben (Lauf 45/46: Verlust im Endspiel)
 KASSE_STUFE = 11         # Lernkreis: Steuerstufe der Kasse (11 = -40, 9 = -20, 7 = -11; Liga 4,00 / 2,00 / 1,30 Gold je Kopf)
@@ -4074,7 +4074,11 @@ def main():
     BIER = arg.get("bier", "nein") == "ja"
     PRODUKTION_FENSTER = int(arg.get("produktion_fenster", PRODUKTION_FENSTER))
     AUFLOESEN = arg.get("aufloesen", "nein")   # "ja" = nach Bedarf als Arbeiter, "ende" = als Rekruten im Endspiel
-    EINZELKAUF = arg.get("einzelkauf", "nein") == "ja"
+    # B-274 (Daniel 27.10. 19:46 "nicht das Spiel veraendern, Preise einheben ..."): der Einzelkauf schrieb Waren und Gold
+    # direkt in den Speicher - Schummeln, darum fest aus; einzelkauf=ja wird nur noch gemeldet
+    EINZELKAUF = False
+    if arg.get("einzelkauf", "nein") == "ja":
+        print("EINZELKAUF abgelehnt (B-274 Fairness: Waren/Gold per Speicher sind Schummeln) - es wird in 5er-Losen gekauft")
     ABRISS = arg.get("abriss", "ja") == "ja"
     STEUER_RUNTER = int(arg.get("steuer_runter", 95))
     STEUER_ENDE = arg.get("steuer_ende", "nein")
