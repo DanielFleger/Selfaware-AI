@@ -101,7 +101,8 @@ UNIT = _dtype([
     ("nextAttackHurtsWall", "i1", 1006), ("lastEncounteredEnemyPlayerID", "<i2", 1024), ("field_0x40e", "i1", 1038),
     ("horseArcherShootCheckInterval", "<i2", 1062), ("aiUnitBehaviourType", "<i2", 1066), ("siegeTargetPlayerID", "<i2", 1074),
     ("lastEncounteredEnemyUnitIDUnk", "<i2", 1078), ("assassinsMicroDistanceToEnemyUnk", "<i4", 1080),
-    ("enemyNoticeFrequencyUnk", "<i4", 1084), ("field339_0x440", "<u2", 1088), ("idleCounterUnk", "<i2", 1092),
+    # Ghidra: idleCounterUnk; Assassinen werden im Einzelspieler nach 2400 untaetigen Takten sichtbar.
+    ("enemyNoticeFrequencyUnk", "<i4", 1084), ("field339_0x440", "<u2", 1088), ("assassinIdleRevealCounter", "<i2", 1092),
 ], UNIT_GROESSE)
 
 # Entity (/_HoldStrong/Map/Entities/Entity, 232 Byte): Geschosse, Feuer, Fahnen, Staub ...
@@ -1134,7 +1135,7 @@ class Schnappschuss(object):
             "cachedState": int(r["cachedState"]), "state_2": int(r["state_2"]),
             "animationFrame": int(r["animationFrame"]), "animationTicker": int(r["animationTicker"]),
             "animationSpeed": int(r["animationSpeed"]), "animationCycleNumber": int(r["animationCycleNumber"]),
-            "idle": int(r["idle"]), "idleCounterUnk": int(r["idleCounterUnk"]),
+            "idle": int(r["idle"]), "assassinIdleRevealCounter": int(r["assassinIdleRevealCounter"]),
             "sre_phase_schritte": schritte, "sre_phase_rest_takte": rest,
             "sre_naechster_schuss_takte": (schuss if int(r["shootTargetedUnit"]) or zustand in (4, 5, 6) else None),
             # Zielwahl / Vorhalt
