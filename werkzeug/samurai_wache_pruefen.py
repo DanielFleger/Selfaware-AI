@@ -46,6 +46,16 @@ def main():
     # 19.10. 22:40 (Daniel 22:33 "das Spiel haengt"): Ansicht 16 = ein Gebaeude angeklickt (Markt, Soeldnerposten) - im Spiel
     pruefe(10, "Gebaeude angeklickt (Ansicht 16), Lenker laeuft", W.entscheide(16, 0, ratte2, True, True), ("warten", None))
     pruefe(11, "Gebaeude angeklickt (Ansicht 16), Ratte, nicht bedient", W.entscheide(16, 0, ratte2, False, False), ("starten", 2))
+    # B-280 (Daniel 28.10. 00:26/00:39): Neustart und Laden im Spiel; Pause stellt den Platzhalter zurueck
+    pruefe(12, "Takt 19815 -> 3 (Neustart)", W.takt_sprung(19815, 3), True)
+    pruefe(13, "Takt 100 -> 80 (Rauschen) und erster Wert", (W.takt_sprung(100, 80), W.takt_sprung(None, 3)), (False, False))
+    z = {}
+    schritte = [W.pause_schritt(z, 500, 0.0), W.pause_schritt(z, 500, 0.6), W.pause_schritt(z, 500, 1.1),
+                W.pause_schritt(z, 500, 2.0), W.pause_schritt(z, 510, 2.5), W.pause_schritt(z, 510, 3.6)]
+    pruefe(14, "Pause: einmal zurueckstellen nach 1 s, nach dem Weiterlaufen erneut", schritte,
+           [None, None, "zurueckstellen", None, None, "zurueckstellen"])
+    z2 = {}
+    pruefe(15, "laufender Takt stellt nie zurueck", [W.pause_schritt(z2, t, t / 100.0) for t in range(0, 500, 20)].count("zurueckstellen"), 0)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 

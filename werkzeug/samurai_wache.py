@@ -45,6 +45,32 @@ LENKER_ARGS = ("leere_ki=nein experiment=ja regel50=nein minuten=600 tempo=40 bi
 # der Lenker kannte beide schon (erstes_spiel.py). Die Wache kannte nur 14: oeffnete Daniel ein Gebaeude, hielt sie die
 # Partie fuer verlassen, beendete SamurAI und stellte die Tick-Pause scharf - die hielt dann sein Spiel an.
 IM_SPIEL = (14, 16)
+# B-280 (Daniel 28.10. 00:26 "nach dem Neustart andere Starteinheiten", 00:39 "Spielstand laden -> Niederlage, das fixt du"):
+# die Uebernahme (takeover.lua) setzt den SamurAI-Platz auf "keine KI, lebt". Ein Neustart aus dem Spielmenue baute die Karte
+# daraus (Mensch-Starteinheiten), ein Spielstand speicherte es (beim Laden fehlte "lebt" -> nach 3 Takten ausgeschieden), und
+# die Wache sah keine neue Partie. Jetzt: steht der Takt PAUSE_RUECK_S still (Pause, Menue), stellt die Wache den Platz auf
+# seine KI 16 zurueck - Spielstand und Neustart sehen den echten SamurAI-Platz; vor dem naechsten Takt schaltet takeover.lua
+# wieder ab (die eingebaute KI bekommt nie einen Zug). Springt der Takt zurueck, ist es eine neue Partie: neuer Lenker.
+TAKT = 0x0117CADC
+PAUSE_RUECK_S = 1.0
+SPRUNG_TAKTE = 50
+
+
+def takt_sprung(alt, neu):
+    """Neustart oder Laden im Spiel: der Takt geht um mehr als SPRUNG_TAKTE zurueck."""
+    return alt is not None and neu + SPRUNG_TAKTE < alt
+
+
+def pause_schritt(z, takt, jetzt):
+    """z: {'takt', 'seit', 'zurueck'} (wird fortgeschrieben). Gibt 'zurueckstellen', sobald der Takt PAUSE_RUECK_S still steht -
+    einmal je Pause; laeuft der Takt wieder, beginnt die Zaehlung neu."""
+    if z.get("takt") != takt:
+        z.update(takt=takt, seit=jetzt, zurueck=False)
+        return None
+    if not z.get("zurueck") and jetzt - z.get("seit", jetzt) >= PAUSE_RUECK_S:
+        z["zurueck"] = True
+        return "zurueckstellen"
+    return None
 
 
 def im_spiel(ansicht, gameover):
@@ -234,6 +260,7 @@ def main():
     schreib('SamurAI-Wache: sichtbarer Platzhalter KI %d, Teamsteuerung, Mensch steuern %s'%(samurai_id,mensch))
     buch=Lernbuch(D)
     aktiv={};bedient=set();scharf=False;zuletzt_im_spiel=False
+    pause={}
 
     def abschliessen(over=0, grund='Wache beendet'):
         from laden import peek
@@ -316,6 +343,29 @@ def main():
                             aktiv[sp]=(proc,handle,run,stop);bedient.add(sp)
                             schreib('SamurAI gestartet fuer Spieler %d: Prozess %d, %s'%(sp,proc.pid,log))
                     scharf=False;zuletzt_im_spiel=True
+                # B-280: Neustart/Laden im Spiel erkennen, in der Pause den Platzhalter zurueckstellen
+                try:
+                    from laden import peek
+                    takt=peek(TAKT)[0]
+                except Exception:
+                    takt=None
+                if takt is not None and takt_sprung(pause.get('takt'),takt):
+                    schreib('Takt sprang von %d auf %d - Neustart oder Laden im Spiel, neue Partie'%(pause['takt'],takt))
+                    abschliessen(0,'Neustart oder Laden im Spiel')
+                    bedient.clear();pause.clear();zuletzt_im_spiel=False
+                    continue
+                if takt is not None and aktiv and pause_schritt(pause,takt,time.monotonic())=='zurueckstellen':
+                    try:
+                        from befehl import session_record
+                        rec=session_record()
+                        for sp_,v in sorted((rec.get('saved') or {}).items()):
+                            sp_=int(sp_)
+                            for adr,wert in ((AI_ARRAY+sp_*4,v['ai']),(AI_TYP+sp_*PD_SCHRITT,v['kind']),(MENSCH+sp_*4,v['full'])):
+                                befehl({"poke": adr, "wert": wert}, 1.0, bis="POKE")
+                            schreib('PAUSE bei Takt %d: Platz %d auf KI %d zurueckgestellt (Spielstand/Neustart sehen SamurAI; vor dem '
+                                    'naechsten Takt schaltet takeover.lua wieder ab)'%(takt,sp_,v['ai']))
+                    except Exception as ex:
+                        schreib('PAUSE: Zurueckstellen nicht moeglich: %r'%(ex,))
                 for sp,(proc,handle,run,stop) in aktiv.items():
                     if proc.poll() is not None and not handle.closed:
                         schreib('SamurAI Spieler %d beendet, Rueckgabe %s; kein verdeckter Neustart'%(sp,proc.returncode));handle.close()
