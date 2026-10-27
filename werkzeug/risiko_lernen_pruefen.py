@@ -8,6 +8,9 @@ Soll vorher festgelegt:
   5. Lernprofil: Datei geschrieben und von einer neuen Eichung wieder gelesen
   6. Ziel nur ueber einen Weg im Blick eines Bogens mit Spaeher: ohne Probe kein Ziel; mit Probe PROBE-Zeile und Ziel
   7. nie zwei Proben zugleich; nicht unter PROBE_LEBEN
+  9. (B-279) Assassine AM Gebaeude, Arbeiter 1 Feld daneben -> kein Mitnehmen, Ziel bleibt
+ 10. (B-279) unterwegs (Gebaeude 30 Felder weg) nimmt sie den Arbeiter mit; ist er tot -> zurueck zu ihrem Gebaeude
+ 11. (B-279) Eichung zaehlt nur Angriffe, die am Ziel ankamen (oder mit Tod endeten)
   8. Hit & Run: entdeckt (Armbrust visiert ihn an), nicht getroffen, Runde 15 Takte -> arbeitet weiter, Ziel bleibt;
      Runde 106 Takte (gemessen Partie 232139) -> "kein Hit & Run", die alten Regeln (fertig machen, Gegenwert, raus) entscheiden
 Aufruf: python risiko_lernen_pruefen.py"""
@@ -111,6 +114,36 @@ def main():
         t8a.ziel.get(100), [z[:60] for z in e8a if "HIT&RUN" in z][:1], t8b.ziel.get(100), [z[:60] for z in e8b if "HIT&RUN" in z][:1]),
         t8a.ziel.get(100) == 900 and any("arbeitet weiter" in z for z in e8a)
         and any("kein Hit & Run" in z for z in e8b) and not any("arbeitet weiter" in z for z in e8b)))
+    # 9/10 Arbeiter mitnehmen
+    def mitnehmen(abstand_gebaeude):
+        A.Einzeln.PROBE, A.Einzeln.HIT_RUN = False, False
+        t = neu(); t._raid_plaetze = 99
+        L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000), 700: einheit(3, 2, 101, 100, leben=1000)}
+        G = {900: {"besitzer": 2, "typ": 3, "x": 100 + abstand_gebaeude, "y": 102, "leben": 100, "uid": 1, "erreichbar": 1}}
+        t.aufnehmen([100])
+        t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
+        L[100].update(laufx=100 + abstand_gebaeude, laufy=102, zustand=107 if abstand_gebaeude <= 2 else 101)
+        erg, _ = t.schritt(L, G, sichere_orte=[(50, 50)], tick=10000)
+        return t, L, G, erg
+    t9, _, _, e9 = mitnehmen(1)
+    f.append(("9 am Gebaeude: kein Mitnehmen, Ziel %s" % t9.ziel.get(100),
+              t9.ziel.get(100) == 900 and not any("nimmt Arbeiter" in z for z in e9)))
+    t10, L10, G10, e10 = mitnehmen(30)
+    jagd10 = t10.jagd.get(100)
+    del L10[700]
+    e10b, _ = t10.schritt(L10, G10, sichere_orte=[(50, 50)], tick=10030)
+    f.append(("10 unterwegs: Jagd %s, danach Ziel %s %s" % (jagd10, t10.ziel.get(100), [z[:50] for z in e10b if "zurueck" in z][:1]),
+              jagd10 == 700 and t10.ziel.get(100) == 900 and any("zurueck zu Gebaeude 900" in z for z in e10b)))
+    # 11 Eichung: nur angekommene Angriffe
+    e11 = RL.Eichung()
+    e11.start(1, 900, 20000, 12500, 0, ziel_ort=(200, 200))
+    e11.runde({1: {"leben": 12500, "x": 100, "y": 100}}, {}, 10)
+    e11.runde({1: {"leben": 12500, "x": 100, "y": 100}}, {}, 10 + RL.NACHLAUF)
+    e11.start(2, 901, 20000, 12500, 0, ziel_ort=(200, 200))
+    e11.runde({2: {"leben": 12000, "x": 199, "y": 201}}, {}, 10)
+    e11.runde({2: {"leben": 11000, "x": 150, "y": 150}}, {}, 10 + RL.NACHLAUF)
+    f.append(("11 nie angekommen zaehlt nicht (%d gezaehlt, %d nicht da)" % (e11.zahl, getattr(e11, "nicht_da", 0)),
+              e11.zahl == 1 and getattr(e11, "nicht_da", 0) == 1 and abs(e11.echt - 1500) < 1))
     A.Einzeln.PROBE = A.Einzeln.HIT_RUN = True
     for name, ok in f:
         print("%s %s" % ("OK  " if ok else "ROT ", name))

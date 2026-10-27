@@ -449,6 +449,7 @@ class Einzeln:
     # PROBE_PAUSE Takte (Startwerte, UNGEMESSEN). HIT_RUN: wer an seinem Gebaeude entdeckt wird, arbeitet weiter, solange der
     # erste Treffer (fruehestens VERZUG Takte nach dem Erkennen, L81) nicht vor der naechsten Runde kommen kann.
     KALIB_LERNEN, PROBE, HIT_RUN = True, True, True
+    AM_GEBAEUDE = 2           # B-279: bis so viele Felder neben der Grundflaeche gilt "arbeitet am Gebaeude" (kein Mitnehmen)
     PROBE_PAUSE, PROBE_LEBEN, VERZUG, HIT_RUN_ALT = 1500, 6500, 64, 400
     # Lord-Anlauf: die Eichung oben stammt aus Raids; 1017i starben beim gemeinsamen Anlauf alle 5 vor dem Lord, obwohl das
     # Modell "machbar" rechnete - dort bleibt das ungeeichte Modell
@@ -1007,6 +1008,17 @@ class Einzeln:
         self._sicht_bis = sb
         self._sicht_runde = self.runde
         return self._sicht
+
+    def _zurueck_zum_gebaeude(self, n, G, angriffe, ereignis):
+        """B-279: nach dem Mitnehmen eines Arbeiters zurueck zum Gebaeude, an dem er vorher war (falls es noch steht)."""
+        gz = getattr(self, "_zurueck", {}).pop(n, None)
+        if gz is None or gz not in G or G[gz].get("besitzer") in freunde_von(self.sp) or n in self.ziel:
+            return
+        self.ziel[n] = gz
+        self.ziel_typ[gz] = G[gz]["typ"]
+        self.befohlen[n] = self.runde
+        angriffe.append((n, gz))
+        ereignis.append("ARBEITER %d: zurueck zu Gebaeude %d (Typ %d), das er vorher angegriffen hat" % (n, gz, G[gz]["typ"]))
 
     def _kalib(self):
         """B-278: gelernte Eichung (risiko_lernen.Eichung) oder fest KALIB."""
@@ -2355,9 +2367,11 @@ class Einzeln:
                 del self.jagd[n]
                 self._arb_seit.pop(n, None)
                 ereignis.append("ARBEITER %d laesst Arbeiter %d (laeuft weg oder dauert zu lange)" % (n, f))
+                self._zurueck_zum_gebaeude(n, G, angriffe, ereignis)
                 continue
             if f not in L or L[f]["besitzer"] in freunde_von(self.sp):
                 del self.jagd[n]
+                self._zurueck_zum_gebaeude(n, G, angriffe, ereignis)
         # 3. Gegenprobe: laeuft er wirklich zu seinem Gebaeude?
         wirklich, abweichler = set(), 0
         for n, z in list(self.ziel.items()):
@@ -2434,8 +2448,16 @@ class Einzeln:
             schwach_n = L[n]["leben"] < self.EIN_TREFFER
             mit = [b_ for b_ in arbeiter_b if schach(ort, b_[1]) <= self.ARBEITER_MIT and b_[0] not in jaeger
                    and not (schwach_n and b_[0] in schlagend)]
+            # B-279 (Daniel 28.10. 00:21 "anvisiert, dann nicht ganz zerstoert"; Partie 001807: 217 schlug Steinbruch 91 von
+            # 3376 bis 3535, nahm dann Arbeiter 345 mit und verlor das Gebaeude - es fiel erst bei 8064 durch andere): wer AM
+            # Gebaeude arbeitet, laesst Arbeiter laufen; wer unterwegs einen mitnimmt, merkt sich das Gebaeude und kehrt zurueck
+            gz_n = self.ziel.get(n)
+            if mit and gz_n in G and schach(ort, (G[gz_n]["x"], G[gz_n]["y"])) <= sicht.GROESSE.get(G[gz_n]["typ"], 1) + self.AM_GEBAEUDE:
+                mit = []
             if mit:
                 ziel_a = min(mit, key=lambda b_: schach(ort, b_[1]))
+                if gz_n is not None:
+                    self.__dict__.setdefault("_zurueck", {})[n] = gz_n
                 self.ziel.pop(n, None); self.route.pop(n, None); self.warte.pop(n, None)
                 self.jagd[n] = ziel_a[0]
                 self._arb_seit = getattr(self, "_arb_seit", {})
@@ -3187,7 +3209,8 @@ class Einzeln:
                     n, gn, typ, schach(ort, p), saldo, 100 * p_tod, f30, L[n]["leben"], self._beschuss_angriff(gn, G, ort),
                     "gemessen" if typ in ARBEIT else "geschaetzt", ARBEIT.get(typ, ARBEIT_SONST)))
                 if self.KALIB_LERNEN and gn in roh:
-                    ereignis += self._eichung.start(n, gn, roh[gn], L[n]["leben"], self.jetzt)     # B-278
+                    ereignis += self._eichung.start(n, gn, roh[gn], L[n]["leben"], self.jetzt,
+                                                    ziel_ort=(G[gn]["x"], G[gn]["y"]))     # B-278/B-279
                 continue
             if (not erreichbar or not frei) and n not in self.jagd:
                 # B-172 (2v2 22.10. 17:48: "warum haengt der Assassine da" - beide warteten >= 200 Takte, "keins erreichbar"): ohne

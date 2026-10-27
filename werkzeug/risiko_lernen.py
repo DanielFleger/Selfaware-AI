@@ -17,6 +17,9 @@ GRENZEN = (0.02, 2.0)        # die Eichung bleibt in diesem Band (ein einzelner 
 # Frage-Agent 23:32 (gelb, Frage 2): nach ENTDECKT wird das Ziel sofort verworfen, Treffer kommen 64-170 Takte spaeter (L81) -
 # ein Angriff bleibt darum NACHLAUF Takte nach seinem Ende offen; der Verlust auf der Flucht gehoert zu ihm
 NACHLAUF = 200
+# B-279 (Partie 001807: KALIB fiel von 0,33 auf 0,03 - "vorhergesagt 20.718, echt 0" bei Assassinen, die ihr Ziel unterwegs
+# wechselten und nie dort waren): ein Angriff zaehlt nur, wenn die Assassine bis ANKOMMEN Felder ans Ziel kam oder starb
+ANKOMMEN = 6
 
 
 def pfad():
@@ -42,11 +45,12 @@ class Eichung:
         k = (self.echt + START * PRIOR) / (self.vorher + PRIOR)
         return min(GRENZEN[1], max(GRENZEN[0], k))
 
-    def start(self, n, ziel, vorhersage, leben, t):
+    def start(self, n, ziel, vorhersage, leben, t, ziel_ort=None):
         """Bei ZIELWAHL: Vorhersage ohne Eichung (Weg + Ziel, Leben), Leben jetzt. Ein noch offener Angriff derselben Einheit
         wird vorher geschlossen."""
         aus = self._schliessen(n, t) if n in self.offen else []
-        self.offen[n] = {"ziel": ziel, "vorher": float(vorhersage), "leben": float(leben), "t": t, "nah": False, "ende": None}
+        self.offen[n] = {"ziel": ziel, "vorher": float(vorhersage), "leben": float(leben), "t": t, "nah": False, "ende": None,
+                         "ort": ziel_ort, "da": ziel_ort is None}
         return aus
 
     def runde(self, L, ziele, t):
@@ -60,6 +64,8 @@ class Eichung:
                 aus += self._schliessen(n, t, tot=True)
                 continue
             a["leben_jetzt"] = float(e.get("leben", a["leben"]))
+            if a["ort"] is not None and max(abs(e["x"] - a["ort"][0]), abs(e["y"] - a["ort"][1])) <= ANKOMMEN:
+                a["da"] = True
             if (e.get("nahangreifer") or 0) > 0:
                 a["nah"] = True
             if ziele.get(n) == a["ziel"]:
@@ -76,6 +82,9 @@ class Eichung:
         echt = a["leben"] if tot else max(0.0, a["leben"] - a.get("leben_jetzt", a["leben"]))
         if a["nah"]:
             self.nahkampf += 1           # Nahkampf rechnet das Modell nicht - zaehlt nicht (Zahl steht im Bericht)
+            return []
+        if not a["da"] and not tot:
+            self.nicht_da = getattr(self, "nicht_da", 0) + 1     # nie am Ziel: die Vorhersage galt fuer einen Weg, den er nicht ging
             return []
         alt = self.kalib
         self.vorher += a["vorher"]
