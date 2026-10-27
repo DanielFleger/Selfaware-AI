@@ -5,14 +5,14 @@ Einheit;12;short;2;spriteID;ja;AU15 WS 3;+0x0C / gemessen;nein;nein
 Einheit;16;int;4;calculatedOwnerPlayerIndex;ja;P16;abgelesen (Aufbau);nein;nein
 Einheit;20;short;2;drawX;ja;AU3 AU32 P16 P9;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;nein;nein
 Einheit;22;short;2;drawY;nein;;;nein;nein
-Einheit;24;short;2;drawWidth;ja;AU9 WS 13;"abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nicht gegen das";nein;nein
+Einheit;24;short;2;drawWidth;ja;AU51 AU9 WS 13;"abgelesen / abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nic";nein;nein
 Einheit;26;short;2;drawHeight1;ja;AU25 AU9 L79 P14;"abgelesen / abgelesen + gemessen / abgelesen, live gesehen (Werte plausibel; Bed";nein;nein
 Einheit;30;short;2;spriteWidthUnk;ja;AU10 AU25 AU27 AU5 G1 L79 P14;abgelesen / abgelesen (Adressen aus types.json + Code), Pech/Feuer live 0 im San;nein;ja
-Einheit;32;short;2;spriteHeightUnk;nein;;;nein;ja
+Einheit;32;short;2;spriteHeightUnk;ja;AU51;abgelesen;nein;ja
 Einheit;34;short;2;drawXOffset;ja;A11;getestet;nein;nein
-Einheit;36;short;2;someDrawYOffset;nein;;;nein;nein
+Einheit;36;short;2;someDrawYOffset;ja;AU51;abgelesen;nein;nein
 Einheit;38;short;2;orientationRelatedPositionX;nein;;;nein;nein
-Einheit;40;short;2;orientationRelatedPositionY;ja;AU25 AU9 L22 P16 P9;abgelesen / abgelesen (Aufbau) / abgelesen + gemessen / abgelesen, live gesehen ;nein;nein
+Einheit;40;short;2;orientationRelatedPositionY;ja;AU25 AU51 AU9 L22 P16 P9;abgelesen / abgelesen (Aufbau) / abgelesen + gemessen / abgelesen, live gesehen ;nein;nein
 Einheit;42;short;2;field22_0x2a;ja;AU2 AU20 L190 P16;abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen (Aufbau) / abgelese;nein;ja
 Einheit;44;int;4;unknownV;ja;AU2 P16;abgelesen (Aufbau) / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeu;nein;ja
 Einheit;48;int;4;field_0x30_animRelated;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);nein;nein
@@ -64,7 +64,7 @@ Einheit;188;short;2;buildingHeight;ja;AU2 AU4 AU7 G1;abgelesen + gemessen (Fenst
 Einheit;190;short;2;shootTargetMicroX;ja;AU41 AU5;abgelesen / abgelesen + Lauf;ja;nein
 Einheit;192;short;2;shootTargetMicroY;ja;AU41 AU8;abgelesen / abgelesen, Lager live geprueft;ja;nein
 Einheit;194;short;2;shootTargetZ;ja;AU37;abgelesen;ja;nein
-Einheit;196;short;2;x;ja;AU1 AU10 AU12 AU14 AU15 AU16 AU20 AU21 AU25 AU28 AU3 AU31 AU39 AU41 AU5 AU8 AU9 G10 G5 G8 L100 L107 L123 L125 L126 L129 L142 L143 L153 L154 L190 L21 L35 L71 L72 L82 L87 L96 P1 P13 P14 P16 P19 P2 P21 P;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
+Einheit;196;short;2;x;ja;AU1 AU10 AU12 AU14 AU15 AU16 AU20 AU21 AU25 AU28 AU3 AU31 AU39 AU41 AU5 AU51 AU8 AU9 G10 G5 G8 L100 L107 L123 L125 L126 L129 L142 L143 L153 L154 L190 L21 L35 L71 L72 L82 L87 L96 P1 P13 P14 P16 P19 P2 ;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
 Einheit;198;short;2;y;ja;AU10 AU12 AU13 AU14 AU2 AU31 AU37 AU38 AU39 AU5 AU9 G10 G8 L105 L107 L126 L153 P16 P29 W1 WS 1 WS 13 WS 3 WS 5;**getestet** (24.10.) / Die Zeichenflaeche ist roher Speicher und laesst sich di;ja;nein
 Einheit;200;short;2;destinationXPosition;ja;AU13 L78 L82 P14;abgelesen / abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid) / abgelesen + live g;ja;nein
 Einheit;202;short;2;destinationYPosition;ja;AU37;abgelesen;ja;nein
@@ -1032,7 +1032,7 @@ Spieler;14612;int;4;harrassingSiegeEnginesIndex;nein;;;nein;nein
 Spieler;14616;int;4;harrasingEngineRecruitTimeout;nein;;;nein;nein
 Spieler;14620;int;4;harassingSiegeEnginesCountUnk;nein;;;nein;ja
 Spieler;14624;int;4;totalTeamTroopValue;ja;AU47;abgelesen;nein;nein
-Spieler;14628;int;4;currentAttackWave;ja;AU9;"abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nicht gegen das";ja;nein
+Spieler;14628;int;4;currentAttackWave;ja;AU51 AU9;"abgelesen / abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nic";ja;nein
 Spieler;14632;int;4;countFarms;nein;;;nein;nein
 Spieler;14636;int;4;someCountdown01;nein;;;nein;nein
 Spieler;14640;int;4;aiCoordinatedAttackPatience;ja;AU47;abgelesen;ja;nein
@@ -1089,11 +1089,11 @@ KI-Vorgaben;8;int;4;unknown002;nein;;;nein;ja
 KI-Vorgaben;12;int;4;unknown003;nein;;;nein;ja
 KI-Vorgaben;16;int;4;unknown004;nein;;;nein;ja
 KI-Vorgaben;20;int;4;unknown005;nein;;;nein;ja
-KI-Vorgaben;24;int;4;criticalPopularity;nein;;;ja;nein
-KI-Vorgaben;28;int;4;lowestPopularity;nein;;;ja;nein
-KI-Vorgaben;32;int;4;highestPopularity;nein;;;ja;nein
-KI-Vorgaben;36;int;4;taxesMin;nein;;;ja;nein
-KI-Vorgaben;40;int;4;taxesMax;nein;;;ja;nein
+KI-Vorgaben;24;int;4;criticalPopularity;ja;AU51;abgelesen;ja;nein
+KI-Vorgaben;28;int;4;lowestPopularity;ja;AU51;abgelesen;ja;nein
+KI-Vorgaben;32;int;4;highestPopularity;ja;AU51;abgelesen;ja;nein
+KI-Vorgaben;36;int;4;taxesMin;ja;AU51;abgelesen;ja;nein
+KI-Vorgaben;40;int;4;taxesMax;ja;AU51;abgelesen;ja;nein
 KI-Vorgaben;44;int;4;unknown011;nein;;;nein;ja
 KI-Vorgaben;48;int;4;farm1;ja;WS 8;abgeleitet;nein;nein
 KI-Vorgaben;52;int;4;farm2;nein;;;nein;nein
@@ -1132,7 +1132,7 @@ KI-Vorgaben;180;int;4;maxResourceOther;nein;;;nein;nein
 KI-Vorgaben;184;int;4;maxEquipment;nein;;;nein;nein
 KI-Vorgaben;188;int;4;maxBeer;nein;;;nein;nein
 KI-Vorgaben;192;int;4;maxResourceVariance;nein;;;nein;nein
-KI-Vorgaben;196;int;4;recruitGoldThreshold;nein;;;ja;nein
+KI-Vorgaben;196;int;4;recruitGoldThreshold;ja;AU51;abgelesen;ja;nein
 KI-Vorgaben;200;int;4;blacksmithSetting;nein;;;nein;nein
 KI-Vorgaben;204;int;4;fletcherSetting;nein;;;nein;nein
 KI-Vorgaben;208;int;4;poleturnerSetting;nein;;;nein;nein
@@ -1210,12 +1210,12 @@ KI-Vorgaben;492;int;4;HarassingSiegeEnginesMax;nein;;;nein;nein
 KI-Vorgaben;496;int;4;RaidRetargetDelay;ja;AU13;abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid);ja;nein
 KI-Vorgaben;500;int;4;AttForceBase;ja;AU13 L160;abgelesen (fremde Quelle, selbst nur die Abstaende nachgerechnet) / abgelesen + ;ja;nein
 KI-Vorgaben;504;int;4;AttForceRandom;ja;AU13;abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid);ja;nein
-KI-Vorgaben;508;int;4;AttForceSupportAllyThreshold;nein;;;ja;nein
+KI-Vorgaben;508;int;4;AttForceSupportAllyThreshold;ja;AU51;abgelesen;ja;nein
 KI-Vorgaben;512;int;4;AttForceRallyPercentage;ja;AU13;abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid);ja;nein
-KI-Vorgaben;516;int;4;AttMovingTribesThreshold;nein;;;ja;nein
+KI-Vorgaben;516;int;4;AttMovingTribesThreshold;ja;AU51;abgelesen;ja;nein
 KI-Vorgaben;520;int;4;AttAssaultDelay;ja;AU13;abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid);ja;nein
-KI-Vorgaben;524;int;4;AttUnitPatrolRecommandDelay;nein;;;ja;nein
-KI-Vorgaben;528;int;4;AttCoordinationPreference;nein;;;ja;nein
+KI-Vorgaben;524;int;4;AttUnitPatrolRecommandDelay;ja;AU51;abgelesen;ja;nein
+KI-Vorgaben;528;int;4;AttCoordinationPreference;ja;AU51;abgelesen;ja;nein
 KI-Vorgaben;532;int;4;SiegeEngine1;nein;;;nein;nein
 KI-Vorgaben;536;int;4;SiegeEngine2;nein;;;nein;nein
 KI-Vorgaben;540;int;4;SiegeEngine3;nein;;;nein;nein
@@ -1224,14 +1224,14 @@ KI-Vorgaben;548;int;4;SiegeEngine5;nein;;;nein;nein
 KI-Vorgaben;552;int;4;SiegeEngine6;nein;;;nein;nein
 KI-Vorgaben;556;int;4;SiegeEngine7;nein;;;nein;nein
 KI-Vorgaben;560;int;4;SiegeEngine8;nein;;;nein;nein
-KI-Vorgaben;564;int;4;CowThrowInterval;nein;;;ja;nein
+KI-Vorgaben;564;int;4;CowThrowInterval;ja;AU51;abgelesen;ja;nein
 KI-Vorgaben;568;int;4;Unknown142;nein;;;nein;ja
-KI-Vorgaben;572;int;4;AttMaxEngineers;nein;;;ja;nein
-KI-Vorgaben;576;int;4;AttDiggingUnit;nein;;;ja;nein
-KI-Vorgaben;580;int;4;AttDiggingUnitMax;nein;;;ja;nein
-KI-Vorgaben;584;int;4;AttUnit2;nein;;;ja;nein
-KI-Vorgaben;588;int;4;AttUnit2Max;nein;;;ja;nein
-KI-Vorgaben;592;int;4;AttMaxAssassins;nein;;;ja;nein
+KI-Vorgaben;572;int;4;AttMaxEngineers;ja;AU51;abgelesen;ja;nein
+KI-Vorgaben;576;int;4;AttDiggingUnit;ja;AU51;abgelesen;ja;nein
+KI-Vorgaben;580;int;4;AttDiggingUnitMax;ja;AU51;abgelesen;ja;nein
+KI-Vorgaben;584;int;4;AttUnit2;ja;AU51;abgelesen;ja;nein
+KI-Vorgaben;588;int;4;AttUnit2Max;ja;AU51;abgelesen;ja;nein
+KI-Vorgaben;592;int;4;AttMaxAssassins;ja;AU51;abgelesen;ja;nein
 KI-Vorgaben;596;int;4;AttMaxLaddermen;nein;;;nein;nein
 KI-Vorgaben;600;int;4;AttMaxTunnelers;nein;;;nein;nein
 KI-Vorgaben;604;int;4;AttUnitPatrol;nein;;;nein;nein
