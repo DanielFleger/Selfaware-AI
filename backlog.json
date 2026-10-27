@@ -7211,18 +7211,24 @@
    "nr": "B-269",
    "titel": "Keine Kaesereien (Milchviehhof 33) und keine Lederharnisch-Produktion (Gerber 16) - Daniel 27.10. 18:07 Bild, Partie 180417: 'macht keinen Sinn'",
    "bereich": "Wirtschaft",
-   "status": "offen",
+   "status": "gebaut",
    "seit": "2026-10-27 18:07",
    "herkunft": "Daniel 27.10. 18:07",
-   "gebaut": null,
-   "commits": [],
+   "gebaut": "2026-10-27 18:36",
+   "commits": [
+    "06a5221"
+   ],
    "wo": [],
    "belege": [],
-   "notiz": "messen: wer baut 33/16 (produktion=ja, hoefe), warum nicht; Lageprotokoll lage_20261027_1804*_sp3",
+   "notiz": "messen: wer baut 33/16 (produktion=ja, hoefe), warum nicht; Lageprotokoll lage_20261027_1804*_sp3 | Ursache Partie 180423: Hofsuche Umkreis 45 fand 0 Plaetze (Gruenland 70+ Felder vom Lager) -> Hoefe 0 dauerhaft, kein Gerber (wartet auf erste Kuh), Leder gekauft. Fix: Radien 45/80/120 + Nachfragen bis hoefe_soll. In App-Kopie eingespielt 18:45 (Sicherung .vor-B269-20261027). Im Spiel noch nicht beobachtet.",
    "verlauf": [
     {
      "zeit": "2026-10-27 18:07",
      "was": "angelegt (offen)"
+    },
+    {
+     "zeit": "2026-10-27 18:36",
+     "was": "offen -> gebaut (Commit 06a5221): Ursache Partie 180423: Hofsuche Umkreis 45 fand 0 Plaetze (Gruenland 70+ Felder vom Lager) -> Hoefe 0 dauerhaft, kein Gerber (wartet auf erste Kuh), Leder gekauft. Fix: Radien 45/80/120 + Nachfragen bis hoefe_soll. In App-Kopie eingespielt 18:45 (Sicherung .vor-B269-20261027). Im Spiel noch nicht beobachtet."
     }
    ]
   },
@@ -7267,11 +7273,12 @@
    "herkunft": "GRA 27.10. 18:22",
    "gebaut": "2026-10-27 18:33",
    "commits": [
-    "c02b0cd"
+    "c02b0cd",
+    "9fac1a0"
    ],
    "wo": [],
    "belege": [],
-   "notiz": "Fix macht GRA im Repo (Absprache SAI 18:23), lokal committen mit B-271 | Daniel 18:30 bestaetigt (Haus wurde zum Seuchenfeld). 18:40 in die App-Kopie eingespielt (9 Dateien, Sicherung .vor-B271-20261027); die Spielwege senden jetzt richtung 15. Offen: logik.lua im Modul-Zip von Instanz 5 hat noch 'richtung or 0' (nur fuer Befehle ohne richtung) und aufbau_bauen/aufbau_planer/eingang_messen mit 0/2/4/6 - Daniels Entscheid.",
+   "notiz": "Fix macht GRA im Repo (Absprache SAI 18:23), lokal committen mit B-271 | Daniel 18:30 bestaetigt (Haus wurde zum Seuchenfeld). 18:40 in die App-Kopie eingespielt (9 Dateien, Sicherung .vor-B271-20261027); die Spielwege senden jetzt richtung 15. Offen: logik.lua im Modul-Zip von Instanz 5 hat noch 'richtung or 0' (nur fuer Befehle ohne richtung) und aufbau_bauen/aufbau_planer/eingang_messen mit 0/2/4/6 - Daniels Entscheid. | Daniel 18:33: immer Drehwert 15, auch ohne Eingangslenkung. GRA 9fac1a0 (Lua: nur Tore/Zugbruecke behalten ihre Drehung) in die App-Kopie uebernommen 18:45 (Sicherung .vor-B271b-20261027). Offen: Modul-Zip in Instanz 5 hat eigene logik.lua mit 'richtung or 0'.",
    "verlauf": [
     {
      "zeit": "2026-10-27 18:22",
@@ -7280,6 +7287,10 @@
     {
      "zeit": "2026-10-27 18:33",
      "was": "offen -> gebaut (Commit c02b0cd): Daniel 18:30 bestaetigt (Haus wurde zum Seuchenfeld). 18:40 in die App-Kopie eingespielt (9 Dateien, Sicherung .vor-B271-20261027); die Spielwege senden jetzt richtung 15. Offen: logik.lua im Modul-Zip von Instanz 5 hat noch 'richtung or 0' (nur fuer Befehle ohne richtung) und aufbau_bauen/aufbau_planer/eingang_messen mit 0/2/4/6 - Daniels Entscheid."
+    },
+    {
+     "zeit": "2026-10-27 18:36",
+     "was": "gebaut -> gebaut (Commit 9fac1a0): Daniel 18:33: immer Drehwert 15, auch ohne Eingangslenkung. GRA 9fac1a0 (Lua: nur Tore/Zugbruecke behalten ihre Drehung) in die App-Kopie uebernommen 18:45 (Sicherung .vor-B271b-20261027). Offen: Modul-Zip in Instanz 5 hat eigene logik.lua mit 'richtung or 0'."
     }
    ]
   },
