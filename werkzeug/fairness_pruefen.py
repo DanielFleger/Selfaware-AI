@@ -49,6 +49,7 @@ LESER = {
     "waechter.sichtfilter": "filter (B-274: ersetzt Feind-Laufziel/Angriffsziel durch das Sichtbare)",
     # Frage-Agent 27.10. 20:02 (Ampel rot): das Gehirn auf den Speicherbildern des Auges liest gespeicherte Ziele und den
     # naechsten Schuss JEDER Einheit, auch feindlicher - erlaubt zum Erforschen der Mechanik, VERBOTEN im Spielweg
+    "tagebuch.lord_runde": EIGEN + " (eigene Einheiten, die sichtbar auf den Lord schlagen)",
     "gehirn.prognose": "gehirn-roh", "gehirn._begegnungen": "gehirn-roh", "simulator._aufbau": "gehirn-roh",
 }
 # Laufziel/Angriffsziel im Lagebild (laufx, zieleinheit, nahziel) und dieselben Groessen in den Speicherbildern des Auges

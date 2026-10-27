@@ -1136,6 +1136,7 @@ STEUER_RUNTER = 95       # Lernkreis: Steuer senken unter dieser Beliebtheit (Da
 BEV_ZIEL = 0             # Lernkreis: Huetten bauen, bis so viele Wohnplaetze stehen (0 = aus; Daniel 07.10. 00:17 "60-70")
 ABRISS = True            # Lernkreis: im Endspiel alle Betriebe abreissen (nein = direkt anwerben, Daniel 01:51)
 EINZELKAUF = False       # Lernkreis: fehlende 1-4 Waffen einzeln gutschreiben statt 5er kaufen (Daniel 01:35) - seit B-274 fest aus
+TB = None                # B-273 Schritt 0: Vorhersage-Tagebuch (tagebuch.py); main legt es an, tagebuch=nein schaltet es ab
 AUFLOESEN = False        # Lernkreis: eigene Soldaten (ausser Streitkolbenkaempfern) zu Bauern aufloesen (Daniel 01:29)
 SCHUB = False            # Lernkreis: die ersten 5 Kaempfer schon waehrend der Kasse anwerben (Lauf 45/46: Verlust im Endspiel)
 KASSE_STUFE = 11         # Lernkreis: Steuerstufe der Kasse (11 = -40, 9 = -20, 7 = -11; Liga 4,00 / 2,00 / 1,30 Gold je Kopf)
@@ -3779,6 +3780,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         ereignis.append("MESSUNG Feindlord %d: leben %d -> %d bei (%d,%d), eigene in 5 Feldern %s" % (
                             n, alt, e["leben"], e["x"], e["y"], bei or "keine"))
                     feindlord[n] = e["leben"]
+            if TB is not None:           # B-273 Schritt 0: Lord-Schaden vorhergesagt gegen gemessen
+                fr_tb = freunde_von(SP)
+                ereignis.extend(TB.lord_runde(st["t"], L, fr_tb, lambda b: b != 0 and b not in fr_tb))
             tz = time.time()
             if not (streitkolben and endspiel["fertig"]):    # nach dem Endspiel ruht die Wirtschaft (v6: baute A-Plantagen nach)
                 ereignis += wirt.schritt(st, L, G)
@@ -3885,6 +3889,10 @@ def main():
     # B-274 (FAIRNESS.md): ab hier sieht der Lenker feindliche Einheiten nur wie ein Spieler (waechter.sichtfilter)
     import waechter as W_sicht
     W_sicht.SICHT_SPIELER = SP
+    # B-273 Schritt 0 (Plan_Gehirn_Meta.md): jede Vorhersage neben ihr Ergebnis - zuerst der Lord-Schaden je Takt
+    global TB
+    import tagebuch
+    TB = tagebuch.Tagebuch(SP, an=arg.get("tagebuch", "ja") == "ja")
     MENSCH = arg.get("mensch", "nein") == "ja"
     UEBERNEHMEN = arg.get("uebernehmen", "nein") == "ja"
     MENSCH_GEGNER = arg.get("mensch_gegner", "nein") == "ja" or UEBERNEHMEN
