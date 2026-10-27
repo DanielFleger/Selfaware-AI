@@ -100,9 +100,9 @@ def main():
     for adr, name in fn:
         a = adr.lower().lstrip("0x")[-8:].rjust(8, "0")
         kurz = name.split("::")[-1]
+        # Nur die eindeutige Adresse belegt eine Funktion. Ein Name in einer Registerzeile kann bloss
+        # ein aufgerufener Nachbar sein; das erklaert dessen eigenen Funktionskoerper noch nicht.
         muster = [re.compile(r"(0x)?" + a + r"\b"), re.compile(r"(0x)?" + a.lstrip("0") + r"\b")]
-        if len(kurz) >= 8 and not kurz.startswith("FUN_"):
-            muster.append(re.compile(r"\b" + re.escape(kurz.lower()) + r"\b"))
         belege = [(b, m) for b, m, t in zeilen if any(p.search(t) for p in muster)]
         f_aus.append({"adresse": "0x" + a.upper(), "name": name, "erklaert": "ja" if belege else "nein",
                       "beleg": " ".join(sorted(set(b for b, _ in belege)))[:200],

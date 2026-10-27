@@ -2,21 +2,21 @@
 0x00401000;_HoldStrong::Rendering::ViewportRenderState::xyAreValid;nein;;;nein;nein
 0x00401040;_HoldStrong::Rendering::ViewportRenderState::translateXYToTile;nein;;;nein;nein
 0x00401060;_HoldStrong::Map::TileMapState::processEntityDamageToBuildingCollateralThunk;nein;;;ja;ja
-0x00401090;_HoldStrong::Game::GameStateStructures::isSameTeam;nein;;;nein;ja
-0x004010B0;_HoldStrong::Synchrony::GameSynchronyState::isAIPlayer;nein;;;nein;ja
-0x004010E0;_HoldStrong::Map::Entities::EntityState::clearEntityArrayAndSec1077;nein;;;nein;ja
-0x00401150;_HoldStrong::Map::Entities::EntityState::playerHasEntityOfType;nein;;;nein;ja
+0x00401090;_HoldStrong::Game::GameStateStructures::isSameTeam;ja;AU57;abgelesen;nein;ja
+0x004010B0;_HoldStrong::Synchrony::GameSynchronyState::isAIPlayer;ja;AU57;abgelesen;nein;ja
+0x004010E0;_HoldStrong::Map::Entities::EntityState::clearEntityArrayAndSec1077;ja;AU57;abgelesen;nein;ja
+0x00401150;_HoldStrong::Map::Entities::EntityState::playerHasEntityOfType;ja;AU57;abgelesen;nein;ja
 0x004011D0;_HoldStrong::Map::Entities::EntityState::setProjectileEntityValues2;ja;AU24 AU40;abgelesen / abgelesen + gemessen;nein;ja
-0x004012F0;_HoldStrong::Map::Entities::EntityState::setEntityParameters;nein;;;nein;ja
-0x00401380;_HoldStrong::Map::Entities::EntityState::drawEntityEffect;nein;;;nein;ja
-0x00401400;_HoldStrong::Map::Entities::EntityState::markEntityDestroyed;nein;;;nein;ja
-0x00401430;_HoldStrong::Map::Entities::EntityState::tickEntityDecayCounter;nein;;;nein;ja
-0x00401460;_HoldStrong::Map::Entities::EntityState::doSomethingWithOtherEntitiesOnTile;nein;;;nein;ja
-0x00401540;_HoldStrong::Map::Entities::EntityState::getFireEntityIDAtTile;nein;;;nein;ja
-0x00401570;_HoldStrong::Map::Entities::EntityState::updateAllFireEntitiesAtTile;nein;;;nein;ja
-0x004015D0;_HoldStrong::Map::Entities::EntityState::processFireDamageToUnitsAtTile;nein;;;nein;ja
-0x00401620;_HoldStrong::Map::Entities::EntityState::recountActiveFires;nein;;;nein;ja
-0x00401690;_HoldStrong::Map::Entities::EntityState::flagUnitsWithActiveEntity;nein;;;nein;ja
+0x004012F0;_HoldStrong::Map::Entities::EntityState::setEntityParameters;ja;AU57;abgelesen;nein;ja
+0x00401380;_HoldStrong::Map::Entities::EntityState::drawEntityEffect;ja;AU57;abgelesen;nein;ja
+0x00401400;_HoldStrong::Map::Entities::EntityState::markEntityDestroyed;ja;AU57;abgelesen;nein;ja
+0x00401430;_HoldStrong::Map::Entities::EntityState::tickEntityDecayCounter;ja;AU57;abgelesen;nein;ja
+0x00401460;_HoldStrong::Map::Entities::EntityState::doSomethingWithOtherEntitiesOnTile;ja;AU57;abgelesen;nein;ja
+0x00401540;_HoldStrong::Map::Entities::EntityState::getFireEntityIDAtTile;ja;AU57;abgelesen;nein;ja
+0x00401570;_HoldStrong::Map::Entities::EntityState::updateAllFireEntitiesAtTile;ja;AU57;abgelesen;nein;ja
+0x004015D0;_HoldStrong::Map::Entities::EntityState::processFireDamageToUnitsAtTile;ja;AU57 AU58;abgelesen / belegt;nein;ja
+0x00401620;_HoldStrong::Map::Entities::EntityState::recountActiveFires;ja;AU57;abgelesen;nein;ja
+0x00401690;_HoldStrong::Map::Entities::EntityState::flagUnitsWithActiveEntity;ja;AU57;abgelesen;nein;ja
 0x004016E0;_HoldStrong::Map::Entities::EntityState::somethingWithSeparateAreas1;nein;;;nein;ja
 0x00401880;_HoldStrong::Map::Entities::EntityState::refreshPoisonCloudNearUnit;nein;;;nein;ja
 0x00401910;_HoldStrong::Map::Entities::EntityState::assignPoisonCloudTargetEntity;ja;AU41;abgelesen;nein;ja
@@ -26,7 +26,7 @@
 0x00401B20;_HoldStrong::Map::Entities::EntityState::swapEntityOwnership;nein;;;nein;ja
 0x00401B60;_HoldStrong::Map::Entities::EntityState::destroyEntitiesPart2;nein;;;nein;ja
 0x00401BA0;_HoldStrong::Map::Entities::UpdateArrowEntity;ja;AU40;abgelesen;nein;ja
-0x00401C30;_HoldStrong::Map::Entities::UpdateCatapultProjectileEntity;ja;AU3;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;nein;ja
+0x00401C30;_HoldStrong::Map::Entities::UpdateCatapultProjectileEntity;nein;;;nein;ja
 0x00401CC0;_HoldStrong::Map::Entities::UpdatePebbleEntity;nein;;;nein;ja
 0x00401D20;_HoldStrong::Map::Entities::UpdateFirethrowSecondaryEntity;nein;;;nein;ja
 0x00401D70;_HoldStrong::Map::Entities::UpdateArrowsSecondaryEntity;nein;;;nein;ja
@@ -50,8 +50,8 @@
 0x00402AB0;_HoldStrong::Map::Entities::UpdateBrazierEntity;nein;;;nein;ja
 0x00402AE0;_HoldStrong::Map::Entities::EntityState::updateEntityMicroMovement;ja;AU31 AU40;abgelesen / abgelesen + gemessen;nein;ja
 0x00402BD0;_HoldStrong::Map::Entities::EntityState::angleToRotationFrameIndex;nein;;;nein;ja
-0x00402C50;_HoldStrong::Map::Entities::EntityState::math_atan_1;ja;AU24 AU3;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;nein;ja
-0x00402DA0;_HoldStrong::Map::Entities::EntityState::computeVelocity;ja;AU24 AU3;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;nein;ja
+0x00402C50;_HoldStrong::Map::Entities::EntityState::math_atan_1;ja;AU24;abgelesen + gemessen;nein;ja
+0x00402DA0;_HoldStrong::Map::Entities::EntityState::computeVelocity;ja;AU24;abgelesen + gemessen;nein;ja
 0x00402E20;_HoldStrong::Map::Entities::EntityState::computeLineOfSightDistance;ja;L79;abgelesen;nein;ja
 0x004036F0;_HoldStrong::Map::Entities::EntityState::calculateEntityDrawOffset;nein;;;nein;ja
 0x00403790;_HoldStrong::Map::Entities::EntityState::initializeSeagullMovementVector;nein;;;nein;ja
@@ -61,13 +61,13 @@
 0x00403980;_HoldStrong::Map::Entities::EntityState::Constructor_EntityState;nein;;;nein;ja
 0x004039B0;_HoldStrong::Map::Entities::EntityState::activateProjectileEntity;ja;AU40;abgelesen;nein;ja
 0x004039F0;_HoldStrong::Map::Entities::EntityState::deleteEntity;nein;;;nein;ja
-0x00403A20;_HoldStrong::Map::Entities::EntityState::initializeProjectileVelocities;ja;AU24 AU3 AU31 AU40;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;nein;ja
-0x00403FF0;_HoldStrong::Map::Entities::EntityState::handleProjectileWallBounce;ja;AU24 AU32 AU40;abgelesen / abgelesen + gemessen;nein;ja
-0x00404A10;_HoldStrong::Map::Entities::EntityState::arrowShootingRelated;ja;AU25 AU29 AU30 L79 P14;abgelesen / abgelesen + gemessen;nein;ja
+0x00403A20;_HoldStrong::Map::Entities::EntityState::initializeProjectileVelocities;ja;AU24 AU3 AU40;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;nein;ja
+0x00403FF0;_HoldStrong::Map::Entities::EntityState::handleProjectileWallBounce;ja;AU40;abgelesen;nein;ja
+0x00404A10;_HoldStrong::Map::Entities::EntityState::arrowShootingRelated;ja;AU25 L79;abgelesen / abgelesen + gemessen;nein;ja
 0x00404A70;_HoldStrong::Map::Version::deleteSeagull;nein;;;nein;nein
 0x00404AE0;_HoldStrong::Map::Entities::EntityState::spawnProjectileEntity;ja;AU2 AU40;abgelesen / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 P;nein;ja
 0x00405130;_HoldStrong::Global::SomeFireSpreadFunction;nein;;;nein;ja
-0x004052E0;_HoldStrong::Global::IgniteFireAtMiniTile;ja;P27 P29;"Offsets getestet (live, SAI); Feuerwache abgelesen / abgelesen + SAI gemessen (Z";nein;ja
+0x004052E0;_HoldStrong::Global::IgniteFireAtMiniTile;ja;P27;abgelesen + SAI gemessen (Zuendung);nein;ja
 0x004054E0;_HoldStrong::Global::AFireSpreadFunction;nein;;;nein;ja
 0x00405680;_HoldStrong::Map::Entities::UpdateFireEntity;ja;AU41 P27;abgelesen / abgelesen + SAI gemessen (Zuendung);nein;ja
 0x00405B70;_HoldStrong::Map::Entities::UpdateFirethrowEntity;nein;;;nein;ja
@@ -97,7 +97,7 @@
 0x004092B0;_HoldStrong::Rendering::Bink::BinkControlClass::stopAllBinkPlaybackThunk;nein;;;ja;nein
 0x004092C0;_HoldStrong::Map::Navigation::DirectionAlgorithmState::computeHealthPercentage;nein;;;nein;ja
 0x004092E0;_HoldStrong::Rendering::ViewportRenderState::computeTileXOffset;nein;;;nein;nein
-0x00409300;_HoldStrong::Map::TileMapState::processDamageToBuildingThunk;ja;AU38;abgelesen;ja;ja
+0x00409300;_HoldStrong::Map::TileMapState::processDamageToBuildingThunk;nein;;;ja;ja
 0x00409330;_HoldStrong::Map::Buildings::BuildingsState::getBuildingResourceAmountByUid;nein;;;nein;ja
 0x00409370;_HoldStrong::Map::Buildings::BuildingsState::convertCommandBuildingTypeToBuildingType;nein;;;nein;ja
 0x00409930;_HoldStrong::Map::Buildings::BuildingsState::convertBuildingTypeToCommandBuildingType;nein;;;nein;ja
@@ -272,9 +272,9 @@
 0x00419630;_HoldStrong::Global::UpdateGoodBuildingStatue;nein;;;nein;ja
 0x00419670;_HoldStrong::Global::UpdateGoodBuildingShrine;nein;;;nein;ja
 0x004196D0;_HoldStrong::Global::UpdateDancingBear;nein;;;nein;ja
-0x00419780;_HoldStrong::Map::Buildings::BuildingsState::initBuildingCosts;ja;WS 3 WS 5;Die Kostentabelle ist vor dem Gefecht leer / abgelesen;nein;ja
+0x00419780;_HoldStrong::Map::Buildings::BuildingsState::initBuildingCosts;ja;WS 3;abgelesen;nein;ja
 0x004197C0;_HoldStrong::Map::Buildings::BuildingsState::updatePathLinkageLayerForAllBuildings;nein;;;nein;ja
-0x00419800;_HoldStrong::Map::Buildings::BuildingsState::processDamageFromKillingPit;ja;L125;"gemessen + abgelesen; Pruefung kornring_pruefen 12/12 (Gegenprobe ohne Holzreser";nein;ja
+0x00419800;_HoldStrong::Map::Buildings::BuildingsState::processDamageFromKillingPit;nein;;;nein;ja
 0x00419960;_HoldStrong::Map::Buildings::BuildingsState::updatePathLinkageTileMap;ja;W35;getestet (Teil);nein;ja
 0x00419A30;_HoldStrong::Map::Buildings::BuildingsState::initializeGatePathfindingForOwner;nein;;;nein;ja
 0x00419AC0;_HoldStrong::Map::Buildings::BuildingsState::rebuildTileLogicLayerForGatesAndWalls;nein;;;nein;ja
@@ -304,7 +304,7 @@
 0x0041A710;_HoldStrong::Map::Version::UpgradeOutpostField;nein;;;nein;nein
 0x0041A740;_HoldStrong::IO::SwapInts;nein;;;nein;nein
 0x0041A760;_HoldStrong::Map::Buildings::BuildingsState::constructBuildingsState;nein;;;nein;ja
-0x0041A7A0;_HoldStrong::Map::Buildings::BuildingsState::destroyBuilding;ja;WS 2 WS 5;Laufzeit-Typ / belegt;nein;ja
+0x0041A7A0;_HoldStrong::Map::Buildings::BuildingsState::destroyBuilding;ja;WS 5;belegt;nein;ja
 0x0041A860;_HoldStrong::Map::Buildings::BuildingsState::destroyBuildings;nein;;;nein;ja
 0x0041A8D0;_HoldStrong::Map::Buildings::BuildingsState::swapOwnersOfCastle;nein;;;nein;ja
 0x0041ADE0;_HoldStrong::Map::Buildings::BuildingsState::determineBuildingEntranceFromKeepArea;ja;W34;abgelesen;nein;ja
@@ -320,17 +320,17 @@
 0x0041BD70;_HoldStrong::Map::Buildings::BuildingsState::processResourceLoss;nein;;;nein;ja
 0x0041BF50;_HoldStrong::Map::Buildings::BuildingsState::subtractResourcesStoredInBuilding;nein;;;nein;ja
 0x0041BFD0;_HoldStrong::Map::Buildings::BuildingsState::processPlacementResourceLossForBuildingType;ja;WS 5;abgelesen;nein;ja
-0x0041C190;_HoldStrong::Map::Buildings::BuildingsState::processWallBuildingLoss;ja;L123;"gemessen werkzeug/mauer_pruefen.py (Spielstaende ""Walltest 4"", ""Gute Wirtschaft""";nein;ja
+0x0041C190;_HoldStrong::Map::Buildings::BuildingsState::processWallBuildingLoss;nein;;;nein;ja
 0x0041C240;_HoldStrong::Map::Buildings::BuildingsState::applyFoodLossPercentageToPlayer;nein;;;nein;ja
-0x0041C310;_HoldStrong::Map::Buildings::BuildingsState::processResourceGain;ja;L33;abgelesen + getestet;nein;ja
+0x0041C310;_HoldStrong::Map::Buildings::BuildingsState::processResourceGain;nein;;;nein;ja
 0x0041C570;_HoldStrong::Map::Buildings::BuildingsState::applyGateOrDrawbridgeOpenCloseChange;ja;AU39;abgelesen;nein;ja
 0x0041C6F0;_HoldStrong::Map::Buildings::BuildingsState::sortBuildingIDsNeedPeasantsQueue;nein;;;nein;ja
-0x0041C810;_HoldStrong::Map::Buildings::BuildingsState::lightUpBuilding;ja;P27 P29;"Offsets getestet (live, SAI); Feuerwache abgelesen / abgelesen + SAI gemessen (Z";nein;ja
+0x0041C810;_HoldStrong::Map::Buildings::BuildingsState::lightUpBuilding;ja;P27;abgelesen + SAI gemessen (Zuendung);nein;ja
 0x0041CA00;_HoldStrong::Global::UpdateOxTether;ja;P17;abgelesen;nein;ja
 0x0041CC70;_HoldStrong::Global::UpdateIronMine;nein;;;nein;ja
 0x0041D510;_HoldStrong::Global::UpdateQuarry;nein;;;nein;ja
 0x0041E240;_HoldStrong::Global::UpdateFireBallistaBuilding;ja;P28;abgelesen (Schwellen) / ungeprueft (Bediener);nein;ja
-0x0041E650;_HoldStrong::Global::UpdateKillingPit;ja;L125;"gemessen + abgelesen; Pruefung kornring_pruefen 12/12 (Gegenprobe ohne Holzreser";nein;ja
+0x0041E650;_HoldStrong::Global::UpdateKillingPit;nein;;;nein;ja
 0x0041E870;_HoldStrong::Global::UpdateTower2;nein;;;nein;ja
 0x0041EB00;_HoldStrong::Global::UpdateTower3;nein;;;nein;ja
 0x0041EDA0;_HoldStrong::Global::UpdateTower4;nein;;;nein;ja
@@ -347,7 +347,7 @@
 0x00421990;_HoldStrong::Map::Buildings::BuildingsState::destroyBuildingAndLinkedDuplicates;nein;;;nein;ja
 0x00421A40;_HoldStrong::Map::Buildings::BuildingsState::buildingIsAccessible;nein;;;nein;ja
 0x00421BE0;_HoldStrong::Map::Buildings::BuildingsState::resolveBuildingEntryAccessibility;nein;;;nein;ja
-0x00421D70;_HoldStrong::Map::Buildings::BuildingsState::giveBackResourceForDestroyedBuilding;ja;A4;Daniel;nein;ja
+0x00421D70;_HoldStrong::Map::Buildings::BuildingsState::giveBackResourceForDestroyedBuilding;nein;;;nein;ja
 0x00422230;_HoldStrong::Map::Buildings::BuildingsState::getBuildingThatCanStoreThisResource;nein;;;nein;ja
 0x00422370;_HoldStrong::Map::Buildings::BuildingsState::getArmoryWithSpaceLeft;nein;;;nein;ja
 0x00422396;FUN_00422396;nein;;;ja;nein
@@ -355,7 +355,7 @@
 0x004224F0;_HoldStrong::Map::Buildings::BuildingsState::updateGateDrawBridgeOpenCloseLogic;nein;;;nein;ja
 0x00422B80;_HoldStrong::Map::Buildings::BuildingsState::checkBuildingsNeedPeasants;nein;;;nein;ja
 0x00422C60;_HoldStrong::Map::Buildings::BuildingsState::spreadFireRandomlyToBuildings;nein;;;nein;ja
-0x00422E20;_HoldStrong::Map::Buildings::BuildingsState::updateBuildings;ja;P25 P29;"Offsets getestet (live, SAI); Feuerwache abgelesen / abgelesen";nein;ja
+0x00422E20;_HoldStrong::Map::Buildings::BuildingsState::updateBuildings;ja;P25;abgelesen;nein;ja
 0x00423370;_HoldStrong::Global::UpdateHuntersPost;nein;;;nein;ja
 0x004238B0;_HoldStrong::Global::UpdateGateHouseLarge;nein;;;nein;ja
 0x00423CD0;_HoldStrong::Global::UpdateGateHouseSmall;nein;;;nein;ja
@@ -820,7 +820,7 @@
 0x00457AD0;_HoldStrong::Game::GameStateStructures::swapOwnership;nein;;;nein;ja
 0x00457B40;_HoldStrong::Game::GameStateStructures::destroyPlayerCompletely;nein;;;nein;ja
 0x00457B80;_HoldStrong::Game::GameStateStructures::checkRequiredResourcesForBuildingOrPlanToBuy;nein;;;nein;ja
-0x00457E80;_HoldStrong::Game::GameStateStructures::getWallTilesThatCanBeBuilt;ja;L123;"gemessen werkzeug/mauer_pruefen.py (Spielstaende ""Walltest 4"", ""Gute Wirtschaft""";nein;ja
+0x00457E80;_HoldStrong::Game::GameStateStructures::getWallTilesThatCanBeBuilt;nein;;;nein;ja
 0x00457F20;_HoldStrong::Game::GameStateStructures::showPopAndGoldPopup;nein;;;nein;ja
 0x00457FD0;_HoldStrong::Game::GameStateStructures::createStatsPopUpEntities;nein;;;nein;ja
 0x00458070;_HoldStrong::Game::GameStateStructures::displayPlayerTradeVisualEffect;nein;;;nein;ja
@@ -836,7 +836,7 @@
 0x004587A0;_HoldStrong::Game::GameStateStructures::getNextGoodFilteringUnallowed;nein;;;nein;ja
 0x00458820;_HoldStrong::Game::GameStateStructures::getPreviousGoodsFilteringUnallowed;nein;;;nein;ja
 0x00458890;_HoldStrong::Game::GameStateStructures::getBatchBuyPrice;nein;;;nein;ja
-0x004588A0;_HoldStrong::Game::GameStateStructures::getBuyPrice;ja;L33;abgelesen + getestet;nein;ja
+0x004588A0;_HoldStrong::Game::GameStateStructures::getBuyPrice;nein;;;nein;ja
 0x004588D0;_HoldStrong::Game::GameStateStructures::getBuyPriceForOneUnit;nein;;;nein;ja
 0x004588F0;_HoldStrong::Game::GameStateStructures::getSalePriceOfGood;nein;;;nein;ja
 0x00458910;_HoldStrong::Game::GameStateStructures::getSellPrice;nein;;;nein;ja
@@ -889,7 +889,7 @@
 0x0045C050;_HoldStrong::Game::GameStateStructures::spawnPoisonCloudsAtRandomStorageOrArmyBuilding;nein;;;nein;ja
 0x0045C1C0;_HoldStrong::Game::GameStateStructures::migrateGameStateForMapVersion;nein;;;nein;ja
 0x0045CA20;_HoldStrong::Game::GameStateStructures::processSingleTimeTick;ja;AU20;abgelesen (1b/2 Staleness gemessen nur indirekt);nein;ja
-0x0045CD10;_HoldStrong::Game::GameStateStructures::processGameTick;ja;L119 L154 L155 WS 13 WS 5;"abgelesen / belegt / gemessen / gemessen (1 Instanz, 1 Spielstand; (2) nur Tempo";nein;ja
+0x0045CD10;_HoldStrong::Game::GameStateStructures::processGameTick;nein;;;nein;ja
 0x0045D060;_HoldStrong::Global::PrintToDestination;nein;;;nein;ja
 0x0045D080;_HoldStrong::Text::TextEditorState::setHelpWindowBounds;nein;;;nein;nein
 0x0045D0B0;_HoldStrong::UI::Rendering::AlphaAndButtonSurface::freeMemory;nein;;;nein;nein
@@ -960,7 +960,7 @@
 0x00464D90;_HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_UnknownMin1Unk;nein;;;ja;nein
 0x00464DA0;_HoldStrong::Global::IsEuroUnitRecruitableUnk;nein;;;ja;ja
 0x00464E80;_HoldStrong::Global::GetUnitRecruitPermission;nein;;;nein;ja
-0x00464EF0;_HoldStrong::Global::ProcessRecruitUnit;ja;WS 13;abgelesen / gemessen;nein;ja
+0x00464EF0;_HoldStrong::Global::ProcessRecruitUnit;nein;;;nein;ja
 0x00465040;_HoldStrong::UI::HasEnoughGold;nein;;;nein;nein
 0x00465080;_HoldStrong::Global::CheckIfEnoughGoldForLadderman;nein;;;nein;ja
 0x004650A0;_HoldStrong::Global::CheckIfEnoughGoldForMonk;nein;;;nein;ja
@@ -980,16 +980,16 @@
 0x004656A0;_HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_TaxArrowButtons;nein;;;nein;nein
 0x00465700;_HoldStrong::Commands::QueueChangeTaxes;nein;;;nein;ja
 0x004657B0;_HoldStrong::UI::MenuItemRenderFunction_BuildingAndStatusMenu_TaxArrowButtons;nein;;;nein;nein
-0x00465800;_HoldStrong::Global::ChangeTaxes;ja;WS 13;"abgelesen**; 38 **gemessen";nein;ja
+0x00465800;_HoldStrong::Global::ChangeTaxes;nein;;;nein;ja
 0x00465820;_HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_ChangeRations;nein;;;nein;nein
-0x00465890;_HoldStrong::Global::ChangeRations;ja;WS 13;"abgelesen**; 38 **gemessen";nein;ja
+0x00465890;_HoldStrong::Global::ChangeRations;nein;;;nein;ja
 0x004658B0;_HoldStrong::UI::MenuItemRenderFunction_BuildingAndStatusMenu_GeneralButtonRender;nein;;;nein;nein
 0x00465920;_HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_MarketMenuChangeButtons;nein;;;nein;nein
 0x00465950;_HoldStrong::UI::MenuItemRenderFunction_BuildingAndStatusMenu_SelectBuySellGoods;nein;;;nein;nein
 0x004659E0;_HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_SelectBuySellGoods;nein;;;nein;nein
 0x00465A20;_HoldStrong::UI::MenuItemRenderFunction_BuildingAndStatusMenu_BuySellMenuButtonsAndHands;nein;;;nein;nein
 0x00465DB0;_HoldStrong::Global::SetStorageMarketFailState;nein;;;nein;ja
-0x00465E60;_HoldStrong::Global::ProcessBuyOrSell;ja;L33 WS 13;"abgelesen + getestet / abgelesen**; 38 **gemessen";nein;ja
+0x00465E60;_HoldStrong::Global::ProcessBuyOrSell;nein;;;nein;ja
 0x00465F20;_HoldStrong::Global::TryAcquireAmmunitionOrPlanToBuyStone;nein;;;nein;ja
 0x00465F90;_HoldStrong::Global::SelectionReplenishAmmo;ja;AU38;abgelesen;nein;ja
 0x004660B0;_HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_BuildingSleep;nein;;;nein;nein
@@ -1186,7 +1186,7 @@
 0x0046FF50;_HoldStrong::UI::Rendering::WindowAndDirectDraw::createCrusaderWindow;nein;;;nein;nein
 0x0046FFB0;_HoldStrong::UI::Rendering::WindowAndDirectDraw::prepareWindowAndDDrawUnk;nein;;;ja;nein
 0x00470040;_HoldStrong::UI::Rendering::WindowAndDirectDraw::renderBltAndFlip;nein;;;nein;nein
-0x00470610;_HoldStrong::UI::Rendering::WindowAndDirectDraw::bltMapGameSurfaceToScreenMenuSurfaceComplete;ja;WS 5;Der Blt ist aus dem SPIELTICK harmlos / belegt;nein;nein
+0x00470610;_HoldStrong::UI::Rendering::WindowAndDirectDraw::bltMapGameSurfaceToScreenMenuSurfaceComplete;ja;WS 5;Der Blt ist aus dem SPIELTICK harmlos;nein;nein
 0x004706A0;_HoldStrong::UI::Rendering::WindowAndDirectDraw::bltMapGameSurfaceToScreenMenuSurface;nein;;;nein;nein
 0x004706E0;_HoldStrong::UI::Rendering::WindowAndDirectDraw::bltMapGameSurfaceToScreen;nein;;;nein;nein
 0x004707F0;_HoldStrong::UI::Rendering::WindowAndDirectDraw::bltScreenMenuSurfaceToScreen;nein;;;nein;nein
@@ -1380,7 +1380,7 @@
 0x004791B0;_HoldStrong::OS::basic_ofstream_write;nein;;;nein;nein
 0x00479330;HoldStrong_lib::Catch_All@00479330;nein;;;nein;nein
 0x00479400;HoldStrong_lib::std::basic_ofstream<char,_struct_std::char_traits<char>_>::basic_ofstream<char,_struct_std::char_traits<char>_>;nein;;;nein;nein
-0x00479540;_HoldStrong::UI::Rendering::WindowAndDirectDraw::takeScreenshot;ja;WS 5;`takeScreenshot` toetet den Prozess auch im laufenden Gefecht / belegt;nein;nein
+0x00479540;_HoldStrong::UI::Rendering::WindowAndDirectDraw::takeScreenshot;ja;WS 5;belegt;nein;nein
 0x004799A0;_HoldStrong::Audio::MSS::SoundSystem::endSoundStream;nein;;;nein;nein
 0x00479A60;_HoldStrong::Audio::MSS::SoundSystem::isSampleOrStreamPlaying;nein;;;nein;nein
 0x00479AB0;_HoldStrong::Audio::MSS::SoundSystem::shouldSoundXNotBePlaying;nein;;;nein;nein
@@ -1472,7 +1472,7 @@
 0x0047E890;_HoldStrong::Synchrony::GameSynchronyState::countOccupiedPlayerSlots;nein;;;nein;ja
 0x0047E8F0;_HoldStrong::Synchrony::GameSynchronyState::checkPlayerSetValid;nein;;;nein;ja
 0x0047EA40;_HoldStrong::Synchrony::GameSynchronyState::countPlayersInSameTeam;nein;;;nein;ja
-0x0047EAF0;_HoldStrong::Synchrony::GameSynchronyState::translateMultiplayerIDsIntoPlayerIDs;ja;WS 13;abgelesen / abgelesen + passt zur Messung;nein;ja
+0x0047EAF0;_HoldStrong::Synchrony::GameSynchronyState::translateMultiplayerIDsIntoPlayerIDs;ja;WS 13;abgelesen + passt zur Messung;nein;ja
 0x0047EB80;_HoldStrong::Synchrony::GameSynchronyState::addPlayerToCurrentPlayerArray;nein;;;nein;ja
 0x0047EC10;_HoldStrong::Synchrony::GameSynchronyState::handleUnexpectedDPlayXResult;nein;;;nein;ja
 0x0047EDE0;_HoldStrong::Synchrony::GameSynchronyState::checkAllPlayersReadyAndCleanupSlots;nein;;;nein;ja
@@ -1505,16 +1505,16 @@
 0x00481050;_HoldStrong::Commands::ClickErase;nein;;;nein;ja
 0x00481120;_HoldStrong::Commands::ClickSetLand;nein;;;nein;ja
 0x00481250;_HoldStrong::Commands::ClickRaiseLand;nein;;;nein;ja
-0x004813C0;_HoldStrong::Commands::ClickSetTerrain;ja;L126;"gemessen werkzeug/graben_pruefen.py 3/3 (Spielstand ""Gute Wirtschaft"": 9 Felder ";nein;ja
+0x004813C0;_HoldStrong::Commands::ClickSetTerrain;nein;;;nein;ja
 0x00481580;_HoldStrong::Commands::ClickHeightEqualize;nein;;;nein;ja
 0x004816F0;_HoldStrong::Commands::ClickTerrainHeightMinOrMax;nein;;;nein;ja
 0x00481860;_HoldStrong::Commands::ClickCreatePlateau;nein;;;nein;ja
 0x004819D0;_HoldStrong::Commands::ClickPlaceWall;ja;L123;"gemessen werkzeug/mauer_pruefen.py (Spielstaende ""Walltest 4"", ""Gute Wirtschaft""";nein;ja
 0x00481B50;_HoldStrong::Commands::ClickPlaceRockOrTree;nein;;;nein;ja
 0x00481C80;_HoldStrong::Commands::ClickRaiseLand2Unk;nein;;;ja;ja
-0x00481D90;_HoldStrong::Commands::ClickPlaceBuilding;ja;WS 13;gemessen;nein;ja
-0x00481F40;_HoldStrong::Commands::ClickDestroyBuilding;ja;A5;ungeprueft;nein;ja
-0x004821E0;_HoldStrong::Commands::ClickRecruitUnit;ja;WS 13;gemessen;nein;ja
+0x00481D90;_HoldStrong::Commands::ClickPlaceBuilding;nein;;;nein;ja
+0x00481F40;_HoldStrong::Commands::ClickDestroyBuilding;nein;;;nein;ja
+0x004821E0;_HoldStrong::Commands::ClickRecruitUnit;nein;;;nein;ja
 0x00482280;_HoldStrong::Commands::_REMOVED_COMMAND1_;nein;;;nein;ja
 0x00482290;_HoldStrong::Commands::ClickSetBuildingProductionType;nein;;;nein;ja
 0x00482360;_HoldStrong::Commands::ClickChangeTaxes;nein;;;nein;ja
@@ -1523,7 +1523,7 @@
 0x00482550;_HoldStrong::Commands::ClickSomethingWithDrawBridgeUnk;nein;;;ja;ja
 0x00482620;_HoldStrong::Commands::ClickBuyOrSell;nein;;;nein;ja
 0x004826C0;_HoldStrong::Commands::ClickDestroy;nein;;;nein;ja
-0x004827E0;_HoldStrong::Commands::ClickPlaceSiegeTent;ja;P12 WS 5;Luecke / abgelesen;nein;ja
+0x004827E0;_HoldStrong::Commands::ClickPlaceSiegeTent;ja;P12;Luecke;nein;ja
 0x00482A40;_HoldStrong::Commands::ClickBuildingSleep;nein;;;nein;ja
 0x00482AA0;_HoldStrong::Commands::ClickCreateAnimal;nein;;;nein;ja
 0x00482BB0;_HoldStrong::Commands::ClickOpenOrCloseGate;nein;;;nein;ja
@@ -1593,7 +1593,7 @@
 0x004882A0;_HoldStrong::Synchrony::GameSynchronyState::computeAndSetLatencyInformation;nein;;;nein;ja
 0x00488480;_HoldStrong::Global::MemCopyFromParameter;nein;;;nein;ja
 0x00488540;_HoldStrong::Synchrony::GameSynchronyState::renderDebugDataNetwork;nein;;;nein;ja
-0x00489100;_HoldStrong::Synchrony::GameSynchronyState::queueCommand;ja;L119 WS 13;abgelesen / gemessen: werkzeug/spieler2_pruefen.py 6/6 (ein Paket mit Bau fuer S;nein;ja
+0x00489100;_HoldStrong::Synchrony::GameSynchronyState::queueCommand;ja;WS 13;;nein;ja
 0x004892F0;_HoldStrong::Synchrony::GameSynchronyState::processWaitingCommands;ja;WS 13;abgelesen;nein;ja
 0x004893C0;_HoldStrong::Commands::InitialAnnounceToHost;nein;;;nein;ja
 0x00489410;_HoldStrong::Commands::AssignPlayerIDToPlayerSlot;nein;;;nein;ja
@@ -1737,8 +1737,8 @@
 0x00498400;_HoldStrong::Map::Navigation::PathFindingState::pathFindingWithBuildingsIncluded;nein;;;nein;ja
 0x00498A40;_HoldStrong::Map::Navigation::PathFindingState::calculatePathKeepAndWallsGatesNotAllowed;nein;;;nein;ja
 0x00498FD0;_HoldStrong::Map::Navigation::PathFindingState::commitUnitPathPlanUsingWalkLayer;nein;;;nein;ja
-0x004995E0;_HoldStrong::Map::Navigation::PathFindingState::updateSeparateAreaTileMap;ja;W1 W11 W35;**getestet** (24.10.) / getestet (Teil) / ungeprueft;nein;ja
-0x004999C0;_HoldStrong::Map::Navigation::PathFindingState::updatePathLinkageLayerBasedOnBuildingsUnk;ja;W2;ungeprueft;ja;ja
+0x004995E0;_HoldStrong::Map::Navigation::PathFindingState::updateSeparateAreaTileMap;ja;W35;getestet (Teil);nein;ja
+0x004999C0;_HoldStrong::Map::Navigation::PathFindingState::updatePathLinkageLayerBasedOnBuildingsUnk;nein;;;ja;ja
 0x00499DC0;_HoldStrong::Map::Navigation::PathFindingState::updatePathLinkageLayerAtTileForSomeLogicalReason;nein;;;nein;ja
 0x00499FA0;_HoldStrong::Map::Navigation::PathFindingState::updatePathLinkageTileMapRelatedToGates;nein;;;nein;ja
 0x0049A1C0;_HoldStrong::Map::Navigation::PathFindingState::updatePathLinkageTileMapRelatedToKeeps;nein;;;nein;ja
@@ -1804,7 +1804,7 @@
 0x004A4B80;_HoldStrong::Map::Navigation::PathFindingState::clearLaddermanWalledData;nein;;;nein;ja
 0x004A4BB0;_HoldStrong::Map::Navigation::PathFindingState::reprocessLadddermanWallData;nein;;;nein;ja
 0x004A4C70;_HoldStrong::Map::Navigation::PathFindingState::registerUnitOnClimbData;nein;;;nein;ja
-0x004A4D60;_HoldStrong::Global::UpdateLadderManState01;ja;W34;abgelesen;nein;ja
+0x004A4D60;_HoldStrong::Global::UpdateLadderManState01;nein;;;nein;ja
 0x004A4E40;_HoldStrong::Global::UpdateLadderManState03;nein;;;nein;ja
 0x004A4F90;_HoldStrong::Global::UpdateLadderManState04;nein;;;nein;ja
 0x004A50E0;_HoldStrong::Global::UpdateLadderManState05;nein;;;nein;ja
@@ -2099,7 +2099,7 @@
 0x004C62C0;_HoldStrong::Map::MapPropertiesState::loadMap;nein;;;nein;ja
 0x004C6820;_HoldStrong::Map::MapPropertiesState::loadMapSiegeHeaderForMissionIndex;nein;;;nein;ja
 0x004C6880;_HoldStrong::Map::MapPropertiesState::loadMissionMapAndSetLord;nein;;;nein;ja
-0x004C68D0;_HoldStrong::Global::SetupSkirmishMode;ja;WS 5;Der Grund: es ist gar kein vollstaendiges Match / belegt;nein;ja
+0x004C68D0;_HoldStrong::Global::SetupSkirmishMode;nein;;;nein;ja
 0x004C6B20;_HoldStrong::Global::LoadSkirmishCampaignData;nein;;;nein;ja
 0x004C6CD0;_HoldStrong::Global::StoreTime;nein;;;nein;ja
 0x004C6D30;_HoldStrong::AI::AICState::wipeAICMemory;nein;;;nein;ja
@@ -2164,7 +2164,7 @@
 0x004CD070;_HoldStrong::Global::CheckTribeActivityPercentages;nein;;;nein;ja
 0x004CD0C0;_HoldStrong::AI::AICState::sendUnitsToKeep;nein;;;nein;ja
 0x004CD110;_HoldStrong::AI::AICState::sendUnitsToCampfire;nein;;;nein;ja
-0x004CD160;_HoldStrong::AI::AICState::digNearestMoat;ja;L126;"gemessen werkzeug/graben_pruefen.py 3/3 (Spielstand ""Gute Wirtschaft"": 9 Felder ";nein;ja
+0x004CD160;_HoldStrong::AI::AICState::digNearestMoat;nein;;;nein;ja
 0x004CD250;_HoldStrong::AI::AICState::canNavigateUnitsFromTileToTargetTile;nein;;;nein;ja
 0x004CD2A0;_HoldStrong::AI::AICState::recruitHarrassingSiegeEngines;ja;AU38;abgelesen;nein;ja
 0x004CD560;_HoldStrong::AI::AICState::aiRecruitSortieRangedUnits;ja;AU38;abgelesen;nein;ja
@@ -2189,7 +2189,7 @@
 0x004CE4D0;_HoldStrong::AI::AICState::aiRetreatUnits;nein;;;nein;ja
 0x004CE5F0;_HoldStrong::AI::AICState::sendUnitsToPlayerIDsKeepIfPossible;nein;;;nein;ja
 0x004CE790;_HoldStrong::AI::AICState::clearRallyFlagOnAllAIAttackTribes;nein;;;nein;ja
-0x004CE830;_HoldStrong::AI::AICState::moveAttackTribesToLocations;ja;AU13;abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid);nein;ja
+0x004CE830;_HoldStrong::AI::AICState::moveAttackTribesToLocations;nein;;;nein;ja
 0x004CE930;_HoldStrong::AI::AICState::findAttackTribePositionAndPathToDefenses;nein;;;nein;ja
 0x004CEA50;_HoldStrong::AI::AICState::makeUnitsGoDefensiveAndBackToSomeLocation;nein;;;nein;ja
 0x004CEB50;_HoldStrong::AI::AICState::giveMoveCommandToAttackTribes;nein;;;nein;ja
@@ -2199,7 +2199,7 @@
 0x004CEFD0;_HoldStrong::AI::AICState::useAITribe_0x12_toPlaceSiegeTentsAndAssignEngineers;nein;;;nein;ja
 0x004CF180;_HoldStrong::AI::AICState::useAITribe_0xe_toPlaceTunnels;nein;;;nein;ja
 0x004CF270;_HoldStrong::AI::AICState::aiCommandTribe13DefensiveWave;nein;;;nein;ja
-0x004CF2E0;_HoldStrong::AI::AICState::aiCommandTribe12AggressiveApproach;ja;AU13;abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid);nein;ja
+0x004CF2E0;_HoldStrong::AI::AICState::aiCommandTribe12AggressiveApproach;nein;;;nein;ja
 0x004CF400;_HoldStrong::AI::AICState::setTribe0xCtoAggressiveAndAttack;nein;;;nein;ja
 0x004CF470;_HoldStrong::AI::AICState::aiCommandTribe11StandGroundToGate;nein;;;nein;ja
 0x004CF4F0;_HoldStrong::AI::AICState::sendAITribe_0xf_toAttackPatrol;nein;;;nein;ja
@@ -2256,7 +2256,7 @@
 0x004D1A00;_HoldStrong::AI::AICState::decideOnTribeAttackLocation;ja;AU42;abgelesen + belegt;nein;ja
 0x004D1D60;_HoldStrong::AI::AICState::sellExcessGoods;nein;;;nein;ja
 0x004D1F00;_HoldStrong::AI::AICState::requestGoods;nein;;;nein;ja
-0x004D2000;_HoldStrong::AI::AICState::aiCreateSiegeUnits;ja;WS 5;abgelesen;nein;ja
+0x004D2000;_HoldStrong::AI::AICState::aiCreateSiegeUnits;nein;;;nein;ja
 0x004D2500;_HoldStrong::AI::AICState::aiRecruitEngineerForOilDuty;nein;;;nein;ja
 0x004D2660;_HoldStrong::AI::AICState::assignUnitToATribe;nein;;;nein;ja
 0x004D2730;_HoldStrong::AI::AICState::addUnitToSmallestPatrolTribe;nein;;;nein;ja
@@ -2269,7 +2269,7 @@
 0x004D2E00;_HoldStrong::AI::AICState::sendTribeToAIVLocationSlot;nein;;;nein;ja
 0x004D2EC0;_HoldStrong::AI::AICState::computeAttackPossibilities;nein;;;nein;ja
 0x004D2F80;_HoldStrong::AI::AICState::moveAttackingUnitsToNextRallyPoint;nein;;;nein;ja
-0x004D30E0;_HoldStrong::AI::AICState::sendUnitsToAttackBreachedCastle;ja;AU13;abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid);nein;ja
+0x004D30E0;_HoldStrong::AI::AICState::sendUnitsToAttackBreachedCastle;nein;;;nein;ja
 0x004D3320;_HoldStrong::AI::AICState::updateAIStrengthState;ja;AU45 AU47;abgelesen;nein;ja
 0x004D3780;_HoldStrong::AI::AICState::computeNervousness;nein;;;nein;ja
 0x004D3850;_HoldStrong::AI::AICState::determineAIPlayerHelp;ja;AU51;abgelesen;nein;ja
@@ -2439,13 +2439,13 @@
 0x004ECDB0;_HoldStrong::AI::AIVState::setAIVFilePresenceByFileHashArray;nein;;;nein;ja
 0x004ECE60;_HoldStrong::AI::AIVState::syncAIPlayerNamesAndBuildIntervals;nein;;;nein;ja
 0x004ECEF0;_HoldStrong::AI::AIVState::setupAIVMetadata;nein;;;nein;ja
-0x004ECF70;_HoldStrong::AI::AIVState::setKeepOffsetAndOrientation;ja;WS 1;belegt;nein;ja
+0x004ECF70;_HoldStrong::AI::AIVState::setKeepOffsetAndOrientation;nein;;;nein;ja
 0x004ECFE0;_HoldStrong::AI::AIVState::convertAIVBuildingTypeToCommandBuildingType;nein;;;nein;ja
-0x004ED0B0;_HoldStrong::AI::AIVState::rotateAIV;ja;WS 1;offen;nein;ja
+0x004ED0B0;_HoldStrong::AI::AIVState::rotateAIV;nein;;;nein;ja
 0x004ED240;_HoldStrong::AI::AIVState::aiPlaceFlag;nein;;;nein;ja
 0x004ED300;_HoldStrong::AI::AIVState::aiPlaceBrazier;nein;;;nein;ja
 0x004ED3B0;_HoldStrong::AI::AIVState::incrementStructureHeatMapTile;nein;;;nein;ja
-0x004ED410;_HoldStrong::AI::AIVState::aiPlaceAIVBuilding;ja;AU45 WS 3 WS 5;abgelesen / belegt;nein;ja
+0x004ED410;_HoldStrong::AI::AIVState::aiPlaceAIVBuilding;ja;AU45;abgelesen;nein;ja
 0x004EDC90;_HoldStrong::AI::AIVState::clearTheHeatmaps;nein;;;nein;ja
 0x004EDCB0;_HoldStrong::AI::AIVState::resetCountdownInHeatMap;nein;;;nein;ja
 0x004EDD00;_HoldStrong::Global::ComputeLargestSeparateArea;nein;;;nein;ja
@@ -2456,8 +2456,8 @@
 0x004EEBD0;_HoldStrong::AI::AIVState::findSuitableGridLocationFittingCriteria;nein;;;nein;ja
 0x004EEE10;_HoldStrong::AI::AIVState::findAppropriateGridLocationForBuilding;nein;;;nein;ja
 0x004EF090;_HoldStrong::AI::AIVState::wipeAIVsAndHeatMaps;nein;;;nein;ja
-0x004EF0D0;_HoldStrong::AI::AIVState::applyAIV;ja;WS 1 WS 4 WS 5;abgelesen / belegt / offen / vermutet;nein;ja
-0x004EF8C0;_HoldStrong::AI::AIVState::computeAIVPlacementFit;ja;WS 1 WS 5;belegt / offen;nein;ja
+0x004EF0D0;_HoldStrong::AI::AIVState::applyAIV;ja;WS 4 WS 5;abgelesen / belegt;nein;ja
+0x004EF8C0;_HoldStrong::AI::AIVState::computeAIVPlacementFit;ja;WS 5;belegt;nein;ja
 0x004EFA60;_HoldStrong::AI::AIVState::aiPlaceFarm;nein;;;nein;ja
 0x004EFAB0;_HoldStrong::AI::AIVState::aiPlaceWoodcuttershut;nein;;;nein;ja
 0x004EFB90;_HoldStrong::AI::AIVState::findSpotNearEngineersGuild;nein;;;nein;ja
@@ -2570,7 +2570,7 @@
 0x004F8300;_HoldStrong::Map::TileMapState::rotateFearFactorBuildingVariations;nein;;;nein;ja
 0x004F8530;_HoldStrong::Map::TileMapState::countLogicPropertyInSurroundingTiles;nein;;;nein;ja
 0x004F85B0;_HoldStrong::Map::TileMapState::isTileEnclosedByWallsOrGates;nein;;;nein;ja
-0x004F8640;_HoldStrong::Map::TileMapState::isTileEnclosedByWalls;ja;L123;"gemessen werkzeug/mauer_pruefen.py (Spielstaende ""Walltest 4"", ""Gute Wirtschaft""";nein;ja
+0x004F8640;_HoldStrong::Map::TileMapState::isTileEnclosedByWalls;nein;;;nein;ja
 0x004F86D0;_HoldStrong::Map::TileMapState::isWallCornerForCardinalDirection;nein;;;nein;ja
 0x004F8780;_HoldStrong::Map::TileMapState::isWallCornerForDiagonalDirection;nein;;;nein;ja
 0x004F8840;_HoldStrong::Map::TileMapState::isWallConnectionHeightValid;nein;;;nein;ja
@@ -2588,7 +2588,7 @@
 0x004F9880;_HoldStrong::Map::TileMapState::getBuildingSizeIndexMappingData;nein;;;nein;ja
 0x004F9930;_HoldStrong::Map::TileMapState::isFootprintIndexOnEdge;nein;;;nein;ja
 0x004F9980;_HoldStrong::Map::TileMapState::storeMinAndMaxHeightOfArea;nein;;;nein;ja
-0x004F9A60;_HoldStrong::Map::TileMapState::isBuildingPlacementAllowedAtTile;ja;WS 13 WS 5;belegt;nein;ja
+0x004F9A60;_HoldStrong::Map::TileMapState::isBuildingPlacementAllowedAtTile;ja;WS 13;;nein;ja
 0x004F9DF0;_HoldStrong::Map::TileMapState::validateBuildingPlacementAtTile;nein;;;nein;ja
 0x004F9F00;_HoldStrong::Map::TileMapState::spawnEraserTileEffect;nein;;;nein;ja
 0x004FA000;_HoldStrong::Map::TileMapState::determineBuildingPlacementRotation;nein;;;nein;ja
@@ -2642,7 +2642,7 @@
 0x00500310;_HoldStrong::Map::TileMapState::clearMoatDataAtTile;nein;;;nein;ja
 0x00500370;_HoldStrong::Map::TileMapState::findTileInSameAreaAndNoTooHeightDifference;nein;;;nein;ja
 0x005003D0;_HoldStrong::Map::TileMapState::setXYBasedOnMoatID;nein;;;nein;ja
-0x00500500;_HoldStrong::Map::TileMapState::advanceMoatDigProgress;ja;L126;"gemessen werkzeug/graben_pruefen.py 3/3 (Spielstand ""Gute Wirtschaft"": 9 Felder ";nein;ja
+0x00500500;_HoldStrong::Map::TileMapState::advanceMoatDigProgress;nein;;;nein;ja
 0x005005F0;_HoldStrong::Map::TileMapState::clearMoat;nein;;;nein;ja
 0x00500640;_HoldStrong::Map::TileMapState::updateMoatCountdownTimers;nein;;;nein;ja
 0x00500680;_HoldStrong::Map::TileMapState::resetMoatArray;nein;;;nein;ja
@@ -2664,8 +2664,8 @@
 0x00500CF0;_HoldStrong::Map::WallAndPitchState::startUnitDestructionConfirmation;nein;;;nein;ja
 0x00500D30;_HoldStrong::Map::WallAndPitchState::resetWallPlacementInfo;nein;;;nein;ja
 0x00500D60;_HoldStrong::Map::WallAndPitchState::addWallPlacementInfoForTile;nein;;;nein;ja
-0x00500DD0;_HoldStrong::Map::WallAndPitchState::placePitchDitch;ja;AU53;abgelesen;nein;ja
-0x00500E20;_HoldStrong::Map::WallAndPitchState::destroyWall;ja;WS 2 WS 5 WS 6;Die Schadens-Ebene `0x1DBC2A8` führt KEINE Mauer-Gesundheit / belegt / vermutet;nein;ja
+0x00500DD0;_HoldStrong::Map::WallAndPitchState::placePitchDitch;nein;;;nein;ja
+0x00500E20;_HoldStrong::Map::WallAndPitchState::destroyWall;nein;;;nein;ja
 0x00500EE0;_HoldStrong::Map::WallAndPitchState::destroyPitch;nein;;;nein;ja
 0x00500F40;_HoldStrong::Map::WallAndPitchState::updateDestructionConfirmationCountdown;nein;;;nein;ja
 0x005010C0;_HoldStrong::UI::HoveredState::clearHoveredState;nein;;;nein;nein
@@ -2694,8 +2694,8 @@
 0x005024F0;_HoldStrong::Map::TileMapState::isValidCastleSiteLocation;nein;;;nein;ja
 0x00502680;_HoldStrong::Map::TileMapState::useTerrainHeightBrush;nein;;;nein;ja
 0x00502950;_HoldStrong::Map::TileMapState::getMaxWallHeightInBrushArea;nein;;;nein;ja
-0x005029D0;_HoldStrong::Map::TileMapState::validateWallBuildPath;ja;L123;"gemessen werkzeug/mauer_pruefen.py (Spielstaende ""Walltest 4"", ""Gute Wirtschaft""";nein;ja
-0x00502F30;_HoldStrong::Map::TileMapState::placeWalls;ja;L123;"gemessen werkzeug/mauer_pruefen.py (Spielstaende ""Walltest 4"", ""Gute Wirtschaft""";nein;ja
+0x005029D0;_HoldStrong::Map::TileMapState::validateWallBuildPath;nein;;;nein;ja
+0x00502F30;_HoldStrong::Map::TileMapState::placeWalls;nein;;;nein;ja
 0x005034A0;_HoldStrong::Map::TileMapState::placeDefensiveStructureTile;nein;;;nein;ja
 0x00503720;_HoldStrong::Map::TileMapState::setupBuildingSizeIndexMapping;nein;;;nein;ja
 0x005037B0;_HoldStrong::Map::TileMapState::checkBuildingCanBePlacedHere;ja;WS 13;;nein;ja
@@ -2729,7 +2729,7 @@
 0x00509180;_HoldStrong::Map::TileMapState::updateGfxLayer;nein;;;nein;ja
 0x00511020;_HoldStrong::Map::TileMapState::updateMacroLayer;nein;;;nein;ja
 0x005110B0;_HoldStrong::Map::TileMapState::createMoatData;nein;;;nein;ja
-0x005111D0;_HoldStrong::Map::TileMapState::findNearestFriendlyMoatTileForDigging;ja;L126;"gemessen werkzeug/graben_pruefen.py 3/3 (Spielstand ""Gute Wirtschaft"": 9 Felder ";nein;ja
+0x005111D0;_HoldStrong::Map::TileMapState::findNearestFriendlyMoatTileForDigging;nein;;;nein;ja
 0x005113F0;_HoldStrong::Map::TileMapState::removeMoat;nein;;;nein;ja
 0x005114C0;_HoldStrong::Map::TileMapState::updatePitchDitches;ja;AU53;abgelesen;nein;ja
 0x005116E0;_HoldStrong::Map::TileMapState::placePitchDitch;ja;AU53;abgelesen;nein;ja
@@ -2743,7 +2743,7 @@
 0x00512450;_HoldStrong::Map::TileMapState::prepareMap;nein;;;nein;ja
 0x005127B0;_HoldStrong::Map::TileMapState::resetAreaBasedOnLogicalLayer;nein;;;nein;ja
 0x00512920;_HoldStrong::Map::TileMapState::processMapOrientationChange;nein;;;nein;ja
-0x00512940;_HoldStrong::Map::TileMapState::setTerrain;ja;L126;"gemessen werkzeug/graben_pruefen.py 3/3 (Spielstand ""Gute Wirtschaft"": 9 Felder ";nein;ja
+0x00512940;_HoldStrong::Map::TileMapState::setTerrain;nein;;;nein;ja
 0x00514480;_HoldStrong::Map::TileMapState::planMoat;nein;;;nein;ja
 0x00514520;_HoldStrong::Map::TileMapState::placeKillingPit;nein;;;nein;ja
 0x005146D0;_HoldStrong::Map::TileMapState::placeKeep;ja;WS 1;;nein;ja
@@ -2757,8 +2757,8 @@
 0x00515DA0;_HoldStrong::Map::TileMapState::placeTree;nein;;;nein;ja
 0x00515F40;_HoldStrong::Map::TileMapState::Constructor_TileMapState;ja;AU53;abgelesen;nein;ja
 0x005160C0;_HoldStrong::Map::TileMapState::prepareAreaForBuildingPlacement;nein;;;nein;ja
-0x005162D0;_HoldStrong::Map::TileMapState::placeBuilding;ja;A5 WS 13 WS 5;abgelesen / gemessen / ungeprueft;nein;ja
-0x00516B80;_HoldStrong::Map::TileMapState::processDamageToBuilding;ja;P25 P27;abgelesen / abgelesen + SAI gemessen (Zuendung);nein;ja
+0x005162D0;_HoldStrong::Map::TileMapState::placeBuilding;nein;;;nein;ja
+0x00516B80;_HoldStrong::Map::TileMapState::processDamageToBuilding;ja;P25;abgelesen;nein;ja
 0x00517790;_HoldStrong::Map::TileMapState::processEntityDamageToBuildingCollateral;nein;;;nein;ja
 0x00518130;_HoldStrong::Map::Units::TroopValueState::clearAttackInfo;nein;;;nein;ja
 0x00518180;_HoldStrong::Map::Units::TroopValueState::initializeAttackWaveSlot;nein;;;nein;ja
@@ -2890,7 +2890,7 @@
 0x00522720;_HoldStrong::Map::Units::TribesState::getAvailableTribeID;nein;;;nein;ja
 0x005227E0;_HoldStrong::Map::Units::TribesState::createTribeForPlayer;nein;;;nein;ja
 0x00522890;_HoldStrong::Map::Units::TribesState::createTribe;nein;;;nein;ja
-0x00522950;_HoldStrong::Map::Units::TribesState::createPlayerTribe;ja;WS 13;;nein;ja
+0x00522950;_HoldStrong::Map::Units::TribesState::createPlayerTribe;nein;;;nein;ja
 0x005229C0;_HoldStrong::Map::Units::TribesState::addUnitsToTribeAndComputeMovementSpeed;nein;;;nein;ja
 0x00522B00;_HoldStrong::Map::Units::TribesState::addUnitToTribeAndUpdateTribeMovementSpeed;nein;;;nein;ja
 0x00522BC0;_HoldStrong::Map::Units::TribesState::clearTribe;nein;;;nein;ja
@@ -2932,7 +2932,7 @@
 0x005241C0;_HoldStrong::Map::Units::TribesState::tribeContainsUnitThatCanClimb;nein;;;nein;ja
 0x00524230;_HoldStrong::Map::Units::TribesState::selectionContainsHorses;nein;;;nein;ja
 0x005242B0;_HoldStrong::Map::Units::TribesState::getMajorityArcherTypeEuropeanOrArabian;nein;;;nein;ja
-0x00524340;_HoldStrong::Map::Units::TribesState::applyMoveCommandOrRallyCommandToTribe;ja;AU38 AU42 L120;abgelesen / abgelesen + belegt / gemessen (spieler2_pruefen 6/6, Laufversuche je;nein;ja
+0x00524340;_HoldStrong::Map::Units::TribesState::applyMoveCommandOrRallyCommandToTribe;ja;AU38 AU42;abgelesen / abgelesen + belegt;nein;ja
 0x005244D0;_HoldStrong::Map::Units::TribesState::assignAttackTargetsForTribe;ja;AU38;abgelesen;nein;ja
 0x00524890;_HoldStrong::Map::Units::TribesState::stopTribeMovementAndCheckIdle;nein;;;nein;ja
 0x00524930;_HoldStrong::Map::Units::TribesState::sortTribePathDestinationsByCost;nein;;;nein;ja
@@ -2963,12 +2963,12 @@
 0x005261B0;_HoldStrong::Map::Units::TribesState::respawnDeer;ja;P17;abgelesen;nein;ja
 0x005262A0;_HoldStrong::Map::Units::TribesState::spawnWildlifeOrMercAtAvailableSlot;nein;;;nein;ja
 0x00526370;_HoldStrong::Map::Units::TribesState::upgradeMapTribesState;nein;;;nein;ja
-0x005263A0;_HoldStrong::Map::Units::TribesState::giveTribeMoveInstruction;ja;AU38 AU42 L119;abgelesen / abgelesen + belegt / gemessen: werkzeug/spieler2_pruefen.py 6/6 (ein;nein;ja
+0x005263A0;_HoldStrong::Map::Units::TribesState::giveTribeMoveInstruction;ja;AU38 AU42;abgelesen / abgelesen + belegt;nein;ja
 0x00526F00;_HoldStrong::Map::Units::TribesState::commandUnitsToLocation;ja;AU42;abgelesen + belegt;nein;ja
 0x005270F0;_HoldStrong::Map::Units::TribesState::computeTribePercentages;nein;;;nein;ja
 0x00527330;_HoldStrong::Map::Units::TribesState::updateTribeUnitAssignments;nein;;;nein;ja
 0x00527440;_HoldStrong::Map::Units::TribesState::spawnQueuedReinforcementWaves;nein;;;nein;ja
-0x00527C80;_HoldStrong::Map::Units::TribesState::giveTribeAnInstruction;ja;AU38 L126;"abgelesen / gemessen werkzeug/graben_pruefen.py 3/3 (Spielstand ""Gute Wirtschaft";nein;ja
+0x00527C80;_HoldStrong::Map::Units::TribesState::giveTribeAnInstruction;ja;AU38;abgelesen;nein;ja
 0x0052A640;_HoldStrong::Map::Units::TribesState::moveTribeToNearbyClearTile;nein;;;nein;ja
 0x0052A700;_HoldStrong::Map::Units::TribesState::moveTribeToIndexedNearbyTile;nein;;;nein;ja
 0x0052A7D0;_HoldStrong::Map::Units::TribesState::updateTribeCombatStanceBehavior;ja;AU42;abgelesen + belegt;nein;ja
@@ -2995,7 +2995,7 @@
 0x0052E120;_HoldStrong::Map::WildlifeState::updateNofFpoints;nein;;;nein;ja
 0x0052E7B0;_HoldStrong::Map::Units::UnitsState::clearAllUnits;nein;;;nein;ja
 0x0052E830;_HoldStrong::Map::Units::UnitsState::assignPeasantToBuilding;ja;AU38;abgelesen;nein;ja
-0x0052E960;_HoldStrong::Map::Units::UnitsState::euroRecruit;ja;L32 L49;Ablaufcode abgelesen + alter Fuenferlauf gemessen + Code-Gegenprobe 7/7, neuer S;nein;ja
+0x0052E960;_HoldStrong::Map::Units::UnitsState::euroRecruit;ja;L32;abgelesen + gemessen;nein;ja
 0x0052EC10;_HoldStrong::Map::Units::UnitsState::nonEuroRecruit;ja;P5;abgelesen;nein;ja
 0x0052EDC0;_HoldStrong::Map::Units::UnitsState::disbandUnit;ja;WS 13;abgelesen + gemessen;nein;ja
 0x0052EED0;_HoldStrong::Map::Units::UnitsState::assignNameToUnit;nein;;;nein;ja
@@ -3047,8 +3047,8 @@
 0x00530FD0;_HoldStrong::Map::Units::UnitsState::checkIfCitizenUnitIsAliveBasedOnState;nein;;;nein;ja
 0x00531000;_HoldStrong::Map::Units::UnitsState::shouldUnitsEngageInMelee;nein;;;nein;ja
 0x005311F0;_HoldStrong::Map::Units::UnitsState::ComputeDamageFearFactorBonus;ja;P3;abgelesen (Gegenprobe Lord passt);nein;ja
-0x00531220;_HoldStrong::Map::Units::UnitsState::processUnitAttackOtherUnit;ja;AU35 AU37 AU42 P23 P3;abgelesen / abgelesen (Gegenprobe Lord passt) / abgelesen + Daniel gemessen / ab;nein;ja
-0x00531920;_HoldStrong::Map::Units::UnitsState::processEntityDamageToUnit;ja;AU31 AU35 AU37 AU4 AU42 P4;abgelesen / abgelesen + belegt / abgelesen + gemessen / abgelesen + gemessen (Fe;nein;ja
+0x00531220;_HoldStrong::Map::Units::UnitsState::processUnitAttackOtherUnit;ja;AU37 AU42 P3;abgelesen / abgelesen (Gegenprobe Lord passt) / abgelesen + belegt;nein;ja
+0x00531920;_HoldStrong::Map::Units::UnitsState::processEntityDamageToUnit;ja;AU31 AU37 AU4 AU42 P4;abgelesen / abgelesen + belegt / abgelesen + gemessen / abgelesen + gemessen (Fe;nein;ja
 0x00532460;_HoldStrong::Map::Units::UnitsState::processFireDamageToUnit;nein;;;nein;ja
 0x00532700;_HoldStrong::Map::Units::UnitsState::shootProjectile;ja;AU2 AU24 AU42;abgelesen + belegt / abgelesen + gemessen / abgelesen + gemessen (Schuetze/Ziel/;nein;ja
 0x00532BA0;_HoldStrong::Map::Units::UnitsState::recomputeTroopValuesForPlayer;ja;AU20 AU23 AU43 AU47;abgelesen / abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + gemes;nein;ja
@@ -3142,7 +3142,7 @@
 0x00537130;_HoldStrong::Map::Units::UnitsState::queueDisbandAndAttackCommand3Params;nein;;;nein;ja
 0x00537160;_HoldStrong::Map::Units::UnitsState::queueDisbandAndAttackCommand4Params;nein;;;nein;ja
 0x005371A0;_HoldStrong::Map::Units::UnitsState::queueDisbandAndAttackCommand5Params;nein;;;nein;ja
-0x005371E0;_HoldStrong::Map::Units::UnitsState::relayTribeInstruction;ja;L126;"gemessen werkzeug/graben_pruefen.py 3/3 (Spielstand ""Gute Wirtschaft"": 9 Felder ";nein;ja
+0x005371E0;_HoldStrong::Map::Units::UnitsState::relayTribeInstruction;nein;;;nein;ja
 0x005371F0;_HoldStrong::Map::Units::UnitsState::findFreeTileNearby;nein;;;nein;ja
 0x00537700;_HoldStrong::Map::Units::UnitsState::findTunnelTarget;nein;;;nein;ja
 0x005377F0;_HoldStrong::Map::Units::UnitsState::getAliveLordForPlayer;nein;;;nein;ja
@@ -3177,30 +3177,30 @@
 0x0053B610;_HoldStrong::Map::Version::UpgradeMapUnitsLordHealthTo_169;nein;;;nein;nein
 0x0053B800;_HoldStrong::Map::Version::UpgradeMapUnitsTo_170;nein;;;nein;nein
 0x0053B8B0;_HoldStrong::Map::Units::UnitsState::constructUnitsState;nein;;;nein;ja
-0x0053B8E0;_HoldStrong::Map::Units::UnitsState::setUnitValues;ja;AU20 AU22 AU37;abgelesen / abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + gemes;nein;ja
+0x0053B8E0;_HoldStrong::Map::Units::UnitsState::setUnitValues;ja;AU20 AU37;abgelesen / abgelesen (1b/2 Staleness gemessen nur indirekt);nein;ja
 0x0053BB10;_HoldStrong::Map::Units::UnitsState::commitPendingUnitPosition;nein;;;nein;ja
 0x0053BB70;_HoldStrong::Map::Units::UnitsState::setupUnitSharingCurrentTilePosition;nein;;;nein;ja
-0x0053BB90;_HoldStrong::Map::Units::UnitsState::teleportUnitToUnitXAndY;ja;WS 3;abgelesen;nein;ja
+0x0053BB90;_HoldStrong::Map::Units::UnitsState::teleportUnitToUnitXAndY;nein;;;nein;ja
 0x0053BC20;_HoldStrong::Global::UpdateBurningMan;nein;;;nein;ja
 0x0053BE00;_HoldStrong::Global::UpdateCamel;nein;;;nein;ja
 0x0053C300;_HoldStrong::Global::UpdateShield;nein;;;nein;ja
 0x0053CAC0;_HoldStrong::Global::ConsiderTakingABreakUnk;nein;;;ja;ja
 0x0053CAE0;_HoldStrong::Map::Units::UnitsState::getEnemyUnitIDNearby;ja;AU18;abgelesen + gemessen (Reihenfolge);nein;ja
-0x0053CBD0;_HoldStrong::Map::Units::UnitsState::prepareProjectileTarget;ja;AU24 AU25 AU37 AU5 P15 P20;abgelesen / abgelesen (grob) / abgelesen + Lauf / abgelesen + SAI gemessen / abg;nein;ja
+0x0053CBD0;_HoldStrong::Map::Units::UnitsState::prepareProjectileTarget;ja;AU24 AU25 AU37 AU5;abgelesen / abgelesen + Lauf / abgelesen + gemessen;nein;ja
 0x0053D030;_HoldStrong::Map::Units::UnitsState::harassBuildingsWithSiegeAI;nein;;;nein;ja
-0x0053D3D0;_HoldStrong::Map::Units::UnitsState::setDestinationForUnit;ja;AU37 L119 WS 13 WS 3;abgelesen / belegt / gemessen / gemessen: werkzeug/spieler2_pruefen.py 6/6 (ein ;nein;ja
+0x0053D3D0;_HoldStrong::Map::Units::UnitsState::setDestinationForUnit;ja;AU37 WS 3;abgelesen / belegt;nein;ja
 0x0053D850;_HoldStrong::Map::Units::UnitsState::resumeMovementAfterInterruption;nein;;;nein;ja
 0x0053D900;_HoldStrong::Map::Units::UnitsState::exitLadder;nein;;;nein;ja
 0x0053D9C0;_HoldStrong::Map::Units::UnitsState::getUnitInHitBox;nein;;;nein;ja
 0x0053DCC0;_HoldStrong::Map::Units::UnitsState::setDestinationNearTargetedBuilding;nein;;;nein;ja
 0x0053DDD0;_HoldStrong::Map::Units::UnitsState::selectWorkerSpeechOrMoraleStateID;nein;;;nein;ja
 0x0053E390;_HoldStrong::Map::Units::UnitsState::upgradeMapFormatForUnits;nein;;;nein;ja
-0x0053E440;_HoldStrong::Map::Units::UnitsState::spawnUnit;ja;AU37 WS 3 WS 5;Grundadresse `0x0138854C`, Schrittweite 1168 / abgelesen / belegt (Code) / gemes;nein;ja
+0x0053E440;_HoldStrong::Map::Units::UnitsState::spawnUnit;ja;AU37;abgelesen;nein;ja
 0x0053E6C0;_HoldStrong::Map::Units::UnitsState::changeUnitType;nein;;;nein;ja
 0x0053E790;_HoldStrong::Map::Units::UnitsState::deleteUnit;nein;;;nein;ja
-0x0053E820;_HoldStrong::Map::Units::UnitsState::commitUnitLocation;ja;AU21;abgelesen + gemessen (Abstand);nein;ja
+0x0053E820;_HoldStrong::Map::Units::UnitsState::commitUnitLocation;nein;;;nein;ja
 0x0053E870;_HoldStrong::Map::Units::UnitsState::resetUnitMovementState;nein;;;nein;ja
-0x0053E8D0;_HoldStrong::Map::Units::UnitsState::clearHiddenFlagAndUpdatePosition;ja;AU21;abgelesen + gemessen (Abstand);nein;ja
+0x0053E8D0;_HoldStrong::Map::Units::UnitsState::clearHiddenFlagAndUpdatePosition;nein;;;nein;ja
 0x0053E900;_HoldStrong::Map::Units::UnitsState::setPositionOfUnit;ja;AU37;abgelesen;nein;ja
 0x0053E9F0;_HoldStrong::Map::Units::UnitsState::commitMimmicLocation;nein;;;nein;ja
 0x0053EAA0;_HoldStrong::Global::UpdatePeasant;ja;AU37 AU38;abgelesen;nein;ja
@@ -3225,10 +3225,10 @@
 0x00549090;_HoldStrong::Global::UpdateJuggler;nein;;;nein;ja
 0x00549650;_HoldStrong::Global::UpdateFireEater;nein;;;nein;ja
 0x00549B30;_HoldStrong::Global::SetRestingForUnit;ja;AU38;abgelesen;nein;ja
-0x00549C70;_HoldStrong::Map::Units::UnitsState::processMeleeInitiation;ja;AU18 AU23 AU30 L77 P23;abgelesen / abgelesen + Daniel gemessen / abgelesen + gemessen / abgelesen + gem;nein;ja
+0x00549C70;_HoldStrong::Map::Units::UnitsState::processMeleeInitiation;ja;AU18 AU23 L77 P23;abgelesen / abgelesen + Daniel gemessen / abgelesen + gemessen / abgelesen + gem;nein;ja
 0x0054A770;_HoldStrong::Map::Units::UnitsState::resumeMovementIfNoAttackTarget;nein;;;nein;ja
-0x0054A7B0;_HoldStrong::Map::Units::UnitsState::findNearestEnemyAndHeadTowardsIt;ja;AU18 AU20 AU21 AU23 L77 P15;abgelesen / abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + SAI g;nein;ja
-0x0054B0D0;_HoldStrong::Map::Units::UnitsState::acquireShootTarget;ja;AU20 AU21 AU22 AU27 AU28 AU30 L78 P14 P15 P20;abgelesen / abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen (grob) ;nein;ja
+0x0054A7B0;_HoldStrong::Map::Units::UnitsState::findNearestEnemyAndHeadTowardsIt;ja;AU18 AU20 AU21 AU23 P15;abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + SAI gemessen / ab;nein;ja
+0x0054B0D0;_HoldStrong::Map::Units::UnitsState::acquireShootTarget;ja;AU20 AU21 AU22 P14 P15;abgelesen / abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + SAI g;nein;ja
 0x0054BFC0;_HoldStrong::Map::Units::UnitsState::updateClimbing;nein;;;nein;ja
 0x0054C1C0;_HoldStrong::Map::Units::UnitsState::unitClimbing;nein;;;nein;ja
 0x0054C4F0;_HoldStrong::Map::Units::UnitsState::handleUnitMovementWhenTargetingBuildings;nein;;;nein;ja
@@ -3251,7 +3251,7 @@
 0x00557F70;_HoldStrong::Global::UpdateBlacksmith;nein;;;nein;ja
 0x00558CB0;_HoldStrong::Global::UpdateArmorer;nein;;;nein;ja
 0x005598D0;_HoldStrong::Global::UpdateTanner;ja;AU55;abgelesen;nein;ja
-0x0055A800;_HoldStrong::Global::UpdateCrusaderArcher;ja;AU25 AU28 AU30 P15 P20;abgelesen (grob) / abgelesen + SAI gemessen / abgelesen + gemessen;nein;ja
+0x0055A800;_HoldStrong::Global::UpdateCrusaderArcher;ja;AU25 AU28 AU30 P20;abgelesen (grob) / abgelesen + gemessen;nein;ja
 0x0055C7B0;_HoldStrong::Global::UpdateCrossbowman;ja;AU28 AU43;abgelesen / abgelesen + gemessen;nein;ja
 0x0055DA50;_HoldStrong::Global::UpdateSpearman;nein;;;nein;ja
 0x0055F110;_HoldStrong::Global::UpdatePikeman;ja;AU43;abgelesen;nein;ja
@@ -3273,7 +3273,7 @@
 0x0056E190;_HoldStrong::Global::UpdateJester;nein;;;nein;ja
 0x0056ECD0;_HoldStrong::Global::UpdateBallista;nein;;;nein;ja
 0x0056F9B0;_HoldStrong::Global::UpdateCageDog;nein;;;nein;ja
-0x00570400;_HoldStrong::Global::UpdateArabianArcher;ja;AU28 AU30 AU6;abgelesen + gemessen / gemessen (Bogenschuetze) / abgelesen (uebrige Arten);nein;ja
+0x00570400;_HoldStrong::Global::UpdateArabianArcher;ja;AU28 AU6;abgelesen + gemessen / gemessen (Bogenschuetze) / abgelesen (uebrige Arten);nein;ja
 0x00571C00;_HoldStrong::Global::UpdateSlave;ja;P27;abgelesen + SAI gemessen (Zuendung);nein;ja
 0x00572E80;_HoldStrong::Global::UpdateSlinger;nein;;;nein;ja
 0x005744D0;_HoldStrong::Global::UpdateAssassin;ja;AU38 AU45 P20;abgelesen / abgelesen (grob);nein;ja
@@ -3282,7 +3282,7 @@
 0x005769F0;_HoldStrong::Global::UpdateFireThrower;ja;AU6;gemessen (Bogenschuetze) / abgelesen (uebrige Arten);nein;ja
 0x00577CC0;_HoldStrong::Global::UpdateFireBallista;nein;;;nein;ja
 0x00578C40;_HoldStrong::Map::Units::UnitsState::processUnitMove;ja;AU22 AU33 AU37 P13;abgelesen / abgelesen + gemessen / abgelesen, L1 stuetzt 3 von 4 / gebaut + geme;nein;ja
-0x00579300;_HoldStrong::Map::Units::UnitsState::updateUnits;ja;AU12 AU18 AU19 AU20 AU21 AU22 AU23 AU38 AU45 AU47 P13 P15 P23;abgelesen / abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + Danie;nein;ja
+0x00579300;_HoldStrong::Map::Units::UnitsState::updateUnits;ja;AU12 AU19 AU21 AU22 AU23 AU38 AU45 AU47 P13 P15 P23;abgelesen / abgelesen + Daniel gemessen / abgelesen + SAI gemessen / abgelesen +;nein;ja
 0x0057AB50;_HoldStrong::Global::UpdateHorseArcher;ja;AU22;abgelesen + gemessen;nein;ja
 0x0057B9C0;_HoldStrong::Global::PlayJokeVideoBasedOnCurrentTimeAndPlayTime;nein;;;nein;ja
 0x0057BE10;_HoldStrong::Global::WinMain;nein;;;nein;ja
