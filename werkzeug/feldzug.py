@@ -505,8 +505,10 @@ class Feldzug:
                 frei.remove(n)
                 hs.append(n)
             halter[q] = hs
-            neu = [n for n in hs if schach((L[n]["x"], L[n]["y"]), q) > 0 and (L[n].get("zustand") in (0, 1)
-                                                                             or getattr(self, "_befohlen", {}).get(n) != ("loch", q))]
+            # (Partie 052322/052636: 68 bzw. 92 Meldungen - wer neben dem Loch steht, bekam jede Runde einen neuen Befehl): erst ab
+            # mehr als 1 Feld Abstand neu schicken, sonst nur beim ersten Mal
+            neu = [n for n in hs if getattr(self, "_befohlen", {}).get(n) != ("loch", q)
+                   or (schach((L[n]["x"], L[n]["y"]), q) > 1 and L[n].get("zustand") in (0, 1))]
             if neu:
                 befehl({"angriff": {"einheiten": neu, "lauf": [q[0], q[1]], "trupp": 1}}, 1.0, bis="ANGRIFF")
                 for n in neu:
