@@ -106,6 +106,7 @@ GEGNER_ZAHL = 1
 arg_global = {}          # B-140: Aufrufschalter fuer Bausteine tief in phase2 (angriff_ab)
 PRUEFSTAND = None        # B-140 (Daniel 21:49): Name - beim ersten Angriff des Feldzugs einmal speichern
 NUR_PHASE2 = False      # B-139 (20.10.): Lenker-Neustart mitten in der Partie - keine Anfangs-"Stellung" des Waechters
+PAUSE_RUHE_S = 0.3      # B-282: so lange wartet der Lenker, wenn der Takt steht (Spiel pausiert), bevor er wieder nachsieht
 MITTEN_AB = 600         # B-280: Uebernahme spaeter als so viele Takte (geladener Spielstand) -> ohne Eroeffnung direkt Phase 2
 TEAM_KIS = []            # B-133 2v2 (Daniel 20.10. 18:30): KI-Nummern des gegnerischen Paars, z. B. 1,2 = Rotkaeppchen +
                          # Rattenfaenger; Spieler 1+2 = SamurAIs (Mannschaft 1), die KIs dahinter (Mannschaft 2)
@@ -2642,12 +2643,21 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     graben = None                                              # 19.10.: Burggraben um den Kornspeicher (kornring.Graben)
     fallen = None                                              # 19.10.: Fallenwache (fallenwache.py)
     probe = {"fehler": FEHLERPROBE, "pause": PAUSEPROBE}
+    pause_t = None                                             # B-282: Takt der letzten Runde (steht er, ist das Spiel pausiert)
     while (time.time() < ende and not os.path.exists(os.path.join(HIER, "STOP"))
            and not (os.environ.get('SHC_RUN_STOP') and os.path.exists(os.environ['SHC_RUN_STOP']))):
         try:
             tz = time.time()
             befehlskanal.belege()
             st, L, G = runde_lesen()
+            # B-282 (Daniel 28.10. 00:51; Partie 002852: im pausierten Spiel liefen die Runden weiter - die Steuer ging bei Takt
+            # 19263 von 2 auf 8 und bei 19815 auf 0, gespeichert wurde 7; nach dem Laden fiel die Beliebtheit von 79 auf 0):
+            # steht der Takt, ist das Spiel pausiert - keine Runde, keine Befehle, nichts zaehlt weiter
+            if st and st.get("t") is not None and st["t"] == pause_t:
+                time.sleep(PAUSE_RUHE_S)
+                continue
+            if st:
+                pause_t = st.get("t")
             hunger_r = False
             if st and G:
                 import zielboerse                   # B-277: Neubau beim Feind in DIESER Runde erkennen, vor allen Modulen
