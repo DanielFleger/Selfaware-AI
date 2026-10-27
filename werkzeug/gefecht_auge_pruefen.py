@@ -47,6 +47,16 @@ if __name__ == "__main__":
     m = G.balance_pruefen(L)
     faelle.append(("Streitkolben mit %d Leben (> %d) verwirft -> Duell-Messungen" % (hp[26] + 5000, hp[26]),
                    bool(m) and G.SPIELWERTE is None and dps(75, 55) != md[75][55]))
+    # B-273 Erklaerung (Daniel 20:25): 10 Streitkolben 20 Felder vor dem Lord, 4 feindliche Streitkolben auf dem Weg -> die
+    # Erklaerung nennt das Haengenbleiben unterwegs, den Nahkampf am Lord und den Abbruchgrund
+    neu(sw)
+    wir = [dict(typ=26, leben=hp[26], x=120, y=100) for _ in range(10)]
+    sie = [dict(typ=55, leben=150000, x=100, y=100, steht=True)] + [dict(typ=26, leben=hp[26], x=110, y=100) for _ in range(4)]
+    ok_r, _t = G.lord_rennen(wir, sie, 0, bis=4000)
+    e = G.LETZTES_RENNEN["erklaerung"]
+    faelle += [("Erklaerung nennt Haengenbleiben unterwegs", "unterwegs haengen" in e),
+               ("Erklaerung nennt Nahkampf am Lord mit Takt", "Nahkampf am Lord ab Takt" in e),
+               ("Erklaerung beginnt mit VOR/WARTEN und nennt den Grund", e.split(":")[0] in ("VOR", "WARTEN"))]
     for name, ok in faelle:
         print("%s %s" % ("OK  " if ok else "ROT ", name))
     print("%d von %d gruen (Spielwerte: %s)" % (sum(ok for _, ok in faelle), len(faelle), os.path.basename(sw["_pfad"])))

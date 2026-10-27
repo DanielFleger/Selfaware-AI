@@ -229,9 +229,15 @@ def dps(x, y, schaden, fern=None, d=1):
     return sum(zeile.values()) / len(zeile)
 
 
-def simuliere(wir, sie, schaden=None, bis=BIS, rest_aus=None, fokus=None, fern=None):
+ABLENK_R = 2              # B-273: Nahkampf-Suchfeld des Spiels (Auge AU18: 5x5 um die Einheit) - wer dort einen anderen Feind hat
+                          # und nicht am Lord steht, schlaegt erst diesen (gemessen 27.10.: 18 von ~30 am Lord schlugen andere)
+
+
+def simuliere(wir, sie, schaden=None, bis=BIS, rest_aus=None, fokus=None, fern=None, protokoll=None):
     """wir/sie: Listen von dict(typ, leben, x, y, steht=False). Gibt (wir_leben_rest, sie_leben_rest, takte, sieg) -
-    sieg = True, wenn alle von "sie" tot sind und von "wir" noch jemand lebt."""
+    sieg = True, wenn alle von "sie" tot sind und von "wir" noch jemand lebt.
+    protokoll (Liste): B-273 - Ereignisse (takt, art, seite, typ, nah): "kampf" (erste Beruehrung unserer mit einer
+    Feindeinheit; nah = Nahkampf), "beschuss" (erster Schaden einer feindlichen Art an uns), "tot", "lord_faellt"."""
     if schaden is None:
         tb = tabelle()
         schaden, fern = tb[0], (tb[2] if len(tb) > 2 else None)      # B-241: fern kommt sonst vom Aufrufer (kaufrechnung)
@@ -240,6 +246,7 @@ def simuliere(wir, sie, schaden=None, bis=BIS, rest_aus=None, fokus=None, fern=N
         for e in s:
             e["x"], e["y"] = float(e["x"]), float(e["y"])
     t = 0
+    beruehrt, beschiesst = set(), set()
     while t < bis:
         lebend = [[e for e in s if e["leben"] > 0] for s in seiten]
         if not lebend[0] or not lebend[1]:
@@ -250,11 +257,23 @@ def simuliere(wir, sie, schaden=None, bis=BIS, rest_aus=None, fokus=None, fern=N
             # B-207 Lord-Wettlauf: fokus = Index in "sie" - solange er lebt, schlagen alle von "wir" nur auf ihn
             f_ziel = seiten[1][fokus] if (fokus is not None and i == 0 and seiten[1][fokus]["leben"] > 0) else None
             for e in lebend[i]:
-                z = f_ziel or min(gegner, key=lambda g: max(abs(g["x"] - e["x"]), abs(g["y"] - e["y"])))
-                d = max(abs(z["x"] - e["x"]), abs(z["y"] - e["y"]))
+                naechst = min(gegner, key=lambda g: max(abs(g["x"] - e["x"]), abs(g["y"] - e["y"])))
+                z = f_ziel or naechst
                 reich = FERN_REICH.get(e["typ"], 1)
+                # B-273 Ablenkung: ein Nahkaempfer ausserhalb ABLENK_R vom Lord mit einem anderen Feind in ABLENK_R schlaegt diesen
+                if f_ziel is not None and reich == 1 and naechst is not f_ziel:
+                    d_n = max(abs(naechst["x"] - e["x"]), abs(naechst["y"] - e["y"]))
+                    if d_n <= ABLENK_R and max(abs(f_ziel["x"] - e["x"]), abs(f_ziel["y"] - e["y"])) > ABLENK_R:
+                        z = naechst
+                d = max(abs(z["x"] - e["x"]), abs(z["y"] - e["y"]))
                 if d <= reich:
                     treffer[1 - i][id(z)] = treffer[1 - i].get(id(z), 0.0) + dps(e["typ"], z["typ"], schaden, fern, d) * SCHRITT
+                    if protokoll is not None and i == 0 and (id(z), reich == 1) not in beruehrt:
+                        beruehrt.add((id(z), reich == 1))
+                        protokoll.append((t, "kampf", "sie", z["typ"], reich == 1))
+                    elif protokoll is not None and i == 1 and e["typ"] not in beschiesst:
+                        beschiesst.add(e["typ"])
+                        protokoll.append((t, "beschuss", "sie", e["typ"], reich == 1))
                 elif not e.get("steht"):
                     schritt = min(d - reich, SCHRITT / TEMPO)
                     e["x"] += (z["x"] - e["x"]) / d * schritt
@@ -262,8 +281,12 @@ def simuliere(wir, sie, schaden=None, bis=BIS, rest_aus=None, fokus=None, fern=N
         for i in (0, 1):
             for e in lebend[i]:
                 e["leben"] -= treffer[i].get(id(e), 0.0)
+                if protokoll is not None and e["leben"] <= 0:
+                    protokoll.append((t + SCHRITT, "tot", "wir" if i == 0 else "sie", e["typ"], None))
         t += SCHRITT
         if fokus is not None and seiten[1][fokus]["leben"] <= 0:
+            if protokoll is not None:
+                protokoll.append((t, "lord_faellt", "sie", LORD, None))
             break
     rest = [sum(max(0.0, e["leben"]) for e in s) for s in seiten]
     if fokus is not None:
@@ -288,6 +311,61 @@ def bewerte(wir, sie, schaden=None, bis=BIS):
 
 
 LETZTES_RENNEN = None     # B-273: Zahlen des letzten lord_rennen (Tagebuch)
+
+
+def art_name(typ):
+    """Spielname mit Codename und Nummer aus den Spielwerten ('Streitkolbenkaempfer (E_MACE 26)'), sonst 'Art 26'."""
+    sw = SPIELWERTE or {}
+    n = ((sw.get("namen") or {}).get("einheit") or {}).get(str(typ))
+    code = ((sw.get("aufzaehlungen") or {}).get("UT") or {}).get(str(typ))
+    if n or code:
+        return "%s (%s %d)" % ((n or code).split(" (")[0], code or "?", typ)
+    return "Art %d" % typ
+
+
+def erklaerung(r, lohnt, bis):
+    """B-273 (Daniel 27.10. 20:25): Lord-Wettlauf in Worten - wen die Truppe auf dem Weg wann bekaempft, wer wann faellt, und
+    warum sie vorgeht oder wartet; dazu, wann sie abbrechen sollte (dieselbe Frist misst das Tagebuch)."""
+    v = r.get("verlauf") or []
+    kampf, tote_sie, tote_wir, beschuss = {}, {}, [], []
+    for t, art, seite, typ, nah in v:
+        if art == "kampf" and typ != LORD and nah:
+            kampf.setdefault(typ, [t, 0])[1] += 1
+        elif art == "beschuss":
+            beschuss.append((t, typ, nah))
+        elif art == "tot" and seite == "sie":
+            tote_sie[typ] = tote_sie.get(typ, 0) + 1
+        elif art == "tot" and seite == "wir":
+            tote_wir.append(t)
+    nah_lord = next((t for t, art, _s, typ, nah in v if art == "kampf" and typ == LORD and nah), None)
+    fern_lord = next((t for t, art, _s, typ, nah in v if art == "kampf" and typ == LORD and not nah), None)
+    teile = []
+    if beschuss:
+        teile.append("uns treffen " + ", ".join("%s ab Takt %d%s" % (art_name(typ), t0, "" if not nah else " (Nahkampf)")
+                                               for t0, typ, nah in beschuss[:8]))
+    if kampf:
+        teile.append("unsere Nahkaempfer bleiben unterwegs haengen an " + ", ".join(
+            "%dx %s ab Takt %d" % (n, art_name(typ), t0) for typ, (t0, n) in sorted(kampf.items(), key=lambda kv: kv[1][0])))
+    teile.append(("Nahkampf am Lord ab Takt %d" % nah_lord) if nah_lord is not None else "unsere Nahkaempfer erreichen den Lord nicht")
+    if fern_lord is not None:
+        teile.append("unsere Schuetzen treffen den Lord ab Takt %d" % fern_lord)
+    gefaellt = ", ".join("%dx %s" % (n, art_name(typ)) for typ, n in sorted(tote_sie.items()) if typ != LORD)
+    if gefaellt:
+        teile.append("faellen " + gefaellt)
+    if tote_wir:
+        teile.append("eigene Verluste %d (erster Takt %d, letzter %d)" % (len(tote_wir), tote_wir[0], tote_wir[-1]))
+    if lohnt:
+        grund = "VOR: Lord faellt nach %d Takten, uns bleiben %.0f %% (mindestens %.0f %% verlangt)" % (
+            r["takte"], 100 * r["rest_anteil"], 100 * RENNEN_REST)
+    elif r["faellt"]:
+        grund = "WARTEN: Lord faellt zwar nach %d Takten, aber uns blieben nur %.0f %% (unter %.0f %%)" % (
+            r["takte"], 100 * r["rest_anteil"], 100 * RENNEN_REST)
+    else:
+        grund = "WARTEN: Lord lebt nach %d Takten noch (%d Leben)" % (bis, r["lord_rest"])
+    if lohnt:
+        teile.append("Abbruch, wenn der Lord nach %d Takten noch lebt oder unter %.0f %% unserer Leben bleiben" % (
+            max(2 * r["takte"], 1500), 100 * RENNEN_REST))
+    return "; ".join([grund] + teile)
 RENNEN_REST = 0.1         # B-207: so viel unseres Lebens muss bleiben, wenn der Lord faellt (Startwert, UNGEMESSEN)
 
 
@@ -299,11 +377,15 @@ def lord_rennen(wir, sie, lord_i, schaden=None, bis=BIS):
         return False, "keine eigenen"
     voll = sum(e["leben"] for e in wir)
     global LETZTES_RENNEN
-    r_wir, r_lord, t, gefallen = simuliere(wir, sie, schaden, bis=bis, fokus=lord_i)
+    prot = []
+    r_wir, r_lord, t, gefallen = simuliere(wir, sie, schaden, bis=bis, fokus=lord_i, protokoll=prot)
     anteil = r_wir / float(max(1, voll))
     lohnt = gefallen and anteil >= RENNEN_REST
-    # B-273: die Zahlen dieser Vorhersage fuer das Tagebuch (tagebuch.lord_angriff stellt sie spaeter neben das Ergebnis)
+    # B-273: die Zahlen dieser Vorhersage fuer das Tagebuch (tagebuch.lord_angriff stellt sie spaeter neben das Ergebnis) und
+    # die ehrliche Erklaerung (Daniel 27.10. 20:25: wen sie wann angreifen, warum vor oder zurueck)
     LETZTES_RENNEN = {"takte": t, "faellt": bool(gefallen), "rest_anteil": round(anteil, 3), "wir": len(wir),
-                      "verteidiger": len(sie) - 1, "lord_leben": sie[lord_i]["leben"], "lord_rest": round(r_lord)}
+                      "verteidiger": len(sie) - 1, "lord_leben": sie[lord_i]["leben"], "lord_rest": round(r_lord),
+                      "verlauf": prot[:60]}
+    LETZTES_RENNEN["erklaerung"] = erklaerung(LETZTES_RENNEN, lohnt, bis)
     return lohnt, "Lord-Wettlauf %d eigene (%d Leben) gegen Lord + %d Verteidiger: Lord %s nach %d Takten, uns bleiben %.0f %%" % (
         len(wir), voll, len(sie) - 1, "faellt" if gefallen else "lebt (%d)" % r_lord, t, 100 * anteil)

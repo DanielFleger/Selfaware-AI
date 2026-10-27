@@ -1406,6 +1406,8 @@ class Feldzug:
                     text = "ganzes Heer: " + text_alle
             if self.runde % 10 == 0 and t >= self.schutz_bis and not (lohnt_alle or lohnt):
                 aus.append("FELDZUG WARTET: Gefechtsrechnung mit %d Truppen verliert noch (%s)" % (len(kolben), text_alle[:80]))
+                if getattr(self, "_rennen", {}).get("erklaerung"):          # B-273: warum gewartet wird, in Worten
+                    aus.append("FELDZUG ERKLAERUNG: " + self._rennen["erklaerung"])
             if self.angriff_ab is not None:          # Versuchsreihe: nur die Heeresgroesse entscheidet
                 lohnt_alle, lohnt = len(kolben) >= self.angriff_ab, False
                 text = "Versuchsreihe: ab %d Truppen" % self.angriff_ab
@@ -1419,6 +1421,8 @@ class Feldzug:
                 tagebuch.lord_angriff(t, "feldzug", self.ziel, list(kolben), getattr(self, "_rennen", {}) if lohnt_alle else {})
                 aus.append("FELDZUG ANGRIFF: %d Truppen (%d am Sammelpunkt) gemeinsam auf Lord %d (Leben %d) bei Tick %d%s" % (
                     len(kolben), len(da), self.ziel, lord["leben"], t, " - " + text if text else ""))
+                if lohnt_alle and getattr(self, "_rennen", {}).get("erklaerung"):   # B-273: Plan und Abbruchgrund in Worten
+                    aus.append("FELDZUG ERKLAERUNG: " + self._rennen["erklaerung"])
             else:
                 # B-139: der Laufbefehl zum Sammelpunkt erst, wenn feststeht, dass nicht angegriffen wird (vorher bekamen alle im
                 # Schritt des Angriffsbeginns noch einen Laufbefehl zum Sammelpunkt, bevor der Torangriff kam)
