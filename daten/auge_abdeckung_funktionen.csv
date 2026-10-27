@@ -197,7 +197,7 @@
 0x0040F750;_HoldStrong::Map::Buildings::BuildingsState::updateAllBuildingsSnoozedState;nein;;;nein;ja
 0x0040F8A0;_HoldStrong::Map::Buildings::BuildingsState::applySnoozedStateBasedOnPlayerData;nein;;;nein;ja
 0x0040F9D0;_HoldStrong::Map::Buildings::BuildingsState::processBuildingIDsNeedPeasantsQueue;nein;;;nein;ja
-0x0040FC40;_HoldStrong::Map::Buildings::BuildingsState::updateLordLadyJesterAndGhostUnits;nein;;;nein;ja
+0x0040FC40;_HoldStrong::Map::Buildings::BuildingsState::updateLordLadyJesterAndGhostUnits;ja;AU43;abgelesen;nein;ja
 0x00410200;_HoldStrong::Map::Buildings::BuildingsState::getRequiredEngineerCountForSiegeBuilding;nein;;;nein;ja
 0x00410290;_HoldStrong::Map::Buildings::BuildingsState::updateVisuallyActiveState;nein;;;nein;ja
 0x00410320;_HoldStrong::Map::Buildings::BuildingsState::updateRepairCostAndReturnIfDamaged;nein;;;nein;ja
@@ -884,7 +884,7 @@
 0x0045B460;_HoldStrong::Game::GameStateStructures::switchPlayerOwnership;nein;;;nein;ja
 0x0045B6B0;_HoldStrong::Game::GameStateStructures::updateTrader;nein;;;nein;ja
 0x0045B7F0;_HoldStrong::Game::GameStateStructures::getSalesPrice;nein;;;nein;ja
-0x0045B830;_HoldStrong::Game::GameStateStructures::updatePopularity;nein;;;nein;ja
+0x0045B830;_HoldStrong::Game::GameStateStructures::updatePopularity;ja;AU43;abgelesen;nein;ja
 0x0045BF50;_HoldStrong::Game::GameStateStructures::updateTaxing;ja;L21;Ghidra OpenSHC-ref, `werkzeug/ghidra_DekompMuster.java` (Muster tax;nein;ja
 0x0045C050;_HoldStrong::Game::GameStateStructures::spawnPoisonCloudsAtRandomStorageOrArmyBuilding;nein;;;nein;ja
 0x0045C1C0;_HoldStrong::Game::GameStateStructures::migrateGameStateForMapVersion;nein;;;nein;ja
@@ -3051,7 +3051,7 @@
 0x00531920;_HoldStrong::Map::Units::UnitsState::processEntityDamageToUnit;ja;AU31 AU35 AU37 AU4 AU42 P4;abgelesen / abgelesen + belegt / abgelesen + gemessen / abgelesen + gemessen (Fe;nein;ja
 0x00532460;_HoldStrong::Map::Units::UnitsState::processFireDamageToUnit;nein;;;nein;ja
 0x00532700;_HoldStrong::Map::Units::UnitsState::shootProjectile;ja;AU2 AU24 AU42;abgelesen + belegt / abgelesen + gemessen / abgelesen + gemessen (Schuetze/Ziel/;nein;ja
-0x00532BA0;_HoldStrong::Map::Units::UnitsState::recomputeTroopValuesForPlayer;ja;AU20 AU23;abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + gemessen;nein;ja
+0x00532BA0;_HoldStrong::Map::Units::UnitsState::recomputeTroopValuesForPlayer;ja;AU20 AU23 AU43;abgelesen / abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + gemes;nein;ja
 0x00532F60;_HoldStrong::Map::Units::UnitsState::getArmySize;nein;;;nein;ja
 0x00532F80;_HoldStrong::Map::Units::UnitsState::computeDistanceToNearestEnemyForLegacyMissions;nein;;;nein;ja
 0x00533090;_HoldStrong::Map::Units::UnitsState::returnFalseStub;nein;;;nein;ja
@@ -3252,11 +3252,11 @@
 0x00558CB0;_HoldStrong::Global::UpdateArmorer;nein;;;nein;ja
 0x005598D0;_HoldStrong::Global::UpdateTanner;nein;;;nein;ja
 0x0055A800;_HoldStrong::Global::UpdateCrusaderArcher;ja;AU25 AU28 AU30 P15 P20;abgelesen (grob) / abgelesen + SAI gemessen / abgelesen + gemessen;nein;ja
-0x0055C7B0;_HoldStrong::Global::UpdateCrossbowman;ja;AU28;abgelesen + gemessen;nein;ja
+0x0055C7B0;_HoldStrong::Global::UpdateCrossbowman;ja;AU28 AU43;abgelesen / abgelesen + gemessen;nein;ja
 0x0055DA50;_HoldStrong::Global::UpdateSpearman;nein;;;nein;ja
-0x0055F110;_HoldStrong::Global::UpdatePikeman;nein;;;nein;ja
-0x00560700;_HoldStrong::Global::UpdateMaceman;ja;AU38 P20;abgelesen / abgelesen (grob);nein;ja
-0x00561C10;_HoldStrong::Global::UpdateSwordsman;nein;;;nein;ja
+0x0055F110;_HoldStrong::Global::UpdatePikeman;ja;AU43;abgelesen;nein;ja
+0x00560700;_HoldStrong::Global::UpdateMaceman;ja;AU38 AU43 P20;abgelesen / abgelesen (grob);nein;ja
+0x00561C10;_HoldStrong::Global::UpdateSwordsman;ja;AU43;abgelesen;nein;ja
 0x00562AA0;_HoldStrong::Global::UpdateKnight;nein;;;nein;ja
 0x00563910;_HoldStrong::Global::UpdateLadderman;nein;;;nein;ja
 0x00564250;_HoldStrong::Global::UpdateEngineer;nein;;;nein;ja
@@ -3278,7 +3278,7 @@
 0x00572E80;_HoldStrong::Global::UpdateSlinger;nein;;;nein;ja
 0x005744D0;_HoldStrong::Global::UpdateAssassin;ja;AU38 P20;abgelesen / abgelesen (grob);nein;ja
 0x00575820;_HoldStrong::Global::HorseArcher_DoShooting;nein;;;nein;ja
-0x00575C40;_HoldStrong::Global::UpdateArabianSwordsman;nein;;;nein;ja
+0x00575C40;_HoldStrong::Global::UpdateArabianSwordsman;ja;AU43;abgelesen;nein;ja
 0x005769F0;_HoldStrong::Global::UpdateFireThrower;ja;AU6;gemessen (Bogenschuetze) / abgelesen (uebrige Arten);nein;ja
 0x00577CC0;_HoldStrong::Global::UpdateFireBallista;nein;;;nein;ja
 0x00578C40;_HoldStrong::Map::Units::UnitsState::processUnitMove;ja;AU22 AU33 AU37 P13;abgelesen / abgelesen + gemessen / abgelesen, L1 stuetzt 3 von 4 / gebaut + geme;nein;ja

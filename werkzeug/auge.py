@@ -150,8 +150,8 @@ PLAYER = _dtype([
     ("currentResources", ("<i4", (25,)), 1232), ("armySize", "<i4", 1340), ("totalFood", "<i4", 8348),
     ("foodTypesInStock", "<i4", 8352), ("weeksWithoutFood", "<i4", 8356), ("currentCrossbowmen", "<i4", 8380),
     ("currentSpearmen", "<i4", 8384), ("currentPikemen", "<i4", 8388), ("currentMacemen", "<i4", 8392),
-    ("currentSwordsmen", "<i4", 8396), ("countArabSwordsman", "<i4", 8436), ("fearFactorLevel", "<i4", 8500),
-    ("totalEnemyUnitsCount", "<i4", 8520), ("currentPopulation", "<i4", 8576), ("taxesSetting", "<i4", 8584),
+    ("currentSwordsmen", "<i4", 8396), ("currentArabianSwordsmen", "<i4", 8436), ("fearFactorLevel", "<i4", 8500),
+    ("currentEnemyUnitsCount", "<i4", 8520), ("currentPopulation", "<i4", 8576), ("taxesSetting", "<i4", 8584),
     ("rationsSetting", "<i4", 8588), ("lordID", "<i4", 8696), ("lordUID", "<i4", 8700), ("troopsLost", "<i4", 8752),
     ("troopsKilled", "<i4", 8756), ("aivID", "<i4", 8956), ("aiType", "<i4", 8960),
     ("countAssassinsAndArabianSwordsman", "<i4", 10804), ("resourcesToAcquireArray", ("<i4", (24,)), 10864),
@@ -248,6 +248,7 @@ FELD_ALIASE = {
     "unknownDistanceRelatedValue": "linkedPoisonEntityID",
     "countdown2": "recentProjectileCountdown", "isRallyingUnk": "rallyMode",
     "field133_0x278": "herdAlertTimer", "targetPlayer_outpost": "targetPlayerID",
+    "countArabSwordsman": "currentArabianSwordsmen", "totalEnemyUnitsCount": "currentEnemyUnitsCount",
 }
 
 # Felder, die nicht einzeln im numpy-Datentyp stehen, sondern als zusammenhaengender Block oder ueber eine feste
@@ -1291,10 +1292,11 @@ class Schnappschuss(object):
                 "fearFactorLevel": int(r["fearFactorLevel"]), "armySize": int(r["armySize"]),
                 "soldaten": {"currentCrossbowmen": int(r["currentCrossbowmen"]), "currentSpearmen": int(r["currentSpearmen"]),
                              "currentPikemen": int(r["currentPikemen"]), "currentMacemen": int(r["currentMacemen"]),
-                             "currentSwordsmen": int(r["currentSwordsmen"]), "countArabSwordsman": int(r["countArabSwordsman"]),
+                             "currentSwordsmen": int(r["currentSwordsmen"]),
+                             "currentArabianSwordsmen": int(r["currentArabianSwordsmen"]),
                              "countAssassinsAndArabianSwordsman": int(r["countAssassinsAndArabianSwordsman"])},
                 "troopsLost": int(r["troopsLost"]), "troopsKilled": int(r["troopsKilled"]), "lord": lord_leben,
-                "totalEnemyUnitsCount": int(r["totalEnemyUnitsCount"]),
+                "currentEnemyUnitsCount": int(r["currentEnemyUnitsCount"]),
                 "ki": {
                     "aiPlayerState": int(r["aiPlayerState"]), "aiStateCounter": int(r["aiStateCounter"]),
                     "aiStrengthState": int(r["aiStrengthState"]), "aiStrengthFeeling": AI_STRENGTH.get(int(r["aiStrengthFeeling"]), int(r["aiStrengthFeeling"])),
