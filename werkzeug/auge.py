@@ -154,7 +154,7 @@ PLAYER = _dtype([
     ("currentEnemyUnitsCount", "<i4", 8520), ("currentPopulation", "<i4", 8576), ("taxesSetting", "<i4", 8584),
     ("rationsSetting", "<i4", 8588), ("lordID", "<i4", 8696), ("lordUID", "<i4", 8700), ("troopsLost", "<i4", 8752),
     ("troopsKilled", "<i4", 8756), ("aivID", "<i4", 8956), ("aiType", "<i4", 8960),
-    ("countAssassinsAndArabianSwordsman", "<i4", 10804), ("resourcesToAcquireArray", ("<i4", (24,)), 10864),
+    ("currentAssassinsAndArabianSwordsmen", "<i4", 10804), ("resourcesToAcquireArray", ("<i4", (24,)), 10864),
     ("closestEnemyDistanceToTheLord", "<i4", 11108), ("idlePeasantsCount", "<i4", 11116),
     ("aiStrengthState", "<i4", 11124), ("aiPlayerState", "<i4", 11172), ("totalAssassinTroops", "<i4", 11184),
     ("totalLaddermenTroops", "<i4", 11192), ("totalTunnelerTroops", "<i4", 11196), ("totalUnitPatrolTroops", "<i4", 11200),
@@ -249,6 +249,7 @@ FELD_ALIASE = {
     "countdown2": "recentProjectileCountdown", "isRallyingUnk": "rallyMode",
     "field133_0x278": "herdAlertTimer", "targetPlayer_outpost": "targetPlayerID",
     "countArabSwordsman": "currentArabianSwordsmen", "totalEnemyUnitsCount": "currentEnemyUnitsCount",
+    "countAssassinsAndArabianSwordsman": "currentAssassinsAndArabianSwordsmen",
 }
 
 # Felder, die nicht einzeln im numpy-Datentyp stehen, sondern als zusammenhaengender Block oder ueber eine feste
