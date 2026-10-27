@@ -116,15 +116,17 @@ ENTITY = _dtype([
     ("velocityUnk", "<i2", 150), ("_elapsedTimeOrGravityAccumulator", "<f4", 152), ("startingAngle", "<i2", 156),
     ("unitID", "<i2", 160), ("unitID_OR_seaGullID", "<i2", 162), ("effectDoneOrNoBounce", "<i2", 178), ("rng_1", "<i4", 172),
     ("projectileRotationFrame", "<i2", 106), ("clearanceStepsRemaining", "<i2", 186), ("rng_2", "<i2", 188),
-    ("field90_0xd0", "<i2", 206), ("unitUID", "<i4", 212),
+    ("field90_0xd0", "<i2", 206), ("healerUIDForPoisonCloud", "<i4", 212),
     ("fireIntensity", "<i2", 216),
     # Luft-Stopp der Steine (B-252): Kandidatenfelder mitlesen
     # Ghidra-Namen: field37_0x5a, field50_0x74, field72_0xa8, hasDoneEffectUnk,
     # field45_0x6a und field80_0xba; AU40 belegt die hier verwendeten Funktionsnamen.
     ("unknownAnimationFrameRelated", "<i2", 20), ("projectileTypeVisualProperty", "<i2", 90), ("projectileLineCase", "<i2", 116),
     ("orientation", "<i4", 136), ("field58_0x8c_b", "<i2", 140), ("heightDifference", "<i4", 144), ("projectileActivatedFlag", "<i2", 168),
-    ("effectDoneOrNoBounce_b", "<i2", 178), ("someTracker", "<i2", 180), ("field82_0xbe", "<i2", 190), ("field83_0xc0", "<i2", 192),
-    ("displayValue", "<i4", 196), ("unknownDistanceRelatedValue", "<i2", 218),
+    # Ghidra: someTracker, field82_0xbe, field83_0xc0, displayValue, unitUID,
+    # unknownDistanceRelatedValue; AU41 trennt Feuerphase, Popupdarstellung und Seuchen-Verknuepfung.
+    ("effectDoneOrNoBounce_b", "<i2", 178), ("effectPhase", "<i2", 180), ("popupFontGmID", "<i2", 190),
+    ("popupGraphicBase", "<i2", 192), ("popupDisplayValue", "<i4", 196), ("linkedPoisonEntityID", "<i2", 218),
 ], ENTITY_GROESSE)
 
 # Building (/_HoldStrong/Map/Buildings/Building, 812 Byte)
