@@ -79,9 +79,11 @@ def plane(sp, start, maenner, lord, mk=None, L=None, G=None, gf=None, verworfen=
     n = e["link"].shape[0]
     gf = schaden(L, sp, n) if gf is None else gf
     sperre = sperre_feindbau(e["bau"], G, sp)
+    vsperre = np.zeros(sperre.shape, bool)          # B-268: nur die verworfenen Kacheln
     for q in verworfen:
         if isinstance(q, tuple):
             sperre[q[0], q[1]] = True
+            vsperre[q[0], q[1]] = True
     freunde = set(freunde_von(sp)) - {0}
     args = (e["link"], e["logik"], e["bau"], e["besitz"], e["hoehe"], e["boden"], sp, maenner, tuple(start), tuple(lord), mk)
     kand = []
@@ -116,7 +118,11 @@ def plane(sp, start, maenner, lord, mk=None, L=None, G=None, gf=None, verworfen=
         rand = ndimage.binary_dilation(e["bau"] == nr, structure=np.ones((3, 3), bool), iterations=2) & ~bruecken
         # Einschlagen: Leben / Schaden je Treffer an Tor und Turm (Code UpdateMaceman), je Runde ein Treffer je Mann
         kosten = math.ceil(g_.get("leben", 1500) / float(mk["tor_turm"]) / max(1, maenner)) * mk["takte_je_treffer"]
-        rt = mechanik.durchbruch_schritte(*args, sperre=sperre & ~rand, gefahr=gf, frei=rand, frei_kosten=kosten, freunde=freunde)
+        # B-268 (Partie 175718 'Riverside Rampage', Daniel 27.10.: Zugang (174,341) 3-mal in EINER Runde verworfen und 3-mal wieder
+        # geplant - der Rand um Tor/Turm gab die verworfene Kachel wieder frei): verworfene Kacheln bleiben auch hier gesperrt
+        rand_frei = rand & ~vsperre
+        rt = mechanik.durchbruch_schritte(*args, sperre=(sperre & ~rand_frei), gefahr=gf, frei=rand_frei, frei_kosten=kosten,
+                                          freunde=freunde)
         if rt["weg"] and any(rand[q] for q in rt["weg"]):
             kand.append(("tor", nr, rt, rand))
     if not kand:
