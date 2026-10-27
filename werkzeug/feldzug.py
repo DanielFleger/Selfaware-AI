@@ -477,7 +477,45 @@ class Feldzug:
                     and g.get("leben",0)>0 and angreifbar(g))
 
     WEITER_NAH, WEITER_NAH_GEB = 2, 6   # B-260: so nah muss die naechste Kachel am gefallenen Ziel liegen (sonst neu planen)
-    LORD_WANDER = 5            # B-264: so weit darf der Lord laufen, ohne dass der Durchbruch-Plan neu berechnet wird (gemessen: 2 Felder)
+    LORD_WANDER = 5
+    # B-266 (Partie 041437: (217,110), (218,110), (217,109), (218,109) fielen und waren danach wieder Mauer, "freie Fahrt" kam und
+    # ging 4-mal - der Zeitreisende mauert die Bresche zu): so viele Nahkaempfer stehen in jedem frischen Loch (wo Einheiten
+    # stehen, kann das Spiel nicht bauen), hoechstens LOCH_MAX Loecher zugleich - beides Startwerte, UNGEMESSEN
+    LOCH_HALTER, LOCH_MAX = 2, 2
+
+    def _loch_merken(self, q, lp):
+        lo = getattr(self, "_loecher", {})
+        self._loecher = lo
+        lo[tuple(q)] = (tuple(lp), self.runde)
+        for alt in sorted(lo, key=lambda k: lo[k][1])[:-self.LOCH_MAX]:
+            del lo[alt]
+
+    def _loecher_halten(self, L, nah_kampf, lp, befehl, aus):
+        """B-266: je Loch LOCH_HALTER Nahkaempfer, die am naechsten stehen, auf das Lochfeld; zurueck die uebrigen Nahkaempfer."""
+        lo = {q: v for q, v in getattr(self, "_loecher", {}).items() if schach(v[0], lp) <= self.LORD_WANDER}
+        if not lo:
+            return nah_kampf
+        halter = getattr(self, "_halter", {})
+        self._halter = halter
+        frei = [n for n in nah_kampf if n not in {h for hs in halter.values() for h in hs}]
+        for q in lo:
+            hs = [n for n in halter.get(q, []) if n in L]
+            while len(hs) < self.LOCH_HALTER and frei:
+                n = min(frei, key=lambda k: schach((L[k]["x"], L[k]["y"]), q))
+                frei.remove(n)
+                hs.append(n)
+            halter[q] = hs
+            neu = [n for n in hs if schach((L[n]["x"], L[n]["y"]), q) > 0 and (L[n].get("zustand") in (0, 1)
+                                                                             or getattr(self, "_befohlen", {}).get(n) != ("loch", q))]
+            if neu:
+                befehl({"angriff": {"einheiten": neu, "lauf": [q[0], q[1]], "trupp": 1}}, 1.0, bis="ANGRIFF")
+                for n in neu:
+                    self.__dict__.setdefault("_befohlen", {})[n] = ("loch", q)
+                aus.append("FELDZUG LOCH HALTEN: %d Mann auf %s (dort kann der Gegner nicht neu bauen)" % (len(neu), q))
+        for q in [q for q in halter if q not in lo]:
+            del halter[q]
+        besetzt = {h for hs in halter.values() for h in hs}
+        return [n for n in nah_kampf if n not in besetzt]            # B-264: so weit darf der Lord laufen, ohne dass der Durchbruch-Plan neu berechnet wird (gemessen: 2 Felder)
     PLAN_VERSUCHE = 3          # B-256: so oft wird neu geplant, wenn der Zugang des Plans fuer uns nicht erreichbar ist
 
     def _durchbruch_neu(self, m, start, lp, maenner, pruef=None):
@@ -517,6 +555,12 @@ class Feldzug:
         # jede gefallene Kachel liess den Planer vom wandernden Heer aus neu rechnen und die Burgseite wechseln; Partie 234348
         # ebenso): ist das Ziel gefallen und liegt auf DEMSELBEN Plan-Weg noch eine Mauerkachel, geht es dort weiter - ohne neue
         # Planung (die kostet ~3 s). Neu geplant wird erst, wenn der Weg keine Kachel mehr hat oder sie verworfen ist.
+        # B-266: ist ein gehaltenes Loch wieder Mauer, hat der Gegner es zugemauert - melden und vergessen
+        for q in list(getattr(self, "_loecher", {})):
+            if m[q]:
+                self._zugemauert = getattr(self, "_zugemauert", 0) + 1
+                self._zu_meldung = "FELDZUG BRESCHE ZUGEMAUERT: Loch %s ist wieder Mauer (%d-mal in dieser Partie)" % (q, self._zugemauert)
+                del self._loecher[q]
         if dp is not None and schach(tuple(dp["lord"]), tuple(lp)) <= self.LORD_WANDER and dp.get("weg") and dp["art"] in ("mauer", "tor", "gebaeude"):
             gefallen = (not m[dp["ziel"]]) if dp["art"] == "mauer" else (dp["ziel"] not in (getattr(self, "_gebaeudebild", {}) or {}))
             w_ = [tuple(q) for q in dp["weg"]]
@@ -526,6 +570,8 @@ class Feldzug:
                 # aus - dort steht das Heer gleich, und der billigste Weg fuehrt durch die Bresche weiter nach innen
                 start = tuple(dp["ziel"]) if dp["art"] == "mauer" else tuple(dp.get("zug") or start)
                 self._start_loch = start
+                if dp["art"] == "mauer":
+                    self._loch_merken(tuple(dp["ziel"]), lp)
                 zi = w_.index(tuple(dp["zug"])) if dp.get("zug") and tuple(dp["zug"]) in w_ else 0
                 weiter = [i for i in range(zi + 1, len(w_)) if m[w_[i]] and w_[i] not in self.mauer_verworfen]
                 # (Partie 010851: nach (204,59) sprang WEITER auf (203,65) - dazwischen kein Mauerfeld, aber auch kein Weg; 25-30 Mann
@@ -1441,6 +1487,9 @@ class Feldzug:
             # B-163/B-164 (Daniel 21:59): mit Wegkarte JEDE Runde, auch mit gewaehlter Bresche - steht der Lord in unserem Gebiet,
             # geht er allem vor; sonst der Schredder (Einer-Stapel auf seine Mauer), solange er Wirkung hat (B-165)
             ll = self._lage_lord(L, lp, [n for n in kolben if L[n]["typ"] not in FERN_REICH], lord["besitzer"], mitte)
+            if getattr(self, "_zu_meldung", None):
+                aus.append(self._zu_meldung)
+                self._zu_meldung = None
             if getattr(self, "_plan_grund", None):
                 aus.append(self._plan_grund)
                 self._plan_grund = None
@@ -1516,6 +1565,7 @@ class Feldzug:
                 p = self.vorposten[1]                   # B-139: alle zum erreichbaren Vorposten vor der Bresche
             schluss = spitze <= self.SCHLUSS_R or self.direkt
             nah_kampf = [n for n in kolben if L[n]["typ"] not in FERN_REICH]
+            nah_kampf = self._loecher_halten(L, nah_kampf, lp, befehl, aus)     # B-266
             fern = [n for n in kolben if L[n]["typ"] in FERN_REICH]
             # B-146 Rueckzugsregel (Daniel 21.10. 00:34; Grundzahl L170: 107 eigene Einheiten standen in einem Pruefstand-Lauf unter
             # Beschuss herum - am Vorposten im Schussfeld und vor dem Graben nach "Lord eingemauert", L171): stehen mindestens

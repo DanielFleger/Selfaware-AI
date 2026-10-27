@@ -1592,6 +1592,22 @@ def main():
         return starts[0] if starts else None
     s79, s79g = loch79(True), loch79(False)
     pruefe(79, "Kachel gefallen: Planung ab %s | verworfen statt gefallen: ab %s" % (s79, s79g), s79 == (12, 10) and s79g == (5, 5))
+    # 80 B-266 (Partie 041437: Bresche 4-mal wieder zugemauert): zwei frische Loecher, 6 Nahkaempfer -> je Loch die 2 naechsten
+    #    bekommen einen Laufbefehl genau auf das Loch und fallen aus den uebrigen Auftraegen. Gegenprobe: LOCH_HALTER 0 -> niemand.
+    def loch80(halter):
+        f = F.Feldzug(1, (0, 0), n=40)
+        f.LOCH_HALTER = halter
+        L80 = {i: einheit(75, 1, 10 + i, 10) for i in range(1, 7)}
+        f._loch_merken((11, 11), (30, 30))
+        f._loch_merken((15, 11), (30, 30))
+        b80 = Befehle()
+        rest = f._loecher_halten(L80, sorted(L80), (30, 30), b80, [])
+        laeufe = sorted(tuple(a["angriff"]["lauf"]) for a in b80.liste if "angriff" in a and "lauf" in a["angriff"])
+        return sorted(rest), laeufe
+    r80, l80 = loch80(2)
+    r80g, l80g = loch80(0)
+    pruefe(80, "Halter: uebrig %s, Laufziele %s | Gegenprobe ohne Halter: uebrig %s" % (r80, l80, r80g),
+           len(r80) == 2 and set(l80) == {(11, 11), (15, 11)} and len(r80g) == 6)
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return 0 if all(ok) else 1
 
