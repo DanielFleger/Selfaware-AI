@@ -1,0 +1,76 @@
+{
+ "stand": "27.10.2026 17:56",
+ "funktionen": {
+  "gesamt": 4581,
+  "erklaert": 171,
+  "name_unklar": 409,
+  "spiellogik": 1938,
+  "spiellogik_erklaert": 163
+ },
+ "felder": {
+  "gesamt": 1666,
+  "erklaert": 285,
+  "liest_auge": 296,
+  "liest_aber_unerklaert": 101
+ },
+ "je_struktur": {
+  "Einheit": {
+   "felder": 275,
+   "erklaert": 114,
+   "liest_auge": 88,
+   "name_unklar": 98,
+   "liest_aber_unerklaert": 24
+  },
+  "Gebaeude": {
+   "felder": 239,
+   "erklaert": 41,
+   "liest_auge": 41,
+   "name_unklar": 64,
+   "liest_aber_unerklaert": 5
+  },
+  "Geschoss": {
+   "felder": 93,
+   "erklaert": 34,
+   "liest_auge": 48,
+   "name_unklar": 36,
+   "liest_aber_unerklaert": 16
+  },
+  "Trupp": {
+   "felder": 89,
+   "erklaert": 19,
+   "liest_auge": 26,
+   "name_unklar": 33,
+   "liest_aber_unerklaert": 8
+  },
+  "Spieler": {
+   "felder": 388,
+   "erklaert": 42,
+   "liest_auge": 63,
+   "name_unklar": 46,
+   "liest_aber_unerklaert": 31
+  },
+  "KI-Vorgaben": {
+   "felder": 169,
+   "erklaert": 11,
+   "liest_auge": 23,
+   "name_unklar": 9,
+   "liest_aber_unerklaert": 17
+  },
+  "Karte/Zeit": {
+   "felder": 230,
+   "erklaert": 6,
+   "liest_auge": 2,
+   "name_unklar": 147,
+   "liest_aber_unerklaert": 0
+  },
+  "Weltkarte": {
+   "felder": 183,
+   "erklaert": 18,
+   "liest_auge": 5,
+   "name_unklar": 65,
+   "liest_aber_unerklaert": 0
+  }
+ },
+ "belegzeilen": 856,
+ "regel": "B-267 Auge-Abdeckung (Daniel 27.10. 17:51: \"im Endeffekt darf im Code keine Zeile unerklaert sein\").\n\nMisst - statt aus dem Gedaechtnis - fuer ALLE Funktionen der Wissensdatenbank (knowledge.sqlite, Ghidra-Referenz) und\nALLE Felder der Strukturen Einheit, Gebaeude, Geschoss, Trupp, Spieler, KI-Vorgaben (AICSpecification), Karte/Zeit\n(MapAndTimeState) und Weltkarte (TileMapState):\n  - erklaert: ja, wenn eine Belegzeile sie nennt - Wissensregister.md (Zeilen AU/P/L/W/B/G/S/A, Spalte 1 = Beleg) oder\n    VillageStudio/doku/Wissensstand.md (Beleg \"WS <Abschnitt>\"); Zeilen mit Marke \"widerlegt\" zaehlen nicht.\n    Funktion genannt = Adresse (8 Hex-Ziffern, mit/ohne 0x) oder Kurzname (letzter ::-Teil, ab 8 Zeichen, ganzes Wort).\n    Feld genannt = Feldname als ganzes Wort; bei der Einheit zusaetzlich \"+<Offset>\" (so schreibt das Register).\n  - liest das Auge: Feldname steht in einem Datentyp oder im Quelltext von werkzeug/auge.py.\n  - Name unklar: Ghidra-Platzhalter (fieldNNN_0x.., ...Unk, unknown..., _OR_-Doppelnamen, FUN_...).\nDas ist \"im Register erwaehnt\", nicht \"vollstaendig verstanden\" - die Marke der Belegzeile steht mit dabei."
+}
