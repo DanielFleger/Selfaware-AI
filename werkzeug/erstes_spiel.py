@@ -1253,12 +1253,22 @@ def plaetze_live(typ, kern, r=45):
     return aus
 
 
-def produktions_hofplaetze(anzahl=None, kern=None):
+# B-269 (Partie 180423 Sp3: Lager bei (202,166), Gruenland erst 70+ Felder weiter - im Umkreis 45 "Plaetze 0", kein Hof,
+# kein Gerber, Leder gekauft): reichen die Plaetze nicht, sucht das Spiel stufenweise weiter (lieber weite Kuhwege als gar
+# keine Kuehe; die Hopfen-Reserve sucht ebenso 80 Felder weit)
+HOF_RADIEN = (45, 80, 120)
+
+
+def produktions_hofplaetze(anzahl=None, kern=None, mindestens=1):
     """Beliebig viele nicht ueberlappende Kuhhof-Plaetze aus der echten Platzkarte, die kuerzesten zuerst.
     Die alte feste Liste begann 70+ Felder vom Eisenlager entfernt; mit dem einzigen erlaubten Waffenlager machte das
-    entweder die Gerber- oder die Schmiedewege unbrauchbar. Der echte Bauversuch verwirft spaeter belegte Stellen."""
+    entweder die Gerber- oder die Schmiedewege unbrauchbar. Der echte Bauversuch verwirft spaeter belegte Stellen.
+    B-269: weniger als mindestens Plaetze im Umkreis -> der naechste Radius aus HOF_RADIEN."""
     if not V14:                          # 19.10.: jede andere Karte - Plaetze vom Spiel
-        aus = hofplaetze_live(kern or BERGFRIED)
+        for r in HOF_RADIEN:
+            aus = hofplaetze_live(kern or BERGFRIED, r)
+            if len(aus) >= mindestens:
+                break
         return aus[:anzahl] if anzahl is not None else aus
     from farmen_mischen import lies_karte
     fest = list(V14_PLAN["hoefe"])
@@ -1818,7 +1828,10 @@ class Produktion:
         # gebaut. Ziel 100 widerlegte den festen Puffer +12: 15 Plaetze waren durch spaetere Baeume/Bauten ungueltig.
         hof_kern = ((self.plan_lager[0] + 3, self.plan_lager[1] + 3) if self.plan_lager else None)
         self.hof_kern = hof_kern
-        self.hof_orte = produktions_hofplaetze(None, hof_kern)
+        self.hof_orte = produktions_hofplaetze(None, hof_kern, mindestens=self.hoefe)
+        # B-269: das gerechnete Soll bleibt stehen - fehlen Plaetze, fragt der Lenker alle HOF_NEU Ticks neu (sonst blieb
+        # "Hoefe 0" die ganze Partie, und ohne Kuh baute er nie einen Gerber)
+        self.hoefe_soll = self.hoefe
         if len(self.hof_orte) < self.hoefe:
             if V14:
                 raise RuntimeError("nur %d produktive Hofplaetze fuer %d benoetigte Hoefe" % (len(self.hof_orte), self.hoefe))
@@ -1904,6 +1917,38 @@ class Produktion:
     # SAI 11.10. (Lauf 1011g): eine Runde mit vielen Hof-Platzsuchen dauerte 840 Ticks (26.866 -> 27.706), der Haushalt
     # war so lange blind und die Beliebtheit fiel von 56 auf 47. Je Runde nur so viele Bauversuche, Rest naechste Runde.
     HOF_VERSUCHE_JE_RUNDE = 4
+
+    def hofplaetze_auffrischen(self, t, G, hoefe, hof_offen, ausbau, aus):
+        """Hofplatzvorrat erschoepft oder (B-269) Soll noch nicht erreicht: frische Plaetze vom Spiel, hoechstens alle
+        HOF_NEU Ticks; das Soll steigt bis hoefe_soll, soweit die neuen Plaetze reichen."""
+        if (hofvorrat_erschoepft(self.hoefe, len(hoefe), hof_offen, self.hof_orte, self.hof_verworfen)
+                or self.hoefe < getattr(self, "hoefe_soll", self.hoefe)):
+            # 19.10.: auf fremden Karten kein Abbruch des Lenkers - mit den Hoefen weiter, die stehen
+            if V14:
+                raise RuntimeError("TECHNISCH UNGUELTIG: produktiver Hofplatzvorrat erschoepft (%d gebaut, %d benoetigt, %d verworfen)" % (
+                    len(hoefe), self.hoefe, len(self.hof_verworfen)))
+            # 19.10. (1018z: alle 6 Hofplaetze vom Start verbaut - zwei Hopfenfarmen auf den Reserven, die anderen spaeter
+            # belegt; kein einziger Kuhhof, also kein Leder): fremde Karte - frische Plaetze vom Spiel holen (hoechstens
+            # alle HOF_NEU Ticks) und die benoetigten gleich reservieren; erst wenn das Spiel keine kennt, weiter ohne
+            neu = []
+            if t - getattr(self, "_hof_neu", -10 ** 6) >= self.HOF_NEU:
+                self._hof_neu = t
+                soll = getattr(self, "hoefe_soll", self.hoefe)
+                neu = [p for p in produktions_hofplaetze(None, self.hof_kern, mindestens=soll - len(hoefe))
+                       if not steht_bei(G, 33, p, 3)]
+            if neu:
+                self.hof_orte, self.hof_verworfen = neu, set()
+                # B-269: so viele Hoefe, wie das Soll verlangt und die neuen Plaetze tragen
+                self.hoefe = max(self.hoefe, min(getattr(self, "hoefe_soll", self.hoefe), len(hoefe) + len(neu)))
+                b = NACH_TYP[33]["b"]
+                fehlt = max(1, self.hoefe - len(hoefe))
+                ausbau.sperr = list(getattr(ausbau, "sperr", None) or []) + [
+                    (x - 1, y - 1, x + b, y + b) for x, y in neu[:fehlt]]
+                aus.append("PRODUKTION Hofplaetze neu vom Spiel: %d, die ersten %d reserviert %s" % (len(neu), fehlt, neu[:fehlt]))
+            elif hoefe and self.hoefe > len(hoefe):
+                aus.append("PRODUKTION nur %d von %d Hoefen moeglich (keine Plaetze mehr) - weiter mit %d" % (
+                    len(hoefe), self.hoefe, len(hoefe)))
+                self.hoefe = len(hoefe)
 
     def hoefe_bauen(self, G, hoefe, gold, holz, feuer, aus):
         """Milchviehhoefe auf den vorberechneten Plaetzen bestellen; gibt die Zahl offener Hofauftraege zurueck.
@@ -2040,29 +2085,7 @@ class Produktion:
                 and gold >= hof_gold * max(0, self.hoefe - len(hoefe))
                 and holz >= hof_holz * max(0, self.hoefe - len(hoefe))):
             hof_offen = self.hoefe_bauen(G, hoefe, gold, holz, feuer, aus)
-            if hofvorrat_erschoepft(self.hoefe, len(hoefe), hof_offen, self.hof_orte, self.hof_verworfen):
-                # 19.10.: auf fremden Karten kein Abbruch des Lenkers - mit den Hoefen weiter, die stehen
-                if V14:
-                    raise RuntimeError("TECHNISCH UNGUELTIG: produktiver Hofplatzvorrat erschoepft (%d gebaut, %d benoetigt, %d verworfen)" % (
-                        len(hoefe), self.hoefe, len(self.hof_verworfen)))
-                # 19.10. (1018z: alle 6 Hofplaetze vom Start verbaut - zwei Hopfenfarmen auf den Reserven, die anderen spaeter
-                # belegt; kein einziger Kuhhof, also kein Leder): fremde Karte - frische Plaetze vom Spiel holen (hoechstens
-                # alle HOF_NEU Ticks) und die benoetigten gleich reservieren; erst wenn das Spiel keine kennt, weiter ohne
-                neu = []
-                if st["t"] - getattr(self, "_hof_neu", -10 ** 6) >= self.HOF_NEU:
-                    self._hof_neu = st["t"]
-                    neu = [p for p in produktions_hofplaetze(None, self.hof_kern) if not steht_bei(G, 33, p, 3)]
-                if neu:
-                    self.hof_orte, self.hof_verworfen = neu, set()
-                    b = NACH_TYP[33]["b"]
-                    fehlt = max(1, self.hoefe - len(hoefe))
-                    ausbau.sperr = list(getattr(ausbau, "sperr", None) or []) + [
-                        (x - 1, y - 1, x + b, y + b) for x, y in neu[:fehlt]]
-                    aus.append("PRODUKTION Hofplaetze neu vom Spiel: %d, die ersten %d reserviert %s" % (len(neu), fehlt, neu[:fehlt]))
-                elif hoefe and self.hoefe > len(hoefe):
-                    aus.append("PRODUKTION nur %d von %d Hoefen moeglich (keine Plaetze mehr) - weiter mit %d" % (
-                        len(hoefe), self.hoefe, len(hoefe)))
-                    self.hoefe = len(hoefe)
+            self.hofplaetze_auffrischen(st["t"], G, hoefe, hof_offen, ausbau, aus)
         # Eine gemeinsame, abwechselnde Werkstattfolge verhindert den alten Fehlstart mit vielen Schmieden und null
         # Gerbern. Leder braucht laenger; deshalb kommt je Paar der Gerber zuerst. Ein einziger bestaetigter Hof reicht
         # als Weganker, auf alle Hoefe oder auf die erste Kuh wird fuer die Planung nicht gewartet.
