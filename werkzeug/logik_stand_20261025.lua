@@ -2786,9 +2786,16 @@ local function einzelbefehl(cmd)
 
   if cmd.baue ~= nil and type(cmd.baue) == "table" then
     local b = cmd.baue
-    local ok, err = befehlAbsetzen(28, { b.x, b.y, b.mapper, b.groesse, b.richtung or 15, b.trupp or 0 })
-    log(INFO, string.format("BAUE Tick %d: Mapper %s bei (%s,%s), Groesse %s, Drehung %s - abgesetzt=%s%s",
-      tick(), tostring(b.mapper), tostring(b.x), tostring(b.y), tostring(b.groesse), tostring(b.richtung or 15),
+    -- B-271 (Daniel 27.10. 18:33 "immer mit Drehwert 15 bauen, auch auf die Eingangslenkung verzichten - Grafik geht
+    -- vor"): eine feste Drehung bleibt nur bei Toren und der Zugbruecke, wo sie die Durchfahrt bestimmt (so auch
+    -- ClickPlaceBuilding). Alles andere geht mit 15 raus, sonst zieht das Spiel gedreht fremde Bilder (Haus -> Seuchenfeld).
+    local TOR = { [101] = true, [102] = true, [105] = true, [140] = true, [141] = true, [142] = true,   -- MappersEnum,
+                  [143] = true, [144] = true, [145] = true, [146] = true, [147] = true }       -- daten/enum_mapper.txt
+    local drehung = TOR[tonumber(b.mapper) or -1] and (b.richtung or 15) or 15
+    local ok, err = befehlAbsetzen(28, { b.x, b.y, b.mapper, b.groesse, drehung, b.trupp or 0 })
+    log(INFO, string.format("BAUE Tick %d: Mapper %s bei (%s,%s), Groesse %s, Drehung %s%s - abgesetzt=%s%s",
+      tick(), tostring(b.mapper), tostring(b.x), tostring(b.y), tostring(b.groesse), tostring(drehung),
+      (b.richtung ~= nil and b.richtung ~= drehung) and (" (statt " .. tostring(b.richtung) .. ")") or "",
       tostring(ok), ok and "" or (" - " .. tostring(err))))
     return true
   end
