@@ -26,7 +26,7 @@ Einheit;80;BOOLEnum;4;animationCycleNumberHasJustIncremented;ja;AU2 AU30 AU34 L1
 Einheit;84;short;2;facingDirectionMapOrientationCorrected;nein;;;nein;nein
 Einheit;86;short;2;field41_0x56;nein;;;nein;ja
 Einheit;88;short;2;field42_0x58;ja;AU2 P16;abgelesen (Aufbau) / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeu;nein;ja
-Einheit;90;short;2;field43_0x5a;nein;;;nein;ja
+Einheit;90;short;2;field43_0x5a;ja;AU40;abgelesen;nein;ja
 Einheit;92;int;4;field44_0x5c;ja;P9;abgelesen;nein;ja
 Einheit;96;int;4;field45_0x60;ja;AU9;"abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nicht gegen das";nein;ja
 Einheit;100;int;4;field46_0x64;ja;L78 P14;abgelesen / abgelesen + live gelesen;nein;ja
@@ -35,7 +35,7 @@ Einheit;108;short;2;field48_0x6c;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Absc
 Einheit;110;short;2;field49_0x6e;nein;;;nein;ja
 Einheit;112;byte;1;negativeHeight;nein;;;nein;nein
 Einheit;113;byte;1;antelopeBasedRngValue;ja;AU35 L190;abgelesen + gemessen / gemessen;ja;nein
-Einheit;116;int;4;imageIDUnk;ja;AU9 L16 WS 13;"abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nicht gegen das";nein;ja
+Einheit;116;int;4;imageIDUnk;ja;AU40 AU9 L16 WS 13;"abgelesen / abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nic";nein;ja
 Einheit;120;int;4;imageID2;ja;AU2 L69 P16 WS 13;abgelesen (Aufbau) / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeu;nein;nein
 Einheit;124;short;2;unitSpeedMatchingRelatedUnk;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);nein;ja
 Einheit;126;short;2;gmIDUnk;ja;WS 3;;nein;ja
@@ -47,19 +47,19 @@ Einheit;136;short;2;field63_0x88;ja;AU9;"abgelesen, live gesehen (Werte plausibe
 Einheit;138;short;2;drawYOffset;nein;;;nein;nein
 Einheit;140;UnitLogicStateShort;2;logicalState;ja;AU2 AU20 P16 WS 3 WS 5;Grundadresse `0x0138854C`, Schrittweite 1168 / abgeleitet / abgelesen (1b/2 Stal;ja;nein
 Einheit;142;UnitTypeShort;2;unitType;ja;AU9 L144 WS 3 WS 5;"abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nicht gegen das";ja;nein
-Einheit;144;short;2;field67_0x90;ja;AU31;abgelesen + gemessen;nein;ja
+Einheit;144;short;2;field67_0x90;ja;AU31 AU40;abgelesen / abgelesen + gemessen;nein;ja
 Einheit;148;short;2;moveRelatedFlag;ja;AU8;abgelesen, Lager live geprueft;nein;nein
 Einheit;150;short;2;owner;ja;AU10 AU2 AU9 P16 P27 P29;"Offsets getestet (live, SAI); Feuerwache abgelesen / abgelesen (Adressen aus typ";ja;nein
 Einheit;152;int;4;uid;ja;AU10 AU14 AU18 AU2 AU23 AU3 AU30 AU38 AU9 P15 WS 13;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
 Einheit;156;int;4;time;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);ja;nein
 Einheit;160;int;4;targetUID;ja;AU2 P16;abgelesen (Aufbau) / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeu;ja;nein
-Einheit;168;int;4;woodcutterTreeUID;nein;;;nein;nein
+Einheit;168;int;4;woodcutterTreeUID;ja;AU40;abgelesen;nein;nein
 Einheit;176;short;2;goToRallyPoint;nein;;;nein;nein
-Einheit;178;short;2;ifSelectedThenPlayerID;nein;;;nein;nein
+Einheit;178;short;2;ifSelectedThenPlayerID;ja;AU40;abgelesen;nein;nein
 Einheit;180;short;2;selectionRelatedFlag;ja;P9;abgelesen;nein;nein
 Einheit;182;short;2;microXPosition;ja;AU37;abgelesen;ja;nein
 Einheit;184;short;2;microYPosition;ja;AU37;abgelesen;ja;nein
-Einheit;186;short;2;terrainOrClimbHeight;ja;AU32 AU4 AU7;abgelesen + gemessen / abgelesen + gemessen (Fenster) / gemessen (Wegplan) / abg;ja;nein
+Einheit;186;short;2;terrainOrClimbHeight;ja;AU32 AU4 AU40 AU7;abgelesen / abgelesen + gemessen / abgelesen + gemessen (Fenster) / gemessen (We;ja;nein
 Einheit;188;short;2;buildingHeight;ja;AU2 AU4 AU7 G1;abgelesen + gemessen (Fenster) / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Ta;ja;nein
 Einheit;190;short;2;shootTargetMicroX;ja;AU5;abgelesen + Lauf;ja;nein
 Einheit;192;short;2;shootTargetMicroY;ja;AU8;abgelesen, Lager live geprueft;ja;nein
@@ -540,7 +540,7 @@ Geschoss;58;short;2;microY;ja;AU39;abgelesen;ja;nein
 Geschoss;60;short;2;height;ja;AU2 WS 5;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile) / ver;ja;nein
 Geschoss;62;short;2;targetX;ja;AU13 AU2 AU38 AU5 AU9;abgelesen / abgelesen + Lauf / abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid) /;ja;nein
 Geschoss;64;short;2;targetY;ja;AU38;abgelesen;ja;nein
-Geschoss;66;short;2;targetZ;nein;;;ja;nein
+Geschoss;66;short;2;targetZ;ja;AU40;abgelesen;ja;nein
 Geschoss;68;short;2;xPosition;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);ja;nein
 Geschoss;70;short;2;yPosition;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);ja;nein
 Geschoss;72;byte[4];4;unused_0x48;nein;;;nein;nein
@@ -550,7 +550,7 @@ Geschoss;82;short;2;y_2;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt
 Geschoss;84;short;2;startingHeight_2;nein;;;nein;nein
 Geschoss;86;short;2;height_2;nein;;;nein;nein
 Geschoss;88;short;2;startingHeight;ja;AU2 AU3;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
-Geschoss;90;short;2;field37_0x5a;nein;;;ja;ja
+Geschoss;90;short;2;field37_0x5a;ja;AU40;abgelesen;ja;ja
 Geschoss;92;short;2;field38_0x5c;nein;;;nein;ja
 Geschoss;94;short;2;field39_0x5e;nein;;;nein;ja
 Geschoss;96;short;2;someMicroX;nein;;;nein;nein
@@ -558,12 +558,12 @@ Geschoss;98;short;2;field41_0x62;nein;;;nein;ja
 Geschoss;100;short;2;field42_0x64;nein;;;nein;ja
 Geschoss;102;short;2;someMicroY;nein;;;nein;nein
 Geschoss;104;short;2;field44_0x68;nein;;;nein;ja
-Geschoss;106;short;2;field45_0x6a;nein;;;ja;ja
+Geschoss;106;short;2;field45_0x6a;ja;AU40;abgelesen;ja;ja
 Geschoss;108;short;2;someCounter_OR_hitGround;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);ja;ja
 Geschoss;110;short;2;field47_0x6e;nein;;;nein;ja
 Geschoss;112;short;2;field48_0x70;nein;;;nein;ja
 Geschoss;114;short;2;field49_0x72;nein;;;nein;ja
-Geschoss;116;short;2;field50_0x74;nein;;;ja;ja
+Geschoss;116;short;2;field50_0x74;ja;AU40;abgelesen;ja;ja
 Geschoss;118;byte[2];2;unused_0x76;nein;;;nein;nein
 Geschoss;120;int;4;speedUnk;ja;AU2 AU3;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;ja
 Geschoss;124;float;4;vCos;ja;AU2 AU24 AU3 AU31;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
@@ -572,7 +572,7 @@ Geschoss;132;short;2;travelledDistance;ja;AU2 AU3 AU32;**Flugbahn-Formel** (move
 Geschoss;134;byte[2];2;field56_0x86;nein;;;nein;ja
 Geschoss;136;int;4;orientation;ja;AU3;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
 Geschoss;140;short;2;field58_0x8c;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);ja;ja
-Geschoss;144;int;4;heightDifference;nein;;;ja;nein
+Geschoss;144;int;4;heightDifference;ja;AU40;abgelesen;ja;nein
 Geschoss;148;short;2;field62_0x94;nein;;;nein;ja
 Geschoss;150;short;2;velocityUnk;ja;AU2 AU4;abgelesen + gemessen (Fenster) / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Ta;ja;ja
 Geschoss;152;float;4;_elapsedTimeOrGravityAccumulator;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);ja;nein
@@ -581,15 +581,15 @@ Geschoss;158;word;2;graphicRotationUnk;nein;;;nein;ja
 Geschoss;160;short;2;unitID;ja;AU14 AU2 AU4 P16 WS 3;abgelesen (Aufbau) / abgelesen + gemessen (Fenster) / abgelesen + gemessen (Schu;ja;nein
 Geschoss;162;short;2;unitID_OR_seaGullID;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);ja;ja
 Geschoss;166;short;2;gmLookupValue;nein;;;nein;nein
-Geschoss;168;short;2;field72_0xa8;nein;;;ja;ja
+Geschoss;168;short;2;field72_0xa8;ja;AU40;abgelesen;ja;ja
 Geschoss;170;EntityTypeShort;2;entityType2;nein;;;nein;nein
 Geschoss;172;int;4;rng_1;ja;AU32;abgelesen + gemessen;ja;nein
 Geschoss;176;short;2;unkMinusOne;nein;;;nein;nein
-Geschoss;178;short;2;hasDoneEffectUnk;nein;;;ja;ja
+Geschoss;178;short;2;hasDoneEffectUnk;ja;AU40;abgelesen;ja;ja
 Geschoss;180;short;2;someTracker;nein;;;ja;nein
 Geschoss;182;short;2;fireParameter_0xb6;nein;;;nein;nein
 Geschoss;184;short;2;field79_0xb8;nein;;;nein;ja
-Geschoss;186;short;2;field80_0xba;nein;;;ja;ja
+Geschoss;186;short;2;field80_0xba;ja;AU40;abgelesen;ja;ja
 Geschoss;188;short;2;rng_2;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);ja;nein
 Geschoss;190;short;2;field82_0xbe;nein;;;ja;ja
 Geschoss;192;short;2;field83_0xc0;nein;;;ja;ja

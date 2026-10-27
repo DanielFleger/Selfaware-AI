@@ -114,13 +114,16 @@ ENTITY = _dtype([
     ("startingHeight", "<i2", 88), ("someCounter_OR_hitGround", "<i2", 108), ("speedUnk", "<f4", 120),
     ("vCos", "<f4", 124), ("vSin", "<f4", 128), ("travelledDistance", "<i2", 132), ("field58_0x8c", "<i2", 140),
     ("velocityUnk", "<i2", 150), ("_elapsedTimeOrGravityAccumulator", "<f4", 152), ("startingAngle", "<i2", 156),
-    ("unitID", "<i2", 160), ("unitID_OR_seaGullID", "<i2", 162), ("hasDoneEffectUnk", "<i2", 178), ("rng_1", "<i4", 172), ("field45_0x6a", "<i2", 106),
-    ("field80_0xba", "<i2", 186), ("rng_2", "<i2", 188), ("field90_0xd0", "<i2", 206), ("unitUID", "<i4", 212),
+    ("unitID", "<i2", 160), ("unitID_OR_seaGullID", "<i2", 162), ("effectDoneOrNoBounce", "<i2", 178), ("rng_1", "<i4", 172),
+    ("projectileRotationFrame", "<i2", 106), ("clearanceStepsRemaining", "<i2", 186), ("rng_2", "<i2", 188),
+    ("field90_0xd0", "<i2", 206), ("unitUID", "<i4", 212),
     ("fireIntensity", "<i2", 216),
     # Luft-Stopp der Steine (B-252): Kandidatenfelder mitlesen
-    ("unknownAnimationFrameRelated", "<i2", 20), ("field37_0x5a", "<i2", 90), ("field50_0x74", "<i2", 116),
-    ("orientation", "<i4", 136), ("field58_0x8c_b", "<i2", 140), ("heightDifference", "<i4", 144), ("field72_0xa8", "<i2", 168),
-    ("hasDoneEffectUnk_b", "<i2", 178), ("someTracker", "<i2", 180), ("field82_0xbe", "<i2", 190), ("field83_0xc0", "<i2", 192),
+    # Ghidra-Namen: field37_0x5a, field50_0x74, field72_0xa8, hasDoneEffectUnk,
+    # field45_0x6a und field80_0xba; AU40 belegt die hier verwendeten Funktionsnamen.
+    ("unknownAnimationFrameRelated", "<i2", 20), ("projectileTypeVisualProperty", "<i2", 90), ("projectileLineCase", "<i2", 116),
+    ("orientation", "<i4", 136), ("field58_0x8c_b", "<i2", 140), ("heightDifference", "<i4", 144), ("projectileActivatedFlag", "<i2", 168),
+    ("effectDoneOrNoBounce_b", "<i2", 178), ("someTracker", "<i2", 180), ("field82_0xbe", "<i2", 190), ("field83_0xc0", "<i2", 192),
     ("displayValue", "<i4", 196), ("unknownDistanceRelatedValue", "<i2", 218),
 ], ENTITY_GROESSE)
 
@@ -998,7 +1001,7 @@ class Schnappschuss(object):
                 "velocityUnk": int(r["velocityUnk"]), "startingAngle": int(r["startingAngle"]),
                 "vCos": round(float(r["vCos"]), 3), "vSin": round(float(r["vSin"]), 3), "speedUnk": round(float(r["speedUnk"]), 4),
                 "sre_bahn": self._bahn(r),
-                "field80_0xba": int(r["field80_0xba"]), "rng_2": int(r["rng_2"]),                 # rng_2 1 = Feuerpfeil, 2 = Pech-Zuender
+                "clearanceStepsRemaining": int(r["clearanceStepsRemaining"]), "rng_2": int(r["rng_2"]),  # rng_2 1 = Feuerpfeil, 2 = Pech-Zuender
                 "field90_0xd0": int(r["field90_0xd0"]),                                           # 1 = Feuerballiste
                 "someCounter_OR_hitGround": int(r["someCounter_OR_hitGround"]),
                 "sre_zustand": "liegt" if liegt else "fliegt",
@@ -1021,8 +1024,8 @@ class Schnappschuss(object):
         schr = bahn_schritte(int(r["x_2"]), int(r["y_2"]), int(r["startingHeight"]), int(r["targetX"]), int(r["targetY"]),
                              float(r["vCos"]), float(r["vSin"]), dt, k_jetzt + max_takte)
         if 0 <= k_jetzt < len(schr) and schr[k_jetzt][2] == (int(r["microX"]), int(r["microY"]), int(r["height"])):
-            sonder = (_feld(r, "field45_0x6a"), int(r["startingAngle"]), int(r["hasDoneEffectUnk"]), _feld(r, "rng_1"))
-            z80 = int(r["field80_0xba"]) + int(r["travelledDistance"])      # Startwert; je Mikroschritt -1
+            sonder = (_feld(r, "projectileRotationFrame"), int(r["startingAngle"]), int(r["effectDoneOrNoBounce"]), _feld(r, "rng_1"))
+            z80 = int(r["clearanceStepsRemaining"]) + int(r["travelledDistance"])  # Startwert; je Mikroschritt -1
             aus = _bahn_liste(schr, max(int(r["field58_0x8c"]), 1), stein, None, self._boden, ab_takt=k_jetzt + 1,
                               feld_fn=self._feld_info, z80=z80, sonder=sonder)
             for z in aus:
