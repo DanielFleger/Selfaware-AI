@@ -106,6 +106,7 @@ GEGNER_ZAHL = 1
 arg_global = {}          # B-140: Aufrufschalter fuer Bausteine tief in phase2 (angriff_ab)
 PRUEFSTAND = None        # B-140 (Daniel 21:49): Name - beim ersten Angriff des Feldzugs einmal speichern
 NUR_PHASE2 = False      # B-139 (20.10.): Lenker-Neustart mitten in der Partie - keine Anfangs-"Stellung" des Waechters
+MITTEN_AB = 600         # B-280: Uebernahme spaeter als so viele Takte (geladener Spielstand) -> ohne Eroeffnung direkt Phase 2
 TEAM_KIS = []            # B-133 2v2 (Daniel 20.10. 18:30): KI-Nummern des gegnerischen Paars, z. B. 1,2 = Rotkaeppchen +
                          # Rattenfaenger; Spieler 1+2 = SamurAIs (Mannschaft 1), die KIs dahinter (Mannschaft 2)
 LIGA_START_GOLD = 150    # Liga-Startgueter: Computer 150 Gold, Mensch 0 - im 2v2 bekommen beide SamurAIs die 150
@@ -4186,6 +4187,14 @@ def main():
             # Probelauf 200 Takte, bis zu 3 Versuche) statt des alten lade_stand direkt
             import shc
             print(shc.laden(arg["start"], platz=SP))
+        elif UEBERNEHMEN and arg.get("nur_phase2", "nein") != "ja" and tick() > MITTEN_AB:
+            # B-280 (Daniel 28.10. 00:49 "Spielstand geladen ... die Assassinen suchen nicht die Feindgebaeude"; Partie 004833:
+            # Uebernahme bei Takt 19815, der Lenker baute die Eroeffnung und blieb dort haengen): mitten in der Partie keine
+            # Eroeffnung - direkt Phase 2 wie ein Lenker-Neustart (NUR_PHASE2, B-139)
+            uebernehmen_start()
+            NUR_PHASE2 = True
+            arg["nur_phase2"] = "ja"
+            schreib("UEBERNEHMEN mitten in der Partie (Tick %d > %d): keine Eroeffnung, direkt Phase 2" % (tick(), MITTEN_AB))
         elif arg.get("nur_phase2", "nein") != "ja":
             phase1(plan, int(arg.get("tempo", 40)), mit_posten=int(arg.get("assassinen", 0)) != 0)   # Daniel 22:52: jede Partie ab Tick 0
     except (Exception, SystemExit) as e:
