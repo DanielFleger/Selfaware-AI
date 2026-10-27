@@ -210,13 +210,13 @@
 0x00410B10;_HoldStrong::Map::Buildings::BuildingsState::findClosestReachableAlliedBuilding;nein;;;nein;ja
 0x00410C40;_HoldStrong::Map::Buildings::BuildingsState::playerHasBurningBuilding;nein;;;nein;ja
 0x00410CA0;_HoldStrong::Global::UpdateHovel;nein;;;nein;ja
-0x00410D20;_HoldStrong::Global::UpdateWoodcuttersHut;nein;;;nein;ja
+0x00410D20;_HoldStrong::Global::UpdateWoodcuttersHut;ja;AU39;abgelesen;nein;ja
 0x00410EE0;_HoldStrong::Global::UpdatePitchRig;nein;;;nein;ja
 0x004113C0;_HoldStrong::Global::UpdateMercenaryPost;nein;;;nein;ja
 0x00411480;_HoldStrong::Global::UpdateBarracks;nein;;;nein;ja
 0x00411540;_HoldStrong::Global::UpdateOutpostBuilding;nein;;;nein;ja
-0x00412360;_HoldStrong::Global::UpdateStockpile;nein;;;nein;ja
-0x00412730;_HoldStrong::Global::UpdateArmory;nein;;;nein;ja
+0x00412360;_HoldStrong::Global::UpdateStockpile;ja;AU39;abgelesen;nein;ja
+0x00412730;_HoldStrong::Global::UpdateArmory;ja;AU39;abgelesen;nein;ja
 0x00412D50;_HoldStrong::Global::UpdateFletchersWorkshop;nein;;;nein;ja
 0x004130D0;_HoldStrong::Global::UpdateBlacksmithsWorkshop;nein;;;nein;ja
 0x004138D0;_HoldStrong::Global::UpdatePoleturnersWorkshop;nein;;;nein;ja
@@ -243,7 +243,7 @@
 0x004178E0;_HoldStrong::Global::UpdateKeepManorHouse;nein;;;nein;ja
 0x004179B0;_HoldStrong::Global::UpdateKeepStoneKeep;nein;;;nein;ja
 0x00417AA0;_HoldStrong::Global::UpdateKeepStronghold;nein;;;nein;ja
-0x00417B90;_HoldStrong::Global::UpdateDrawBridge;nein;;;nein;ja
+0x00417B90;_HoldStrong::Global::UpdateDrawBridge;ja;AU39;abgelesen;nein;ja
 0x00417FD0;_HoldStrong::Global::UpdateTunnel;nein;;;nein;ja
 0x004180E0;_HoldStrong::Global::UpdateBuildingShared1;nein;;;nein;ja
 0x00418100;_HoldStrong::Global::UpdateCampGround;nein;;;nein;ja
@@ -323,7 +323,7 @@
 0x0041C190;_HoldStrong::Map::Buildings::BuildingsState::processWallBuildingLoss;ja;L123;"gemessen werkzeug/mauer_pruefen.py (Spielstaende ""Walltest 4"", ""Gute Wirtschaft""";nein;ja
 0x0041C240;_HoldStrong::Map::Buildings::BuildingsState::applyFoodLossPercentageToPlayer;nein;;;nein;ja
 0x0041C310;_HoldStrong::Map::Buildings::BuildingsState::processResourceGain;ja;L33;abgelesen + getestet;nein;ja
-0x0041C570;_HoldStrong::Map::Buildings::BuildingsState::applyGateOrDrawbridgeOpenCloseChange;nein;;;nein;ja
+0x0041C570;_HoldStrong::Map::Buildings::BuildingsState::applyGateOrDrawbridgeOpenCloseChange;ja;AU39;abgelesen;nein;ja
 0x0041C6F0;_HoldStrong::Map::Buildings::BuildingsState::sortBuildingIDsNeedPeasantsQueue;nein;;;nein;ja
 0x0041C810;_HoldStrong::Map::Buildings::BuildingsState::lightUpBuilding;ja;P27 P29;"Offsets getestet (live, SAI); Feuerwache abgelesen / abgelesen + SAI gemessen (Z";nein;ja
 0x0041CA00;_HoldStrong::Global::UpdateOxTether;ja;P17;abgelesen;nein;ja
@@ -342,7 +342,7 @@
 0x004205B0;_HoldStrong::Global::UpdateShieldBuilding;ja;P28;abgelesen (Schwellen) / ungeprueft (Bediener);nein;ja
 0x00420A30;_HoldStrong::Global::UpdateDogCage;nein;;;nein;ja
 0x00420BF0;_HoldStrong::Map::Buildings::BuildingsState::upgradeBuildingsForMapVersion;nein;;;nein;ja
-0x00420D20;_HoldStrong::Map::Buildings::BuildingsState::setupBuildingData;ja;P27;abgelesen + SAI gemessen (Zuendung);nein;ja
+0x00420D20;_HoldStrong::Map::Buildings::BuildingsState::setupBuildingData;ja;AU39 P27;abgelesen / abgelesen + SAI gemessen (Zuendung);nein;ja
 0x00421890;_HoldStrong::Map::Buildings::BuildingsState::deleteBuilding;nein;;;nein;ja
 0x00421990;_HoldStrong::Map::Buildings::BuildingsState::destroyBuildingAndLinkedDuplicates;nein;;;nein;ja
 0x00421A40;_HoldStrong::Map::Buildings::BuildingsState::buildingIsAccessible;nein;;;nein;ja
@@ -971,7 +971,7 @@
 0x004652A0;_HoldStrong::Global::SetBuildingProductionType;nein;;;nein;ja
 0x004652D0;_HoldStrong::UI::MenuItemRenderFunction_BuildingAndStatusMenu_DrawbridgeOpenClose;nein;;;nein;nein
 0x00465360;_HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_DrawbridgeOpenClose;nein;;;nein;nein
-0x004653B0;_HoldStrong::Map::OpenOrCloseDrawbridge;nein;;;nein;ja
+0x004653B0;_HoldStrong::Map::OpenOrCloseDrawbridge;ja;AU39;abgelesen;nein;ja
 0x004653F0;_HoldStrong::UI::MenuItemRenderFunction_BuildingAndStatusMenu_GatehouseOpenClose;nein;;;nein;nein
 0x00465480;_HoldStrong::UI::MenuItemActionHandler_BuildingAndStatusMenu_GatehouseOpenClose;nein;;;nein;nein
 0x004654F0;_HoldStrong::Map::GateOpenOrClose;nein;;;nein;ja
@@ -3234,7 +3234,7 @@
 0x0054C4F0;_HoldStrong::Map::Units::UnitsState::handleUnitMovementWhenTargetingBuildings;nein;;;nein;ja
 0x0054C610;_HoldStrong::Map::Units::UnitsState::moveToFreeTileNearby;nein;;;nein;ja
 0x0054C710;_HoldStrong::Global::UpdateWoodcutter;nein;;;nein;ja
-0x0054D8F0;_HoldStrong::Global::UpdateFletcher;nein;;;nein;ja
+0x0054D8F0;_HoldStrong::Global::UpdateFletcher;ja;AU39;abgelesen;nein;ja
 0x0054E6C0;_HoldStrong::Global::UpdateTunneler;nein;;;nein;ja
 0x0054F860;_HoldStrong::Global::UpdateHunter;ja;AU27 AU29 AU37;abgelesen / abgelesen + gemessen;nein;ja
 0x00550A50;_HoldStrong::Global::UpdateQuarryMason;nein;;;nein;ja
@@ -3247,7 +3247,7 @@
 0x00554CC0;_HoldStrong::Global::UpdateMiller;nein;;;nein;ja
 0x00555880;_HoldStrong::Global::UpdateBaker;nein;;;nein;ja
 0x005565D0;_HoldStrong::Global::UpdateBrewer;nein;;;nein;ja
-0x00557230;_HoldStrong::Global::UpdatePoleTurner;nein;;;nein;ja
+0x00557230;_HoldStrong::Global::UpdatePoleTurner;ja;AU39;abgelesen;nein;ja
 0x00557F70;_HoldStrong::Global::UpdateBlacksmith;nein;;;nein;ja
 0x00558CB0;_HoldStrong::Global::UpdateArmorer;nein;;;nein;ja
 0x005598D0;_HoldStrong::Global::UpdateTanner;nein;;;nein;ja
