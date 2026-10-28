@@ -30,6 +30,9 @@ class AbdeckungsMetadatenTest(unittest.TestCase):
         self.assertFalse(any(m.search("0x004010900") for m in muster))
         self.assertFalse(any(m.search("0x100401090") for m in muster))
 
+    def test_leere_semantikdatei_nimmt_nichts_ab(self):
+        self.assertEqual(abdeckung.semantikdaten(), {})
+
 
 if __name__ == "__main__":
     unittest.main()

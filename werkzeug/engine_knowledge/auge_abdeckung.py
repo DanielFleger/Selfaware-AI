@@ -4,8 +4,8 @@
 Misst - statt aus dem Gedaechtnis - fuer ALLE Funktionen der Wissensdatenbank (knowledge.sqlite, Ghidra-Referenz) und
 ALLE Felder der Strukturen Einheit, Gebaeude, Geschoss, Trupp, Spieler, KI-Vorgaben (AICSpecification), Karte/Zeit
 (MapAndTimeState) und Weltkarte (TileMapState):
-  - registerbelegt: ja, wenn eine Belegzeile sie nennt - Wissensregister.md (Zeilen AU/P/L/W/B/G/S/A) oder
-    VillageStudio/doku/Wissensstand.md (Beleg "WS <Abschnitt>"); Zeilen mit Marke "widerlegt" zaehlen nicht.
+  - registerbelegt: ja, wenn eine Belegzeile sie im versionierten Wissensregister.md nennt (Zeilen AU/P/L/W/B/G/S/A).
+    Der unversionierte VillageStudio-Wissensstand zaehlt nur mit dem ausdruecklichen Pruefschalter.
     Funktion genannt = Adresse (8 Hex-Ziffern, mit/ohne 0x) oder Kurzname (letzter ::-Teil, ab 8 Zeichen, ganzes Wort).
     Feld genannt = Feldname als ganzes Wort; bei der Einheit zusaetzlich "+<Offset>" (so schreibt das Register).
   - liest das Auge: Feldname steht in einem Datentyp oder im Quelltext von werkzeug/auge.py.
@@ -61,7 +61,7 @@ def adressmuster(a):
             re.compile(r"(?<![0-9a-f])(0x)?" + a.lstrip("0") + r"\b")]
 
 
-def belegzeilen(ohne_beleg=None):
+def belegzeilen(ohne_beleg=None, mit_externem_wissensstand=False):
     """[(beleg, marke_text, text_klein)] aus Register und Wissensstand."""
     aus = []
     reg = io.open(os.path.join(REPO, "Wissensregister.md"), encoding="utf-8").read().splitlines()
@@ -73,7 +73,7 @@ def belegzeilen(ohne_beleg=None):
             spalten = [s.strip() for s in z.split("|") if s.strip()]
             marke = register_status(spalten)
             aus.append((m.group(1), marke, z.lower()))
-    if os.path.exists(WS):
+    if mit_externem_wissensstand and os.path.exists(WS):
         abschnitt = "0"
         for z in io.open(WS, encoding="utf-8").read().splitlines():
             m = re.match(r"^##+ (\d+(\.\d+)*)", z)
@@ -103,12 +103,31 @@ def auge_namen():
     return namen | alias_originale, auge.INDIREKT_GELESENE_FELDER
 
 
+def semantikdaten():
+    """Explizite semantische Abnahmen; leere oder andere Statuswerte zaehlen nicht."""
+    pfad = os.path.join(REPO, "daten", "auge_semantik.csv")
+    if not os.path.exists(pfad):
+        return {}
+    with io.open(pfad, encoding="utf-8-sig", newline="") as f:
+        zeilen = list(csv.DictReader(f, delimiter=";"))
+    aus = {}
+    for zeile in zeilen:
+        adresse = zeile.get("adresse", "").lower().replace("0x", "").rjust(8, "0")
+        if adresse in aus:
+            raise ValueError("Doppelte Semantikadresse: " + adresse)
+        aus[adresse] = zeile
+    return aus
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--ohne-beleg", help="Negativlauf: diese Registerzeile bei der Messung ausblenden")
     parser.add_argument("--ausgabe", default=os.path.join(REPO, "daten"), help="Ausgabeordner (Standard: daten)")
+    parser.add_argument("--mit-externem-wissensstand", action="store_true",
+                        help="Unversionierten VillageStudio-Wissensstand zusaetzlich einbeziehen")
     args = parser.parse_args()
-    zeilen = belegzeilen(args.ohne_beleg)
+    zeilen = belegzeilen(args.ohne_beleg, args.mit_externem_wissensstand)
+    semantik = semantikdaten()
     namen, indirekt = auge_namen()
     # Funktionen
     con = sqlite3.connect(os.path.join(EK, "knowledge.sqlite"))
@@ -122,10 +141,11 @@ def main():
         muster = adressmuster(a)
         belege = [(b, m) for b, m, t in zeilen if any(p.search(t) for p in muster)]
         inhaltsbelege = [(b, m) for b, m in belege if INHALTSBELEG.search(m or "")]
+        semantikstatus = semantik.get(a, {}).get("status", "offen")
         f_aus.append({"adresse": "0x" + a.upper(), "name": name,
                       "registerbelegt": "ja" if belege else "nein",
                       "beschreibungsstand": "teilbeschreibung" if inhaltsbelege else "offen",
-                      "semantisch_abgenommen": "nein",
+                      "semantisch_abgenommen": "ja" if semantikstatus == "abgenommen" else "nein",
                       "beleg": " ".join(sorted(set(b for b, _ in belege)))[:200],
                       "marke": " / ".join(sorted(set(m for _, m in belege if m)))[:80],
                       "name_unklar": "ja" if UNKLAR.match(kurz) else "nein",
