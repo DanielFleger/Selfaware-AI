@@ -5,6 +5,8 @@
   3. unter MIN_TAKTE: kein Faktor (None) - die Assassine nimmt ihren bisherigen Wert (0,33 ohne Profil)
   4. Stufen sind getrennt: eine andere Vorhersagestufe bleibt ohne Faktor
   5. je Einheitentyp eine Datei im Lernprofil, wieder gelesen
+  7. (Teil 3) Gebaeude fiel, vier Armbrueste 15 Felder weg sieht sie jetzt -> DECKUNG WEG, wartet am Rueckzugspunkt, keine Zielwahl
+  8. ohne Schuetzen -> keine DECKUNG-Meldung
   6. Assassinen._f: Stufe mit Messung -> Kurvenfaktor, Stufe ohne Messung -> bisheriger Wert
 Aufruf: python schaden_kurve_pruefen.py"""
 import os
@@ -52,6 +54,27 @@ def main():
     t._kurve = k
     f.append(("6 _f: Stufe gemessen %.3f, Stufe ohne Messung %.3f (bisher %.3f)" % (t._f(10.0), t._f(300.0), t._kalib()),
               abs(t._f(10.0) - 0.30) < 0.01 and t._f(300.0) == t._kalib()))
+    # 7/8 (Teil 3) Deckung faellt: Gebaeude 900 zerstoert, eine Armbrust 15 Felder weg sieht sie jetzt -> sofort raus
+    from funde_pruefen import einheit
+    import assassinen as A
+    A.Einzeln.PROBE = A.Einzeln.HIT_RUN = False
+
+    def deckung(mit_schuetze):
+        t = neu(); t._raid_plaetze = 99
+        L = {100: einheit(73, 1, 100, 100), 500: einheit(55, 2, 390, 390, leben=30000)}
+        if mit_schuetze:                 # vier Armbrueste - gegen eine allein gewinnt GEGENSCHLAG (B-213) zu Recht
+            for i in range(4):
+                L[600 + i] = einheit(23, 2, 115 + i, 100, leben=17500)
+        t.aufnehmen([100]); t.ziel[100] = 900; t.ziel_typ[900] = 3; t.befohlen[100] = 0
+        L[100].update(laufx=100, laufy=100, zustand=107)
+        erg, _ = t.schritt(L, {}, sichere_orte=[(50, 50)], tick=10000)
+        return t, erg
+    t7, e7 = deckung(True)
+    t8, e8 = deckung(False)
+    f.append(("7 Deckung fiel, vier Armbrueste sehen sie: %s, wartet %s" % ([z[:50] for z in e7 if "DECKUNG WEG" in z][:1], t7.warte.get(100)),
+              any("DECKUNG WEG 100" in z for z in e7) and 100 in t7.warte and not any(z.startswith("ZIELWAHL 100") for z in e7)))
+    f.append(("8 ohne Schuetzen keine DECKUNG-Meldung", not any("DECKUNG WEG" in z for z in e8)))
+    A.Einzeln.PROBE = A.Einzeln.HIT_RUN = True
     for name, ok in f:
         print("%s %s" % ("OK  " if ok else "ROT ", name))
     print("%d von %d gruen" % (sum(bool(ok) for _, ok in f), len(f)))

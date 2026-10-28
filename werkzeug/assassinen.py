@@ -449,6 +449,7 @@ class Einzeln:
     # PROBE_PAUSE Takte (Startwerte, UNGEMESSEN). HIT_RUN: wer an seinem Gebaeude entdeckt wird, arbeitet weiter, solange der
     # erste Treffer (fruehestens VERZUG Takte nach dem Erkennen, L81) nicht vor der naechsten Runde kommen kann.
     KALIB_LERNEN, PROBE, HIT_RUN = True, True, True
+    DECKUNG_VORAUS, DECKUNG_PAUSE = True, 200   # B-286 Teil 3: nach dem Fall der Deckung sofort raus (Startwert, UNGEMESSEN)
     SCHADEN_KURVE = True      # B-286: Eichkurve je Vorhersagestufe aus dem Schadens-Tagebuch (schadens_tagebuch.py)
     ROUTE_GRENZE = 0.25       # B-285: Anteil des Lebens, den die restliche Route kosten darf, bevor abgebrochen wird (Startwert, UNGEMESSEN)
     NEU_AM_ZIEL = 3           # B-283: so oft bekommt eine Assassine am Ziel den Angriff neu, bevor das Ziel geloest wird
@@ -1221,6 +1222,26 @@ class Einzeln:
         self.warte[n] = ort
         self.warte_seit[n] = self.runde
         flieh.setdefault(ort, []).append(n)
+
+    def _deckung_pruefen(self, n, z, L, halten, ereignis):
+        """B-286 Teil 3 (Daniel 28.10. 01:17 "wenn sie wissen, dass sie dadurch die Sicht auf sich freimachen, gehen sie sofort
+        wieder"): fiel das Gebaeude, an dem sie arbeitete, und trifft sie an ihrem Ort jetzt Beschuss (das Auge rechnet die
+        Lage dieser Runde schon ohne das Gebaeude), geht sie im selben Zug an den Rueckzugspunkt mit dem wenigsten Beschuss -
+        DECKUNG_PAUSE Takte lang waehlt sie kein neues Ziel. Rueckweg: DECKUNG_VORAUS = False."""
+        if not self.DECKUNG_VORAUS or n not in L or self._sicht is None:
+            return
+        ort = (L[n]["x"], L[n]["y"])
+        b = self._sicht.beschuss(ort, self._sicht.RAND)
+        if b <= 0:
+            return
+        kand = [p for p in self._kand.get(n, []) if p in self._begehbar] or list(getattr(self, "_heim", []))
+        if not kand:
+            return
+        p = min(kand, key=lambda q: (self._sicht.beschuss(q, self._sicht.RAND), schach(ort, q)))
+        self._warten(n, p, halten)
+        self.__dict__.setdefault("_deckung_weg", {})[n] = self.jetzt + self.DECKUNG_PAUSE
+        ereignis.append("DECKUNG WEG %d: Gebaeude %d fiel, jetzt %.1f Beschuss je Takt (Modell) an %s - sofort nach %s (dort %.1f), "
+                        "%d Takte kein neues Ziel" % (n, z, b, ort, p, self._sicht.beschuss(p, self._sicht.RAND), self.DECKUNG_PAUSE))
 
     def _warten(self, n, ort_sicher, halten):
         self.warte[n] = ort_sicher
@@ -2382,6 +2403,7 @@ class Einzeln:
                     self.bilanz["gebaeude"][typ] = self.bilanz["gebaeude"].get(typ, 0) + 1
                     ereignis.append("Gebaeude %d (Typ %d) zerstoert" % (z, typ))
                 del self.ziel[n]
+                self._deckung_pruefen(n, z, L, halten, ereignis)
         for n, f in list(self.jagd.items()):
             seit = getattr(self, "_arb_seit", {}).get(n)
             if seit is not None and n in L and f in L and L[f]["typ"] not in TRUPPE and (
@@ -3149,6 +3171,8 @@ class Einzeln:
             # Feind waehlen auch Jaeger neu, die nicht schon am Ziel kaempfen (> NEUBAU_NAH Felder vom Gejagten)
             neu_pruef = (neubau and n in self.jagd and self.jagd[n] in L
                          and schach((L[n]["x"], L[n]["y"]), (L[self.jagd[n]]["x"], L[self.jagd[n]]["y"])) > self.NEUBAU_NAH)
+            if getattr(self, "_deckung_weg", {}).get(n, -1) >= self.jetzt:
+                continue                      # B-286: Deckung fiel - erst raus aus dem Feuer
             if n in self.ziel or (n in self.jagd and not neu_pruef) or n in self.stapel["mitglieder"] or n in self.lordtrupp["mitglieder"] \
                     or (self.RESERVE_PARKEN and L[n]["leben"] < self.RESERVE_LEBEN and getattr(self, "_heim", None)) \
                     or (n in self.entdeckt and not self._aussendienst_frei(n, L)) \
