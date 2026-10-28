@@ -161,7 +161,24 @@ def pruefe(mods=None):
             if k not in LESER]
     rot += ["KERN: neue Lesestelle fuer Laufziel/Angriffsziel, nicht eingeordnet: %s Zeilen %s (FAIRNESS.md - nur Eigenes oder "
             "Protokoll)" % (k, v) for k, v in kern_leser().items() if k not in KERN_LESER]
+    rot += ["KERN: Geschoss-Feld ausserhalb der Freigabe in haken.rs: %s (Zielpunkt/Zieleinheit eines Geschosses = verborgen)" % v
+            for v in geschoss_versaetze()]
     return rot, les
+
+
+def geschoss_versaetze(text=None):
+    """B-287 R3 (Frage-Agent 02:14): haken.rs liest Geschosse. Erlaubt sind nur die Versaetze in ERLAUBT_VERSATZ (Zustand, Art,
+    Besitzer, UID, Stelle, Start, am Boden) - nie targetX/Y (+0x52/+0x54) oder unitID (+0xB4). Gibt die unerlaubten zurueck."""
+    if text is None:
+        p = os.path.join(KERN, "haken.rs")
+        text = open(p, encoding="utf-8").read() if os.path.exists(p) else ""
+    m = re.search(r"ERLAUBT_VERSATZ: \[usize; \d+\] = \[([^\]]*)\]", text)
+    erlaubt = {int(x, 16) for x in re.findall(r"0x[0-9A-Fa-f]+", m.group(1))} if m else set()
+    if erlaubt & {0x52, 0x54, 0xB4}:
+        return ["Freigabeliste selbst enthaelt Zielpunkt/Zieleinheit"]
+    gelesen = {int(x, 16) for x in re.findall(r"\bg \+ (0x[0-9A-Fa-f]+)", text)}
+    return sorted("+0x%X" % v for v in gelesen - erlaubt)
+
 
 
 if __name__ == "__main__":
@@ -186,6 +203,8 @@ if __name__ == "__main__":
     # Gegenprobe Kern: ein Reflex, der das gespeicherte Ziel feindlicher Schuetzen liest (wie Kern 20), muss anschlagen
     falsch = {"lib.rs": "fn anvisiert_reflex() {\n    let s = w.iter().find(|s| s.zieleinheit as i32 == nr);\n}\n"}
     ok_gegen = ok_gegen and "lib.rs:anvisiert_reflex" in kern_leser(falsch) and "lib.rs:anvisiert_reflex" not in KERN_LESER
+    # Gegenprobe Geschoss: haken.rs liest den Zielpunkt (+0x52) - muss anschlagen
+    ok_gegen = ok_gegen and geschoss_versaetze("ERLAUBT_VERSATZ: [usize; 1] = [0x3C];\nlet z = i16_bei(g + 0x52);") == ["+0x52"]
     for r in rot:
         print("ROT:", r)
     print("Gegenprobe (Freigabe und Einordnung entzogen): %s" % ("schlaegt an" if ok_gegen else "SCHLAEGT NICHT AN"))

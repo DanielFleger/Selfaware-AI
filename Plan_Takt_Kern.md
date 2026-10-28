@@ -64,6 +64,48 @@ einzelnen Tick entscheiden kann.“
    - R4 Neuwahl aus der Zielliste, wenn das Ziel fällt;
    - Übergabe der Reiter, Sklaven und des Heers.
 
+## R3 Haken beim Schuss (Daniel 28.10. 02:12 "ja"; Ziel: weniger Schaden als ohne Reflex)
+
+**Sichtbar und erlaubt (FAIRNESS):** der fliegende Pfeil/Bolzen selbst - Entity-Art 1/7/24/25/33, Zustand 2, noch nicht am
+Boden; seine Startstelle (x_2/y_2, wo er erschien), seine jetzige Stelle (microX/Y) und der Schuetze, aus dem er kam.
+**Nicht gelesen:** der gespeicherte Zielpunkt des Geschosses (targetX/Y = Vorhalt) und das gespeicherte Ziel des Schuetzen.
+
+**Mechanik (Auge AU24/AU25, gemessen):** Der Schuetze zielt auf die Stelle, an der die Einheit sein wird, wenn sie in ihrer
+Laufrichtung weiterlaeuft (Vorhalt). Der Pfeil fliegt geradeaus zu dieser Stelle und trifft jede Einheit auf den Feldern, die er
+ueberfliegt (Fremdtreffer). Flug ~1,6 Takte je Feld.
+
+**Regel R3 (erste Fassung):** Ein Geschoss erscheint neu (UID zum ersten Mal gesehen). Seine Linie geht von der Startstelle durch die jetzige
+Stelle; ist sie noch dieselbe, gilt die Blickrichtung des Schuetzen. Fuer jede Kern-Einheit wird geprueft: Steht sie vor dem
+Geschoss bis 44 Felder weit und hoechstens 1,5 Felder neben der Linie? Dann schlaegt sie im selben Takt einen **Haken**: Sie laeuft
+R3_WEG = 3 Felder quer zur Linie, und zwar zur Seite GEGEN ihre bisherige Laufrichtung (der Vorhalt zeigt in die alte Richtung).
+Steht sie, nimmt sie die erreichbare Seite. R3 hat Vorrang vor R1. Es gibt einen Befehl je Takt.
+
+**Messung (vorher festgelegt):** Je Haken merkt sich der Kern, wie viel Leben die Einheit hat. Ist das Geschoss weg (UID nicht
+mehr fliegend), wird "getroffen" (Leben weniger) oder "verfehlt" protokolliert. Mit R3 aus prueft der Kern dieselbe Lage und
+zaehlt "getroffen/verfehlt", ohne zu befehlen. Das ist die Vergleichsgruppe.
+- Soll 1: Mit R3 an liegt die Trefferquote je bedrohtem Geschoss deutlich unter der Quote mit R3 aus (mindestens ein Drittel
+  weniger), bei mindestens 100 Geschossen je Seite.
+- Soll 2: Die Speertraeger verlieren mit R1+R3 je Takt weniger Leben als ohne Reflex (r1_pruefen 2b gruen).
+- Soll 3: Reaktion auf das neue Geschoss im selben Takt.
+- Widerlegt, wenn die Trefferquote mit R3 nicht sinkt. Dann ist die Annahme falsch, dass der Vorhalt einen Haken verfehlt
+  oder dass nur Felder auf der Linie getroffen werden.
+
+**GEAENDERT nach Frage-Agent (gelb, 02:14):**
+- **Linie aus dem Flug:** Entschieden wird einen Takt nach dem Abschuss. Dann ist die Flugrichtung des Pfeils sichtbar und
+  mikrogenau (Startstelle -> jetzige Stelle). Die 8-stufige Blickrichtung wuerde auf 20 Felder bis 8 Felder danebenliegen.
+- **Seite:** Die Einheit nimmt den kuerzesten Weg aus dem Streifen (+-1,5 Felder), also zur Seite, auf der sie schon steht,
+  R3_WEG = 3 Felder quer.
+- **Physik offen ausgewiesen:** Protokolliert werden je Pfeil die Resttakte bis zur Einheit und der Abstand zur Linie. Die
+  Auswertung erfolgt je Abstand (aus der Naehe geht es nicht: ~1,6 Takte je Feld Pfeil gegen ~13-16 Takte je Feld Laeufer).
+- **Messung im selben Gefecht:** Per Zufall je Pfeil (gerade/ungerade UID) wird ausgewichen oder nur gezaehlt (Vergleichsgruppe).
+  R1 ist dabei aus. "Getroffen" zaehlt nur, wenn die Einheit in dem Takt Leben verliert, in dem DIESER Pfeil verschwindet
+  (+-1 Takt). Mehrere Pfeile im selben Takt sind moeglich, je Pfeil ein Befehl. Ob jeder ankommt, zeigt R1 ANGEKOMMEN.
+- **Fairness-Pruefung** meldet auch das Lesen von Pfeil-Zielpunkt (targetX/Y) und Pfeil-Zieleinheit (unitID).
+- Soll 1 neu: Bei Pfeilen mit >= 12 Resttakten bis zur Einheit liegt die Trefferquote mit Haken mindestens ein Drittel unter der
+  der Vergleichsgruppe, bei >= 60 Pfeilen je Gruppe. Die Grundquote wird erst gemessen und dann genannt.
+
+**Rueckweg:** Der Schalter zur Laufzeit (Einheit -2, wie R1 -1); Kern 23 bleibt im Paket.
+
 ## Was „jeden Takt entscheiden“ technisch heißt
 
 Python kann keinen Takt treffen: Eine Runde braucht heute rund 0,7 s, ein Takt bei Tempo 40 etwa 25 ms. Entschieden werden

@@ -14,6 +14,7 @@
 mod beschuss;
 mod feuer;
 mod haende;
+mod haken;
 mod leitung;
 mod waechter;
 mod wege;
@@ -28,14 +29,14 @@ use std::io::Write;
 use std::collections::HashMap;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::Mutex;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 use std::time::Instant;
 
 use haende::{Annahme, Auftrag, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 23;   // B-287 R1 nur Sichtbares (Zielen + Blickrichtung), Ankunft gemessen, Schalter; 23: Kennung (nie Fremde steuern)
+pub const VERSION: u32 = 26;   // B-287 R1 nur Sichtbares (Zielen + Blickrichtung), Ankunft gemessen, Schalter; 23: Kennung (nie Fremde steuern); 24: R3 Haken beim Schuss; 25: R3 Warteschlange, ein Gruppenbefehl je Takt; 26: R3 jeden Takt neu, VERLUST-Zuordnung
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -282,9 +283,10 @@ fn zielrichtung(x: i32, y: i32, tx: i32, ty: i32) -> Option<i16> {
     })
 }
 
-/// Abgesetzte R1-Befehle: Einheit -> (Laufziel, Takt des Befehls). Je Takt geprueft, bis das Spiel das Laufziel zeigt.
-fn r1_offen() -> std::sync::MutexGuard<'static, HashMap<i32, ((i32, i32), i32)>> {
-    static O: std::sync::OnceLock<Mutex<HashMap<i32, ((i32, i32), i32)>>> = std::sync::OnceLock::new();
+/// Abgesetzte Reflex-Befehle: Einheit -> (Laufziel, Takt des Befehls, Toleranz in Feldern - 1 einzeln, R3_GRUPPE_TOL fuer
+/// Gruppen, die das Spiel um das Ziel herum aufstellt). Je Takt geprueft, bis das Spiel das Laufziel zeigt.
+fn r1_offen() -> std::sync::MutexGuard<'static, HashMap<i32, ((i32, i32), i32, i32)>> {
+    static O: std::sync::OnceLock<Mutex<HashMap<i32, ((i32, i32), i32, i32)>>> = std::sync::OnceLock::new();
     O.get_or_init(|| Mutex::new(HashMap::new())).lock().unwrap_or_else(|e| e.into_inner())
 }
 
@@ -293,9 +295,9 @@ fn r1_offen() -> std::sync::MutexGuard<'static, HashMap<i32, ((i32, i32), i32)>>
 fn r1_ankunft(z: &Zustand, tick: i32) {
     let mut offen = r1_offen();
     let mut fertig = Vec::new();
-    for (&nr, &(p, t0)) in offen.iter() {
+    for (&nr, &(p, t0, tol)) in offen.iter() {
         match z.welt.einheiten.iter().find(|e| e.nr == nr) {
-            Some(e) if (e.laufx as i32 - p.0).abs() <= 1 && (e.laufy as i32 - p.1).abs() <= 1 => {
+            Some(e) if (e.laufx as i32 - p.0).abs() <= tol && (e.laufy as i32 - p.1).abs() <= tol => {
                 schreibe(&format!("reflex tick {}: R1 ANGEKOMMEN Einheit {} - Laufziel ({},{}) im Spiel, Befehl Takt {}, im Spiel ab \
                                    Takt {} (+{} Takte), steht bei ({},{}) Zustand {}",
                                   tick, nr, e.laufx, e.laufy, t0, tick, tick - t0, e.x, e.y, e.zustand));
@@ -385,7 +387,7 @@ fn anvisiert_reflex(z: &mut Zustand, tick: i32) -> bool {
                                   tick, nr, e.x, e.y, s.nr, s.typ, s.zustand, s.blick, abstand, seit, tick - seit, p.0, p.1, gruppe));
                 buch.abgesetzt(a, &gewaehlt, gruppe, tick);
                 st.insert(nr, (seit, tick));
-                r1_offen().insert(nr, (p, tick));
+                r1_offen().insert(nr, (p, tick, 1));
                 return true;                     // ein Befehl je Takt (die Gruppe muss stehen, bevor die naechste kommt)
             }
             Err(f) => schreibe(&format!("reflex tick {}: R1 Einheit {} - Befehl FEHLER {}", tick, nr, f)),
@@ -393,6 +395,194 @@ fn anvisiert_reflex(z: &mut Zustand, tick: i32) -> bool {
         st.insert(nr, (seit, tick));
     }
     false
+}
+
+/// B-287 R3 Haken beim Schuss (haken.rs; Plan_Takt_Kern.md R3 nach Frage-Agent gelb). Modus zur Laufzeit ueber Auftrag Art 17
+/// fuer Einheit R3_SCHALTER_NR, x = 0 nur zaehlen / 1 an / 2 Versuch (je Pfeil per UID gerade = Haken, ungerade = nur zaehlen):
+/// {"kern": {"lauf": {"x": 2, "y": 0, "einheiten": [-2]}}}.
+static R3_MODUS: AtomicI32 = AtomicI32::new(1);
+const R3_SCHALTER_NR: i32 = -2;
+const R3_WEG: i32 = 3;
+/// Das Spiel fuehrt je Takt nur EINEN Gruppenbefehl aus (gemessen 02:30: 231 von 231 verlorenen Haken stammten aus Takten mit
+/// mehreren Befehlen, bis 12 je Salve). Darum: Warteschlange, je Takt der dringendste Haken - zusammen mit allen Einheiten,
+/// die in dieselbe Richtung ausweichen und hoechstens R3_GRUPPE_R Felder neben ihm stehen (ein Gruppenbefehl).
+const R3_GRUPPE_R: i32 = 4;
+const R3_GRUPPE_TOL: i32 = 3;
+
+/// Ein ausstehender Haken: Einheit, Ausweich-Versatz (Felder), Frist (Takt, an dem der Pfeil bei ihr ist), Geschoss, Takt des
+/// ersten Sehens.
+#[derive(Clone, Copy)]
+struct Wunsch {
+    nr: i32,
+    versatz: (i32, i32),
+    frist: i32,
+    uid: i32,
+    gesehen: i32,
+}
+
+/// Ein beobachtetes Geschoss: Takt des ersten Sehens, letzte Stelle, ob schon entschieden, bedrohte Einheiten
+/// (Nummer, Haken ja/nein, Resttakte bis zu ihr).
+struct Flug {
+    erster: i32,
+    start: (i32, i32),
+    letzt: (i32, i32),
+    entschieden: bool,
+    bedroht: Vec<(i32, bool, i32)>,
+}
+
+struct R3 {
+    fluege: HashMap<i32, Flug>,
+    warte: Vec<Wunsch>,
+    /// im letzten Takt verschwundene Geschosse (UID, Start, letzte Stelle, als Bedrohung erkannte Einheiten mit Haken ja/nein)
+    weg_letzt: Vec<(i32, (i32, i32), (i32, i32), Vec<(i32, bool)>)>,
+    /// Kern-Einheit -> (Leben im letzten Takt, Takt des letzten Lebensverlusts)
+    leben: HashMap<i32, (i32, i32)>,
+}
+
+fn r3_zustand() -> std::sync::MutexGuard<'static, R3> {
+    static Z: std::sync::OnceLock<Mutex<R3>> = std::sync::OnceLock::new();
+    Z.get_or_init(|| Mutex::new(R3 { fluege: HashMap::new(), warte: Vec::new(), weg_letzt: Vec::new(), leben: HashMap::new() })).lock().unwrap_or_else(|e| e.into_inner())
+}
+
+/// Je Takt: neue Geschosse merken; einen Takt nach dem Abschuss (Linie sichtbar) bedrohte Kern-Einheiten bestimmen und - je
+/// Modus - einen Haken befehlen; verschwundene Geschosse auswerten (getroffen = die Einheit verlor in diesem Takt +-1 Leben).
+/// Gibt true, wenn ein Befehl abgesetzt wurde.
+fn haken_takt(z: &mut Zustand, tick: i32) -> bool {
+    let Some(buch) = z.buch.as_mut() else { return false };
+    if buch.eigene.is_empty() {
+        return false;
+    }
+    let modus = R3_MODUS.load(Ordering::Relaxed);
+    let welt = &z.welt;
+    let mut r = r3_zustand();
+    // Lebensverlust je Kern-Einheit (Kern 26: jeder Verlust wird einem Geschoss zugeordnet oder als "keins" protokolliert)
+    let mut verluste: Vec<(i32, i32)> = Vec::new();
+    for &nr in buch.eigene.iter() {
+        if let Some(e) = welt.einheiten.iter().find(|e| e.nr == nr) {
+            let alt = r.leben.get(&nr).copied();
+            if let Some((l, _)) = alt {
+                if e.leben < l {
+                    verluste.push((nr, l - e.leben));
+                }
+            }
+            let verlust = alt.map_or(i32::MIN / 2, |(l, t)| if e.leben < l { tick } else { t });
+            r.leben.insert(nr, (e.leben, verlust));
+        }
+    }
+    let fliegend = haken::fliegende();
+    // verschwundene auswerten
+    let weg: Vec<i32> = r.fluege.keys().copied().filter(|u| !fliegend.iter().any(|g| g.uid == *u)).collect();
+    let mut weg_jetzt = Vec::new();
+    for uid in weg {
+        let f = r.fluege.remove(&uid).unwrap();
+        weg_jetzt.push((uid, f.start, f.letzt, f.bedroht.iter().map(|b| (b.0, b.1)).collect::<Vec<_>>()));
+        for (nr, haken, rest) in f.bedroht {
+            let getroffen = r.leben.get(&nr).is_some_and(|&(_, t)| (tick - t).abs() <= 1);
+            schreibe(&format!("haken tick {}: R3 ERGEBNIS Geschoss {} Einheit {} - {} (Haken {}, Resttakte {}, Flug {} Takte)",
+                              tick, uid, nr, if getroffen { "GETROFFEN" } else { "verfehlt" }, if haken { "ja" } else { "nein" },
+                              rest, tick - f.erster));
+        }
+    }
+    // Messung (Frage 02:38): woher kommt jeder Verlust? Naechstes Geschoss, das in diesem oder dem letzten Takt verschwand
+    for (nr, d) in verluste {
+        let Some(e) = welt.einheiten.iter().find(|e| e.nr == nr) else { continue };
+        let beste = weg_jetzt.iter().chain(r.weg_letzt.iter())
+            .filter_map(|(uid, st, le, bed)| haken::lage(*st, *le, (e.mx, e.my)).map(|(q, v)| (*uid, q, v, bed)))
+            .min_by(|a, b| a.1.abs().total_cmp(&b.1.abs()));
+        match beste {
+            Some((uid, q, v, bed)) => {
+                let erkannt = bed.iter().find(|b| b.0 == nr);
+                schreibe(&format!("haken tick {}: R3 VERLUST Einheit {} -{} bei ({},{}): Geschoss {} {:.2} Felder neben seiner Linie, {:.2} voraus beim letzten Sehen, als Bedrohung erkannt {}", tick, nr, d, e.x, e.y, uid, q / 8.0, v / 8.0,
+                                  match erkannt { Some((_, true)) => "ja (Haken)", Some((_, false)) => "ja (nur gezaehlt)", None => "NEIN" }));
+            }
+            None => schreibe(&format!("haken tick {}: R3 VERLUST Einheit {} -{} bei ({},{}): kein Geschoss verschwunden (Nahkampf/anderes)",
+                                      tick, nr, d, e.x, e.y)),
+        }
+    }
+    r.weg_letzt = weg_jetzt;
+    let mut befohlen = false;
+    let mut neue: Vec<Wunsch> = Vec::new();
+    for g in &fliegend {
+        let f = r.fluege.entry(g.uid).or_insert(Flug { erster: tick, start: g.start, letzt: g.jetzt, entschieden: false, bedroht: Vec::new() });
+        let schritt = (((g.jetzt.0 - f.letzt.0).pow(2) + (g.jetzt.1 - f.letzt.1).pow(2)) as f64).sqrt();
+        f.letzt = g.jetzt;
+        if g.jetzt == g.start {
+            continue;
+        }
+        f.entschieden = true;       // Kern 26: jeden Takt neu pruefen - Einheiten koennen nach dem Abschuss in die Linie laufen
+        let je_takt = if schritt > 0.0 { schritt } else { ((g.jetzt.0 - g.start.0).pow(2) as f64 + (g.jetzt.1 - g.start.1).pow(2) as f64).sqrt() };
+        let eigene: Vec<i32> = buch.eigene.iter().copied().collect();
+        for nr in eigene {
+            let Some(e) = welt.einheiten.iter().find(|e| e.nr == nr) else { continue };
+            if e.besitzer == g.besitzer || f.bedroht.iter().any(|b| b.0 == nr) {
+                continue;
+            }
+            let Some((quer, voraus)) = haken::lage(g.start, g.jetzt, (e.mx, e.my)) else { continue };
+            if !haken::bedroht(quer, voraus) {
+                continue;
+            }
+            let rest = (voraus / je_takt.max(1.0)).round() as i32;
+            let haken = modus == 1 || (modus == 2 && g.uid % 2 == 0);
+            f.bedroht.push((nr, haken, rest));
+            let wie = format!("Geschoss {} (Art {}, Spieler {}) Einheit {} bei ({},{}) {:.1} Felder neben der Linie, {:.1} Felder voraus, \
+                               Resttakte {}", g.uid, g.art, g.besitzer, nr, e.x, e.y, quer / 8.0, voraus / 8.0, rest);
+            if !haken {
+                schreibe(&format!("haken tick {}: R3 {} - nur gezaehlt (Modus {})", tick, wie, modus));
+                continue;
+            }
+            let versatz = haken::ausweich(g.start, g.jetzt, quer, R3_WEG);
+            schreibe(&format!("haken tick {}: R3 {} - Haken in die Warteschlange (Versatz {:?})", tick, wie, versatz));
+            let w = Wunsch { nr, versatz, frist: tick + rest, uid: g.uid, gesehen: f.erster };
+            neue.push(w);
+        }
+    }
+    for w in neue {
+        match r.warte.iter_mut().find(|x| x.nr == w.nr) {
+            Some(x) if x.frist <= w.frist => {}
+            Some(x) => *x = w,
+            None => r.warte.push(w),
+        }
+    }
+    // je Takt EIN Befehl: der dringendste Haken, mit allen Nachbarn derselben Richtung als Gruppe
+    r.warte.retain(|w| w.frist > tick && welt.einheiten.iter().any(|e| e.nr == w.nr));
+    let Some(erst) = r.warte.iter().min_by_key(|w| w.frist).copied() else { return befohlen };
+    let Some(e0) = welt.einheiten.iter().find(|e| e.nr == erst.nr) else { return befohlen };
+    let platz = e0.besitzer as i32;
+    let gruppe_nr: Vec<i32> = r.warte.iter()
+        .filter(|w| w.versatz == erst.versatz)
+        .filter_map(|w| welt.einheiten.iter().find(|e| e.nr == w.nr))
+        .filter(|e| e.besitzer as i32 == platz && (e.x - e0.x).abs().max((e.y - e0.y).abs()) <= R3_GRUPPE_R)
+        .map(|e| e.nr).collect();
+    let (sx, sy) = gruppe_nr.iter().filter_map(|n| welt.einheiten.iter().find(|e| e.nr == *n))
+        .fold((0, 0), |(a, b), e| (a + e.x, b + e.y));
+    let k = gruppe_nr.len().max(1) as i32;
+    let mitte = (sx / k, sy / k);
+    let von = match wege::gebiet(e0.x, e0.y) {
+        v if v > 0 => v,
+        _ => wege::ring_suche((e0.x, e0.y), (e0.x, e0.y), 1, 3, |x, y| wege::gebiet(x, y) > 0)
+            .map_or(0, |(x, y)| wege::gebiet(x, y)),
+    };
+    let ziel = (mitte.0 + erst.versatz.0, mitte.1 + erst.versatz.1);
+    r.warte.retain(|w| !gruppe_nr.contains(&w.nr));
+    let Some(p) = wege::ring_suche(ziel, mitte, 0, 1, |x, y| wege::kann_hin(platz, von, wege::gebiet(x, y))) else {
+        schreibe(&format!("haken tick {}: R3 Gruppe {:?} - KEIN erreichbares Feld bei ({},{})", tick, gruppe_nr, ziel.0, ziel.1));
+        return befohlen;
+    };
+    let a = Auftrag { art: haende::LAUF, a: p.0, b: p.1 };
+    match haende::absetzen(a, &gruppe_nr, platz) {
+        Ok((gruppe, gewaehlt)) => {
+            schreibe(&format!("haken tick {}: R3 HAKEN Gruppe {:?} nach ({},{}) - dringendster Pfeil {} bei Einheit {} in {} Takten, Reaktion {} Takte nach dem ersten Sehen, noch {} in der Warteschlange, Spielgruppe {}",
+                              tick, gewaehlt, p.0, p.1, erst.uid, erst.nr, erst.frist - tick, tick - erst.gesehen, r.warte.len(), gruppe));
+            buch.abgesetzt(a, &gewaehlt, gruppe, tick);
+            let tol = if gewaehlt.len() > 1 { R3_GRUPPE_TOL } else { 1 };
+            for n in &gewaehlt {
+                r1_offen().insert(*n, (p, tick, tol));
+            }
+            befohlen = true;
+        }
+        Err(x) => schreibe(&format!("haken tick {}: R3 Gruppe {:?} - Befehl FEHLER {}", tick, gruppe_nr, x)),
+    }
+    befohlen
 }
 
 #[cfg(test)]
@@ -582,7 +772,7 @@ fn takt(tick: i32, spieler: i32) -> i32 {
             feuer_takt(&mut z, tick);
             ring_abarbeiten(&mut z, tick);
             kennung_takt(&mut z, tick);
-            if !anvisiert_reflex(&mut z, tick) {
+            if !haken_takt(&mut z, tick) && !anvisiert_reflex(&mut z, tick) {
                 haende_takt(&mut z, tick);
             }
             leitung_schreiben(&mut z, tick);
@@ -698,6 +888,11 @@ pub extern "C" fn samurai_freigeben(nr: i32) -> i32 {
 #[unsafe(no_mangle)]
 pub extern "C" fn samurai_auftrag(art: i32, nr: i32, a: i32, b: i32) -> i32 {
     geschuetzt("samurai_auftrag", || {
+        if art == haende::LAUF && nr == R3_SCHALTER_NR {
+            R3_MODUS.store(a.clamp(0, 2), Ordering::Relaxed);
+            schreibe(&format!("haken: R3 Modus {} ({})", a.clamp(0, 2), ["nur zaehlen", "an", "Versuch je Pfeil"][a.clamp(0, 2) as usize]));
+            return 1;
+        }
         if art == haende::LAUF && nr == R1_SCHALTER_NR {
             R1_AN.store(a != 0, Ordering::Relaxed);
             schreibe(&format!("reflex: R1 Schalter {}", if a != 0 { "AN" } else { "AUS" }));

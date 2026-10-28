@@ -40,6 +40,9 @@ pub struct Einheit {
     pub nr: i32,
     pub besitzer: i16,
     pub typ: i16,
+    /// Mikro-Position (+0xB6/+0xB8, 8 je Feld) - sichtbar; fuer R3 (Abstand zur Fluglinie)
+    pub mx: i32,
+    pub my: i32,
     pub x: i32,
     pub y: i32,
     pub leben: i32,
@@ -144,6 +147,8 @@ impl Welt {
                     nr: i,
                     besitzer: i16_bei(u + 0x96),
                     typ,
+                    mx: i16_bei(u + 0xB6) as i32,
+                    my: i16_bei(u + 0xB8) as i32,
                     x: (i16_bei(u + 0xB6) as i32).div_euclid(8),
                     y: (i16_bei(u + 0xB8) as i32).div_euclid(8),
                     leben: i32_bei(u + 968),

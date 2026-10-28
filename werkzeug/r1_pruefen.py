@@ -48,6 +48,7 @@ def nummern(text):
 
 def phase(nrs, sekunden, an):
     befehl({"kern": {"lauf": {"x": 1 if an else 0, "y": 0, "einheiten": [-1]}}}, 1.0, bis="KERN")
+    befehl({"kern": {"lauf": {"x": 1 if an else 0, "y": 0, "einheiten": [-2]}}}, 1.0, bis="KERN")     # R3 (ab Kern 24) mit
     log = kern_log()
     start = sum(1 for _ in open(log, encoding="utf-8", errors="replace"))
     L0 = lagebild()
@@ -90,17 +91,20 @@ def frische_partie(kern):
     """Jede Phase in einem frischen Gefecht: tote Einheiten geben ihre Nummer frei, das Spiel vergibt sie neu (auch an
     Feinde) - frische Nummern halten die Zaehlung sauber. Der Kern wird nach dem Gefecht geladen (laeuft bis zum Neustart)."""
     try:
-        shc.gefecht(gegner="1")
+        shc.gefecht(gegner="1", plaetze="0,1")       # feste Plaetze: unsere Burg (138,262), Gegner (224,282) - gemessen 02:25
     except shc.Fehler as e:                 # Gegner-Bergfried fehlt manchmal - fuer diese Pruefung egal, Partie muss laufen
         print("   (gefecht: %s)" % str(e)[:80])
     z = shc.partie_sicher()
+    # nur Testgefecht (FAIRNESS.md): KI von Spieler 2 aus, sonst fuehrt sie die gesetzten Schuetzen weg (gemessen 02:20)
+    for adr, wert in ((0x0191DE7C + 2 * 4, 0), (0x0115BDF8 + 2 * 0x39F4 + 0x2300, 0), (0x0191DE10 + 2 * 4, 1)):
+        befehl({"poke": adr, "wert": wert}, 1.0, bis="POKE")
     k = [x for x in befehl({"kern": {"laden": kern}}, 3.0, bis="KERN") if "KERN" in x]
     print("   Partie %s Takt %d, %s" % (z["text"], z["tick"], k[-1][-60:] if k else "Kern?"))
 
 
 def main():
     sek = int(sys.argv[1]) if len(sys.argv) > 1 else 90
-    kern = sys.argv[2] if len(sys.argv) > 2 else "samurai_kern_23.dll"
+    kern = sys.argv[2] if len(sys.argv) > 2 else "samurai_kern_26.dll"
     erg = {}
     for name, an in (("R1 an", True), ("R1 aus", False)):
         frische_partie(kern)
@@ -116,13 +120,14 @@ def main():
               "Leben verloren %d in ~%d Takten" % (name, len(reak), max(reak) if reak else "-", len(ank), max(ank) if ank else "-",
                                                   nicht, aus, fremd, verlust, takte))
     befehl({"kern": {"lauf": {"x": 1, "y": 0, "einheiten": [-1]}}}, 1.0, bis="KERN")      # Schalter zurueck auf an
+    befehl({"kern": {"lauf": {"x": 1, "y": 0, "einheiten": [-2]}}}, 1.0, bis="KERN")
     reak, ank, nicht, _, v_an, t_an = erg["R1 an"]
     r2, _, _, aus2, v_aus, t_aus = erg["R1 aus"]
     f = [("1a >= 100 Lagen (erste Reflexe) mit R1 an", len(reak) >= 100),
          ("1b Reaktion <= 1 Takt bei allen", bool(reak) and max(reak) <= 1),
          ("1c jeder Befehl im Spiel angekommen, <= 1 Takt", bool(reak) and bool(ank) and max(ank) <= 1 and nicht == 0),
          ("2a R1 aus: 0 Reflexe, Lage weiter gesehen", not r2 and aus2 > 0),
-         ("2b R1 aus verliert je Takt mehr Leben", t_an > 0 and t_aus > 0 and v_aus / t_aus > v_an / t_an)]
+         ("2b Reflexe aus verliert je Takt mehr Leben", t_an > 0 and t_aus > 0 and v_aus / t_aus > v_an / t_an)]
     for name, ok in f:
         print("%s %s" % ("OK  " if ok else "ROT ", name))
     print("%d von %d gruen" % (sum(ok for _, ok in f), len(f)))
