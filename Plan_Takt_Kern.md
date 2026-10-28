@@ -64,6 +64,8 @@ einzelnen Tick entscheiden kann.“
    - R4 Neuwahl aus der Zielliste, wenn das Ziel fällt;
    - Übergabe der Reiter, Sklaven und des Heers.
 
+**Ergebnis 02:47 (L203):** R3 wirkt - Trefferquote 1-3 % mit Haken gegen 9-10 % ohne; Gesamtprobe R1+R3 an: 28.920 statt 100.000 Leben verloren, 0 statt 8 Tote. Naechster Schritt: Uebergabe der Assassinen an den Kern.
+
 ## R3 Haken beim Schuss (Daniel 28.10. 02:12 "ja"; Ziel: weniger Schaden als ohne Reflex)
 
 **Sichtbar und erlaubt (FAIRNESS):** der fliegende Pfeil/Bolzen selbst - Entity-Art 1/7/24/25/33, Zustand 2, noch nicht am
