@@ -17,6 +17,41 @@ einzelnen Tick entscheiden kann.“
 - Gemessene Schuss-Kette (L81): Anlegen, dann Abschuss nach 56/137/28/20 Takten, Treffer 64–170 Takte nach dem Anlegen,
   Flug ~1,6 Takte je Feld.
 
+## Gemessen und gefunden (28.10. 01:33–01:36)
+
+- **Der Kern läuft in jedem Takt.** Das Protokoll `ucp/villagestudio/samurai_kern.log` auf Instanz 5 zählt 15.340 Blöcke zu
+  500 Takten mit Aufrufen = Takten. Abweichungen gibt es nur nach oben (Pause, keine Partie), nie einen ausgelassenen Takt.
+  Ein Aufruf kostet 85 µs im Mittel, höchstens ~365 µs; ein Takt dauert ~5 ms.
+- **Der aktive Kern** ist `samurai_kern_19.dll` (`kern_aktuell.txt`). Die Quelle liegt in `distribution/kernel/src/`:
+  `lib.rs`, `haende.rs`, `welt.rs`, `wege.rs`, `leitung.rs`, `beschuss.rs`, `feuer.rs`, `waechter.rs`.
+- **Vorhanden je Takt:**
+  - Weltbild aller Einheiten aus dem Speicher (`welt.rs`, mit zieleinheit, zustand, laufx/y);
+  - Hände, die Befehle absetzen: `haende::absetzen`, LAUF 17, ANGRIFF_EINHEIT 4, ANGRIFF_GEBAEUDE 9;
+  - Auftragsbuch: Python übergibt Einheiten (`samurai_uebernehmen`) und Aufträge (`samurai_auftrag`, Ring `leitung`);
+  - ein echter Reflex: `grabenreflex` (neues Ziel im selben Takt);
+  - Wachen für Beschuss und Feuer, die bisher nur protokollieren.
+- Eine neue Kern-Fassung lässt sich im laufenden Spiel laden: `{"kern": {"laden": "samurai_kern_N.dll"}}`, dann
+  `kern_aktuell.txt`.
+- **Es fehlt:**
+  - Die Assassinen-Steuerung (Python) übergibt ihre Einheiten nicht an den Kern.
+  - Es gibt keine Reflexe gegen Schützen.
+  - Der Befehl im nächsten Takt ist noch nicht gemessen.
+
+## Nächste Schritte (konkret)
+
+1. **Reflex R1 „anvisiert → raus“ im Kern.** Je Takt, für jede Kern-Einheit: Ein feindlicher Schütze hat `zieleinheit` = sie
+   und `zustand` 4, 5 oder 106. Das ist sichtbares Anlegen oder Schießen und laut FAIRNESS erlaubt (ANGRIFF_SICHTBAR). Dann
+   gibt der Kern sofort einen LAUF auf das erreichbare Feld (`wege`) weg vom Schützen, außer Reichweite. Protokoll: Takt des
+   Anlegens gegen Takt des Befehls.
+2. **Reaktionszeit-Prüfung:** aus dem Protokoll, ≤ 1 Takt bei ≥ 100 Ereignissen. Gegenprobe: Reflex aus.
+3. **Übergabe:** Die Assassinen-Steuerung gibt Einheiten mit Ziel und Rückzugspunkt an den Kern (`samurai_auftrag`). Python
+   befiehlt übergebene Einheiten nicht mehr selbst (Besitzbuch).
+4. **Danach:**
+   - R2 Hit & Run: arbeiten bis kurz vor dem ersten Treffer;
+   - R3 Ausweichen beim Abschuss (erst nach der Ausweich-Messung);
+   - R4 Neuwahl aus der Zielliste, wenn das Ziel fällt;
+   - Übergabe der Reiter, Sklaven und des Heers.
+
 ## Was „jeden Takt entscheiden“ technisch heißt
 
 Python kann keinen Takt treffen: Eine Runde braucht heute rund 0,7 s, ein Takt bei Tempo 40 etwa 25 ms. Entschieden werden
