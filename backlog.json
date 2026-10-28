@@ -7809,7 +7809,7 @@
    "commits": [],
    "wo": [],
    "belege": [],
-   "notiz": "Messung 28.10. 01:33 (Instanz 5, ucp/villagestudio/samurai_kern.log, Kern samurai_kern_19.dll, Quelle distribution/kernel/src/lib.rs): 15.340 Bloecke zu 500 Takten mit aufrufe = takte; 986 Abweichungen nur MEHR Aufrufe (Pause/keine Partie), NIE weniger -> der Kern laeuft in JEDEM Spieltakt, 85 us im Mittel (max ~365 us) je Takt. logik.lua: Befehle aus everyTick fuehrt das Spiel im naechsten Takt aus (Kommentar Z. 731, Wirkung im Spiel noch NICHT gemessen). Fehlt: Entscheidungen (Assassinen, Reiter, Heer) liegen noch im Python-Lenker.",
+   "notiz": "Messung 28.10. 01:33 (Instanz 5, ucp/villagestudio/samurai_kern.log, Kern samurai_kern_19.dll, Quelle distribution/kernel/src/lib.rs): 15.340 Bloecke zu 500 Takten mit aufrufe = takte; 986 Abweichungen nur MEHR Aufrufe (Pause/keine Partie), NIE weniger -> der Kern laeuft in JEDEM Spieltakt, 85 us im Mittel (max ~365 us) je Takt. logik.lua: Befehle aus everyTick fuehrt das Spiel im naechsten Takt aus (Kommentar Z. 731, Wirkung im Spiel noch NICHT gemessen). Fehlt: Entscheidungen (Assassinen, Reiter, Heer) liegen noch im Python-Lenker. | 01:40 R1 (anvisiert -> raus) im Kern gebaut, Fassung 20 (commit 151fe07 + VERSION), cargo test 23/23; DLL als samurai_kern_20.dll nach Instanz5 ucp/modules/villagestudio-0.1.0/ kopiert (dort liegen 10..19; kern_aktuell.txt zeigt noch _19). NAECHSTES: laden mit {'kern': {'laden': 'samurai_kern_20.dll'}}, Testgefecht auf Instanz 5 (Daniel 01:31 'nimm egal welche Instanz'): Assassine dem Kern uebergeben (samurai_uebernehmen / Ring Art 1), feindliche Armbrust, Protokoll 'reflex tick' -> Reaktion <= 1 Takt pruefen; Gegenprobe R1_AN=false.",
    "verlauf": [
     {
      "zeit": "2026-10-28 01:30",
@@ -7822,6 +7822,10 @@
     {
      "zeit": "2026-10-28 01:31",
      "was": "in Arbeit -> in Arbeit: Messung 28.10. 01:33 (Instanz 5, ucp/villagestudio/samurai_kern.log, Kern samurai_kern_19.dll, Quelle distribution/kernel/src/lib.rs): 15.340 Bloecke zu 500 Takten mit aufrufe = takte; 986 Abweichungen nur MEHR Aufrufe (Pause/keine Partie), NIE weniger -> der Kern laeuft in JEDEM Spieltakt, 85 us im Mittel (max ~365 us) je Takt. logik.lua: Befehle aus everyTick fuehrt das Spiel im naechsten Takt aus (Kommentar Z. 731, Wirkung im Spiel noch NICHT gemessen). Fehlt: Entscheidungen (Assassinen, Reiter, Heer) liegen noch im Python-Lenker."
+    },
+    {
+     "zeit": "2026-10-28 01:35",
+     "was": "in Arbeit -> in Arbeit: 01:40 R1 (anvisiert -> raus) im Kern gebaut, Fassung 20 (commit 151fe07 + VERSION), cargo test 23/23; DLL als samurai_kern_20.dll nach Instanz5 ucp/modules/villagestudio-0.1.0/ kopiert (dort liegen 10..19; kern_aktuell.txt zeigt noch _19). NAECHSTES: laden mit {'kern': {'laden': 'samurai_kern_20.dll'}}, Testgefecht auf Instanz 5 (Daniel 01:31 'nimm egal welche Instanz'): Assassine dem Kern uebergeben (samurai_uebernehmen / Ring Art 1), feindliche Armbrust, Protokoll 'reflex tick' -> Reaktion <= 1 Takt pruefen; Gegenprobe R1_AN=false."
     }
    ],
    "rang": 1
