@@ -20,9 +20,10 @@ NACHLAUF = 200
 # B-279 (Partie 001807: KALIB fiel von 0,33 auf 0,03 - "vorhergesagt 20.718, echt 0" bei Assassinen, die ihr Ziel unterwegs
 # wechselten und nie dort waren): ein Angriff zaehlt nur, wenn die Assassine bis ANKOMMEN Felder ans Ziel kam oder starb
 ANKOMMEN = 6
+G_FEHLT = [False]            # Pruefungen ohne Gebaeudeliste: [True] = jeder Angriff gilt als zu Ende gegangen
 # Partie 002852: der neue Prozess lud die Datei, die der alte (vor B-279, falsche Zaehlung) um 00:25 neu geschrieben hatte -
 # KALIB 0,047 statt 0,33. Gelesen wird nur eine Datei mit dieser FASSUNG; aeltere Staende bleiben liegen und werden uebergangen
-FASSUNG = 2
+FASSUNG = 3                  # 3: B-283 nur zu Ende gegangene Angriffe (Fassung 2 lernte aus Abbruechen zu wenig Schaden)
 
 
 def pfad():
@@ -58,7 +59,7 @@ class Eichung:
                          "ort": ziel_ort, "da": ziel_ort is None}
         return aus
 
-    def runde(self, L, ziele, t):
+    def runde(self, L, ziele, t, G=None):
         """Jede Runde: ziele = {Einheit: jetziges Ziel}. Ein Angriff endet, wenn die Einheit tot ist, oder NACHLAUF Takte nachdem
         ihr Ziel weg/anders ist. Gibt Meldungen."""
         aus = []
@@ -69,6 +70,8 @@ class Eichung:
                 aus += self._schliessen(n, t, tot=True)
                 continue
             a["leben_jetzt"] = float(e.get("leben", a["leben"]))
+            if G is not None and a["ziel"] not in G and a["ende"] is None:
+                a["fertig"] = True           # B-283: das Ziel fiel, solange er es angriff
             if a["ort"] is not None and max(abs(e["x"] - a["ort"][0]), abs(e["y"] - a["ort"][1])) <= ANKOMMEN:
                 a["da"] = True
             if (e.get("nahangreifer") or 0) > 0:
@@ -87,6 +90,11 @@ class Eichung:
         echt = a["leben"] if tot else max(0.0, a["leben"] - a.get("leben_jetzt", a["leben"]))
         if a["nah"]:
             self.nahkampf += 1           # Nahkampf rechnet das Modell nicht - zaehlt nicht (Zahl steht im Bericht)
+            return []
+        if not tot and not a.get("fertig", G_FEHLT[0]):
+            # B-283 (Partie 005506: "vorhergesagt 98.991, echt 0" - 517 brach den Steinbruch nach 235 von 516 Takten ab; KALIB
+            # fiel auf 0,05): verglichen wird nur, was ganz zu Ende ging - Ziel zerstoert oder Tod
+            self.abgebrochen = getattr(self, "abgebrochen", 0) + 1
             return []
         if not a["da"] and not tot:
             self.nicht_da = getattr(self, "nicht_da", 0) + 1     # nie am Ziel: die Vorhersage galt fuer einen Weg, den er nicht ging

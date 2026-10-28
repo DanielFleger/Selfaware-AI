@@ -31,6 +31,7 @@ from funde_pruefen import neu, einheit
 
 def main():
     f = []
+    RL.G_FEHLT[0] = True        # die Faelle 1-12 pruefen Zaehlung/Nachlauf - hier gilt jeder Angriff als zu Ende gegangen
     e = RL.Eichung()
     f.append(("1 ohne Profil KALIB %.3f" % e.kalib, abs(e.kalib - 0.33) < 1e-9 and e.datei is None))
 
@@ -156,6 +157,30 @@ def main():
     _j.dump({"vorhergesagt": 2261444.0, "echt": 96840.0, "angriffe": 156, "kalib": 0.0466}, open(os.path.join(d12, "assassinen_eichung.json"), "w"))
     e12 = RL.Eichung(os.path.join(d12, "assassinen_eichung.json"))
     f.append(("12 alte Datei ohne Fassung uebergangen: KALIB %.3f, %d Angriffe" % (e12.kalib, e12.zahl), abs(e12.kalib - 0.33) < 1e-9 and e12.zahl == 0))
+    # 13 (B-283) nur zu Ende gegangene Angriffe: abgebrochen (Ziel steht noch) zaehlt nicht, zerstoert zaehlt
+    RL.G_FEHLT[0] = False
+    e13 = RL.Eichung()
+    e13.start(1, 900, 98991, 12500, 0, ziel_ort=(100, 100))
+    e13.runde({1: {"leben": 12500, "x": 101, "y": 100}}, {1: 900}, 10, {900: {}})
+    e13.runde({1: {"leben": 12500, "x": 101, "y": 100}}, {}, 20, {900: {}})            # Ziel aufgegeben, Gebaeude steht
+    e13.runde({1: {"leben": 12500, "x": 101, "y": 100}}, {}, 20 + RL.NACHLAUF, {900: {}})
+    e13.start(2, 901, 10000, 12500, 0, ziel_ort=(100, 100))
+    e13.runde({2: {"leben": 11000, "x": 101, "y": 100}}, {2: 901}, 10, {})               # Gebaeude 901 weg = zerstoert
+    e13.runde({2: {"leben": 11000, "x": 101, "y": 100}}, {}, 20, {})                     # Ziel weg -> Nachlauf beginnt
+    e13.runde({2: {"leben": 11000, "x": 101, "y": 100}}, {}, 20 + RL.NACHLAUF, {})
+    f.append(("13 abgebrochen zaehlt nicht (%d abgebrochen), zerstoert zaehlt (%d)" % (getattr(e13, "abgebrochen", 0), e13.zahl),
+              getattr(e13, "abgebrochen", 0) == 1 and e13.zahl == 1 and abs(e13.echt - 1500) < 1))
+    # 14 (B-283) am Ziel ohne Angriff: Angriff neu befohlen statt Ziel weg
+    A.Einzeln.PROBE, A.Einzeln.HIT_RUN = False, False
+    t14 = neu(); t14._raid_plaetze = 99
+    L14 = {100: einheit(73, 1, 101, 101), 500: einheit(55, 2, 390, 390, leben=30000)}
+    G14 = {900: {"besitzer": 2, "typ": 20, "x": 100, "y": 100, "leben": 100, "uid": 1, "erreichbar": 1}}
+    t14.aufnehmen([100]); t14.ziel[100] = 900; t14.ziel_typ[900] = 20; t14.befohlen[100] = 0
+    L14[100].update(laufx=101, laufy=101, zustand=1, zielart=0)
+    t14._steht[100] = ((101, 101), 9000)
+    e14, _ = t14.schritt(L14, G14, sichere_orte=[(50, 50)], tick=10000)
+    f.append(("14 am Ziel ohne Angriff: Ziel bleibt %s, Neubefehl %s" % (t14.ziel.get(100), [z[:45] for z in e14 if "AM ZIEL" in z][:1]),
+              t14.ziel.get(100) == 900 and any("AM ZIEL OHNE ANGRIFF 100" in z for z in e14)))
     A.Einzeln.PROBE = A.Einzeln.HIT_RUN = True
     for name, ok in f:
         print("%s %s" % ("OK  " if ok else "ROT ", name))

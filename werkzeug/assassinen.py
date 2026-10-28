@@ -449,6 +449,7 @@ class Einzeln:
     # PROBE_PAUSE Takte (Startwerte, UNGEMESSEN). HIT_RUN: wer an seinem Gebaeude entdeckt wird, arbeitet weiter, solange der
     # erste Treffer (fruehestens VERZUG Takte nach dem Erkennen, L81) nicht vor der naechsten Runde kommen kann.
     KALIB_LERNEN, PROBE, HIT_RUN = True, True, True
+    NEU_AM_ZIEL = 3           # B-283: so oft bekommt eine Assassine am Ziel den Angriff neu, bevor das Ziel geloest wird
     AM_GEBAEUDE = 2           # B-279: bis so viele Felder neben der Grundflaeche gilt "arbeitet am Gebaeude" (kein Mitnehmen)
     PROBE_PAUSE, PROBE_LEBEN, VERZUG, HIT_RUN_ALT = 1500, 6500, 64, 400
     # B-281 (Daniel 28.10. 00:35 "eine Farm ... und das obwohl sie diese besiegen kann - die KI versteht nicht, wie viel sie sich
@@ -2255,7 +2256,7 @@ class Einzeln:
             self._runde_ticks = rt if not hasattr(self, "_runde_ticks") else 0.7 * self._runde_ticks + 0.3 * rt
         self._letzt_tick = self.jetzt
         if self.KALIB_LERNEN and getattr(self, "_eichung", None) is not None:
-            ereignis += self._eichung.runde(L, dict(self.ziel), self.jetzt)     # B-278: Angriffe abschliessen, Eichung lernt
+            ereignis += self._eichung.runde(L, dict(self.ziel), self.jetzt, G)  # B-278/B-283: Angriffe abschliessen, Eichung lernt
         self._heim = list(sichere_orte or [])          # 4a: Fluchtrichtung (Lager, Bergfried)
         # begehbare Warteplaetze: wo gerade eine eigene Nicht-Kampfeinheit steht, ist begehbarer Boden
         orte = list(sichere_orte or []) + sorted({(e["x"], e["y"]) for e in L.values()
@@ -2405,6 +2406,18 @@ class Einzeln:
             if n in self.lordtrupp["mitglieder"] or self.jetzt - seit < frist:
                 continue
             if schach((L[n].get("laufx", -99), L[n].get("laufy", -99)), f) > 1:
+                continue
+            # B-283 (Daniel 28.10. 00:57 "warum wird hier nicht der Steinbruch genommen"; Partie 005506: 517 stand als Probe an
+            # Steinbruch 106, "STILLSTAND geloest" nahm ihm das Ziel, er ging zum Ochsenjoch 98): wer AM Ziel ohne Angriff steht,
+            # bekommt den Angriff neu - hoechstens NEU_AM_ZIEL mal je Ziel, erst danach wird das Ziel geloest
+            nz = self.__dict__.setdefault("_neu_am_ziel", {})
+            if am_ziel and nz.get((n, self.ziel[n]), 0) < self.NEU_AM_ZIEL:
+                nz[(n, self.ziel[n])] = nz.get((n, self.ziel[n]), 0) + 1
+                self.befohlen[n] = self.runde
+                angriffe.append((n, self.ziel[n]))
+                ereignis.append("AM ZIEL OHNE ANGRIFF %d: Angriff auf Gebaeude %d neu befohlen (%d. Mal)" % (
+                    n, self.ziel[n], nz[(n, self.ziel[n])]))
+                self._steht[n] = (f, self.jetzt)
                 continue
             if n in self.ziel or n in self.route or n in self.jagd or n in self.stapel["mitglieder"]:
                 stehen.append("%d (%s, %d Ticks bei %s)" % (n, "Route" if n in self.route else "Gebaeude" if n in self.ziel else
