@@ -60,6 +60,37 @@ LESER = {
 FELD = re.compile(r"[\"'](laufx|laufy|zieleinheit|nahziel|shootTargetedUnit|attackedUnitID|sre_naechster_schuss_takte)[\"']")
 GEHIRN_MODULE = ("gehirn", "simulator")     # immer durchsucht - auch solange sie noch nicht im Spielweg sind
 
+# B-287 (28.10.2026): auch der Rust-Kern entscheidet - jeden Takt, im Spielprozess. Kern 20 las im Reflex das gespeicherte
+# Ziel feindlicher Schuetzen (+926), und diese Pruefung sah es nicht, weil sie nur Python kannte. Jetzt: jede Rust-Funktion,
+# die Laufziel/Angriffsziel (Feld oder Speicherversatz) liest, ist eingeordnet - eine neue macht die Pruefung ROT.
+KERN = os.path.join(os.path.dirname(HIER), "distribution", "kernel", "src")
+KERN_FELD = re.compile(r"\.(laufx|laufy|zieleinheit|zieluid|nahziel|nahangreifer)\b|u \+ (836|830|926|928)\b")
+KERN_FN = re.compile(r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:unsafe\s+)?(?:extern\s+\"C\"\s+)?fn\s+(\w+)")
+KERN_LESER = {
+    "welt.rs:lesen": "auge: liest den Speicher ins Weltbild - Nutzung je Funktion unten eingeordnet",
+    "welt.rs:schreiben": "protokoll: kern_lagebild.txt fuer Messwerkzeuge",
+    "leitung.rs:schreiben": "durchreichen: Ring an Messwerkzeuge (Python-Leser stehen unter der Python-Pruefung, keiner im Spielweg)",
+    "lib.rs:r1_ankunft": "eigen: Laufziel der EIGENEN Einheit nach dem Reflex-Befehl (Beleg, dass er ankam)",
+    "lib.rs:beschuss_takt": "eigen: Nahziel EIGENER Kaempfer im Beschuss-Protokoll",
+}
+
+
+def kern_leser(dateien=None):
+    """{"datei:funktion": [Zeilen]} fuer jede Rust-Funktion im Kern, die Laufziel/Angriffsziel liest. dateien: {name: text}
+    zum Pruefen fremder Staende (Gegenprobe); sonst distribution/kernel/src/*.rs."""
+    if dateien is None:
+        dateien = {f: open(os.path.join(KERN, f), encoding="utf-8").read() for f in sorted(os.listdir(KERN)) if f.endswith(".rs")}             if os.path.isdir(KERN) else {}
+    aus = {}
+    for name, text in dateien.items():
+        fn = "<modul>"
+        for i, z in enumerate(text.splitlines(), 1):
+            m = KERN_FN.match(z)
+            if m:
+                fn = m.group(1)
+            if KERN_FELD.search(z) and not z.strip().startswith("//"):
+                aus.setdefault("%s:%s" % (name, fn), []).append(i)
+    return aus
+
 
 def _funktionen(baum):
     return [(n.lineno, n.end_lineno, n.name) for n in ast.walk(baum) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
@@ -128,6 +159,8 @@ def pruefe(mods=None):
             % k for k in les if LESER.get(k) == "gehirn-roh" and k.split(".")[0] in mods]
     rot += ["NEUE Lesestelle fuer Laufziel/Angriffsziel, nicht eingeordnet: %s Zeilen %s" % (k, v) for k, v in les.items()
             if k not in LESER]
+    rot += ["KERN: neue Lesestelle fuer Laufziel/Angriffsziel, nicht eingeordnet: %s Zeilen %s (FAIRNESS.md - nur Eigenes oder "
+            "Protokoll)" % (k, v) for k, v in kern_leser().items() if k not in KERN_LESER]
     return rot, les
 
 
@@ -138,6 +171,8 @@ if __name__ == "__main__":
         print("EINGRIFF %-14s %-22s Z.%-5d %-12s %s" % (e[0], e[1], e[2], e[3], ERLAUBT.get((e[0], e[1]), "NICHT FREIGEGEBEN")))
     feind = {k: v for k, v in les.items() if LESER.get(k, "").startswith("feind")}
     if "--liste" in sys.argv:
+        for k, v in sorted(kern_leser().items()):
+            print("KERN  %-36s %-24s Zeilen %s" % (k, KERN_LESER.get(k, "NICHT EINGEORDNET")[:24], v))
         for k, v in sorted(les.items()):
             print("LESER %-36s %-24s Zeilen %s" % (k, LESER.get(k, "NICHT EINGEORDNET"), v))
     # Gegenproben: entzogene Freigabe und entzogene Einordnung muessen anschlagen
@@ -148,6 +183,9 @@ if __name__ == "__main__":
     ERLAUBT.update(alt_e)
     LESER.update(alt_l)
     ok_gegen = any("uebernehmen_start" in r for r in gegen) and any("waechter.schritt" in r for r in gegen)
+    # Gegenprobe Kern: ein Reflex, der das gespeicherte Ziel feindlicher Schuetzen liest (wie Kern 20), muss anschlagen
+    falsch = {"lib.rs": "fn anvisiert_reflex() {\n    let s = w.iter().find(|s| s.zieleinheit as i32 == nr);\n}\n"}
+    ok_gegen = ok_gegen and "lib.rs:anvisiert_reflex" in kern_leser(falsch) and "lib.rs:anvisiert_reflex" not in KERN_LESER
     for r in rot:
         print("ROT:", r)
     print("Gegenprobe (Freigabe und Einordnung entzogen): %s" % ("schlaegt an" if ok_gegen else "SCHLAEGT NICHT AN"))

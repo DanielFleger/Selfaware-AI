@@ -63,6 +63,9 @@ Sieg damit beweist nichts.
    `werkzeug/sichtfilter_pruefen.py`). Ohne Filter ist die Pruefung **rot**.
 4. Jede Funktion, die Laufziel oder Angriffsziel liest, ist von Hand eingeordnet (eigene Einheit / Feind / Filter). Eine
    neue, nicht eingeordnete Stelle macht die Pruefung **rot** - wer sie einordnet, muss diese Regel befolgen.
+5. Dasselbe fuer den **Rust-Kern** (`distribution/kernel/src`, entscheidet jeden Takt im Spielprozess): jede Funktion, die
+   Laufziel oder Angriffsziel liest (Feld oder Speicherversatz +836/+830/+926/+928), ist eingeordnet - sonst **rot**. Die
+   Gegenprobe ist ein Reflex wie Kern 20, der das gespeicherte Ziel feindlicher Schuetzen las (B-287, 28.10.2026).
 
 Neue Funktionen, die feindliche Einheiten auswerten, nutzen nur sichtbare Felder: Position, Leben, Typ, Besitzer,
 Zustand (sichtbare Taetigkeit). Fuer Bewegung gibt es die Vorhersage aus der Beobachtung.
