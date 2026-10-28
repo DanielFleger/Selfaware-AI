@@ -25,6 +25,7 @@ pub mod bridge_channel;
 use std::fs::OpenOptions;
 #[cfg(not(feature = "store-bridge"))]
 use std::io::Write;
+use std::collections::HashMap;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -236,6 +237,78 @@ fn grabenreflex(z: &mut Zustand, tick: i32, neu: &[(i32, i32)]) {
     }
 }
 
+/// B-287 R1 "anvisiert -> raus" (Daniel 28.10.2026 01:28 "sie soll literally jeden Takt entscheiden"): je Takt, fuer jede
+/// dem Kern uebergebene Einheit - legt ein feindlicher Schuetze sichtbar auf sie an oder schiesst (zieleinheit = sie, Zustand
+/// 4/5/106; FAIRNESS.md ANGRIFF_SICHTBAR), laeuft sie SOFORT R1_WEG Felder vom Schuetzen weg auf ein erreichbares Feld. Der
+/// Befehl geht in diesem Takt raus (Vorrang vor der Auftragsschlange), das Spiel fuehrt ihn im naechsten Takt aus. Je Einheit
+/// hoechstens alle R1_PAUSE Takte neu. Protokoll: Takt des ersten Anlegens gegen Takt des Befehls (Reaktionszeit-Pruefung).
+/// Gibt true, wenn in diesem Takt ein Reflex-Befehl abgesetzt wurde (dann keine weitere Gruppe in diesem Takt).
+const R1_WEG: i32 = 14;
+const R1_PAUSE: i32 = 30;
+const R1_AN: bool = true;
+const SCHUSS_SICHTBAR: [i16; 3] = [4, 5, 106];
+const SCHUETZEN: [i16; 6] = [22, 23, 70, 72, 74, 76];
+
+fn r1_zustand() -> std::sync::MutexGuard<'static, HashMap<i32, (i32, i32)>> {
+    static R1: std::sync::OnceLock<Mutex<HashMap<i32, (i32, i32)>>> = std::sync::OnceLock::new();
+    R1.get_or_init(|| Mutex::new(HashMap::new())).lock().unwrap_or_else(|e| e.into_inner())
+}
+
+fn anvisiert_reflex(z: &mut Zustand, tick: i32) -> bool {
+    if !R1_AN {
+        return false;
+    }
+    let Some(buch) = z.buch.as_mut() else { return false };
+    if buch.eigene.is_empty() {
+        return false;
+    }
+    let welt = &z.welt;
+    let mut st = r1_zustand();
+    for &nr in buch.eigene.iter() {
+        let Some(e) = welt.einheiten.iter().find(|e| e.nr == nr) else { continue };
+        let schuetze = welt.einheiten.iter().find(|s| s.besitzer != e.besitzer && SCHUETZEN.contains(&s.typ)
+            && s.zieleinheit as i32 == nr && SCHUSS_SICHTBAR.contains(&s.zustand));
+        let Some(s) = schuetze else {
+            st.remove(&nr);
+            continue;
+        };
+        let (seit, zuletzt) = *st.entry(nr).or_insert((tick, i32::MIN / 2));
+        if tick - zuletzt < R1_PAUSE {
+            continue;
+        }
+        let (dx, dy) = (e.x - s.x, e.y - s.y);
+        let n = dx.abs().max(dy.abs()).max(1);
+        let soll = (e.x + R1_WEG * dx / n, e.y + R1_WEG * dy / n);
+        let platz = e.besitzer as i32;
+        let von = match wege::gebiet(e.x, e.y) {
+            g if g > 0 => g,
+            _ => wege::ring_suche((e.x, e.y), (e.x, e.y), 1, 3, |x, y| wege::gebiet(x, y) > 0)
+                .map_or(0, |(x, y)| wege::gebiet(x, y)),
+        };
+        let Some(p) = wege::ring_suche(soll, (e.x, e.y), 0, GRABEN_RING_MAX, |x, y| wege::kann_hin(platz, von, wege::gebiet(x, y)))
+        else {
+            schreibe(&format!("reflex tick {}: R1 Einheit {} anvisiert von {} (Typ {}, Zustand {}) - KEIN erreichbares Feld weg",
+                              tick, nr, s.nr, s.typ, s.zustand));
+            st.insert(nr, (seit, tick));
+            continue;
+        };
+        let a = Auftrag { art: haende::LAUF, a: p.0, b: p.1 };
+        match haende::absetzen(a, &[nr], platz) {
+            Ok((gruppe, gewaehlt)) => {
+                schreibe(&format!("reflex tick {}: R1 Einheit {} anvisiert von {} (Typ {}, Zustand {}) seit Takt {} - Reaktion {} Takte \
+                                   - LAUF ({},{}) weg vom Schuetzen, Gruppe {}", tick, nr, s.nr, s.typ, s.zustand, seit,
+                                  tick - seit, p.0, p.1, gruppe));
+                buch.abgesetzt(a, &gewaehlt, gruppe, tick);
+                st.insert(nr, (seit, tick));
+                return true;                     // ein Befehl je Takt (die Gruppe muss stehen, bevor die naechste kommt)
+            }
+            Err(f) => schreibe(&format!("reflex tick {}: R1 Einheit {} - Befehl FEHLER {}", tick, nr, f)),
+        }
+        st.insert(nr, (seit, tick));
+    }
+    false
+}
+
 /// Beschusswache: eigene Kaempfer ("ich"), die stehen und Leben verlieren - Beginn und Ende je Einheit ins Protokoll.
 fn beschuss_takt(z: &mut Zustand, tick: i32) {
     let ich = unsafe { i32_bei(SLOT_ICH) };
@@ -385,7 +458,9 @@ fn takt(tick: i32, spieler: i32) -> i32 {
             beschuss_takt(&mut z, tick);
             feuer_takt(&mut z, tick);
             ring_abarbeiten(&mut z, tick);
-            haende_takt(&mut z, tick);
+            if !anvisiert_reflex(&mut z, tick) {
+                haende_takt(&mut z, tick);
+            }
             leitung_schreiben(&mut z, tick);
         }
         Ereignis::Epoche { von, nach } => {
