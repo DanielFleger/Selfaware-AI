@@ -1,9 +1,9 @@
-﻿struktur;offset;typ;groesse;feld;erklaert;beleg;marke;liest_auge;name_unklar
-Einheit;4;int;4;gfxNumber;ja;AU25 AU5 AU9 AU90 G10 G8 L127 L190 P11 P13 P9 WS 3 WS 6;Pruefung kornring_pruefen 17/17 (Gegenprobe ohne Loeschbloecke: 108 Felder, bis ;nein;nein
+﻿struktur;offset;typ;groesse;feld;registerbelegt;beleg;marke;liest_auge;name_unklar
+Einheit;4;int;4;gfxNumber;ja;AU25 AU5 AU9 AU90 G10 G8 L127 L190 P11 P13 P9 WS 3 WS 6;abgelesen / abgelesen (Teil) / abgelesen + Lauf / abgelesen + gemessen / abgeles;nein;nein
 Einheit;8;int;4;animationSheetFrameOffset;nein;;;nein;nein
 Einheit;12;short;2;spriteID;ja;AU15 WS 3;+0x0C / gemessen;nein;nein
 Einheit;16;int;4;calculatedOwnerPlayerIndex;ja;P16;abgelesen (Aufbau);nein;nein
-Einheit;20;short;2;drawX;ja;AU3 AU32 P16 P9;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;nein;nein
+Einheit;20;short;2;drawX;ja;AU3 AU32 P16 P9;abgelesen / abgelesen (Aufbau) / abgelesen + gemessen / gemessen (Formel + Einsc;nein;nein
 Einheit;22;short;2;drawY;nein;;;nein;nein
 Einheit;24;short;2;drawWidth;ja;AU51 AU9 WS 13;"abgelesen / abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nic";nein;nein
 Einheit;26;short;2;drawHeight1;ja;AU25 AU9 L79 P14;"abgelesen / abgelesen + gemessen / abgelesen, live gesehen (Werte plausibel; Bed";nein;nein
@@ -18,7 +18,7 @@ Einheit;44;int;4;unknownV;ja;AU2 P16;abgelesen (Aufbau) / abgelesen + gemessen (
 Einheit;48;int;4;field_0x30_animRelated;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);nein;nein
 Einheit;52;short;2;isSelected;ja;AU2 AU9;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile) / abg;nein;nein
 Einheit;56;short;2;healthbar;ja;A11 AU2 P16;abgelesen (Aufbau) / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeu;nein;nein
-Einheit;60;int;4;animationLeapTicksTotal;ja;AU2 P16;abgelesen (Aufbau) / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeu;nein;nein
+Einheit;60;int;4;animationLeapTicksTotal;ja;AU2 P16 P25;abgelesen / abgelesen (Aufbau) / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Ta;nein;nein
 Einheit;64;int;4;animationTicker;ja;AU29 AU6 L81 P16;abgelesen (Aufbau) / abgelesen + gemessen / gemessen (Bogenschuetze) / abgelesen;ja;nein
 Einheit;68;int;4;animationSpeed;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);ja;nein
 Einheit;72;int;4;animationFrame;ja;AU6;gemessen (Bogenschuetze) / abgelesen (uebrige Arten);ja;nein
@@ -50,7 +50,7 @@ Einheit;142;UnitTypeShort;2;unitType;ja;AU9 L144 WS 3 WS 5;"abgelesen, live gese
 Einheit;144;short;2;field67_0x90;ja;AU31 AU40;abgelesen / abgelesen + gemessen;nein;ja
 Einheit;148;short;2;moveRelatedFlag;ja;AU8;abgelesen, Lager live geprueft;nein;nein
 Einheit;150;short;2;owner;ja;AU10 AU2 AU9 P16 P27 P29;"Offsets getestet (live, SAI); Feuerwache abgelesen / abgelesen (Adressen aus typ";ja;nein
-Einheit;152;int;4;uid;ja;AU10 AU14 AU18 AU2 AU23 AU3 AU30 AU38 AU41 AU42 AU43 AU60 AU64 AU66 AU78 AU9 P15 WS 13;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
+Einheit;152;int;4;uid;ja;AU10 AU14 AU18 AU2 AU23 AU3 AU30 AU38 AU41 AU42 AU43 AU60 AU64 AU66 AU78 AU9 P15 WS 13;abgelesen / abgelesen (Adressen aus types.json + Code), Pech/Feuer live 0 im San;ja;nein
 Einheit;156;int;4;time;ja;AU2 AU42;abgelesen + belegt / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeu;nein;nein
 Einheit;160;int;4;targetUID;ja;AU2 P16;abgelesen (Aufbau) / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeu;ja;nein
 Einheit;168;int;4;woodcutterTreeUID;ja;AU40;abgelesen;nein;nein
@@ -64,7 +64,7 @@ Einheit;188;short;2;buildingHeight;ja;AU2 AU4 AU7 G1;abgelesen + gemessen (Fenst
 Einheit;190;short;2;shootTargetMicroX;ja;AU41 AU5;abgelesen / abgelesen + Lauf;ja;nein
 Einheit;192;short;2;shootTargetMicroY;ja;AU41 AU8;abgelesen / abgelesen, Lager live geprueft;ja;nein
 Einheit;194;short;2;shootTargetZ;ja;AU37;abgelesen;ja;nein
-Einheit;196;short;2;x;ja;AU1 AU10 AU12 AU14 AU15 AU16 AU20 AU21 AU25 AU28 AU3 AU31 AU39 AU41 AU5 AU51 AU62 AU8 AU9 G10 G5 G8 L100 L107 L123 L125 L126 L129 L142 L143 L153 L154 L190 L21 L35 L71 L72 L82 L87 L96 P1 P13 P14 P16 P1;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
+Einheit;196;short;2;x;ja;AU1 AU10 AU12 AU14 AU15 AU16 AU20 AU21 AU25 AU28 AU3 AU31 AU39 AU41 AU5 AU51 AU62 AU8 AU9 G10 G5 G8 L100 L107 L123 L125 L126 L129 L142 L143 L153 L154 L190 L21 L35 L71 L72 L82 L87 L96 P1 P13 P14 P16 P1;**gemessen (live) + Daniel** / **getestet** (24.10.) / Offsets getestet (live, S;ja;nein
 Einheit;198;short;2;y;ja;AU10 AU12 AU13 AU14 AU2 AU31 AU37 AU38 AU39 AU5 AU62 AU9 G10 G8 L105 L107 L126 L153 P16 P29 W1 WS 1 WS 13 WS 3 WS 5;**getestet** (24.10.) / Die Zeichenflaeche ist roher Speicher und laesst sich di;ja;nein
 Einheit;200;short;2;destinationXPosition;ja;AU13 L78 L82 P14;abgelesen / abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid) / abgelesen + live g;ja;nein
 Einheit;202;short;2;destinationYPosition;ja;AU37;abgelesen;ja;nein
@@ -104,7 +104,7 @@ Einheit;680;short;2;field132_0x2a8;nein;;;nein;ja
 Einheit;682;short;2;targetShootRelated;nein;;;nein;nein
 Einheit;684;short;2;field134_0x2ac;nein;;;nein;ja
 Einheit;686;short;2;graphicSize;nein;;;nein;nein
-Einheit;688;int;4;animationCycleNumber;ja;AU30 AU6 L190;abgelesen + gemessen / gemessen / gemessen (Bogenschuetze) / abgelesen (uebrige ;ja;nein
+Einheit;688;int;4;animationCycleNumber;ja;AU30 AU6 L190 P18;abgelesen / abgelesen + gemessen / gemessen / gemessen (Bogenschuetze) / abgeles;ja;nein
 Einheit;692;short;2;facingDirection;ja;AU18 AU19 AU5 AU7 L190;abgelesen + Lauf / abgelesen + gemessen / abgelesen + gemessen (Reihenfolge) / g;ja;nein
 Einheit;698;short;2;unitOrderWhenOnSameTile;ja;AU20;abgelesen (1b/2 Staleness gemessen nur indirekt);nein;nein
 Einheit;700;short;2;movementRunUpTime;nein;;;nein;nein
@@ -115,7 +115,7 @@ Einheit;708;short;2;field147_0x2c4;ja;AU8 P29;"Offsets getestet (live, SAI); Feu
 Einheit;710;UnitStateUnion;2;state_3;nein;;;nein;nein
 Einheit;712;short;2;updateTickTracker;nein;;;nein;nein
 Einheit;714;UnitTypeShort;2;unitTypeToChangeInto;ja;WS 3;;nein;nein
-Einheit;716;short;2;state_2;ja;WS 3;;ja;nein
+Einheit;716;short;2;state_2;ja;P18 WS 3;abgelesen;ja;nein
 Einheit;718;UnitTypeShort;2;unitType_3;ja;AU42;abgelesen + belegt;nein;nein
 Einheit;720;short;2;someUnitStat2_meleeDamageUnk;ja;AU20 AU42 AU9;abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + belegt / abgelese;nein;ja
 Einheit;722;short;2;unknownMovementRelated_0x2d2;nein;;;nein;ja
@@ -124,7 +124,7 @@ Einheit;726;short;2;selectionTargetUnitID;ja;AU37;abgelesen;ja;nein
 Einheit;728;short;2;tribeID;ja;AU18;abgelesen + gemessen (Reihenfolge);ja;nein
 Einheit;730;short;2;idInTribe;nein;;;nein;nein
 Einheit;732;short;2;plannedDestinationX;ja;AU38;abgelesen;ja;nein
-Einheit;734;short;2;plannedDestinationY;ja;AU38 AU8 L132;abgelesen / abgelesen, Lager live geprueft / raids_pruefen 7/7 (Gegenprobe ohne ;ja;nein
+Einheit;734;short;2;plannedDestinationY;ja;AU38 AU8 L132;abgelesen / abgelesen, Lager live geprueft;ja;nein
 Einheit;736;short;2;topSpeedDelayIndex;ja;AU8;abgelesen, Lager live geprueft;nein;nein
 Einheit;738;short;2;movementDistance;nein;;;nein;nein
 Einheit;740;int;4;tribeUID;nein;;;nein;nein
@@ -184,7 +184,7 @@ Einheit;890;short;2;field232_0x37a;nein;;;nein;ja
 Einheit;892;short;2;field233_0x37c;nein;;;nein;ja
 Einheit;894;short;2;field234_0x37e;nein;;;nein;ja
 Einheit;896;short;2;substate;ja;AU38;abgelesen;ja;nein
-Einheit;900;uint;4;fixedRng;ja;AU19 AU20 AU28;abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + gemessen;ja;nein
+Einheit;900;uint;4;fixedRng;ja;AU19 AU20 AU28 P18;abgelesen / abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + gemes;ja;nein
 Einheit;904;short;2;resourceToDeposit;nein;;;nein;nein
 Einheit;906;short;2;jugglerCount;ja;AU30 AU34;abgelesen + gemessen / gemessen;ja;nein
 Einheit;908;short;2;tunnelerFrame;nein;;;nein;nein
@@ -227,7 +227,7 @@ Einheit;1000;short;2;attackAtTileX;ja;AU38;abgelesen;ja;nein
 Einheit;1002;short;2;attackAtTileY;ja;AU38;abgelesen;ja;nein
 Einheit;1004;byte;1;firstNameIndex;nein;;;nein;nein
 Einheit;1005;byte;1;rng1_to_70;nein;;;nein;nein
-Einheit;1006;char;1;nextAttackHurtsWall;ja;AU38;abgelesen;ja;nein
+Einheit;1006;char;1;nextAttackHurtsWall;ja;AU38 P27;abgelesen / abgelesen + SAI gemessen (Zuendung);ja;nein
 Einheit;1007;undefined1;1;poleturner_spearOrPike;nein;;;nein;nein
 Einheit;1008;short;2;killedFlagUnk;nein;;;nein;ja
 Einheit;1010;short;2;field296_0x3f2;nein;;;nein;ja
@@ -316,7 +316,7 @@ Gebaeude;136;int;4;field40_0x88;nein;;;nein;ja
 Gebaeude;140;byte;1;xPosition;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);ja;nein
 Gebaeude;141;byte;1;yPosition;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);ja;nein
 Gebaeude;144;short;2;surfaceAreaUnk;nein;;;nein;ja
-Gebaeude;146;short;2;orientation;ja;AU3;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
+Gebaeude;146;short;2;orientation;ja;AU3;gemessen (Formel + Einschlag 10/10);ja;nein
 Gebaeude;154;short;2;unknownFlag3;nein;;;nein;ja
 Gebaeude;156;short;2;someResourceNumber;nein;;;nein;nein
 Gebaeude;158;short;2;buildingIsVisuallyActive;nein;;;nein;nein
@@ -338,11 +338,11 @@ Gebaeude;206;short;2;oldVisualActiveState;nein;;;nein;nein
 Gebaeude;208;BuildingLogicalStateShort;2;logicalState;ja;AU20 AU57 AU62 P16 WS 3 WS 5;Grundadresse `0x0138854C`, Schrittweite 1168 / abgeleitet / abgelesen / abgelese;ja;nein
 Gebaeude;210;BuildingTypeShort;2;buildingType;ja;P29 WS 2 WS 5;"Mapper-Typ / Offsets getestet (live, SAI); Feuerwache abgelesen / gemessen";ja;nein
 Gebaeude;214;short;2;owner;ja;AU10 AU2 AU9 P16 P27 P29;"Offsets getestet (live, SAI); Feuerwache abgelesen / abgelesen (Adressen aus typ";ja;nein
-Gebaeude;216;int;4;uid;ja;AU10 AU14 AU18 AU2 AU23 AU3 AU30 AU38 AU41 AU42 AU43 AU60 AU64 AU66 AU78 AU9 P15 WS 13;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
+Gebaeude;216;int;4;uid;ja;AU10 AU14 AU18 AU2 AU23 AU3 AU30 AU38 AU41 AU42 AU43 AU60 AU64 AU66 AU78 AU9 P15 WS 13;abgelesen / abgelesen (Adressen aus types.json + Code), Pech/Feuer live 0 im San;ja;nein
 Gebaeude;232;ushort;2;microX;ja;AU2 P13 P16;abgelesen (Aufbau) / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeu;ja;nein
 Gebaeude;234;ushort;2;microY;ja;AU39;abgelesen;ja;nein
 Gebaeude;236;short;2;terrainHeightUnk;nein;;;nein;ja
-Gebaeude;238;ushort;2;x;ja;AU1 AU10 AU12 AU14 AU15 AU16 AU20 AU21 AU25 AU28 AU3 AU31 AU39 AU5 AU62 AU8 AU9 G10 G5 G8 L100 L107 L123 L125 L126 L129 L142 L143 L153 L154 L190 L21 L35 L71 L72 L82 L87 L96 P1 P13 P14 P16 P19 P2 P21 P;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
+Gebaeude;238;ushort;2;x;ja;AU1 AU10 AU12 AU14 AU15 AU16 AU20 AU21 AU25 AU28 AU3 AU31 AU39 AU5 AU62 AU8 AU9 G10 G5 G8 L100 L107 L123 L125 L126 L129 L142 L143 L153 L154 L190 L21 L35 L71 L72 L82 L87 L96 P1 P13 P14 P16 P19 P2 P21 P;**gemessen (live) + Daniel** / **getestet** (24.10.) / Offsets getestet (live, S;ja;nein
 Gebaeude;240;ushort;2;y;ja;AU10 AU12 AU13 AU14 AU2 AU31 AU37 AU38 AU39 AU5 AU62 AU9 G10 G8 L105 L107 L126 L153 P16 P29 W1 WS 1 WS 13 WS 3 WS 5;**getestet** (24.10.) / Die Zeichenflaeche ist roher Speicher und laesst sich di;ja;nein
 Gebaeude;244;uint;4;currentTilePositionAdjusted;nein;;;nein;nein
 Gebaeude;248;uint;4;widthOrHeight;nein;;;nein;nein
@@ -362,9 +362,9 @@ Gebaeude;284;int;4;killingPitField;nein;;;nein;nein
 Gebaeude;288;int[2];8;resourceArray_resourceTypePlus1;nein;;;nein;nein
 Gebaeude;296;int;4;resourceWood;ja;AU39;abgelesen;ja;nein
 Gebaeude;300;int;4;resourceHops;ja;AU49;abgelesen;ja;nein
-Gebaeude;304;int;4;resourceStone;ja;AU42 L71;abgelesen + belegt / teils;ja;nein
+Gebaeude;304;int;4;resourceStone;ja;AU42 L71;abgelesen + belegt;ja;nein
 Gebaeude;308;int;4;resourcePartialStone;ja;AU55;abgelesen;ja;nein
-Gebaeude;312;int;4;resourceIron;ja;L71;teils;ja;nein
+Gebaeude;312;int;4;resourceIron;ja;L71;;ja;nein
 Gebaeude;316;int;4;resourcePitch;ja;AU49;abgelesen;ja;nein
 Gebaeude;320;int;4;resourcePartialPitch;ja;AU55;abgelesen;ja;nein
 Gebaeude;324;int;4;resourceWheat;ja;AU49;abgelesen;ja;nein
@@ -399,7 +399,7 @@ Gebaeude;424;int[4];16;workerUID;nein;;;nein;nein
 Gebaeude;440;short[2];4;workers;nein;;;nein;nein
 Gebaeude;448;short;2;unitID;ja;AU14 AU2 AU4 AU57 AU60 AU62 P16 WS 3;abgelesen / abgelesen (Aufbau) / abgelesen + gemessen (Fenster) / abgelesen + ge;ja;nein
 Gebaeude;450;short;2;field165_0x1c2;nein;;;nein;ja
-Gebaeude;452;short;2;growCounter;ja;L71;teils;nein;nein
+Gebaeude;452;short;2;growCounter;ja;L71;;nein;nein
 Gebaeude;456;int;4;tileRef1;nein;;;nein;nein
 Gebaeude;460;int;4;tileRef2;nein;;;nein;nein
 Gebaeude;464;int;4;tileRef3;nein;;;nein;nein
@@ -447,7 +447,7 @@ Gebaeude;624;short;2;field219_0x270;nein;;;nein;ja
 Gebaeude;626;short;2;field220_0x272;nein;;;nein;ja
 Gebaeude;628;short;2;field221_0x274;nein;;;nein;ja
 Gebaeude;630;short;2;field222_0x276;nein;;;nein;ja
-Gebaeude;632;int;4;buildingProgress;ja;AU8;abgelesen, Lager live geprueft;ja;nein
+Gebaeude;632;int;4;buildingProgress;ja;AU8 P28;abgelesen (Schwellen, strikte Grenze, Fehlerpfad) / ungeprueft (weitere Bediener;ja;nein
 Gebaeude;636;uint;4;timeAlive;ja;AU8;abgelesen, Lager live geprueft;ja;nein
 Gebaeude;644;int;4;hovelVisualStyle;nein;;;nein;nein
 Gebaeude;648;short;2;field230_0x288;nein;;;nein;ja
@@ -521,7 +521,7 @@ Geschoss;12;short;2;x1;ja;L123 P25;"abgelesen / gemessen werkzeug/mauer_pruefen.
 Geschoss;14;short;2;y1;ja;L123;"gemessen werkzeug/mauer_pruefen.py (Spielstaende ""Walltest 4"", ""Gute Wirtschaft""";nein;nein
 Geschoss;16;short;2;unkOne_1;nein;;;nein;nein
 Geschoss;18;short;2;field7_0x12;nein;;;nein;ja
-Geschoss;20;short;2;unknownAnimationFrameRelated;ja;AU3 AU60;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;ja
+Geschoss;20;short;2;unknownAnimationFrameRelated;ja;AU3 AU60;abgelesen / gemessen (Formel + Einschlag 10/10);ja;ja
 Geschoss;22;short;2;unkThree_1;ja;AU60;abgelesen;nein;nein
 Geschoss;24;short;2;originX;nein;;;nein;nein
 Geschoss;26;short;2;originY;nein;;;nein;nein
@@ -533,7 +533,7 @@ Geschoss;40;short;2;logicalState;ja;AU20 AU57 AU62 P16 WS 3 WS 5;Grundadresse `0
 Geschoss;42;EntityTypeShort;2;entityType;ja;AU2 P16;abgelesen (Aufbau) / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeu;ja;nein
 Geschoss;44;short;2;owner;ja;AU10 AU2 AU9 P16 P27 P29;"Offsets getestet (live, SAI); Feuerwache abgelesen / abgelesen (Adressen aus typ";ja;nein
 Geschoss;46;byte[2];2;unused_0x2e;nein;;;nein;nein
-Geschoss;48;int;4;uid;ja;AU10 AU14 AU18 AU2 AU23 AU3 AU30 AU38 AU41 AU42 AU43 AU60 AU64 AU66 AU78 AU9 P15 WS 13;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
+Geschoss;48;int;4;uid;ja;AU10 AU14 AU18 AU2 AU23 AU3 AU30 AU38 AU41 AU42 AU43 AU60 AU64 AU66 AU78 AU9 P15 WS 13;abgelesen / abgelesen (Adressen aus types.json + Code), Pech/Feuer live 0 im San;ja;nein
 Geschoss;52;int;4;field21_0x34;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);ja;ja
 Geschoss;56;short;2;microX;ja;AU2 P13 P16;abgelesen (Aufbau) / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeu;ja;nein
 Geschoss;58;short;2;microY;ja;AU39;abgelesen;ja;nein
@@ -549,7 +549,7 @@ Geschoss;80;short;2;x_2;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt
 Geschoss;82;short;2;y_2;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);ja;nein
 Geschoss;84;short;2;startingHeight_2;nein;;;nein;nein
 Geschoss;86;short;2;height_2;nein;;;nein;nein
-Geschoss;88;short;2;startingHeight;ja;AU2 AU3;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
+Geschoss;88;short;2;startingHeight;ja;AU2 AU3;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile) / gem;ja;nein
 Geschoss;90;short;2;field37_0x5a;ja;AU40;abgelesen;ja;ja
 Geschoss;92;short;2;field38_0x5c;nein;;;nein;ja
 Geschoss;94;short;2;field39_0x5e;nein;;;nein;ja
@@ -565,12 +565,12 @@ Geschoss;112;short;2;field48_0x70;nein;;;nein;ja
 Geschoss;114;short;2;field49_0x72;nein;;;nein;ja
 Geschoss;116;short;2;field50_0x74;ja;AU40 AU42;abgelesen / abgelesen + belegt;ja;ja
 Geschoss;118;byte[2];2;unused_0x76;nein;;;nein;nein
-Geschoss;120;int;4;speedUnk;ja;AU2 AU3;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;ja
-Geschoss;124;float;4;vCos;ja;AU2 AU24 AU3 AU31;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
-Geschoss;128;float;4;vSin;ja;AU2 AU24 AU3 AU31;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
-Geschoss;132;short;2;travelledDistance;ja;AU2 AU3 AU32;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
+Geschoss;120;int;4;speedUnk;ja;AU2 AU3;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile) / gem;ja;ja
+Geschoss;124;float;4;vCos;ja;AU2 AU24 AU3 AU31;abgelesen + gemessen / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 La;ja;nein
+Geschoss;128;float;4;vSin;ja;AU2 AU24 AU3 AU31;abgelesen + gemessen / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 La;ja;nein
+Geschoss;132;short;2;travelledDistance;ja;AU2 AU3 AU32;abgelesen + gemessen / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 La;ja;nein
 Geschoss;134;byte[2];2;field56_0x86;nein;;;nein;ja
-Geschoss;136;int;4;orientation;ja;AU3;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
+Geschoss;136;int;4;orientation;ja;AU3;gemessen (Formel + Einschlag 10/10);ja;nein
 Geschoss;140;short;2;field58_0x8c;ja;AU2;abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 Pfeile);ja;ja
 Geschoss;144;int;4;heightDifference;ja;AU40;abgelesen;ja;nein
 Geschoss;148;short;2;field62_0x94;nein;;;nein;ja
@@ -608,7 +608,7 @@ Geschoss;220;int;4;uidRef;nein;;;nein;nein
 Geschoss;224;byte[8];8;unused_0xe0;nein;;;nein;nein
 Trupp;2;short;2;time;ja;AU42;abgelesen + belegt;nein;nein
 Trupp;4;int;4;owner;ja;AU10 AU2 AU9 P16 P27 P29;"Offsets getestet (live, SAI); Feuerwache abgelesen / abgelesen (Adressen aus typ";ja;nein
-Trupp;12;int;4;uid;ja;AU10 AU14 AU18 AU2 AU23 AU3 AU30 AU38 AU41 AU42 AU43 AU60 AU64 AU66 AU78 AU9 P15 WS 13;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
+Trupp;12;int;4;uid;ja;AU10 AU14 AU18 AU2 AU23 AU3 AU30 AU38 AU41 AU42 AU43 AU60 AU64 AU66 AU78 AU9 P15 WS 13;abgelesen / abgelesen (Adressen aus types.json + Code), Pech/Feuer live 0 im San;ja;nein
 Trupp;24;short;2;tribeState;ja;AU9 WS 13;"abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nicht gegen das";ja;nein
 Trupp;26;AITribeTypeShort;2;tribeType;ja;AU9;"abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nicht gegen das";ja;nein
 Trupp;28;short;2;field19_0x1c;nein;;;nein;ja
@@ -681,7 +681,7 @@ Trupp;688;short;2;siegeIndexValue1;nein;;;nein;nein
 Trupp;690;short;2;siegeIndexValue2;nein;;;nein;nein
 Trupp;692;int;4;someTile2;nein;;;nein;nein
 Trupp;696;UnitStanceEnumShort;2;unitStance;ja;AU9;"abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nicht gegen das";ja;nein
-Trupp;698;short;2;orientation;ja;AU3;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
+Trupp;698;short;2;orientation;ja;AU3;gemessen (Formel + Einschlag 10/10);ja;nein
 Trupp;700;short;2;someCounter1;nein;;;nein;nein
 Trupp;702;short;2;field168_0x2be;nein;;;nein;ja
 Trupp;704;short;2;someUnitID;nein;;;nein;nein
@@ -716,7 +716,7 @@ Spieler;74;undefined2;2;someCount32;nein;;;nein;nein
 Spieler;76;undefined2;2;someCount33;nein;;;nein;nein
 Spieler;80;dword;4;lastTimeSFXNoPlaceInStockpile;nein;;;nein;nein
 Spieler;84;int;4;marketGold;nein;;;nein;nein
-Spieler;96;int;4;popularity;ja;AU9 L21;Ghidra OpenSHC-ref, `werkzeug/ghidra_DekompMuster.java` (Muster tax / abgelesen,;ja;nein
+Spieler;96;int;4;popularity;ja;AU9 L21;"abgelesen / abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nic";ja;nein
 Spieler;104;int;4;countEconomyBuilding_fixme;nein;;;nein;nein
 Spieler;108;int;4;vclock;nein;;;nein;nein
 Spieler;112;int;4;vclockIncrement;nein;;;nein;nein
@@ -735,7 +735,7 @@ Spieler;308;BuildingEntryInfo;40;unknown4;nein;;;nein;ja
 Spieler;348;BuildingEntryInfo;40;barracks;nein;;;nein;nein
 Spieler;388;BuildingEntryInfo;40;unknown6;nein;;;nein;ja
 Spieler;428;BuildingEntryInfo;40;marketplace;nein;;;nein;nein
-Spieler;468;BuildingEntryInfo;40;campground;nein;;;nein;nein
+Spieler;468;BuildingEntryInfo;40;campground;ja;P27;abgelesen + SAI gemessen (Zuendung);nein;nein
 Spieler;508;BuildingEntryInfo;40;engineersGuild;nein;;;nein;nein
 Spieler;548;BuildingEntryInfo;40;tunnelersGuild;nein;;;nein;nein
 Spieler;588;BuildingEntryInfo;40;mercenaryPost;nein;;;nein;nein
@@ -834,8 +834,8 @@ Spieler;8712;int;4;jesterIDUnk;nein;;;nein;ja
 Spieler;8716;int;4;someUnitIDSelfRef_2;nein;;;nein;nein
 Spieler;8720;int;4;lordKilledByPlayerID;nein;;;nein;nein
 Spieler;8724;int;4;playerRelatedFlag;nein;;;nein;nein
-Spieler;8728;short;2;stoneGainedFraction;ja;A7;ungeprueft;nein;nein
-Spieler;8730;short;2;woodGainedFraction;ja;A7;ungeprueft;nein;nein
+Spieler;8728;short;2;stoneGainedFraction;ja;A7;;nein;nein
+Spieler;8730;short;2;woodGainedFraction;ja;A7;;nein;nein
 Spieler;8732;int;4;chickenCount2;nein;;;nein;nein
 Spieler;8736;int;4;childTargetIDUnk;nein;;;nein;ja
 Spieler;8740;int;4;childUID;nein;;;nein;nein
@@ -914,7 +914,7 @@ Spieler;10832;int;4;hovelCountUpToEight;nein;;;nein;nein
 Spieler;10836;int;4;aiFarmIndex;nein;;;nein;nein
 Spieler;10856;int;4;hasMarketUnk;nein;;;nein;ja
 Spieler;10860;BOOLEnum;4;willBuy;nein;;;nein;nein
-Spieler;10864;int[24];96;resourcesToAcquireArray;ja;AU9;"abgelesen, live gesehen (Werte plausibel; Bedeutung je Feld noch nicht gegen das";ja;nein
+Spieler;10864;int[24];96;resourcesToAcquireArray;ja;AU9 L33;"abgelesen + getestet / abgelesen, live gesehen (Werte plausibel; Bedeutung je Fe";ja;nein
 Spieler;10964;int;4;highestLoadedQuarryUnk;nein;;;nein;ja
 Spieler;10968;BOOLEnum;4;granaryIsAlmostFilledUp;nein;;;nein;nein
 Spieler;10972;undefined4;4;isArmouryAlmostFilledUp;nein;;;nein;nein
@@ -1311,7 +1311,7 @@ Karte/Zeit;828;int;4;yearChanged;nein;;;nein;nein
 Karte/Zeit;832;int;4;weekChanged;nein;;;nein;nein
 Karte/Zeit;836;int;4;strongWalls2;nein;;;nein;nein
 Karte/Zeit;840;int;4;field598_0x348;nein;;;nein;ja
-Karte/Zeit;844;int;4;counterForUpdatingSeparateAreaTileMaps;ja;W11;ungeprueft;nein;nein
+Karte/Zeit;844;int;4;counterForUpdatingSeparateAreaTileMaps;ja;W11;;nein;nein
 Karte/Zeit;848;int;4;totalGameTicksUnk;ja;AU19;abgelesen + gemessen;ja;ja
 Karte/Zeit;852;int;4;treeSpreadCounter;nein;;;nein;nein
 Karte/Zeit;856;int;4;newOrganisms;nein;;;nein;nein
@@ -1350,7 +1350,7 @@ Karte/Zeit;3500;int;4;euroRecruitableCopy_index_6_a;nein;;;nein;nein
 Karte/Zeit;3504;int;4;euroRecruitableCopy_index_1_a;nein;;;nein;nein
 Karte/Zeit;3508;int;4;euroRecruitableCopy_index_3_a_and_6_b;nein;;;nein;nein
 Karte/Zeit;3512;int;4;euroRecruitableCopy_index_6_c;nein;;;nein;nein
-Karte/Zeit;3516;int[9];36;playerTeams;ja;AU23 AU31 AU57;abgelesen / abgelesen + gemessen;ja;nein
+Karte/Zeit;3516;int[9];36;playerTeams;ja;AU23 AU57;abgelesen / abgelesen + gemessen;ja;nein
 Karte/Zeit;3552;int;4;difficulty;nein;;;nein;nein
 Karte/Zeit;3556;short;2;scenarioRationsSetting;nein;;;nein;nein
 Karte/Zeit;3558;short;2;scenarioTaxesSetting;nein;;;nein;nein
@@ -1504,13 +1504,13 @@ Weltkarte;2268624;uchar[80400];80400;BuildingWasLayer;nein;;;nein;nein
 Weltkarte;2349024;ushort[80400];160800;UnitLayer;ja;AU10 AU18 AU4 AU42;abgelesen (Adressen aus types.json + Code), Pech/Feuer live 0 im Sandkasten / ab;nein;nein
 Weltkarte;2509824;short[80400];160800;EntityLayer;ja;AU10 AU57;abgelesen / abgelesen (Adressen aus types.json + Code), Pech/Feuer live 0 im San;nein;nein
 Weltkarte;2670624;char[80400];80400;EntityLayerLT25;nein;;;nein;nein
-Weltkarte;2751024;byte[80400];80400;HeightLayer;ja;AU16 AU3 P25 WS 1;**Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci;ja;nein
+Weltkarte;2751024;byte[80400];80400;HeightLayer;ja;AU16 AU3 P25 WS 1;abgelesen / gemessen / gemessen (Formel + Einschlag 10/10);ja;nein
 Weltkarte;2831424;byte[80400];80400;DefaultHeightLayer;ja;WS 1 WS 5;vermutet;nein;nein
 Weltkarte;2911824;byte[80400];80400;WallOwnerLayer;nein;;;nein;nein
 Weltkarte;2992224;uchar[80400];80400;LuminesenceLayer;nein;;;nein;nein
 Weltkarte;3072624;uchar[80400];80400;ShowHiLayer;nein;;;nein;nein
 Weltkarte;3153024;ushort[80400];160800;MiscDisplayLayer;nein;;;nein;nein
-Weltkarte;3313824;byte[80400];80400;DamageLayer;ja;AU10;abgelesen (Adressen aus types.json + Code), Pech/Feuer live 0 im Sandkasten;ja;nein
+Weltkarte;3313824;byte[80400];80400;DamageLayer;ja;AU10 P25;abgelesen / abgelesen (Adressen aus types.json + Code), Pech/Feuer live 0 im San;ja;nein
 Weltkarte;3394224;ushort[80400];160800;MacroLayer;ja;WS 1;;nein;nein
 Weltkarte;3555024;ushort[80400];160800;PathConnectionLayer;ja;AU12 W34 WS 3;"abgelesen / abgelesen; Verschwinden gemessen, Ursache wahrscheinlich";nein;nein
 Weltkarte;3715824;uchar[80400];80400;PathLinkageLayer;ja;W1;**getestet** (24.10.);nein;nein

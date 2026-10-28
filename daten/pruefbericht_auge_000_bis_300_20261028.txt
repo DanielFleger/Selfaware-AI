@@ -1,0 +1,1116 @@
+UNABHÄNGIGER PRÜFBERICHT — STRONGHOLD CRUSADER
+Prüfdatum: 28.10.2026
+Prüfstand: 48d9545eb455d06869f2d203ca6ba02a1e5953a4, Zweig codex/auge
+
+URTEIL
+Die Anzeige „304 von 1.938 erklärt“ ist als semantische Abnahme nicht belastbar.
+Sie reproduziert Adressnennungen. Sie unterscheidet weder eine offene Frage von
+einer Erklärung noch einen Feldbeleg von einer Erklärung des Funktionskörpers.
+Es wurden konkrete falsche Verhaltensaussagen und ausgelassene Sonderfälle gefunden.
+Die drei Paket-Entfernungsproben bestanden als Zuordnungsprüfung; sie widerlegen
+diesen semantischen Mangel nicht.
+
+UMFANG UND GRENZEN
+Aus der CSV des Prüfcommits wurden in unveränderter Dateireihenfolge die ersten
+300 Zeilen mit erklaert=ja UND spiellogik=ja ausgewählt. Beginn: 0x00401090;
+Ende: 0x00575C40. Die vier späteren erklärten Funktionen gehören nicht zur Auswahl.
+Alle 300 JSON-Dateien sind vorhanden und decompiled=true, error leer. Adresse
+und vollständiger Funktionsname stimmen in allen 300 Fällen mit der CSV überein.
+Die enthaltenen Rohbytes stimmen jeweils mit Größe und SHA-256 im selben JSON
+überein. Das ist eine interne Konsistenzprüfung, kein neuer Vergleich mit einer
+EXE oder einem laufenden Spiel. Alle 300 Exporte tragen semantic_status=unexamined;
+diese Metadaten wurden durch den Auftrag nicht geändert.
+
+Die semantische Prüfung vergleicht bestehende Registerbehauptungen mit den dazu
+gehörenden Original-Pseudocode-Zweigen. Bei großen Zustandsautomaten wurden
+gezielt die behaupteten Felder, Bedingungen, Aufrufe und Grenzwerte geprüft.
+Dies ist KEINE vollständige neue Zeile-für-Zeile-Erklärung aller 300 Körper.
+Aus „hier kein konkreter Widerspruch nachgewiesen“ folgt ausdrücklich kein
+grünes Funktionssiegel. Einzelfunktionen ohne eigene Verhaltensbeschreibung
+bleiben für eine vollständige Funktionsabnahme offen.
+
+29 der 300 besitzen überhaupt keinen Adressbeleg im Wissensregister des
+Prüfcommits, sondern ausschließlich im externen VillageStudio-Wissensstand.
+Dessen heutige Fassung reproduziert die CSV-Belege, ist aber nicht durch diesen
+Selfaware-Commit historisch festgelegt. Alle 29 Fälle stehen unten einzeln.
+Historische Messungen (Schüsse, Takte, Live-Patches, Partien) wurden nicht erneut
+ausgeführt. Pseudocode belegt statisches Verhalten, nicht die behauptete Anzahl
+historischer Messpunkte oder die Wirksamkeit unter einem Live-Patch.
+
+Die angeforderten fünf Grundlagen wurden gelesen: AGENTS.md, CLAUDE.md,
+CODEX_AUFTRAG_AUGE.md, Wissensregister.md und
+werkzeug/engine_knowledge/WEITER.txt. Die versionierten Fassungen stammen aus
+48d9545. Abdeckungswerkzeug: ebenfalls ausschließlich Fassung dieses Commits.
+Zusätzlich gelesen: externe Rohbelege, Struktur-/Enum-Definitionen sowie der
+vom Abdeckungswerkzeug tatsächlich benutzte externe Wissensstand.
+
+Es gab keine Änderungen an Projektdateien, keine Commits/Pushes, keinen Spielstart,
+keine Maus-/Tastatursteuerung und keine Änderung an SamurAI.
+Der Arbeitsordner lag schon bei Beginn auf einem neueren Commit mit verändertem
+Wissensregister. Während der Prüfung bewegten sich HEAD und Arbeitsdateien erneut.
+Diese fremden Änderungen wurden weder übernommen noch zurückgesetzt; alle
+Registerzeilenverweise im Bericht meinen den Stand 48d9545, NICHT die aktuelle Datei.
+
+BELEGSTUFEN
+abgelesen: statischer Ausdruck/Verzweigung im Export, mit offengelegten Decompilergrenzen.
+gemessen: benötigt den konkreten Lauf, Messwerte und eine passende Negativprobe;
+          reine Pseudocodelektüre kann diese Stufe nicht neu bestätigen.
+belegt: muss die konkrete Behauptung und Quelle benennen; ein Metatest der
+        Adresssuche belegt keine Spiellogik.
+vermutet/offen: Bedeutung unklarer Felder, indirekte Aufrufe, widersprüchliche
+               Decompilation oder historisch nicht gebundene Quellen.
+
+METAPLAN-URTEIL
+Die Pakete eignen sich zur Arbeitsorganisation und die Adressmessung zur
+Fundstelleninventur. Für eine belastbare Abnahme von 1.938/1.938 reichen sie nicht.
+Empfehlung: Die bisherige Kennzahl ausdrücklich „adresslich erwähnt“ nennen und
+eine getrennte semantische Abnahme je Funktion einführen.
+
+1) Funktion und Aussage getrennt erfassen: exakte Adresse, Funktionshash,
+   geprüfte Behauptung, Eingaben, Rückgabe, Schreibfelder, Voraussetzungen,
+   Grenzwerte, Sonderfälle, indirekte Ziele, offene Fragen, zugehörige Gegenprobe.
+   Ein Feldbeleg darf nur dieses Feld erklären. 91 ausgewählte Funktionen haben
+   Registerbelege ausschließlich aus den Feldpaketen AU37–AU55 (teils zusätzlich
+   WS); das ist ein Prüfhinweis, keine automatische Falschaussage für alle 91.
+   Große Beispiele: 0x00441270/AU45 (nur aivID), 0x00527C80/AU38 (nur Zielkoordinaten),
+   0x0055F110/AU43 (nur Zählfelder), 0x00569410/AU38 (nur Munition).
+   Diese Belege erklären deren übrige Zustands-/Nebenwirkungslogik nicht.
+
+2) Nichtzählende Fälle explizit: Lücke, ungeprüft, widerlegt, vermutet, überholt,
+   Adressliste, bloße Aufrufer-/Nachbarreferenz und Abdeckungsmessung selbst.
+   Gegenbeispiele: P12/0x004827E0 wird trotz „noch nicht gelesen“ gezählt;
+   AU58/0x004015D0 erhöht die Belegstufe mit einem Metabeleg.
+   Eine Adressliste ohne Verhalten besteht die gegenwärtige Messung.
+
+3) Gegenproben müssen Fehler im INHALT angreifen: < statt <=, > statt >=,
+   invertierter Teamfilter, falscher Offset, leerer Nenner, voller Slotpool,
+   Spawnfehler, fehlender Arbeitsplatz, ungültige UID, anderer Spielmodus.
+   Das Entfernen einer Textzeile prüft dagegen nur die Zuständigkeit des Belegs.
+   Die unten bestandenen drei Läufe müssen als genau diese schwächere Probe gelten.
+
+4) Den Nenner fachlich prüfen. „Spiellogik“ ist im Skript eine Namensraum-Heuristik:
+   bestimmte Technik-Präfixe werden ausgeschlossen, Namen ohne :: ebenfalls.
+   Alle 187 FUN_-Platzhalter des Inventars sind damit als nicht-Spiellogik geführt.
+   Daraus folgt NICHT, dass alle 187 Spiellogik wären; es fehlt die unabhängige
+   Klassifikation. 1.938 ist die Größe dieser Klassifikation, kein Beweis, dass
+   außerhalb davon keinerlei Spiellogik liegt. Auch Menülogik unter anders
+   benannten Namensräumen kann im Nenner landen.
+
+5) Quellen vollständig versionieren: EXE-/Exportidentität, JSON- und Typenhash,
+   Messlaufhash, Stand des externen WS, gültige Patch-/Spielversion. Ein sauberer
+   Checkout ohne den benachbarten VillageStudio-Ordner verliert externe Belege.
+   Das Skript prüft vor dem Zählen weder JSON-Existenz/Hash noch decompiled/error
+   oder semantische Freigabe. Im geprüften Fall existieren die Dateien zwar alle;
+   eine zukünftige grüne Zählung würde fehlende/stale Rohbelege nicht verhindern.
+
+6) Aufrufketten vor Adresspaketen. Zuerst gemeinsam:
+   a) Zielwahl -> Vorhalt -> Abschuss -> Initialisierung -> Mikroschritt -> Treffer
+      -> Einheiten-/Gebäudeschaden -> Tod/Statistik.
+      Beispiele 0054B0D0,0053CBD0,00532700,00404AE0,00403A20,004084A0,
+      00407190,00531920,00516B80,004563D0.
+   b) Sklavenangriff -> Gebäudebrennbarkeit -> Zündung -> Feuer-Entity -> Ausbreitung
+      -> Gebäudetakt -> Löschen/Abklingzeit. Hier liegen mehrere echte Widersprüche.
+   c) Bauplatz -> Kostenabzug -> Gebäudedaten -> Arbeiter -> Fortschritt -> Spawn
+      -> Bedienerübernahme. Fortschritt > Schwelle und Spawnfehler gemeinsam prüfen.
+   d) Wegbits -> geschlossene Tore -> Gebietsflut -> Kletterdaten -> Wegabfrage
+      -> Eingangssuche/Einheitenbefehl. Richtung, Team, Gebiet0 und Nebenfelder mitprüfen.
+   e) Einheitenzählung -> Feind-/Teamwert -> KI-Stärke -> Koordination -> Rekrutierung
+      -> Raid-/Angriffszustand. Das falsche „Fernkampfwert“-Verständnis zeigt den Bedarf.
+   Danach unverbundene Restfunktionen. Ein Paket kann mehrere solche Ketten stufenweise
+   bearbeiten; die Fortschrittszahl darf die noch offenen Ketten nicht verdecken.
+
+7) Keine ungeprüften Herkunftsnamen zur Bedeutung erklären. Namen wie
+   totalEnemyRangedTroopValue, field62_0xb0 oder „graphicType“ sind Hypothesen.
+   Maßgeblich sind Bedingungen, Setzer und Verbraucher. Nicht verstandene
+   extraout_*/unaff_*-Werte brauchen Assembler-/Aufrufvertragsprüfung.
+
+8) Struktur-/Feldmessung benötigt (Struktur, Offset, Größe), nicht globale Namen
+   oder irgendein +Offset im Fließtext. Sonst können zwei gleichnamige Felder oder
+   gleiche Zahlen gegenseitig erklärt werden, obwohl nur eines untersucht wurde.
+   Der vorliegende Auftrag war keine komplette neue Prüfung aller 1.666 Felder.
+
+SYSTEMATISCHES REST-RISIKO TROTZ 100 %
+Text kann falsch, überholt, nur eine Frage, nur ein aufgerufener Nachbar oder nur
+ein Tabellenwert sein. Confidence-Spalten können falsch geparst und abgeschnitten
+werden. Verschiedene Builds/Patches, unaufgelöste indirekte Aufrufe, Typfehler,
+Integer-/short-Grenzen, globale Nebenwirkungen, Fehlerpfade und die Zusammenarbeit
+mehrerer Funktionen bleiben ungetestet. Tests mit demselben Nachbau auf Soll- und
+Ist-Seite bestätigen nur denselben Irrtum. Insbesondere beweist ein Satz je Funktion
+nicht Daniels weitergehendes Ziel „keine Zeile unerklärt“.
+
+
+FUNDZAHLEN
+ROT: 18, GELB: 44, GRAU: 2 Befundgruppen. Gruppen können mehrere Funktionen betreffen; keine Anzahl fehlerhafter Funktionen.
+
+
+F01 ROT — Grafikdimensionen verwechselt
+Adresse(n): 00401380
+Registermarke: AU57
+Registerzeilen in48d9545: AU57:205
+Befund/Korrektur: Die Parameter sind GM-/Grafikkennungen (gmID, graphicType2), keine Breite und Höhe. Ursprung wird über die GM-Kennung nachgeschlagen.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00401380.json
+
+F02 ROT — Feuer entsteht nicht garantiert am aktuellen Mikrofeld
+Adresse(n): 00405B70
+Registermarke: AU64
+Registerzeilen in48d9545: AU64:219
+Befund/Korrektur: Ruft AFireSpreadFunction mit aktueller Mikrolage und Stärke2/Intensität1 auf. Der Aufruf zieht erst einen zufälligen Mikroversatz und kann wegen Kartenrand, Logikbits oder fehlgeschlagener Zündung ohne neues Feuer enden.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00405b70.json
+
+F03 ROT — Slotgrenze um eins falsch
+Adresse(n): 004082A0/004083A0
+Registermarke: AU64
+Registerzeilen in48d9545: AU64:219
+Befund/Korrektur: Bei gültigem Startzeiger<3000 wird auch Slot2999 geprüft und bei logicalState==0 belegt. Erst wenn dieser Slot belegt ist, liefert die Funktion0. Nicht 'bis2998'.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004082a0.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004083a0.json
+
+F04 ROT — Falsche Zahl der Angstfaktortypen
+Adresse(n): 0040A400
+Registermarke: AU66
+Registerzeilen in48d9545: AU66:223
+Befund/Korrektur: 19 Typen: elf Strafbauten und acht positive Typen einschließlich Teich, Brunnen und Bienenstock. Nicht18.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0040a400.json
+
+F05 ROT — Falscher Gebäudefeldversatz
+Adresse(n): 0040A9B0/0040AA10
+Registermarke: AU68
+Registerzeilen in48d9545: AU68:227
+Befund/Korrektur: Geprüft wird Feld bei Strukturversatz712=0x2C8, nicht0x1F8: owner bei214+short[0xF9]*2 bzw. buildingType bei210+short[0xFB]*2.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0040a9b0.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0040aa10.json
+
+F06 ROT — Unbekannte Größe liefert nicht sicher(0,0)
+Adresse(n): 0040BA10
+Registermarke: AU72
+Registerzeilen in48d9545: AU72:235
+Befund/Korrektur: Default setzt zunächst globale Versätze0; danach wird trotzdem try/size berechnet und ggf. ein indirekter Callback ausgeführt. Größe0 führt zu Division durch0, andere unbekannte Größen nicht sicher zum unveränderten Nullpaar.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0040ba10.json
+
+F07 ROT — Bauzeitformel unterschlägt strikt größere Schwelle
+Adresse(n): 0041E240/0041F3B0/0041F7C0/0041FC90/00420120/004205B0
+Registermarke: P28
+Registerzeilen in48d9545: P28:125
+Befund/Korrektur: Fertigstellung erst buildingProgress>Schwelle, nicht >=. Bei Start0 und konstant n Baumeistern frühestens floor(Schwelle/n)+1 Fortschrittsaufrufe: Katapult mit2 braucht161 statt160. Spawnfehler nimmt den letzten Fortschritt zurück; Bediener-/Arbeitsplatzbedingungen hinzunehmen.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0041e240.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0041f3b0.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0041f7c0.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0041fc90.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00420120.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004205b0.json
+
+F08 ROT — Eigene Bauten und Abklingzeit-Sperre zu allgemein
+Adresse(n): 0041C810
+Registermarke: P27
+Registerzeilen in48d9545: P27:124
+Befund/Korrektur: Lager-/Exerzierplätze mit Brennbarkeit4 dürfen auch vom eigenen Besitzer entzündet werden; Campfire/Paradeground/Campground-Gruppe überspringt cooldownTimer. spareGrounds!=0 kann diese Typen ausnehmen. 'Eigene nie' und 'jede Zündung prüft Abklingzeit' streichen.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0041c810.json
+
+F09 ROT — Ausdrücklich ungelesene Funktion als erklärt gezählt
+Adresse(n): 004827E0
+Registermarke: P12
+Registerzeilen in48d9545: P12:109
+Befund/Korrektur: P12 hat Stufe Lücke und sagt 'noch nicht gelesen'. Nicht als erklärt zählen; eigene geprüfte Erklärung erst nach Körperprüfung.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004827e0.json
+
+F10 ROT — Einzelstückzwang existiert in diesem Körper nicht
+Adresse(n): 004CC000
+Registermarke: L33
+Registerzeilen in48d9545: L33:343
+Befund/Korrektur: Die Funktion verarbeitet den übergebenen amount unverändert bei Preis und Warengewinn. Beliebige positive Menge möglich; Einzelstück-Aufrufer wären separat zu belegen. Goldabzug nur nach erfolgreichem processResourceGain. Der einzige exportierte direkte Aufrufer buyRequiredGoods(0x004D39B0) reicht resourcesToAcquireArray[Ware] als amount durch; keine Festlegung auf1.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004cc000.json
+
+F11 ROT — Apfelbaum fälschlich unter allgemeiner Brandbegrenzung
+Adresse(n): 004F2280
+Registermarke: P27
+Registerzeilen in48d9545: P27:124
+Befund/Korrektur: Grenze<20 gleichzeitig und stage>=3 werden nur für Baumarten1–4 geprüft. Art15 überspringt beides und setzt stage6/stageTracker0/Brandfeld20; Arten5–14 und16–19 werden entfernt. Für alle gilt vorher field92_0x98==0.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004f2280.json
+
+F12 ROT — 500 statt501 Aufrufe
+Adresse(n): 005307B0
+Registermarke: P18
+Registerzeilen in48d9545: P18:115
+Befund/Korrektur: Nach Erhöhen von animationCycleNumber wird >500 geprüft: bei Start0 erfolgt Übergangsmarke im501.Aufruf. Auswahl fixedRng&2, state_2=6, Ausrichtung zu Spieler1-Bergfried; tatsächlicher Typwechsel erst durch Übergangsverarbeitung.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\005307b0.json
+
+F13 ROT — Zündversuch nicht jeden zweiten Durchlauf
+Adresse(n): 00571C00
+Registermarke: P27
+Registerzeilen in48d9545: P27:124
+Befund/Korrektur: Im brennbaren, noch nicht brennenden Bauzweig wird nextAttackHurtsWall vor lightUpBuilding von1 auf0 zurückgesetzt – auch wenn Zündung abgelehnt wird. Bei Start0 versucht daher jeder abgeschlossene Angriff erneut zu zünden. Nur mit geerbtem Wert1 entfällt der erste Versuch. Nicht als regelmäßigen 93/186-Wechsel darstellen.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00571c00.json
+
+F14 ROT — Steingeschoss-Gebäudeschaden falsch gleichgesetzt
+Adresse(n): 00407190
+Registermarke: P25
+Registerzeilen in48d9545: P25:122
+Befund/Korrektur: Im Aufschlagzweig mit Bau/Wehrstruktur sind direkter Schaden/Umfeld: Katapult20/10, Tribok60/30, Mangonel5/0. Verbündete Ziele setzen Werte0; Mangonel übergibt negativen Besitzer. Nicht pauschal10+10. Mauerschaden folgt anschließend der gesonderten Schadensfunktion.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00407190.json
+
+F15 ROT — Mauer-Höhenabbau unterschlägt Anfangsbruch
+Adresse(n): 00516B80
+Registermarke: P25
+Registerzeilen in48d9545: P25:122
+Befund/Korrektur: Vor dem punktweisen Abbau wird bei param_5==0, fehlendem Bit0x10000, DamageLayer==0 und Höhe>Default+60 einmalig20Höhenpunkte abgezogen. Faktor1,5 gilt bei weniger als2 Kardinalnachbarn, also auch einem Nachbarn; param_5!=0 setzt Mauerschaden0.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00516b80.json
+
+F16 ROT — Verbündetentreffer-Ausnahme falsch
+Adresse(n): 00531920
+Registermarke: AU4/AU31
+Registerzeilen in48d9545: AU4:137, AU31:164
+Befund/Korrektur: Ballista trifft im hier sichtbaren Teamfilter keine Verbündeten. Katapult/Tribok können Verbündete treffen; menschliche Mangonel ebenfalls, KI-Mangonel nicht; Schild/Turm/Ramme sind im Sonderfilter geschützt. Seuchenwolke läuft vor diesem Teamfilter und folgt eigenen Regeln.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00531920.json
+
+F17 ROT — Fernkampfwert aus Herkunftsnamen statt Bedingung übernommen
+Adresse(n): 00532BA0
+Registermarke: AU47
+Registerzeilen in48d9545: AU47:185
+Befund/Korrektur: Die Erhöhung von totalEnemyRangedTroopValue erfolgt im Pseudocode gerade im Zweig unitType!=E_ARCHER && !=E_XBOW && !=A_ARCHER && !=A_SLINGER && !=A_HARCHER && !=A_FIRETHROWER. Neutral 'Truppenwert ohne diese sechs Schützenarten' beschreiben; Name currentEnemyRanged... ist damit irreführend.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00532ba0.json
+
+F18 ROT — Belegstufe wird aus falscher Tabellenspalte gelesen
+Adresse(n): 00403A20/00407190/004084A0/004FF990
+Registermarke: AU3 / Messskript belegzeilen
+Registerzeilen in48d9545: AU3:136
+Befund/Korrektur: AU-Zeilen wie AU3 haben weniger Spalten; spalten[-4] liest den gesamten Erklärungstext statt 'gemessen'. Tabellen schemagerecht parsen und pro Beleg Aussagenstufen speichern; Stufe nicht auf80Zeichen kürzen. Ebenso L21 bei tax|popularity: ungefiltertes Split an| verschiebt Spalten.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00403a20.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00407190.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004084a0.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004ff990.json
+
+F19 GELB — Grenze für neun Listenglieder unpräzise als Feuerzahl formuliert
+Adresse(n): 00401570
+Registermarke: AU57
+Registerzeilen in48d9545: AU57:205
+Befund/Korrektur: Höchstens die ersten neun Entity-Listenglieder werden geprüft; nur darunter befindliche Feuer werden geändert. Ein Feuer am zehnten Glied bleibt unverändert. Rückgabe immer 0.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00401570.json
+
+F20 GELB — Unbedingte Löschung des Folgeverweises behauptet
+Adresse(n): 00401460
+Registermarke: AU57
+Registerzeilen in48d9545: AU57:205
+Befund/Korrektur: Bei tile==0 oder erfolgloser Suche mit vorzeitigem return bleibt nextEntityOnThisTileByID unverändert. Bei Erreichen des 100er-Limits erfolgt trotzdem die Umschreibung; das Limit ist kein sicherer Abbruch ohne Änderung.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00401460.json
+
+F21 GELB — Fallback bei Anzeigearten fehlt
+Adresse(n): 00401150
+Registermarke: AU57
+Registerzeilen in48d9545: AU57:205
+Befund/Korrektur: Für Art 40/41 liefert ein gesetzter Spielerzähler sofort wahr; andernfalls werden auch diese Arten in Slots 1–24 gesucht. Aktiv bedeutet hier logicalState!=0.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00401150.json
+
+F22 GELB — Arbeitsplatz-Ausnahme fehlt
+Adresse(n): 004016E0
+Registermarke: AU60
+Registerzeilen in48d9545: AU60:211
+Befund/Korrektur: Die 30-Felder-Grenze gilt außerhalb GM_SOLITARY nur bei workplaceBuildingID_1!=0. Ohne Arbeitsplatz fällt diese Grenze weg; Vergleich ist Achsenabstand<31.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004016e0.json
+
+F23 GELB — Frei nicht definiert
+Adresse(n): 00401910
+Registermarke: AU41/AU60
+Registerzeilen in48d9545: AU41:174, AU60:211
+Befund/Korrektur: Nur logicalState==2, Art COW_POISON_CLOUD, Alter<1001, Heiler-ID==0 und Entity-Ziel==0 werden neu gebunden; Achsenabstand<7. IDs und UID gemeinsam nennen.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00401910.json
+
+F24 GELB — Anzeige-Bit wird nicht immer gelöscht
+Adresse(n): 004019D0
+Registermarke: AU60
+Registerzeilen in48d9545: AU60:211
+Befund/Korrektur: Das Bit 0x1000 wird nur beim Fund einer passenden aktiven Entity am Feld gelöscht; ein gesetztes Bit ohne solchen Treffer bleibt stehen.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004019d0.json
+
+F25 GELB — Feldbeleg zählt als Erklärung der ganzen Seuchenfunktion
+Adresse(n): 00401FF0
+Registermarke: AU41
+Registerzeilen in48d9545: AU41:174
+Befund/Korrektur: AU41 erklärt nur den Entity-Verweis. Ergänzen: rng_2 steigt, ab >799 beginnt Ausblendphase 1016, Entfernung bei Frame1024; Animationsrahmen, Bild-ID und Transparenz werden aktualisiert. Bis dahin nur Teilfunktion erklärt.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00401ff0.json
+
+F26 GELB — Möwen-Sonderfall und Fall0 fehlen
+Adresse(n): 00402AE0
+Registermarke: AU31/AU40/AU62
+Registerzeilen in48d9545: AU31:164, AU40:173, AU62:215
+Befund/Korrektur: Für Möwe mit targetZ==0 am Mikroziel erfolgt kein Schritt; Fall0/default bleibt ebenfalls unverändert. Nur Fälle3/4 verändern den Fehlerwert.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00402ae0.json
+
+F27 GELB — Gemeinsame Endinitialisierung gilt nicht für alle Kurventypen
+Adresse(n): 00403A20
+Registermarke: AU62
+Registerzeilen in48d9545: AU62:215
+Befund/Korrektur: Kurventyp4 kann vor der Sinus-/Kosinus-Initialisierung zurückkehren, Typ5/7/10 kehren vor ihr immer zurück. Typ2 bei Ziel tiefer: Winkel3; Geschwindigkeit<1 führt zur Wiederholung mit Winkel15. Sonderflag nur Pfeil/Bolzen, Zielhöhe>Start+54 und rng_1%10==5.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00403a20.json
+
+F28 GELB — Abprallkörper nur als Leser eines Grafikfeldes gezählt
+Adresse(n): 00403FF0
+Registermarke: AU40
+Registerzeilen in48d9545: AU40:173
+Befund/Korrektur: Eigene Funktionsbeschreibung ergänzen: Spiegelziel anhand Orientierung/Mauerbits, Bresenham neu, Geschwindigkeit durch8, Winkel mindestens-80, Startzeit/-höhe zurücksetzen, vCos/vSin und Drehrahmen neu, Abprallton. AU40 erklärt nur Teilfelder.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00403ff0.json
+
+F29 GELB — Prüfreihenfolge und Rückgabebedingungen fehlen
+Adresse(n): 004054E0
+Registermarke: AU64
+Registerzeilen in48d9545: AU64:219
+Befund/Korrektur: Vorhandenes Feuer wird vor der Logikmaske neu aktiviert/verstärkt. Nur Neuanlage prüft 0x1a7001b1 und erfolgreiche Gebäude-/Baumzündung; fireIntensity eines vorhandenen Feuers wird nicht erhöht.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004054e0.json
+
+F30 GELB — Phasenwechsel fälschlich als selbständig dargestellt
+Adresse(n): 004024F0
+Registermarke: AU62
+Registerzeilen in48d9545: AU62:215
+Befund/Korrektur: Bei unitID!=0 wird der short-Zähler erhöht und Animationszähler0 gehalten; dieser Zweig setzt unitID nicht regulär auf0. Folgephase nur bei externem0 oder short-Überlauf, kein gewöhnlicher eigener Phasenabschluss.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004024f0.json
+
+F31 GELB — Decompiler-Rest als verstandene Zweithöhe beschrieben
+Adresse(n): 004081E0
+Registermarke: AU64
+Registerzeilen in48d9545: AU64:219
+Befund/Korrektur: height_2=extraout_DX ist im Pseudocode ein nicht aufgelöster Registerwert. Bedeutung anhand Assembler/Aufrufvertrag klären; bis dahin diese Zuweisung ausdrücklich als unklar kennzeichnen.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004081e0.json
+
+F32 GELB — Veralteter Platz nicht unmittelbar wiederverwendet
+Adresse(n): 00406650
+Registermarke: AU64
+Registerzeilen in48d9545: AU64:219
+Befund/Korrektur: UID-falsche Zusatzplätze werden geleert, die Suche geht anschließend zum nächsten Platz; auch beim letzten veralteten Platz kann0 zurückgegeben werden. Entity-Erzeugung0 wird nicht als Fehler abgefangen.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00406650.json
+
+F33 GELB — Zündversuch als garantiertes Feuer formuliert
+Adresse(n): 00406FD0
+Registermarke: AU64
+Registerzeilen in48d9545: AU64:219
+Befund/Korrektur: Beim Aufschlag ruft Art8 die Ausbreitungsfunktion mit Stärke5 auf; diese kann0 ohne Feuer liefern. Orientierung76 entfernt die Entity auch ohne Aufschlag.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00406fd0.json
+
+F34 GELB — Suchlauf ist länger als eine volle Runde
+Adresse(n): 0040AB90/0040AC00/0040AC80/0040ADB0
+Registermarke: AU68/AU70
+Registerzeilen in48d9545: AU68:227, AU70:231
+Befund/Korrektur: Es erfolgen bis maxBuildingsCount Prüfungen bei nutzbaren Slots1..maxBuildingsCount-1. Ein Slot kann daher erneut geprüft werden. Maximalzahl explizit statt 'höchstens eine volle Runde' nennen.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0040ab90.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0040ac00.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0040ac80.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0040adb0.json
+
+F35 GELB — Gleichverteilung unbewiesen
+Adresse(n): 0040AEF0/0040AFB0/0040B090
+Registermarke: AU70
+Registerzeilen in48d9545: AU70:231
+Befund/Korrektur: Auswahl über currentNumber2%Trefferzahl;0 bei keinem Treffer. Strenge Gleichverteilung folgt daraus ohne Prüfung von Zufallsbereich/Verteilung nicht (Modulo-Verzerrung). 'Zufällig per Restwert' schreiben.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0040aef0.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0040afb0.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0040b090.json
+
+F36 GELB — Fertigmarke aus unbekanntem Feld abgeleitet
+Adresse(n): 00409E80
+Registermarke: AU66
+Registerzeilen in48d9545: AU66:223
+Befund/Korrektur: Sicher ist nur field62_0xb0!=0 als Tor vor der Höhentabelle. 'Fertig markiert' braucht einen gesonderten Beleg der Setzer dieses Felds; bis dahin vermutet.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00409e80.json
+
+F37 GELB — Abweichender Default und unbenutzter Parameter fehlen
+Adresse(n): 0040BC40
+Registermarke: AU72
+Registerzeilen in48d9545: AU72:235
+Befund/Korrektur: Im Gegensatz zu0040BA10 werden bei unbekannter Größe die alten globalen Versätze zunächst beibehalten. Auch hier Division durch size und indirekter Callback; Parameter offset im Pseudocode unbenutzt. Tabellen/Callbackziele gesondert belegen.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0040bc40.json
+
+F38 GELB — Nur Kopf der Einheitenliste geprüft
+Adresse(n): 0040B980
+Registermarke: AU72
+Registerzeilen in48d9545: AU72:235
+Befund/Korrektur: Pro Grundflächenfeld wird allein die in UnitLayer gespeicherte erste Einheit auf menschlichen Besitzer geprüft. nextUnitOnTheSameTile wird nicht verfolgt. Mensch hinter KI-Listenkopf wird übersehen.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0040b980.json
+
+F39 GELB — Tunnelsonderfall nur bei Variante15
+Adresse(n): 0040B5D0
+Registermarke: AU70
+Registerzeilen in48d9545: AU70:231
+Befund/Korrektur: Richtungswert2 für Tunnel/Typ112 gilt nur wenn buildingVariation==15. Andere Varianten verwenden variation+4 (einmal minus8); Ochsenjoch überschreibt das Ergebnis immer auf9.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0040b5d0.json
+
+F40 GELB — Löschaufruf nicht bedingungslos
+Adresse(n): 004109F0
+Registermarke: P27/P29
+Registerzeilen in48d9545: P27:124, P29:126
+Befund/Korrektur: Nur wenn fireDuration!=0 erfolgen Rücksetzen,2000Takte und Entity-Löschphase. Bei bereits gelöscht(fireDuration0) passiert nichts, auch nicht bei sichtbaren Restflammen. Feuer-Entities werden über00401570 in Auslaufphase gesetzt, nicht sofort aus allen Slots entfernt.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004109f0.json
+
+F41 GELB — Nur europäische Teilmenge beschrieben
+Adresse(n): 0040C800
+Registermarke: P5
+Registerzeilen in48d9545: P5:102
+Befund/Korrektur: Ausgabewert wird per Zeiger geschrieben; zusätzlich Tunnelbauer20, Leiter1, Ingenieur30, Mönch10 sowie Belagerer aus Baukostentabelle. Nicht behandelte Arten lassen outPrice unverändert.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0040c800.json
+
+F42 GELB — Offene Bauzeitbezüge als Funktionsbeleg
+Adresse(n): 00506E10
+Registermarke: P12/P26
+Registerzeilen in48d9545: P12:109, P26:123
+Befund/Korrektur: P12 sagt ungelesen, P26 beschreibt den Ingenieurbau weiter offen. Adressnennung in einer offenen Frage ist keine Erklärung von placeSiegeTent.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00506e10.json
+
+F43 GELB — Zeitbedingungen und Zähler-Seiteneffekte fehlen
+Adresse(n): 00456670/00456750
+Registermarke: AU53
+Registerzeilen in48d9545: AU53:197
+Befund/Korrektur: Wochenfortschritt nur bei isTimeHalted==FALSE, Platzierungsanzeige nicht aktiv und startOfWeekAsCurrentTickIs0!=FALSE. Zusätzlich Tages-/Wochen-/Monatstakte und Änderungsflags. setMonthAndYear löscht Änderungsflags und setzt drei Tickzähler100; Monat/Jahr werden nicht begrenzt.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00456670.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00456750.json
+
+F44 GELB — Fehlende Bergfriede und vertauschte Richtung übergangen
+Adresse(n): 004576E0
+Registermarke: W34
+Registerzeilen in48d9545: W34:77
+Befund/Korrektur: Fehlt einer der Bergfriede, liefert diese Funktion TRUE. Sonst werden die Lagerfeuer-Eingänge geprüft; bei verschiedenem Gebiet wird toArea=Spieler2 und fromArea=Spieler1 übergeben (Signatur beachten). Gleiche nichtnull Gebiete ergeben TRUE.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004576e0.json
+
+F45 GELB — Befehlszeit zu eng als jetzt+Verzögerung beschrieben
+Adresse(n): 00489100
+Registermarke: WS 13
+Registerzeilen in48d9545: 
+Befund/Korrektur: Gespeicherte Zeit ist commandDelay+max(mapTimeInTicks,mapTimeInTicksSinglePlayer). Es gibt außerdem einen Sofortausführungszweig; 'Verzögerung0 heißt immer nächster Tick' ist allein aus diesem Körper nicht belegt.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00489100.json
+
+F46 GELB — 49er-Wartegrenze gilt nicht allgemein
+Adresse(n): 004CDCF0
+Registermarke: AU47
+Registerzeilen in48d9545: AU47:185
+Befund/Korrektur: Wartezähler steigt nur im Koordinations-Wartezweig. Bei GM_CAMPAIGN_MISSION bleibt Warten auch ab49 bestehen; keine harte Begrenzung auf49.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004cdcf0.json
+
+F47 GELB — Raid-Zusatz nicht nur AIC-Streuung
+Adresse(n): 004CDF10
+Registermarke: AU47
+Registerzeilen in48d9545: AU47:185
+Befund/Korrektur: Eigenes Gold<1000 setzt Streuung0, >4999 verdoppelt sie; Zielgold<500 überschreibt mit -RaidUnitsBase/2. Danach ganzzahlig Streuung*(rng%100)/100; kann negativ sein.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004cdf10.json
+
+F48 GELB — Nullnenner und eigentliche Entscheidung fehlen
+Adresse(n): 004D0190
+Registermarke: AU47
+Registerzeilen in48d9545: AU47:185
+Befund/Korrektur: Bei totalEnemyTroopValue==0 wird Prozentwert100 gesetzt; sonst Division und short-Konvertierung. Rückgabe hängt zusätzlich von param_2, Fernkampfwert<100, umschlossener Burg und Tick12000 ab (Schwellen50/250/75 bzw70/300/100).
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004d0190.json
+
+F49 GELB — Extreme-Sonderfall ausgelassen
+Adresse(n): 004D12A0
+Registermarke: AU47
+Registerzeilen in48d9545: AU47:185
+Befund/Korrektur: In Extreme-Kreuzzugsspur wird (RaidUnitsBase+currentAttackRaidParameter)*4/3 zurückgegeben; sonst einfache Summe.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004d12a0.json
+
+F50 GELB — Kuhwurf-Voraussetzungen fehlen
+Adresse(n): 004CFF60
+Registermarke: AU51
+Registerzeilen in48d9545: AU51:193
+Befund/Korrektur: Zähler steigt nur bei KI, noCowThrowing==0, Intervall!=0 und counter>0. Auslösung erst Zähler>Intervall, danach0; Funktion meldet Bereitschaft, erzeugt selbst keine Kuh.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004cff60.json
+
+F51 GELB — Verschiedene Truppenbasis zusammengezogen
+Adresse(n): 004D3850/004D38C0
+Registermarke: AU51
+Registerzeilen in48d9545: AU51:193
+Befund/Korrektur: Hilfszusage vergleicht totalAttackTroops, Angriffszusage totalAttackTroops-totalAttackingEngineerTroops. Beide verlangen KI und isNotNervousByEnemyTroopValue==0; Reaktion löst zusätzlich Videoaufrufe aus.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004d3850.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004d38c0.json
+
+F52 GELB — Null-Höchstleben in Prozentformel fehlt
+Adresse(n): 0053B8E0/00531220/00531920
+Registermarke: AU37
+Registerzeilen in48d9545: AU37:170
+Befund/Korrektur: healthPercentage ist bei maxHealth==0 auf100 gesetzt; sonst health*100/maxHealth (short). Schadenspfade begrenzen Leben zusätzlich auf0.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0053b8e0.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00531220.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00531920.json
+
+F53 GELB — Mitgliedsaktualisierung und Führerentfernung unvollständig
+Adresse(n): 00522590/00522630/00525280
+Registermarke: AU37
+Registerzeilen in48d9545: AU37:170
+Befund/Korrektur: addUnitToTribe kopiert den Führer nur in das neu hinzugefügte Mitglied. remove setzt die Einheitenfelder nur bei Übereinstimmung von Einheiten- und übergebener Trupp-ID auf0; entfernter Truppführer wird im Trupp auf-1 gesetzt. setTargetUnitForTribe bestimmt ersten normalen nichtsterbenden Eintrag und aktualisiert nur solche Mitglieder.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00522590.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00522630.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00525280.json
+
+F54 GELB — Fünfter Spawnkandidat und weitere Sperren fehlen
+Adresse(n): 005261B0
+Registermarke: P17
+Registerzeilen in48d9545: P17:114
+Befund/Korrektur: Nach vier deerSpawnLocations wird zusätzlich signpostsMapEdge[0][0] als fünfter Kandidat geprüft. Nur GM_SOLITARY, deerCount!=0, field1447<6 und außerhalb Editor/Belagerungsmodi. Es wird beim ersten gültigen Kandidaten angelegt.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\005261b0.json
+
+F55 GELB — Erster lebender Feind zu weit gefasst
+Adresse(n): 0053CAE0
+Registermarke: AU18
+Registerzeilen in48d9545: AU18:151
+Befund/Korrektur: Zusätzlich dying==0, unknownTestAgainst0_2==0, moveRelatedFlag!=1 und Negativprüfung shouldUnitsEngageInMelee. Besitzer0 hat Sonderbehandlung beim Teamvergleich; maximal2000Kettenschritte. Rückgabeinterpretation CONCAT31(extraout_var,bVar2) ist im Pseudocode unsauber.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0053cae0.json
+
+F56 GELB — Ausgabe im Pseudocode nicht rekonstruiert
+Adresse(n): 00537880
+Registermarke: AU27
+Registerzeilen in48d9545: AU27:160
+Befund/Korrektur: Code findet intern local_c, exportierte Signatur ist jedoch void und enthält nur bare return. Ob und wie Ziel-ID zurückgegeben/gespeichert wird, durch Assembler und Aufrufer prüfen; '->Ziel' allein aus diesem Pseudocode nicht sicher.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00537880.json
+
+F57 GELB — idle>target allein reicht nicht zur Rückkehr
+Adresse(n): 00549B30
+Registermarke: AU38
+Registerzeilen in48d9545: AU38:171
+Befund/Korrektur: Zeitüberschreitung führt erst bei hasUnitReachedDestination zurück. Fehlt ein positiver Angstbau, kann cachedState schon vorher übernommen werden. idle zählt auch während des Hinwegs; Überschuss wird banked.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00549b30.json
+
+F58 GELB — Steinverbrauch nur im Steinwurfzweig
+Adresse(n): 00568320/00569410
+Registermarke: AU38
+Registerzeilen in48d9545: AU38:171
+Befund/Korrektur: Nur normale Steinwürfe bei Vorrat>0 vermindern stoneAmmunition. Kuhwurf/Sonderflag umgehen den Abzug; leerer Vorrat kann KI-Nachkauf versuchen. Kein unbedingtes 'beim Schuss minus1'.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00568320.json
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00569410.json
+
+F59 GELB — Fernkampfformel und Kuhzweig unvollständig
+Adresse(n): 00531920
+Registermarke: P4
+Registerzeilen in48d9545: P4:101
+Befund/Korrektur: Leiter in Zustand3 erhält Pfeilschaden/4 vor Angstbonus. Seuche hat400/200/150 Basisschaden je Entfernung und Heilerstaffelung100/80/60/40Prozent, ignoriert Standardtrefferfenster/Teamfilter und gibt auch nach Schaden FALSE zurück. Kuh500/Lord50 steht in einem ET_COW_FLYING-Zweig unter bVar18, obwohl dessen Setzbedingung die Kuh nicht einschließt: anhand dieses Pseudocodes nicht sicher als erreichbarer Schadenswert belegbar.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00531920.json
+
+F60 GELB — AIC-Min/Max sind keine universellen Steuergrenzen
+Adresse(n): 004CAEA0
+Registermarke: AU51
+Registerzeilen in48d9545: AU51:193
+Befund/Korrektur: Kritischer Beliebtheitszweig setzt Steuer2 auch unter taxesMin. Abschließend wird immer auf0..11 begrenzt; taxesMax12 in Parametersatz16 wird dadurch11. Zwischen lowest/highest bleibt die alte aiPopularityDecisionValue erhalten (Hysterese).
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004caea0.json
+
+F61 GELB — Gebiet0 nicht generell unerreichbar
+Adresse(n): 0041ADE0
+Registermarke: W34
+Registerzeilen in48d9545: W34:77
+Befund/Korrektur: Diese Eingangssuche lässt fromArea==0 als Ausnahme zu und hat einen dritten Suchlauf mit beliebigem nichtnull Zielgebiet, Rückgabe2 statt1. W34-Satz 'Gebiet0 heißt geht nicht' auf eigentliche Wegabfrage beschränken, nicht pauschal auf Aufrufer.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0041ade0.json
+
+F62 GELB — Adresssuffix wird als exakte Adresse akzeptiert
+Adresse(n): 00401090 (synthetische Gegenprobe)
+Registermarke: AU57 / Messskript
+Registerzeilen in48d9545: AU57:205
+Befund/Korrektur: Der Matcher akzeptiert0x100401090 für00401090, weil links keine Tokenbegrenzung gilt. Vor und hinter einer normalisierten vollständigen Adresse Grenzen prüfen; kein bloßes Suffix. Auf dem realen Snapshot wurde damit keine konkrete Fehlzuordnung nachgewiesen.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00401090.json
+
+F63 GRAU — Metaerklärung verfälscht Belegstufe
+Adresse(n): 004015D0
+Registermarke: AU58
+Registerzeilen in48d9545: AU58:207
+Befund/Korrektur: AU58 nennt004015D0 als Positivbeispiel der Messung, nicht als zusätzliche Verhaltensprüfung. Mess-/Metabelege von semantischen Funktionsbelegen trennen.
+Original: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004015d0.json
+
+F64 GRAU — Mehrere Funktionen und historische Messstände in einem Absatz
+Adresse(n): alle Paketadressen
+Registermarke: AU37–AU72
+Registerzeilen in48d9545: AU37:170, AU72:235
+Befund/Korrektur: Je exakter Funktion eigener strukturierter Datensatz mit Eingaben,Rückgabe,Schreibfeldern,Sperren,Abhängigkeiten,offenen Fragen und Versions-/Quellhash. Paket- und historische Zähler separat halten; Korrekturen sollen eine aktuelle gültige Aussage ersetzen und ältere als überholt markieren.
+
+PAKET-ENTFERNUNGSPROBEN
+
+AU60: 304 -> 291; weg=13; unerwartet entfernt=0; neu erklärt=0.
+Exakt verschwunden: 0x004016E0, 0x00401880, 0x004019D0, 0x00401A50, 0x00401AE0, 0x00401B20, 0x00401B60, 0x00401CC0, 0x00401D20, 0x00401D70, 0x00401DB0, 0x00401E20, 0x00401EA0
+Wegen anderer Belege weiterhin gezählt: 00401910(AU41),00401BA0(AU40)
+Verlorene Menge identisch mit den vorher ausschließlich von AU60 getragenen Adressen.
+AU64: 304 -> 289; weg=15; unerwartet entfernt=0; neu erklärt=0.
+Exakt verschwunden: 0x00405130, 0x004054E0, 0x00405B70, 0x00405C00, 0x00405DA0, 0x00406650, 0x00406900, 0x00406FD0, 0x00407130, 0x00407160, 0x004081E0, 0x004082A0, 0x004083A0, 0x00408770, 0x004087C0
+Wegen anderer Belege weiterhin gezählt: keine
+Verlorene Menge identisch mit den vorher ausschließlich von AU64 getragenen Adressen.
+AU70: 304 -> 294; weg=10; unerwartet entfernt=0; neu erklärt=0.
+Exakt verschwunden: 0x0040ADB0, 0x0040AEF0, 0x0040AFB0, 0x0040B090, 0x0040B1A0, 0x0040B260, 0x0040B4E0, 0x0040B540, 0x0040B5D0, 0x0040B660
+Wegen anderer Belege weiterhin gezählt: 0040AC80(AU68),004A5320(W34/W39/AU68/AU72)
+Verlorene Menge identisch mit den vorher ausschließlich von AU70 getragenen Adressen.
+Diese drei Zuordnungsbefunde sind grün MIT Negativprobe. Keine semantische Funktion wurde dadurch als grün freigegeben.
+
+NICHT ABSCHLIESSEND PRÜFBARE AUSSAGEN
+A. Fehlender historisch gebundener Registerbeleg: folgende29 Funktionen werden nur durch WS gezählt.
+
+0x0040C5F0 | getBuildingCost | WS 3 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x00419780 | initBuildingCosts | WS 3 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x0041A7A0 | destroyBuilding | WS 5 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x0041BFD0 | processPlacementResourceLossForBuildingType | WS 5 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x0046B340 | switchToMenuView | WS 5 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x00471AA0 | hideOrUnhideUI | WS 13 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x0047EAF0 | translateMultiplayerIDsIntoPlayerIDs | WS 13 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x00480210 | scheduleReceivedCommand | WS 13 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x00489100 | queueCommand | WS 13 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x004892F0 | processWaitingCommands | WS 13 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x004EF0D0 | applyAIV | WS 4 WS 5 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x004EF8C0 | computeAIVPlacementFit | WS 5 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x004F14F0 | tryPlaceAIVAndReturnFitPercentage | WS 5 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x004F28F0 | UpdateTree16 | WS 12 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x004F2920 | UpdateTree17 | WS 12 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x004F2970 | UpdateTree18 | WS 12 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x004F29C0 | UpdateTree19 | WS 12 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x004F3B90 | findTree | WS 13 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x004F6FD0 | triggerLoweredView | WS 13 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x004F70B0 | toggleFlatView | WS 13 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x004F70E0 | setMapRotation | WS 13 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x004F9A60 | isBuildingPlacementAllowedAtTile | WS 13 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x005037B0 | checkBuildingCanBePlacedHere | WS 13 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x005076A0 | placeBarracks | WS 1 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x00507BD0 | placeEngineersguild | WS 1 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x00507E00 | placeTunnelersguild | WS 1 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x00508030 | placeOilsmelter | WS 1 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x005146D0 | placeKeep | WS 1 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+0x0052EDC0 | disbandUnit | WS 13 | kein Adressbeleg im Wissensregister48d9545; heutiger externer Beleg kein historischer Versionsnachweis
+
+B. Pseudocode-/Typ-/Callbackgrenzen (konkrete Aussagen; kein fehlender JSON-Export):
+0x004081E0 | AU64 | height_2=extraout_DX: tatsächlicher Zweithöhenwert aus Pseudocode allein nicht sicher.
+0x00409FF0 | AU66 | undefined8-Rückgabe/hoher Rückgabeteil beim Fallback getSpriteID: korrekter Argumentwert nicht sauber rekonstruiert.
+0x0040C5F0 | WS 3 | extraout_ECX und hoher Rückgabeteil bei Mapperumrechnung: umfassende Kostenbedeutung braucht Assembler/Aufrufvertrag.
+0x0041ADE0 | W34 | getBuildingHeightForBuildingID als undefined8 und Wiederverwendung des hohen Teils als Tileindex: Decompiler-Artefakt nicht als echten Algorithmusfehler ausgeben.
+0x00537880 | AU27 | void-Signatur, intern local_c als Treffer, aber kein expliziter Rückgabewert; Aufrufer0054F860 nutzt extraout_EAX. Rückgabe nicht aus diesem Pseudocode allein abgesichert.
+0x00531920 | P4 | Kuhschadenszweig unter Flag, dessen Setzbedingung Art23 nicht enthält;500/50 aus diesem Export nicht sicher als erreichbarer Pfad belegbar.
+0x0040BA10 | AU72 | Indirekter Callback PTR_ARRAY_0040bc20: vollständige Wirkung/zulässiger Versuchsbereich nicht durch Funktionspseudocode allein beschrieben.
+0x0040BC40 | AU72 | Indirekter Callback PTR_ARRAY_0040be48: wie oben; Default behält zusätzlich alte globale Versätze.
+0x004084A0 | AU3/AU31 | FPU-Rekonstruktion enthält extraout_ST0/ST1 und speedUnk mit wechselnder float/int-Deutung. Exakte Formel/float32-Rundung nicht allein durch diesen Pseudocode neu bewiesen; historische Flugmessungen nicht wiederholt.
+0x00409E80 | AU66 | Semantik 'fertig' des Bedingungsfelds field62_0xb0 bleibt ohne vollständige Setzeranalyse offen; nicht als sichere Bedeutung freigeben.
+
+C. Historische Messbehauptungen nicht neu abgenommen. Alle ausgewählten Funktionen mit einem im Originalregister oder externen WS als Messung/Test ausgewiesenen Beleg folgen einzeln; das betrifft nicht automatisch jede Behauptung ihrer Funktion.
+0x004011D0 | AU24
+0x00402AE0 | AU31
+0x00402C50 | AU24
+0x00402DA0 | AU24
+0x00402E20 | L79
+0x00403A20 | AU3, AU24
+0x00404A10 | AU25, L79
+0x00404AE0 | AU2
+0x004052E0 | P27
+0x00405680 | P27
+0x00407190 | AU3, AU4, AU31, AU32, L79
+0x004084A0 | AU3, AU31, L79
+0x00409DB0 | AU32
+0x00410920 | P27
+0x004109F0 | P27, P29
+0x00419960 | W35
+0x0041C810 | P27
+0x00420D20 | P27
+0x0045CA20 | AU20
+0x0046C9E0 | AU25
+0x00471AA0 | WS-Zeile2565
+0x004819D0 | L123
+0x00486600 | L155
+0x00489100 | WS-Zeile2623
+0x004995E0 | W35
+0x004A5320 | W39
+0x004CC000 | L33
+0x004CDCF0 | AU13
+0x004D2A70 | AU13
+0x004D4680 | AU13
+0x004D49E0 | AU13
+0x004F2280 | P27
+0x004F6FD0 | WS-Zeile2569
+0x004F70B0 | WS-Zeile2567
+0x004F70E0 | WS-Zeile2566
+0x004F9A60 | WS-Zeile2663
+0x004FF990 | AU3, AU32
+0x005037B0 | WS-Zeile2644
+0x0052AD50 | AU35
+0x0052E960 | L32
+0x0052EDC0 | WS-Zeile2613
+0x0052F260 | AU20, AU22
+0x0052F7E0 | P11, AU22, AU35
+0x0052FD00 | AU25
+0x0052FE90 | AU25
+0x005311F0 | P3
+0x00531220 | P3
+0x00531920 | AU4, AU31
+0x00532700 | AU2, AU24
+0x00532BA0 | AU20, AU23
+0x00537880 | AU27
+0x0053B8E0 | AU20
+0x0053CAE0 | AU18
+0x0053CBD0 | AU24, AU25
+0x00541DE0 | AU35
+0x00543340 | P27, P29
+0x00549C70 | P23, AU18, AU23
+0x0054A7B0 | P15, AU18, AU20, AU21, AU23, L75
+0x0054B0D0 | P15, AU20, AU21, AU22, L75
+0x0054F860 | AU27, AU29
+0x0055A800 | AU25, AU28, AU30
+0x0055C7B0 | AU28
+0x00568320 | AU12
+0x00570400 | AU6, AU28
+0x00571C00 | P27
+
+EINZELLISTE DER300 AUSGEWÄHLTEN FUNKTIONEN
+Alle folgenden Identitäten und JSON-Eigenhashes wurden geprüft. „Kein Einzelfund“ heißt nur: kein hier belegter Widerspruch; keine vollständige Freigabe.
+Format: Nummer|Adresse|Name|Belege|CSV-Stufe|Fundbezug|SHA256 der Rohbytes im JSON.
+
+001 | 0x00401090 | _HoldStrong::Game::GameStateStructures::isSameTeam | AU57 | abgelesen | F62 | 0d689c60ed5d08feda560137bba834c214f4eb346685514f19022c0cf888a028
+002 | 0x004010B0 | _HoldStrong::Synchrony::GameSynchronyState::isAIPlayer | AU57 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 9ebde6d0009307f1d79cb7257783ef1aa02c900477b98ee0f640763abdd58345
+003 | 0x004010E0 | _HoldStrong::Map::Entities::EntityState::clearEntityArrayAndSec1077 | AU57 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | c2299513bac160bd07e2a3f3fa2253142953516de9dd03d7a66ed346631b9f7f
+004 | 0x00401150 | _HoldStrong::Map::Entities::EntityState::playerHasEntityOfType | AU57 | abgelesen | F21 | dc9f7f4307f8f8182a3ae7a41a63186eaeeedca562d8fcef4e13828c0d7f965b
+005 | 0x004011D0 | _HoldStrong::Map::Entities::EntityState::setProjectileEntityValues2 | AU24 AU40 | abgelesen / abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 20b9139194a74da7cd47dc8df66721498ee610ac2d7f16edf99f9ff0b2ce14f6
+006 | 0x004012F0 | _HoldStrong::Map::Entities::EntityState::setEntityParameters | AU57 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 57a64e17be113a8d481a4ed5d305b5347b3e05aeed786757bf21fb3769a7a035
+007 | 0x00401380 | _HoldStrong::Map::Entities::EntityState::drawEntityEffect | AU57 | abgelesen | F01 | 39dd96140a0578bd604ec95d19ecc8b7f0bc2b8fcca63c38aa0c3a400e836a6f
+008 | 0x00401400 | _HoldStrong::Map::Entities::EntityState::markEntityDestroyed | AU57 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 3b668d77c66b34a56d296a6963c727dfb7a776a3d91016804514b01c5b8ddc19
+009 | 0x00401430 | _HoldStrong::Map::Entities::EntityState::tickEntityDecayCounter | AU57 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | e4a04b0720f134bc2592daaf2635f6976d2044b29887121bd6ac77cfe2b313a7
+010 | 0x00401460 | _HoldStrong::Map::Entities::EntityState::doSomethingWithOtherEntitiesOnTile | AU57 | abgelesen | F20 | f2784b65214fa1f0ce6bd6fa074d322debdf551bab057d10f2bd26f2ab293841
+011 | 0x00401540 | _HoldStrong::Map::Entities::EntityState::getFireEntityIDAtTile | AU57 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 3c58266e1b5497558fc0d1fd5bdb4e1d737592ee48fa3bda1b3af5f1bdb5f631
+012 | 0x00401570 | _HoldStrong::Map::Entities::EntityState::updateAllFireEntitiesAtTile | AU57 | abgelesen | F19 | 6da1dc01dcba0148988eed320a05a8af1553b95a536527c2a09052eb98889267
+013 | 0x004015D0 | _HoldStrong::Map::Entities::EntityState::processFireDamageToUnitsAtTile | AU57 AU58 | abgelesen / belegt | F63 | f165bd47aa72eff1555569cbe4c40765775d24b588521391c7ea880d3ef8b084
+014 | 0x00401620 | _HoldStrong::Map::Entities::EntityState::recountActiveFires | AU57 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | f4d865ad6e76d7c37f5bd1645b3b1a048ecdb104870ddd4bb44e7ee6c9f5b2e0
+015 | 0x00401690 | _HoldStrong::Map::Entities::EntityState::flagUnitsWithActiveEntity | AU57 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 240d8297eb4cb8fa081ed13f3eef5deb863fc68746fb19cc832123a0f6afca13
+016 | 0x004016E0 | _HoldStrong::Map::Entities::EntityState::somethingWithSeparateAreas1 | AU60 | abgelesen | F22 | abaa89d7c2f2c13d2579c030c4e01d2564895cc56e45e0b454b3eda30874ca4c
+017 | 0x00401880 | _HoldStrong::Map::Entities::EntityState::refreshPoisonCloudNearUnit | AU60 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 61614d4bc576570d30d092326418d808ffed2e10ec489326c4e2f01f140fe5cf
+018 | 0x00401910 | _HoldStrong::Map::Entities::EntityState::assignPoisonCloudTargetEntity | AU41 AU60 | abgelesen | F23 | 31c2e2964440784eec59b351b1443dbcea2c8e7df8a2f6eba3eb89d95813e617
+019 | 0x004019D0 | _HoldStrong::Map::Entities::EntityState::destroyEntitiesOnTile | AU60 | abgelesen | F24 | f3b6e238ad5d8582eaf4d6ac877cd8606d7ad04f2b776ea03e084fc7f757d12f
+020 | 0x00401A50 | _HoldStrong::Map::Entities::EntityState::isBrazierNearby | AU60 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 2e4ab37dd0ccbc37dd489f4aca55626af7d223e1a01da8b4e4779eda03360a56
+021 | 0x00401AE0 | _HoldStrong::Map::Entities::EntityState::reassignEntitiesOwner | AU60 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 90882f3ddadb1d52a3e8f2e55c69a1f85f6d3dc14b53252f22e1e2d976d3b6db
+022 | 0x00401B20 | _HoldStrong::Map::Entities::EntityState::swapEntityOwnership | AU60 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | a9a2bd1b84ec4174038774b72a5184bc683e712ff0525d97a51d6cfa91964243
+023 | 0x00401B60 | _HoldStrong::Map::Entities::EntityState::destroyEntitiesPart2 | AU60 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | ac94c0946f4c87c78ab7fd8c96d2fa90120cbe109a9d7721e4c32908a7db27cb
+024 | 0x00401BA0 | _HoldStrong::Map::Entities::UpdateArrowEntity | AU40 AU60 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 2d8bf7f72f7354864b67c7c4a5082f8e7cc27234d88494d51339372f0a22982c
+025 | 0x00401CC0 | _HoldStrong::Map::Entities::UpdatePebbleEntity | AU60 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | dd2b4d56fc43de5d0fe1340fc32d1c946e01c9ee5d09ebf98fc5452610c0dce3
+026 | 0x00401D20 | _HoldStrong::Map::Entities::UpdateFirethrowSecondaryEntity | AU60 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 3d90493b70e12719f182b000f1b59ee5460dd9177b0d979a9f679627b160fe57
+027 | 0x00401D70 | _HoldStrong::Map::Entities::UpdateArrowsSecondaryEntity | AU60 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 4b0e0652c2c9374fde20d547412076ef7b2a0934f9e009e15eb8c3e78d76cf9e
+028 | 0x00401DB0 | _HoldStrong::Map::Entities::UpdateCrossbowArrowEntity | AU60 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | c3c8bdd698ae0afe699b43000d68ef34fa70fd63ce6072aed5ce0e6a98dec65d
+029 | 0x00401E20 | _HoldStrong::Map::Entities::UpdateEntity_20_37 | AU60 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 4eb9c5960873d2119b08adb14d4bbe45d9951ec3989655b3a1e66a174996e331
+030 | 0x00401EA0 | _HoldStrong::Map::Entities::UpdateEntity_21 | AU60 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 0da3bb4e8403cc3642faeda49f75e1010bf6e9d07bd96e211f0112e55b64a409
+031 | 0x00401FF0 | _HoldStrong::Map::Entities::UpdateEntity_PoisonCloud | AU41 | abgelesen | F25 | 7b4deb240832e156786414c4aaa295f9c40d9b9a23480399aed2fd88300e5bd1
+032 | 0x00402180 | _HoldStrong::Map::Entities::UpdateEntity_CowFlying | AU62 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | d7552c1ca5e5343530878d7889620f686cd90249e2840e8a667d7f7c4df5f1c7
+033 | 0x00402260 | _HoldStrong::Map::Entities::UpdateEntity_26 | AU62 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | d9d86ef85dccc0aac5a99f95e864c99ee43d0aad0bad06a3d35e79d093625cba
+034 | 0x00402330 | _HoldStrong::Map::Entities::UpdateEntity_27 | AU62 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 2fe70bd8cb1120cbd059c8b760b3b996dd8824ef3ea6c0952aea9dfe5ff824e3
+035 | 0x004023A0 | _HoldStrong::Map::Entities::UpdateEntity_28 | AU62 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 9ce8da85357f377373f28f68917bbeda114a52a1f97fd7621e6b6258e1d01da2
+036 | 0x004023F0 | _HoldStrong::Map::Entities::UpdateEntity_29 | AU62 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | a24634a5818ea7fa8473973ac9ce3a09d97c35edb67ad372ee6d8cfac920e6ad
+037 | 0x004024F0 | _HoldStrong::Map::Entities::UpdateEntity_30 | AU62 | abgelesen | F30 | 4561f03a5fa60b910e4278244347a434e4e21e39c535fa647133f31b2082e65d
+038 | 0x00402580 | _HoldStrong::Map::Entities::UpdateEntity_31 | AU62 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | bb5ee06573d3835019f84b9c561c02a03a569713324e3cc4b0f17758cc02ac69
+039 | 0x00402660 | _HoldStrong::Map::Entities::UpdateEntity_40 | AU41 AU62 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 50eba407db36f7bad5e87dcdc529c63b2a3e85d3ec0b91f8c31234f05cc525e6
+040 | 0x00402730 | _HoldStrong::Map::Entities::UpdateEntity_41 | AU41 AU62 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 1028e7b723289093512ebc63e81f11f1b8da08f1eb340e794d4f405ca6fb6c5f
+041 | 0x00402820 | _HoldStrong::Map::Entities::UpdateEntity_42_43 | AU41 AU62 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 71a738ca44c15fa804ec843ec86eac74ab57cfbc4053d7008421030387cbd478
+042 | 0x00402900 | _HoldStrong::Map::Entities::UpdateFlag_1_2_4_Entity | AU41 AU62 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 1e31efa9324f6f439585dccd98c890968ef6b3a0431c38f4dc8c8c261b7f4bfa
+043 | 0x00402A20 | _HoldStrong::Map::Entities::UpdateFlag3Entity | AU41 AU62 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | be94156bc7d7c12bfa253375051a7887c32fdc4d50ed562df4f6d9fe0cfc2854
+044 | 0x00402AE0 | _HoldStrong::Map::Entities::EntityState::updateEntityMicroMovement | AU31 AU40 AU62 | abgelesen / abgelesen + gemessen | F26 | 57e386a9683437a73ae206286aba8f21b62267a829fb4875913f4755b94aa9a4
+045 | 0x00402C50 | _HoldStrong::Map::Entities::EntityState::math_atan_1 | AU24 | abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 421fc18827695cc06aa242c208aca93eb95d034571a16c44a35fa5ecc3a31879
+046 | 0x00402DA0 | _HoldStrong::Map::Entities::EntityState::computeVelocity | AU24 | abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 66a8ac40c0116bc6c35757343720e9a0ab859af04eab94693d61c38f75349c41
+047 | 0x00402E20 | _HoldStrong::Map::Entities::EntityState::computeLineOfSightDistance | L79 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 205a6d330e4c42ac61f1ac9bf3a6b706ca6eb7bb7cabe3d00b7940c6412a9031
+048 | 0x004039B0 | _HoldStrong::Map::Entities::EntityState::activateProjectileEntity | AU40 AU62 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 40118370308c648d293b9e2dc5b2d9ee8b13d40295a1d040bf6e2b10d8cec5db
+049 | 0x00403A20 | _HoldStrong::Map::Entities::EntityState::initializeProjectileVelocities | AU24 AU3 AU40 AU62 | **Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci | F18,F27 | 62d8376a8797b5431754462321f4e3e4bd85948a901ea8351ddf0122ab0d4170
+050 | 0x00403FF0 | _HoldStrong::Map::Entities::EntityState::handleProjectileWallBounce | AU40 | abgelesen | F28 | 581351d4b385b7e0195b775f9277865f39add99431d1f19c8c9e1d4ce3a4f106
+051 | 0x00404A10 | _HoldStrong::Map::Entities::EntityState::arrowShootingRelated | AU25 L79 | abgelesen / abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 892783323d9b26fbf84a65444987c99bbf5014d06ed5cfae721525282fa2788d
+052 | 0x00404AE0 | _HoldStrong::Map::Entities::EntityState::spawnProjectileEntity | AU2 AU40 | abgelesen / abgelesen + gemessen (Schuetze/Ziel/Abschuss-Takt in 3 Laeufen, 47 P | kein gesonderter Einzelfund; kein grünes Funktionssiegel | b1120d06b0e54cc4576474bbc537f3669d4c61c3635535b6115fadf9bc22543f
+053 | 0x00405130 | _HoldStrong::Global::SomeFireSpreadFunction | AU64 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 5d4c49151141d0e3b96e39ad24ced6b0a1b6dc66436d123674cf8144240eae91
+054 | 0x004052E0 | _HoldStrong::Global::IgniteFireAtMiniTile | P27 | abgelesen + SAI gemessen (Zuendung) | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 2412c9fcbc438a1890ae41aef5ccda2e4ef8f3b6a0ce47ca5b726e3b26f63b34
+055 | 0x004054E0 | _HoldStrong::Global::AFireSpreadFunction | AU64 | abgelesen | F29 | f0a9207e9b1eb3f00b0cb9a5431d99a3fa74b2ba20311acc22b7ff88417ecf76
+056 | 0x00405680 | _HoldStrong::Map::Entities::UpdateFireEntity | AU41 P27 | abgelesen / abgelesen + SAI gemessen (Zuendung) | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 6c211fd7e3cac370bb220bef2c99a19b883ff9f4ada42d4832536374b892244f
+057 | 0x00405B70 | _HoldStrong::Map::Entities::UpdateFirethrowEntity | AU64 | abgelesen | F02 | 66830a8c3aebde626ece233c21ffc0b0e0c170b005af1ff21a08594d6c884957
+058 | 0x00405C00 | _HoldStrong::Map::Entities::UpdateHeadsOnSpikesEntity | AU64 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 207fcf54a12a9087b247d1c4e2576080d25203406ec5d7c3a648b11fdc1c679b
+059 | 0x00405CF0 | _HoldStrong::Map::Entities::EntityState::setProjectileTargetPosition | AU40 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | e3d74d611ca54f836280f9d270b8c0cb0286f9306b95c490e266b9a30167018a
+060 | 0x00405DA0 | _HoldStrong::Map::Entities::EntityState::spawnProjectileImpactDebris | AU64 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 3c5abdb4a99fc80f912aebabada45fd86bbe69a651f45b4aa362d2bb5e0727f4
+061 | 0x00406650 | _HoldStrong::Map::Entities::EntityState::createSeagull | AU64 | abgelesen | F32 | df47faf282720ba2903329e83cab02a5b17b10512967eac9b5334dfe32802505
+062 | 0x00406900 | _HoldStrong::Map::Entities::EntityState::processSeaGulls | AU64 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | d235aeae5156a7584d9c72e5f5d9dc9e29cd61cfaabfb30d30d00207f6de50f4
+063 | 0x00406FD0 | _HoldStrong::Map::Entities::UpdateEntityType8 | AU64 | abgelesen | F33 | 150483b749a75edf8c90bb346f9d0893c927c7dfafd53e6893d580bdf0ccfddc
+064 | 0x00407130 | _HoldStrong::Map::IgniteFireAtMiniTile_Convenience | AU64 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | aa7d733ebdfd2972b7a733faf85d7759e2f2f02f803a1732718ba2b8a568d8c5
+065 | 0x00407160 | _HoldStrong::Global::SetPlaceOnFire | AU64 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 91f08c6725696b57d662d0a650fc1c4b36b2ead18f997ae6813daaad8ca50cf7
+066 | 0x00407190 | _HoldStrong::Map::Entities::EntityState::processEntityHitBuildingOrUnit | AU3 AU31 AU32 AU4 AU40 L79 P25 | **Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci | F14,F18 | 21a7e3ffed49b6b1ccd2371783c48d9ac8e241edd574ba73430d503491d77060
+067 | 0x004081E0 | _HoldStrong::Map::Entities::EntityState::updateProjectileHeightAndCollision | AU64 | abgelesen | F31 | 8bc04db376d058e4bbde744097e87863ff62193d6a0520439b5bade6447df5ee
+068 | 0x004082A0 | _HoldStrong::Map::Entities::EntityState::spawnEntityEffect2 | AU64 | abgelesen | F03 | 1077d65e7c74f478a599411052f8754ed7ec8f7029fdde62a3f6c1212daf6bde
+069 | 0x004083A0 | _HoldStrong::Map::Entities::EntityState::spawnEntityEffect1 | AU64 | abgelesen | F03 | bc3281b2b79da45b999a19f60e02f546e53e0bc0593755d6d01cb7ff91fd2f3f
+070 | 0x004084A0 | _HoldStrong::Map::Entities::EntityState::moveProjectileEntity | AU3 AU31 AU40 L79 | **Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci | F18 | d5e9ad76375990848e9a2e9ebf6f734411ac4aa9fe9a05611119a28b3e3bcd83
+071 | 0x00408770 | _HoldStrong::Map::Entities::EntityState::handleMapVersionUpgrade | AU64 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | e55aed91a5aa5d7f6ea8b1de4c256200603eebf1273ea5d68d4456df6d3b44e0
+072 | 0x004087C0 | _HoldStrong::Map::Entities::EntityState::updateEntities | AU64 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 946be2ee9f601fe9c2985043e33b0489a3d4d8c1f3d867665ac6dafee995bedf
+073 | 0x004092C0 | _HoldStrong::Map::Navigation::DirectionAlgorithmState::computeHealthPercentage | AU66 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | a3731d8ef9c6e24789f9e71252530491c9ac2248bb491bef9b75bf4f1755a820
+074 | 0x00409300 | _HoldStrong::Map::TileMapState::processDamageToBuildingThunk | AU66 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 4bac417ff0a0e7c0ad06847fa1450a00adbd99ad245c6a1adc8b98061a85428d
+075 | 0x00409330 | _HoldStrong::Map::Buildings::BuildingsState::getBuildingResourceAmountByUid | AU66 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 9c0a48fbea33472ef4313ac074e4bf0aa508228c1206ccc9f0dc5fb7ba3359e3
+076 | 0x00409370 | _HoldStrong::Map::Buildings::BuildingsState::convertCommandBuildingTypeToBuildingType | AU66 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 44d566c34eb2a01b5513e169d0ee298d71ec6eadfe03637f1bf0ebd059330c7a
+077 | 0x00409930 | _HoldStrong::Map::Buildings::BuildingsState::convertBuildingTypeToCommandBuildingType | AU66 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 1a5aec588e0e7d6e685d697000af4486f250b71f63311956aee929b0b98d7e0c
+078 | 0x00409DB0 | _HoldStrong::Map::Buildings::BuildingsState::getBuildingHeightForBuildingID | AU32 | abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | c299a71f20a1c2fb27d63f3cef5d8c93077a2afc503a709f09c848c16f10568c
+079 | 0x00409E80 | _HoldStrong::Map::Buildings::BuildingsState::getBuildingHeightForBuildingID2 | AU66 | abgelesen | F36 | b1659a43b6487a91ca8b33badec00d06842259b0b2b428c6b8d7d05dde15a05d
+080 | 0x00409F50 | _HoldStrong::Map::Buildings::BuildingsState::getSpriteID | AU66 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 1969916ee3739288498322894206ae5ed7a1467dae8964c9ece74a0d7cbdd452
+081 | 0x00409FF0 | _HoldStrong::Map::Buildings::BuildingsState::getSpriteID2 | AU66 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 35a946bda2ad7eb9606e559a4d8bc432a330c0d11797e0ef231398aa919e8537
+082 | 0x0040A020 | _HoldStrong::Map::Buildings::BuildingsState::clearBuildings | AU66 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 384c4f8a9c6e3888e14a23b7b650ddd3fe69488c5bdb5f94874c6fe1554a1cbc
+083 | 0x0040A060 | _HoldStrong::Map::Buildings::BuildingsState::displayPopularityAndGoldPopups | AU41 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 745922c5a1b1f145d1136a49f40febdc2cb561f1354ea36443db4564b5ac57a1
+084 | 0x0040A260 | _HoldStrong::Map::Buildings::BuildingsState::spawnCrowForBuilding | AU66 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | bedfdeb6d4f18d0a64a6f0271321dbf7dfc54d034651b804913e55a0cc5d6e51
+085 | 0x0040A400 | _HoldStrong::Map::Buildings::BuildingsState::isFearFactorBuilding | AU66 | abgelesen | F04 | dc8d660b576fd6a61068698d9f0eb32a1dda9c0564ad7aacc254cdf0762385c2
+086 | 0x0040A4A0 | _HoldStrong::Map::Buildings::BuildingsState::isReligiousBuilding | AU66 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 595fdfeb2ad09a2fbc5657c900ee5695551dfd242297ffca52c0eeb6c78b8e21
+087 | 0x0040A4E0 | _HoldStrong::Map::Buildings::BuildingsState::copyPlayerDataArrayValues | AU66 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 04d578ce3faad78cca0afbf76e73a8b3f2d46d94a1647bb3a4e8eb68cc6e4adc
+088 | 0x0040A8A0 | _HoldStrong::Map::Buildings::BuildingsState::chooseProductionItemType | AU68 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 5eb126c6ea6c7fc18d044eccf875b1ebcb6397e5d0016ae447841dae2ae69f68
+089 | 0x0040A950 | _HoldStrong::Map::Buildings::BuildingsState::getEmptyBuildingCount | AU68 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | dae813f08ead270e479714bcd1fd9ccc0b177f508cae2ccdc458e86a5e346681
+090 | 0x0040A9B0 | _HoldStrong::Map::Buildings::BuildingsState::countBuildingsForPlayer | AU68 | abgelesen | F05 | 64a3a0323421cf69a52ada3bd216d9c32fcd92d448519f7bd519f62f8e31e296
+091 | 0x0040AA10 | _HoldStrong::Map::Buildings::BuildingsState::countFarms | AU68 | abgelesen | F05 | 7628544354bfb7f90c2e8cf17439303e037d5301dd1453eb1d5eb0b17c6d421f
+092 | 0x0040AA80 | _HoldStrong::Map::Buildings::BuildingsState::findFirstBuildingOfType | AU68 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | c6c5de5c2bc14e808f2477ca91e6d7479f7bdbbe36c4cda71ef7f606dca7648c
+093 | 0x0040AAD0 | _HoldStrong::Map::Buildings::BuildingsState::findFirstBuildingIDForPlayerAndType | AU68 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 46e7cfb32ab1e7694728dcebfd21ca34863e889cb43e1e3e2ffed7bf159a8993
+094 | 0x0040AB30 | _HoldStrong::Map::Buildings::BuildingsState::findNextBuildingForPlayerAndType | AU68 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 8af50d7af125f305dda0bfb296e01c8908530940fc557098296ddd1692309b76
+095 | 0x0040AB90 | _HoldStrong::Map::Buildings::BuildingsState::findNextBuildingIDForOwnerAndType | AU68 | abgelesen | F34 | 3a840a4b83584af5895f7f8fd6e94eb591d1dc0bfe7a20770ff19112cc50abe9
+096 | 0x0040AC00 | _HoldStrong::Map::Buildings::BuildingsState::findNextBuildingForPlayerAndOneOfThreeTypes | AU68 | abgelesen | F34 | 96fbabd4685d805c3deeee3b37953c938d2f88ea5d4de474b1a0c6fabe1ec84b
+097 | 0x0040AC80 | _HoldStrong::Map::Buildings::BuildingsState::canNavigateToDefensiveBuilding | AU68 AU70 | abgelesen | F34 | 4a32f48df5906dd4b139fdd77dadd54cc052d82ea48bc898e302add77c685859
+098 | 0x0040ADB0 | _HoldStrong::Map::Buildings::BuildingsState::findNextReachableDefensiveBuildingForPlayer | AU70 | abgelesen | F34 | 527dd74d0fce8a77e80a95993e528762420ac0f8788e1c528bf09cee98583f2d
+099 | 0x0040AEF0 | _HoldStrong::Map::Buildings::BuildingsState::pickARandomBuildingOfType | AU70 | abgelesen | F35 | b12b366ad9ba486e62a223e458006a3c88243690959193c6f06ff2765bb5696e
+100 | 0x0040AFB0 | _HoldStrong::Map::Buildings::BuildingsState::pickARandomBuildingIDOfTheseThreeTypes | AU70 | abgelesen | F35 | 1fcc4bad28ed03bbe3e18e6ac7259876ef1575bd2a00e11d034aaaebcc07ffa8
+101 | 0x0040B090 | _HoldStrong::Map::Buildings::BuildingsState::pickARandomPositiveFearFactorBuilding | AU70 | abgelesen | F35 | d0832f0285aae46e784739b8b3f1eae872fffa052901078ded203318db7ca9b4
+102 | 0x0040B1A0 | _HoldStrong::Map::Buildings::BuildingsState::findClosestInnBuildingID | AU70 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 27d1f53b27e2d7aa372cc90760bf912c5e8127f98c8f9c1e5bee9583291b8d10
+103 | 0x0040B260 | _HoldStrong::Map::Buildings::BuildingsState::recomputeAllFearFactors | AU70 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | f1cafc7542fc99fa681ced2f30bd23813c9b6fa6d607abfaa407334f83031822
+104 | 0x0040B4E0 | _HoldStrong::Map::Buildings::BuildingsState::findBuildingOfTypeForPlayer | AU70 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | c84f918015658ac39202ff7e18734e2bcab7d7c3b2795a8bafdc9b507ebc8550
+105 | 0x0040B540 | _HoldStrong::Map::Buildings::BuildingsState::removeSiegeBuildings | AU70 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 58dc69c5c27d373978d2e4ab657b07c946e6fbce6f6dd6f17e380c069d5908c1
+106 | 0x0040B5D0 | _HoldStrong::Map::Buildings::BuildingsState::setBuildingInitialEntryTileTry | AU70 | abgelesen | F39 | c7908e06572be4bcba4c3c44591f27f650ee32f10d02573ec0406e325e3c34b3
+107 | 0x0040B660 | _HoldStrong::Map::Buildings::BuildingsState::prepareCampgroundCoords | AU70 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 3fe0d578ae885b6b1bcc206def0c42ec1f77ba295bbacb31d4e2dd135e3c8677
+108 | 0x0040B720 | _HoldStrong::Map::Buildings::BuildingsState::hasBuildingEntranceFlagForOrientation | AU72 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 6b3665d8490c74f5255df52b784c78778827f538622d0780bbfe3b0804723f3a
+109 | 0x0040B7B0 | _HoldStrong::Map::Buildings::BuildingsState::hasBuildingExitFlagForOrientation | AU72 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 2f0dcfe45f972d0891f09e3496a479d4906aa208d4b4ad727c92a297433f0686
+110 | 0x0040B840 | _HoldStrong::Map::Buildings::BuildingsState::isBuildingPathBlockerOrDamageable | AU72 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 90e761e32fd22ca2687800e3f758c497d1dad9dc95197504f1c44a6d3be393a9
+111 | 0x0040B900 | _HoldStrong::Map::Buildings::BuildingsState::getBuildingHasHealthProperty | AU72 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 0363ef4c3d5087acecfa332d2d35e3bb24d704e949834f3dcecfbfc2b68a5f6a
+112 | 0x0040B980 | _HoldStrong::Map::Buildings::BuildingsState::hasHumanPlayerUnitsOnBuilding | AU72 | abgelesen | F38 | 246cff5f08856ef9af65b06bc7575c53444f157f067addb7d7adcb3ce1a82269
+113 | 0x0040BA10 | _HoldStrong::Map::Buildings::BuildingsState::setupBuildingEntrancesOffset | AU72 | abgelesen | F06 | 1ed542489f3c30e9484d37e0460c2b3d5200b23ad19034c93b88923e7dbf02bc
+114 | 0x0040BC40 | _HoldStrong::Map::Buildings::BuildingsState::setupNextCandidateLocationComputeOffsets2 | AU72 | abgelesen | F37 | c6ba4f0a857ee7e62accaf54d2cf266a25a39a75ec1b5ba09dd342a752e54ef3
+115 | 0x0040BE70 | _HoldStrong::Map::Buildings::BuildingsState::buildingHasSpaceForResource | AU72 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 1e8cc2bbd3c5ce387f57a3c461ccc592ae1ea1886f50f4bb3b62db5461241cc6
+116 | 0x0040C5F0 | _HoldStrong::Map::Buildings::BuildingsState::getBuildingCost | WS 3 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 87d9eef17bd0035244acaeccf3bac013da2bf3d7cbdd2ed3788a3d872c9f22ad
+117 | 0x0040C800 | _HoldStrong::Map::Buildings::BuildingsState::getPriceForDisbandedUnitType | P5 | abgelesen | F41 | ac985ea37166ff0692e7ae1fce32f4feb7aca6936e81dbd7f7ba27c0cd779003
+118 | 0x0040F540 | _HoldStrong::Map::Buildings::BuildingsState::hasWorker | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | b161a0445d406ab257746d262bc79735fd130aae2dcc5056b6db240c8e71a693
+119 | 0x0040F5C0 | _HoldStrong::Map::Buildings::BuildingsState::assignWorkerToBuilding | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 6d694bbb618d0d9c6c96c13480635db862a215a8bbef7ed17685286495065848
+120 | 0x0040FC40 | _HoldStrong::Map::Buildings::BuildingsState::updateLordLadyJesterAndGhostUnits | AU43 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 36ddf7519a84bbfa5a13bf4b4a68bcbb399ff9d14cf8bbe7b9d72e1c3aed7b3e
+121 | 0x00410920 | _HoldStrong::Map::Buildings::BuildingsState::getBuildingFlammabilityFactor | P27 | abgelesen + SAI gemessen (Zuendung) | kein gesonderter Einzelfund; kein grünes Funktionssiegel | fb54d70f2c7bc55aa893ec34e882d89071c440f9040bdd01ce5ebe28c9682b51
+122 | 0x004109F0 | _HoldStrong::Map::Buildings::BuildingsState::extinguishBuildingFire | P27 P29 | Offsets getestet (live, SAI); Feuerwache abgelesen / abgelesen + SAI gemessen (Z | F40 | 1d0daa822e3546051511c4ff2b13d9b2e2b60f695df0e80c7937484ddcc684d4
+123 | 0x00410D20 | _HoldStrong::Global::UpdateWoodcuttersHut | AU39 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | a4e9c4f86b72ee98d68a1e23307279e10c3671cbe748a4ee92e2ab16d6e506b0
+124 | 0x00412360 | _HoldStrong::Global::UpdateStockpile | AU39 AU49 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 228bd75ba9c85badd790c238ef7c4ee4a9b63457f2a5d88f05f4c2d6f91c7a27
+125 | 0x00412730 | _HoldStrong::Global::UpdateArmory | AU39 AU49 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 17b48770433ce09857eb486dd9f111298eb03ccedae85a088c01b3fdb4c654de
+126 | 0x00415110 | _HoldStrong::Global::UpdateGranary | AU49 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 41c6d361295074ebd626e9f491afa0a16bcb1ec509033886008ea8e40e4a3565
+127 | 0x004167E0 | _HoldStrong::Global::UpdateDairyFarm | P17 P26 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 69b9d28aa9c78317e5ed4a6a4044d17d3350b27079a7c9fe525c07c8d451c298
+128 | 0x00417B90 | _HoldStrong::Global::UpdateDrawBridge | AU39 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 9a65248998948db0995f169627d1ff7aaba024ba9e8e33d5fa546f87786365f4
+129 | 0x00419780 | _HoldStrong::Map::Buildings::BuildingsState::initBuildingCosts | WS 3 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 9555cf72bcb8cbe8a5820c7404f8040ee37ba3f30311c8d28058cb7075f3dff7
+130 | 0x00419960 | _HoldStrong::Map::Buildings::BuildingsState::updatePathLinkageTileMap | W35 | getestet (Teil) | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 56100dcb3ce7991244ddf7f6428387325aefda217da3a79a1c64658ed466d534
+131 | 0x0041A7A0 | _HoldStrong::Map::Buildings::BuildingsState::destroyBuilding | WS 5 | belegt | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 08f2f143fec485eabeb1daea8059ee0710c5f608b7886dc23f4bf27568d3c540
+132 | 0x0041ADE0 | _HoldStrong::Map::Buildings::BuildingsState::determineBuildingEntranceFromKeepArea | W34 | abgelesen | F61 | 033c7fed3d7491643330d04d94e55cde394fe16b29402d6c744c569c437af093
+133 | 0x0041BFD0 | _HoldStrong::Map::Buildings::BuildingsState::processPlacementResourceLossForBuildingType | WS 5 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 8226ef5baabb348dd9ad9e061ddf38a07eb5fc1dc6f66dd6ef8a77412a15158b
+134 | 0x0041C570 | _HoldStrong::Map::Buildings::BuildingsState::applyGateOrDrawbridgeOpenCloseChange | AU39 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | ff8ce2d490dd494c914ceb75b29c8ed5db924a70605bea8c0ab33615a02981ad
+135 | 0x0041C810 | _HoldStrong::Map::Buildings::BuildingsState::lightUpBuilding | P27 | abgelesen + SAI gemessen (Zuendung) | F08 | d1941b879a8442234c46c047c4b88f244d513f8e8e5964a18ca505a6e161f8b7
+136 | 0x0041CA00 | _HoldStrong::Global::UpdateOxTether | P17 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 69b60c1e0cc4c147f1d7b5b3a7d12794bb9ee502b9af7a84b7cf98129adeb69f
+137 | 0x0041E240 | _HoldStrong::Global::UpdateFireBallistaBuilding | P28 | abgelesen (Schwellen) / ungeprueft (Bediener) | F07 | cddc0d729e0cda946b98d24bfc71369467dbe5c19b033b3f9bf566016b4f521a
+138 | 0x0041F3B0 | _HoldStrong::Global::UpdateCatapultBuilding | P28 | abgelesen (Schwellen) / ungeprueft (Bediener) | F07 | 451ac42ebc797eccd50a705718739b57df7481ee55069b2fb7277e2e1058acd0
+139 | 0x0041F7C0 | _HoldStrong::Global::UpdateTrebutchetBuilding | P28 | abgelesen (Schwellen) / ungeprueft (Bediener) | F07 | 55d5a74c4bfd96e1858d65286133eb5da62ee0ee6f7a2e0a6633e70ef7e2d352
+140 | 0x0041FC90 | _HoldStrong::Global::UpdateSiegeTowerBuilding | P28 | abgelesen (Schwellen) / ungeprueft (Bediener) | F07 | 532e9d7fac13c965f8e774d639ee5e22fdcf57d6dd807e892a36c2158d66ca59
+141 | 0x00420120 | _HoldStrong::Global::UpdateBatteringRamBuilding | P28 | abgelesen (Schwellen) / ungeprueft (Bediener) | F07 | 4ffc31f4c0a3375f12d129ea875f5a80248eac975e5873349d760daeea1a7cf4
+142 | 0x004205B0 | _HoldStrong::Global::UpdateShieldBuilding | P28 | abgelesen (Schwellen) / ungeprueft (Bediener) | F07 | 19914f934ac5004bae8001d2fcb8cf09792d0b4e412d1e4908a4935dbd39fd6a
+143 | 0x00420D20 | _HoldStrong::Map::Buildings::BuildingsState::setupBuildingData | AU39 P27 | abgelesen / abgelesen + SAI gemessen (Zuendung) | kein gesonderter Einzelfund; kein grünes Funktionssiegel | f3d964e06ed63345d300063d94f8e30d571e7183c7d2c607c2fb770f00cd3fe9
+144 | 0x00422E20 | _HoldStrong::Map::Buildings::BuildingsState::updateBuildings | P25 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 019e98c806fcfe3c88b60a2c25a4935342017c884c702afabbd908852652aff3
+145 | 0x00441270 | _HoldStrong::Global::LaunchSkirmishGame | AU45 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | d57a2377c71d99861702527f0412bf7cbca7ab6d8a0957c698b17d768bfc6577
+146 | 0x004563D0 | _HoldStrong::Game::GameStateStructures::processUnitLossStatistic | AU55 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | b570283e5a8635ca528a27844d6d8177573c86a12e05b53e94eeeb0981844ace
+147 | 0x00456670 | _HoldStrong::Game::GameStateStructures::updateDateAndTime | AU53 | abgelesen | F43 | f8620a09d48c2a5ea3a6c1a177ecba963da0063e850bd5ee0d4ad9278eb8d10c
+148 | 0x00456750 | _HoldStrong::Game::GameStateStructures::setMonthAndYear | AU53 | abgelesen | F43 | 60de7fd2f32cc4fdabedb9f001dfa30288d11375afbeb0a54c839a55b2b801da
+149 | 0x004576E0 | _HoldStrong::Game::GameStateStructures::canNavigateFromKeepToKeep | W34 | abgelesen | F44 | d08bd988d2c4801713fc574eac13a9c777828a0d3651f4c884ead0cccd218bdc
+150 | 0x0045B830 | _HoldStrong::Game::GameStateStructures::updatePopularity | AU43 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 0d64a289a3495a0f0a7e48da0f7855c6faaaebe633378747d955cb8c11302be1
+151 | 0x0045BF50 | _HoldStrong::Game::GameStateStructures::updateTaxing | L21 | Ghidra OpenSHC-ref, `werkzeug/ghidra_DekompMuster.java` (Muster tax | kein gesonderter Einzelfund; kein grünes Funktionssiegel | a9be3a14f1cdb2bbdfffa5e64c2d9c2239558701d2034cb76bc964ac929b31c6
+152 | 0x0045CA20 | _HoldStrong::Game::GameStateStructures::processSingleTimeTick | AU20 | abgelesen (1b/2 Staleness gemessen nur indirekt) | kein gesonderter Einzelfund; kein grünes Funktionssiegel | bec00eb4cedf9354ebd03bd643334d2de65325dba85d919094f41c51cb419446
+153 | 0x004653B0 | _HoldStrong::Map::OpenOrCloseDrawbridge | AU39 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 3a9ba4f85c74d80ce34466ae8d4a7b4e395dad357e5a4cea7c866c7ff8a79e35
+154 | 0x00465F90 | _HoldStrong::Global::SelectionReplenishAmmo | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | ac2a28fdd6170336715925141e49dd3f5cc33023cdc7d70abaf576c0377b504c
+155 | 0x0046B340 | _HoldStrong::Game::GameCore::switchToMenuView | WS 5 |  | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 8dabeb0efcb0be487fa328d342307a8d9a4fe3c6d7de1f2fbf1083a430a8e726
+156 | 0x0046C9E0 | _HoldStrong::Map::Navigation::DirectionAlgorithmState::calculatePreferredRelativeOrientation | AU25 | abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 9420d3a27cd6d743f0d09c2c0401ef80e222e78e7e9bf2d233d8d5789a2c5a95
+157 | 0x00471AA0 | _HoldStrong::Game::GameCore::hideOrUnhideUI | WS 13 | gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 5dfc6c03ce775e49e5f7ebc3719f23c3ac3aa8c24c44c32b0ccf8ef861cb173a
+158 | 0x0047EAF0 | _HoldStrong::Synchrony::GameSynchronyState::translateMultiplayerIDsIntoPlayerIDs | WS 13 | abgelesen + passt zur Messung | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | c4d76261f1a65f27c4210b6a6858aafe0a0af4cfff44e1e0b178464e62aac79b
+159 | 0x00480210 | _HoldStrong::Synchrony::GameSynchronyState::scheduleReceivedCommand | WS 13 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 6528dd453ce2936697875861de561d1d38b933840f496856d1cb3d616fe9a523
+160 | 0x004819D0 | _HoldStrong::Commands::ClickPlaceWall | L123 | gemessen werkzeug/mauer_pruefen.py (Spielstaende "Walltest 4", "Gute Wirtschaft" | kein gesonderter Einzelfund; kein grünes Funktionssiegel | b4abe4b3fb63a993d78c81c75ac90e35723247e194d615a4531b41bd5276dba3
+161 | 0x004827E0 | _HoldStrong::Commands::ClickPlaceSiegeTent | P12 | Luecke | F09 | 41881386b073b88371eba3dbdd86a1b415cd64d6c272b566b3315cc4785bcce6
+162 | 0x00486600 | _HoldStrong::Synchrony::GameSynchronyState::checkSkirmishGameDefeat | L155 WS 13 | abgelesen / getestet (2 Laeufe) | kein gesonderter Einzelfund; kein grünes Funktionssiegel | ef7f6a4cfd1033eb2a77e4f90bdaaddc6d43846d9e3017d00375b546269aaa95
+163 | 0x00489100 | _HoldStrong::Synchrony::GameSynchronyState::queueCommand | WS 13 |  | F45; WS-Version offen | fa9d0d89782359440df359b5e39b6cb9f990fa09b66fc68af0194c3271927215
+164 | 0x004892F0 | _HoldStrong::Synchrony::GameSynchronyState::processWaitingCommands | WS 13 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 6c46769df32d83ddadae9149e3dc477723f931834c01382b743d486df3fdc7c2
+165 | 0x004995E0 | _HoldStrong::Map::Navigation::PathFindingState::updateSeparateAreaTileMap | W35 | getestet (Teil) | kein gesonderter Einzelfund; kein grünes Funktionssiegel | d38bdbc6d017e70253b2c10c90715341e66d064e13aa70ecc9bc7f0949102880
+166 | 0x004A06B0 | _HoldStrong::Map::Navigation::PathFindingState::findNearestEnemyUnitWithinDistance | AU37 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 70ae5a88c995c60c276c4796a8be4258bfdc05c3a319aa59c8a4c092facfed38
+167 | 0x004A5320 | _HoldStrong::Map::Navigation::PathFindingState::calculateCanPlayerUnitsNavigateToAreaFromArea | AU68 AU70 AU72 W33 W34 W39 | abgelesen / belegt (Luecke) / getestet | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 9a597c869bfc3a676a9f071d51bf457bf9b35af96cf02521780cbb58bbf33d44
+168 | 0x004A7090 | _HoldStrong::Map::Navigation::PathFindingState::updateWalkLayerAndAIPathCostLayer | W34 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | eaa258e2e8c9bb8ae2e5e49305e4cbb37692bd034bfaf964d3a788164329b4b7
+169 | 0x004A9510 | _HoldStrong::Map::Navigation::PathFindingState::createClimbData | W34 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 9797f74f52595fafbf59e51da6711e59e26641a463c109745459d6574b45451d
+170 | 0x004AD110 | _HoldStrong::Global::ProcessAllyAcceptsRequest | AU47 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 5476ff2ade51d83dd714bd58f9bda688b902daefdfef2b41a1498e9fbe1c2861
+171 | 0x004AD1E0 | _HoldStrong::Global::ProcessAllyDeniesRequest2 | AU47 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | c991e57ef67ca05a74d6c77b7d4208b0c8d1e82ea9f139f461dad189efa8a34c
+172 | 0x004AD2F0 | _HoldStrong::Global::ProcessAllyRequestAttackDefense | AU47 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | a66ba0d7cf2e6b72e8ab2c5ad1e13fea7dafc54a1e2c4d6eefe9d0c5c05822fb
+173 | 0x004C6D60 | _HoldStrong::AI::AICState::setAICParameters_01 | AU51 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | c5bd1a01e1db36b47c772ce4b16d90876153284b864761b466bc65280af47d2c
+174 | 0x004CA8A0 | _HoldStrong::AI::AICState::setAICParameters_16 | AU51 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 1c86dbb3830a6206aef32b7b087faf83cbb20e3a10c2d7e5d7d85aa3d7ffdfb3
+175 | 0x004CACB0 | _HoldStrong::AI::AICState::setTargetForTribeBasedOnTargetChoiceLogic | AU42 | abgelesen + belegt | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 1d224f7b409973939ea8de734be5b69274bd38c515725d7a017103f60c53bfb2
+176 | 0x004CAEA0 | _HoldStrong::AI::AICState::aiUpdateTaxesAndRations | AU51 | abgelesen | F60 | 955c15a0168bbfdde14b07d55ac22e07b22efbe6e908cb04dd8a7f1ced7fae59
+177 | 0x004CC000 | _HoldStrong::AI::AICState::buyGoods | L33 | abgelesen + getestet | F10 | 0f5c60831cdb5fa6d5a9ec65816c6c3dd2ae89b238549b2f5442884a4ca1840a
+178 | 0x004CC070 | _HoldStrong::AI::AICState::randomlySelectAttackUnitTypeToRecruit | AU45 AU51 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | c6613957b0d49eac4c55514293cec887f4417b68fcd499871d08caf65dbea613
+179 | 0x004CC250 | _HoldStrong::AI::AICState::getUnitTypeForUnitBehaviourType | AU51 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | be5f71dded2428ae1b2cce51d7e3d236ffdf43a664cf28c1b089cc72b62b2d32
+180 | 0x004CC840 | _HoldStrong::AI::AICState::aiAddUnitToMoatDiggerTribe | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 52e8ddadb2d171de16881d83bbfc481e4016096d5cc8a33bcc82643b75c7f28b
+181 | 0x004CD2A0 | _HoldStrong::AI::AICState::recruitHarrassingSiegeEngines | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 72e3c10d07de37ba4283a6179e60fc34903b5a212b409abf7772d46848d73f47
+182 | 0x004CD560 | _HoldStrong::AI::AICState::aiRecruitSortieRangedUnits | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 5bb9c2b826694fbd423c825e79777572c345b171eaa55d3b1d8e0ea9d00af12f
+183 | 0x004CD690 | _HoldStrong::AI::AICState::aiRecruitSortieMeleeUnits | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | f6299df1a4167f82ec0fdcaf9d7fc0abea3f71dd8320b05dcc1f8662dbaef8b9
+184 | 0x004CD8F0 | _HoldStrong::AI::AICState::giveMoveCommandToSortieUnits | W34 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 32f10d05d5a093eef2ac06d6e6b5a66deb7a900b749367932f3100a979e4d149
+185 | 0x004CDCF0 | _HoldStrong::AI::AICState::aiShouldAttackOrWaitForTeamCoordination | AU13 AU47 | abgelesen / abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid) | F46 | 9f7e4299fce935d1251914e79ad505baf9e836c32143a192355059c70b0907fe
+186 | 0x004CDF10 | _HoldStrong::AI::AICState::setCurrentAttackRaidParameter | AU47 | abgelesen | F47 | 89bbc36382baa6285124d2a461a964c67635ca2c3a8dec9130cafd09caa9d36d
+187 | 0x004CED90 | _HoldStrong::AI::AICState::percentageNonMovingTribesGTEAICSpecified | AU51 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | dd967e04e82abc07625abbbfe99be80851dde65f82bfa2a4c0d6eebf7ed0ec20
+188 | 0x004CF920 | _HoldStrong::AI::AICState::giveSomeRaidCommand | AU42 | abgelesen + belegt | kein gesonderter Einzelfund; kein grünes Funktionssiegel | c72ff8a43ad44f791fe8133e999090bed8495655b4e7ea83cc5a7cb4e58ad12d
+189 | 0x004CFF60 | _HoldStrong::AI::AICState::yieldCowThrow | AU51 | abgelesen | F50 | 6465f7aee983da2473309d5f0997fbb8a756ee01f8c77180f465664b82c55c4d
+190 | 0x004CFFD0 | _HoldStrong::AI::AICState::hasNoTroopsOrAllAreDiggers | AU45 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | b4f93a39b065a4d1c2aab9b05bff0fc2397024075ceac8c2bb63bc9cbd2048a3
+191 | 0x004D0110 | _HoldStrong::AI::AICState::setAttackCoordinationLevel | AU51 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 3a93ae157fb171a54159c6ca1f001a60b4703e8be1ca4f8c3a4575ee9af07877
+192 | 0x004D0190 | _HoldStrong::AI::AICState::teamIsWeakRelativeToEnemy | AU47 | abgelesen | F48 | b63563ece7b3f6d1454ed44ccc8c0c9141ab822f3f3c869a216ad223af661436
+193 | 0x004D12A0 | _HoldStrong::AI::AICState::getCurrentDesiredAttackRaidUnitCount | AU47 | abgelesen | F49 | 6086773834d9907296ffc9a30586ffca7c50e87b6f65731d8549984640bf7af7
+194 | 0x004D1A00 | _HoldStrong::AI::AICState::decideOnTribeAttackLocation | AU42 | abgelesen + belegt | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 024ce6841bd70501be5e30dc098fad334c96203ee1a2b29d4737fff00fc9ecc7
+195 | 0x004D2790 | _HoldStrong::AI::AICState::aiAssignUnitToDefensiveTribe | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 543f2933013c0b26c014b6e2d2ba6f2b14f821aca639d94895c3df9cd4895afe
+196 | 0x004D2A70 | _HoldStrong::AI::AICState::aiGiveRaidInstructions | AU13 AU42 | abgelesen + belegt / abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid) | kein gesonderter Einzelfund; kein grünes Funktionssiegel | b77fcedbb5369f31b9abbe8215d4ced29109ffe3edd320dbdfa32b1587375e90
+197 | 0x004D3320 | _HoldStrong::AI::AICState::updateAIStrengthState | AU45 AU47 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 08f9e6c7150071f68fc9599c85bd22dc949511ab6402dbe123293e60b671c159
+198 | 0x004D3850 | _HoldStrong::AI::AICState::determineAIPlayerHelp | AU51 | abgelesen | F51 | 5811542fa256289f715c24575596fa4d573913125d653a39743daed37bb3cde6
+199 | 0x004D38C0 | _HoldStrong::AI::AICState::determineAIPlayerAttackRequestResponse | AU51 | abgelesen | F51 | 484ef69646532482a3f7648900a44c78e2cdbb039a620c5f0b4d2b588082c3ed
+200 | 0x004D3AE0 | _HoldStrong::AI::AICState::aiRecruitUnits | AU47 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 0fcff0f431e804eb924b8eeaa5d9df0b7d609deed5967890e94771b27ae111a2
+201 | 0x004D4680 | _HoldStrong::AI::AICState::selectAttackTarget | AU13 | abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid) | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 2777815789c407709be652c1b72c1b2e17bacfb8a82a0fef221201c28f9ec591
+202 | 0x004D49E0 | _HoldStrong::AI::AICState::updateAIPlayerState | AU13 AU47 AU51 | abgelesen / abgelesen + gemessen (1 Lauf, 2 Wellen, 1 Raid) | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 84a8b32af60e547d8e125dfd2f6db1058d020b3b76439ad9f0b62669e63c1c50
+203 | 0x004D53E0 | _HoldStrong::AI::AICState::updateAIBehaviour | AU51 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | a39fb7822c94dd90aa0fec820fdc67adb09607f2bb45582f1b480b7fbe0788ac
+204 | 0x004ED410 | _HoldStrong::AI::AIVState::aiPlaceAIVBuilding | AU45 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 5aa46e0e5e24ee20376aa54d2e229fed80b980d290b448d25bfd8cb6a6913848
+205 | 0x004EF0D0 | _HoldStrong::AI::AIVState::applyAIV | WS 4 WS 5 | abgelesen / belegt | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 3d0fbe49cf7bd1ae765a4fc6086d420e2b50c32943ad081ba0578c16ea889ac5
+206 | 0x004EF8C0 | _HoldStrong::AI::AIVState::computeAIVPlacementFit | WS 5 | belegt | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 1d985b60e4b9849e3b1dcc0f79793d9c4b82e0f1e5f31610ac4e7b4d72a0f040
+207 | 0x004F0060 | _HoldStrong::AI::AIVState::executeDefaultCastleAIV | AU45 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 76e3cb2ab7ee888e6bb8c5a360fb559cbe557dcc83aa53e4faea99621b859a26
+208 | 0x004F14F0 | _HoldStrong::AI::AIVState::tryPlaceAIVAndReturnFitPercentage | WS 5 | belegt | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | f6764f5c529c514fdbb2b0e03ad39208d6d4c101e6d2ada037e5a63a64e1fe7d
+209 | 0x004F15C0 | _HoldStrong::AI::AIVState::aiDecideOnNewBuildings | AU45 WS 4 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 2c5f9854034e40a69426630cbeaa9d0b2f42a78fa50311608505249be3fc2219
+210 | 0x004F2280 | _HoldStrong::Map::LandscapeState::lightUpTree | P27 | abgelesen + SAI gemessen (Zuendung) | F11 | 55772cfb30146f007e523712f330bb8390aff9eac911b3c911c808480bfb729e
+211 | 0x004F28F0 | _HoldStrong::Map::Trees::UpdateTree16 | WS 12 |  | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | cc6e4c64a68d124468b7291fdb66e88763fa61842c58f6e3ac3c69da75a39b20
+212 | 0x004F2920 | _HoldStrong::Map::Trees::UpdateTree17 | WS 12 |  | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | b1c2b0931b573452632c45042616cb4c14f6f2cd4a92460a14304d743066a3a1
+213 | 0x004F2970 | _HoldStrong::Map::Trees::UpdateTree18 | WS 12 |  | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | e10f19077daac06f75077d10a3a1d3940401b3693660e065822de35eeca02aa4
+214 | 0x004F29C0 | _HoldStrong::Map::Trees::UpdateTree19 | WS 12 |  | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | ea5b08bd91110567801f9bc0ff12e96f69a9ae547150c972e12c0e19681a310b
+215 | 0x004F3B90 | _HoldStrong::Map::LandscapeState::findTree | WS 13 |  | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 2f59511ce5a9ebf4e13a4367601bbf651e0a6849e543b957ac39a42f02d797af
+216 | 0x004F6FD0 | _HoldStrong::Map::TileMapState::triggerLoweredView | WS 13 |  | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 5ce2036942081041b1ad56800f337ae4c4405d887f8a881b6e5cda16891399dd
+217 | 0x004F70B0 | _HoldStrong::Map::TileMapState::toggleFlatView | WS 13 | gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 9427b9ade0d0cefd28ab9ba21a1fe38c7fe1ae523de467282001ee0573cfb113
+218 | 0x004F70E0 | _HoldStrong::Map::TileMapState::setMapRotation | WS 13 |  | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | d11e571ec9c8184248522e690d72625e1476285c31fd7ea5d48c046720eb5517
+219 | 0x004F9A60 | _HoldStrong::Map::TileMapState::isBuildingPlacementAllowedAtTile | WS 13 |  | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 7d946830a7f3257373ef585aadbd8220e35b3cfdb3af86391910b06c46061c4e
+220 | 0x004FF990 | _HoldStrong::Map::TileMapState::returnSomeHeight | AU3 AU32 | **Flugbahn-Formel** (moveProjectileEntity 0x004084A0, initializeProjectileVeloci | F18 | 9c34844545e3100177aa5c9ad4e636edbf28b47ab52f694caac21f8879c1e511
+221 | 0x005007D0 | _HoldStrong::Map::TileMapState::resetPitchDitchArray | AU53 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 4997fa6438c5874bfe7e0eb1be9aa14e9b5973d4a2a40d50862fb355ef1fcc2f
+222 | 0x00500850 | _HoldStrong::Map::TileMapState::getPitchDitchIDForTile | AU53 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 281783a5b76c830665205a7883c6e6390e29c1a1e08991f13d55ffe27cf65921
+223 | 0x005037B0 | _HoldStrong::Map::TileMapState::checkBuildingCanBePlacedHere | WS 13 |  | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 1957a2224e6d38266c301547ab8112bd613371d174b9026709ca36fded3e535a
+224 | 0x00506E10 | _HoldStrong::Map::TileMapState::placeSiegeTent | P12 P26 | Luecke / abgelesen | F42 | e6c37bd06fd1330d2745335ec8bbf2e1feb627da66fdc8afbab42688f91b653b
+225 | 0x005076A0 | _HoldStrong::Map::TileMapState::placeBarracks | WS 1 |  | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 1b85af0d71aa23afc4dbece8ec2e6deaac9c9a1e90682aba9be5c18569b3e177
+226 | 0x00507BD0 | _HoldStrong::Map::TileMapState::placeEngineersguild | WS 1 |  | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | a6a95779397d2c69be151ca76eefacb6fc206b00a41a1dd4390942b33ab53b11
+227 | 0x00507E00 | _HoldStrong::Map::TileMapState::placeTunnelersguild | WS 1 |  | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 4c60bb45c4e1ec63ab28854da2820b70ed13c7c996fd169461f6c77f36bcf4e2
+228 | 0x00508030 | _HoldStrong::Map::TileMapState::placeOilsmelter | WS 1 |  | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | ae947f14a752de48c8b6d21628fc0e797d104dad7153bc10e5a906f161afec48
+229 | 0x005114C0 | _HoldStrong::Map::TileMapState::updatePitchDitches | AU53 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | db54b756c7771a367382aa83a5eec4a3e00603dacb449de00cea59e8185cd9e2
+230 | 0x005116E0 | _HoldStrong::Map::TileMapState::placePitchDitch | AU53 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 5b4351c891a1bd552fa02d9bc2c43ed6eff3ea084dee77a4a23e89a09f7b8fb2
+231 | 0x005146D0 | _HoldStrong::Map::TileMapState::placeKeep | WS 1 |  | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | 489602b8a313ca9e86a0cb8c92e05ae05785fee75bb048ab086ae628339c950b
+232 | 0x00515F40 | _HoldStrong::Map::TileMapState::Constructor_TileMapState | AU53 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | a66c810c593747ae64c09726ff950b178ff0a5a2a88fc06d39c9949911e49379
+233 | 0x00516B80 | _HoldStrong::Map::TileMapState::processDamageToBuilding | P25 | abgelesen | F15 | 110ecce8c653806ff784922eb1c13054bf3f9c32de05ef8a56e830bb22d854b2
+234 | 0x00518C50 | _HoldStrong::Map::Units::TroopValueState::renderAttackInfoDebugOverlay | AU55 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | d40fd7df93ff3271562b7e22591e5d518f0fa0918e69a85b18151c9693e79ea5
+235 | 0x00522590 | _HoldStrong::Map::Units::TribesState::addUnitToTribe | AU37 | abgelesen | F53 | c9bae6d89ddecaeb9a8916d591fa0e42b7fe9ab26c4b2d0a5d7cfbcd81ca4572
+236 | 0x00522630 | _HoldStrong::Map::Units::TribesState::removeUnitFromThisTribeIfInTribe | AU37 | abgelesen | F53 | 6770a666387b9202b99884c172553346477067aebb10f3c65540e7bcff588c9b
+237 | 0x00523920 | _HoldStrong::Map::Units::TribesState::scatterTribeUnitsRandomly | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 7e2f7fa6aee448e43a19d35d2d2afb4a5cbf3bc7a72599b4bd27bbde2a5b2eea
+238 | 0x00524340 | _HoldStrong::Map::Units::TribesState::applyMoveCommandOrRallyCommandToTribe | AU38 AU42 | abgelesen / abgelesen + belegt | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 821d886da144b223a465888e1026a30961e6015536c8aded4ab507dcb1643c1a
+239 | 0x005244D0 | _HoldStrong::Map::Units::TribesState::assignAttackTargetsForTribe | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | c0550906ac71c69ff0e59c4028353813c2c30084dd1cf9446ccd7cbdccb3e7c7
+240 | 0x00525280 | _HoldStrong::Map::Units::TribesState::setTargetUnitForTribe | AU37 | abgelesen | F53 | 88081f86039810acf311a9091fabe2ea8d7ea6ab49f5b38ac7f227946976d373
+241 | 0x00525BA0 | _HoldStrong::Map::Units::TribesState::createAnimal | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | e33e01e2bcd5d472f7f3fc217e5017f5e8d804cb3c28ece8a56a1b75a8e87942
+242 | 0x00525F20 | _HoldStrong::Map::Units::TribesState::spawnDeerLionOrRabbit | P17 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | f1e29301eeb2b52b8f77aa1c23c3186d3c629da67dc4a409a57e3ab959c79676
+243 | 0x005261B0 | _HoldStrong::Map::Units::TribesState::respawnDeer | P17 | abgelesen | F54 | 12d5b28298a6f8edeef34c63c9d707132a8d9853feb4dad363238da6320354ee
+244 | 0x005263A0 | _HoldStrong::Map::Units::TribesState::giveTribeMoveInstruction | AU38 AU42 | abgelesen / abgelesen + belegt | kein gesonderter Einzelfund; kein grünes Funktionssiegel | a3f84c4e60057be5e2dcea6d3fc75dfb1d8aad0f8930ca5746798dde6271139d
+245 | 0x00526F00 | _HoldStrong::Map::Units::TribesState::commandUnitsToLocation | AU42 | abgelesen + belegt | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 3d76d24388ca62d1edf338b20a85666331ad8a64a889172085722398d6fe71b1
+246 | 0x00527C80 | _HoldStrong::Map::Units::TribesState::giveTribeAnInstruction | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 3c2475ba4429db10337799148a434fa8184d2b57cf1ebb4d588be14d90cec9f8
+247 | 0x0052A7D0 | _HoldStrong::Map::Units::TribesState::updateTribeCombatStanceBehavior | AU42 | abgelesen + belegt | kein gesonderter Einzelfund; kein grünes Funktionssiegel | a0fb2eabfd5086700cb72f84e044b7691d20eff1a76d925a4279c09d7ceaf86d
+248 | 0x0052AD50 | _HoldStrong::Map::Units::TribesState::processDeerMoving | AU35 AU42 | abgelesen + belegt / abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | c7d969f322101c1ab849d53b047df51bee24f9fb30e38d537b56e8424273a1db
+249 | 0x0052B390 | _HoldStrong::Map::Units::TribesState::updateRabbitTribeBehavior | AU42 | abgelesen + belegt | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 058a63c95bd3cb01b0e5fbadf024166774f64f1eb5825db53c52c65f44ec1a9e
+250 | 0x0052B860 | _HoldStrong::Map::Units::TribesState::updateTribes | AU42 | abgelesen + belegt | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 7286892cae2f952d3e8e47314bd45567a375765813904f4cd4c5de31bb985abb
+251 | 0x0052E830 | _HoldStrong::Map::Units::UnitsState::assignPeasantToBuilding | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 201a4a9463b4693713d17a00bd1e8f54cb6fc9d5c59e5eec5b9e5fcaea91c6e5
+252 | 0x0052E960 | _HoldStrong::Map::Units::UnitsState::euroRecruit | L32 | abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 0f771a19b6534a3c516d36279d8658831a8b9bed8b610145a55ad53b329ecf5c
+253 | 0x0052EC10 | _HoldStrong::Map::Units::UnitsState::nonEuroRecruit | P5 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 071ed71f61a5b094b02113795c31a67bfd2ecdce928967374ee8effbef60e243
+254 | 0x0052EDC0 | _HoldStrong::Map::Units::UnitsState::disbandUnit | WS 13 | abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel; WS-Version offen | c531fb4be960bc9c7d195711b510614e98ad117e80bac4e3807871941f329988
+255 | 0x0052F260 | _HoldStrong::Map::Units::UnitsState::setMoveDelayForUnitsOnSameTiles | AU20 AU22 P13 | abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + gemessen / abgele | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 93c40639a2b9b3001a5d5cb419db6aeee384a2f8b124d073829283f40cf427af
+256 | 0x0052F7E0 | _HoldStrong::Map::Units::UnitsState::calculateUnitMovementSpeed | AU22 AU35 P11 P13 | abgelesen (Teil) / abgelesen + gemessen / abgelesen, L1 stuetzt 3 von 4 | kein gesonderter Einzelfund; kein grünes Funktionssiegel | fb9e887e1f1b2e2cb497d8be253a512171837a06ac3feb0100b2b6d38d98b772
+257 | 0x0052FBB0 | _HoldStrong::Map::Units::UnitsState::standUpIfSeated | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | b75f8d3e6623a8fe7f5bc43b68b2ee6b473541e39db9582ee7cbb30834091cea
+258 | 0x0052FBF0 | _HoldStrong::Map::Units::UnitsState::sitDownIfStanding | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | a855c702de4173d2cba6f0b09ad5855fb4f86088a81c67eaf7e24f4a7daaa585
+259 | 0x0052FD00 | _HoldStrong::Map::Units::UnitsState::setUnitFacingDirectionTowardsTarget | AU25 | abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | a610428ba5bfcdc231c1ed9abc277bfda9097b0bbca3d7c2338a3cc544a17624
+260 | 0x0052FE90 | _HoldStrong::Map::Units::UnitsState::setUnitFacingDirectionForTargetXandY | AU25 | abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 4a4ba65d24e20c024824294baf54a2f6eba084c089d25f2e3d7f1f66b5f72323
+261 | 0x005307B0 | _HoldStrong::Global::UpdateSiegeTent | P18 | abgelesen | F12 | ebb6107960e244ce4a76359c4c6d8175448d1f10354c96c3bb3a4c02de7234b1
+262 | 0x00530C40 | _HoldStrong::Global::ConsiderHavingABreakNowUnk | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | d61c6bba40e957ecae1822bc3604b0f3a0e4575b33d0e99b367cf3ab9d99c0d8
+263 | 0x005311F0 | _HoldStrong::Map::Units::UnitsState::ComputeDamageFearFactorBonus | P3 | abgelesen (Gegenprobe Lord passt) | kein gesonderter Einzelfund; kein grünes Funktionssiegel | f3c2b7f14d1e4f2f98a1dc1a807ea273e2c82c61e642821a7ae4f8101e7973d1
+264 | 0x00531220 | _HoldStrong::Map::Units::UnitsState::processUnitAttackOtherUnit | AU37 AU42 P3 | abgelesen / abgelesen (Gegenprobe Lord passt) / abgelesen + belegt | F52 | f361fac07fa6101ed1b9d41c128d82550abda197b232d3d0a261004818b773af
+265 | 0x00531920 | _HoldStrong::Map::Units::UnitsState::processEntityDamageToUnit | AU31 AU37 AU4 AU42 P4 | abgelesen / abgelesen + belegt / abgelesen + gemessen / abgelesen + gemessen (Fe | F16,F52,F59 | b0063a4defd9ce63a1d62eccbb236ee889e11588df95b9e34f00ec6d136a8bb0
+266 | 0x00532700 | _HoldStrong::Map::Units::UnitsState::shootProjectile | AU2 AU24 AU42 | abgelesen + belegt / abgelesen + gemessen / abgelesen + gemessen (Schuetze/Ziel/ | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 5c87526331c00a3070175a8b62eb2e1a96bcfb0de30d4bc6a80954b1c1cc9646
+267 | 0x00532BA0 | _HoldStrong::Map::Units::UnitsState::recomputeTroopValuesForPlayer | AU20 AU23 AU43 AU47 | abgelesen / abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + gemes | F17 | db6af025dd021500f7d94a54f91e7480f202274f28be84ec898ffdd9a2cc84a7
+268 | 0x00533580 | _HoldStrong::Map::Units::UnitsState::checkTargetBuildingPossibilityOrState | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | ae278d521106b8acf166e5949c5a0dc203c7eea2ccbcbe89aa499db25332bf77
+269 | 0x00534030 | _HoldStrong::Map::Units::UnitsState::updateMicroPosition | AU37 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | fd3f3ea717e3b251d5d6cd8437cd9259ba150648801da51b83aac46bf6a9e46e
+270 | 0x00537880 | _HoldStrong::Map::Units::UnitsState::findNearestShootableDeer | AU27 | abgelesen + gemessen | F56 | 4fe7c7439b1f4afe53182dcb0e7d137bf7495b37f1a5fcddf86feee2d8632518
+271 | 0x0053B8E0 | _HoldStrong::Map::Units::UnitsState::setUnitValues | AU20 AU37 | abgelesen / abgelesen (1b/2 Staleness gemessen nur indirekt) | F52 | 16caeb5b52c71b33cce939a456b00c73a5e256030558e90de28c86c9177b1ee7
+272 | 0x0053CAE0 | _HoldStrong::Map::Units::UnitsState::getEnemyUnitIDNearby | AU18 | abgelesen + gemessen (Reihenfolge) | F55 | b4cfba11721f2161759184e7ff130a75aa0af1764aa08ca0d8d6e0afcf5d5398
+273 | 0x0053CBD0 | _HoldStrong::Map::Units::UnitsState::prepareProjectileTarget | AU24 AU25 AU37 AU5 | abgelesen / abgelesen + Lauf / abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | c7d2731af9d56ec1b609f43cc3ac64543e9c5344d20b37656bccb9f4cf2b8a4d
+274 | 0x0053D3D0 | _HoldStrong::Map::Units::UnitsState::setDestinationForUnit | AU37 WS 3 | abgelesen / belegt | kein gesonderter Einzelfund; kein grünes Funktionssiegel | ada7671fb15720effdc44f019300b941624b48a2848e9e8b5877a0fb0982cb21
+275 | 0x0053E440 | _HoldStrong::Map::Units::UnitsState::spawnUnit | AU37 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | da8037d823832ac60d84d9844668be94837dc925668329e924ae0027c62685af
+276 | 0x0053E900 | _HoldStrong::Map::Units::UnitsState::setPositionOfUnit | AU37 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 24fe7caca4154c2e85aa1b3d1914b4647711103f9c46f68be32c00ae964562cd
+277 | 0x0053EAA0 | _HoldStrong::Global::UpdatePeasant | AU37 AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 48d98d4f415af166fc2cb2a8bd7cc9ea910c06359c40bb4f796a454738b30ff9
+278 | 0x0053F940 | _HoldStrong::Global::UpdateOx | AU38 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 39fcbfa636fb4c3b49c68d77875a30524de4c0e0c4ec8e405b1f685cbf2f910e
+279 | 0x00540440 | _HoldStrong::Global::UpdateHealer | AU41 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | a7f4d1ed4fe77ace0cafece51b1026ac98e76d9126185b66c8124cf753d2f00f
+280 | 0x00541DE0 | _HoldStrong::Global::UpdateDeer | AU35 AU38 | abgelesen / abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 780dbb2618db0124b53bb03087365d16fd6fc0ebec314729f1d91d5f471d8796
+281 | 0x00543340 | _HoldStrong::Global::UpdateFireWatch | P27 P29 | Offsets getestet (live, SAI); Feuerwache abgelesen / abgelesen + SAI gemessen (Z | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 0e7ffdeb502ec0c2af166c18a80f5517af022f176f640da0bdfe42e3ee37c901
+282 | 0x00549B30 | _HoldStrong::Global::SetRestingForUnit | AU38 | abgelesen | F57 | c390145acfb94a81de4a2a66aa1201fc6dbd57f02cc1eac93cd92c36bb8696f2
+283 | 0x00549C70 | _HoldStrong::Map::Units::UnitsState::processMeleeInitiation | AU18 AU23 L77 P23 | abgelesen / abgelesen + Daniel gemessen / abgelesen + gemessen / abgelesen + gem | kein gesonderter Einzelfund; kein grünes Funktionssiegel | fba5685a40ab1fbe5ef4406e29fff386b37aaf17df95fd06a44097b4e6ef6267
+284 | 0x0054A7B0 | _HoldStrong::Map::Units::UnitsState::findNearestEnemyAndHeadTowardsIt | AU18 AU20 AU21 AU23 P15 | abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + SAI gemessen / ab | kein gesonderter Einzelfund; kein grünes Funktionssiegel | ebffbe9f282fc7388a10e03379cf3bf0b7e29b675938d6d2773b9bcf90cc3b98
+285 | 0x0054B0D0 | _HoldStrong::Map::Units::UnitsState::acquireShootTarget | AU20 AU21 AU22 P14 P15 | abgelesen / abgelesen (1b/2 Staleness gemessen nur indirekt) / abgelesen + SAI g | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 0f6892cc941f482ae6874f916a6b387843c6c40d85b1d11f04a3b3ae459ec93e
+286 | 0x0054D8F0 | _HoldStrong::Global::UpdateFletcher | AU39 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | c6c71dafeefe1cc4518520329b1b36c98276a14e5bb74d61410a7032597e9c09
+287 | 0x0054F860 | _HoldStrong::Global::UpdateHunter | AU27 AU29 AU37 | abgelesen / abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | e4344c43d7a1afaab055390e95e1fea33b299ef9692d40913ca4460ba95181b4
+288 | 0x00557230 | _HoldStrong::Global::UpdatePoleTurner | AU39 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 6e391e1025221c17e6bc243526c1c99c207576825cd9ed1b55c6844ae02136c7
+289 | 0x005598D0 | _HoldStrong::Global::UpdateTanner | AU55 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 55d2ea89ecc9c20cbc9cc8a1188cf4d9fe26a0b6944c32f86b58e5296ecc16dc
+290 | 0x0055A800 | _HoldStrong::Global::UpdateCrusaderArcher | AU25 AU28 AU30 P20 | abgelesen (grob) / abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | af82fc0b54a70ffdf549f0276f8f4cb4aeddfc1d30c4499d672131253952b8fe
+291 | 0x0055C7B0 | _HoldStrong::Global::UpdateCrossbowman | AU28 AU43 | abgelesen / abgelesen + gemessen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | d82773a6c1afe09d3f1aee7f3b213d53e43e3b0e244237b9e6d6dfd417857cfb
+292 | 0x0055F110 | _HoldStrong::Global::UpdatePikeman | AU43 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | be06e64a341dea4a72d9758ac0cb8b1d5cb2bd8d78ac18ec7762b1a7ee13b479
+293 | 0x00560700 | _HoldStrong::Global::UpdateMaceman | AU38 AU43 P20 | abgelesen / abgelesen (grob) | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 962e0419ede8c31962ad79619847522fd266cc99544990aa040bb5890596b318
+294 | 0x00561C10 | _HoldStrong::Global::UpdateSwordsman | AU43 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | d05268e24e6031f4d6e25ef5dc2f8f4c925573fa6d19fb32c58b172f08a40e44
+295 | 0x00568320 | _HoldStrong::Global::UpdateCatapult | AU12 AU38 | abgelesen / abgelesen; Verschwinden gemessen, Ursache wahrscheinlich | F58 | 3160ca5c920037819046cf5a90b7fb010e41db2f8984fd10ddb1fb710b2e5933
+296 | 0x00569410 | _HoldStrong::Global::UpdateTrebuchet | AU38 | abgelesen | F58 | edb0a34f192f6487a022e6f21183196136e4a8f6184a00eecd1b1bf937062b4c
+297 | 0x00570400 | _HoldStrong::Global::UpdateArabianArcher | AU28 AU6 | abgelesen + gemessen / gemessen (Bogenschuetze) / abgelesen (uebrige Arten) | kein gesonderter Einzelfund; kein grünes Funktionssiegel | a350218254aeb634b25f56b5320dc06977d553c9e3ee6ee494d48d1fe51eab1d
+298 | 0x00571C00 | _HoldStrong::Global::UpdateSlave | P27 | abgelesen + SAI gemessen (Zuendung) | F13 | f6443b161323c1c3200a7bcffc2f7d87b8f88928f0a7bfabcb552d5fd9d892e4
+299 | 0x005744D0 | _HoldStrong::Global::UpdateAssassin | AU38 AU45 P20 | abgelesen / abgelesen (grob) | kein gesonderter Einzelfund; kein grünes Funktionssiegel | 230f76348e3579c43aff987edcf6e0e6b84e07fba824e92e59adda74f7bdab42
+300 | 0x00575C40 | _HoldStrong::Global::UpdateArabianSwordsman | AU43 AU45 | abgelesen | kein gesonderter Einzelfund; kein grünes Funktionssiegel | f12c454ae7bdb0d585cbb1f74b798e289d41d5faf2d724cdfc403d87069bb25b
+
+AUSSERHALB DER ERSTEN300 (nicht als mitgeprüft ausgeben):
+0x005769F0 _HoldStrong::Global::UpdateFireThrower
+0x00578C40 _HoldStrong::Map::Units::UnitsState::processUnitMove
+0x00579300 _HoldStrong::Map::Units::UnitsState::updateUnits
+0x0057AB50 _HoldStrong::Global::UpdateHorseArcher
+
+REPRODUKTION DER AUSWAHL (PowerShell; nur lesend)
+$repo = 'C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge'
+git -C $repo show 48d9545:daten/auge_abdeckung_funktionen.csv |
+  ConvertFrom-Csv -Delimiter ';' |
+  Where-Object { $_.erklaert -eq 'ja' -and $_.spiellogik -eq 'ja' } |
+  Select-Object -First 300
+
+GRUNDLAGE DER NEGATIVLÄUFE
+Es wurde kein --ausgabe-Lauf in den Arbeitsbaum geschrieben. Stattdessen wurde
+der Originalcode von auge_abdeckung.py aus 48d9545 in einen eigenen Namensraum
+geladen; __name__ war nicht __main__. Nur belegzeilen(ohne_beleg) wurde aufgerufen.
+io.open wurde ausschließlich für das Wissensregister auf den Committext im RAM
+umgeleitet. Das externe WS wurde gelesen wie im Originalskript. Pro Adresse wurden
+dieselben beiden Regex-Ausdrücke wie in main() verwendet:
+  (0x)?<achtstellige Adresse>\b
+  (0x)?<Adresse ohne führende Nullen>\b
+Jeder Normal-/Negativlauf verglich die vollständigen Adressmengen (nicht nur Summen).
+Der Normallauf reproduzierte alle Belegzuordnungen der Commit-CSV ohne Abweichung.
+Dies ist die im Auftrag erlaubte Entfernung im Speicher; kein Aufruf des Spiels,
+kein kompletter Feld-/Auge-Import und keine neue Laufzeitmessung.
+
+ZUFALLSAUSWAHL
+Python random.Random(2026102848).sample(population, 3)
+Population sortiert:
+AU37 AU38 AU39 AU40 AU41 AU42 AU43 AU45 AU47 AU49 AU51 AU53 AU55 AU57 AU60 AU62
+AU64 AU66 AU68 AU70 AU72
+Kriterium: AU-Zeile enthält „Paket“, jedoch nicht „Abdeckungsmessung“.
+Gezogen: AU60, AU64, AU70. Der feste Seed macht die zufällige Auswahl wiederholbar.
+
+ZUSÄTZLICHE GEGENPROBEN
+- 300 JSON-Rohbytefolgen: SHA-256 und Länge gegen die gespeicherten Werte geprüft;
+  0 Abweichungen. Negativ: in RAM je ein Byte in 00401090,0040B720,00575C40 gekippt
+  (Byteindizes16,68,1656). Alle drei Hashprüfungen erkennen die Änderung.
+- Original-Adressmatcher: 0x00401090 -> Treffer; 0x004010900 -> kein Treffer;
+  ABER 0x100401090 -> Treffer. Entsprechende Gegenproben auch mit0040B720/004827E0.
+- „Diese Funktion ist unbekannt:0x004827e0“, „NICHT gelesen:0x004827e0“ und eine
+  reine Aufruferreferenz werden vom Matcher genauso angenommen wie eine Erklärung.
+  Ein echter vorhandener Positivbeleg für diesen Fehler ist P12.
+- Statische Grenzwert-Gegenbeispiele stehen bei den einzelnen Funden. Sie sind
+  aus dem Kontrollfluss abgeleitet; sie wurden nicht als echte Spielmessung ausgegeben.
+
+
+
+BELEGHASHES UND QUELLEN
+Arbeitsordner: C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge
+Original-JSON-Ordner: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions
+Wissensregister48d9545 SHA256(UTF-8 ohne BOM): acffc0c679fd6f53b5f17aa0b3c195efd201ce49385bff03749eaab39b3701e1
+Funktions-CSV48d9545 SHA256(UTF-8 ohne BOM): cafa610643437a26672fc139ddedc167c4c9e24b1577eaf61c5306b60c39c6e6
+Externer WS SHA256(Dateibytes): 8459e1f9e12ee980142a96614564b3fab0782adf2bbc1918d3dc8cab6b98287e
+AGENTS.md@48d9545 SHA256(UTF-8 ohne BOM): c9b9f991875d1f0035a7b171314ac1c5145df49277298be471de8867ad586b94
+CLAUDE.md@48d9545 SHA256(UTF-8 ohne BOM): 45a317a3cf573ba5a5b108abf674debfb6477be3376c3bfc18eac08e095640d6
+CODEX_AUFTRAG_AUGE.md@48d9545 SHA256(UTF-8 ohne BOM): 6d72ccf4210fc0eac84b9f5d34eb61d3f9ec7213efa5880350b6cebea9a9aaad
+werkzeug/engine_knowledge/WEITER.txt@48d9545 SHA256(UTF-8 ohne BOM): 386435633108dd6cf9515decd441783a39382597f8095d840836465fef596ff8
+werkzeug/engine_knowledge/auge_abdeckung.py@48d9545 SHA256(UTF-8 ohne BOM): d56bb5afc02695d32cd826245aaba4884c0027ed9846972f0aa9a0f705eaa529
+
+SELBSTPRÜFUNG VOR ABGABE
+Keine Schätzung einer semantisch fehlerfreien Gesamtzahl.304 bezeichnet Adressnennungen,300 die deterministische Auswahl,64 Befundgruppen.
+Keine ungeprüfte Aussage über einen laufenden Spielstand oder Live-Patch.
+Keine Änderungen an untersuchten Originaldateien; neue Berichtdatei außerhalb des Projekts.
+Das DD-Grundgesetz liegt im untersuchten Repository nicht vor; die einschlägige Beleg-/Gegenproben-Selbstprüfung des Skills wurde auf diesen Bericht angewendet.
+Die Einzelprüfung ersetzt keine vollständige Zeilenabnahme aller Zustandsautomaten. Die ausgewiesenen Lücken sind offen, nicht grün.
+
+

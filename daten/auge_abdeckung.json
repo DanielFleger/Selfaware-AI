@@ -1,76 +1,80 @@
 {
- "stand": "28.10.2026 19:53",
+ "stand": "28.10.2026 23:28",
  "funktionen": {
   "gesamt": 4581,
-  "erklaert": 460,
+  "registerbelegt": 461,
+  "teilbeschrieben": 442,
+  "semantisch_abgenommen": 0,
   "name_unklar": 409,
   "spiellogik": 1938,
-  "spiellogik_erklaert": 450
+  "spiellogik_registerbelegt": 451,
+  "spiellogik_teilbeschrieben": 434,
+  "spiellogik_semantisch_abgenommen": 0
  },
  "felder": {
   "gesamt": 1666,
-  "erklaert": 426,
+  "registerbelegt": 427,
   "liest_auge": 315,
-  "liest_aber_unerklaert": 0
+  "liest_aber_unbelegt": 0
  },
  "je_struktur": {
   "Einheit": {
    "felder": 275,
-   "erklaert": 146,
+   "registerbelegt": 146,
    "liest_auge": 86,
    "name_unklar": 98,
-   "liest_aber_unerklaert": 0
+   "liest_aber_unbelegt": 0
   },
   "Gebaeude": {
    "felder": 239,
-   "erklaert": 67,
+   "registerbelegt": 67,
    "liest_auge": 62,
    "name_unklar": 64,
-   "liest_aber_unerklaert": 0
+   "liest_aber_unbelegt": 0
   },
   "Geschoss": {
    "felder": 93,
-   "erklaert": 52,
+   "registerbelegt": 52,
    "liest_auge": 47,
    "name_unklar": 36,
-   "liest_aber_unerklaert": 0
+   "liest_aber_unbelegt": 0
   },
   "Trupp": {
    "felder": 89,
-   "erklaert": 27,
+   "registerbelegt": 27,
    "liest_auge": 25,
    "name_unklar": 33,
-   "liest_aber_unerklaert": 0
+   "liest_aber_unbelegt": 0
   },
   "Spieler": {
    "felder": 388,
-   "erklaert": 77,
+   "registerbelegt": 78,
    "liest_auge": 61,
    "name_unklar": 46,
-   "liest_aber_unerklaert": 0
+   "liest_aber_unbelegt": 0
   },
   "KI-Vorgaben": {
    "felder": 169,
-   "erklaert": 29,
+   "registerbelegt": 29,
    "liest_auge": 23,
    "name_unklar": 9,
-   "liest_aber_unerklaert": 0
+   "liest_aber_unbelegt": 0
   },
   "Karte/Zeit": {
    "felder": 230,
-   "erklaert": 9,
+   "registerbelegt": 9,
    "liest_auge": 5,
    "name_unklar": 147,
-   "liest_aber_unerklaert": 0
+   "liest_aber_unbelegt": 0
   },
   "Weltkarte": {
    "felder": 183,
-   "erklaert": 19,
+   "registerbelegt": 19,
    "liest_auge": 6,
    "name_unklar": 65,
-   "liest_aber_unerklaert": 0
+   "liest_aber_unbelegt": 0
   }
  },
- "belegzeilen": 917,
- "regel": "B-267 Auge-Abdeckung (Daniel 27.10. 17:51: \"im Endeffekt darf im Code keine Zeile unerklaert sein\").\n\nMisst - statt aus dem Gedaechtnis - fuer ALLE Funktionen der Wissensdatenbank (knowledge.sqlite, Ghidra-Referenz) und\nALLE Felder der Strukturen Einheit, Gebaeude, Geschoss, Trupp, Spieler, KI-Vorgaben (AICSpecification), Karte/Zeit\n(MapAndTimeState) und Weltkarte (TileMapState):\n  - erklaert: ja, wenn eine Belegzeile sie nennt - Wissensregister.md (Zeilen AU/P/L/W/B/G/S/A, Spalte 1 = Beleg) oder\n    VillageStudio/doku/Wissensstand.md (Beleg \"WS <Abschnitt>\"); Zeilen mit Marke \"widerlegt\" zaehlen nicht.\n    Funktion genannt = Adresse (8 Hex-Ziffern, mit/ohne 0x) oder Kurzname (letzter ::-Teil, ab 8 Zeichen, ganzes Wort).\n    Feld genannt = Feldname als ganzes Wort; bei der Einheit zusaetzlich \"+<Offset>\" (so schreibt das Register).\n  - liest das Auge: Feldname steht in einem Datentyp oder im Quelltext von werkzeug/auge.py.\n  - Name unklar: Ghidra-Platzhalter (fieldNNN_0x.., ...Unk, unknown..., _OR_-Doppelnamen, FUN_...).\nDas ist \"im Register erwaehnt\", nicht \"vollstaendig verstanden\" - die Marke der Belegzeile steht mit dabei."
+ "belegzeilen": 919,
+ "regel": "B-267 Auge-Abdeckung (Daniel 27.10. 17:51: \"im Endeffekt darf im Code keine Zeile unerklaert sein\").\n\nMisst - statt aus dem Gedaechtnis - fuer ALLE Funktionen der Wissensdatenbank (knowledge.sqlite, Ghidra-Referenz) und\nALLE Felder der Strukturen Einheit, Gebaeude, Geschoss, Trupp, Spieler, KI-Vorgaben (AICSpecification), Karte/Zeit\n(MapAndTimeState) und Weltkarte (TileMapState):\n  - registerbelegt: ja, wenn eine Belegzeile sie nennt - Wissensregister.md (Zeilen AU/P/L/W/B/G/S/A) oder\n    VillageStudio/doku/Wissensstand.md (Beleg \"WS <Abschnitt>\"); Zeilen mit Marke \"widerlegt\" zaehlen nicht.\n    Funktion genannt = Adresse (8 Hex-Ziffern, mit/ohne 0x) oder Kurzname (letzter ::-Teil, ab 8 Zeichen, ganzes Wort).\n    Feld genannt = Feldname als ganzes Wort; bei der Einheit zusaetzlich \"+<Offset>\" (so schreibt das Register).\n  - liest das Auge: Feldname steht in einem Datentyp oder im Quelltext von werkzeug/auge.py.\n  - Name unklar: Ghidra-Platzhalter (fieldNNN_0x.., ...Unk, unknown..., _OR_-Doppelnamen, FUN_...).\nDas ist nur \"im Register adresslich erwaehnt\", nicht \"vollstaendig verstanden\". Eine semantische Abnahme wird\ngetrennt ausgewiesen und niemals aus einer blossen Adressnennung abgeleitet."
 }

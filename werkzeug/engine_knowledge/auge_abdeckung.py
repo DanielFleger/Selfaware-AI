@@ -4,13 +4,14 @@
 Misst - statt aus dem Gedaechtnis - fuer ALLE Funktionen der Wissensdatenbank (knowledge.sqlite, Ghidra-Referenz) und
 ALLE Felder der Strukturen Einheit, Gebaeude, Geschoss, Trupp, Spieler, KI-Vorgaben (AICSpecification), Karte/Zeit
 (MapAndTimeState) und Weltkarte (TileMapState):
-  - erklaert: ja, wenn eine Belegzeile sie nennt - Wissensregister.md (Zeilen AU/P/L/W/B/G/S/A, Spalte 1 = Beleg) oder
+  - registerbelegt: ja, wenn eine Belegzeile sie nennt - Wissensregister.md (Zeilen AU/P/L/W/B/G/S/A) oder
     VillageStudio/doku/Wissensstand.md (Beleg "WS <Abschnitt>"); Zeilen mit Marke "widerlegt" zaehlen nicht.
     Funktion genannt = Adresse (8 Hex-Ziffern, mit/ohne 0x) oder Kurzname (letzter ::-Teil, ab 8 Zeichen, ganzes Wort).
     Feld genannt = Feldname als ganzes Wort; bei der Einheit zusaetzlich "+<Offset>" (so schreibt das Register).
   - liest das Auge: Feldname steht in einem Datentyp oder im Quelltext von werkzeug/auge.py.
   - Name unklar: Ghidra-Platzhalter (fieldNNN_0x.., ...Unk, unknown..., _OR_-Doppelnamen, FUN_...).
-Das ist "im Register erwaehnt", nicht "vollstaendig verstanden" - die Marke der Belegzeile steht mit dabei.
+Das ist nur "im Register adresslich erwaehnt", nicht "vollstaendig verstanden". Eine semantische Abnahme wird
+getrennt ausgewiesen und niemals aus einer blossen Adressnennung abgeleitet.
 
 Aufruf: python werkzeug/engine_knowledge/auge_abdeckung.py   -> daten/auge_abdeckung_{funktionen,felder}.csv + .json
 """
@@ -42,6 +43,22 @@ TECHNIK = ("_HoldStrong::UI", "HoldStrong_lib", "_HoldStrong::Global::Init", "_H
            "_HoldStrong::Audio", "_HoldStrong::IO", "_HoldStrong::Rendering", "_HoldStrong::OS", "_HoldStrong::Input",
            "_HoldStrong::Map::Version")
 UNKLAR = re.compile(r"^(field\d+_0x[0-9a-f]+|FUN_|DAT_|_?unknown|.*Unk\d*$|.*_OR_|.*Unknown|.*unk\d)", re.I)
+STATUSWORTE = re.compile(r"\b(abgelesen|gemessen|belegt|getestet|vermutet|offen|luecke|widerlegt)\b", re.I)
+INHALTSBELEG = re.compile(r"\b(abgelesen|gemessen|belegt|getestet)\b", re.I)
+
+
+def register_status(spalten):
+    """Belegstatus aus uneinheitlichen Registertabellen; Fliesstext mit | darf ihn nicht verschieben."""
+    for spalte in spalten[2:]:
+        if STATUSWORTE.search(spalte):
+            return spalte
+    return ""
+
+
+def adressmuster(a):
+    """Exakte achtstellige Adresse oder dieselbe Zahl ohne fuehrende Nullen."""
+    return [re.compile(r"(?<![0-9a-f])(0x)?" + a + r"\b"),
+            re.compile(r"(?<![0-9a-f])(0x)?" + a.lstrip("0") + r"\b")]
 
 
 def belegzeilen(ohne_beleg=None):
@@ -53,8 +70,8 @@ def belegzeilen(ohne_beleg=None):
         if m:
             if m.group(1) == ohne_beleg:
                 continue
-            spalten = [s.strip() for s in z.split("|")]
-            marke = spalten[-4] if len(spalten) > 4 else ""
+            spalten = [s.strip() for s in z.split("|") if s.strip()]
+            marke = register_status(spalten)
             aus.append((m.group(1), marke, z.lower()))
     if os.path.exists(WS):
         abschnitt = "0"
@@ -102,9 +119,13 @@ def main():
         kurz = name.split("::")[-1]
         # Nur die eindeutige Adresse belegt eine Funktion. Ein Name in einer Registerzeile kann bloss
         # ein aufgerufener Nachbar sein; das erklaert dessen eigenen Funktionskoerper noch nicht.
-        muster = [re.compile(r"(0x)?" + a + r"\b"), re.compile(r"(0x)?" + a.lstrip("0") + r"\b")]
+        muster = adressmuster(a)
         belege = [(b, m) for b, m, t in zeilen if any(p.search(t) for p in muster)]
-        f_aus.append({"adresse": "0x" + a.upper(), "name": name, "erklaert": "ja" if belege else "nein",
+        inhaltsbelege = [(b, m) for b, m in belege if INHALTSBELEG.search(m or "")]
+        f_aus.append({"adresse": "0x" + a.upper(), "name": name,
+                      "registerbelegt": "ja" if belege else "nein",
+                      "beschreibungsstand": "teilbeschreibung" if inhaltsbelege else "offen",
+                      "semantisch_abgenommen": "nein",
                       "beleg": " ".join(sorted(set(b for b, _ in belege)))[:200],
                       "marke": " / ".join(sorted(set(m for _, m in belege if m)))[:80],
                       "name_unklar": "ja" if UNKLAR.match(kurz) else "nein",
@@ -128,7 +149,7 @@ def main():
             belege = [(b, mk) for b, mk, tx in zeilen if any(p.search(tx) for p in muster)]
             liest = feld in namen or feld in indirekt.get(struktur, set())
             fe_aus.append({"struktur": struktur, "offset": off, "typ": typ, "groesse": gr, "feld": feld,
-                           "erklaert": "ja" if belege else "nein",
+                           "registerbelegt": "ja" if belege else "nein",
                            "beleg": " ".join(sorted(set(b for b, _ in belege)))[:200],
                            "marke": " / ".join(sorted(set(mk for _, mk in belege if mk)))[:80],
                            "liest_auge": "ja" if liest else "nein",
@@ -146,13 +167,20 @@ def main():
     je = {}
     for s in STRUKTUREN:
         teil = [r for r in fe_aus if r["struktur"] == s]
-        je[s] = {"felder": len(teil), "erklaert": zahl(teil, erklaert="ja"), "liest_auge": zahl(teil, liest_auge="ja"),
-                 "name_unklar": zahl(teil, name_unklar="ja"), "liest_aber_unerklaert": zahl(teil, liest_auge="ja", erklaert="nein")}
+        je[s] = {"felder": len(teil), "registerbelegt": zahl(teil, registerbelegt="ja"),
+                 "liest_auge": zahl(teil, liest_auge="ja"), "name_unklar": zahl(teil, name_unklar="ja"),
+                 "liest_aber_unbelegt": zahl(teil, liest_auge="ja", registerbelegt="nein")}
     erg = {"stand": __import__("time").strftime("%d.%m.%Y %H:%M"),
-           "funktionen": {"gesamt": len(f_aus), "erklaert": zahl(f_aus, erklaert="ja"), "name_unklar": zahl(f_aus, name_unklar="ja"),
-                          "spiellogik": zahl(f_aus, spiellogik="ja"), "spiellogik_erklaert": zahl(f_aus, spiellogik="ja", erklaert="ja")},
-           "felder": {"gesamt": len(fe_aus), "erklaert": zahl(fe_aus, erklaert="ja"), "liest_auge": zahl(fe_aus, liest_auge="ja"),
-                      "liest_aber_unerklaert": zahl(fe_aus, liest_auge="ja", erklaert="nein")},
+           "funktionen": {"gesamt": len(f_aus), "registerbelegt": zahl(f_aus, registerbelegt="ja"),
+                          "teilbeschrieben": zahl(f_aus, beschreibungsstand="teilbeschreibung"),
+                          "semantisch_abgenommen": zahl(f_aus, semantisch_abgenommen="ja"),
+                          "name_unklar": zahl(f_aus, name_unklar="ja"), "spiellogik": zahl(f_aus, spiellogik="ja"),
+                          "spiellogik_registerbelegt": zahl(f_aus, spiellogik="ja", registerbelegt="ja"),
+                          "spiellogik_teilbeschrieben": zahl(f_aus, spiellogik="ja", beschreibungsstand="teilbeschreibung"),
+                          "spiellogik_semantisch_abgenommen": zahl(f_aus, spiellogik="ja", semantisch_abgenommen="ja")},
+           "felder": {"gesamt": len(fe_aus), "registerbelegt": zahl(fe_aus, registerbelegt="ja"),
+                      "liest_auge": zahl(fe_aus, liest_auge="ja"),
+                      "liest_aber_unbelegt": zahl(fe_aus, liest_auge="ja", registerbelegt="nein")},
            "je_struktur": je, "belegzeilen": len(zeilen),
            "regel": __doc__.split("Aufruf:")[0].strip()}
     json.dump(erg, io.open(os.path.join(daten, "auge_abdeckung.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
