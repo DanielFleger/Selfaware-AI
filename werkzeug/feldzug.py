@@ -212,6 +212,11 @@ class Feldzug:
     # Wegpunkt mehr - alle bekommen den Angriffsbefehl auf den Lord (das Spiel sucht den Weg, auch die Treppe hinauf)
     SCHLUSS_R = 25
     WEGPUNKT_HALB = 10        # 19.10.: naechster Wegpunkt, sobald die Haelfte der Spitzengruppe so nah dran ist
+    # B-284 (Daniel 28.10. 00:57 "es wird einfach wieder drauf losgestuermt ohne Ruecksicht auf Sammeln"; Partie 005506: "Abstand
+    # zum Lord naechster 11 / Mitte 57", eine Schlange ueber 16 Wegpunkte): der naechste Wegpunkt gilt erst, wenn MARSCH_ANTEIL
+    # der Kolonne (alle bis MARSCH_R Felder um den Wegpunkt - wer daheim neu angeworben wird, haelt nicht auf, 1019i) bis
+    # WEGPUNKT_HALB beisammen ist, oder nach MARSCH_FRIST Takten Warten. Startwerte, UNGEMESSEN. Rueckweg: MARSCH_SAMMELN = False
+    MARSCH_SAMMELN, MARSCH_ANTEIL, MARSCH_R, MARSCH_FRIST = True, 0.6, 60, 900
     SPITZE_TIEFE = 25         # 19.10. (1019i): Spitzengruppe = bis so viele Felder hinter dem vordersten
     # 19.10. (Daniel: "es macht keinen Sinn, dass arabische Bogenschuetzen im Team mit Schwertkaempfern laufen - sie sollten
     # eher schiessen, wenn sie koennen"): Schuetzen des Heeres nehmen im Angriff den naechsten Feind in Reichweite (zuerst
@@ -1573,6 +1578,20 @@ class Feldzug:
                 nah_i = sum(1 for o in vorn if schach(o, wp_i) <= self.WEGPUNKT_HALB)
                 # (nicht "die Spitze ist naeher am Lord als der Wegpunkt" - das ueberspringt jeden Umweg, Pruefung 8)
                 if schach(mitte_v, wp_i) <= self.WEGPUNKT_NAH or 2 * nah_i >= len(vorn):
+                    if self.MARSCH_SAMMELN and not self.direkt:
+                        kolonne = [o for o in orte if schach(o, wp_i) <= self.MARSCH_R]
+                        da_i = sum(1 for o in kolonne if schach(o, wp_i) <= self.WEGPUNKT_HALB)
+                        ms = getattr(self, "_marsch", None)
+                        if ms is None or ms[0] != (self.weg_i, wp_i):
+                            ms = self._marsch = [(self.weg_i, wp_i), t, -10 ** 9]
+                        if da_i < self.MARSCH_ANTEIL * len(kolonne) and t - ms[1] < self.MARSCH_FRIST:
+                            if t - ms[2] >= 300:
+                                ms[2] = t
+                                aus.append("FELDZUG MARSCH SAMMELN am Wegpunkt %d/%d %s: %d von %d der Kolonne beisammen - weiter "
+                                           "ab %d %%, spaetestens nach %d Takten (wartet seit %d)" % (
+                                               self.weg_i + 1, len(self.weg), wp_i, da_i, len(kolonne),
+                                               100 * self.MARSCH_ANTEIL, self.MARSCH_FRIST, t - ms[1]))
+                            break
                     self.weg_i += 1
                 else:
                     break

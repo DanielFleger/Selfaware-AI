@@ -3698,6 +3698,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             ereignis += brand.schritt(L, G, befehl, lage_r)
                             tz = uhr("r_brand", tz)
                             # B-222 (Daniel 24.10. 21:40): greift das Heer an, ziehen die Reiter die Schuetzen am Lord auf sich
+                            reiter.tick = st.get("t")                         # B-284: Takt fuer die Spaeher-Sperre
                             reiter.angriff = feldzug is not None and getattr(feldzug, "phase", None) == "angriff"
                             reiter.lord_ort = next(((e["x"], e["y"]) for e in L.values() if e["typ"] == 55
                                                     and e["besitzer"] not in freunde_von(SP)), None) if reiter.angriff else None
@@ -3727,7 +3728,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                                 for i_r, (typ_r, n_r) in enumerate(RA.werbung(
                                         st["gold"] - wirt.ruecklage(G, ohne_heer=HEER_ANTEIL > 0)["gold"], st.get("feuer", 0),
                                         len(brand.einheiten(L)), len(reiter.einheiten(L)), len(deckung.einheiten(L)),
-                                        reiter_ziele=getattr(reiter, "ziele_zuletzt", None), gruende=gruende_r)):   # B-220
+                                        reiter_ziele=getattr(reiter, "ziele_zuletzt", None), gruende=gruende_r,
+                                        reiter_tot_vor=(st["t"] - reiter.verloren_t) if getattr(reiter, "verloren_t", None) is not None else None)):   # B-220/B-284
                                     for _ in range(n_r):
                                         BA_r.werbe(typ_r, posten_h)
                                     if HEER_ANTEIL > 0:

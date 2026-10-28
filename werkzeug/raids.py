@@ -36,6 +36,9 @@ SCHUSS_R = 12                                    # Startwert, UNGEMESSEN: Schleu
 SKLAVE_GOLD, PFERD_GOLD = 5, 75                  # L63
 SKLAVEN_SOLL = 5                                 # Startwert
 REITER_SOLL = 3                                  # Startwert
+# B-284 (Daniel 28.10. 00:57 "warum wurde ein Berittener gekauft"; Partie 005506: dreimal "Spaeher: noch kein Reiter da" - jeder
+# starb, die Regel kaufte den naechsten): nach einem toten Reiter SPAEHER_PAUSE Takte kein neuer Spaeher (Startwert, UNGEMESSEN)
+SPAEHER_PAUSE = 3000
 FEUER_MIN = 2                                    # so viele Bauern bleiben am Feuer
 GEFAHR_FERN = 20                                 # L81: Schuetzen entdecken bis 20 Felder
 GEFAHR_NAH = 10
@@ -461,6 +464,10 @@ class Reiterjagd:
         aus = []
         self._abschuesse(L)
         reiter = sorted(self.einheiten(L))
+        weg_r = getattr(self, "_bekannt", set()) - set(reiter)
+        if weg_r:
+            self.verloren_t = getattr(self, "tick", None)     # B-284: ein Reiter ist weg (tot) - fuer die Spaeher-Sperre
+        self._bekannt = set(reiter)
         if not reiter:
             return aus
         if lage is None:
@@ -713,7 +720,7 @@ class Deckung:
         return "Deckung: %d Feinde getoetet" % self.getoetet
 
 
-def werbung(gold_frei, feuer, sklaven, reiter, schleuder=0, reiter_ziele=None, gruende=None):
+def werbung(gold_frei, feuer, sklaven, reiter, schleuder=0, reiter_ziele=None, gruende=None, reiter_tot_vor=None):
     """[(typ, anzahl)] - erst Sklaven bis SKLAVEN_SOLL, dann Schleuderer bis DECKUNG_SOLL (B-129), dann Reiter bis REITER_SOLL; nur Gold ueber der Ruecklage und nur
     so viele, dass FEUER_MIN Bauern am Feuer bleiben.
     B-276 (Daniel 27.10. 23:00 "ohne Grund werden Berittene gebaut, es muss auch ein Kaufgrund geloggt werden"): ist gruende eine
@@ -742,6 +749,10 @@ def werbung(gold_frei, feuer, sklaven, reiter, schleuder=0, reiter_ziele=None, g
     # werden"): neue Reiter nur, wenn die Reiterjagd zuletzt mehr vertretbare Ziele sah, als Reiter da sind (None = unbekannt,
     # z. B. vor dem ersten Reiter: dann hoechstens EINER als Spaeher)
     soll = min(REITER_SOLL, 1) if reiter_ziele is None else min(REITER_SOLL, reiter_ziele)
+    if reiter_ziele is None and reiter_tot_vor is not None and reiter_tot_vor < SPAEHER_PAUSE:
+        soll = 0                                          # B-284: der letzte Spaeher ist eben gestorben - keinen neuen
+        if reiter == 0 and frei >= PFERD_GOLD:
+            grund("KEIN Spaeher: der letzte Reiter starb vor %d Takten (Pause %d)" % (reiter_tot_vor, SPAEHER_PAUSE))
     m = max(0, min(soll - reiter, frei // PFERD_GOLD, f))
     if m:
         aus.append((PFERDEBOGEN, m))
