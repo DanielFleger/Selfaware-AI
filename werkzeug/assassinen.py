@@ -449,6 +449,7 @@ class Einzeln:
     # PROBE_PAUSE Takte (Startwerte, UNGEMESSEN). HIT_RUN: wer an seinem Gebaeude entdeckt wird, arbeitet weiter, solange der
     # erste Treffer (fruehestens VERZUG Takte nach dem Erkennen, L81) nicht vor der naechsten Runde kommen kann.
     KALIB_LERNEN, PROBE, HIT_RUN = True, True, True
+    SCHADEN_KURVE = True      # B-286: Eichkurve je Vorhersagestufe aus dem Schadens-Tagebuch (schadens_tagebuch.py)
     ROUTE_GRENZE = 0.25       # B-285: Anteil des Lebens, den die restliche Route kosten darf, bevor abgebrochen wird (Startwert, UNGEMESSEN)
     NEU_AM_ZIEL = 3           # B-283: so oft bekommt eine Assassine am Ziel den Angriff neu, bevor das Ziel geloest wird
     AM_GEBAEUDE = 2           # B-279: bis so viele Felder neben der Grundflaeche gilt "arbeitet am Gebaeude" (kein Mitnehmen)
@@ -1027,6 +1028,11 @@ class Einzeln:
         self.befohlen[n] = self.runde
         angriffe.append((n, gz))
         ereignis.append("ARBEITER %d: zurueck zu Gebaeude %d (Typ %d), das er vorher angegriffen hat" % (n, gz, G[gz]["typ"]))
+
+    def _f(self, dps):
+        """B-286: Eichung fuer eine Vorhersage von dps Schaden je Takt - gemessene Kurve der Stufe, sonst bisheriger Wert."""
+        k = self._kurve.faktor(dps) if self.SCHADEN_KURVE and getattr(self, "_kurve", None) is not None else None
+        return k if k is not None else self._kalib()
 
     def _kalib(self):
         """B-278: gelernte Eichung (risiko_lernen.Eichung) oder fest KALIB."""
@@ -1845,7 +1851,7 @@ class Einzeln:
         zahl = max(1, sum(1 for z in self.ziel.values() if z == gn))
         takte = schach(ort, (g["x"], g["y"])) * TEMPO + self._arbeit(g["typ"], zahl) * g.get("leben", voll) / float(voll)
         dps = self._feuer_von(ort, set(sehen) | self._nahe_schuetzen(ort, L), L)
-        verlust = dps * takte * self._kalib()
+        verlust = dps * takte * self._f(dps)
         p_tod = min(1.0, verlust / max(1.0, float(L[n]["leben"])))
         saldo = WERT.get(g["typ"], 10) * (1 - p_tod) - p_tod * self.KOSTEN
         if p_tod > self.ENTDECKT_RISIKO or saldo <= 0:
@@ -2267,6 +2273,14 @@ class Einzeln:
             orte = [o for o in orte if o in gut] or orte
         fern, nah = self._feinde(L)
         self._lage(L, G)                     # 17.10.: Sicht dieser Runde (sicht.py) - vor allen Sicherheitsfragen
+        if self.SCHADEN_KURVE:               # B-286: Vorhersage des Modells am eigenen Ort gegen den echten Verlust, je Runde
+            if getattr(self, "_kurve", None) is None:
+                import schadens_tagebuch
+                self._kurve = schadens_tagebuch.Kurve(ASSASSINE)
+            self._kurve.runde(self.jetzt, {n: L[n] for n in self.mitglieder if n in L},
+                              lambda n_: self._sicht.beschuss((L[n_]["x"], L[n_]["y"]), nr=n_))
+            if self._kurve.runden % 50 == 1:
+                ereignis.append("SCHADENSKURVE Assassine: %s" % (self._kurve.bericht() or "noch keine Messung"))
         self._spur_pflegen(L)                # 19.10.: wandernde feindliche Schuetzen (JAEGER)
         self._nahtrupps(L)                   # 19.10.: feindliche Nahkampf-Trupps und ihre Zonen (NAHTRUPP)
         self._gegenschlag = set()            # 19.10.: greifen diese Runde gemeinsam an - kein Ausweichen, kein Rueckzug
@@ -2675,7 +2689,8 @@ class Einzeln:
                     k_ = max(1, schach(a_, b_) // 2)
                     pkt_ += [(a_[0] + (b_[0] - a_[0]) * i // k_, a_[1] + (b_[1] - a_[1]) * i // k_) for i in range(k_ + 1)]
                 pkt_ = pkt_ or probe or [ort]
-                erwartet_ = sum(self._sicht.beschuss(q, self._sicht.RAND) for q in pkt_) * 2 * TEMPO * self._kalib()
+                summe_ = sum(self._sicht.beschuss(q, self._sicht.RAND) for q in pkt_)
+                erwartet_ = summe_ * 2 * TEMPO * self._f(summe_ / max(1, len(pkt_)))     # B-286 Eichkurve
                 if erwartet_ > self.ROUTE_GRENZE * L[n]["leben"]:
                     ereignis.append("ROUTE GEFAEHRLICH %d bei %s: Ziel %s aufgegeben, neuer Weg - erwarteter Verlust %d auf dem "
                                     "Stueck, Grenze %d (%.0f %% von %d Leben)" % (n, ort, self.ziel.get(n), erwartet_,
@@ -3189,12 +3204,12 @@ class Einzeln:
                         gr[k[0]] = (k[2], schach(ort, k[1]), "kein Weg im groben Gefahrenraster (Zelle %s nicht erreicht)" % (c,))
                         kein_raster[0] += 1
                         continue
-                    risiko = (r_weg + b_ziel * verweilen) * kal
+                    risiko = (r_weg * self._f(r_weg / max(1.0, felder * TEMPO)) + b_ziel * verweilen * self._f(b_ziel))   # B-286
                 else:
                     felder = schach(ort, k[1])
-                    risiko = b_ziel * (verweilen + felder * TEMPO) * kal
+                    risiko = b_ziel * (verweilen + felder * TEMPO) * self._f(b_ziel)
                 p_tod = min(1.0, risiko / max(1.0, float(L[n]["leben"])))
-                roh[k[0]] = risiko / kal if kal else risiko        # B-278: Vorhersage ohne Eichung (fuers Lernen)
+                roh[k[0]] = (r_weg + b_ziel * verweilen) if g_r is not None else b_ziel * (verweilen + felder * TEMPO)   # ohne Eichung
                 if p_tod > (grenze if b_ziel <= 0 else grenze_bew) and (probe_kand is None or risiko < probe_kand[0]):
                     probe_kand = (risiko, k, p_tod, WERT.get(k[2], 10) * (1 - p_tod) - p_tod * self.KOSTEN)
                 saldo = WERT.get(k[2], 10) * (1 - p_tod) - p_tod * self.KOSTEN
