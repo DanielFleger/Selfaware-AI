@@ -449,6 +449,7 @@ class Einzeln:
     # PROBE_PAUSE Takte (Startwerte, UNGEMESSEN). HIT_RUN: wer an seinem Gebaeude entdeckt wird, arbeitet weiter, solange der
     # erste Treffer (fruehestens VERZUG Takte nach dem Erkennen, L81) nicht vor der naechsten Runde kommen kann.
     KALIB_LERNEN, PROBE, HIT_RUN = True, True, True
+    ROUTE_GRENZE = 0.25       # B-285: Anteil des Lebens, den die restliche Route kosten darf, bevor abgebrochen wird (Startwert, UNGEMESSEN)
     NEU_AM_ZIEL = 3           # B-283: so oft bekommt eine Assassine am Ziel den Angriff neu, bevor das Ziel geloest wird
     AM_GEBAEUDE = 2           # B-279: bis so viele Felder neben der Grundflaeche gilt "arbeitet am Gebaeude" (kein Mitnehmen)
     PROBE_PAUSE, PROBE_LEBEN, VERZUG, HIT_RUN_ALT = 1500, 6500, 64, 400
@@ -2661,8 +2662,25 @@ class Einzeln:
                 for a_, b_ in zip(stueck, stueck[1:]):
                     k_ = max(1, schach(a_, b_) // 2)
                     probe += [(a_[0] + (b_[0] - a_[0]) * i // k_, a_[1] + (b_[1] - a_[1]) * i // k_) for i in range(k_ + 1)]
-                if any(self._sicht.beschuss(q, self._sicht.RAND) > 0 for q in (probe or [ort])):
-                    ereignis.append("ROUTE GEFAEHRLICH %d bei %s: Ziel %s aufgegeben, neuer Weg" % (n, ort, self.ziel.get(n)))
+                # B-285 (Daniel 28.10. 01:12 "welche Gebaeude nicht zerstoert wurden, obwohl sie besiegt werden haetten koennen";
+                # Partie 010756: Gebaeude 127 viermal gewaehlt bei 2 % Risiko, 72 zwoelfmal bei 17 % - 14 Angriffe endeten mit
+                # ROUTE GEFAEHRLICH, weil schon EIN Schuetze, der das Stueck erreichen koennte, abbrach - die Zielwahl hatte das
+                # Risiko eingeplant): abgebrochen wird erst, wenn der erwartete Verlust auf dem Stueck (Beschuss x Takte x
+                # Eichung) ROUTE_GRENZE des Lebens uebersteigt
+                # (die ganze restliche Route zaehlt, nicht nur das naechste Stueck - 1017k: viele kleine Stuecke im Feuer
+                # summierten sich ueber 2.400 Takte)
+                ganz_ = [ort] + [tuple(q) for q in punkte]
+                pkt_ = []
+                for a_, b_ in zip(ganz_, ganz_[1:]):
+                    k_ = max(1, schach(a_, b_) // 2)
+                    pkt_ += [(a_[0] + (b_[0] - a_[0]) * i // k_, a_[1] + (b_[1] - a_[1]) * i // k_) for i in range(k_ + 1)]
+                pkt_ = pkt_ or probe or [ort]
+                erwartet_ = sum(self._sicht.beschuss(q, self._sicht.RAND) for q in pkt_) * 2 * TEMPO * self._kalib()
+                if erwartet_ > self.ROUTE_GRENZE * L[n]["leben"]:
+                    ereignis.append("ROUTE GEFAEHRLICH %d bei %s: Ziel %s aufgegeben, neuer Weg - erwarteter Verlust %d auf dem "
+                                    "Stueck, Grenze %d (%.0f %% von %d Leben)" % (n, ort, self.ziel.get(n), erwartet_,
+                                                                              self.ROUTE_GRENZE * L[n]["leben"],
+                                                                              100 * self.ROUTE_GRENZE, L[n]["leben"]))
                     # 18.10. (1017l: 86 pendelte 29 -> Route gefaehrlich -> anderes Ziel -> Zielwechsel zurueck auf 29, dreimal):
                     # der Zielwechsel prueft keinen Weg - dieses Ziel ist fuer ihn SPERRE_ROUTE Takte gesperrt
                     self._route_sperre[(n, self.ziel.get(n))] = self.jetzt + self.SPERRE_ROUTE

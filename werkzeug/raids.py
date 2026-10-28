@@ -39,6 +39,7 @@ REITER_SOLL = 3                                  # Startwert
 # B-284 (Daniel 28.10. 00:57 "warum wurde ein Berittener gekauft"; Partie 005506: dreimal "Spaeher: noch kein Reiter da" - jeder
 # starb, die Regel kaufte den naechsten): nach einem toten Reiter SPAEHER_PAUSE Takte kein neuer Spaeher (Startwert, UNGEMESSEN)
 SPAEHER_PAUSE = 3000
+LAUER_MIN = 4             # B-285: so viele Felder muss die Lauerstellung entfernt sein, sonst bleibt er (mit Grund)
 FEUER_MIN = 2                                    # so viele Bauern bleiben am Feuer
 GEFAHR_FERN = 20                                 # L81: Schuetzen entdecken bis 20 Felder
 GEFAHR_NAH = 10
@@ -598,6 +599,32 @@ class Reiterjagd:
             frei_r = [v for v in rang if v[1] not in andere]
             geteilt = bool(rang) and not frei_r
             rang = frei_r or rang
+            if not rang and lage.schaden(o) <= 0 and arbeiter:
+                # B-285 (Daniel 28.10. 01:12 "Berittene stehen rum ohne ersichtlichen Grund - wenn sie zumindest patrouillieren
+                # wuerden"; Partie 005506: Reiter 219 stand 2.721 Takte): kein Ziel mit vertretbarem Risiko -> lauern am letzten
+                # sicheren Punkt (kein Beschuss) auf der Linie zum naechsten feindlichen Arbeiter, mit Grund im Protokoll
+                k_n, a_n = min(arbeiter, key=lambda ka: schach(o, (ka[1]["x"], ka[1]["y"])))
+                ziel_l = (a_n["x"], a_n["y"])
+                d_l = schach(o, ziel_l)
+                lauer = o
+                for i in range(1, d_l):
+                    q = (o[0] + (ziel_l[0] - o[0]) * i // d_l, o[1] + (ziel_l[1] - o[1]) * i // d_l)
+                    if lage.schaden(q) > 0:
+                        break
+                    lauer = q
+                if schach(lauer, o) >= LAUER_MIN and (alt is None or alt[:2] != ("lauer", lauer) or self.runde - alt[2] >= NEU_ALLE):
+                    p_l = lage.plan(o, lauer, PFERDEBOGEN, e.get("leben", 15000))
+                    if p_l:
+                        befehl(GS.lauf_befehl(lage, r, p_l), 1.0, bis="ANGRIFF")
+                        self.befohlen[r] = ("lauer", lauer, self.runde)
+                        aus.append("REITER LAUERT %d: %d Ziele geprueft, keins mit vertretbarem Risiko - reitet nach %s, %d Felder "
+                                   "vor Arbeiter %d (Typ %d), dort trifft ihn kein Schuetze" % (
+                                       r, len(zielpunkte), lauer, schach(lauer, ziel_l), k_n, a_n["typ"]))
+                elif alt is None or alt[0] not in ("lauer", "steht") or self.runde - alt[2] >= 3 * NEU_ALLE:
+                    self.befohlen[r] = ("steht", o, self.runde)
+                    aus.append("REITER STEHT %d bei %s: %d Ziele geprueft, keins mit vertretbarem Risiko; naechster Arbeiter %d in %d "
+                               "Feldern, schon auf dem letzten sicheren Punkt davor" % (r, o, len(zielpunkte), k_n, d_l))
+                continue
             if not rang:
                 if lage.schaden(o) > 0 and (alt is None or alt[0] != "rueckzug" or self.runde - alt[2] >= NEU_ALLE):
                     q = _rueckzug(lage, o)

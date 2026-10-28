@@ -5,6 +5,8 @@
   2. alle 30 am ersten Wegpunkt -> naechster Wegpunkt (weg_i 1)
   3. wie 1, aber MARSCH_FRIST ist um -> weiter, auch ohne die Nachzuegler
   4. wer daheim steht (ueber MARSCH_R vom Wegpunkt), haelt nicht auf (1019i)
+  6. (B-285) Reiter ohne Ziel mit vertretbarem Risiko, Arbeiter 60 Felder weg -> REITER LAUERT, Laufbefehl
+  7. (B-285) dasselbe 2 Felder vor dem Arbeiter -> REITER STEHT mit Grund
   5. Spaeher: kein Reiter da, der letzte starb vor 500 Takten -> kein Kauf, Grund "KEIN Spaeher"; vor 5.000 Takten -> Spaeher
 Aufruf: python marsch_pruefen.py"""
 import os
@@ -59,6 +61,22 @@ def main():
     w6 = R.werbung(400, 10, 5, 0, reiter_ziele=None, gruende=g6, reiter_tot_vor=5000)
     pruefe(5, "Spaeher-Sperre: vor 500 Takten %s %s, vor 5.000 %s" % (w5, g5[:1], w6),
            w5 == [] and any("KEIN Spaeher" in g for g in g5) and w6 == [(R.PFERDEBOGEN, 1)])
+    # 6/7 (B-285) Reiter ohne vertretbares Ziel: lauern statt stehen, mit Grund
+    import gefahrenschutz as GS
+    from raids_pruefen import RATEN, einheit as einh
+    alt_bewerte = GS.bewerte
+    GS.bewerte = lambda *a, **k: []
+    try:
+        rj = R.Reiterjagd(1, raten=RATEN)
+        b6 = Befehle()
+        a6 = rj.schritt({20: einh(74, 1, 100, 100), 700: einh(3, 2, 160, 100)}, {}, b6)
+        rj7 = R.Reiterjagd(1, raten=RATEN)
+        a7 = rj7.schritt({20: einh(74, 1, 158, 100), 700: einh(3, 2, 160, 100)}, {}, Befehle())
+    finally:
+        GS.bewerte = alt_bewerte
+    pruefe(6, "kein Ziel, Arbeiter 60 Felder weg: %s" % [z[:60] for z in a6 if "LAUERT" in z][:1],
+           any("REITER LAUERT 20" in z for z in a6) and any("lauf" in x.get("angriff", {}) for x in b6.liste))
+    pruefe(7, "kein Ziel, schon 2 Felder davor: %s" % [z[:60] for z in a7 if "REITER" in z][:1], any("REITER STEHT 20" in z for z in a7))
     print("%d von %d gruen" % (sum(ok), len(ok)))
     return all(ok)
 
