@@ -35,7 +35,7 @@ use haende::{Annahme, Auftrag, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 20;   // B-287 R1 anvisiert -> raus
+pub const VERSION: u32 = 23;   // B-287 R1 nur Sichtbares (Zielen + Blickrichtung), Ankunft gemessen, Schalter; 23: Kennung (nie Fremde steuern)
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -237,27 +237,96 @@ fn grabenreflex(z: &mut Zustand, tick: i32, neu: &[(i32, i32)]) {
     }
 }
 
-/// B-287 R1 "anvisiert -> raus" (Daniel 28.10.2026 01:28 "sie soll literally jeden Takt entscheiden"): je Takt, fuer jede
-/// dem Kern uebergebene Einheit - legt ein feindlicher Schuetze sichtbar auf sie an oder schiesst (zieleinheit = sie, Zustand
-/// 4/5/106; FAIRNESS.md ANGRIFF_SICHTBAR), laeuft sie SOFORT R1_WEG Felder vom Schuetzen weg auf ein erreichbares Feld. Der
-/// Befehl geht in diesem Takt raus (Vorrang vor der Auftragsschlange), das Spiel fuehrt ihn im naechsten Takt aus. Je Einheit
-/// hoechstens alle R1_PAUSE Takte neu. Protokoll: Takt des ersten Anlegens gegen Takt des Befehls (Reaktionszeit-Pruefung).
-/// Gibt true, wenn in diesem Takt ein Reflex-Befehl abgesetzt wurde (dann keine weitere Gruppe in diesem Takt).
-const R1_WEG: i32 = 14;
+/// B-287 R1 "Schuetze zielt -> raus aus der Schusslinie" (Daniel 28.10.2026 01:28 "sie soll literally jeden Takt
+/// entscheiden"). NUR SICHTBARES (FAIRNESS.md): ein feindlicher Schuetze ZIELT oder SCHIESST (Zustand 5/6 = sichtbare
+/// Taetigkeit, Auge 25.10.: 4 nachladen, 5 zielen, 6 schiessen), seine BLICKRICHTUNG (+692, sichtbar am Bild; Schuetzen
+/// drehen beim Zielen je Takt ein Achtel zum Ziel, AU25) zeigt auf unsere Einheit (Richtungsregel des Spiels aus Feldern,
+/// AU25 calculatePreferredRelativeOrientation) und sie steht in seiner Reichweite (sicht.REICHWEITE). Dann laeuft sie SOFORT
+/// R1_WEG Felder quer zur Schusslinie (die Seite, die erreichbar ist; sonst weg vom Schuetzen). Das gespeicherte Ziel des
+/// Schuetzen (+836 shootTargetedUnit, +926) wird NICHT gelesen - verboten, und es haette auch Unbeteiligte in der Schusslinie
+/// nicht erfasst (28.10. 01:50 gemessen: vier Armbrueste zielten auf den Lord, getroffen wurden Speertraeger in der Linie).
+/// Je Einheit hoechstens alle R1_PAUSE Takte neu. Protokoll: Takt, seit dem die Lage sichtbar ist, gegen den Takt des Befehls,
+/// und (r1_ankunft) der Takt, in dem das Spiel das neue Laufziel zeigt. Gibt true, wenn ein Reflex-Befehl abgesetzt wurde
+/// (dann keine weitere Gruppe in diesem Takt).
+const R1_WEG: i32 = 8;
 const R1_PAUSE: i32 = 30;
-const R1_AN: bool = true;
-const SCHUSS_SICHTBAR: [i16; 3] = [4, 5, 106];
-const SCHUETZEN: [i16; 6] = [22, 23, 70, 72, 74, 76];
+/// Schalter zur Laufzeit (Gegenprobe ohne Neustart): Auftrag Art 17 fuer Einheit R1_SCHALTER_NR, x = 1 an / 0 aus -
+/// {"kern": {"lauf": {"x": 0, "y": 0, "einheiten": [-1]}}}. Aus: der Kern meldet die Lage, reagiert aber nicht.
+static R1_AN: AtomicBool = AtomicBool::new(true);
+const R1_SCHALTER_NR: i32 = -1;
+/// So lange wird nach dem Befehl geprueft, ob das Spiel das Laufziel der Einheit gesetzt hat.
+const R1_ANKUNFT_MAX: i32 = 60;
+/// Sichtbares Zielen und Schiessen (Auge 25.10., Lauf 153627).
+const ZIELT: [i16; 2] = [5, 6];
+/// Fernkaempfer und Reichweite in Feldern (sicht.REICHWEITE): Bogen, Armbrust, arab. Bogen, Pferdebogen 44, Schleuder 17,
+/// Feuerwerfer 11.
+const SCHUETZEN: [(i16, i32); 6] = [(22, 44), (23, 44), (70, 44), (74, 44), (72, 17), (76, 11)];
 
+/// Richtung von (x, y) nach (tx, ty) wie das Spiel (AU25 calculatePreferredRelativeOrientation 0x0046C9E0, aus Feldern;
+/// 0 = N (y-1) ... im Uhrzeigersinn, wie facingDirection). None = dasselbe Feld. Gleich simulator._zielrichtung.
+fn zielrichtung(x: i32, y: i32, tx: i32, ty: i32) -> Option<i16> {
+    let (dx, dy) = ((tx - x).abs(), (ty - y).abs());
+    if dx == 0 && dy == 0 {
+        return None;
+    }
+    Some(if 2 * dy < dx {
+        if tx < x { 6 } else { 2 }
+    } else if 2 * dx < dy {
+        if ty < y { 0 } else { 4 }
+    } else if ty < y {
+        if x <= tx { 1 } else { 7 }
+    } else if tx < x {
+        5
+    } else {
+        3
+    })
+}
+
+/// Abgesetzte R1-Befehle: Einheit -> (Laufziel, Takt des Befehls). Je Takt geprueft, bis das Spiel das Laufziel zeigt.
+fn r1_offen() -> std::sync::MutexGuard<'static, HashMap<i32, ((i32, i32), i32)>> {
+    static O: std::sync::OnceLock<Mutex<HashMap<i32, ((i32, i32), i32)>>> = std::sync::OnceLock::new();
+    O.get_or_init(|| Mutex::new(HashMap::new())).lock().unwrap_or_else(|e| e.into_inner())
+}
+
+/// B-287 Beleg: Hat das Spiel den Befehl ausgefuehrt? Laufziel der EIGENEN Einheit (laufx/laufy) = Befehlsziel (+-1 Feld,
+/// das Spiel setzt Einheiten bis 1 Feld daneben) - unabhaengig vom Absenden gemessen, aus dem Speicher des Spiels.
+fn r1_ankunft(z: &Zustand, tick: i32) {
+    let mut offen = r1_offen();
+    let mut fertig = Vec::new();
+    for (&nr, &(p, t0)) in offen.iter() {
+        match z.welt.einheiten.iter().find(|e| e.nr == nr) {
+            Some(e) if (e.laufx as i32 - p.0).abs() <= 1 && (e.laufy as i32 - p.1).abs() <= 1 => {
+                schreibe(&format!("reflex tick {}: R1 ANGEKOMMEN Einheit {} - Laufziel ({},{}) im Spiel, Befehl Takt {}, im Spiel ab \
+                                   Takt {} (+{} Takte), steht bei ({},{}) Zustand {}",
+                                  tick, nr, e.laufx, e.laufy, t0, tick, tick - t0, e.x, e.y, e.zustand));
+                fertig.push(nr);
+            }
+            None => {
+                schreibe(&format!("reflex tick {}: R1 Einheit {} nicht mehr da (Befehl Takt {})", tick, nr, t0));
+                fertig.push(nr);
+            }
+            Some(e) if tick - t0 > R1_ANKUNFT_MAX => {
+                schreibe(&format!("reflex tick {}: R1 NICHT ANGEKOMMEN Einheit {} - Befehl ({},{}) Takt {}, Laufziel im Spiel ({},{}) \
+                                   Zustand {}", tick, nr, p.0, p.1, t0, e.laufx, e.laufy, e.zustand));
+                fertig.push(nr);
+            }
+            _ => {}
+        }
+    }
+    for nr in fertig {
+        offen.remove(&nr);
+    }
+}
+
+/// Einheit -> (Takt, seit dem die Lage sichtbar ist, Takt des letzten Befehls).
 fn r1_zustand() -> std::sync::MutexGuard<'static, HashMap<i32, (i32, i32)>> {
     static R1: std::sync::OnceLock<Mutex<HashMap<i32, (i32, i32)>>> = std::sync::OnceLock::new();
     R1.get_or_init(|| Mutex::new(HashMap::new())).lock().unwrap_or_else(|e| e.into_inner())
 }
 
 fn anvisiert_reflex(z: &mut Zustand, tick: i32) -> bool {
-    if !R1_AN {
-        return false;
-    }
+    r1_ankunft(z, tick);
+    let an = R1_AN.load(Ordering::Relaxed);
     let Some(buch) = z.buch.as_mut() else { return false };
     if buch.eigene.is_empty() {
         return false;
@@ -266,8 +335,13 @@ fn anvisiert_reflex(z: &mut Zustand, tick: i32) -> bool {
     let mut st = r1_zustand();
     for &nr in buch.eigene.iter() {
         let Some(e) = welt.einheiten.iter().find(|e| e.nr == nr) else { continue };
-        let schuetze = welt.einheiten.iter().find(|s| s.besitzer != e.besitzer && SCHUETZEN.contains(&s.typ)
-            && s.zieleinheit as i32 == nr && SCHUSS_SICHTBAR.contains(&s.zustand));
+        // naechster feindlicher Schuetze, der sichtbar zielt/schiesst, in Reichweite steht und in ihre Richtung blickt
+        let schuetze = welt.einheiten.iter()
+            .filter(|s| s.besitzer != e.besitzer && s.besitzer > 0 && ZIELT.contains(&s.zustand))
+            .filter_map(|s| SCHUETZEN.iter().find(|(t, _)| *t == s.typ).map(|&(_, r)| (s, r)))
+            .filter(|(s, r)| (e.x - s.x).abs().max((e.y - s.y).abs()) <= *r && zielrichtung(s.x, s.y, e.x, e.y) == Some(s.blick))
+            .map(|(s, _)| s)
+            .min_by_key(|s| (e.x - s.x).abs().max((e.y - s.y).abs()));
         let Some(s) = schuetze else {
             st.remove(&nr);
             continue;
@@ -276,30 +350,42 @@ fn anvisiert_reflex(z: &mut Zustand, tick: i32) -> bool {
         if tick - zuletzt < R1_PAUSE {
             continue;
         }
+        let abstand = (e.x - s.x).abs().max((e.y - s.y).abs());
+        if !an {
+            schreibe(&format!("reflex tick {}: R1 AUS - Einheit {} in der Schusslinie von {} (Typ {}, Zustand {}, Blick {}, {} Felder) \
+                               seit Takt {} - keine Reaktion", tick, nr, s.nr, s.typ, s.zustand, s.blick, abstand, seit));
+            st.insert(nr, (seit, tick));
+            continue;
+        }
+        // quer zur Schusslinie (beide Seiten), sonst weg vom Schuetzen
         let (dx, dy) = (e.x - s.x, e.y - s.y);
         let n = dx.abs().max(dy.abs()).max(1);
-        let soll = (e.x + R1_WEG * dx / n, e.y + R1_WEG * dy / n);
+        let quer = [(-dy, dx), (dy, -dx), (dx, dy)];
         let platz = e.besitzer as i32;
         let von = match wege::gebiet(e.x, e.y) {
             g if g > 0 => g,
             _ => wege::ring_suche((e.x, e.y), (e.x, e.y), 1, 3, |x, y| wege::gebiet(x, y) > 0)
                 .map_or(0, |(x, y)| wege::gebiet(x, y)),
         };
-        let Some(p) = wege::ring_suche(soll, (e.x, e.y), 0, GRABEN_RING_MAX, |x, y| wege::kann_hin(platz, von, wege::gebiet(x, y)))
-        else {
-            schreibe(&format!("reflex tick {}: R1 Einheit {} anvisiert von {} (Typ {}, Zustand {}) - KEIN erreichbares Feld weg",
-                              tick, nr, s.nr, s.typ, s.zustand));
+        let p = quer.iter().find_map(|&(qx, qy)| {
+            let soll = (e.x + R1_WEG * qx / n, e.y + R1_WEG * qy / n);
+            wege::ring_suche(soll, (e.x, e.y), 0, 3, |x, y| wege::kann_hin(platz, von, wege::gebiet(x, y)))
+        });
+        let Some(p) = p else {
+            schreibe(&format!("reflex tick {}: R1 Einheit {} in der Schusslinie von {} - KEIN erreichbares Feld quer oder weg",
+                              tick, nr, s.nr));
             st.insert(nr, (seit, tick));
             continue;
         };
         let a = Auftrag { art: haende::LAUF, a: p.0, b: p.1 };
         match haende::absetzen(a, &[nr], platz) {
             Ok((gruppe, gewaehlt)) => {
-                schreibe(&format!("reflex tick {}: R1 Einheit {} anvisiert von {} (Typ {}, Zustand {}) seit Takt {} - Reaktion {} Takte \
-                                   - LAUF ({},{}) weg vom Schuetzen, Gruppe {}", tick, nr, s.nr, s.typ, s.zustand, seit,
-                                  tick - seit, p.0, p.1, gruppe));
+                schreibe(&format!("reflex tick {}: R1 Einheit {} bei ({},{}) in der Schusslinie von {} (Typ {}, Zustand {}, Blick {}, \
+                                   {} Felder) seit Takt {} - Reaktion {} Takte - LAUF ({},{}) quer, Gruppe {}",
+                                  tick, nr, e.x, e.y, s.nr, s.typ, s.zustand, s.blick, abstand, seit, tick - seit, p.0, p.1, gruppe));
                 buch.abgesetzt(a, &gewaehlt, gruppe, tick);
                 st.insert(nr, (seit, tick));
+                r1_offen().insert(nr, (p, tick));
                 return true;                     // ein Befehl je Takt (die Gruppe muss stehen, bevor die naechste kommt)
             }
             Err(f) => schreibe(&format!("reflex tick {}: R1 Einheit {} - Befehl FEHLER {}", tick, nr, f)),
@@ -307,6 +393,25 @@ fn anvisiert_reflex(z: &mut Zustand, tick: i32) -> bool {
         st.insert(nr, (seit, tick));
     }
     false
+}
+
+#[cfg(test)]
+mod r1_tests {
+    use super::zielrichtung;
+
+    /// Gleich simulator._zielrichtung (Python) an den Grenzfaellen; Armbrust (181,263) -> Lord (143,266) = W (6).
+    #[test]
+    fn richtung_wie_das_spiel() {
+        assert_eq!(zielrichtung(181, 263, 143, 266), Some(6));
+        assert_eq!(zielrichtung(10, 10, 10, 10), None);
+        assert_eq!(zielrichtung(10, 10, 10, 0), Some(0));
+        assert_eq!(zielrichtung(10, 10, 20, 0), Some(1));
+        assert_eq!(zielrichtung(10, 10, 20, 20), Some(3));
+        assert_eq!(zielrichtung(10, 10, 0, 20), Some(5));
+        assert_eq!(zielrichtung(10, 10, 0, 0), Some(7));
+        assert_eq!(zielrichtung(10, 10, 21, 15), Some(2));   // 2*5 < 11 -> waagrecht
+        assert_eq!(zielrichtung(10, 10, 20, 15), Some(3));   // 2*5 == 10 -> schraeg
+    }
 }
 
 /// Beschusswache: eigene Kaempfer ("ich"), die stehen und Leben verlieren - Beginn und Ende je Einheit ins Protokoll.
@@ -370,6 +475,24 @@ fn feuer_takt(z: &mut Zustand, tick: i32) {
 }
 
 /// S4b: Auftraege aus dem Ring - Art 1 uebernehmen, 2 freigeben, 17/4/9 Auftrag (wie samurai_auftrag). Ergebnis je Eintrag.
+/// B-287: UID und Besitzer einer Einheit jetzt, aus dem Speicher (ungueltige Nummer -> uid 0, Besitzer -1).
+fn kennung_jetzt(nr: i32) -> haende::Kennung {
+    if !(1..UNIT_PLAETZE as i32).contains(&nr) {
+        return haende::Kennung { uid: 0, besitzer: -1 };
+    }
+    let u = UNITS + nr as usize * UNIT_GROESSE;
+    unsafe { haende::Kennung { uid: i32_bei(u + 0x98), besitzer: i16_bei(u + 0x96) } }
+}
+
+/// B-287: vor jedem Befehl - Einheiten, deren Nummer das Spiel neu vergeben hat, fallen aus dem Buch (nie Fremde steuern).
+fn kennung_takt(z: &mut Zustand, tick: i32) {
+    let Some(buch) = z.buch.as_mut() else { return };
+    for (nr, vorher, jetzt) in buch.kennung_pruefen(kennung_jetzt) {
+        schreibe(&format!("kennung tick {}: Einheit {} ist nicht mehr dieselbe (UID {} -> {}, Besitzer {} -> {}) - aus dem Buch",
+                          tick, nr, vorher.uid, jetzt.uid, vorher.besitzer, jetzt.besitzer));
+    }
+}
+
 fn ring_abarbeiten(z: &mut Zustand, tick: i32) {
     let Some(Some(l)) = &z.leitung else { return };
     let liste = l.auftraege();
@@ -381,7 +504,7 @@ fn ring_abarbeiten(z: &mut Zustand, tick: i32) {
     for &(i, art, nr, a, b) in &liste {
         let ergebnis = match art {
             1 => {
-                buch.uebernehmen(nr);
+                buch.uebernehmen(nr, kennung_jetzt(nr));
                 1
             }
             2 => {
@@ -458,6 +581,7 @@ fn takt(tick: i32, spieler: i32) -> i32 {
             beschuss_takt(&mut z, tick);
             feuer_takt(&mut z, tick);
             ring_abarbeiten(&mut z, tick);
+            kennung_takt(&mut z, tick);
             if !anvisiert_reflex(&mut z, tick) {
                 haende_takt(&mut z, tick);
             }
@@ -554,7 +678,7 @@ pub extern "C" fn samurai_welt_schreiben(_tick: i32) -> i32 { -4 }
 #[unsafe(no_mangle)]
 pub extern "C" fn samurai_uebernehmen(nr: i32) -> i32 {
     geschuetzt("samurai_uebernehmen", || {
-        zustand().buch.get_or_insert_with(Buch::default).uebernehmen(nr);
+        zustand().buch.get_or_insert_with(Buch::default).uebernehmen(nr, kennung_jetzt(nr));
         1
     })
 }
@@ -574,6 +698,11 @@ pub extern "C" fn samurai_freigeben(nr: i32) -> i32 {
 #[unsafe(no_mangle)]
 pub extern "C" fn samurai_auftrag(art: i32, nr: i32, a: i32, b: i32) -> i32 {
     geschuetzt("samurai_auftrag", || {
+        if art == haende::LAUF && nr == R1_SCHALTER_NR {
+            R1_AN.store(a != 0, Ordering::Relaxed);
+            schreibe(&format!("reflex: R1 Schalter {}", if a != 0 { "AN" } else { "AUS" }));
+            return 1;
+        }
         let mut z = zustand();
         let untaetig = z.welt.einheiten.iter().find(|e| e.nr == nr).is_none_or(|e| matches!(e.zustand, 0 | 1));
         match z.buch.get_or_insert_with(Buch::default).auftrag(nr, Auftrag { art, a, b }, untaetig) {

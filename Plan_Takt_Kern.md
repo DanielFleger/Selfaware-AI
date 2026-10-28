@@ -37,6 +37,18 @@ einzelnen Tick entscheiden kann.“
   - Es gibt keine Reflexe gegen Schützen.
   - Der Befehl im nächsten Takt ist noch nicht gemessen.
 
+## Stand 28.10. 02:10 (Kern 23, Register L202)
+
+- **R1 gebaut, nur aus Sichtbarem:** Schütze zielt oder schießt (Zustand 5/6) und blickt nach der Richtungsregel des Spiels
+  auf unsere Einheit (+692), in Reichweite → im selben Takt Laufbefehl quer zur Linie. Gespeicherte Ziele (+926, +836) liest
+  der Kern nicht — FAIRNESS verbietet es.
+- **Reaktion belegt** (`werkzeug/r1_pruefen.py`): 194 Lagen, alle mit 0 Takten; 568 Befehle, alle spätestens 1 Takt später im
+  Spiel; Gegenprobe (R1 aus) 0 Befehle.
+- **Wirkung rot:** Quer ausweichen spart keinen Schaden — der Schütze dreht mit und hält vor. Nächster Schritt ist R3:
+  Ausweichen am Schusstakt.
+- **Kennung:** Das Buch prüft jeden Takt UID und Besitzer. Nie wieder steuert der Kern eine Einheit, deren Nummer das Spiel
+  neu vergeben hat.
+
 ## Nächste Schritte (konkret)
 
 1. **Reflex R1 „anvisiert → raus“ im Kern.** Je Takt, für jede Kern-Einheit: Ein feindlicher Schütze hat `zieleinheit` = sie

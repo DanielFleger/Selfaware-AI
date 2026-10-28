@@ -60,6 +60,8 @@ pub struct Einheit {
     pub ladung: i16,
     pub arbeitsplatz: i16,
     pub nahziel: i16,
+    /// facingDirection +692 (0 = N ... 7 = NW, im Uhrzeigersinn) - sichtbar am Bild der Einheit
+    pub blick: i16,
     pub nahangreifer: i16,
     /// B-147: Mauerfeld, das die Einheit aufhacken soll (Unit +0x3A8 targetedBuildingTile, 0 = keins), und dessen x/y
     /// (+0x3E8/+0x3EA attackAtTile) - beim Mauerangriff bleibt zielart (targetingType) 0, abgelesen giveTribeAnInstruction
@@ -162,6 +164,7 @@ impl Welt {
                     ladung: i16_bei(u + 904),
                     arbeitsplatz: i16_bei(u + 824),
                     nahziel: i16_bei(u + 830),
+                    blick: i16_bei(u + 692),
                     nahangreifer: i16_bei(u + 942),
                     mauerfeld: i32_bei(u + 0x3A8),
                     mauerx: i16_bei(u + 0x3E8),

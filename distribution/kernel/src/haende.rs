@@ -32,19 +32,57 @@ pub enum Annahme {
 #[derive(Default)]
 pub struct Buch {
     pub eigene: BTreeSet<i32>,
+    /// B-287: je Einheit (UID, Besitzer) bei der Uebergabe. Das Spiel vergibt die Nummer einer gestorbenen Einheit neu - auch
+    /// an FEINDLICHE Einheiten (gemessen 28.10. 02:05: Armbrueste von Spieler 2 bekamen Nummern unserer toten Speertraeger,
+    /// der Kern hielt sie weiter fuer seine). Ohne diese Pruefung haette der Kern Feinde gesteuert (FAIRNESS.md).
+    kennung: HashMap<i32, Kennung>,
     letzter: HashMap<i32, Auftrag>,
     offen: BTreeMap<Auftrag, BTreeSet<i32>>,
     /// (Gruppe, Einheiten, Takt) des zuletzt abgesetzten Gruppenbefehls
     pub warten: Option<(i32, Vec<i32>, i32)>,
 }
 
+/// Wer eine Einheit ist: UID (fest bis zum Tod, Unit +0x98) und Besitzer (+0x96).
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct Kennung {
+    pub uid: i32,
+    pub besitzer: i16,
+}
+
 impl Buch {
-    pub fn uebernehmen(&mut self, nr: i32) {
+    /// Uebergabe mit Kennung - ohne Kennung gibt es keine Uebergabe (der Compiler verlangt sie).
+    pub fn uebernehmen(&mut self, nr: i32, k: Kennung) {
         self.eigene.insert(nr);
+        self.kennung.insert(nr, k);
+    }
+
+    pub fn kennung(&self, nr: i32) -> Option<Kennung> {
+        self.kennung.get(&nr).copied()
+    }
+
+    /// Je Takt vor jedem Befehl: jede Einheit, deren Kennung jetzt eine andere ist (Nummer neu vergeben, Besitzer gewechselt),
+    /// faellt aus dem Buch. Rueckgabe: (Nummer, vorher, jetzt) fuers Protokoll.
+    pub fn kennung_pruefen(&mut self, jetzt: impl Fn(i32) -> Kennung) -> Vec<(i32, Kennung, Kennung)> {
+        let weg: Vec<(i32, Kennung, Kennung)> = self.eigene.iter()
+            .filter_map(|&nr| {
+                let vorher = self.kennung.get(&nr).copied()?;
+                let j = jetzt(nr);
+                (j != vorher).then_some((nr, vorher, j))
+            })
+            .collect();
+        let ohne: Vec<i32> = self.eigene.iter().copied().filter(|nr| !self.kennung.contains_key(nr)).collect();
+        for &(nr, _, _) in &weg {
+            self.freigeben(nr);
+        }
+        for nr in ohne {
+            self.freigeben(nr);
+        }
+        weg
     }
 
     pub fn freigeben(&mut self, nr: i32) {
         self.eigene.remove(&nr);
+        self.kennung.remove(&nr);
         self.letzter.remove(&nr);
         for s in self.offen.values_mut() {
             s.remove(&nr);
@@ -244,12 +282,27 @@ mod tests {
 
     const L1: Auftrag = Auftrag { art: LAUF, a: 100, b: 200 };
     const L2: Auftrag = Auftrag { art: LAUF, a: 110, b: 200 };
+    const K: Kennung = Kennung { uid: 1000, besitzer: 1 };
+
+    #[test]
+    fn neu_vergebene_nummer_faellt_raus() {
+        let mut b = Buch::default();
+        b.uebernehmen(5, K);
+        b.uebernehmen(6, K);
+        b.auftrag(5, L1, false);
+        // 5 gleich geblieben, 6 ist jetzt eine feindliche Armbrust mit neuer UID
+        let weg = b.kennung_pruefen(|nr| if nr == 6 { Kennung { uid: 2000, besitzer: 2 } } else { K });
+        assert_eq!(weg, vec![(6, K, Kennung { uid: 2000, besitzer: 2 })]);
+        assert!(b.eigene.contains(&5) && !b.eigene.contains(&6));
+        assert_eq!(b.auftrag(6, L1, false), Annahme::NichtUebernommen);
+        assert_eq!(b.naechster(), Some((L1, vec![5])));
+    }
 
     #[test]
     fn nur_uebergebene_einheiten() {
         let mut b = Buch::default();
         assert_eq!(b.auftrag(5, L1, false), Annahme::NichtUebernommen);
-        b.uebernehmen(5);
+        b.uebernehmen(5, K);
         assert_eq!(b.auftrag(5, L1, false), Annahme::Angenommen);
         b.freigeben(5);
         assert_eq!(b.offen_zahl(), 0);
@@ -259,7 +312,7 @@ mod tests {
     #[test]
     fn kein_dauer_neubefehl_ausser_untaetig() {
         let mut b = Buch::default();
-        b.uebernehmen(5);
+        b.uebernehmen(5, K);
         b.auftrag(5, L1, false);
         let (a, e) = b.naechster().unwrap();
         b.abgesetzt(a, &e, 7, 1000);
@@ -272,7 +325,7 @@ mod tests {
     fn gleiche_auftraege_werden_eine_gruppe() {
         let mut b = Buch::default();
         for nr in [3, 4, 5] {
-            b.uebernehmen(nr);
+            b.uebernehmen(nr, K);
         }
         b.auftrag(3, L1, false);
         b.auftrag(4, L1, false);
@@ -286,7 +339,7 @@ mod tests {
     #[test]
     fn unbekannte_art_wird_abgelehnt() {
         let mut b = Buch::default();
-        b.uebernehmen(5);
+        b.uebernehmen(5, K);
         assert_eq!(b.auftrag(5, Auftrag { art: 99, a: 0, b: 0 }, false), Annahme::UnbekannteArt);
     }
 }
