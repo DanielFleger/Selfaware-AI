@@ -1,15 +1,15 @@
 {
- "stand": "28.10.2026 19:49",
+ "stand": "28.10.2026 19:53",
  "funktionen": {
   "gesamt": 4581,
-  "erklaert": 430,
+  "erklaert": 460,
   "name_unklar": 409,
   "spiellogik": 1938,
-  "spiellogik_erklaert": 420
+  "spiellogik_erklaert": 450
  },
  "felder": {
   "gesamt": 1666,
-  "erklaert": 422,
+  "erklaert": 426,
   "liest_auge": 315,
   "liest_aber_unerklaert": 0
  },
@@ -23,7 +23,7 @@
   },
   "Gebaeude": {
    "felder": 239,
-   "erklaert": 65,
+   "erklaert": 67,
    "liest_auge": 62,
    "name_unklar": 64,
    "liest_aber_unerklaert": 0
@@ -44,7 +44,7 @@
   },
   "Spieler": {
    "felder": 388,
-   "erklaert": 75,
+   "erklaert": 77,
    "liest_auge": 61,
    "name_unklar": 46,
    "liest_aber_unerklaert": 0
@@ -71,6 +71,6 @@
    "liest_aber_unerklaert": 0
   }
  },
- "belegzeilen": 913,
+ "belegzeilen": 917,
  "regel": "B-267 Auge-Abdeckung (Daniel 27.10. 17:51: \"im Endeffekt darf im Code keine Zeile unerklaert sein\").\n\nMisst - statt aus dem Gedaechtnis - fuer ALLE Funktionen der Wissensdatenbank (knowledge.sqlite, Ghidra-Referenz) und\nALLE Felder der Strukturen Einheit, Gebaeude, Geschoss, Trupp, Spieler, KI-Vorgaben (AICSpecification), Karte/Zeit\n(MapAndTimeState) und Weltkarte (TileMapState):\n  - erklaert: ja, wenn eine Belegzeile sie nennt - Wissensregister.md (Zeilen AU/P/L/W/B/G/S/A, Spalte 1 = Beleg) oder\n    VillageStudio/doku/Wissensstand.md (Beleg \"WS <Abschnitt>\"); Zeilen mit Marke \"widerlegt\" zaehlen nicht.\n    Funktion genannt = Adresse (8 Hex-Ziffern, mit/ohne 0x) oder Kurzname (letzter ::-Teil, ab 8 Zeichen, ganzes Wort).\n    Feld genannt = Feldname als ganzes Wort; bei der Einheit zusaetzlich \"+<Offset>\" (so schreibt das Register).\n  - liest das Auge: Feldname steht in einem Datentyp oder im Quelltext von werkzeug/auge.py.\n  - Name unklar: Ghidra-Platzhalter (fieldNNN_0x.., ...Unk, unknown..., _OR_-Doppelnamen, FUN_...).\nDas ist \"im Register erwaehnt\", nicht \"vollstaendig verstanden\" - die Marke der Belegzeile steht mit dabei."
 }
