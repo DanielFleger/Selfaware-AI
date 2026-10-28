@@ -53,6 +53,11 @@ IM_SPIEL = (14, 16)
 # wieder ab (die eingebaute KI bekommt nie einen Zug). Springt der Takt zurueck, ist es eine neue Partie: neuer Lenker.
 TAKT = 0x0117CADC
 PAUSE_RUECK_S = 1.0
+# B-280b (Daniel 28.10. 00:58 "rausgefallen, haette anscheinend verloren"): 3 s nach "PAUSE ... zurueckgestellt" war die Partie
+# zu Ende, der Lord lebte (150.000). Das Zurueckstellen setzt auch den Mensch-Eintrag des Platzes zurueck, von dem aus Daniel
+# zusieht - das Spiel wertet das als Niederlage. AUS, bis das im Sandkasten gemessen ist. Neustart/Laden bleiben ueber
+# takeover.lua (Takt-Ruecksprung, geladener Spielstand) - nur die Starteinheiten nach einem Neustart im Spiel sind dann falsch.
+PAUSE_ZURUECK = False
 SPRUNG_TAKTE = 50
 
 
@@ -358,12 +363,14 @@ def main():
                     takt=peek(TAKT)[0]
                 except Exception:
                     takt=None
-                if takt is not None and takt_sprung(pause.get('takt'),takt):
-                    schreib('Takt sprang von %d auf %d - Neustart oder Laden im Spiel, neue Partie'%(pause['takt'],takt))
+                if takt is not None and takt_sprung(pause.get('takt_alt'),takt):
+                    schreib('Takt sprang von %d auf %d - Neustart oder Laden im Spiel, neue Partie'%(pause['takt_alt'],takt))
                     abschliessen(0,'Neustart oder Laden im Spiel')
                     bedient.clear();pause.clear();zuletzt_im_spiel=False
                     continue
-                if takt is not None and aktiv and pause_schritt(pause,takt,time.monotonic())=='zurueckstellen':
+                if takt is not None:
+                    pause['takt_alt']=takt                    # letzter Takt fuer den Ruecksprung (unabhaengig vom Zurueckstellen)
+                if takt is not None and aktiv and PAUSE_ZURUECK and pause_schritt(pause,takt,time.monotonic())=='zurueckstellen':
                     try:
                         from befehl import session_record
                         rec=session_record()
