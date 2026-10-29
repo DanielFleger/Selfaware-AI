@@ -1,0 +1,2522 @@
+[
+  {
+    "adresse": "0x004574C0",
+    "registermarke": "PK312",
+    "name": "_HoldStrong::Game::GameStateStructures::checkKeepEnclosed",
+    "kurzaussage": "Ohne campground.id liefert die Funktion FALSE. Mit Zone>299 und Zone<=Ganzzahl(3*PathFindingState.sum/4) gelten zusaetzliche Obergrenzen bei Kartengroesse160/200/300/400:8000/10000/20000/25000; unbekannte Kartengroessen haben hier keine solche Grenze. TRUE nur wenn keiner der acht Spielerslots zugleich anderes Team, Lagerfeuer vorhanden, lordKilledByPlayerID (campground+0x203C) gleich0, Mensch/KI belegt und dieselbe Zone hat. Keine Wegeabfrage, keine Spieler-/Zonenindexgrenze.",
+    "statische_gegenprobe": "campground.id==0 =>FALSE; zone299 =>FALSE; zone300 kann erst nach weiteren Bedingungen TRUE liefern.",
+    "offene_fragen": "Bedeutung von PathFindingState.sum und gueltige Zonenindizes; eingeschlossen ist hier eine Heuristik, kein geometrischer Burgabschluss.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004574c0.json",
+    "export_sha256": "4c691418abc208b591c816490491bd9b5877fb00e047d51ca36ee24151fc2280",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "30bbd7655addb81f050c4efbef7866d3a0a6b8da20bbe8335ccf24e2a5e7f1e5",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 6,
+        "code": "if (DAT_GameState.playerDataArray[playerID].campground.id == 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 7,
+        "code": "return FALSE;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "if ((299 < iVar1) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 16,
+        "code": "case 0xa0:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 17,
+        "code": "if (8000 < iVar1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 18,
+        "code": "return FALSE;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 21,
+        "code": "case 200:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 22,
+        "code": "if (10000 < iVar1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 23,
+        "code": "return FALSE;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 26,
+        "code": "case 300:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 27,
+        "code": "if (20000 < iVar1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 28,
+        "code": "return FALSE;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00457770",
+    "registermarke": "PK312",
+    "name": "_HoldStrong::Game::GameStateStructures::canUnitsNavigateFromKeepToKeep",
+    "kurzaussage": "Fehlt einer der beiden keep.id-Verweise, liefert die Funktion TRUE. Nur wenn beide vorhanden sind werden die Zonen der beiden campground.tileEntry gelesen: Zone0=>FALSE, gleiche nichtnull Zone=>TRUE; sonst wird die Wegabfrage mit playerID, Zielzone zuerst, eigener Zone danach und Parameter2 aufgerufen und deren !=0 zurueckgegeben. Spieler-/Kachelindizes ungeprueft.",
+    "statische_gegenprobe": "Fehlender Bergfried =>TRUE, nicht FALSE; zeigt, dass TRUE keinen existierenden Weg garantiert.",
+    "offene_fragen": "Bedeutung des letzten Wegparameters2 ohne Helferabgleich.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00457770.json",
+    "export_sha256": "916972674db301b5a904a4ac462683f02b454efa5bcc5d3aff38f464ffd19855",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "30bbd7655addb81f050c4efbef7866d3a0a6b8da20bbe8335ccf24e2a5e7f1e5",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 8,
+        "code": "if ((DAT_GameState.playerDataArray[playerID].keep.id != 0) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "if ((uVar1 == 0) ||"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 15,
+        "code": "return FALSE;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 17,
+        "code": "if (uVar2 != uVar1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 20,
+        "code": "return (uint)(iVar3 != 0);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 23,
+        "code": "return TRUE;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00457800",
+    "registermarke": "PK312",
+    "name": "_HoldStrong::Game::GameStateStructures::unitsCanMoveFromKeepOfPlayerToAnotherArea",
+    "kurzaussage": "Liest die Zone des Spieler-Lagerfeuereingangs und die des ersten Wegweisereingangs[0]. Ist eine Zone0, FALSE; gleiche nichtnull Zonen, TRUE; sonst Wegabfrage mit playerID,eigener Zone,Wegweiserzone,0 und Rueckgabe!=0. Prueft weder keep.id noch signpostID und keine Indexgrenzen.",
+    "statische_gegenprobe": "Zone0 bei einem Eingang =>FALSE; gleiche nichtnull Zonen umgehen die Wegabfrage.",
+    "offene_fragen": "Helferparameter0 und gueltige Herkunft der gespeicherten Eingangsverweise.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00457800.json",
+    "export_sha256": "4643240cfa4d4507c5990ef61e40e1a25f8cc8e002cce15c182e923e41d2e889",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "30bbd7655addb81f050c4efbef7866d3a0a6b8da20bbe8335ccf24e2a5e7f1e5",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 10,
+        "code": "if ((uVar1 != 0) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 13,
+        "code": "if (uVar2 == uVar1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 14,
+        "code": "return TRUE;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 18,
+        "code": "return (uint)(iVar3 != 0);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 20,
+        "code": "return FALSE;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00457870",
+    "registermarke": "PK312",
+    "name": "_HoldStrong::Game::GameStateStructures::canKeepReachSignpostZone",
+    "kurzaussage": "Vergleicht die Lagerfeuerzone von playerID mit dem Wegweisereintrag, dessen Index aus unknownSignpostRelatedArray[param_3] stammt. Nullzone=>FALSE; gleiche nichtnull Zonen=>TRUE; sonst Wegabfrage mit param_2 als Spielerargument und Schalter0. playerID und param_2 werden unterschiedlich verwendet; keine Indexgrenzen.",
+    "statische_gegenprobe": "Gleiche Zonen =>TRUE ohne Helfer; param_2 ersetzt nicht den Spieler, dessen Lagerfeuer gelesen wird.",
+    "offene_fragen": "Bedeutung/Laenge unknownSignpostRelatedArray und param_2/param_3.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00457870.json",
+    "export_sha256": "00ef1bde886412a3fa4150b2353959018ecc4153fb59df09aa82f1f6bf2eb895",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "30bbd7655addb81f050c4efbef7866d3a0a6b8da20bbe8335ccf24e2a5e7f1e5",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 10,
+        "code": "if ((uVar1 != 0) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 15,
+        "code": "if (uVar2 == uVar1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 16,
+        "code": "return TRUE;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 20,
+        "code": "return (uint)(iVar3 != 0);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 22,
+        "code": "return FALSE;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004578F0",
+    "registermarke": "PK312",
+    "name": "_HoldStrong::Game::GameStateStructures::canKeepReachSignpostZoneViaPathfinder",
+    "kurzaussage": "Wie der benachbarte Wegweiser-Zonenhelfer liest es Lagerfeuerzone von param_1 und den ueber param_3 gewaehlten Wegweisereintrag. Beide Zonen muessen!=0 sein; danach wird auch bei gleichen Zonen immer die Wegabfrage mit param_2 und Schalter2 aufgerufen. Ergebnis ist Helferrueckgabe!=0, sonst FALSE; keine Indexgrenzen.",
+    "statische_gegenprobe": "Gleiche nichtnull Zonen fuehren hier zur Wegabfrage und nicht automatisch TRUE.",
+    "offene_fragen": "Bedeutung des Schalterwerts2 und der Indexauswahl.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004578f0.json",
+    "export_sha256": "23aafd6bbed0b7e7a4d38dc3cd082a7386c3d96caf39262a2908f90ac762597c",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "30bbd7655addb81f050c4efbef7866d3a0a6b8da20bbe8335ccf24e2a5e7f1e5",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 6,
+        "code": "if ((DAT_TileMapState.PathConnectionLayer"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 19,
+        "code": "return (uint)(iVar1 != 0);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 21,
+        "code": "return FALSE;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00457960",
+    "registermarke": "PK312",
+    "name": "_HoldStrong::Game::GameStateStructures::updatePrimaryBuildingPlayerDataReferences",
+    "kurzaussage": "Liest den Baubesitzer und loescht unter20 BuildingEntryInfo-Gruppen nur die erste ID, die buildingID gleicht; Koordinaten/Gebiete bleiben dabei stehen. Fuer Vorratslager,Kornspeicher,Waffenlager,Kaserne,Soeldnerposten setzt es anschliessend den jeweiligen Hauptverweis auf den Rueckgabewert der Bautypsuche, auch0; bei den letzten beiden folgen Sammelplatz-Neuberechnungen. Keine obere ID-/Besitzergrenze und kein Ausschluss des gerade geloeschten Baus in diesem Wrapper.",
+    "statische_gegenprobe": "Zwei Gruppen mit derselben ID =>nur erste wird in der20er-Schleife genullt.",
+    "offene_fragen": "Ob die Bautypsuche den noch vorhandenen Zielbau erneut finden kann, haengt von Aufruferzustand und Helferfilter ab.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00457960.json",
+    "export_sha256": "41eff11f1c1f6af0e69891320d84952bd4f90dd306acbbb7f903ef39aa249445",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "30bbd7655addb81f050c4efbef7866d3a0a6b8da20bbe8335ccf24e2a5e7f1e5",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "if (pBVar2->id == buildingID) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 18,
+        "code": "} while (iVar1 < 0x14);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 19,
+        "code": "if (DAT_BuildingsState.buildings[buildingID].buildingType == BT_STOCKPILE) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 24,
+        "code": "if (DAT_BuildingsState.buildings[buildingID].buildingType == BT_GRANARY) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 29,
+        "code": "if (DAT_BuildingsState.buildings[buildingID].buildingType == BT_ARMORY) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 34,
+        "code": "if (DAT_BuildingsState.buildings[buildingID].buildingType == BT_BARRACKS) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 40,
+        "code": "if (DAT_BuildingsState.buildings[buildingID].buildingType == BT_MERCENARYPOST) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 47,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00457A70",
+    "registermarke": "PK312",
+    "name": "_HoldStrong::Game::GameStateStructures::changePlayerOwnership",
+    "kurzaussage": "Wrapper ruft nacheinander sechs Helfer auf: Einheitenuebertragung, Bau-/Spielerdatenuebertragung, Truppzuordnung, Mauerbesitz, Grabenbesitz, Objektbesitz, jeweils mit fromPlayer/toPlayer. Keine eigenen Grenz-/Gleichheitspruefungen, Rueckgaben oder Ruecknahme bei Teilerfolg. Ein allgemeiner vollstaendiger Spielertausch ist allein hier nicht belegt; Pechbesitz wird nicht als eigener Helfer aufgerufen.",
+    "statische_gegenprobe": "fromPlayer==toPlayer wird im Wrapper nicht abgefangen; kein eigener Pech-Helfer wie im Tausch-Wrapper.",
+    "offene_fragen": "Tatsaechliche Selektionsfilter und Fehlerwirkungen der sechs Helfer.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00457a70.json",
+    "export_sha256": "81ef1d8f0665eb653d749ddb087706c595b120bb3e13ee19d9ecf9e30ba7678d",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "30bbd7655addb81f050c4efbef7866d3a0a6b8da20bbe8335ccf24e2a5e7f1e5",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 13,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00457AD0",
+    "registermarke": "PK312",
+    "name": "_HoldStrong::Game::GameStateStructures::swapOwnership",
+    "kurzaussage": "Wrapper ruft nacheinander sieben Helfer mit beiden Spielern auf: Einheitenbesitztausch samt Hofeinheitenbehandlung, Baubesitztausch, Truppbesitztausch, Mauer-, Graben-, Pech- und Objektbesitztausch. Keine eigenen Bereichs-/Gleichheitspruefungen, Rueckgabe oder Ruecknahme. Die Namen der aufgerufenen Helfer sind hier Aufrufbelege, keine vollstaendige Erklaerung ihrer internen Auswahl.",
+    "statische_gegenprobe": "Pechbesitz hat hier eigenen Helfer; im Uebertragungs-Wrapper00457A70 fehlt dieser Aufruf.",
+    "offene_fragen": "Nicht gelesene Helferkoerper koennen weitere Auswahl-/Sonderfaelle enthalten.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00457ad0.json",
+    "export_sha256": "7bc8ec3812193539a098f73ec73c1d6673c6d5f0afa588b1a34a5cbe4dd05dd3",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "30bbd7655addb81f050c4efbef7866d3a0a6b8da20bbe8335ccf24e2a5e7f1e5",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 11,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00457B40",
+    "registermarke": "PK313",
+    "name": "_HoldStrong::Game::GameStateStructures::destroyPlayerCompletely",
+    "kurzaussage": "Ruft fuer playerID nacheinander killUnits,destroyBuildings,destroyWallsOfPlayer und destroyEntitiesPart2 auf. Keine eigene Pruefung, Rueckgabe oder Fehlerbehandlung. Dass damit ausnahmslos alle Spielerobjekte oder Verweise verschwinden, ist aus diesem Wrapper nicht ableitbar.",
+    "statische_gegenprobe": "Nur vier Aufrufe, kein eigener Trupp-/Graben-/Pech-Loeschaufruf.",
+    "offene_fragen": "Vollstaendigkeit und Seiteneffekte der aufgerufenen Helfer.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00457b40.json",
+    "export_sha256": "21a968e06c4bb2cf0ec43695b54213933424653a8b55fc4fd81953c0e32fd901",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "629091339077f90620ba55cc30317f3dc1068b9f9b250f2f5c90adf5f0b8c021",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 9,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00457B80",
+    "registermarke": "PK313",
+    "name": "_HoldStrong::Game::GameStateStructures::checkRequiredResourcesForBuildingOrPlanToBuy",
+    "kurzaussage": "Liest nach Mapper-Umwandlung die fuenf Baukosten, bevor Freikosten/Editor und im Einzelspiel KEEP1/2/3 frueh1 liefern. Auch die Holzfaeller-Ausnahmehilfe kann1 liefern. Sonst prueft Eisen,Pech[7],Gold[15],Holz[2],Stein[4]; beim Pechmangel von Bautyp0x44 mit pitchDitchCounterTo4!=0 sofort1 ohne spaetere Gold/Holz/Steinpruefung. Fehlender Rohstoff fuehrt0, optional Warnansage. Nur KI-Slots (FullID-1 und AI!=0 ausserhalb Einzelspiel) erhoehen Erwerbsanforderungen auf mindestens den Fehlbetrag; Eisen/Pech brechen sofort ab, Gold erstellt keine Anforderung, gemeinsamer Holz-/Steinmangel kann beide erhoehen. Keine Buchung/Abzug und keine Indexgrenzen.",
+    "statische_gegenprobe": "Pechsonderfall kann1 liefern, obwohl spaetere Rohstoffe fehlen; Freikostenpfad liest trotzdem vorher Kostentabelle.",
+    "offene_fragen": "Bedeutung der Holzfaeller-Ausnahmehilfe und ob Kosten-/Mapperindizes immer gueltig sind.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00457b80.json",
+    "export_sha256": "8b7efb27a9d62fa7e6a8d85bba54c7dcdf507967082ea6afb6816a680dc67a9f",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "629091339077f90620ba55cc30317f3dc1068b9f9b250f2f5c90adf5f0b8c021",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 22,
+        "code": "if ((DAT_GameCore.solitaryAllBuildingsAreFree != FALSE) || (DAT_GameCore.gameMode_2 == GM_EDITOR))"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 24,
+        "code": "return 1;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 26,
+        "code": "if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 27,
+        "code": "if (commandBuildingType == M_MAPPER_KEEP1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 28,
+        "code": "return 1;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 30,
+        "code": "if (commandBuildingType == M_MAPPER_KEEP2) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 31,
+        "code": "return 1;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 33,
+        "code": "if (commandBuildingType == M_MAPPER_KEEP3) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 34,
+        "code": "return 1;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 37,
+        "code": "else if ((DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] == -1) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 43,
+        "code": "if (uVar4 != 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 44,
+        "code": "return 1;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00457E80",
+    "registermarke": "PK313",
+    "name": "_HoldStrong::Game::GameStateStructures::getWallTilesThatCanBeBuilt",
+    "kurzaussage": "Freikosten/Editor liefern100. GM_SIEGE_THAT liefert ungekappt startResources[4], unabhaengig vom Materialparameter. Sonst Material4 nimmt aktuellen Stein und partialStoneCounter, Material2 Holz und partialWoodCounter; anderes Material0. Ergebnis2*Bestand minus1 bei beliebigem nichtnull Teilrest, nur nach oben auf250 begrenzt; negative Ergebnisse werden nicht auf0 gesetzt.",
+    "statische_gegenprobe": "Bestand0 mit Teilrest!=0 ergibt-1; Belagerung umgeht250-Grenze.",
+    "offene_fragen": "Teilrestfelder werden als int gelesen; ihre Herkunft/gueltigen Werte bleiben Aufrufervertrag.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00457e80.json",
+    "export_sha256": "0e55d9527d574b436836436fb160856faf4cdf6e2e1e34d2d87df2c5a944376b",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "629091339077f90620ba55cc30317f3dc1068b9f9b250f2f5c90adf5f0b8c021",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 7,
+        "code": "if ((DAT_GameCore.solitaryAllBuildingsAreFree == FALSE) && (DAT_GameCore.gameMode_2 != GM_EDITOR))"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 9,
+        "code": "if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 10,
+        "code": "return DAT_GameState.playerDataArray[playerID].startResources[4];"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "if (wallMaterial == 4) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 17,
+        "code": "if (wallMaterial != 2) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 18,
+        "code": "return 0;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 24,
+        "code": "if (iVar1 != 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 27,
+        "code": "if (0xfa < iVar2) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 28,
+        "code": "return 0xfa;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 34,
+        "code": "return iVar2;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00457F20",
+    "registermarke": "PK313",
+    "name": "_HoldStrong::Game::GameStateStructures::showPopAndGoldPopup",
+    "kurzaussage": "Ausserhalb GM_SOLITARY durchlaeuft es die Spielerslots ab1. Nur bei zwei rohen Statusfeldern0 und besetztem Mensch-/KI-Slot vergleicht es popularity/100 mit dem gespeicherten Wert. Bei Abweichung steigt ein Zaehler; erst bei>1 wird der gespeicherte Wert aktualisiert, Zaehler0 und bei nichtnull Bauverweis die Popup-Hilfe mit0/0/0 aufgerufen. Gleicher Wert setzt den Wartezaehler nicht zurueck; keine laufende Messung.",
+    "statische_gegenprobe": "Zwei nicht aufeinanderfolgende Abweichungen koennen den Zaehler ueber1 bringen; kein Reset im Gleichheitszweig.",
+    "offene_fragen": "Bedeutung der beiden Rohstatusfelder und des verwendeten Bauverweises ohne Typabgleich.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00457f20.json",
+    "export_sha256": "e81b2631ae0ab41fbcfd5fe0fdb0c48c5816a6b5a4cdd32df5984bc6c8d9172f",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "629091339077f90620ba55cc30317f3dc1068b9f9b250f2f5c90adf5f0b8c021",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 7,
+        "code": "if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 11,
+        "code": "if ((((piVar1[0x86c] == 0) && (piVar1[0x879] == 0)) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 17,
+        "code": "if (buildingID != 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 24,
+        "code": "} while ((int)piVar2 < 0x191de34);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 26,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00457FD0",
+    "registermarke": "PK313",
+    "name": "_HoldStrong::Game::GameStateStructures::createStatsPopUpEntities",
+    "kurzaussage": "Ausserhalb GM_SOLITARY wie der Popularitaetshelfer, aber Vergleich von aktuellem Gold[15] gegen gespeicherten Goldwert. Bei zwei rohen Statusfeldern0, besetztem Mensch-/KI-Slot und Abweichung wird der Zaehler erhoeht; bei>1 Wert kopiert, Zaehler0 und Popup-Hilfe fuer nichtnull Bauverweis mit0/0/0 aufgerufen. Keine Ruecksetzung des Zaehlerstands bei Gleichheit.",
+    "statische_gegenprobe": "Gold gleich altem Wert =>kein Popup und kein sichtbarer Zaehlerreset.",
+    "offene_fragen": "Bedeutung der Rohstatus-/Bauverweisfelder; Popup-Helfer entscheidet die genaue Darstellung.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00457fd0.json",
+    "export_sha256": "a672f325cb0b6e02a1340c4866eccb4a8a162b8d971a270bd46dde3ecc4c7823",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "629091339077f90620ba55cc30317f3dc1068b9f9b250f2f5c90adf5f0b8c021",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 7,
+        "code": "if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 11,
+        "code": "if ((((piVar1[0x741] == 0) && (piVar1[0x74e] == 0)) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 17,
+        "code": "if (buildingID != 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 24,
+        "code": "} while ((int)piVar2 < 0x191de34);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 26,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458070",
+    "registermarke": "PK313",
+    "name": "_HoldStrong::Game::GameStateStructures::displayPlayerTradeVisualEffect",
+    "kurzaussage": "Nur ausserhalb GM_SOLITARY, bei lordKilledByPlayerID0, playerDeathRelated0 und marketplace.id!=0 ruft es die Popup-Hilfe mit dieser Bau-ID und unveraenderten param_2,amount,resourceType auf. Keine eigenen UID-/Typ-/Mengen- oder Spielergrenzen; void.",
+    "statische_gegenprobe": "Marktplatz-ID0 oder einer der Todesmarker!=0 =>kein Aufruf.",
+    "offene_fragen": "Bedeutung von param_2 und der Popup-Hilfe.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458070.json",
+    "export_sha256": "79f47f77e0aa5d381e303fba570bb322f0f35eb12bca2ac82673793be0c88419",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "629091339077f90620ba55cc30317f3dc1068b9f9b250f2f5c90adf5f0b8c021",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 6,
+        "code": "if ((((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "return;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 14,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004580C0",
+    "registermarke": "PK313",
+    "name": "_HoldStrong::Game::GameStateStructures::spawnChicken",
+    "kurzaussage": "Ausserhalb Editor/GM_SIEGE_THAT fuer Spieler1-8 nur bei keep.id>0 und campground.id>0. Sollzahl aus totalFood:<=0=>0,1..9=>1,10..19=>2,20..29=>3,ab30=>min(10,totalFood/max(1,2*Rohfeld)+3); ein Sonderflag setzt100. Bei Istzahl<Soll versucht es genau ein Huhn am zugaenglichen Eingang eines zufaellig ausgewaehlten Baeckerei-/Muehle-/Kornspeicherbaus zu erzeugen; bei Erfolg isDisappearingUnk1 und Ton. Bei Istzahl>Soll setzt es nur das erste nicht-unsichtbare eigene Huhn auf US_DISAPPEAR. Keine Bestandskorrektur hier und keine explizite obere ID-Grenze.",
+    "statische_gegenprobe": "totalFood29 liefert3,30 kann sprunghaft einen hoehere Sollzahl ergeben; Ueberbestand entfernt hoechstens ein Huhn je Spieler/Aufruf.",
+    "offene_fragen": "Bedeutung der beiden Hauptbauverweise, des Divisor-/Huhnzahl-Rohfelds und Erzeugungsfehler.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004580c0.json",
+    "export_sha256": "47e9e77417ea8510a2574ff26aef5a42592e16adcc583c9d741fc4d02ce23d78",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "629091339077f90620ba55cc30317f3dc1068b9f9b250f2f5c90adf5f0b8c021",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 10,
+        "code": "if ((DAT_GameCore.gameMode_2 != GM_EDITOR) && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 14,
+        "code": "if ((0 < ((BuildingEntryInfo *)(piVar6 + -0x802))->id) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 17,
+        "code": "if (iVar3 < 1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 20,
+        "code": "else if (iVar3 < 10) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 23,
+        "code": "else if (iVar3 < 0x14) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 26,
+        "code": "else if (iVar3 < 0x1e) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 31,
+        "code": "if (iVar4 < 2) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 35,
+        "code": "if (10 < iVar3) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 39,
+        "code": "if (DAT_GameCore.unknownAlwaysZero02 != 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 42,
+        "code": "if (piVar6[0x60] < iVar3) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 46,
+        "code": "if ((iVar4 != 0) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 61,
+        "code": "else if ((iVar3 < piVar6[0x60]) && (iVar3 = 1, 1 < (int)DAT_UnitsState.maxUnitCount)) {"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458280",
+    "registermarke": "PK313",
+    "name": "_HoldStrong::Game::GameStateStructures::spawnMotherOrChild",
+    "kurzaussage": "Ausserhalb Editor/Belagerung fuer Spieler1-8 mit zwei positiven Hauptbauverweisen. Ein Moduszweig nutzt Hysterese ueber Rohfelder: inaktiv wird bei<41 aktiv, aktiv bleibt bei<101, sonst0; anderer Zweig verlangt weiteres Rohfeld<1. Mit Budget75 minus zwei Spielerzaehlern durchsucht es aktive nicht-entfernte eigene HOVEL/HOUSE-Bauten ohne Rohsperre. Leerer Mutterplatz versucht UT_MOTHER an zwei positiven Eingangskoordinaten und speichert ID/UID/Arbeitsplatz. Vorhandener Platz: bei Spielerwert/100>49 wird Byte-Zaehler vermindert; bei<1 und Kinderzahl ungleich Byte-Grenze wird UT_CHILD versucht, Kind-ID/UID abgelegt und Kinderzahl erhoeht. Budget sinkt nur bei erfolgreichem Spawn. Kein UID-Abgleich vorhandener Mutter; Index-/Byteherleitung und Rohfeldbedeutungen offen.",
+    "statische_gegenprobe": "Keine Mutter im Platz =>Mutterversuch, selbst wenn die Kinderbedingung nicht erfuellt ist; Budget<=0 beendet die Bausuche.",
+    "offene_fragen": "Hysterese-/Budgetfelder, genaue Kindergrenze und dekompilierte Arrayindizes.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458280.json",
+    "export_sha256": "a60699c8ef8c52dfac990ee2cbfa4c9741f8fd45d82954e5992ef618e5284410",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "629091339077f90620ba55cc30317f3dc1068b9f9b250f2f5c90adf5f0b8c021",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 15,
+        "code": "if ((DAT_GameCore.gameMode_2 != GM_EDITOR) && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 19,
+        "code": "if ((0 < _playerData[-8].id) && (0 < _playerData->id)) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 20,
+        "code": "if (DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 21,
+        "code": "if (_playerData[0x165].id == 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 22,
+        "code": "if (*(int *)((int)(_playerData + 0x160) + 0xc) < 0x29) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 28,
+        "code": "if (*(int *)((int)(_playerData + 0x160) + 0xc) < 0x65) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 32,
+        "code": "if (0 < DAT_BuildingsState.maxBuildingsCount) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 37,
+        "code": "if ((((*pBVar6 != 0) && (*pBVar6 != BLS_REMOVE)) && ((short)pBVar6[3] == playerID)"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 40,
+        "code": "if (iVar5 < 1) break;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 41,
+        "code": "if (pBVar6[0x20] == 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 43,
+        "code": "if (((0 < sVar1) && (sVar2 = pBVar6[0x18], 0 < sVar2)) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 61,
+        "code": "if (((0x31 < *(int *)((int)(_playerData + -10) + 0x1c) / 100) &&"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004585B0",
+    "registermarke": "PK314",
+    "name": "_HoldStrong::Game::GameStateStructures::playerHasACampground",
+    "kurzaussage": "TRUE nur wenn campground.id>0, der referenzierte Baubesitzer gleich playerID und Bautyp BT_CAMPGROUND ist; sonst FALSE. Kein logicalState-/UID-/Kartenbelegungsabgleich, keine obere ID-/Spielergrenze.",
+    "statische_gegenprobe": "Nichtnull ID mit passendem Typ aber falschem Besitzer =>FALSE.",
+    "offene_fragen": "Ob ein passender, aber bereits entfernter Bau noch verwendet werden darf.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004585b0.json",
+    "export_sha256": "a8df409795c299de909005d2d02f3bb28d30c71128962378062467d72b7049df",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "9fa60ed97d74d045e27a42321c05a9e5c6c53597f21911ae7e947678f93763cd",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 6,
+        "code": "if (((0 < iVar1) && (DAT_BuildingsState.buildings[iVar1].owner == playerID)) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 8,
+        "code": "return TRUE;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 10,
+        "code": "return FALSE;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004585F0",
+    "registermarke": "PK314",
+    "name": "_HoldStrong::Game::GameStateStructures::moveUnitAroundCampfire",
+    "kurzaussage": "Liest Einheitenbesitzer und dessen campground.id. Ohne positive ID oder bei unpassendem Besitzer/Typ Rueckgabe-1. Sonst Arbeitsplatz-ID/UID setzen, Sitzplatzhilfe mit availablePeasants-1 aufrufen, globale Sitzkoordinaten und Orientierung als Ziel/field41_0x56 kopieren. Stimmen aktuelle x/y bereits mit Ziel ueberein0, sonst1; keine eigene Weg-, UID-, Index- oder availablePeasants-Grenzpruefung.",
+    "statische_gegenprobe": "availablePeasants0 reicht-1 an die Sitzplatzhilfe; Ziel schon erreicht liefert0 nach den Schreibungen.",
+    "offene_fragen": "Gueltiger Wertebereich des Sitzplatz-Helfers und Bedeutung field41_0x56.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004585f0.json",
+    "export_sha256": "7cd075fced00cb46e319b584759a1c36843ef0138bf2cfa0d09330dc7c7dfd38",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "9fa60ed97d74d045e27a42321c05a9e5c6c53597f21911ae7e947678f93763cd",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 13,
+        "code": "if (0 < campfireID) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 14,
+        "code": "if ((DAT_BuildingsState.buildings[campfireID].owner == iVar5) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 28,
+        "code": "if ((sVar1 == sVar2) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 30,
+        "code": "return 0;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 32,
+        "code": "return 1;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 35,
+        "code": "return -1;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004586D0",
+    "registermarke": "PK314",
+    "name": "_HoldStrong::Game::GameStateStructures::activateTraderState",
+    "kurzaussage": "Setzt MapAndTimeState.traderRelated2 auf2 und traderRelatedCounter1 auf0; void, ohne Bedingungen. Weitere Haendleraktionen zeigt dieser Koerper nicht.",
+    "statische_gegenprobe": "Vorheriger Zustand beliebig =>dieselben beiden Schreibungen.",
+    "offene_fragen": "Bedeutung des Zustandswerts2 im Haendlerautomaten.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004586d0.json",
+    "export_sha256": "8751689bfc03f9c287bc9a9ebb541714d2b7e578fb2429b43c586600fcb0519f",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "9fa60ed97d74d045e27a42321c05a9e5c6c53597f21911ae7e947678f93763cd",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 6,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004586F0",
+    "registermarke": "PK314",
+    "name": "_HoldStrong::Game::GameStateStructures::resetTraderState",
+    "kurzaussage": "Setzt traderRelated2 und traderRelatedCounter1 beide0; void, keine Bedingungen. Andere Haendlerfelder werden hier nicht geloescht.",
+    "statische_gegenprobe": "Anders als Aktivierung004586D0 endet traderRelated2 hier0.",
+    "offene_fragen": "Vollstaendiger Haendlerautomat und Bedeutung dieser beiden Felder.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004586f0.json",
+    "export_sha256": "aa46e61612b8b6bdb24ad06297bccc6ed5988348a9beb3bd43f4c398963698ca",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "9fa60ed97d74d045e27a42321c05a9e5c6c53597f21911ae7e947678f93763cd",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 5,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458700",
+    "registermarke": "PK314",
+    "name": "_HoldStrong::Game::GameStateStructures::findNextPlayerWithMarketplace",
+    "kurzaussage": "Sucht nur aufsteigend ab param_1+1 bis einschliesslich8 die erste marketplace.id>0 und liefert deren Spielerindex, sonst0. Kein Umlauf zu1; keine Pruefung auf aktiven Spieler, gueltigen Bautyp/Besitzer/UID oder negativen Ausgangsindex.",
+    "statische_gegenprobe": "param_1=8 =>0, selbst wenn Spieler1 einen Marktplatz hat.",
+    "offene_fragen": "Vertrag fuer negative param_1 und Gueltigkeit der gespeicherten Marktplatzverweise.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458700.json",
+    "export_sha256": "3f291a6937b834e5fffdfdb691e6b93235ff9176fd2ee2f88e2747b2765106ee",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "9fa60ed97d74d045e27a42321c05a9e5c6c53597f21911ae7e947678f93763cd",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 8,
+        "code": "if (iVar1 < 9) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 11,
+        "code": "if (0 < pBVar2->id) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "return iVar1;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 16,
+        "code": "} while (iVar1 < 9);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 18,
+        "code": "return 0;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458740",
+    "registermarke": "PK314",
+    "name": "_HoldStrong::Game::GameStateStructures::isResourceTypeTradeable",
+    "kurzaussage": "Bei RT_PITCH wird vorab auf RT_PARTIALPITCH umgeschaltet; dann Rueckgabe isResourceTradeable[Typ]!=0. Kein Spielerparameter, keine Preis-/Bestands-/Marktplatzpruefung oder Indexgrenze.",
+    "statische_gegenprobe": "Fuer RT_PITCH gilt das Freigabefeld von RT_PARTIALPITCH, nicht das urspruengliche Feld.",
+    "offene_fragen": "Gueltige ResourceType-Werte und Bedeutung der beiden Pech-Enums.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458740.json",
+    "export_sha256": "0d4fe540c5119cd16301ab0c20a8239bd2f459d1db3a175659d6266ea3f0c2ee",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "9fa60ed97d74d045e27a42321c05a9e5c6c53597f21911ae7e947678f93763cd",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 5,
+        "code": "if (resourceType == RT_PITCH) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 8,
+        "code": "return (uint)(DAT_GameState.mapAndTime.isResourceTradeable[resourceType] != 0);"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458760",
+    "registermarke": "PK314",
+    "name": "_HoldStrong::Game::GameStateStructures::anyGoodsAreAllowedForSale",
+    "kurzaussage": "Durchlaeuft MarketResourceCycleArray bis Sentinel0xFFFFFFFF und zaehlt Eintraege mit nichtnull Handelsfreigabe. TRUE erst bei mehr als einem Treffer, bei0 oder genau1 FALSE. Kein eigener Maximalindex, keine Pechumleitung und keine Pruefung auf tatsaechliche Vorratsmenge.",
+    "statische_gegenprobe": "Genau eine erlaubte Ware =>FALSE trotz Funktionsname anyGoods.",
+    "offene_fragen": "Garantierter Sentinel und gueltige Zyklusindizes.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458760.json",
+    "export_sha256": "5eab99bbab56d30823fa70e309a8ce7bb9f05a64293b7f3f910b4e88fac54bdb",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "9fa60ed97d74d045e27a42321c05a9e5c6c53597f21911ae7e947678f93763cd",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 10,
+        "code": "if (DAT_TroopDefinedData.MarketResourceCycleArray[0] != 0xffffffff) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "if (DAT_GameState.mapAndTime.isResourceTradeable[RVar1] != 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 17,
+        "code": "} while (RVar1 != 0xffffffff);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 18,
+        "code": "if (1 < iVar3) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 19,
+        "code": "return TRUE;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 22,
+        "code": "return FALSE;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004587A0",
+    "registermarke": "PK314",
+    "name": "_HoldStrong::Game::GameStateStructures::getNextGoodFilteringUnallowed",
+    "kurzaussage": "Normalisiert RT_PITCH zu RT_PARTIALPITCH, sucht den Starttyp linear im Handelszyklus und geht dann mindestens einen Schritt vorwaerts; beim Sentinel zurueck0. Ueberspringt Freigabe0, bis ein freigegebener Typ gefunden wird; Rueckgabe Typ. Keine Starttyp-/Laengenpruefung und kein Abbruch, falls alle Waren gesperrt sind.",
+    "statische_gegenprobe": "Alle Zykluswaren gesperrt =>Schleife hat keinen sichtbaren Abbruch; nur eine erlaubte Ware kann nach Umlauf wieder sich selbst liefern.",
+    "offene_fragen": "Gueltiger Starttyp, Sentinel und mindestens eine Freigabe sind Aufruferbedingungen.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004587a0.json",
+    "export_sha256": "cbe325e00c13004991d9eb6ce9d2018fde9f4e91fd7061f128cb773e819a6439",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "9fa60ed97d74d045e27a42321c05a9e5c6c53597f21911ae7e947678f93763cd",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 9,
+        "code": "if (param_1 == RT_PITCH) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 14,
+        "code": "while (RVar1 != param_1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 19,
+        "code": "if (DAT_TroopDefinedData.MarketResourceCycleArray[iVar2 + 1] == 0xffffffff) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 24,
+        "code": "while (iVar2 == 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 26,
+        "code": "if (DAT_TroopDefinedData.MarketResourceCycleArray[iVar3 + 1] == 0xffffffff) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 33,
+        "code": "return RVar1;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458820",
+    "registermarke": "PK315",
+    "name": "_HoldStrong::Game::GameStateStructures::getPreviousGoodsFilteringUnallowed",
+    "kurzaussage": "Normalisiert Pech wie der Vorwaertshelfer, sucht den Starttyp ohne Begrenzung und geht mindestens einen Schritt rueckwaerts. Unter Index0 wird fest auf19 gesetzt; gesperrte Eintraege werden rueckwaerts uebergangen. Liefert ersten freigegebenen Typ, kein Abbruch bei ausschliesslich gesperrten Waren und keine Starttypgrenze.",
+    "statische_gegenprobe": "Unterlauf geht fest zu19, nicht zur dynamisch gefundenen Sentinelposition.",
+    "offene_fragen": "Zyklus muss zu dieser20er-Annahme passen; Starttyp muss enthalten sein und mindestens eine Freigabe existieren.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458820.json",
+    "export_sha256": "e91bfb8462042764211155f6e3ba29ef8cb61954fea29009a630b5b6bada0815",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "f8435d18c7555024a8d651b33548988cbae2dd95f28ebb1f3fad12d321f162ab",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 8,
+        "code": "if (param_1 == RT_PITCH) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 13,
+        "code": "while (RVar1 != param_1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 18,
+        "code": "if (iVar3 < 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 23,
+        "code": "while (iVar2 == 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 25,
+        "code": "if (iVar3 < 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 31,
+        "code": "return RVar1;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458890",
+    "registermarke": "PK315",
+    "name": "_HoldStrong::Game::GameStateStructures::getBatchBuyPrice",
+    "kurzaussage": "Liefert direkt buyAndSalesPriceArray[resourceType].buyPrice. playerID wird ignoriert; keine Division, Mengen-, Freigabe- oder Indexpruefung.",
+    "statische_gegenprobe": "Verschiedene playerID bei gleichem Typ lesen denselben Tabellenwert.",
+    "offene_fragen": "Tabellenwert wird nur als buyPrice gelesen; die Benennung als Fuenferpreis ergibt sich aus den benachbarten Rechenhelfern.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458890.json",
+    "export_sha256": "389287c34ca0f524b7af30dc847bd5077a79ebea38332257684851bfe371541b",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "f8435d18c7555024a8d651b33548988cbae2dd95f28ebb1f3fad12d321f162ab",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 5,
+        "code": "return DAT_GameState.mapAndTime.buyAndSalesPriceArray[resourceType].buyPrice;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004588A0",
+    "registermarke": "PK315",
+    "name": "_HoldStrong::Game::GameStateStructures::getBuyPrice",
+    "kurzaussage": "Liefert (buyPrice[resourceType]/5)*amount mit ganzzahliger Division vor der Multiplikation. playerID unbenutzt, keine Mengengrenze, Vorzeichen-/Ueberlauf-/Freigabe- oder Indexpruefung.",
+    "statische_gegenprobe": "Tabellenpreis8 und amount3 =>(8/5)*3=3, nicht (8*3)/5=4.",
+    "offene_fragen": "Gueltige Preis-/Mengenbereiche und ob Preise immer durch5 teilbar sind.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004588a0.json",
+    "export_sha256": "8b57e952a75ac5c236d0ff90ca22daefe10c3c011a5a974ab1bca1655b072a75",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "f8435d18c7555024a8d651b33548988cbae2dd95f28ebb1f3fad12d321f162ab",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 5,
+        "code": "return (DAT_GameState.mapAndTime.buyAndSalesPriceArray[resourceType].buyPrice / 5) * amount;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004588D0",
+    "registermarke": "PK315",
+    "name": "_HoldStrong::Game::GameStateStructures::getBuyPriceForOneUnit",
+    "kurzaussage": "Liest buyPrice[param_1] und liefert Ganzzahldivision durch5. Keine Mengen-, Spieler-, Freigabe- oder Indexpruefung.",
+    "statische_gegenprobe": "Preis4 ergibt0, Preis5 ergibt1.",
+    "offene_fragen": "Gueltiger Warentyp und negative Tabellenpreise.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004588d0.json",
+    "export_sha256": "e7cf44908f76ff1a0f3e29e1e1213d6f4a27fa0c87455f8939e51034ca7c116a",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "f8435d18c7555024a8d651b33548988cbae2dd95f28ebb1f3fad12d321f162ab",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 4,
+        "code": "return DAT_GameState.mapAndTime.buyAndSalesPriceArray[param_1].buyPrice / 5;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004588F0",
+    "registermarke": "PK315",
+    "name": "_HoldStrong::Game::GameStateStructures::getSalePriceOfGood",
+    "kurzaussage": "Liest salesPrice[param_1] und liefert Ganzzahldivision durch5. Kein Zugriff auf buyPrice, keine Bestands-, Freigabe- oder Indexpruefung.",
+    "statische_gegenprobe": "salesPrice4 ergibt0,5 ergibt1.",
+    "offene_fragen": "Gueltige Warentypen und Preiswerte.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004588f0.json",
+    "export_sha256": "5f1fdea2b017259590ac7fb138f707cdc9e357582f2d5ba6305f3f15fee6cd93",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "f8435d18c7555024a8d651b33548988cbae2dd95f28ebb1f3fad12d321f162ab",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 5,
+        "code": "return DAT_GameState.mapAndTime.buyAndSalesPriceArray[param_1].salesPrice / 5;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458910",
+    "registermarke": "PK315",
+    "name": "_HoldStrong::Game::GameStateStructures::getSellPrice",
+    "kurzaussage": "Liefert (salesPrice[resourceType]/5)*amount, Ganzzahldivision vor Multiplikation. playerID wird ignoriert, keine Mengen-/Bestands-/Freigabe-/Indexpruefung und kein Ueberlaufschutz.",
+    "statische_gegenprobe": "salesPrice8 und amount3 ergeben3, nicht4.",
+    "offene_fragen": "Erlaubte negative Mengen und garantierte Preisbereiche.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458910.json",
+    "export_sha256": "f051639261a272d7bae7eee53c6161a4ad308c5adaebfb860c27922fc237a05a",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "f8435d18c7555024a8d651b33548988cbae2dd95f28ebb1f3fad12d321f162ab",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 5,
+        "code": "return (DAT_GameState.mapAndTime.buyAndSalesPriceArray[resourceType].salesPrice / 5) * amount;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458940",
+    "registermarke": "PK315",
+    "name": "_HoldStrong::Game::GameStateStructures::getSellResourceAmount",
+    "kurzaussage": "Liest currentResources[param_2] des Spielersparam_1. Bestand<=4 wird unveraendert geliefert, auch negativ;5..49=>5,50..99=>10,100..199=>20,ab200=>50. Es wird weder verkauft noch gebucht; keine Indexgrenzen.",
+    "statische_gegenprobe": "Bestand199=>20,200=>50; Bestand-1=>-1.",
+    "offene_fragen": "Aufrufer muss ungueltige Spieler/Waren und negative Bestaende behandeln.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458940.json",
+    "export_sha256": "bcc430efef688c46243c592a9c52df58ff45b8fdabac85715f9a178ffd5be582",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "f8435d18c7555024a8d651b33548988cbae2dd95f28ebb1f3fad12d321f162ab",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 5,
+        "code": "if (4 < iVar1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 6,
+        "code": "if (iVar1 < 0x32) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 7,
+        "code": "return 5;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 9,
+        "code": "if (iVar1 < 100) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 10,
+        "code": "return 10;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 14,
+        "code": "return iVar1;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458990",
+    "registermarke": "PK315",
+    "name": "_HoldStrong::Game::GameStateStructures::setVariousGameStateToInitialValues",
+    "kurzaussage": "Setzt totalGameTicksUnk/treeSpreadCounter0, treeSpreadInterval5, gameOverFALSE, singlePlayerHasKeepAndGranaryFALSE, field2268_0xdec0, gameEventRelatedCountdown0, unk_signpostDistance30 und field3171_0x27a8 0. Keine weiteren Spielerdaten werden hier initialisiert; void.",
+    "statische_gegenprobe": "Kein Vollreset: nicht genannte MapAndTime-Felder werden nicht geschrieben.",
+    "offene_fragen": "Bedeutung der drei rohen/Unk-Felder bleibt offen.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458990.json",
+    "export_sha256": "eacb426e786f85a3f74acec0a0eedd344f4505405ee643da375ba1c0230b8edc",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "f8435d18c7555024a8d651b33548988cbae2dd95f28ebb1f3fad12d321f162ab",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004589E0",
+    "registermarke": "PK316",
+    "name": "_HoldStrong::Game::GameStateStructures::processPeasantsForBuildings",
+    "kurzaussage": "GM_SIEGE_THAT ueberspringt alles. Sonst fuer Spieler1-8 mit zwei positiven Hauptbauverweisen zuerst updateLordLadyJesterAndGhostUnits; dieser Aufruf passiert auch im Editor. Nur ausserhalb Editor und bei zwei positiven Spielerrohwerten wird die Bauernbedarfswarteschlange neu gebaut; wenn deren Anzahl>0 folgen Sortierung und Verarbeitung. Keine Rueckgabe, eigene Index-/UID-Pruefung oder unmittelbare Spawn-Garantie.",
+    "statische_gegenprobe": "Editor sperrt die Bauernwarteschlange, aber nicht die vorherige Hofeinheiten-Hilfe.",
+    "offene_fragen": "Bedeutung der zwei positiven Spielerrohwerte und Helferinterne Zuteilungs-/Spawnregeln.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004589e0.json",
+    "export_sha256": "78400abc335f5701bb06abfc72035e23d1c7ab642de9e5dc278eb04dbb4d8453",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "8e853d6fedaaa4ab2d8b7aec1345b3dce4907bd384fd02fd0a12d79733a5d764",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 6,
+        "code": "if (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 10,
+        "code": "if ((((0 < pBVar1[-8].id) && (0 < pBVar1->id)) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 24,
+        "code": "} while (playerID < 9);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 26,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458A70",
+    "registermarke": "PK316",
+    "name": "_HoldStrong::Game::GameStateStructures::updateFoodTypesInStockForAllPlayers",
+    "kurzaussage": "Fuer Spieler1-8 nur bei keep.id>0 und campground.id>0 setzt foodTypesInStock neu auf die Anzahl positiver Bestaende in den vier unmittelbar vorherigen Nahrungsslots (Brot,Kaese,Fleisch,Aepfel). Sonst bleibt der alte Zaehler stehen. Keine Bannsperrenpruefung oder Gesamtmengensumme.",
+    "statische_gegenprobe": "Fehlender Hauptbauverweis laesst alten foodTypesInStock stehen, statt ihn0 zu setzen.",
+    "offene_fragen": "Die zwei Verweise stammen aus dekompilierten Offsets; deren Gueltigkeit wird hier nicht geprueft.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458a70.json",
+    "export_sha256": "f5201f2f18c338c160c4b0d7146713121782b3b006bab3b341d94d2cc17221c4",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "8e853d6fedaaa4ab2d8b7aec1345b3dce4907bd384fd02fd0a12d79733a5d764",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 8,
+        "code": "if ((0 < ((BuildingEntryInfo *)(piVar1 + -0x803))->id) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 11,
+        "code": "if (0 < piVar1[-5]) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 14,
+        "code": "if (0 < piVar1[-4]) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 17,
+        "code": "if (0 < piVar1[-3]) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 20,
+        "code": "if (0 < piVar1[-2]) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 26,
+        "code": "} while (iVar2 != 0);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 27,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458AD0",
+    "registermarke": "PK316",
+    "name": "_HoldStrong::Game::GameStateStructures::processFoodConsumption",
+    "kurzaussage": "Ueberspringt Editor,GM_SIEGE_THAT und GM_BUILDERUnk zusammen mit MT_SIEGE. Sonst Nahrungstypen aktualisieren und Spieler1-8 mit zwei positiven Hauptbauverweisen verarbeiten: foodStorageLevel zuerst-1; ohne Nahrungstypen foodTypesCurrentlyEaten0 und Spielerende. foodClockSpeed=3*currentPopulation, fuer KI ausserhalb Einzelspiel stattdessen Ganzzahl(180*Population/100). Ration0=>Speed0/Eaten0,1=>halb,3=>3/2,4=>doppelt; andere Stufen unveraendert. Bei Speed!=0 StorageLevel=(Ganzzahl(15000/Speed)*totalFood)/800. Monatswechsel kopiert zwei short-Vorratswerte und kann fuer aktuellen Spieler mit passender Freigabe/Soundzustand Warnungen ausloesen; Leerwarnintervall umlaeuft0..2. foodClock+=Speed; erst bei>15000 Reset0, Eaten=foodTypesInStock und umlaufend Auswahl einer vorhandenen Nahrungssorte, dann processResourceLoss fuer1. Genau ein Verlust je Aufruf, Restueberschuss geht verloren, keine Bannpruefung. EDX-Basis als this durch Assembler00458AD8 und unveraendertes EDX in00458A70 bestaetigt.",
+    "statische_gegenprobe": "foodClock15000 verbraucht noch nichts;15001 loest genau1Verlust und Reset0 aus, nicht mehrere Verbraeuche.",
+    "offene_fragen": "Warn-/Vorratsanzeigeeinheiten und Modusnamen bleiben Herkunftsnamen; negative/ueberlaufende Population/Zaehler sind nicht abgesichert.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458ad0.json",
+    "export_sha256": "8b453a127eaa6ffc16a919e94c4437459be9e1c30b960d6bba4e0948baf56b56",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "8e853d6fedaaa4ab2d8b7aec1345b3dce4907bd384fd02fd0a12d79733a5d764",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "if (((DAT_GameCore.gameMode_2 != GM_EDITOR) && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 19,
+        "code": "if ((0 < piVar4[-0x807]) && (0 < piVar4[-0x7b7])) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 21,
+        "code": "if (piVar4[-4] < 1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 27,
+        "code": "if ((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 33,
+        "code": "case 0:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 37,
+        "code": "case 1:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 40,
+        "code": "case 3:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 43,
+        "code": "case 4:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 46,
+        "code": "if (*piVar4 != 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 50,
+        "code": "if (DAT_GameState.mapAndTime.monthChanged != 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 55,
+        "code": "if ((playerID == DAT_GameSynchronyState.currentPlayerSlotID) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 57,
+        "code": "if (piVar4[-5] == 0) {"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458D50",
+    "registermarke": "PK316",
+    "name": "_HoldStrong::Game::GameStateStructures::updateAleRate",
+    "kurzaussage": "Setzt aleRate fuer Spieler1-8 mit keep.id>0 und campground.id>0 jeweils fest36. Ohne diese beiden Verweise bleibt aleRate unveraendert. Kein Modus-, Bierbestands-, UID- oder Aktivitaetsabgleich.",
+    "statische_gegenprobe": "Fehlendes campground.id=>alter aleRate bleibt, nicht0.",
+    "offene_fragen": "Einheit und Nutzung des Werts36 im Verbrauchs-/Beliebtheitsablauf.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458d50.json",
+    "export_sha256": "354a810dc3506201935935a4aefc78dadd7ea208abcd8ca20e1e5d89a6ff96c2",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "8e853d6fedaaa4ab2d8b7aec1345b3dce4907bd384fd02fd0a12d79733a5d764",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 3,
+        "code": "if ((0 < DAT_GameState.playerDataArray[1].keep.id) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 7,
+        "code": "if ((0 < DAT_GameState.playerDataArray[2].keep.id) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 11,
+        "code": "if ((0 < DAT_GameState.playerDataArray[3].keep.id) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 15,
+        "code": "if ((0 < DAT_GameState.playerDataArray[4].keep.id) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 19,
+        "code": "if ((0 < DAT_GameState.playerDataArray[5].keep.id) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 23,
+        "code": "if ((0 < DAT_GameState.playerDataArray[6].keep.id) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 27,
+        "code": "if ((0 < DAT_GameState.playerDataArray[7].keep.id) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 31,
+        "code": "if ((0 < DAT_GameState.playerDataArray[8].keep.id) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 35,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458E20",
+    "registermarke": "PK316",
+    "name": "_HoldStrong::Game::GameStateStructures::computeAleCoverage",
+    "kurzaussage": "Bei workingInnsCount>0 und currentPopulation>0 berechnet es ganzzahlig workingInnsCount*3000/Population. Negatives Ergebnis=>0, sonst Deckel100. Fehlende positive Eingaben=>0. Keine eigene Biermenge-/Arbeiterpruefung oder Indexgrenze; Zaehler werden nur gelesen.",
+    "statische_gegenprobe": "Eine arbeitende Schenke/Population30 =>100; Population0=>0 ohne Division.",
+    "offene_fragen": "workingInnsCount ist gespeicherter Zaehler und wird hier nicht gegen reale Bauten validiert; Multiplikationsueberlauf ungeprueft.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458e20.json",
+    "export_sha256": "f2776b91ccc2c416ef74738e212805c558bd1fd841d5ef9135516c238983829b",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "8e853d6fedaaa4ab2d8b7aec1345b3dce4907bd384fd02fd0a12d79733a5d764",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 7,
+        "code": "if (((0 < iVar1) && (iVar2 = DAT_GameState.playerDataArray[playerID].currentPopulation, 0 < iVar2)"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 9,
+        "code": "if (100 < iVar2) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "return iVar2;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 14,
+        "code": "return 0;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458E60",
+    "registermarke": "PK316",
+    "name": "_HoldStrong::Game::GameStateStructures::updateCrowding",
+    "kurzaussage": "Fuer Spieler1-8: ist populationCap>=currentPopulation, crowding0. Bei Population>Cap und Population<1 ebenfalls0; sonst Cap<1=>150, sonst crowding=Population*100/Cap ohne Deckel150. Andere Felder und Modus bleiben unberuecksichtigt.",
+    "statische_gegenprobe": "Cap1/Population2=>200, nicht150; Cap0/Population1=>150.",
+    "offene_fragen": "Gueltige Population/Cap-Werte und die nachgelagerte Beliebtheitswirkung.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458e60.json",
+    "export_sha256": "20cd8d70767fa3dad8f70990b15ca77c7cec6c13ba6885adca1172c19f4c895d",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "8e853d6fedaaa4ab2d8b7aec1345b3dce4907bd384fd02fd0a12d79733a5d764",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "if (iVar1 < iVar2) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 13,
+        "code": "if (iVar2 < 1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 16,
+        "code": "else if (iVar1 < 1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 28,
+        "code": "} while (iVar4 != 0);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 29,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458EC0",
+    "registermarke": "PK316",
+    "name": "_HoldStrong::Game::GameStateStructures::updateFearFactorProductivity",
+    "kurzaussage": "Schreibt fearFactorProductivityUnk aus fearFactorLevel (sechs int spaeter):<=-5=>150,-4=>140,-3=>130,-2=>120,-1=>110,0=>100,1=>90,2=>80,3=>70,4=>60,>=5=>50. Schleife fuer Spieler1-8: Assemblerstart0x1161908,Schritt0x39F4,Endgrenze0x117E8A8; kein Lebens-/Bautyp-/Spielmodusfilter. Ein Produktivitaetseffekt ausserhalb dieses Felds ist hier nicht umgesetzt.",
+    "statische_gegenprobe": "Eingabe5 und6 ergeben beide50; -6 und-5 beide150.",
+    "offene_fragen": "Wie nachfolgende Arbeitsfunktionen den gespeicherten Produktivitaetswert verwenden.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458ec0.json",
+    "export_sha256": "4073b2281b44ef8003259aa0cbc088494653c886722275116b4a546569bfcf88",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "8e853d6fedaaa4ab2d8b7aec1345b3dce4907bd384fd02fd0a12d79733a5d764",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 9,
+        "code": "if ((int)uVar1 < -4) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "else if ((int)uVar1 < -3) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 15,
+        "code": "else if ((int)uVar1 < -2) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 18,
+        "code": "else if ((int)uVar1 < -1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 21,
+        "code": "else if (uVar1 < 0x80000000) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 22,
+        "code": "if (uVar1 == 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 25,
+        "code": "else if ((int)uVar1 < 2) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 28,
+        "code": "else if ((int)uVar1 < 3) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 31,
+        "code": "else if ((int)uVar1 < 4) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 42,
+        "code": "} while ((int)piVar2 < 0x117e8a8);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 43,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00458F70",
+    "registermarke": "PK316",
+    "name": "_HoldStrong::Game::GameStateStructures::recomputeReligionBonuses",
+    "kurzaussage": "Nullt fuer Spieler1-8 religionVar1,ownsChurchUnk,ownsCathedralUnk und zaehlt danach alle logisch vorhandenen nicht-BLS_REMOVE Bauten ID1..<maxBuildingsCount. CHAPEL erhoeht religionVar1,CHURCH ownsChurchUnk,CATHEDRAL ownsCathedralUnk des Baubesitzers. Keine Arbeiter-, Zugang-, Lebens- oder Besitzerbereichspruefung. Das sind Anzahlen, keine booleschen Eigentumsflags oder direkt gebuchten Beliebtheitsboni.",
+    "statische_gegenprobe": "Zwei Kirchen =>ownsChurchUnk2; Besitzer0 wird nicht vorab genullt, aber koennte durch Bauten erhoeht werden.",
+    "offene_fragen": "Nachgelagerte Umrechnung in Religions-/Beliebtheitsbonus.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00458f70.json",
+    "export_sha256": "835be29723ead44088e79ef37769f4d2bd009999427875aa09901d76b978a67e",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "8e853d6fedaaa4ab2d8b7aec1345b3dce4907bd384fd02fd0a12d79733a5d764",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 33,
+        "code": "if (1 < DAT_BuildingsState.maxBuildingsCount) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 37,
+        "code": "if ((pBVar4[-1] != 0) && (pBVar4[-1] != BLS_REMOVE)) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 40,
+        "code": "if (BVar1 == BT_CHAPEL) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 43,
+        "code": "else if (BVar1 == BT_CHURCH) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 47,
+        "code": "if (BVar1 != BT_CATHEDRAL) goto LAB_00459069;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 55,
+        "code": "} while (iVar5 != 0);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 57,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00459080",
+    "registermarke": "PK317",
+    "name": "_HoldStrong::Game::GameStateStructures::calculateTaxIncomeForPlayer",
+    "kurzaussage": "Basis=((taxStep-1)*currentPeasants)/2 ganzzahlig. Ausserhalb GM_SOLITARY: KI (FullID-1,AI!=0) bekommt bei Vorteilsstufe4 Ganzzahl(Basis*150/100),bei5 *250/100; menschlicher FullID!= -1 bei Stufe1 *150/100,bei2 *120/100. Sonst Basis unveraendert. Keine Buchung, Grenzen oder Pruefung auf aktive/bezahlende Bevoelkerung.",
+    "statische_gegenprobe": "Einzelspiel ignoriert Vorteilsstufen; FullID-1 ohne KI erhaelt keinen KI-Multiplikator.",
+    "offene_fragen": "Gueltige taxStep-/Population-/Vorteilswerte und Ueberlauf.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00459080.json",
+    "export_sha256": "c6536cb4c9430b3a2d2e54f92c04120071dc9ab71addfea3e75ea27a6ebab52d",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "189aee942d160c9cb768bf930d84f5cb5ba9e4505ed0a5af0b5d580710df56f4",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 7,
+        "code": "if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 8,
+        "code": "if (DAT_GameSynchronyState.currentPlayerFullIDArray[playerIndex] == -1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 9,
+        "code": "if (DAT_GameSynchronyState.currentAIArray[playerIndex] != 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 10,
+        "code": "if (DAT_GameSynchronyState.skirmishCurrentAdvantageBalance == 4) goto LAB_004590f4;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 11,
+        "code": "if (DAT_GameSynchronyState.skirmishCurrentAdvantageBalance == 5) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "return (iVar1 * 0xfa) / 100;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 17,
+        "code": "if (DAT_GameSynchronyState.skirmishCurrentAdvantageBalance == 1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 19,
+        "code": "return (iVar1 * 0x96) / 100;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 21,
+        "code": "if (DAT_GameSynchronyState.skirmishCurrentAdvantageBalance == 2) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 26,
+        "code": "return iVar1;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00459140",
+    "registermarke": "PK317",
+    "name": "_HoldStrong::Game::GameStateStructures::calculateTaxBribeExpenseForPlayer",
+    "kurzaussage": "Berechnet ((5-taxStep)*currentPopulation)/2 ganzzahlig; wenn aktuelles Gold[15]<1 wird Ergebnis0. Sonst bleibt der berechnete Wert auch negativ oder groesser als das Gold. Kein Abzug, keine Begrenzung auf zahlbares Gold und keine Indexpruefung.",
+    "statische_gegenprobe": "Gold1 kann Kosten100 liefern; taxStep6/Population2 liefert-1 bei Gold>=1.",
+    "offene_fragen": "Aufrufer muss Gutschrift/Ausgabe und moegliche Unterdeckung entscheiden.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00459140.json",
+    "export_sha256": "cef5f8ff2183773b4d57c9c45bd8d73660817ecaf13a4d7ee1b1ef4b3faee230",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "189aee942d160c9cb768bf930d84f5cb5ba9e4505ed0a5af0b5d580710df56f4",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 7,
+        "code": "if (DAT_GameState.playerDataArray[playerIndex].currentResources[0xf] < 1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 10,
+        "code": "return iVar1;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00459170",
+    "registermarke": "PK317",
+    "name": "_HoldStrong::Game::GameStateStructures::getNumberToDisplayPlayerTaxIncome",
+    "kurzaussage": "Nur bei taxStep>3 berechnet es die Steuerhilfe00459080, multipliziert deren Ergebnis zuerst mit4 und dividiert dann ganzzahlig durch10; sonst0. Keine Buchung oder eigene Grenzen.",
+    "statische_gegenprobe": "taxStep3=>0; der Multiplikator4/10 wird erst nach der ganzzahligen Steuerrechnung angewandt.",
+    "offene_fragen": "Anzeigeeinheit und Rundungs-/Ueberlaufgrenzen.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00459170.json",
+    "export_sha256": "98012cbeb167df58e8757ba8d7dda188cf633df1930969d9b281ab206328ec9d",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "189aee942d160c9cb768bf930d84f5cb5ba9e4505ed0a5af0b5d580710df56f4",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 7,
+        "code": "if (3 < taxStep) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 11,
+        "code": "return iVar1 / 10;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004591B0",
+    "registermarke": "PK317",
+    "name": "_HoldStrong::Game::GameStateStructures::getNumberToDisplayBribeIncome",
+    "kurzaussage": "Nur bei taxStep<3 ruft es00459140 mit Spieler/Stufe/Population auf, multipliziert Ergebnis mit4 und dividiert ganzzahlig durch10; bei Stufe>=3 Ergebnis0. Kein eigener Geldabzug.",
+    "statische_gegenprobe": "taxStep3=>0; Gold0 fuehrt durch die Ausgabenhilfe ebenfalls0.",
+    "offene_fragen": "Anzeigeeinheit, zulassige negative Stufen und Ueberlauf.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004591b0.json",
+    "export_sha256": "bfac48f5479ae7516901a7e7d4c68d019c1e8939d5b3bd2526445a51faa7589f",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "189aee942d160c9cb768bf930d84f5cb5ba9e4505ed0a5af0b5d580710df56f4",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 7,
+        "code": "if (taxStep < 3) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 11,
+        "code": "return iVar1 / 10;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004591F0",
+    "registermarke": "PK317",
+    "name": "_HoldStrong::Game::GameStateStructures::despawnPeasantOrWorker",
+    "kurzaussage": "Sucht zuerst die kleinste normale, nicht sterbende eigene UT_PEASANT-ID; ohne Arbeits-/Zustandsausschluss. Macht sie sichtbar/stoppt Wegfortschritt, setzt US_DISAPPEAR,buildingID0,updateTickTracker0 und kehrt zurueck. Nur ohne Bauern folgt zweite Suche nach normalen nichtsterbenden eigenen Einheiten mit drei Rohfiltern0 (dying+4,dying-0x210,Byte dying+0x8C). Prioritaeten Bautypnummer:3:7,4:15,6:3,7:8,8:9,10:12,11:4,12:14,13:2,14:1,15:5,16:6,17:20,18:16,19:17,20:18,21:19,31:11,32:10,33:22,34:23,36:21. Hoechste Zahl gewinnt; bei Gleichstand fruehere ID. Gefundene Einheit wird wie oben markiert; keine sofortige Loeschung im Koerper.",
+    "statische_gegenprobe": "Vorhandener Bauer verhindert jede Auswahl eines Arbeiters; Arbeitsbauer wird im ersten Pfad nicht ausgeschlossen.",
+    "offene_fragen": "Bedeutung der drei Rohfilter und aller nummerierten Typen muss gesondert belegt werden.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004591f0.json",
+    "export_sha256": "3a610e960c5deed7693256deb7a90ff52c53086c7a5ddc7807e6b542b519c2c6",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "189aee942d160c9cb768bf930d84f5cb5ba9e4505ed0a5af0b5d580710df56f4",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "if (1 < (int)DAT_UnitsState.maxUnitCount) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 15,
+        "code": "if ((((psVar1[-0x10a] == ULS_NORMAL) && (*psVar1 == 0)) && (psVar1[-0x105] == playerID)) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 22,
+        "code": "return;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 26,
+        "code": "} while (iVar5 < (int)DAT_UnitsState.maxUnitCount);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 30,
+        "code": "if (1 < (int)DAT_UnitsState.maxUnitCount) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 33,
+        "code": "if ((((psVar1[-0x10a] == ULS_NORMAL) && (*psVar1 == 0)) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 37,
+        "code": "case 3:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 40,
+        "code": "case 4:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 45,
+        "code": "case 6:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 48,
+        "code": "case 7:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 51,
+        "code": "case 8:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 54,
+        "code": "case 10:"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00459490",
+    "registermarke": "PK317",
+    "name": "_HoldStrong::Game::GameStateStructures::spawnDrunkard",
+    "kurzaussage": "Nur wenn beide Eingangskoordinaten als uint<400 und das Kartenfeld vorhanden sind: Besitzer lesen und Spielerrohfeld field646_0x2178=Baunummer. Zahlversuche=min((RNG-Byte&3)+1,Limit); Limit1 bei Zaehler<20,2 bei20..49,3 bei50..99,4 ab100. Versucht UT_DRUNK am Eingang; bei Erfolg resourceToDeposit0,substate=aktuellesRNG-Byte&1,US_IDLEUnk,destinationNeeded. Keine Pruefung auf Schenkenart/UID und kein eigener RNG-Fortschrittaufruf; Spawn kann scheitern.",
+    "statische_gegenprobe": "Zaehler19 begrenzt auf1,20 auf2; negative Eingangskoordinate scheitert am uint-Vergleich.",
+    "offene_fragen": "Bedeutung des Spielerzaehlers, Unterzustaende und moegliche RNG-Aenderungen in spawnUnit.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00459490.json",
+    "export_sha256": "fc34046fd901dbb52497b376fb1eaac5fb7d5652e67b01bc89e533a3cbf2e5f0",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "189aee942d160c9cb768bf930d84f5cb5ba9e4505ed0a5af0b5d580710df56f4",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 13,
+        "code": "if (((uVar6 < 400) && (uVar2 < 400)) && (*(char *)(uVar2 * 400 + 0x21aec98 + uVar6) != '\\0')) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 18,
+        "code": "if (iVar4 < 0x14) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 21,
+        "code": "else if (iVar4 < 0x32) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 28,
+        "code": "if (uVar2 < uVar3) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 37,
+        "code": "if (iVar4 != 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 46,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004595D0",
+    "registermarke": "PK317",
+    "name": "_HoldStrong::Game::GameStateStructures::singlePlayerHasKeepAndGranaryCheck",
+    "kurzaussage": "Nur wenn Freigabe singlePlayerHasKeepAndGranary nochFALSE und GM_SOLITARY gilt und weder Editor noch Belagerung noch (BUILDERUnk/CRUSADER_TUTORIAL bei aktuellem Slot2) vorliegt, prueft es den aktuellen Spieler: keep.id0=>0, sonst granary.id0=>-1, sonst FlagTRUE und1. Alle uebersprungenen Pfade liefern ebenfalls1, ohne Bauten nachzupruefen. Keine UID-/Typ-/Zustandsvalidierung.",
+    "statische_gegenprobe": "Bereits gesetzte Freigabe liefert1 auch nach Verlust von Bergfried/Kornspeicher.",
+    "offene_fragen": "Flag ist zwischengespeicherte Freigabe, kein staendiger Besitznachweis.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004595d0.json",
+    "export_sha256": "aa6c7ef29e93ba074552cacd1b5d0f9d3075a0755b8d4d183879dc4d4d065810",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "189aee942d160c9cb768bf930d84f5cb5ba9e4505ed0a5af0b5d580710df56f4",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 5,
+        "code": "if ((((DAT_GameCore.gameMode_2 != GM_EDITOR) && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 11,
+        "code": "if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].keep.id == 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "return 0;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 14,
+        "code": "if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].granary.id == 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 15,
+        "code": "return -1;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 19,
+        "code": "return 1;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00459640",
+    "registermarke": "PK317",
+    "name": "_HoldStrong::Game::GameStateStructures::resetTeams",
+    "kurzaussage": "Setzt Team[0..8] zuerst auf den jeweiligen Index. Ausserhalb GM_SKIRMISH_AND_MULTIPLAYER und GM_EDITOR werden danach Spieler2,3,4,5 gemeinsam Team9. Keine Pruefung, welche Slots aktiv oder menschlich sind.",
+    "statische_gegenprobe": "Editor:Team2=2; anderer passender Modus:Team2=9.",
+    "offene_fragen": "Bedeutung der Modus-Enums ausserhalb dieser Zuweisung.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00459640.json",
+    "export_sha256": "df65c3caa47e79c2b672afb03ab336cd4f47a8748dbfe0f0d90acd1cc8b50d54",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "189aee942d160c9cb768bf930d84f5cb5ba9e4505ed0a5af0b5d580710df56f4",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "if ((DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 19,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004596D0",
+    "registermarke": "PK318",
+    "name": "_HoldStrong::Game::GameStateStructures::getTeamsDifferent",
+    "kurzaussage": "Ist eine Spieler-ID0, FALSE. Sonst Rueckgabe Team[first]!=Team[second]. Keine Aktivitaets-/KI-/Bereichspruefung und keine Kontrolle auf tote Spieler.",
+    "statische_gegenprobe": "Spieler0 gegen ein anderes Team liefertFALSE.",
+    "offene_fragen": "Gueltiger positiver Indexbereich bleibt Aufrufervertrag.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004596d0.json",
+    "export_sha256": "b303a11dc6e655f935d731d1a8fc7ee85eca4f8ab7fc86991929b7e6794ad315",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "a3eaf1298e4086a69cabdfb8e2da2c11b87f6943a50b74c6e29362fb092c79fa",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 5,
+        "code": "if ((firstPlayerId != 0) && (secondPlayerId != 0)) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 6,
+        "code": "return (uint)(DAT_GameState.mapAndTime.playerTeams[firstPlayerId] !="
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 9,
+        "code": "return FALSE;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00459700",
+    "registermarke": "PK318",
+    "name": "_HoldStrong::Game::GameStateStructures::findAITeamMate",
+    "kurzaussage": "Sucht aufsteigend Slots0..8 nach einem anderen Slot mit currentAIArray!=0 und gleichem Team wie playerID1. Liefert ersten Index, ohne FullID-, Todes- oder Lordpruefung. Kein Treffer0; ein passender Slot0 ist von diesem Fehlschlag nicht unterscheidbar.",
+    "statische_gegenprobe": "Toter KI-Slot mit gleichem Team wird hier nicht ausgeschlossen.",
+    "offene_fragen": "Gueltiger playerID1 und ob KI-Slot0 im Spiel erlaubt ist.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00459700.json",
+    "export_sha256": "2f84df08c8b66761ce5bc280c73ec73d9ec153ab6092bc7317bcdcb6d4027ea5",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "a3eaf1298e4086a69cabdfb8e2da2c11b87f6943a50b74c6e29362fb092c79fa",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 8,
+        "code": "while (((iVar1 == playerID1 || (DAT_GameSynchronyState.currentAIArray[iVar1] == 0)) ||"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "if (8 < iVar1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 13,
+        "code": "return 0;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 16,
+        "code": "return iVar1;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00459740",
+    "registermarke": "PK318",
+    "name": "_HoldStrong::Game::GameStateStructures::teamToBitFlagsUnk",
+    "kurzaussage": "Startmaske0xFF. Bei Einheitenbesitzer0 unveraendert; sonst wird fuer Spieler1..8 mit gleichem Team das zugehoerige Bit Spieler-1 geloescht. Es ist damit eine Nicht-Team-Maske, keine Liste nur lebender Feinde. Keine Aktivitaets-, Lebens-, UID- oder Indexpruefung.",
+    "statische_gegenprobe": "Eigener Spielerbit wird bei nichtnull Besitzer ebenfalls geloescht; Besitzer0 liefertalle8Bits1.",
+    "offene_fragen": "Nachgelagerte Interpretation dieser Maske als erlaubtes Ziel/Feindstatus.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00459740.json",
+    "export_sha256": "1f4ca1a3785962280f5cc9c3e05945202abeecf55f2a48298e59cd8192599a5b",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "a3eaf1298e4086a69cabdfb8e2da2c11b87f6943a50b74c6e29362fb092c79fa",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 13,
+        "code": "if (sVar2 != 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 19,
+        "code": "if (piVar7[-1] == iVar3) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 22,
+        "code": "if (*piVar7 == iVar3) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 25,
+        "code": "if (piVar7[1] == iVar3) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 28,
+        "code": "if (piVar7[2] == iVar3) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 34,
+        "code": "} while (iVar1 < 9);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 36,
+        "code": "return uVar4;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004597D0",
+    "registermarke": "PK318",
+    "name": "_HoldStrong::Game::GameStateStructures::areActivePlayersMostlySameTeam",
+    "kurzaussage": "Untersucht Slots1..8, die KI oder FullID!=-1 besitzen und lordKilledByPlayerID0 haben. Merkt das erste Team (Startsentinel-1), zaehlt den ersten passenden Spieler sowie jeden spaeteren Spieler mit davon abweichendem Team. TRUE bei Zaehler<2, also auch ohne passende Spieler. Kein Mehrheitsanteil und keine getAliveLord-Abfrage; ein zweites Team kann mehrfach gezaehlt werden.",
+    "statische_gegenprobe": "Kein aktiver Slot =>TRUE; normale Teams mit einem abweichenden Spieler =>FALSE.",
+    "offene_fragen": "Teamwert-1 kollidiert mit Initialsentinel; andere Todesmarker werden nicht gelesen.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004597d0.json",
+    "export_sha256": "825461b51afc12ad4ab004fb690b78c46ae28702ae775fe3b8929dd8d67a8cd4",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "a3eaf1298e4086a69cabdfb8e2da2c11b87f6943a50b74c6e29362fb092c79fa",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 15,
+        "code": "if (((piVar3[0x1b] != 0) || (*piVar3 != -1)) && (piVar5[-0xe7d] == 0)) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 16,
+        "code": "if (iVar1 == -1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 19,
+        "code": "else if (piVar2[-1] == iVar1) goto LAB_00459814;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 23,
+        "code": "if (((piVar3[0x1c] != 0) || (piVar3[1] != -1)) && (*piVar5 == 0)) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 24,
+        "code": "if (iVar1 == -1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 27,
+        "code": "else if (*piVar2 == iVar1) goto LAB_00459833;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 31,
+        "code": "if (((piVar3[0x1d] != 0) || (piVar3[2] != -1)) && (piVar5[0xe7d] == 0)) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 32,
+        "code": "if (iVar1 == -1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 35,
+        "code": "else if (piVar2[1] == iVar1) goto LAB_00459858;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 39,
+        "code": "if (((piVar3[0x1e] != 0) || (piVar3[3] != -1)) && (piVar5[0x1cfa] == 0)) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 40,
+        "code": "if (iVar1 == -1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 43,
+        "code": "else if (piVar2[2] == iVar1) goto LAB_0045987d;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x004598B0",
+    "registermarke": "PK318",
+    "name": "_HoldStrong::Game::GameStateStructures::recountStablesAndHorses",
+    "kurzaussage": "Nullt availableHorses als short fuer Spieler1-8 und summiert dann aus logisch vorhandenen nicht-entfernten STABLES je Besitzer die Differenz zweier als signed char gelesener Rohbytes (relativ logicalState+0x1C7 minus+0x1D7). Keine Bindung an reale Pferdeeinheiten, UID-Pruefung oder Begrenzung auf0; neutraler Besitzer0 wird nicht vorab genullt.",
+    "statische_gegenprobe": "Byte-Differenz negativ =>availableHorses kann negativ werden.",
+    "offene_fragen": "Bedeutung der beiden Stallbytes und erlaubter Besitzerbereich.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\004598b0.json",
+    "export_sha256": "3c9037e579d7ca8d30a3b7c5c4c14f163d7f3f143add1859e8b9ccd2d306b068",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "a3eaf1298e4086a69cabdfb8e2da2c11b87f6943a50b74c6e29362fb092c79fa",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 15,
+        "code": "} while (iVar3 != 0);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 16,
+        "code": "if (1 < DAT_BuildingsState.maxBuildingsCount) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 19,
+        "code": "if (((*pBVar2 != 0) && (*pBVar2 != BLS_REMOVE)) && (pBVar2[1] == BT_STABLES)) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 26,
+        "code": "} while (iVar4 < DAT_BuildingsState.maxBuildingsCount);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 28,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00459930",
+    "registermarke": "PK318",
+    "name": "_HoldStrong::Game::GameStateStructures::linkageBetweenHorseUnitAndStableUnk",
+    "kurzaussage": "Sucht ersten eigenen logisch vorhandenen nicht-entfernten STABLES-Bau, dessen signed Rohbyte+0x1D7 kleiner als+0x1C7 relativ logicalState ist. Vermindert sofort Spieler.availableHorses, validiert die vier gebundenen Einheiten und sucht leeren insideUnitID-Platz. Bei Fund schreibt es unitID und deren UID in die Bindungsfelder, erhoeht randomOutpostField-Byte und liefert Bau-ID. Auch ohne freien Viererplatz liefert es dieselbe Bau-ID nach dem bereits erfolgten Abzug; nur ohne passenden Stall0. Kein eigener Einheitenart-/Besitzer-/UID-Vertrag.",
+    "statische_gegenprobe": "Geeignete Byte-Differenz aber vier belegte Plaetze =>positive Bau-ID ohne neue Bindung, Pferdezaehler trotzdem-1.",
+    "offene_fragen": "Arrayueberlagerungen der Bindungsfelder und Herkunft/Gueltigkeit der Stallbytes.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00459930.json",
+    "export_sha256": "4ca78792fcfef29a28ff364d761e3e76e8f1d537b44525fa5652c11a279d96fe",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "a3eaf1298e4086a69cabdfb8e2da2c11b87f6943a50b74c6e29362fb092c79fa",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 11,
+        "code": "if (1 < DAT_BuildingsState.maxBuildingsCount) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 14,
+        "code": "if ((((*pBVar2 != 0) && (*pBVar2 != BLS_REMOVE)) && (pBVar2[1] == BT_STABLES)) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 24,
+        "code": "if (*psVar4 == 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 31,
+        "code": "return buildingID;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 35,
+        "code": "} while (iVar3 < 4);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 36,
+        "code": "return buildingID;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 40,
+        "code": "} while (buildingID < DAT_BuildingsState.maxBuildingsCount);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 42,
+        "code": "return 0;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00459A20",
+    "registermarke": "PK318",
+    "name": "_HoldStrong::Game::GameStateStructures::spawnPoisonCloudsAroundBuilding",
+    "kurzaussage": "Versucht bis20zufaellige Positionen um den Bau: Versatz=(signed RNG%30)-15 je Achse (Y nutzt RNG>>8); jeder Versuch ruft nextRandomNumber2 auf. Nur uint-Koordinaten<400, vorhandenes Kartenfeld und Logikmaske0x4A5014B1 gleich0 erlauben Fund; sonst nach20Ende. Bei Fund Anzahl nach Formel10-(signed aktuellesRNG%5) und so viele ET_COW_POISON_CLOUD-Aufrufe an derselben Position, ohne weitere Positionssuche/Erfolgskontrolle; danach Fliegenton und Minikartenmarke. Hoehenargument stammt aus EntityLayerLT25 mit unsicher rekonstruierter Indizierung, nicht sicher aus HeightLayer. Keine Schadens-/Seuchenwirkung in diesem Koerper.",
+    "statische_gegenprobe": "Nichtnegativer RNG-Rest0=>10Objektversuche,Rest4=>6; keine20Wolken an20Positionen.",
+    "offene_fragen": "Signed-RNG-Vertrag, Hoehen-/Tileindex und Schadenswirkung der erzeugten Objekte.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00459a20.json",
+    "export_sha256": "fb548467308cf40de5f985bf0021185f87f2be06b2666e14a881afc5a1f39b81",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "a3eaf1298e4086a69cabdfb8e2da2c11b87f6943a50b74c6e29362fb092c79fa",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 13,
+        "code": "while( true ) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 21,
+        "code": "if ((((xPosition < 400) && (yPosition < 400)) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 26,
+        "code": "if (local_4 < 1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 27,
+        "code": "return;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 31,
+        "code": "if (iVar1 < 8) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 39,
+        "code": "} while (iVar1 != 0);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 43,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00459B50",
+    "registermarke": "PK318",
+    "name": "_HoldStrong::Game::GameStateStructures::playSFXNoSpaceInTheStockPile",
+    "kurzaussage": "Nur fuer aktuellen Spielerslot. Liest timeGetTime t1; ist lastTimeSFXNoPlaceInStockpile0, spielt space_warning5.wav und speichertt1. Sonst zweiter timeGetTime t2; Ton nur wenn unsigned(t1-t2)>=10000, dann gespeichertert1. Der alte gespeicherte Zeitpunkt geht nicht in die Differenz ein. Exportierter Assembler00459B83..00459B8F bestaetigt zweiten Aufruf und SUB gegen dessen EAX, also keine belegte10Sekunden-Sperre.",
+    "statische_gegenprobe": "t1==t2 unterdrueckt Wiederholung; t2=t1+1 erzeugt DWORD-Unterlauf und erfuellt den Vergleich.",
+    "offene_fragen": "Reale Zeitgeberauflosung/Hauefigkeit der Unterlaufpfade wurden nicht gemessen.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00459b50.json",
+    "export_sha256": "a8998d829e57035ed6440e3ff452fd2fd596d72cfe0a164fc1856a61ce4d2ccf",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "a3eaf1298e4086a69cabdfb8e2da2c11b87f6943a50b74c6e29362fb092c79fa",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 7,
+        "code": "if (playerID == DAT_GameSynchronyState.currentPlayerSlotID) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 9,
+        "code": "if ((DAT_GameState.playerDataArray[playerID].lastTimeSFXNoPlaceInStockpile == 0) ||"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 15,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00459BB0",
+    "registermarke": "PK319",
+    "name": "_HoldStrong::Game::GameStateStructures::clearTribeHotKey",
+    "kurzaussage": "Setzt fuer hotkeyTribes[hotkeyID] genau2500ID/UID-Paare auf-1. Keine Pruefung hotkeyID0..9 und keine weiteren Auswahlfelder; void.",
+    "statische_gegenprobe": "Ein einzelner Hotkey wird geloescht, andere Gruppen werden hier nicht explizit durchlaufen.",
+    "offene_fragen": "Gueltiger Gruppenindex und Typ-/Laengenvertrag.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00459bb0.json",
+    "export_sha256": "d768d27f8a25bc26bd2bd1c403a7869d8395d447eff2c3ca15b388369f926541",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "6ee318e82e1fd6039e51fe85fd216ce84f87d5ae9c289ba2cdf3fecfe0094d35",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 13,
+        "code": "} while (iVar2 != 0);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 14,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00459BE0",
+    "registermarke": "PK319",
+    "name": "_HoldStrong::Game::GameStateStructures::fillWith0xFF",
+    "kurzaussage": "Setzt genau25000ID/UID-Paare (zehn Gruppen zu2500Paaren,200000Bytes) ab this auf-1. Der Assembler00459BF5..00459C05 bestaetigt zwei dword-Schreibungen mit8Byte-Schritt und die beiden Schleifengrenzen; der Typenexport legt hotkeyTribes auf Offset0. Kein allgemeiner Vollreset des Karten-/Spielerbereichs.",
+    "statische_gegenprobe": "Andere Spieler-/Kartenwerte werden nicht sichtbar mit0xFF beschrieben.",
+    "offene_fragen": "Gueltiger this-Zeiger auf einen Hotkeybereich dieser Groesse.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00459be0.json",
+    "export_sha256": "c9edb03b4fb763cd8fefe98ec6eb2b562d5ca83f6423a62d29621ab4591a95e8",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "6ee318e82e1fd6039e51fe85fd216ce84f87d5ae9c289ba2cdf3fecfe0094d35",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 15,
+        "code": "} while (iVar2 != 0);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 17,
+        "code": "} while (iVar3 != 0);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 18,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00459C10",
+    "registermarke": "PK319",
+    "name": "_HoldStrong::Game::GameStateStructures::assignSelectionToKey",
+    "kurzaussage": "Durchlaeuft die Einheiten eines Trupps, uebernimmt nur ULS_NORMAL,dying0,nicht UT_LORD und schreibt ab Index0 ID/UID in Hotkeygruppe number. Fuer jede uebernommene ID werden passende IDs aus allen anderen10Gruppen entfernt und nachfolgende Paare zusammengeschoben; Vergleich nutzt ID, nicht UID. Zielgruppe wird nicht vorher geleert und kein Endsentinel nach letzter neuen Einheit explizit geschrieben. Kein number-/tribeID-/2500-Zielgrenzschutz; leere/ausgefilterte Auswahl laesst alte Zielgruppe stehen.",
+    "statische_gegenprobe": "Neue Auswahl kuerzer als alte kann alte Restpaare im Ziel lassen; bei leerem Trupp keine Loeschung.",
+    "offene_fragen": "Dekompilierte Verschiebeindizes und Aufrufervertrag zur vorherigen Gruppenleerung.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00459c10.json",
+    "export_sha256": "b9098000a6ddd32d86e260758191fe9eb5dcf80a26729ac30187393a5d54b2e5",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "6ee318e82e1fd6039e51fe85fd216ce84f87d5ae9c289ba2cdf3fecfe0094d35",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 19,
+        "code": "if (0 < *psVar1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 25,
+        "code": "if (((DAT_UnitsState.units[iVar3].logicalState == ULS_NORMAL) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 35,
+        "code": "if (_keyCounter != number) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 40,
+        "code": "if (iVar2 == -1) break;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 41,
+        "code": "if (iVar2 == iVar3) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 42,
+        "code": "if (0x9c2 < iVar7) goto LAB_00459d22;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 48,
+        "code": "} while (iVar7 < 0x9c4);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 54,
+        "code": "} while (unitSelectionIndex < *psVar1);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 56,
+        "code": "return;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 57,
+        "code": "while( true ) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 60,
+        "code": "if (0x9c2 < iVar7) break;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 65,
+        "code": "if (iVar2 == -1) break;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x00459E40",
+    "registermarke": "PK319",
+    "name": "_HoldStrong::Game::GameStateStructures::HandleActivateTacticalPowers",
+    "kurzaussage": "Fuehrt nur bei tacticalPowersBarLevel>=(powerType+1)*636 den switch aus. Typ0 ruft Schadenshilfe mit Radius6/6000/1,Typ1 Heilhilfe6/8000,Typ7 Schadenshilfe9/18000/0. Spawns:2=>20Speer,3=>14Ingenieur,4=>20Keule,6=>10Ritter,13=>15Bogen,16=>12Feuerwerfer; erfolgreiche neue Trupp-ID bekommt aggressive Haltung. Typ5 addiert signed RNG%1500+1000 zu goldDonation und schaltet RNG weiter. Unterstuetzte Typen ziehen die636*(Typ+1) immer ab, auch nach Spawnfehlschlag; lokale Spielerpfade haben zusaetzliche Toene. Unbekannte Typen ziehen nichts ab. Keine Ziel-/Spielergrenzen oder endgueltige Helferwirkungsbeweise.",
+    "statische_gegenprobe": "Spawn liefert0 =>Kosten werden trotzdem abgezogen; unbekannter Typ8 =>keine Kostenbuchung.",
+    "offene_fragen": "Radien-/Schadenseinheiten, Zielvalidierung und signierter RNG-Bereich.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\00459e40.json",
+    "export_sha256": "5eb7fb65cde13b6df1e219c273ffe8cab20f3a66b3e508800b79ec4dc7d0c28f",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "6ee318e82e1fd6039e51fe85fd216ce84f87d5ae9c289ba2cdf3fecfe0094d35",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 10,
+        "code": "if (iVar1 * 0x27c <= DAT_GameState.playerDataArray[param_1].tacticalPowersBarLevel) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 12,
+        "code": "case 0:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 17,
+        "code": "return;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 18,
+        "code": "case 1:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 21,
+        "code": "if (param_1 == DAT_GameSynchronyState.currentPlayerSlotID) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 25,
+        "code": "return;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 28,
+        "code": "case 2:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 29,
+        "code": "case 3:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 30,
+        "code": "case 4:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 31,
+        "code": "case 6:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 32,
+        "code": "case 0xd:"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 33,
+        "code": "case 0x10:"
+      }
+    ]
+  },
+  {
+    "adresse": "0x0045A060",
+    "registermarke": "PK319",
+    "name": "_HoldStrong::Game::GameStateStructures::renderDebugDataCurrentPlayerData",
+    "kurzaussage": "Rendert Debugtext fuer aktuellen Spieler:25aufeinanderfolgende Werte ab fester Ressourcenadresse an derselben dargestellten Zeile, ferner globale Organismen/CRC/Wegzaehler, Spielerpopulation/Nahrung/Beliebtheit/Crowding und Objekt-/Bau-/Einheitenlimits. Texte wie Total chimps,lightning count,power sind nur Bildschirmlabel, kein semantischer Beweis fuer countEntities/treeSpreadCounter/treeSpreadInterval. Breite/height werden nicht gelesen; keine sichtbaren Spielzustandsschreibungen, nur Darstellungsaufrufe. Zusaetzliche feste Bau-ID19 und weitere ungeklaerte Felder werden ausgegeben.",
+    "statische_gegenprobe": "Der Text lightning count zeigt treeSpreadCounter; Label allein belegt keine Blitzmechanik.",
+    "offene_fragen": "Darstellungshilfen koennen Anzeigezustand aendern; der gesamte Helfergraph wurde nicht auf Seiteneffekte bewiesen.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\0045a060.json",
+    "export_sha256": "5be2e9e69db71a21b32f4812c0cb83d4f3eeb1b970c19e794e84db8be09f1b52",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "6ee318e82e1fd6039e51fe85fd216ce84f87d5ae9c289ba2cdf3fecfe0094d35",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 30,
+        "code": "} while (y != 0);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 217,
+        "code": "} while ((int)piVar4 < 0x117c87c);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 255,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x0045AE10",
+    "registermarke": "PK319",
+    "name": "_HoldStrong::Game::GameStateStructures::addBuildingInRegistry",
+    "kurzaussage": "Ausserhalb GM_SOLITARY und wenn der Besitzerzaehler<500 sowie fireDuration0 ist, haengt es die Bau-ID als short an first500BuildingsPerPlayer[Besitzer] und erhoeht den Zaehler. Keine Dubletten-, Bautyp-, Lebens-, UID- oder Besitzergrenze; negativer Zaehler wird nicht abgefangen.",
+    "statische_gegenprobe": "Zweimaliger Aufruf fuer denselben Bau kann doppelte Eintraege erzeugen; Zaehler500 verhindert weitere Eintraege.",
+    "offene_fragen": "Ob Aufrufer die Tabelle/Zaehler pro Runde passend zuruecksetzen.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\0045ae10.json",
+    "export_sha256": "78442145e3e35cdbb3d34780e5f9d670b4d7092d1bdc3b3891f07438d697370b",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "6ee318e82e1fd6039e51fe85fd216ce84f87d5ae9c289ba2cdf3fecfe0094d35",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 7,
+        "code": "if (((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) &&"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 15,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x0045AE70",
+    "registermarke": "PK319",
+    "name": "_HoldStrong::Game::GameStateStructures::resetBuildingsCurrentIndexCounter",
+    "kurzaussage": "Setzt die neun first500BuildingsCurrentIndexCounter[0..8] auf0. Die eigentlichen gespeicherten Bau-ID-Tabellen bleiben unveraendert; void.",
+    "statische_gegenprobe": "Alte Tabelleneintraege sind danach noch vorhanden, aber Zaehler0.",
+    "offene_fragen": "Ob Aufrufer/Leser stets nur den gueltigen Zaehlerbereich lesen.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\0045ae70.json",
+    "export_sha256": "de3af3abd3814a9b0403f26830c90e68fa4954de1af35f5aa345eb5d0eeeb535",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "6ee318e82e1fd6039e51fe85fd216ce84f87d5ae9c289ba2cdf3fecfe0094d35",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 13,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x0045AEB0",
+    "registermarke": "PK319",
+    "name": "_HoldStrong::Game::GameStateStructures::selectARandomBuildingOwnedByPlayer",
+    "kurzaussage": "Bei Besitzerzaehler<1 Rueckgabe0 ohne eigenen RNG-Aufruf. Sonst alten SEC_RNG.currentNumber2 als signed int merken, RNG weiterschalten und gespeicherte Bau-ID an Index alterRNG%Zaehler liefern. Keine Validierung des Bautyps, Besitzers, Lebenszustands oder UID und keine Begrenzung des Zaehlerwerts auf500.",
+    "statische_gegenprobe": "Zaehler0=>0 ohne RNG-Fortschritt; positiver Zaehler kann veraltete ID liefern.",
+    "offene_fragen": "Signed-RNG-Vertrag und Gueltigkeit/Frische der first500-Tabelle.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\0045aeb0.json",
+    "export_sha256": "0292010f3f2cf2f52c3f44333c78e32d9138dcd8b83392eb0f1e686bbec26ebf",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "6ee318e82e1fd6039e51fe85fd216ce84f87d5ae9c289ba2cdf3fecfe0094d35",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 8,
+        "code": "if (iVar1 < 1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 9,
+        "code": "return 0;"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 13,
+        "code": "return (int)DAT_GameState.first500BuildingsPerPlayer[playerID][iVar2 % iVar1];"
+      }
+    ]
+  },
+  {
+    "adresse": "0x0045AF00",
+    "registermarke": "PK320",
+    "name": "_HoldStrong::Game::GameStateStructures::resetSomethingBuildingRelatedForAllPlayers",
+    "kurzaussage": "Ruft fuer Spieler1..8 und jeden Kategorieindex0..19 validateBuildingCategoryReference auf, insgesamt160Aufrufe. Kein eigener Vollreset, keine eigene Rueckgabe oder sonstige Datenoperation; der Helfer kann selektiv Referenz-IDs loeschen.",
+    "statische_gegenprobe": "Nicht ungueltige Hauptverweise werden durch den Wrapper nicht pauschal genullt.",
+    "offene_fragen": "Helfer004572A0 beschreibt Pruef-/Loeschregeln; nicht gepruefte Kategorien bleiben dessen Vertrag.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\0045af00.json",
+    "export_sha256": "ba300d478426969abb058a44ebcb2ccf247be27cad576f2f2806b77ffef6f867",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "54fe7c35ae06e4e7bc6c78c06e676c953c8c17b3ccfef77f0065025a49b84084",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 13,
+        "code": "} while (iVar1 < 0x14);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 15,
+        "code": "} while (playerID < 9);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 16,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x0045AF30",
+    "registermarke": "PK320",
+    "name": "_HoldStrong::Game::GameStateStructures::computePopulationStatistics",
+    "kurzaussage": "Fuer Spieler1-8 setzt currentPopulation=countEntities-nonInteractiveCitizenCountUnk-field645_0x2174-armySize und vermindert fuer bisdrei passende ID/UID-Referenzen nochmals1, ohne Untergrenze0. populationRelatedCrowdingCountUnk=currentPopulation_2-availablePeasantsOrHousedPeasants; BlessedProzent0 bei blessed<=0,sonst100 bei Nenner0 oder blessed*100/(blessed+unblessed). startOfDay schreibt availablePeasantsOrHousedPeasants in8er-Ring, umlaufender Index0..7 und arithmetischer Durchschnitt8. Monatswechsel haengt Population als short in300er-Historie an oder schiebt299Werte; erhoeht am Funktionsende populationIndex einmal. Aktualisiert maxPopulation nur bei groesserem Wert als short. Ausserhalb Editor steigt tacticalPowersBarLevel um1 solange<7000; positive goldDonation wird in Schritten bis10 auf aktuellesGold[15] (Player+1292) uebertragen und bei aktuellem Spieler Anzeigeerneuerung gesetzt. Zum Schluss Nahrungstypen neu zaehlen.",
+    "statische_gegenprobe": "currentPopulation kann negativ sein; ein Sprung durch hohe Donation wird auf10proAufruf begrenzt; Index>=300 schiebt statt neu anzulegen.",
+    "offene_fragen": "Bedeutung der ungeprueften Subtraktions-/UID-Referenzfelder, negative Historienindizes/Ueberlaeufe sowie Arrayrekonstruktion.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\0045af30.json",
+    "export_sha256": "b5a53984702dd18f0b5f7ff9d4db032d8aa7066148dd6343e7e63d4adb651fde",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "54fe7c35ae06e4e7bc6c78c06e676c953c8c17b3ccfef77f0065025a49b84084",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 23,
+        "code": "if ((piVar3[0x85d] != 0) && (DAT_UnitsState.units[piVar3[0x85d]].uid == piVar3[0x85e])) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 26,
+        "code": "if ((piVar3[0x85f] != 0) && (DAT_UnitsState.units[piVar3[0x85f]].uid == piVar3[0x860])) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 29,
+        "code": "if ((piVar3[0x861] != 0) && (DAT_UnitsState.units[piVar3[0x861]].uid == piVar3[0x862])) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 34,
+        "code": "if (iVar1 < 1) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 38,
+        "code": "if (piVar3[0x86e] + iVar1 == 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 46,
+        "code": "if (DAT_GameState.mapAndTime.startOfDay != FALSE) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 50,
+        "code": "if (7 < piVar3[0xa98]) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 57,
+        "code": "if (DAT_GameState.mapAndTime.monthChanged != 0) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 58,
+        "code": "if (DAT_GameState.mapAndTime.populationIndex < 300) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 73,
+        "code": "if ((int)DAT_GameSynchronyState.finalResults.finalMaxPopulation[local_14] < piVar3[0x83f]) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 76,
+        "code": "if (DAT_GameCore.gameMode_2 != GM_EDITOR) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 77,
+        "code": "if (piVar3[0xe54] < 7000) {"
+      }
+    ]
+  },
+  {
+    "adresse": "0x0045B1C0",
+    "registermarke": "PK320",
+    "name": "_HoldStrong::Game::GameStateStructures::clearEnemyRelatedStructures",
+    "kurzaussage": "Breiter Initialisierungsablauf: Bauzaehler2000,LoadBalancer0; Wegweiserwege,KI-Spielerdaten,Startgueter/Statistiken,allgemeine Initialwerte,Bauhauptverweise und Bauverfuegbarkeit ueber Helfer; isTimeHaltedFALSE und mehrere Rohzeitfelder0/-1. Fuer neun Spielerbloecke jeweils Bauinfoindex0,2000Gegnerbau-ID/UID-Paare0 und2500Gegnereinheiten-UIDs0; danach Hotkeybereich mit-1 fuellen. Kein reiner Feindlistenreset: kann Startressourcen und Zeit-/Pausenzustand veraendern. Ein nichtinitialisiert erscheinender this_00 wird an den Referenzpruefer uebergeben; ohne Assemblerabgleich offen.",
+    "statische_gegenprobe": "Aufruf kann Gold-/Startgueterinitialisierung ausloesen; bisherige Spielzeit/Spielpause werden nicht einfach erhalten.",
+    "offene_fragen": "Bedeutung der rohen Arrays/Zeitfelder, Gueltigkeit this_00 und globale Nebenwirkungen aller Helfer.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\0045b1c0.json",
+    "export_sha256": "fb4b447b627e6d45e67158b82daef63f843fc12311315396158defbf81375d66",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "54fe7c35ae06e4e7bc6c78c06e676c953c8c17b3ccfef77f0065025a49b84084",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 91,
+        "code": "} while (iVar1 != 0);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 100,
+        "code": "} while (local_4 != 0);"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 102,
+        "code": "return;"
+      }
+    ]
+  },
+  {
+    "adresse": "0x0045B3E0",
+    "registermarke": "PK320",
+    "name": "_HoldStrong::Game::GameStateStructures::initializeGameStateAfterMapLoad",
+    "kurzaussage": "Nur bei GM_SOLITARY zuerst Teams zuruecksetzen. Immer Bauzaehler2000,LoadBalancer0, Bauwegweiser setzen/bereinigen/verdichten, deren Wege berechnen und field45_0xf8 0. Handelskosten nur ausserhalb GM_SKIRMISH_AND_MULTIPLAYER importieren; Bauverfuegbarkeit immer uebernehmen und Crowding aktualisieren. Kein vollstaendiger GameState-Vollreset; einzelne Helfer koennen gespeicherte Verweise/Bauten bearbeiten.",
+    "statische_gegenprobe": "GM_SKIRMISH_AND_MULTIPLAYER ueberspringt Preisimport; GM_SOLITARY hat zusaetzlichen Teamreset.",
+    "offene_fragen": "Helferfolgen und rohes field45_0xf8 bleiben getrennt von dieser Aufrufreihenfolge.",
+    "quelle": "C:\\Users\\danie\\Documents\\ChatGPT\\Village Studio\\work\\engine-knowledge\\exports\\reference\\functions\\0045b3e0.json",
+    "export_sha256": "a59507c88f745d0c69030264ee0f34d9c9214e29ebfaa1c50ae439781fd46f6c",
+    "grundlage_commit": "91cc9832f972bb422be95aca31c386b4e58fd447",
+    "status": "erstbeschreibung_ohne_unabhaengige_zweitabnahme",
+    "pruefdatum": "2026-10-29",
+    "registerzeile_sha256": "54fe7c35ae06e4e7bc6c78c06e676c953c8c17b3ccfef77f0065025a49b84084",
+    "belegauszug": [
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 4,
+        "code": "if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 13,
+        "code": "if (DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER) {"
+      },
+      {
+        "zeile_nach_entfernung_von_kommentaren_und_leerzeilen": 18,
+        "code": "return;"
+      }
+    ]
+  }
+]

@@ -1,0 +1,940 @@
+﻿FORTSETZUNG DER PRUEFUNG - LOS006, 29.10.2026
+
+UMFANG UND BELEGSTATUS
+Die68 im vorherigen Bericht mangels Registertext nicht pruefbaren Funktionen wurden anhand aller68 Original-Pseudocodes als Erstbeschreibungen dokumentiert. Sie stehen unter PK312-PK320; jede hat Quellenhash, statischen Gegenfall und offene Fragen.
+Dies sind neu verfasste Teilbeschreibungen desselben Pruefers, keine unabhaengige Zweitabnahme und kein Vergleich schon bestehender Aussagen. Die historische Fehlstellenliste aus Los004 bleibt als damaliger Befund erhalten.
+Fachlich vollstaendig abgenommen: 0. Im Register adresslich erwaehnte Spiellogik-Funktionen: 521 -> 589 im vorlaeufigen1938er-Nenner.
+Davon586 mit qualifizierter Teilbeschreibung. Nur dokumentierte Registerzuordnung, keine Laufzeit-/Spielmessung. Der reine Debugrenderer0045A060 ist ein weiterer im1938er-Nenner fachlich zu klassifizierender Anzeigefall.
+
+WICHTIGE GEGENFAELLE
+00457770: Fehlender keep-Verweis liefert TRUE, kein Nachweis eines existierenden Wegs.
+00458760: Genau eine handelbare Ware ergibt FALSE; erst mehr als eine TRUE.
+00457E80: Kein Baumaterial mit Teilrest kann-1 ergeben; Ergebnis wird nur nach oben begrenzt.
+00459930: Stall-ID kann positiv zurueckkommen, obwohl keine freie Bindungsstelle gefunden wurde; Pferdezaehler wurde vorher vermindert.
+00459B50: Assembler bestaetigt Vergleich zweier aktueller Uhrzeitabfragen statt Vergleich mit dem alten gespeicherten Zeitpunkt; keine belegte10Sekunden-Sperre.
+00458AD0: Nahrungsverbrauch erst bei foodClock>15000; Reset0 verliert Ueberschuss und loest hoechstens eine Portion aus.
+0045AF30: Zaehlfunktion verbucht auch Goldspenden schrittweise; kein reiner Statistikleser.
+
+GEGENPROBEN DER PAKETZUORDNUNG
+Ohne PK320: exakt 4 Adressen entfallen, keine anderen hinzugekommen.
+Adressen: 0x0045AF00, 0x0045AF30, 0x0045B1C0, 0x0045B3E0
+Aufruf: C:\Users\danie\AppData\Local\Programs\Python\Python311\python.exe -B werkzeug/engine_knowledge/auge_abdeckung.py --ohne-beleg PK320 --ausgabe "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\daten\pruefung_20261028\los006_ohne_PK320"
+Ohne PK319: exakt 8 Adressen entfallen, keine anderen hinzugekommen.
+Adressen: 0x00459BB0, 0x00459BE0, 0x00459C10, 0x00459E40, 0x0045A060, 0x0045AE10, 0x0045AE70, 0x0045AEB0
+Aufruf: C:\Users\danie\AppData\Local\Programs\Python\Python311\python.exe -B werkzeug/engine_knowledge/auge_abdeckung.py --ohne-beleg PK319 --ausgabe "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\daten\pruefung_20261028\los006_ohne_PK319"
+Ohne PK313: exakt 8 Adressen entfallen, keine anderen hinzugekommen.
+Adressen: 0x00457B40, 0x00457B80, 0x00457E80, 0x00457F20, 0x00457FD0, 0x00458070, 0x004580C0, 0x00458280
+Aufruf: C:\Users\danie\AppData\Local\Programs\Python\Python311\python.exe -B werkzeug/engine_knowledge/auge_abdeckung.py --ohne-beleg PK313 --ausgabe "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\daten\pruefung_20261028\los006_ohne_PK313"
+Zufallsauswahl mit fester Startzahl20261029 aus den neun neuen Paketen. Explizite Feldbelege bleiben in allen drei Negativlaeufen unveraendert. Die Gegenprobe bestaetigt dieselben exakten Mengen auch fuer die Spalte Teilbeschreibung. Sie beweist die Zuordnung, nicht die fachliche Vollstaendigkeit der Texte.
+
+STATISCHE ERSTBESCHREIBUNGEN UND OFFENE FRAGEN
+
+1. 0x004574C0 / PK312
+Ohne campground.id liefert die Funktion FALSE. Mit Zone>299 und Zone<=Ganzzahl(3*PathFindingState.sum/4) gelten zusaetzliche Obergrenzen bei Kartengroesse160/200/300/400:8000/10000/20000/25000; unbekannte Kartengroessen haben hier keine solche Grenze. TRUE nur wenn keiner der acht Spielerslots zugleich anderes Team, Lagerfeuer vorhanden, lordKilledByPlayerID (campground+0x203C) gleich0, Mensch/KI belegt und dieselbe Zone hat. Keine Wegeabfrage, keine Spieler-/Zonenindexgrenze.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): campground.id==0 =>FALSE; zone299 =>FALSE; zone300 kann erst nach weiteren Bedingungen TRUE liefern.
+OFFEN: Bedeutung von PathFindingState.sum und gueltige Zonenindizes; eingeschlossen ist hier eine Heuristik, kein geometrischer Burgabschluss.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004574c0.json
+SHA256: 4c691418abc208b591c816490491bd9b5877fb00e047d51ca36ee24151fc2280
+Pseudocode-Auszug:
+6: if (DAT_GameState.playerDataArray[playerID].campground.id == 0) {
+7: return FALSE;
+12: if ((299 < iVar1) &&
+16: case 0xa0:
+17: if (8000 < iVar1) {
+18: return FALSE;
+21: case 200:
+22: if (10000 < iVar1) {
+23: return FALSE;
+26: case 300:
+27: if (20000 < iVar1) {
+28: return FALSE;
+
+2. 0x00457770 / PK312
+Fehlt einer der beiden keep.id-Verweise, liefert die Funktion TRUE. Nur wenn beide vorhanden sind werden die Zonen der beiden campground.tileEntry gelesen: Zone0=>FALSE, gleiche nichtnull Zone=>TRUE; sonst wird die Wegabfrage mit playerID, Zielzone zuerst, eigener Zone danach und Parameter2 aufgerufen und deren !=0 zurueckgegeben. Spieler-/Kachelindizes ungeprueft.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Fehlender Bergfried =>TRUE, nicht FALSE; zeigt, dass TRUE keinen existierenden Weg garantiert.
+OFFEN: Bedeutung des letzten Wegparameters2 ohne Helferabgleich.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00457770.json
+SHA256: 916972674db301b5a904a4ac462683f02b454efa5bcc5d3aff38f464ffd19855
+Pseudocode-Auszug:
+8: if ((DAT_GameState.playerDataArray[playerID].keep.id != 0) &&
+12: if ((uVar1 == 0) ||
+15: return FALSE;
+17: if (uVar2 != uVar1) {
+20: return (uint)(iVar3 != 0);
+23: return TRUE;
+
+3. 0x00457800 / PK312
+Liest die Zone des Spieler-Lagerfeuereingangs und die des ersten Wegweisereingangs[0]. Ist eine Zone0, FALSE; gleiche nichtnull Zonen, TRUE; sonst Wegabfrage mit playerID,eigener Zone,Wegweiserzone,0 und Rueckgabe!=0. Prueft weder keep.id noch signpostID und keine Indexgrenzen.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Zone0 bei einem Eingang =>FALSE; gleiche nichtnull Zonen umgehen die Wegabfrage.
+OFFEN: Helferparameter0 und gueltige Herkunft der gespeicherten Eingangsverweise.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00457800.json
+SHA256: 4643240cfa4d4507c5990ef61e40e1a25f8cc8e002cce15c182e923e41d2e889
+Pseudocode-Auszug:
+10: if ((uVar1 != 0) &&
+13: if (uVar2 == uVar1) {
+14: return TRUE;
+18: return (uint)(iVar3 != 0);
+20: return FALSE;
+
+4. 0x00457870 / PK312
+Vergleicht die Lagerfeuerzone von playerID mit dem Wegweisereintrag, dessen Index aus unknownSignpostRelatedArray[param_3] stammt. Nullzone=>FALSE; gleiche nichtnull Zonen=>TRUE; sonst Wegabfrage mit param_2 als Spielerargument und Schalter0. playerID und param_2 werden unterschiedlich verwendet; keine Indexgrenzen.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Gleiche Zonen =>TRUE ohne Helfer; param_2 ersetzt nicht den Spieler, dessen Lagerfeuer gelesen wird.
+OFFEN: Bedeutung/Laenge unknownSignpostRelatedArray und param_2/param_3.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00457870.json
+SHA256: 00ef1bde886412a3fa4150b2353959018ecc4153fb59df09aa82f1f6bf2eb895
+Pseudocode-Auszug:
+10: if ((uVar1 != 0) &&
+15: if (uVar2 == uVar1) {
+16: return TRUE;
+20: return (uint)(iVar3 != 0);
+22: return FALSE;
+
+5. 0x004578F0 / PK312
+Wie der benachbarte Wegweiser-Zonenhelfer liest es Lagerfeuerzone von param_1 und den ueber param_3 gewaehlten Wegweisereintrag. Beide Zonen muessen!=0 sein; danach wird auch bei gleichen Zonen immer die Wegabfrage mit param_2 und Schalter2 aufgerufen. Ergebnis ist Helferrueckgabe!=0, sonst FALSE; keine Indexgrenzen.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Gleiche nichtnull Zonen fuehren hier zur Wegabfrage und nicht automatisch TRUE.
+OFFEN: Bedeutung des Schalterwerts2 und der Indexauswahl.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004578f0.json
+SHA256: 23aafd6bbed0b7e7a4d38dc3cd082a7386c3d96caf39262a2908f90ac762597c
+Pseudocode-Auszug:
+6: if ((DAT_TileMapState.PathConnectionLayer
+19: return (uint)(iVar1 != 0);
+21: return FALSE;
+
+6. 0x00457960 / PK312
+Liest den Baubesitzer und loescht unter20 BuildingEntryInfo-Gruppen nur die erste ID, die buildingID gleicht; Koordinaten/Gebiete bleiben dabei stehen. Fuer Vorratslager,Kornspeicher,Waffenlager,Kaserne,Soeldnerposten setzt es anschliessend den jeweiligen Hauptverweis auf den Rueckgabewert der Bautypsuche, auch0; bei den letzten beiden folgen Sammelplatz-Neuberechnungen. Keine obere ID-/Besitzergrenze und kein Ausschluss des gerade geloeschten Baus in diesem Wrapper.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Zwei Gruppen mit derselben ID =>nur erste wird in der20er-Schleife genullt.
+OFFEN: Ob die Bautypsuche den noch vorhandenen Zielbau erneut finden kann, haengt von Aufruferzustand und Helferfilter ab.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00457960.json
+SHA256: 41eff11f1c1f6af0e69891320d84952bd4f90dd306acbbb7f903ef39aa249445
+Pseudocode-Auszug:
+12: if (pBVar2->id == buildingID) {
+18: } while (iVar1 < 0x14);
+19: if (DAT_BuildingsState.buildings[buildingID].buildingType == BT_STOCKPILE) {
+24: if (DAT_BuildingsState.buildings[buildingID].buildingType == BT_GRANARY) {
+29: if (DAT_BuildingsState.buildings[buildingID].buildingType == BT_ARMORY) {
+34: if (DAT_BuildingsState.buildings[buildingID].buildingType == BT_BARRACKS) {
+40: if (DAT_BuildingsState.buildings[buildingID].buildingType == BT_MERCENARYPOST) {
+47: return;
+
+7. 0x00457A70 / PK312
+Wrapper ruft nacheinander sechs Helfer auf: Einheitenuebertragung, Bau-/Spielerdatenuebertragung, Truppzuordnung, Mauerbesitz, Grabenbesitz, Objektbesitz, jeweils mit fromPlayer/toPlayer. Keine eigenen Grenz-/Gleichheitspruefungen, Rueckgaben oder Ruecknahme bei Teilerfolg. Ein allgemeiner vollstaendiger Spielertausch ist allein hier nicht belegt; Pechbesitz wird nicht als eigener Helfer aufgerufen.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): fromPlayer==toPlayer wird im Wrapper nicht abgefangen; kein eigener Pech-Helfer wie im Tausch-Wrapper.
+OFFEN: Tatsaechliche Selektionsfilter und Fehlerwirkungen der sechs Helfer.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00457a70.json
+SHA256: 81ef1d8f0665eb653d749ddb087706c595b120bb3e13ee19d9ecf9e30ba7678d
+Pseudocode-Auszug:
+13: return;
+
+8. 0x00457AD0 / PK312
+Wrapper ruft nacheinander sieben Helfer mit beiden Spielern auf: Einheitenbesitztausch samt Hofeinheitenbehandlung, Baubesitztausch, Truppbesitztausch, Mauer-, Graben-, Pech- und Objektbesitztausch. Keine eigenen Bereichs-/Gleichheitspruefungen, Rueckgabe oder Ruecknahme. Die Namen der aufgerufenen Helfer sind hier Aufrufbelege, keine vollstaendige Erklaerung ihrer internen Auswahl.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Pechbesitz hat hier eigenen Helfer; im Uebertragungs-Wrapper00457A70 fehlt dieser Aufruf.
+OFFEN: Nicht gelesene Helferkoerper koennen weitere Auswahl-/Sonderfaelle enthalten.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00457ad0.json
+SHA256: 7bc8ec3812193539a098f73ec73c1d6673c6d5f0afa588b1a34a5cbe4dd05dd3
+Pseudocode-Auszug:
+11: return;
+
+9. 0x00457B40 / PK313
+Ruft fuer playerID nacheinander killUnits,destroyBuildings,destroyWallsOfPlayer und destroyEntitiesPart2 auf. Keine eigene Pruefung, Rueckgabe oder Fehlerbehandlung. Dass damit ausnahmslos alle Spielerobjekte oder Verweise verschwinden, ist aus diesem Wrapper nicht ableitbar.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Nur vier Aufrufe, kein eigener Trupp-/Graben-/Pech-Loeschaufruf.
+OFFEN: Vollstaendigkeit und Seiteneffekte der aufgerufenen Helfer.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00457b40.json
+SHA256: 21a968e06c4bb2cf0ec43695b54213933424653a8b55fc4fd81953c0e32fd901
+Pseudocode-Auszug:
+9: return;
+
+10. 0x00457B80 / PK313
+Liest nach Mapper-Umwandlung die fuenf Baukosten, bevor Freikosten/Editor und im Einzelspiel KEEP1/2/3 frueh1 liefern. Auch die Holzfaeller-Ausnahmehilfe kann1 liefern. Sonst prueft Eisen,Pech[7],Gold[15],Holz[2],Stein[4]; beim Pechmangel von Bautyp0x44 mit pitchDitchCounterTo4!=0 sofort1 ohne spaetere Gold/Holz/Steinpruefung. Fehlender Rohstoff fuehrt0, optional Warnansage. Nur KI-Slots (FullID-1 und AI!=0 ausserhalb Einzelspiel) erhoehen Erwerbsanforderungen auf mindestens den Fehlbetrag; Eisen/Pech brechen sofort ab, Gold erstellt keine Anforderung, gemeinsamer Holz-/Steinmangel kann beide erhoehen. Keine Buchung/Abzug und keine Indexgrenzen.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Pechsonderfall kann1 liefern, obwohl spaetere Rohstoffe fehlen; Freikostenpfad liest trotzdem vorher Kostentabelle.
+OFFEN: Bedeutung der Holzfaeller-Ausnahmehilfe und ob Kosten-/Mapperindizes immer gueltig sind.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00457b80.json
+SHA256: 8b7efb27a9d62fa7e6a8d85bba54c7dcdf507967082ea6afb6816a680dc67a9f
+Pseudocode-Auszug:
+22: if ((DAT_GameCore.solitaryAllBuildingsAreFree != FALSE) || (DAT_GameCore.gameMode_2 == GM_EDITOR))
+24: return 1;
+26: if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+27: if (commandBuildingType == M_MAPPER_KEEP1) {
+28: return 1;
+30: if (commandBuildingType == M_MAPPER_KEEP2) {
+31: return 1;
+33: if (commandBuildingType == M_MAPPER_KEEP3) {
+34: return 1;
+37: else if ((DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] == -1) &&
+43: if (uVar4 != 0) {
+44: return 1;
+
+11. 0x00457E80 / PK313
+Freikosten/Editor liefern100. GM_SIEGE_THAT liefert ungekappt startResources[4], unabhaengig vom Materialparameter. Sonst Material4 nimmt aktuellen Stein und partialStoneCounter, Material2 Holz und partialWoodCounter; anderes Material0. Ergebnis2*Bestand minus1 bei beliebigem nichtnull Teilrest, nur nach oben auf250 begrenzt; negative Ergebnisse werden nicht auf0 gesetzt.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Bestand0 mit Teilrest!=0 ergibt-1; Belagerung umgeht250-Grenze.
+OFFEN: Teilrestfelder werden als int gelesen; ihre Herkunft/gueltigen Werte bleiben Aufrufervertrag.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00457e80.json
+SHA256: 0e55d9527d574b436836436fb160856faf4cdf6e2e1e34d2d87df2c5a944376b
+Pseudocode-Auszug:
+7: if ((DAT_GameCore.solitaryAllBuildingsAreFree == FALSE) && (DAT_GameCore.gameMode_2 != GM_EDITOR))
+9: if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+10: return DAT_GameState.playerDataArray[playerID].startResources[4];
+12: if (wallMaterial == 4) {
+17: if (wallMaterial != 2) {
+18: return 0;
+24: if (iVar1 != 0) {
+27: if (0xfa < iVar2) {
+28: return 0xfa;
+34: return iVar2;
+
+12. 0x00457F20 / PK313
+Ausserhalb GM_SOLITARY durchlaeuft es die Spielerslots ab1. Nur bei zwei rohen Statusfeldern0 und besetztem Mensch-/KI-Slot vergleicht es popularity/100 mit dem gespeicherten Wert. Bei Abweichung steigt ein Zaehler; erst bei>1 wird der gespeicherte Wert aktualisiert, Zaehler0 und bei nichtnull Bauverweis die Popup-Hilfe mit0/0/0 aufgerufen. Gleicher Wert setzt den Wartezaehler nicht zurueck; keine laufende Messung.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Zwei nicht aufeinanderfolgende Abweichungen koennen den Zaehler ueber1 bringen; kein Reset im Gleichheitszweig.
+OFFEN: Bedeutung der beiden Rohstatusfelder und des verwendeten Bauverweises ohne Typabgleich.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00457f20.json
+SHA256: e81b2631ae0ab41fbcfd5fe0fdb0c48c5816a6b5a4cdd32df5984bc6c8d9172f
+Pseudocode-Auszug:
+7: if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+11: if ((((piVar1[0x86c] == 0) && (piVar1[0x879] == 0)) &&
+17: if (buildingID != 0) {
+24: } while ((int)piVar2 < 0x191de34);
+26: return;
+
+13. 0x00457FD0 / PK313
+Ausserhalb GM_SOLITARY wie der Popularitaetshelfer, aber Vergleich von aktuellem Gold[15] gegen gespeicherten Goldwert. Bei zwei rohen Statusfeldern0, besetztem Mensch-/KI-Slot und Abweichung wird der Zaehler erhoeht; bei>1 Wert kopiert, Zaehler0 und Popup-Hilfe fuer nichtnull Bauverweis mit0/0/0 aufgerufen. Keine Ruecksetzung des Zaehlerstands bei Gleichheit.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Gold gleich altem Wert =>kein Popup und kein sichtbarer Zaehlerreset.
+OFFEN: Bedeutung der Rohstatus-/Bauverweisfelder; Popup-Helfer entscheidet die genaue Darstellung.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00457fd0.json
+SHA256: a672f325cb0b6e02a1340c4866eccb4a8a162b8d971a270bd46dde3ecc4c7823
+Pseudocode-Auszug:
+7: if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+11: if ((((piVar1[0x741] == 0) && (piVar1[0x74e] == 0)) &&
+17: if (buildingID != 0) {
+24: } while ((int)piVar2 < 0x191de34);
+26: return;
+
+14. 0x00458070 / PK313
+Nur ausserhalb GM_SOLITARY, bei lordKilledByPlayerID0, playerDeathRelated0 und marketplace.id!=0 ruft es die Popup-Hilfe mit dieser Bau-ID und unveraenderten param_2,amount,resourceType auf. Keine eigenen UID-/Typ-/Mengen- oder Spielergrenzen; void.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Marktplatz-ID0 oder einer der Todesmarker!=0 =>kein Aufruf.
+OFFEN: Bedeutung von param_2 und der Popup-Hilfe.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458070.json
+SHA256: 79f47f77e0aa5d381e303fba570bb322f0f35eb12bca2ac82673793be0c88419
+Pseudocode-Auszug:
+6: if ((((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) &&
+12: return;
+14: return;
+
+15. 0x004580C0 / PK313
+Ausserhalb Editor/GM_SIEGE_THAT fuer Spieler1-8 nur bei keep.id>0 und campground.id>0. Sollzahl aus totalFood:<=0=>0,1..9=>1,10..19=>2,20..29=>3,ab30=>min(10,totalFood/max(1,2*Rohfeld)+3); ein Sonderflag setzt100. Bei Istzahl<Soll versucht es genau ein Huhn am zugaenglichen Eingang eines zufaellig ausgewaehlten Baeckerei-/Muehle-/Kornspeicherbaus zu erzeugen; bei Erfolg isDisappearingUnk1 und Ton. Bei Istzahl>Soll setzt es nur das erste nicht-unsichtbare eigene Huhn auf US_DISAPPEAR. Keine Bestandskorrektur hier und keine explizite obere ID-Grenze.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): totalFood29 liefert3,30 kann sprunghaft einen hoehere Sollzahl ergeben; Ueberbestand entfernt hoechstens ein Huhn je Spieler/Aufruf.
+OFFEN: Bedeutung der beiden Hauptbauverweise, des Divisor-/Huhnzahl-Rohfelds und Erzeugungsfehler.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004580c0.json
+SHA256: 47e9e77417ea8510a2574ff26aef5a42592e16adcc583c9d741fc4d02ce23d78
+Pseudocode-Auszug:
+10: if ((DAT_GameCore.gameMode_2 != GM_EDITOR) && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+14: if ((0 < ((BuildingEntryInfo *)(piVar6 + -0x802))->id) &&
+17: if (iVar3 < 1) {
+20: else if (iVar3 < 10) {
+23: else if (iVar3 < 0x14) {
+26: else if (iVar3 < 0x1e) {
+31: if (iVar4 < 2) {
+35: if (10 < iVar3) {
+39: if (DAT_GameCore.unknownAlwaysZero02 != 0) {
+42: if (piVar6[0x60] < iVar3) {
+46: if ((iVar4 != 0) &&
+61: else if ((iVar3 < piVar6[0x60]) && (iVar3 = 1, 1 < (int)DAT_UnitsState.maxUnitCount)) {
+
+16. 0x00458280 / PK313
+Ausserhalb Editor/Belagerung fuer Spieler1-8 mit zwei positiven Hauptbauverweisen. Ein Moduszweig nutzt Hysterese ueber Rohfelder: inaktiv wird bei<41 aktiv, aktiv bleibt bei<101, sonst0; anderer Zweig verlangt weiteres Rohfeld<1. Mit Budget75 minus zwei Spielerzaehlern durchsucht es aktive nicht-entfernte eigene HOVEL/HOUSE-Bauten ohne Rohsperre. Leerer Mutterplatz versucht UT_MOTHER an zwei positiven Eingangskoordinaten und speichert ID/UID/Arbeitsplatz. Vorhandener Platz: bei Spielerwert/100>49 wird Byte-Zaehler vermindert; bei<1 und Kinderzahl ungleich Byte-Grenze wird UT_CHILD versucht, Kind-ID/UID abgelegt und Kinderzahl erhoeht. Budget sinkt nur bei erfolgreichem Spawn. Kein UID-Abgleich vorhandener Mutter; Index-/Byteherleitung und Rohfeldbedeutungen offen.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Keine Mutter im Platz =>Mutterversuch, selbst wenn die Kinderbedingung nicht erfuellt ist; Budget<=0 beendet die Bausuche.
+OFFEN: Hysterese-/Budgetfelder, genaue Kindergrenze und dekompilierte Arrayindizes.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458280.json
+SHA256: a60699c8ef8c52dfac990ee2cbfa4c9741f8fd45d82954e5992ef618e5284410
+Pseudocode-Auszug:
+15: if ((DAT_GameCore.gameMode_2 != GM_EDITOR) && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+19: if ((0 < _playerData[-8].id) && (0 < _playerData->id)) {
+20: if (DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER) {
+21: if (_playerData[0x165].id == 0) {
+22: if (*(int *)((int)(_playerData + 0x160) + 0xc) < 0x29) {
+28: if (*(int *)((int)(_playerData + 0x160) + 0xc) < 0x65) {
+32: if (0 < DAT_BuildingsState.maxBuildingsCount) {
+37: if ((((*pBVar6 != 0) && (*pBVar6 != BLS_REMOVE)) && ((short)pBVar6[3] == playerID)
+40: if (iVar5 < 1) break;
+41: if (pBVar6[0x20] == 0) {
+43: if (((0 < sVar1) && (sVar2 = pBVar6[0x18], 0 < sVar2)) &&
+61: if (((0x31 < *(int *)((int)(_playerData + -10) + 0x1c) / 100) &&
+
+17. 0x004585B0 / PK314
+TRUE nur wenn campground.id>0, der referenzierte Baubesitzer gleich playerID und Bautyp BT_CAMPGROUND ist; sonst FALSE. Kein logicalState-/UID-/Kartenbelegungsabgleich, keine obere ID-/Spielergrenze.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Nichtnull ID mit passendem Typ aber falschem Besitzer =>FALSE.
+OFFEN: Ob ein passender, aber bereits entfernter Bau noch verwendet werden darf.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004585b0.json
+SHA256: a8df409795c299de909005d2d02f3bb28d30c71128962378062467d72b7049df
+Pseudocode-Auszug:
+6: if (((0 < iVar1) && (DAT_BuildingsState.buildings[iVar1].owner == playerID)) &&
+8: return TRUE;
+10: return FALSE;
+
+18. 0x004585F0 / PK314
+Liest Einheitenbesitzer und dessen campground.id. Ohne positive ID oder bei unpassendem Besitzer/Typ Rueckgabe-1. Sonst Arbeitsplatz-ID/UID setzen, Sitzplatzhilfe mit availablePeasants-1 aufrufen, globale Sitzkoordinaten und Orientierung als Ziel/field41_0x56 kopieren. Stimmen aktuelle x/y bereits mit Ziel ueberein0, sonst1; keine eigene Weg-, UID-, Index- oder availablePeasants-Grenzpruefung.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): availablePeasants0 reicht-1 an die Sitzplatzhilfe; Ziel schon erreicht liefert0 nach den Schreibungen.
+OFFEN: Gueltiger Wertebereich des Sitzplatz-Helfers und Bedeutung field41_0x56.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004585f0.json
+SHA256: 7cd075fced00cb46e319b584759a1c36843ef0138bf2cfa0d09330dc7c7dfd38
+Pseudocode-Auszug:
+13: if (0 < campfireID) {
+14: if ((DAT_BuildingsState.buildings[campfireID].owner == iVar5) &&
+28: if ((sVar1 == sVar2) &&
+30: return 0;
+32: return 1;
+35: return -1;
+
+19. 0x004586D0 / PK314
+Setzt MapAndTimeState.traderRelated2 auf2 und traderRelatedCounter1 auf0; void, ohne Bedingungen. Weitere Haendleraktionen zeigt dieser Koerper nicht.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Vorheriger Zustand beliebig =>dieselben beiden Schreibungen.
+OFFEN: Bedeutung des Zustandswerts2 im Haendlerautomaten.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004586d0.json
+SHA256: 8751689bfc03f9c287bc9a9ebb541714d2b7e578fb2429b43c586600fcb0519f
+Pseudocode-Auszug:
+6: return;
+
+20. 0x004586F0 / PK314
+Setzt traderRelated2 und traderRelatedCounter1 beide0; void, keine Bedingungen. Andere Haendlerfelder werden hier nicht geloescht.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Anders als Aktivierung004586D0 endet traderRelated2 hier0.
+OFFEN: Vollstaendiger Haendlerautomat und Bedeutung dieser beiden Felder.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004586f0.json
+SHA256: aa46e61612b8b6bdb24ad06297bccc6ed5988348a9beb3bd43f4c398963698ca
+Pseudocode-Auszug:
+5: return;
+
+21. 0x00458700 / PK314
+Sucht nur aufsteigend ab param_1+1 bis einschliesslich8 die erste marketplace.id>0 und liefert deren Spielerindex, sonst0. Kein Umlauf zu1; keine Pruefung auf aktiven Spieler, gueltigen Bautyp/Besitzer/UID oder negativen Ausgangsindex.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): param_1=8 =>0, selbst wenn Spieler1 einen Marktplatz hat.
+OFFEN: Vertrag fuer negative param_1 und Gueltigkeit der gespeicherten Marktplatzverweise.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458700.json
+SHA256: 3f291a6937b834e5fffdfdb691e6b93235ff9176fd2ee2f88e2747b2765106ee
+Pseudocode-Auszug:
+8: if (iVar1 < 9) {
+11: if (0 < pBVar2->id) {
+12: return iVar1;
+16: } while (iVar1 < 9);
+18: return 0;
+
+22. 0x00458740 / PK314
+Bei RT_PITCH wird vorab auf RT_PARTIALPITCH umgeschaltet; dann Rueckgabe isResourceTradeable[Typ]!=0. Kein Spielerparameter, keine Preis-/Bestands-/Marktplatzpruefung oder Indexgrenze.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Fuer RT_PITCH gilt das Freigabefeld von RT_PARTIALPITCH, nicht das urspruengliche Feld.
+OFFEN: Gueltige ResourceType-Werte und Bedeutung der beiden Pech-Enums.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458740.json
+SHA256: 0d4fe540c5119cd16301ab0c20a8239bd2f459d1db3a175659d6266ea3f0c2ee
+Pseudocode-Auszug:
+5: if (resourceType == RT_PITCH) {
+8: return (uint)(DAT_GameState.mapAndTime.isResourceTradeable[resourceType] != 0);
+
+23. 0x00458760 / PK314
+Durchlaeuft MarketResourceCycleArray bis Sentinel0xFFFFFFFF und zaehlt Eintraege mit nichtnull Handelsfreigabe. TRUE erst bei mehr als einem Treffer, bei0 oder genau1 FALSE. Kein eigener Maximalindex, keine Pechumleitung und keine Pruefung auf tatsaechliche Vorratsmenge.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Genau eine erlaubte Ware =>FALSE trotz Funktionsname anyGoods.
+OFFEN: Garantierter Sentinel und gueltige Zyklusindizes.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458760.json
+SHA256: 5eab99bbab56d30823fa70e309a8ce7bb9f05a64293b7f3f910b4e88fac54bdb
+Pseudocode-Auszug:
+10: if (DAT_TroopDefinedData.MarketResourceCycleArray[0] != 0xffffffff) {
+12: if (DAT_GameState.mapAndTime.isResourceTradeable[RVar1] != 0) {
+17: } while (RVar1 != 0xffffffff);
+18: if (1 < iVar3) {
+19: return TRUE;
+22: return FALSE;
+
+24. 0x004587A0 / PK314
+Normalisiert RT_PITCH zu RT_PARTIALPITCH, sucht den Starttyp linear im Handelszyklus und geht dann mindestens einen Schritt vorwaerts; beim Sentinel zurueck0. Ueberspringt Freigabe0, bis ein freigegebener Typ gefunden wird; Rueckgabe Typ. Keine Starttyp-/Laengenpruefung und kein Abbruch, falls alle Waren gesperrt sind.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Alle Zykluswaren gesperrt =>Schleife hat keinen sichtbaren Abbruch; nur eine erlaubte Ware kann nach Umlauf wieder sich selbst liefern.
+OFFEN: Gueltiger Starttyp, Sentinel und mindestens eine Freigabe sind Aufruferbedingungen.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004587a0.json
+SHA256: cbe325e00c13004991d9eb6ce9d2018fde9f4e91fd7061f128cb773e819a6439
+Pseudocode-Auszug:
+9: if (param_1 == RT_PITCH) {
+14: while (RVar1 != param_1) {
+19: if (DAT_TroopDefinedData.MarketResourceCycleArray[iVar2 + 1] == 0xffffffff) {
+24: while (iVar2 == 0) {
+26: if (DAT_TroopDefinedData.MarketResourceCycleArray[iVar3 + 1] == 0xffffffff) {
+33: return RVar1;
+
+25. 0x00458820 / PK315
+Normalisiert Pech wie der Vorwaertshelfer, sucht den Starttyp ohne Begrenzung und geht mindestens einen Schritt rueckwaerts. Unter Index0 wird fest auf19 gesetzt; gesperrte Eintraege werden rueckwaerts uebergangen. Liefert ersten freigegebenen Typ, kein Abbruch bei ausschliesslich gesperrten Waren und keine Starttypgrenze.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Unterlauf geht fest zu19, nicht zur dynamisch gefundenen Sentinelposition.
+OFFEN: Zyklus muss zu dieser20er-Annahme passen; Starttyp muss enthalten sein und mindestens eine Freigabe existieren.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458820.json
+SHA256: e91bfb8462042764211155f6e3ba29ef8cb61954fea29009a630b5b6bada0815
+Pseudocode-Auszug:
+8: if (param_1 == RT_PITCH) {
+13: while (RVar1 != param_1) {
+18: if (iVar3 < 0) {
+23: while (iVar2 == 0) {
+25: if (iVar3 < 0) {
+31: return RVar1;
+
+26. 0x00458890 / PK315
+Liefert direkt buyAndSalesPriceArray[resourceType].buyPrice. playerID wird ignoriert; keine Division, Mengen-, Freigabe- oder Indexpruefung.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Verschiedene playerID bei gleichem Typ lesen denselben Tabellenwert.
+OFFEN: Tabellenwert wird nur als buyPrice gelesen; die Benennung als Fuenferpreis ergibt sich aus den benachbarten Rechenhelfern.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458890.json
+SHA256: 389287c34ca0f524b7af30dc847bd5077a79ebea38332257684851bfe371541b
+Pseudocode-Auszug:
+5: return DAT_GameState.mapAndTime.buyAndSalesPriceArray[resourceType].buyPrice;
+
+27. 0x004588A0 / PK315
+Liefert (buyPrice[resourceType]/5)*amount mit ganzzahliger Division vor der Multiplikation. playerID unbenutzt, keine Mengengrenze, Vorzeichen-/Ueberlauf-/Freigabe- oder Indexpruefung.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Tabellenpreis8 und amount3 =>(8/5)*3=3, nicht (8*3)/5=4.
+OFFEN: Gueltige Preis-/Mengenbereiche und ob Preise immer durch5 teilbar sind.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004588a0.json
+SHA256: 8b57e952a75ac5c236d0ff90ca22daefe10c3c011a5a974ab1bca1655b072a75
+Pseudocode-Auszug:
+5: return (DAT_GameState.mapAndTime.buyAndSalesPriceArray[resourceType].buyPrice / 5) * amount;
+
+28. 0x004588D0 / PK315
+Liest buyPrice[param_1] und liefert Ganzzahldivision durch5. Keine Mengen-, Spieler-, Freigabe- oder Indexpruefung.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Preis4 ergibt0, Preis5 ergibt1.
+OFFEN: Gueltiger Warentyp und negative Tabellenpreise.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004588d0.json
+SHA256: e7cf44908f76ff1a0f3e29e1e1213d6f4a27fa0c87455f8939e51034ca7c116a
+Pseudocode-Auszug:
+4: return DAT_GameState.mapAndTime.buyAndSalesPriceArray[param_1].buyPrice / 5;
+
+29. 0x004588F0 / PK315
+Liest salesPrice[param_1] und liefert Ganzzahldivision durch5. Kein Zugriff auf buyPrice, keine Bestands-, Freigabe- oder Indexpruefung.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): salesPrice4 ergibt0,5 ergibt1.
+OFFEN: Gueltige Warentypen und Preiswerte.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004588f0.json
+SHA256: 5f1fdea2b017259590ac7fb138f707cdc9e357582f2d5ba6305f3f15fee6cd93
+Pseudocode-Auszug:
+5: return DAT_GameState.mapAndTime.buyAndSalesPriceArray[param_1].salesPrice / 5;
+
+30. 0x00458910 / PK315
+Liefert (salesPrice[resourceType]/5)*amount, Ganzzahldivision vor Multiplikation. playerID wird ignoriert, keine Mengen-/Bestands-/Freigabe-/Indexpruefung und kein Ueberlaufschutz.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): salesPrice8 und amount3 ergeben3, nicht4.
+OFFEN: Erlaubte negative Mengen und garantierte Preisbereiche.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458910.json
+SHA256: f051639261a272d7bae7eee53c6161a4ad308c5adaebfb860c27922fc237a05a
+Pseudocode-Auszug:
+5: return (DAT_GameState.mapAndTime.buyAndSalesPriceArray[resourceType].salesPrice / 5) * amount;
+
+31. 0x00458940 / PK315
+Liest currentResources[param_2] des Spielersparam_1. Bestand<=4 wird unveraendert geliefert, auch negativ;5..49=>5,50..99=>10,100..199=>20,ab200=>50. Es wird weder verkauft noch gebucht; keine Indexgrenzen.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Bestand199=>20,200=>50; Bestand-1=>-1.
+OFFEN: Aufrufer muss ungueltige Spieler/Waren und negative Bestaende behandeln.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458940.json
+SHA256: bcc430efef688c46243c592a9c52df58ff45b8fdabac85715f9a178ffd5be582
+Pseudocode-Auszug:
+5: if (4 < iVar1) {
+6: if (iVar1 < 0x32) {
+7: return 5;
+9: if (iVar1 < 100) {
+10: return 10;
+14: return iVar1;
+
+32. 0x00458990 / PK315
+Setzt totalGameTicksUnk/treeSpreadCounter0, treeSpreadInterval5, gameOverFALSE, singlePlayerHasKeepAndGranaryFALSE, field2268_0xdec0, gameEventRelatedCountdown0, unk_signpostDistance30 und field3171_0x27a8 0. Keine weiteren Spielerdaten werden hier initialisiert; void.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Kein Vollreset: nicht genannte MapAndTime-Felder werden nicht geschrieben.
+OFFEN: Bedeutung der drei rohen/Unk-Felder bleibt offen.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458990.json
+SHA256: eacb426e786f85a3f74acec0a0eedd344f4505405ee643da375ba1c0230b8edc
+Pseudocode-Auszug:
+12: return;
+
+33. 0x004589E0 / PK316
+GM_SIEGE_THAT ueberspringt alles. Sonst fuer Spieler1-8 mit zwei positiven Hauptbauverweisen zuerst updateLordLadyJesterAndGhostUnits; dieser Aufruf passiert auch im Editor. Nur ausserhalb Editor und bei zwei positiven Spielerrohwerten wird die Bauernbedarfswarteschlange neu gebaut; wenn deren Anzahl>0 folgen Sortierung und Verarbeitung. Keine Rueckgabe, eigene Index-/UID-Pruefung oder unmittelbare Spawn-Garantie.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Editor sperrt die Bauernwarteschlange, aber nicht die vorherige Hofeinheiten-Hilfe.
+OFFEN: Bedeutung der zwei positiven Spielerrohwerte und Helferinterne Zuteilungs-/Spawnregeln.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004589e0.json
+SHA256: 78400abc335f5701bb06abfc72035e23d1c7ab642de9e5dc278eb04dbb4d8453
+Pseudocode-Auszug:
+6: if (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT) {
+10: if ((((0 < pBVar1[-8].id) && (0 < pBVar1->id)) &&
+24: } while (playerID < 9);
+26: return;
+
+34. 0x00458A70 / PK316
+Fuer Spieler1-8 nur bei keep.id>0 und campground.id>0 setzt foodTypesInStock neu auf die Anzahl positiver Bestaende in den vier unmittelbar vorherigen Nahrungsslots (Brot,Kaese,Fleisch,Aepfel). Sonst bleibt der alte Zaehler stehen. Keine Bannsperrenpruefung oder Gesamtmengensumme.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Fehlender Hauptbauverweis laesst alten foodTypesInStock stehen, statt ihn0 zu setzen.
+OFFEN: Die zwei Verweise stammen aus dekompilierten Offsets; deren Gueltigkeit wird hier nicht geprueft.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458a70.json
+SHA256: f5201f2f18c338c160c4b0d7146713121782b3b006bab3b341d94d2cc17221c4
+Pseudocode-Auszug:
+8: if ((0 < ((BuildingEntryInfo *)(piVar1 + -0x803))->id) &&
+11: if (0 < piVar1[-5]) {
+14: if (0 < piVar1[-4]) {
+17: if (0 < piVar1[-3]) {
+20: if (0 < piVar1[-2]) {
+26: } while (iVar2 != 0);
+27: return;
+
+35. 0x00458AD0 / PK316
+Ueberspringt Editor,GM_SIEGE_THAT und GM_BUILDERUnk zusammen mit MT_SIEGE. Sonst Nahrungstypen aktualisieren und Spieler1-8 mit zwei positiven Hauptbauverweisen verarbeiten: foodStorageLevel zuerst-1; ohne Nahrungstypen foodTypesCurrentlyEaten0 und Spielerende. foodClockSpeed=3*currentPopulation, fuer KI ausserhalb Einzelspiel stattdessen Ganzzahl(180*Population/100). Ration0=>Speed0/Eaten0,1=>halb,3=>3/2,4=>doppelt; andere Stufen unveraendert. Bei Speed!=0 StorageLevel=(Ganzzahl(15000/Speed)*totalFood)/800. Monatswechsel kopiert zwei short-Vorratswerte und kann fuer aktuellen Spieler mit passender Freigabe/Soundzustand Warnungen ausloesen; Leerwarnintervall umlaeuft0..2. foodClock+=Speed; erst bei>15000 Reset0, Eaten=foodTypesInStock und umlaufend Auswahl einer vorhandenen Nahrungssorte, dann processResourceLoss fuer1. Genau ein Verlust je Aufruf, Restueberschuss geht verloren, keine Bannpruefung. EDX-Basis als this durch Assembler00458AD8 und unveraendertes EDX in00458A70 bestaetigt.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): foodClock15000 verbraucht noch nichts;15001 loest genau1Verlust und Reset0 aus, nicht mehrere Verbraeuche.
+OFFEN: Warn-/Vorratsanzeigeeinheiten und Modusnamen bleiben Herkunftsnamen; negative/ueberlaufende Population/Zaehler sind nicht abgesichert.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458ad0.json
+SHA256: 8b453a127eaa6ffc16a919e94c4437459be9e1c30b960d6bba4e0948baf56b56
+Pseudocode-Auszug:
+12: if (((DAT_GameCore.gameMode_2 != GM_EDITOR) && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) &&
+19: if ((0 < piVar4[-0x807]) && (0 < piVar4[-0x7b7])) {
+21: if (piVar4[-4] < 1) {
+27: if ((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) &&
+33: case 0:
+37: case 1:
+40: case 3:
+43: case 4:
+46: if (*piVar4 != 0) {
+50: if (DAT_GameState.mapAndTime.monthChanged != 0) {
+55: if ((playerID == DAT_GameSynchronyState.currentPlayerSlotID) &&
+57: if (piVar4[-5] == 0) {
+
+36. 0x00458D50 / PK316
+Setzt aleRate fuer Spieler1-8 mit keep.id>0 und campground.id>0 jeweils fest36. Ohne diese beiden Verweise bleibt aleRate unveraendert. Kein Modus-, Bierbestands-, UID- oder Aktivitaetsabgleich.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Fehlendes campground.id=>alter aleRate bleibt, nicht0.
+OFFEN: Einheit und Nutzung des Werts36 im Verbrauchs-/Beliebtheitsablauf.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458d50.json
+SHA256: 354a810dc3506201935935a4aefc78dadd7ea208abcd8ca20e1e5d89a6ff96c2
+Pseudocode-Auszug:
+3: if ((0 < DAT_GameState.playerDataArray[1].keep.id) &&
+7: if ((0 < DAT_GameState.playerDataArray[2].keep.id) &&
+11: if ((0 < DAT_GameState.playerDataArray[3].keep.id) &&
+15: if ((0 < DAT_GameState.playerDataArray[4].keep.id) &&
+19: if ((0 < DAT_GameState.playerDataArray[5].keep.id) &&
+23: if ((0 < DAT_GameState.playerDataArray[6].keep.id) &&
+27: if ((0 < DAT_GameState.playerDataArray[7].keep.id) &&
+31: if ((0 < DAT_GameState.playerDataArray[8].keep.id) &&
+35: return;
+
+37. 0x00458E20 / PK316
+Bei workingInnsCount>0 und currentPopulation>0 berechnet es ganzzahlig workingInnsCount*3000/Population. Negatives Ergebnis=>0, sonst Deckel100. Fehlende positive Eingaben=>0. Keine eigene Biermenge-/Arbeiterpruefung oder Indexgrenze; Zaehler werden nur gelesen.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Eine arbeitende Schenke/Population30 =>100; Population0=>0 ohne Division.
+OFFEN: workingInnsCount ist gespeicherter Zaehler und wird hier nicht gegen reale Bauten validiert; Multiplikationsueberlauf ungeprueft.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458e20.json
+SHA256: f2776b91ccc2c416ef74738e212805c558bd1fd841d5ef9135516c238983829b
+Pseudocode-Auszug:
+7: if (((0 < iVar1) && (iVar2 = DAT_GameState.playerDataArray[playerID].currentPopulation, 0 < iVar2)
+9: if (100 < iVar2) {
+12: return iVar2;
+14: return 0;
+
+38. 0x00458E60 / PK316
+Fuer Spieler1-8: ist populationCap>=currentPopulation, crowding0. Bei Population>Cap und Population<1 ebenfalls0; sonst Cap<1=>150, sonst crowding=Population*100/Cap ohne Deckel150. Andere Felder und Modus bleiben unberuecksichtigt.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Cap1/Population2=>200, nicht150; Cap0/Population1=>150.
+OFFEN: Gueltige Population/Cap-Werte und die nachgelagerte Beliebtheitswirkung.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458e60.json
+SHA256: 20cd8d70767fa3dad8f70990b15ca77c7cec6c13ba6885adca1172c19f4c895d
+Pseudocode-Auszug:
+12: if (iVar1 < iVar2) {
+13: if (iVar2 < 1) {
+16: else if (iVar1 < 1) {
+28: } while (iVar4 != 0);
+29: return;
+
+39. 0x00458EC0 / PK316
+Schreibt fearFactorProductivityUnk aus fearFactorLevel (sechs int spaeter):<=-5=>150,-4=>140,-3=>130,-2=>120,-1=>110,0=>100,1=>90,2=>80,3=>70,4=>60,>=5=>50. Schleife fuer Spieler1-8: Assemblerstart0x1161908,Schritt0x39F4,Endgrenze0x117E8A8; kein Lebens-/Bautyp-/Spielmodusfilter. Ein Produktivitaetseffekt ausserhalb dieses Felds ist hier nicht umgesetzt.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Eingabe5 und6 ergeben beide50; -6 und-5 beide150.
+OFFEN: Wie nachfolgende Arbeitsfunktionen den gespeicherten Produktivitaetswert verwenden.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458ec0.json
+SHA256: 4073b2281b44ef8003259aa0cbc088494653c886722275116b4a546569bfcf88
+Pseudocode-Auszug:
+9: if ((int)uVar1 < -4) {
+12: else if ((int)uVar1 < -3) {
+15: else if ((int)uVar1 < -2) {
+18: else if ((int)uVar1 < -1) {
+21: else if (uVar1 < 0x80000000) {
+22: if (uVar1 == 0) {
+25: else if ((int)uVar1 < 2) {
+28: else if ((int)uVar1 < 3) {
+31: else if ((int)uVar1 < 4) {
+42: } while ((int)piVar2 < 0x117e8a8);
+43: return;
+
+40. 0x00458F70 / PK316
+Nullt fuer Spieler1-8 religionVar1,ownsChurchUnk,ownsCathedralUnk und zaehlt danach alle logisch vorhandenen nicht-BLS_REMOVE Bauten ID1..<maxBuildingsCount. CHAPEL erhoeht religionVar1,CHURCH ownsChurchUnk,CATHEDRAL ownsCathedralUnk des Baubesitzers. Keine Arbeiter-, Zugang-, Lebens- oder Besitzerbereichspruefung. Das sind Anzahlen, keine booleschen Eigentumsflags oder direkt gebuchten Beliebtheitsboni.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Zwei Kirchen =>ownsChurchUnk2; Besitzer0 wird nicht vorab genullt, aber koennte durch Bauten erhoeht werden.
+OFFEN: Nachgelagerte Umrechnung in Religions-/Beliebtheitsbonus.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00458f70.json
+SHA256: 835be29723ead44088e79ef37769f4d2bd009999427875aa09901d76b978a67e
+Pseudocode-Auszug:
+33: if (1 < DAT_BuildingsState.maxBuildingsCount) {
+37: if ((pBVar4[-1] != 0) && (pBVar4[-1] != BLS_REMOVE)) {
+40: if (BVar1 == BT_CHAPEL) {
+43: else if (BVar1 == BT_CHURCH) {
+47: if (BVar1 != BT_CATHEDRAL) goto LAB_00459069;
+55: } while (iVar5 != 0);
+57: return;
+
+41. 0x00459080 / PK317
+Basis=((taxStep-1)*currentPeasants)/2 ganzzahlig. Ausserhalb GM_SOLITARY: KI (FullID-1,AI!=0) bekommt bei Vorteilsstufe4 Ganzzahl(Basis*150/100),bei5 *250/100; menschlicher FullID!= -1 bei Stufe1 *150/100,bei2 *120/100. Sonst Basis unveraendert. Keine Buchung, Grenzen oder Pruefung auf aktive/bezahlende Bevoelkerung.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Einzelspiel ignoriert Vorteilsstufen; FullID-1 ohne KI erhaelt keinen KI-Multiplikator.
+OFFEN: Gueltige taxStep-/Population-/Vorteilswerte und Ueberlauf.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00459080.json
+SHA256: c6536cb4c9430b3a2d2e54f92c04120071dc9ab71addfea3e75ea27a6ebab52d
+Pseudocode-Auszug:
+7: if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+8: if (DAT_GameSynchronyState.currentPlayerFullIDArray[playerIndex] == -1) {
+9: if (DAT_GameSynchronyState.currentAIArray[playerIndex] != 0) {
+10: if (DAT_GameSynchronyState.skirmishCurrentAdvantageBalance == 4) goto LAB_004590f4;
+11: if (DAT_GameSynchronyState.skirmishCurrentAdvantageBalance == 5) {
+12: return (iVar1 * 0xfa) / 100;
+17: if (DAT_GameSynchronyState.skirmishCurrentAdvantageBalance == 1) {
+19: return (iVar1 * 0x96) / 100;
+21: if (DAT_GameSynchronyState.skirmishCurrentAdvantageBalance == 2) {
+26: return iVar1;
+
+42. 0x00459140 / PK317
+Berechnet ((5-taxStep)*currentPopulation)/2 ganzzahlig; wenn aktuelles Gold[15]<1 wird Ergebnis0. Sonst bleibt der berechnete Wert auch negativ oder groesser als das Gold. Kein Abzug, keine Begrenzung auf zahlbares Gold und keine Indexpruefung.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Gold1 kann Kosten100 liefern; taxStep6/Population2 liefert-1 bei Gold>=1.
+OFFEN: Aufrufer muss Gutschrift/Ausgabe und moegliche Unterdeckung entscheiden.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00459140.json
+SHA256: cef5f8ff2183773b4d57c9c45bd8d73660817ecaf13a4d7ee1b1ef4b3faee230
+Pseudocode-Auszug:
+7: if (DAT_GameState.playerDataArray[playerIndex].currentResources[0xf] < 1) {
+10: return iVar1;
+
+43. 0x00459170 / PK317
+Nur bei taxStep>3 berechnet es die Steuerhilfe00459080, multipliziert deren Ergebnis zuerst mit4 und dividiert dann ganzzahlig durch10; sonst0. Keine Buchung oder eigene Grenzen.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): taxStep3=>0; der Multiplikator4/10 wird erst nach der ganzzahligen Steuerrechnung angewandt.
+OFFEN: Anzeigeeinheit und Rundungs-/Ueberlaufgrenzen.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00459170.json
+SHA256: 98012cbeb167df58e8757ba8d7dda188cf633df1930969d9b281ab206328ec9d
+Pseudocode-Auszug:
+7: if (3 < taxStep) {
+11: return iVar1 / 10;
+
+44. 0x004591B0 / PK317
+Nur bei taxStep<3 ruft es00459140 mit Spieler/Stufe/Population auf, multipliziert Ergebnis mit4 und dividiert ganzzahlig durch10; bei Stufe>=3 Ergebnis0. Kein eigener Geldabzug.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): taxStep3=>0; Gold0 fuehrt durch die Ausgabenhilfe ebenfalls0.
+OFFEN: Anzeigeeinheit, zulassige negative Stufen und Ueberlauf.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004591b0.json
+SHA256: bfac48f5479ae7516901a7e7d4c68d019c1e8939d5b3bd2526445a51faa7589f
+Pseudocode-Auszug:
+7: if (taxStep < 3) {
+11: return iVar1 / 10;
+
+45. 0x004591F0 / PK317
+Sucht zuerst die kleinste normale, nicht sterbende eigene UT_PEASANT-ID; ohne Arbeits-/Zustandsausschluss. Macht sie sichtbar/stoppt Wegfortschritt, setzt US_DISAPPEAR,buildingID0,updateTickTracker0 und kehrt zurueck. Nur ohne Bauern folgt zweite Suche nach normalen nichtsterbenden eigenen Einheiten mit drei Rohfiltern0 (dying+4,dying-0x210,Byte dying+0x8C). Prioritaeten Bautypnummer:3:7,4:15,6:3,7:8,8:9,10:12,11:4,12:14,13:2,14:1,15:5,16:6,17:20,18:16,19:17,20:18,21:19,31:11,32:10,33:22,34:23,36:21. Hoechste Zahl gewinnt; bei Gleichstand fruehere ID. Gefundene Einheit wird wie oben markiert; keine sofortige Loeschung im Koerper.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Vorhandener Bauer verhindert jede Auswahl eines Arbeiters; Arbeitsbauer wird im ersten Pfad nicht ausgeschlossen.
+OFFEN: Bedeutung der drei Rohfilter und aller nummerierten Typen muss gesondert belegt werden.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004591f0.json
+SHA256: 3a610e960c5deed7693256deb7a90ff52c53086c7a5ddc7807e6b542b519c2c6
+Pseudocode-Auszug:
+12: if (1 < (int)DAT_UnitsState.maxUnitCount) {
+15: if ((((psVar1[-0x10a] == ULS_NORMAL) && (*psVar1 == 0)) && (psVar1[-0x105] == playerID)) &&
+22: return;
+26: } while (iVar5 < (int)DAT_UnitsState.maxUnitCount);
+30: if (1 < (int)DAT_UnitsState.maxUnitCount) {
+33: if ((((psVar1[-0x10a] == ULS_NORMAL) && (*psVar1 == 0)) &&
+37: case 3:
+40: case 4:
+45: case 6:
+48: case 7:
+51: case 8:
+54: case 10:
+
+46. 0x00459490 / PK317
+Nur wenn beide Eingangskoordinaten als uint<400 und das Kartenfeld vorhanden sind: Besitzer lesen und Spielerrohfeld field646_0x2178=Baunummer. Zahlversuche=min((RNG-Byte&3)+1,Limit); Limit1 bei Zaehler<20,2 bei20..49,3 bei50..99,4 ab100. Versucht UT_DRUNK am Eingang; bei Erfolg resourceToDeposit0,substate=aktuellesRNG-Byte&1,US_IDLEUnk,destinationNeeded. Keine Pruefung auf Schenkenart/UID und kein eigener RNG-Fortschrittaufruf; Spawn kann scheitern.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Zaehler19 begrenzt auf1,20 auf2; negative Eingangskoordinate scheitert am uint-Vergleich.
+OFFEN: Bedeutung des Spielerzaehlers, Unterzustaende und moegliche RNG-Aenderungen in spawnUnit.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00459490.json
+SHA256: fc34046fd901dbb52497b376fb1eaac5fb7d5652e67b01bc89e533a3cbf2e5f0
+Pseudocode-Auszug:
+13: if (((uVar6 < 400) && (uVar2 < 400)) && (*(char *)(uVar2 * 400 + 0x21aec98 + uVar6) != '\0')) {
+18: if (iVar4 < 0x14) {
+21: else if (iVar4 < 0x32) {
+28: if (uVar2 < uVar3) {
+37: if (iVar4 != 0) {
+46: return;
+
+47. 0x004595D0 / PK317
+Nur wenn Freigabe singlePlayerHasKeepAndGranary nochFALSE und GM_SOLITARY gilt und weder Editor noch Belagerung noch (BUILDERUnk/CRUSADER_TUTORIAL bei aktuellem Slot2) vorliegt, prueft es den aktuellen Spieler: keep.id0=>0, sonst granary.id0=>-1, sonst FlagTRUE und1. Alle uebersprungenen Pfade liefern ebenfalls1, ohne Bauten nachzupruefen. Keine UID-/Typ-/Zustandsvalidierung.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Bereits gesetzte Freigabe liefert1 auch nach Verlust von Bergfried/Kornspeicher.
+OFFEN: Flag ist zwischengespeicherte Freigabe, kein staendiger Besitznachweis.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004595d0.json
+SHA256: aa6c7ef29e93ba074552cacd1b5d0f9d3075a0755b8d4d183879dc4d4d065810
+Pseudocode-Auszug:
+5: if ((((DAT_GameCore.gameMode_2 != GM_EDITOR) && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) &&
+11: if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].keep.id == 0) {
+12: return 0;
+14: if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].granary.id == 0) {
+15: return -1;
+19: return 1;
+
+48. 0x00459640 / PK317
+Setzt Team[0..8] zuerst auf den jeweiligen Index. Ausserhalb GM_SKIRMISH_AND_MULTIPLAYER und GM_EDITOR werden danach Spieler2,3,4,5 gemeinsam Team9. Keine Pruefung, welche Slots aktiv oder menschlich sind.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Editor:Team2=2; anderer passender Modus:Team2=9.
+OFFEN: Bedeutung der Modus-Enums ausserhalb dieser Zuweisung.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00459640.json
+SHA256: df65c3caa47e79c2b672afb03ab336cd4f47a8748dbfe0f0d90acd1cc8b50d54
+Pseudocode-Auszug:
+12: if ((DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER) &&
+19: return;
+
+49. 0x004596D0 / PK318
+Ist eine Spieler-ID0, FALSE. Sonst Rueckgabe Team[first]!=Team[second]. Keine Aktivitaets-/KI-/Bereichspruefung und keine Kontrolle auf tote Spieler.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Spieler0 gegen ein anderes Team liefertFALSE.
+OFFEN: Gueltiger positiver Indexbereich bleibt Aufrufervertrag.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004596d0.json
+SHA256: b303a11dc6e655f935d731d1a8fc7ee85eca4f8ab7fc86991929b7e6794ad315
+Pseudocode-Auszug:
+5: if ((firstPlayerId != 0) && (secondPlayerId != 0)) {
+6: return (uint)(DAT_GameState.mapAndTime.playerTeams[firstPlayerId] !=
+9: return FALSE;
+
+50. 0x00459700 / PK318
+Sucht aufsteigend Slots0..8 nach einem anderen Slot mit currentAIArray!=0 und gleichem Team wie playerID1. Liefert ersten Index, ohne FullID-, Todes- oder Lordpruefung. Kein Treffer0; ein passender Slot0 ist von diesem Fehlschlag nicht unterscheidbar.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Toter KI-Slot mit gleichem Team wird hier nicht ausgeschlossen.
+OFFEN: Gueltiger playerID1 und ob KI-Slot0 im Spiel erlaubt ist.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00459700.json
+SHA256: 2f84df08c8b66761ce5bc280c73ec73d9ec153ab6092bc7317bcdcb6d4027ea5
+Pseudocode-Auszug:
+8: while (((iVar1 == playerID1 || (DAT_GameSynchronyState.currentAIArray[iVar1] == 0)) ||
+12: if (8 < iVar1) {
+13: return 0;
+16: return iVar1;
+
+51. 0x00459740 / PK318
+Startmaske0xFF. Bei Einheitenbesitzer0 unveraendert; sonst wird fuer Spieler1..8 mit gleichem Team das zugehoerige Bit Spieler-1 geloescht. Es ist damit eine Nicht-Team-Maske, keine Liste nur lebender Feinde. Keine Aktivitaets-, Lebens-, UID- oder Indexpruefung.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Eigener Spielerbit wird bei nichtnull Besitzer ebenfalls geloescht; Besitzer0 liefertalle8Bits1.
+OFFEN: Nachgelagerte Interpretation dieser Maske als erlaubtes Ziel/Feindstatus.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00459740.json
+SHA256: 1f4ca1a3785962280f5cc9c3e05945202abeecf55f2a48298e59cd8192599a5b
+Pseudocode-Auszug:
+13: if (sVar2 != 0) {
+19: if (piVar7[-1] == iVar3) {
+22: if (*piVar7 == iVar3) {
+25: if (piVar7[1] == iVar3) {
+28: if (piVar7[2] == iVar3) {
+34: } while (iVar1 < 9);
+36: return uVar4;
+
+52. 0x004597D0 / PK318
+Untersucht Slots1..8, die KI oder FullID!=-1 besitzen und lordKilledByPlayerID0 haben. Merkt das erste Team (Startsentinel-1), zaehlt den ersten passenden Spieler sowie jeden spaeteren Spieler mit davon abweichendem Team. TRUE bei Zaehler<2, also auch ohne passende Spieler. Kein Mehrheitsanteil und keine getAliveLord-Abfrage; ein zweites Team kann mehrfach gezaehlt werden.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Kein aktiver Slot =>TRUE; normale Teams mit einem abweichenden Spieler =>FALSE.
+OFFEN: Teamwert-1 kollidiert mit Initialsentinel; andere Todesmarker werden nicht gelesen.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004597d0.json
+SHA256: 825461b51afc12ad4ab004fb690b78c46ae28702ae775fe3b8929dd8d67a8cd4
+Pseudocode-Auszug:
+15: if (((piVar3[0x1b] != 0) || (*piVar3 != -1)) && (piVar5[-0xe7d] == 0)) {
+16: if (iVar1 == -1) {
+19: else if (piVar2[-1] == iVar1) goto LAB_00459814;
+23: if (((piVar3[0x1c] != 0) || (piVar3[1] != -1)) && (*piVar5 == 0)) {
+24: if (iVar1 == -1) {
+27: else if (*piVar2 == iVar1) goto LAB_00459833;
+31: if (((piVar3[0x1d] != 0) || (piVar3[2] != -1)) && (piVar5[0xe7d] == 0)) {
+32: if (iVar1 == -1) {
+35: else if (piVar2[1] == iVar1) goto LAB_00459858;
+39: if (((piVar3[0x1e] != 0) || (piVar3[3] != -1)) && (piVar5[0x1cfa] == 0)) {
+40: if (iVar1 == -1) {
+43: else if (piVar2[2] == iVar1) goto LAB_0045987d;
+
+53. 0x004598B0 / PK318
+Nullt availableHorses als short fuer Spieler1-8 und summiert dann aus logisch vorhandenen nicht-entfernten STABLES je Besitzer die Differenz zweier als signed char gelesener Rohbytes (relativ logicalState+0x1C7 minus+0x1D7). Keine Bindung an reale Pferdeeinheiten, UID-Pruefung oder Begrenzung auf0; neutraler Besitzer0 wird nicht vorab genullt.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Byte-Differenz negativ =>availableHorses kann negativ werden.
+OFFEN: Bedeutung der beiden Stallbytes und erlaubter Besitzerbereich.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\004598b0.json
+SHA256: 3c9037e579d7ca8d30a3b7c5c4c14f163d7f3f143add1859e8b9ccd2d306b068
+Pseudocode-Auszug:
+15: } while (iVar3 != 0);
+16: if (1 < DAT_BuildingsState.maxBuildingsCount) {
+19: if (((*pBVar2 != 0) && (*pBVar2 != BLS_REMOVE)) && (pBVar2[1] == BT_STABLES)) {
+26: } while (iVar4 < DAT_BuildingsState.maxBuildingsCount);
+28: return;
+
+54. 0x00459930 / PK318
+Sucht ersten eigenen logisch vorhandenen nicht-entfernten STABLES-Bau, dessen signed Rohbyte+0x1D7 kleiner als+0x1C7 relativ logicalState ist. Vermindert sofort Spieler.availableHorses, validiert die vier gebundenen Einheiten und sucht leeren insideUnitID-Platz. Bei Fund schreibt es unitID und deren UID in die Bindungsfelder, erhoeht randomOutpostField-Byte und liefert Bau-ID. Auch ohne freien Viererplatz liefert es dieselbe Bau-ID nach dem bereits erfolgten Abzug; nur ohne passenden Stall0. Kein eigener Einheitenart-/Besitzer-/UID-Vertrag.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Geeignete Byte-Differenz aber vier belegte Plaetze =>positive Bau-ID ohne neue Bindung, Pferdezaehler trotzdem-1.
+OFFEN: Arrayueberlagerungen der Bindungsfelder und Herkunft/Gueltigkeit der Stallbytes.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00459930.json
+SHA256: 4ca78792fcfef29a28ff364d761e3e76e8f1d537b44525fa5652c11a279d96fe
+Pseudocode-Auszug:
+11: if (1 < DAT_BuildingsState.maxBuildingsCount) {
+14: if ((((*pBVar2 != 0) && (*pBVar2 != BLS_REMOVE)) && (pBVar2[1] == BT_STABLES)) &&
+24: if (*psVar4 == 0) {
+31: return buildingID;
+35: } while (iVar3 < 4);
+36: return buildingID;
+40: } while (buildingID < DAT_BuildingsState.maxBuildingsCount);
+42: return 0;
+
+55. 0x00459A20 / PK318
+Versucht bis20zufaellige Positionen um den Bau: Versatz=(signed RNG%30)-15 je Achse (Y nutzt RNG>>8); jeder Versuch ruft nextRandomNumber2 auf. Nur uint-Koordinaten<400, vorhandenes Kartenfeld und Logikmaske0x4A5014B1 gleich0 erlauben Fund; sonst nach20Ende. Bei Fund Anzahl nach Formel10-(signed aktuellesRNG%5) und so viele ET_COW_POISON_CLOUD-Aufrufe an derselben Position, ohne weitere Positionssuche/Erfolgskontrolle; danach Fliegenton und Minikartenmarke. Hoehenargument stammt aus EntityLayerLT25 mit unsicher rekonstruierter Indizierung, nicht sicher aus HeightLayer. Keine Schadens-/Seuchenwirkung in diesem Koerper.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Nichtnegativer RNG-Rest0=>10Objektversuche,Rest4=>6; keine20Wolken an20Positionen.
+OFFEN: Signed-RNG-Vertrag, Hoehen-/Tileindex und Schadenswirkung der erzeugten Objekte.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00459a20.json
+SHA256: fb548467308cf40de5f985bf0021185f87f2be06b2666e14a881afc5a1f39b81
+Pseudocode-Auszug:
+13: while( true ) {
+21: if ((((xPosition < 400) && (yPosition < 400)) &&
+26: if (local_4 < 1) {
+27: return;
+31: if (iVar1 < 8) {
+39: } while (iVar1 != 0);
+43: return;
+
+56. 0x00459B50 / PK318
+Nur fuer aktuellen Spielerslot. Liest timeGetTime t1; ist lastTimeSFXNoPlaceInStockpile0, spielt space_warning5.wav und speichertt1. Sonst zweiter timeGetTime t2; Ton nur wenn unsigned(t1-t2)>=10000, dann gespeichertert1. Der alte gespeicherte Zeitpunkt geht nicht in die Differenz ein. Exportierter Assembler00459B83..00459B8F bestaetigt zweiten Aufruf und SUB gegen dessen EAX, also keine belegte10Sekunden-Sperre.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): t1==t2 unterdrueckt Wiederholung; t2=t1+1 erzeugt DWORD-Unterlauf und erfuellt den Vergleich.
+OFFEN: Reale Zeitgeberauflosung/Hauefigkeit der Unterlaufpfade wurden nicht gemessen.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00459b50.json
+SHA256: a8998d829e57035ed6440e3ff452fd2fd596d72cfe0a164fc1856a61ce4d2ccf
+Pseudocode-Auszug:
+7: if (playerID == DAT_GameSynchronyState.currentPlayerSlotID) {
+9: if ((DAT_GameState.playerDataArray[playerID].lastTimeSFXNoPlaceInStockpile == 0) ||
+15: return;
+
+57. 0x00459BB0 / PK319
+Setzt fuer hotkeyTribes[hotkeyID] genau2500ID/UID-Paare auf-1. Keine Pruefung hotkeyID0..9 und keine weiteren Auswahlfelder; void.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Ein einzelner Hotkey wird geloescht, andere Gruppen werden hier nicht explizit durchlaufen.
+OFFEN: Gueltiger Gruppenindex und Typ-/Laengenvertrag.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00459bb0.json
+SHA256: d768d27f8a25bc26bd2bd1c403a7869d8395d447eff2c3ca15b388369f926541
+Pseudocode-Auszug:
+13: } while (iVar2 != 0);
+14: return;
+
+58. 0x00459BE0 / PK319
+Setzt genau25000ID/UID-Paare (zehn Gruppen zu2500Paaren,200000Bytes) ab this auf-1. Der Assembler00459BF5..00459C05 bestaetigt zwei dword-Schreibungen mit8Byte-Schritt und die beiden Schleifengrenzen; der Typenexport legt hotkeyTribes auf Offset0. Kein allgemeiner Vollreset des Karten-/Spielerbereichs.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Andere Spieler-/Kartenwerte werden nicht sichtbar mit0xFF beschrieben.
+OFFEN: Gueltiger this-Zeiger auf einen Hotkeybereich dieser Groesse.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00459be0.json
+SHA256: c9edb03b4fb763cd8fefe98ec6eb2b562d5ca83f6423a62d29621ab4591a95e8
+Pseudocode-Auszug:
+15: } while (iVar2 != 0);
+17: } while (iVar3 != 0);
+18: return;
+
+59. 0x00459C10 / PK319
+Durchlaeuft die Einheiten eines Trupps, uebernimmt nur ULS_NORMAL,dying0,nicht UT_LORD und schreibt ab Index0 ID/UID in Hotkeygruppe number. Fuer jede uebernommene ID werden passende IDs aus allen anderen10Gruppen entfernt und nachfolgende Paare zusammengeschoben; Vergleich nutzt ID, nicht UID. Zielgruppe wird nicht vorher geleert und kein Endsentinel nach letzter neuen Einheit explizit geschrieben. Kein number-/tribeID-/2500-Zielgrenzschutz; leere/ausgefilterte Auswahl laesst alte Zielgruppe stehen.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Neue Auswahl kuerzer als alte kann alte Restpaare im Ziel lassen; bei leerem Trupp keine Loeschung.
+OFFEN: Dekompilierte Verschiebeindizes und Aufrufervertrag zur vorherigen Gruppenleerung.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00459c10.json
+SHA256: b9098000a6ddd32d86e260758191fe9eb5dcf80a26729ac30187393a5d54b2e5
+Pseudocode-Auszug:
+19: if (0 < *psVar1) {
+25: if (((DAT_UnitsState.units[iVar3].logicalState == ULS_NORMAL) &&
+35: if (_keyCounter != number) {
+40: if (iVar2 == -1) break;
+41: if (iVar2 == iVar3) {
+42: if (0x9c2 < iVar7) goto LAB_00459d22;
+48: } while (iVar7 < 0x9c4);
+54: } while (unitSelectionIndex < *psVar1);
+56: return;
+57: while( true ) {
+60: if (0x9c2 < iVar7) break;
+65: if (iVar2 == -1) break;
+
+60. 0x00459E40 / PK319
+Fuehrt nur bei tacticalPowersBarLevel>=(powerType+1)*636 den switch aus. Typ0 ruft Schadenshilfe mit Radius6/6000/1,Typ1 Heilhilfe6/8000,Typ7 Schadenshilfe9/18000/0. Spawns:2=>20Speer,3=>14Ingenieur,4=>20Keule,6=>10Ritter,13=>15Bogen,16=>12Feuerwerfer; erfolgreiche neue Trupp-ID bekommt aggressive Haltung. Typ5 addiert signed RNG%1500+1000 zu goldDonation und schaltet RNG weiter. Unterstuetzte Typen ziehen die636*(Typ+1) immer ab, auch nach Spawnfehlschlag; lokale Spielerpfade haben zusaetzliche Toene. Unbekannte Typen ziehen nichts ab. Keine Ziel-/Spielergrenzen oder endgueltige Helferwirkungsbeweise.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Spawn liefert0 =>Kosten werden trotzdem abgezogen; unbekannter Typ8 =>keine Kostenbuchung.
+OFFEN: Radien-/Schadenseinheiten, Zielvalidierung und signierter RNG-Bereich.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\00459e40.json
+SHA256: 5eb7fb65cde13b6df1e219c273ffe8cab20f3a66b3e508800b79ec4dc7d0c28f
+Pseudocode-Auszug:
+10: if (iVar1 * 0x27c <= DAT_GameState.playerDataArray[param_1].tacticalPowersBarLevel) {
+12: case 0:
+17: return;
+18: case 1:
+21: if (param_1 == DAT_GameSynchronyState.currentPlayerSlotID) {
+25: return;
+28: case 2:
+29: case 3:
+30: case 4:
+31: case 6:
+32: case 0xd:
+33: case 0x10:
+
+61. 0x0045A060 / PK319
+Rendert Debugtext fuer aktuellen Spieler:25aufeinanderfolgende Werte ab fester Ressourcenadresse an derselben dargestellten Zeile, ferner globale Organismen/CRC/Wegzaehler, Spielerpopulation/Nahrung/Beliebtheit/Crowding und Objekt-/Bau-/Einheitenlimits. Texte wie Total chimps,lightning count,power sind nur Bildschirmlabel, kein semantischer Beweis fuer countEntities/treeSpreadCounter/treeSpreadInterval. Breite/height werden nicht gelesen; keine sichtbaren Spielzustandsschreibungen, nur Darstellungsaufrufe. Zusaetzliche feste Bau-ID19 und weitere ungeklaerte Felder werden ausgegeben.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Der Text lightning count zeigt treeSpreadCounter; Label allein belegt keine Blitzmechanik.
+OFFEN: Darstellungshilfen koennen Anzeigezustand aendern; der gesamte Helfergraph wurde nicht auf Seiteneffekte bewiesen.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0045a060.json
+SHA256: 5be2e9e69db71a21b32f4812c0cb83d4f3eeb1b970c19e794e84db8be09f1b52
+Pseudocode-Auszug:
+30: } while (y != 0);
+217: } while ((int)piVar4 < 0x117c87c);
+255: return;
+
+62. 0x0045AE10 / PK319
+Ausserhalb GM_SOLITARY und wenn der Besitzerzaehler<500 sowie fireDuration0 ist, haengt es die Bau-ID als short an first500BuildingsPerPlayer[Besitzer] und erhoeht den Zaehler. Keine Dubletten-, Bautyp-, Lebens-, UID- oder Besitzergrenze; negativer Zaehler wird nicht abgefangen.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Zweimaliger Aufruf fuer denselben Bau kann doppelte Eintraege erzeugen; Zaehler500 verhindert weitere Eintraege.
+OFFEN: Ob Aufrufer die Tabelle/Zaehler pro Runde passend zuruecksetzen.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0045ae10.json
+SHA256: 78442145e3e35cdbb3d34780e5f9d670b4d7092d1bdc3b3891f07438d697370b
+Pseudocode-Auszug:
+7: if (((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) &&
+15: return;
+
+63. 0x0045AE70 / PK319
+Setzt die neun first500BuildingsCurrentIndexCounter[0..8] auf0. Die eigentlichen gespeicherten Bau-ID-Tabellen bleiben unveraendert; void.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Alte Tabelleneintraege sind danach noch vorhanden, aber Zaehler0.
+OFFEN: Ob Aufrufer/Leser stets nur den gueltigen Zaehlerbereich lesen.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0045ae70.json
+SHA256: de3af3abd3814a9b0403f26830c90e68fa4954de1af35f5aa345eb5d0eeeb535
+Pseudocode-Auszug:
+13: return;
+
+64. 0x0045AEB0 / PK319
+Bei Besitzerzaehler<1 Rueckgabe0 ohne eigenen RNG-Aufruf. Sonst alten SEC_RNG.currentNumber2 als signed int merken, RNG weiterschalten und gespeicherte Bau-ID an Index alterRNG%Zaehler liefern. Keine Validierung des Bautyps, Besitzers, Lebenszustands oder UID und keine Begrenzung des Zaehlerwerts auf500.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Zaehler0=>0 ohne RNG-Fortschritt; positiver Zaehler kann veraltete ID liefern.
+OFFEN: Signed-RNG-Vertrag und Gueltigkeit/Frische der first500-Tabelle.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0045aeb0.json
+SHA256: 0292010f3f2cf2f52c3f44333c78e32d9138dcd8b83392eb0f1e686bbec26ebf
+Pseudocode-Auszug:
+8: if (iVar1 < 1) {
+9: return 0;
+13: return (int)DAT_GameState.first500BuildingsPerPlayer[playerID][iVar2 % iVar1];
+
+65. 0x0045AF00 / PK320
+Ruft fuer Spieler1..8 und jeden Kategorieindex0..19 validateBuildingCategoryReference auf, insgesamt160Aufrufe. Kein eigener Vollreset, keine eigene Rueckgabe oder sonstige Datenoperation; der Helfer kann selektiv Referenz-IDs loeschen.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Nicht ungueltige Hauptverweise werden durch den Wrapper nicht pauschal genullt.
+OFFEN: Helfer004572A0 beschreibt Pruef-/Loeschregeln; nicht gepruefte Kategorien bleiben dessen Vertrag.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0045af00.json
+SHA256: ba300d478426969abb058a44ebcb2ccf247be27cad576f2f2806b77ffef6f867
+Pseudocode-Auszug:
+13: } while (iVar1 < 0x14);
+15: } while (playerID < 9);
+16: return;
+
+66. 0x0045AF30 / PK320
+Fuer Spieler1-8 setzt currentPopulation=countEntities-nonInteractiveCitizenCountUnk-field645_0x2174-armySize und vermindert fuer bisdrei passende ID/UID-Referenzen nochmals1, ohne Untergrenze0. populationRelatedCrowdingCountUnk=currentPopulation_2-availablePeasantsOrHousedPeasants; BlessedProzent0 bei blessed<=0,sonst100 bei Nenner0 oder blessed*100/(blessed+unblessed). startOfDay schreibt availablePeasantsOrHousedPeasants in8er-Ring, umlaufender Index0..7 und arithmetischer Durchschnitt8. Monatswechsel haengt Population als short in300er-Historie an oder schiebt299Werte; erhoeht am Funktionsende populationIndex einmal. Aktualisiert maxPopulation nur bei groesserem Wert als short. Ausserhalb Editor steigt tacticalPowersBarLevel um1 solange<7000; positive goldDonation wird in Schritten bis10 auf aktuellesGold[15] (Player+1292) uebertragen und bei aktuellem Spieler Anzeigeerneuerung gesetzt. Zum Schluss Nahrungstypen neu zaehlen.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): currentPopulation kann negativ sein; ein Sprung durch hohe Donation wird auf10proAufruf begrenzt; Index>=300 schiebt statt neu anzulegen.
+OFFEN: Bedeutung der ungeprueften Subtraktions-/UID-Referenzfelder, negative Historienindizes/Ueberlaeufe sowie Arrayrekonstruktion.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0045af30.json
+SHA256: b5a53984702dd18f0b5f7ff9d4db032d8aa7066148dd6343e7e63d4adb651fde
+Pseudocode-Auszug:
+23: if ((piVar3[0x85d] != 0) && (DAT_UnitsState.units[piVar3[0x85d]].uid == piVar3[0x85e])) {
+26: if ((piVar3[0x85f] != 0) && (DAT_UnitsState.units[piVar3[0x85f]].uid == piVar3[0x860])) {
+29: if ((piVar3[0x861] != 0) && (DAT_UnitsState.units[piVar3[0x861]].uid == piVar3[0x862])) {
+34: if (iVar1 < 1) {
+38: if (piVar3[0x86e] + iVar1 == 0) {
+46: if (DAT_GameState.mapAndTime.startOfDay != FALSE) {
+50: if (7 < piVar3[0xa98]) {
+57: if (DAT_GameState.mapAndTime.monthChanged != 0) {
+58: if (DAT_GameState.mapAndTime.populationIndex < 300) {
+73: if ((int)DAT_GameSynchronyState.finalResults.finalMaxPopulation[local_14] < piVar3[0x83f]) {
+76: if (DAT_GameCore.gameMode_2 != GM_EDITOR) {
+77: if (piVar3[0xe54] < 7000) {
+
+67. 0x0045B1C0 / PK320
+Breiter Initialisierungsablauf: Bauzaehler2000,LoadBalancer0; Wegweiserwege,KI-Spielerdaten,Startgueter/Statistiken,allgemeine Initialwerte,Bauhauptverweise und Bauverfuegbarkeit ueber Helfer; isTimeHaltedFALSE und mehrere Rohzeitfelder0/-1. Fuer neun Spielerbloecke jeweils Bauinfoindex0,2000Gegnerbau-ID/UID-Paare0 und2500Gegnereinheiten-UIDs0; danach Hotkeybereich mit-1 fuellen. Kein reiner Feindlistenreset: kann Startressourcen und Zeit-/Pausenzustand veraendern. Ein nichtinitialisiert erscheinender this_00 wird an den Referenzpruefer uebergeben; ohne Assemblerabgleich offen.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): Aufruf kann Gold-/Startgueterinitialisierung ausloesen; bisherige Spielzeit/Spielpause werden nicht einfach erhalten.
+OFFEN: Bedeutung der rohen Arrays/Zeitfelder, Gueltigkeit this_00 und globale Nebenwirkungen aller Helfer.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0045b1c0.json
+SHA256: fb4b447b627e6d45e67158b82daef63f843fc12311315396158defbf81375d66
+Pseudocode-Auszug:
+91: } while (iVar1 != 0);
+100: } while (local_4 != 0);
+102: return;
+
+68. 0x0045B3E0 / PK320
+Nur bei GM_SOLITARY zuerst Teams zuruecksetzen. Immer Bauzaehler2000,LoadBalancer0, Bauwegweiser setzen/bereinigen/verdichten, deren Wege berechnen und field45_0xf8 0. Handelskosten nur ausserhalb GM_SKIRMISH_AND_MULTIPLAYER importieren; Bauverfuegbarkeit immer uebernehmen und Crowding aktualisieren. Kein vollstaendiger GameState-Vollreset; einzelne Helfer koennen gespeicherte Verweise/Bauten bearbeiten.
+Statischer Gegenfall aus dem Pseudocode (nicht im Spiel ausgefuehrt): GM_SKIRMISH_AND_MULTIPLAYER ueberspringt Preisimport; GM_SOLITARY hat zusaetzlichen Teamreset.
+OFFEN: Helferfolgen und rohes field45_0xf8 bleiben getrennt von dieser Aufrufreihenfolge.
+Quelle: C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\functions\0045b3e0.json
+SHA256: a59507c88f745d0c69030264ee0f34d9c9214e29ebfaa1c50ae439781fd46f6c
+Pseudocode-Auszug:
+4: if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+13: if (DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER) {
+18: return;
+
+REST UND FORTSETZUNG
+Keine der68 Quellen fehlt. Offene Helferbedeutungen, rohe Felder und Aufrufervertraege sind je Funktion aufgefuehrt. Keine vollstaendige semantische Abnahme aus diesen Erstbeschreibungen ableiten.
+Das naechste Los007 enthaelt150 zuvor nicht gelistete Adressen: 0x0045B460 bis 0x00484450; Status offen.
+Messung: python -B werkzeug/engine_knowledge/auge_abdeckung.py.
+Quellengebundene Einzeldaten: erstbeschreibungen_006.json. Gegenproben: gegenproben_006.json und los006_ohne_PK*. Historischer Vorherstand: los006_vorher/.
+
+Struktur-Gegenprobe: BuildingEntryInfo hat40Bytes. Die Zugriffsstelle004574C0 trifft damit PlayerData+8720/lordKilledByPlayerID; die falsche Annahme24Bytes erreicht eine andere Stelle. Beleg: strukturgegenprobe_006.json.

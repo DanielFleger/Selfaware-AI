@@ -1,0 +1,28 @@
+{
+  "typdatei_sha256": "0d19033827f62995efc978666a6f3a299d91468242f1deeb8a9f5bc4ec268ebe",
+  "regel": "Zeigerarithmetik wird mit exportierter Elementgroesse gerechnet; Feldname aus erreichtem Offset, nicht aus vermutetem Namen.",
+  "positiv": {
+    "funktion": "004574C0",
+    "ausdruck": "campground + 0xCE BuildingEntryInfo + 12 Byte",
+    "rechnung": "468 + 206*40 + 12 = 8720",
+    "getroffenes_feld": "lordKilledByPlayerID"
+  },
+  "negativ": {
+    "falsche_elementgroesse": 24,
+    "falsch_erreichter_offset": 5424,
+    "trifft_das_belegte_feld": false
+  },
+  "weitere_gegenproben": [
+    {
+      "ausdruck": "currentResources[15]",
+      "rechnung": "1232+15*4=1292",
+      "feld": "aktuelles Gold"
+    },
+    {
+      "ausdruck": "10*2500 ID/UID-Paare",
+      "rechnung": "10*2500*8=200000",
+      "bereich": "hotkeyTribes"
+    }
+  ],
+  "belegart": "Typenexport und exportierter Assembler; keine Spielausfuehrung"
+}

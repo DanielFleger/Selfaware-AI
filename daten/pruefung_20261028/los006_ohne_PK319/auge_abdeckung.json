@@ -1,0 +1,83 @@
+{
+ "stand": "29.10.2026 19:22",
+ "funktionen": {
+  "gesamt": 4581,
+  "registerbelegt": 587,
+  "teilbeschrieben": 584,
+  "semantisch_abgenommen": 0,
+  "name_unklar": 409,
+  "spiellogik": 1938,
+  "klassifikation_unklar": 19,
+  "spiellogik_nenner_vorlaeufig": true,
+  "spiellogik_registerbelegt": 581,
+  "spiellogik_teilbeschrieben": 578,
+  "spiellogik_semantisch_abgenommen": 0
+ },
+ "felder": {
+  "gesamt": 1666,
+  "register_erwaehnt": 472,
+  "registerbelegt": 4,
+  "liest_auge": 315,
+  "liest_aber_unbelegt": 311
+ },
+ "je_struktur": {
+  "Einheit": {
+   "felder": 275,
+   "registerbelegt": 0,
+   "liest_auge": 86,
+   "name_unklar": 98,
+   "liest_aber_unbelegt": 86
+  },
+  "Gebaeude": {
+   "felder": 239,
+   "registerbelegt": 4,
+   "liest_auge": 62,
+   "name_unklar": 64,
+   "liest_aber_unbelegt": 58
+  },
+  "Geschoss": {
+   "felder": 93,
+   "registerbelegt": 0,
+   "liest_auge": 47,
+   "name_unklar": 36,
+   "liest_aber_unbelegt": 47
+  },
+  "Trupp": {
+   "felder": 89,
+   "registerbelegt": 0,
+   "liest_auge": 25,
+   "name_unklar": 33,
+   "liest_aber_unbelegt": 25
+  },
+  "Spieler": {
+   "felder": 388,
+   "registerbelegt": 0,
+   "liest_auge": 61,
+   "name_unklar": 46,
+   "liest_aber_unbelegt": 61
+  },
+  "KI-Vorgaben": {
+   "felder": 169,
+   "registerbelegt": 0,
+   "liest_auge": 23,
+   "name_unklar": 9,
+   "liest_aber_unbelegt": 23
+  },
+  "Karte/Zeit": {
+   "felder": 230,
+   "registerbelegt": 0,
+   "liest_auge": 5,
+   "name_unklar": 147,
+   "liest_aber_unbelegt": 5
+  },
+  "Weltkarte": {
+   "felder": 183,
+   "registerbelegt": 0,
+   "liest_auge": 6,
+   "name_unklar": 65,
+   "liest_aber_unbelegt": 6
+  }
+ },
+ "belegzeilen": 430,
+ "regel": "B-267 Auge-Abdeckung (Daniel 27.10. 17:51: \"im Endeffekt darf im Code keine Zeile unerklaert sein\").\n\n\nMisst - statt aus dem Gedaechtnis - fuer ALLE Funktionen der Wissensdatenbank (knowledge.sqlite, Ghidra-Referenz) und\n\nALLE Felder der Strukturen Einheit, Gebaeude, Geschoss, Trupp, Spieler, KI-Vorgaben (AICSpecification), Karte/Zeit\n\n(MapAndTimeState) und Weltkarte (TileMapState):\n\n  - registerbelegt: ja, wenn eine Belegzeile sie im versionierten Wissensregister.md nennt (Zeilen AU/P/L/W/B/G/S/A).\n\n    Der unversionierte VillageStudio-Wissensstand zaehlt nur mit dem ausdruecklichen Pruefschalter.\n\n    Funktion genannt = exakte Adresse (8 Hex-Ziffern oder dieselbe Zahl ohne fuehrende Nullen), niemals nur Name.\n\n    Feld erwaehnt = Namens-/Offsettreffer; registerbelegt nur mit explizitem Struktur-/Offset-/Groessenschluessel in auge_feldbelege.csv.\n\n  - liest das Auge: Feldname steht in einem Datentyp oder im Quelltext von werkzeug/auge.py.\n\n  - Name unklar: Ghidra-Platzhalter (fieldNNN_0x.., ...Unk, unknown..., _OR_-Doppelnamen, FUN_...).\n\nDas ist nur \"im Register adresslich erwaehnt\", nicht \"vollstaendig verstanden\". Eine semantische Abnahme wird\n\ngetrennt ausgewiesen und niemals aus einer blossen Adressnennung abgeleitet. Sie verlangt vollstaendige Angaben, Gegenprobe und unveraenderte Export-/Registerhashes."
+}
