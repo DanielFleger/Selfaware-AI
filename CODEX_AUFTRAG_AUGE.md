@@ -20,13 +20,34 @@ unerklärt sein".
   KI-Vorgaben 11/169, Karte/Zeit 6/230, Weltkarte 18/183.
 - Regel "erklärt": eine Zeile im `Wissensregister.md` (AU/P/L/W/B/G/S/A) nennt Adresse oder Namen; "widerlegt" zählt nicht.
 
-## Ziel
-Jede Funktion der Spiellogik und jedes Feld erklärt: Funktion in einem Satz, Adresse, Beleg, Marke
-(belegt / gemessen / abgelesen / vermutet). Am Ende 100 % in `auge_abdeckung.json`, nach jedem Paket neu erzeugt.
+## Ziel und Abnahme (berichtigt 29.10.2026)
+Jede Funktion und jedes Feld nachvollziehbar erklaeren. Eine Registererwaehnung oder Teilbeschreibung ist keine
+vollstaendige semantische Abnahme. Historische Zahlen oben stammen aus der alten Wort-/Adresssuche.
+- Funktion: feste Adresse, Hash der tatsaechlichen Exportdatei, Eingaben, Rueckgaben, Schreibfelder, Bedingungen,
+  Grenzwerte, Sonderfaelle, Aufrufer-/Hilfsabhaengigkeiten, offene Fragen und konkrete Gegenprobe festhalten.
+- Nur ausdruecklicher Status abgenommen mit allen Pflichtangaben, keiner offenen Frage und passenden Quell- und
+  Registerhashes zaehlt semantisch. Geaenderte Quellen, entfernte Belege oder fehlende Gegenprobe machen ihn ungueltig.
+- Felder: eindeutige Bindung aus Struktur, Offset, Groesse und Feldname in daten/auge_feldbelege.csv; zusaetzlich
+  Registermarke und deren Hash. Namens- oder Offsettreffer allein bleiben blosse Erwaehnungen.
+- Die 1.938 als Spiellogik benannten Funktionen sind ein vorlaeufiger Nenner. Funktionen ohne Namensraum bleiben
+  unklassifiziert; auch unter Global gezaehlte reine Menue-/Grafikfunktionen (00424BD0/00424BE0, PK311) und technische Ausschluesse muessen fachlich geprueft werden, bevor Vollstaendigkeit behauptet wird.
+- Paketgegenproben pruefen die Zuordnung, nicht die Wahrheit der Erklaerung. Fachliche Gegenfaelle (Grenze daneben,
+  invertierte Bedingung, Nullfall, Seiteneffekt) gehoeren gesondert zur Abnahme.
+- Kein Prozentziel darf offene Rekonstruktionen in sichere Bedeutungen verwandeln.
+- Die technische Sperre prueft Pflichtangaben und Pruefsummen; ob ein eingetragener Gegenprobentext fachlich traegt, muss der Pruefer weiterhin am Original entscheiden. Ein gefuelltes Formular ist kein automatischer Wahrheitsbeweis.
 
-## Reihenfolge (Vorschlag SAI, Daniel kann umstellen)
-1. Die **101 Felder, die das Auge schon liest**, aber unerklärt sind (z. B. microXPosition, dying, substate,
-   attackAtTileX) - und in `auge.py` die 40 Felder ohne Funktion im Namen umbenennen (field215_0x350, isRallyingUnk, ...).
+## Feste Pruefreihenfolge (29.10.2026)
+Die alten Positionsbereiche sind nicht fortschreibbar: erste300 bei48d9545 und301-450 bei0bd66ea enthalten
+146 Doppelungen und nur304 verschiedene Adressen. daten/pruefung_20261028/historische_pruefadressen.csv belegt die
+Vereinigung; prueflos_003.csv haelt die naechsten150 bisher ungeprueften Adressen samt Exporthash fest.
+Nach jedem Los: Befunde in der bestehenden Hauptaussage korrigieren, offene Rekonstruktionen kennzeichnen,
+Registerstand und Gegenproben sichern, danach das naechste Los aus ungeprueften Adressen bilden.
+Zusammenhaengende Ketten gemeinsam verfolgen: Einheitenlauf -> Artaktualisierung -> Ziel/Bewegung/Schaden;
+Lagerbuchung -> Gesamtbestand -> Einkauf/Rekrutierung; Eingang -> Gebietsabfrage -> Wegplan.
+
+## Fachliche Schwerpunkte (Vorschlag SAI, Daniel kann umstellen)
+1. Die bereits gelesenen Felder brauchen eindeutige Strukturbelege; die fruehere Zahl101 ist historisch. Die aktuelle Messung trennt explizite Bindung und Erwaehnung (z. B. microXPosition, dying, substate,
+   attackAtTileX). Felder ohne sichere Bedeutung bleiben offen; Umbenennungen erst nach Beleg und gesondertem Umsetzungsauftrag. Keine Spiel-/SamurAI-Logikaenderung durch diese Pruefung.
 2. **Kampf und Einheiten**: Seuche (Wolke Entity 22 - Schaden, Ausbreitung, Dauer, Heilung), Viehwurf (Kuh Entity 23 -
    Einschlag), Belagerungsgeräte-Phasen inkl. Rammbock, Belagerungsturm, Schutzschild, Fallgruben, Zustandsübergänge je
    Einheitenart (PTR_UpdateUnitFunctions 0x00B4DF60), Nahkampf-Höhenvorteil.

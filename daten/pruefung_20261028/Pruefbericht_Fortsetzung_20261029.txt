@@ -1,0 +1,1146 @@
+﻿PRUEFBERICHT - FORTSETZUNG UND EINGEARBEITETE KORREKTUREN, 29.10.2026
+
+UMFANG
+Los003:150 vorhandene Registererklaerungen mit Original-Pseudocode verglichen;46 neue Beanstandungen eingearbeitet.
+Los004: naechste150 feste Adressen;82 vorhandene Registererklaerungen verglichen,68 ohne Registererklaerung nicht inhaltlich pruefbar.24 Beanstandungen eingearbeitet.
+Ergaenzung005: vier weitere adressbelegte Funktionen ausserhalb der Lose003/004 verglichen;zwei Erklaerungen um Bedingungen ergaenzt.
+Damit236 weitere vorhandene Registererklaerungen verglichen.72 adressbezogene Befundzeilen {'ROT': 21, 'GELB': 51}; dazu Metaplanbefund PK311.
+Bisherige Befunde aus Pruefung301-450 sind im versionierten Register eingearbeitet; uebergreifende Korrekturen unter PK301-PK310.
+Erste300 bei48d9545 und301-450 bei0bd66ea enthalten146 Doppelungen und nur304 eindeutige Adressen. Feste Adresslisten ersetzen unzuverlaessige Positionsnummern.
+Dieser Vergleich ist keine vollstaendige semantische Abnahme. Aktuell semantisch abgenommene Spiellogikfunktionen:0.
+Keine Aenderung an externem VillageStudio-Register, Auge-APIs oder SamurAI-Spiellogik. Kein Spielstart, keine Maus-/Tastatursteuerung, kein Push.
+
+GEGENPROBEN
+Ohne AU90: exakt 16 allein dort belegte Adressen verschwunden; keine unerwartet neu hinzugekommen.
+Adressen: 0x004173D0, 0x00417450, 0x004174E0, 0x00417740, 0x004177E0, 0x004178E0, 0x004179B0, 0x00417AA0, 0x00417FD0, 0x004180E0, 0x00418100, 0x004184A0, 0x004184D0, 0x00418500, 0x00418530, 0x00418640
+Entfallene explizite Feldbindungen: []
+Befehl: C:\Users\danie\AppData\Local\Programs\Python\Python311\python.exe -B C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\werkzeug\engine_knowledge\auge_abdeckung.py --ohne-beleg AU90 --ausgabe C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\daten\pruefung_20261028\negativ_AU90
+Ohne AU88: exakt 8 allein dort belegte Adressen verschwunden; keine unerwartet neu hinzugekommen.
+Adressen: 0x00415A80, 0x00415BF0, 0x00415C90, 0x00415E80, 0x00416540, 0x00416630, 0x00416720, 0x00416F80
+Entfallene explizite Feldbindungen: []
+Befehl: C:\Users\danie\AppData\Local\Programs\Python\Python311\python.exe -B C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\werkzeug\engine_knowledge\auge_abdeckung.py --ohne-beleg AU88 --ausgabe C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\daten\pruefung_20261028\negativ_AU88
+Ohne AU80: exakt 10 allein dort belegte Adressen verschwunden; keine unerwartet neu hinzugekommen.
+Adressen: 0x0040EBF0, 0x0040EDF0, 0x0040EF40, 0x0040EFD0, 0x0040F040, 0x0040F090, 0x0040F1E0, 0x0040F240, 0x0040F360, 0x0040F3D0
+Entfallene explizite Feldbindungen: []
+Befehl: C:\Users\danie\AppData\Local\Programs\Python\Python311\python.exe -B C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\werkzeug\engine_knowledge\auge_abdeckung.py --ohne-beleg AU80 --ausgabe C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\daten\pruefung_20261028\negativ_AU80
+Ohne AU39: exakt 6 allein dort belegte Adressen verschwunden; keine unerwartet neu hinzugekommen.
+Adressen: 0x00410D20, 0x00417B90, 0x0041C570, 0x004653B0, 0x0054D8F0, 0x00557230
+Entfallene explizite Feldbindungen: [['Gebaeude', '234', 'microY'], ['Gebaeude', '296', 'resourceWood'], ['Gebaeude', '384', 'resourceIronArmor'], ['Gebaeude', '659', 'drawbridgeState2']]
+Befehl: C:\Users\danie\AppData\Local\Programs\Python\Python311\python.exe -B C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\werkzeug\engine_knowledge\auge_abdeckung.py --ohne-beleg AU39 --ausgabe C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\daten\pruefung_20261028\negativ_AU39
+Ohne AU110: exakt 15 allein dort belegte Adressen verschwunden; keine unerwartet neu hinzugekommen.
+Adressen: 0x004380E0, 0x004381D0, 0x00439730, 0x00440430, 0x004410D0, 0x0044A830, 0x0044AA70, 0x0044B680, 0x0044B760, 0x0044B7D0, 0x0044B800, 0x0044C400, 0x0044C410, 0x00455D40, 0x00455D90
+Entfallene explizite Feldbindungen: []
+Befehl: C:\Users\danie\AppData\Local\Programs\Python\Python311\python.exe -B C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\werkzeug\engine_knowledge\auge_abdeckung.py --ohne-beleg AU110 --ausgabe C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\daten\pruefung_20261028\negativ_AU110
+Ohne AU108: exakt 13 allein dort belegte Adressen verschwunden; keine unerwartet neu hinzugekommen.
+Adressen: 0x00427180, 0x00427210, 0x00428050, 0x00428480, 0x004285C0, 0x00429630, 0x00429650, 0x00429710, 0x0042A8E0, 0x0042AC60, 0x0042C190, 0x0042C620, 0x00431990
+Entfallene explizite Feldbindungen: []
+Befehl: C:\Users\danie\AppData\Local\Programs\Python\Python311\python.exe -B C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\werkzeug\engine_knowledge\auge_abdeckung.py --ohne-beleg AU108 --ausgabe C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\daten\pruefung_20261028\negativ_AU108
+Ohne AU104: exakt 15 allein dort belegte Adressen verschwunden; keine unerwartet neu hinzugekommen.
+Adressen: 0x0041C240, 0x0041C310, 0x0041C6F0, 0x0041CC70, 0x0041D510, 0x0041E650, 0x0041E870, 0x0041EB00, 0x0041EDA0, 0x0041F110, 0x00420A30, 0x00420BF0, 0x00421890, 0x00421990, 0x00421A40
+Entfallene explizite Feldbindungen: []
+Befehl: C:\Users\danie\AppData\Local\Programs\Python\Python311\python.exe -B C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\werkzeug\engine_knowledge\auge_abdeckung.py --ohne-beleg AU104 --ausgabe C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-auge\daten\pruefung_20261028\negativ_AU104
+Zufallsauswahl mit Startzahl20261029: Los003 AU90/AU88/AU80; Los004 AU110,AU108,AU104. AU39 ist die zusaetzliche Strukturfeld-Gegenprobe.
+Die Paket-Gegenprobe prueft nur Adresszuordnung, keine sachliche Vollstaendigkeit.
+Acht Tests pruefen ausserdem fehlende Gegenprobe, offene Frage, falsche Adresse, Quellen-/Registeraenderung, entfernten Beleg und falsche Feldstruktur/-groesse/-lage. Acht Tests bestanden.
+Testbefehl: python -B -m unittest discover -s werkzeug/engine_knowledge -p test_auge_abdeckung.py -v
+
+METAPLAN-URTEIL
+Pakete eignen sich als Arbeitslose, nicht als fachliche Abnahme. Die Messung trennt nun Erwaehnung, qualifizierte Teilbeschreibung und vollstaendige semantische Abnahme.
+Eine Abnahme verlangt Eingaben, Rueckgaben, Bedingungen, Grenzwerte, Schreibwirkungen, Sonderfaelle, Abhaengigkeiten, Quellenhash, Registerhash und Gegenprobe; offene Fragen verhindern sie.
+Der Nenner1938 bleibt vorlaeufig:19 Funktionen sind nicht sicher klassifiziert. Unter Global werden zudem reine Anzeigehelfer als Spiellogik mitgezaehlt:00424BD0 laedt nur shc_back.tgx,00424BE0 zeichnet zentriert. Technisch ausgeschlossene Namensraeume brauchen ebenfalls eine Wirkungspruefung. PK311.
+Feldnamensgleichheit ist kein Beleg. Die Messung bindet Struktur, Offset, Groesse, Feldname und Registerhash. Erst4Felder sind ausdruecklich so eingetragen; alte Worttreffer sind keine eindeutigen Strukturbelege.
+Die neue Abnahmesperre prueft Pflichtangaben und Pruefsummen. Sie bewertet nicht automatisch die fachliche Gueltigkeit des eingetragenen Gegenprobentexts; dafuer bleibt die Einzelpruefung am Original erforderlich.
+Systematische Restfehler trotz gruener Adressmessung: ausgelassene Zweige, falsche Datentypen, indirekte Aufrufe, verwechselte Rueckgabekanaele und globaler Zustand.
+Zusammen pruefen: Lagerbuchung/Gesamtbestand/Einkauf/Rekrutierung; Eingang/Gebietsabfrage/Weg; Kontrolle/Torautomat/Wegnetz.
+Empfehlung: zuerst fehlende Erklaerungen und offene Rekonstruktionen bearbeiten, dann pro Funktion abnehmen. Keine Bedeutungsnamen aus dem Dekompilat ungeprueft uebernehmen.
+
+NICHT PRUEFBARE REGISTERERKLAERUNGEN:68 (Erklaerung fehlt, Quelle vorhanden)
+0x004574C0 - _HoldStrong::Game::GameStateStructures::checkKeepEnclosed
+0x00457770 - _HoldStrong::Game::GameStateStructures::canUnitsNavigateFromKeepToKeep
+0x00457800 - _HoldStrong::Game::GameStateStructures::unitsCanMoveFromKeepOfPlayerToAnotherArea
+0x00457870 - _HoldStrong::Game::GameStateStructures::canKeepReachSignpostZone
+0x004578F0 - _HoldStrong::Game::GameStateStructures::canKeepReachSignpostZoneViaPathfinder
+0x00457960 - _HoldStrong::Game::GameStateStructures::updatePrimaryBuildingPlayerDataReferences
+0x00457A70 - _HoldStrong::Game::GameStateStructures::changePlayerOwnership
+0x00457AD0 - _HoldStrong::Game::GameStateStructures::swapOwnership
+0x00457B40 - _HoldStrong::Game::GameStateStructures::destroyPlayerCompletely
+0x00457B80 - _HoldStrong::Game::GameStateStructures::checkRequiredResourcesForBuildingOrPlanToBuy
+0x00457E80 - _HoldStrong::Game::GameStateStructures::getWallTilesThatCanBeBuilt
+0x00457F20 - _HoldStrong::Game::GameStateStructures::showPopAndGoldPopup
+0x00457FD0 - _HoldStrong::Game::GameStateStructures::createStatsPopUpEntities
+0x00458070 - _HoldStrong::Game::GameStateStructures::displayPlayerTradeVisualEffect
+0x004580C0 - _HoldStrong::Game::GameStateStructures::spawnChicken
+0x00458280 - _HoldStrong::Game::GameStateStructures::spawnMotherOrChild
+0x004585B0 - _HoldStrong::Game::GameStateStructures::playerHasACampground
+0x004585F0 - _HoldStrong::Game::GameStateStructures::moveUnitAroundCampfire
+0x004586D0 - _HoldStrong::Game::GameStateStructures::activateTraderState
+0x004586F0 - _HoldStrong::Game::GameStateStructures::resetTraderState
+0x00458700 - _HoldStrong::Game::GameStateStructures::findNextPlayerWithMarketplace
+0x00458740 - _HoldStrong::Game::GameStateStructures::isResourceTypeTradeable
+0x00458760 - _HoldStrong::Game::GameStateStructures::anyGoodsAreAllowedForSale
+0x004587A0 - _HoldStrong::Game::GameStateStructures::getNextGoodFilteringUnallowed
+0x00458820 - _HoldStrong::Game::GameStateStructures::getPreviousGoodsFilteringUnallowed
+0x00458890 - _HoldStrong::Game::GameStateStructures::getBatchBuyPrice
+0x004588A0 - _HoldStrong::Game::GameStateStructures::getBuyPrice
+0x004588D0 - _HoldStrong::Game::GameStateStructures::getBuyPriceForOneUnit
+0x004588F0 - _HoldStrong::Game::GameStateStructures::getSalePriceOfGood
+0x00458910 - _HoldStrong::Game::GameStateStructures::getSellPrice
+0x00458940 - _HoldStrong::Game::GameStateStructures::getSellResourceAmount
+0x00458990 - _HoldStrong::Game::GameStateStructures::setVariousGameStateToInitialValues
+0x004589E0 - _HoldStrong::Game::GameStateStructures::processPeasantsForBuildings
+0x00458A70 - _HoldStrong::Game::GameStateStructures::updateFoodTypesInStockForAllPlayers
+0x00458AD0 - _HoldStrong::Game::GameStateStructures::processFoodConsumption
+0x00458D50 - _HoldStrong::Game::GameStateStructures::updateAleRate
+0x00458E20 - _HoldStrong::Game::GameStateStructures::computeAleCoverage
+0x00458E60 - _HoldStrong::Game::GameStateStructures::updateCrowding
+0x00458EC0 - _HoldStrong::Game::GameStateStructures::updateFearFactorProductivity
+0x00458F70 - _HoldStrong::Game::GameStateStructures::recomputeReligionBonuses
+0x00459080 - _HoldStrong::Game::GameStateStructures::calculateTaxIncomeForPlayer
+0x00459140 - _HoldStrong::Game::GameStateStructures::calculateTaxBribeExpenseForPlayer
+0x00459170 - _HoldStrong::Game::GameStateStructures::getNumberToDisplayPlayerTaxIncome
+0x004591B0 - _HoldStrong::Game::GameStateStructures::getNumberToDisplayBribeIncome
+0x004591F0 - _HoldStrong::Game::GameStateStructures::despawnPeasantOrWorker
+0x00459490 - _HoldStrong::Game::GameStateStructures::spawnDrunkard
+0x004595D0 - _HoldStrong::Game::GameStateStructures::singlePlayerHasKeepAndGranaryCheck
+0x00459640 - _HoldStrong::Game::GameStateStructures::resetTeams
+0x004596D0 - _HoldStrong::Game::GameStateStructures::getTeamsDifferent
+0x00459700 - _HoldStrong::Game::GameStateStructures::findAITeamMate
+0x00459740 - _HoldStrong::Game::GameStateStructures::teamToBitFlagsUnk
+0x004597D0 - _HoldStrong::Game::GameStateStructures::areActivePlayersMostlySameTeam
+0x004598B0 - _HoldStrong::Game::GameStateStructures::recountStablesAndHorses
+0x00459930 - _HoldStrong::Game::GameStateStructures::linkageBetweenHorseUnitAndStableUnk
+0x00459A20 - _HoldStrong::Game::GameStateStructures::spawnPoisonCloudsAroundBuilding
+0x00459B50 - _HoldStrong::Game::GameStateStructures::playSFXNoSpaceInTheStockPile
+0x00459BB0 - _HoldStrong::Game::GameStateStructures::clearTribeHotKey
+0x00459BE0 - _HoldStrong::Game::GameStateStructures::fillWith0xFF
+0x00459C10 - _HoldStrong::Game::GameStateStructures::assignSelectionToKey
+0x00459E40 - _HoldStrong::Game::GameStateStructures::HandleActivateTacticalPowers
+0x0045A060 - _HoldStrong::Game::GameStateStructures::renderDebugDataCurrentPlayerData
+0x0045AE10 - _HoldStrong::Game::GameStateStructures::addBuildingInRegistry
+0x0045AE70 - _HoldStrong::Game::GameStateStructures::resetBuildingsCurrentIndexCounter
+0x0045AEB0 - _HoldStrong::Game::GameStateStructures::selectARandomBuildingOwnedByPlayer
+0x0045AF00 - _HoldStrong::Game::GameStateStructures::resetSomethingBuildingRelatedForAllPlayers
+0x0045AF30 - _HoldStrong::Game::GameStateStructures::computePopulationStatistics
+0x0045B1C0 - _HoldStrong::Game::GameStateStructures::clearEnemyRelatedStructures
+0x0045B3E0 - _HoldStrong::Game::GameStateStructures::initializeGameStateAfterMapLoad
+
+WEITERE OFFENE AUSSAGEN
+Los003: ECX0040BFE0, Hoehen-/undefined8-Kanal00410440, Zeiger00419EB0 und Eingangsindex0041B2B0; weitere Rohfeldfragen stehen in den Einzelkorrekturen. Keine fehlende Exportdatei.
+Los004: ECX-/Rueckgabekanal0041BAB0/0041BC10/0041BD70, Hoehenindex00421A40/00421BE0 und Wegweiser-EDX00421990 bleiben teilweise offen.0042C190 ist im Pseudocode nicht als vollstaendig geloescht belegt.
+Wrapper0044B800/0044C400 wurden im exportierten Assembler gegengeprueft: EAX wird nach dem Rangaufruf nicht ueberschrieben. Die dazu anfangs erwogene Beanstandung wurde verworfen.
+Alle304 in Los003/004/Ergaenzung005 gelisteten Exportdateien haben unveraenderte Pruefsummen; fuer68 davon fehlt die zu vergleichende Registererklaerung. Keine Laufzeit-/Strategiebehauptung.
+
+EINZELFUNDE (im Register eingearbeitet)
+
+1. ROT 0x0040BFE0 / AU74
+Beanstandeter Wortlaut: 0x0040BFE0 durchsucht die Gebaeude rueckwaerts und liefert das erste normale Lager des passenden Typs und Besitzers, dessen freie Menge fuer die verlangte Ablage reicht.
+Pseudocode-Beleg: amount <= *piVar3; kein Kapazitaetsabzug
+Korrektur: Die Funktion durchsucht passende normale Lager des Besitzers rueckwaerts und vergleicht amount direkt mit dem Rohstoffslot bei extraout_ECX+0x134+(ID*0xCB+resourceType)*4; sie berechnet keinen freien Lagerplatz. Die ECX-Herleitung bleibt bis zum Assemblerabgleich offen.
+Export SHA256: eb333852985b67e52abc51049ea6706876ab5c7ffb46ff609d9da3ee7e753af9
+
+2. GELB 0x0040C130 / AU74
+Beanstandeter Wortlaut: 0x0040C130 summiert die Rohstofffelder 1-24 eines Baus neu, setzt anhand der ersten vorhandenen Art die aktuelle Art und deren Grenzwert und gibt die Gesamtmenge zurueck.
+Pseudocode-Beleg: currentStoredResourceType wird vor der Schleife nicht geloescht; Auswahlbedingung currentLimitOfResource==0
+Korrektur: Summiert Warenfelder 1-24 neu und setzt currentNumberOfResource/currentLimitOfResource vorab auf 0. Bei nichtleerem Slot und noch leerem Limit werden Art und Limit uebernommen; ist dessen Tabellenlimit 0, kann eine spaetere Art beide erneut setzen. Bei leerem Bau bleibt currentStoredResourceType unveraendert.
+Export SHA256: 05231ca0023228b3d5433eec371c0fdc758df60a23ea54695b163a83bc6cfdf0
+
+3. GELB 0x0040C4B0 / AU74
+Beanstandeter Wortlaut: 0x0040C4B0 macht dieselbe Neuberechnung gemeinsam fuer Spieler 1-8 aus allen normalen Vorratslagern, Kornspeichern und Waffenkammern und stellt danach deren zuvor gesichertes Gold wieder her.
+Pseudocode-Beleg: fuenf Schleifen mit je fuenf Additionen fuer jeden der drei Lagertypen
+Korrektur: Setzt Gesamtbestaende fuer Spieler 1-8 zurueck, summiert bei jedem normalen Vorratslager, Kornspeicher oder Waffenlager jeweils den gesamten 25er-Warenblock und stellt danach Gold1-8 wieder her. Anders als countPlayerResources werden keine je Lagertyp unterschiedlichen Waren-Teilbereiche verwendet.
+Export SHA256: 65fe7f87d2f336dc8839e522a2f6bd1cb8a74c27b74311b0554e9ad5f34b9fd7
+
+4. ROT 0x0040C9F0 / AU74
+Beanstandeter Wortlaut: 0x0040C9F0 zaehlt im Modus `GM_SIEGE_THAT` belegte Pechgrabenplaetze und aktuelle Burggrabenfelder, zieht nur die seit dem letzten Stand hinzugekommenen Feldkosten vom Startgold des aktuellen Spielers ab und speichert beide neuen Zaehler.
+Pseudocode-Beleg: startGold -= (aktuellerBestand-gespeicherterBestand)*Kosten; keine Untergrenze0 fuer die Differenz
+Korrektur: Berechnet nur in GM_SIEGE_THAT Pechgraben- und Burggrabenbestand und zieht deren vorzeichenbehaftete Differenz zum gespeicherten Bestand mal Feldkosten vom Startgold ab; eine negative Differenz schreibt Gold gut. Danach werden beide Vergleichsbestaende aktualisiert.
+Export SHA256: a5238053455f1fa0c17c45c429c5ba14363478bda6010edc177a6c7b28fbd7a1
+
+5. ROT 0x0040CC30 / AU76
+Beanstandeter Wortlaut: 0x0040CC30 erhoeht auf allen 36 Feldern Werte 2-102 um eins, zaehlt danach die belegten Wachstumsbereiche und setzt den Farmzustand anhand der Verteilung auf 2, 3, 6 oder 8.
+Pseudocode-Beleg: (-(ushort)(iVar6!=0)&3)+2 ergibt5 oder2
+Korrektur: Erhoeht auf 36 Feldern signed-char-Werte2-102 um1 und bestimmt aus den resultierenden Bereichen den Farmzustand2,3,5,6 oder8. Zustand5 kann im Schlusszweig bei Wert1-Feldern entstehen; die zuvor geprueften Wachstumsbereiche haben Vorrang.
+Export SHA256: b93efc177d302e10e26e41c118a04589aa04350b36c43b7f97d5656bdde30706
+
+6. ROT 0x0040CF20 / AU76
+Beanstandeter Wortlaut: 0x0040CF20 bildet aus dem Wachstumswert einer Farmkachel und zwei Zufallsbits eine von zehn Grafikstufen, aktualisiert pro Aufruf bis zur ersten Aenderung beziehungsweise hoechstens drei schon passende Felder und merkt den naechsten der 36 Indizes.
+Pseudocode-Beleg: goto LAB_0040d041 auch bei local_8!=0; dort Rueckgabe wenn globaler Schalter0
+Korrektur: Ordnet den Wachstumswert einer von36 Kacheln einer Grafikstufe samt zwei Zufallsbits zu. Bei field14_0x18e024==0 wird nach dem ersten bearbeiteten Feld der Folgeindex gespeichert und zurueckgegeben, auch bei bereits passender Grafik; bei gesetztem Schalter laeuft die36er-Schleife weiter. Keine allgemeine Grenze von drei passenden Kacheln.
+Export SHA256: 19fcfea09855488ff811f3d4e9956dfeae1cbf2a856b25e446cc4b38888209e9
+
+7. GELB 0x0040D090 / AU76
+Beanstandeter Wortlaut: 0x0040D090 setzt bei allen Weizenfarmen eines Spielers jede der 36 Kacheln mit bisherigem Wert mindestens 8 auf 101, setzt den Farmzaehler auf -1200 und den Wachstumszustand auf 2.
+Pseudocode-Beleg: ((char)alterWert<8)-1U &0x65
+Korrektur: Schreibt fuer alle36 Kacheln jedes belegten eigenen Weizenhofs den Schadens-/Wachstumswert neu: signed-char-Wert<8 wird0, sonst101; danach Farmzaehler-1200 und Wachstumszustand2.
+Export SHA256: a252095006af24f1b1a6efeae6206b6026e7c0b583fff87101a8a9da313ee3c5
+
+8. ROT 0x0040D6E0 / AU76
+Beanstandeter Wortlaut: 0x0040D6E0 sucht fuer Kasernengruppen in vorberechneten Paradegrundpunkten oder um einen gesetzten Sammelpunkt eine freie beziehungsweise fuer die Einheit erlaubte, vom aktuellen Weggebiet erreichbare Kachel; fuer KI-Spieler ausser Einzelspiel und Verhalten 2 nimmt es direkt den Bergfried-Eingang. Es liefert nur dann 1, wenn das gefundene Ziel nicht die aktuelle Einheitenkachel ist.
+Pseudocode-Beleg: KI-Zweig aiUnitBehaviourType!=2; sofort return1 bei Bergfried; Wegpruefung nur im Sammelpunktzweig
+Korrektur: Liefert im KI-Sonderfall ausserhalb GM_SOLITARY bei currentPlayerFullIDArray==-1, currentAIArray!=0 und aiUnitBehaviourType ungleich2 direkt die gespeicherten Bergfriedkoordinaten und1, sobald keep.id!=0; kein Vergleich mit dem jetzigen Ort. Sonst Suche in vorberechneten Kasernenplaetzen ohne Wegpruefung oder um einen expliziten Sammelpunkt mit Wegpruefung; Belegung ist bei UnitLayer0, eigener ID oder movementRelated!=8 erlaubt. Im normalen Suchpfad liefert die aktuelle Position0.
+Export SHA256: cfef2647e964d392b2cb54de33cb41a6c55e9a5775cdb6210367364ad491dacd
+
+9. ROT 0x0040D9C0 / AU76
+Beanstandeter Wortlaut: 0x0040D9C0 folgt derselben Regel fuer die Soeldnerposten-Gruppen 10-16 und deren Sammelpunkte; trotz des Funktionsnamens nutzt nur der KI-Sonderfall den Bergfried, der normale Zweig die Soeldnerdaten
+Pseudocode-Beleg: aiUnitBehaviourType!=2; im Sonderfall keep.id!=0 ->1
+Korrektur: Behandelt die Soeldnergruppen10-16 mit derselben ausdruecklichen KI-Ausnahme aiUnitBehaviourType ungleich2 wie die Kasernensuche. Vorberechnete Soeldnerplaetze werden ohne Weggebietspruefung durchsucht, explizite Sammelpunkte mit ihr. Belegung ist bei leerer Kachel, eigener ID oder movementRelated!=8 erlaubt; nur der normale Suchpfad vergleicht das Ergebnis mit der aktuellen Position.
+Export SHA256: 897465567bf09fe67108a84098d4291c945519eb5309023f9e84a3923fc13acf
+
+10. GELB 0x0040E120 / AU78
+Beanstandeter Wortlaut: 0x0040E120 sucht fuer Ingenieur beziehungsweise Leitermann getrennt ab ihrem gespeicherten Suchstand einen freien der 25 Paradegrundpunkte oder, bei manuell gesetztem Sammelpunkt, eine freie und per
+Pseudocode-Beleg: UnitLayer==0 OR UnitLayer==unitID OR movementRelated!=8
+Korrektur: Sucht fuer Ingenieur beziehungsweise Leiter aus getrennten Suchstaenden in25 vorberechneten Punkten oder um einen expliziten Sammelpunkt in49 Versatzen. Erlaubt sind UnitLayer0, eigene Einheiten-ID oder movementRelated!=8; 'frei' ist daher keine allgemeine Voraussetzung. Nur der explizite Sammelpunktzweig prueft die Wegverbindung, und die aktuelle Position liefert0.
+Export SHA256: 5f28c2a22f808f0ef180ef9ed494319931ba7d6499b8436bdd2b42e97fdb7771
+
+11. GELB 0x0040E410 / AU78
+Beanstandeter Wortlaut: 0x0040E410 sucht fuer einen Tunnelbauer ab seinem Suchstand einen freien vorberechneten Punkt oder um den gesetzten Gilden-Sammelpunkt eine freie, erreichbare Kachel; aktuelle Position und erschoepfte Suche liefern 0.
+Pseudocode-Beleg: Dreiteilige Belegungsbedingung; navigate nur im ersten Zweig
+Korrektur: Sucht fuer Tunnelbauer ab gespeichertem Stand in25 vorberechneten Punkten oder49 Versatzen um den Gilden-Sammelpunkt. Belegung wie bei der Ingenieursuche: UnitLayer0, eigene ID oder movementRelated!=8. Nur der explizite Sammelpunktzweig prueft die Wegverbindung; aktuelle Position und erschoepfte Suche liefern0.
+Export SHA256: df3a31e343c9c6f694ba7cbdfd34bb2d7d120eb6f4273ee7f1aafd888c802ff7
+
+12. GELB 0x0040E610 / AU78
+Beanstandeter Wortlaut: 0x0040E610 verlangt einen gesetzten Kathedral-Sammelpunkt und prueft ab dem gespeicherten Stand bis 49 Suchlagen auf freie Belegung und Weggebietsverbindung; der dekompilierte Code verwendet dabei in jedem Durchlauf denselben Tabellenversatz 3.
+Pseudocode-Beleg: DAT_SearchRelatedXYOffsets_1[3] bleibt konstant
+Korrektur: Verlangt einen Kathedral-Sammelpunkt und prueft vom gespeicherten Zaehler bis48 wiederholt denselben Tabellenversatz3. Zugelassen sind UnitLayer0, eigene ID oder movementRelated!=8, dazu eine Wegverbindung; aktuelle Position liefert0. Es werden keine49 verschiedenen Lagen durchsucht.
+Export SHA256: 79705d38f1e35d5b2ecda47e7e17783bb83f914fe7b4b24e63332f92a4a3662c
+
+13. ROT 0x0040EDF0 / AU80
+Beanstandeter Wortlaut: 0x0040EDF0 ordnet den Wachstumswert einer von 24 Kacheln einer von neun Grafikstufen zu, waehlt mit einem Zufallsbit eine Grafikvariante und merkt nach einer Aenderung den naechsten Index; ohne Aenderung werden bis zu drei passende Kacheln je Aufruf geprueft.
+Pseudocode-Beleg: Suchindex %0x18; gespeicherter Index %0x24; goto LAB_0040eef3 auch ohne Aenderung
+Korrektur: Waehlt fuer eine Hopfenkachel eine von neun Grafikstufen mit Zufallsvariante. Bei globalem field14==0 folgt nach dem ersten bearbeiteten Feld Rueckgabe mit gespeichertem Folgeindex, auch bei passender Grafik; bei gesetztem Schalter werden bis24 Felder verarbeitet. Der Suchindex nutzt modulo24, der gespeicherte Folgeindex modulo36; keine pauschale Dreiergrenze.
+Export SHA256: 9ecfd9ff3a590e6af96a1d43cabbf76819ca55d29359ac3577c28106a0093186
+
+14. GELB 0x0040EF40 / AU80
+Beanstandeter Wortlaut: 0x0040EF40 setzt bei allen Hopfenfarmen eines Spielers die 24 Feldwerte ab bisher 6 auf 28, den Farmzaehler auf -1800 und den Wachstumszustand auf 2.
+Pseudocode-Beleg: ((char)alterWert<6)-1U &0x1C
+Korrektur: Schreibt alle24 Feldwerte belegter eigener Hopfenfarmen neu: signed-char-Wert<6 zu0, sonst28; setzt Farmzaehler-1800 und Wachstumszustand2.
+Export SHA256: 91f9435c5e53e1947321b34f9fa0d72d45221043b0c8c487c1280c0cb6c2574b
+
+15. ROT 0x0040F040 / AU80
+Beanstandeter Wortlaut: 0x0040F040 setzt bei allen Milchfarmen eines Spielers den Zaehler bei Bauversatz 0x1DA auf 1600.
+Pseudocode-Beleg: owner Offset214 + short-Index0xED*2 =688 =0x2B0, nicht0x1DA
+Korrektur: Setzt bei allen belegten Milchfarmen eines Besitzers das short-Rohfeld bei Building+0x2B0 auf1600. Eine weitergehende Bedeutung des Felds ist aus diesem Koerper nicht gesichert.
+Export SHA256: 2c88e0090b6455d985c5a6ecff5f244d9766208099fb108ace3e5e0a67ffc291
+
+16. GELB 0x0040F620 / AU82
+Beanstandeter Wortlaut: 0x0040F620 setzt den aktuellen Bedarf eines Baus zurueck; fuer wache Arbeitsbauten ausser Kaserne und Soeldnerposten prueft es jeden vorgesehenen Arbeiterplatz, leert ungueltige Verweise, zaehlt gueltige Arbeiter und addiert die Differenz zum Spieler-Gesamtbedarf.
+Pseudocode-Beleg: Zuweisung hinter 0<sVar6 im &&-Ausdruck
+Korrektur: Setzt currentlyNeededEmployeeCount nur bei positivem buildingTypeBasedEmployeeCount auf0; bei Sollbedarf0 bleibt ein Altwert hier bestehen. Fuer wache Bauten ausser Kaserne/Soeldnerposten werden Arbeiterplaetze geprueft, ungueltige Verweise geleert, gueltige gezaehlt und die Fehlzahl zum Spielerbedarf addiert.
+Export SHA256: a46841c67ae544ac79128bc9d99d6b94d58518554ae886e41f1a97980c12aa31
+
+17. GELB 0x0040F9D0 / AU82
+Beanstandeter Wortlaut: 0x0040F9D0 arbeitet die globale Warteschlange personalbeduerftiger Bauten ab: Einplatzbauten erhalten ihren definierten Arbeiter, Steinbruch drei Steinmetze, Eisenmine Bergmann plus Traeger, Muehle/Wasserstelle/Kathedrale je drei passende Arbeiter und Kirche zwei.
+Pseudocode-Beleg: Rueckgabe iVar2 auch0 geht unveraendert an assignWorkerToBuilding
+Korrektur: Durchlaeuft die globale Personalwarteschlange und versucht die definierten fehlenden Arbeiterplaetze zu besetzen: Einzelplatztyp, Steinbruch drei Steinmetze, Eisenmine Bergmann/Traeger, Muehle/Wasserstelle/Kathedrale drei und Kirche zwei. assignPeasantToBuilding kann0 liefern; kein garantierter Zuwachs, die Warteschlange wird hier nicht geleert.
+Export SHA256: f70716e311101facaafbef3707e894dd9980524fee650a54f3cab81d6c36d69e
+
+18. GELB 0x00410290 / AU82
+Beanstandeter Wortlaut: 0x00410290 laesst den Sichtaktiv-Zaehler je erster Schleifenrunde zwischen 0 und 5 fallen oder steigen und koppelt das sichtbare Aktivfeld daran.
+Pseudocode-Beleg: sVar1==5 ->4 und sVar1==0 ->1 ohne Schalter
+Korrektur: Koppelt buildingIsVisuallyActive an einen Uebergangszaehler. Die Grenzschritte5->4 und0->1 erfolgen unabhaengig von isFirstTickInLoop, die inneren Schritte verwenden diesen Schalter; daher keine ausschliessliche Aktualisierung in erster Schleifenrunde.
+Export SHA256: b8dc17ca6ed01f4610762842ab6c2fb23867066706043b01faba95077a02341b
+
+19. GELB 0x00410440 / AU82
+Beanstandeter Wortlaut: 0x00410440 prueft fuer gueltige Bau-IDs alle definierten Randkacheln: Hoehenabstand unter 16, nichtleeres Weggebiet und Verbindung vom Einheitengebiet genuegen; nur bei reiner Assassinenauswahl wird stattdessen die zwischengespeicherte Kletter-Erreichbarkeit benutzt.
+Pseudocode-Beleg: uVar11 aus Hoehenhilfe; hohe und niedrige Haelfte werden addiert
+Korrektur: Prueft Randkacheln eines Baus mit ID ungleich0 und<=1999 (negative IDs werden hier nicht abgefangen), Hoehenabstand<16 und Gebiet ungleich0; normale Auswahl nutzt die Gebietsabfrage, reine Assassinen die Cache-Abfrage. Auf bebauten Kandidaten ist der undefined8-Rueckgabekanal der Hoehenhilfe unsauber rekonstruiert und muss am Maschinencode geklaert werden.
+Export SHA256: 757cc7b92cda2ca758797a5117d127c2df8630d72baca1eaa74ffbca26b22126
+
+20. ROT 0x004105F0 / AU82
+Beanstandeter Wortlaut: 0x004105F0 lehnt reine Assassinenauswahl ab und prueft sonst acht Nachbarkacheln auf Hoehenbedingung, nichtleeres Weggebiet und Verbindung mit der Kletterfaehigkeit der Auswahl.
+Pseudocode-Beleg: bVar1=HeightLayer[param_1]; iVar5=param_1; bVar1-HeightLayer[iVar5]
+Korrektur: Lehnt reine Assassinenauswahl ab und prueft acht Nachbargebiete auf ungleich0 und Erreichbarkeit mit der Kletterfaehigkeit der Auswahl. Die exportierte Hoehenbedingung vergleicht HeightLayer der Ausgangskachel mit sich selbst, begrenzt also keine Nachbarhoehe.
+Export SHA256: 990b7ad2cf6a73187382a72ff0bfbf080bc5cd8b56162d0dcf6bfef0d5d72bb3
+
+21. GELB 0x00414720 / AU86
+Beanstandeter Wortlaut: 0x00414720 registriert Bäckereien, zählt bei vollständig besetztem Bau einen zusätzlichen Spielerwert sowie immer die Bäckerzahl und führt je Arbeitszustand den Mehl-/Backzyklus mit zwei Geräuschpunkten und zweistufigem Produktionsfortschritt aus.
+Pseudocode-Beleg: someCount13++ nur durch gespeicherten Bedarf0 bedingt
+Korrektur: Registriert/zaehlt Baeckereien, erhoeht someCount13 nur bei gespeichertem currentlyNeededEmployeeCount==0 (keine separate Besetzungspruefung), verarbeitet zwei Arbeitszustaende mit Mehl-/Backbildern, mehreren Zeitpunkten fuer zwei Geraeuscharten und zweistufigem internen Fortschritt. Arbeiterdarstellung und Grafik folgen ihren Zustandspruefungen.
+Export SHA256: 04aace5aacbf9b8a88f77a972eb842ad3dae054538f3f43415061fb31980b056
+
+22. GELB 0x00414B60 / AU86
+Beanstandeter Wortlaut: 0x00414B60 registriert Brauereien, zählt bei vollständiger Besetzung den Spielerwert `someCount12` und immer die Brauer, blendet den Arbeiter je Zustand ein und durchläuft mehrere Maisch-/Fassbildfolgen mit Geräuschen sowie einen achtstufigen Fortschrittszyklus.
+Pseudocode-Beleg: am Zyklusende state=-(ushort)(mode!=GM_SOLITARY)&4
+Korrektur: Registriert Brauereien, zaehlt someCount12 bei gespeichertem Bedarf0 und immer countBrewers. Arbeitszustand bestimmt Maisch-/Fassbilder und Geraeusche. Der interne Zyklus0..7 setzt nach7 nur in GM_SOLITARY auf0 zurueck, sonst auf4; aktive Darstellung und Besitzerflagge besitzen eigene Bedingungen.
+Export SHA256: c33bff738e70272e26ea79c1bd17478ae511ece1d323bf06974cd272e3dd972a
+
+23. GELB 0x004156F0 / AU86
+Beanstandeter Wortlaut: 0x004156F0 registriert die Schenke, schaltet ihre Grundanimation ein und zeigt je Bierbestand und Arbeitszustand unterschiedliche Wirts-/Gastbilder; eine gültige arbeitende Wirtsreferenz erhöht die Zahl arbeitender Schenken, jede Schenke erhöht den Gesamtzähler, und eine Bestandsänderung erzwingt die Gebäudegrafik neu
+Pseudocode-Beleg: Bierabzug vor workingInnsCount++; spawnDrunkard bei Zaehler0
+Korrektur: Registriert/zaehlt Schenken und verarbeitet Wirts-/Gastbilder. Bei Bierbestand>0 und workerID!=0 wird der Verbrauchszaehler erhoeht und bei Erreichen von aleRate ein Bier abgezogen; workingInnsCount steigt nur bei danach verbleibendem Bier und workerID!=0, ohne UID-/Typpruefung. Ein anderer Zaehleruebergang field231_0x28A->0 ruft spawnDrunkard auf; Grafik wird beim Aktivzustandswechsel erneuert.
+Export SHA256: f8ccf7db7f28a2b0911dc83fb4cd724e242522629c1dffc4291c161e7ec644af
+
+24. ROT 0x00415A80 / AU88
+Beanstandeter Wortlaut: 0x00415A80 registriert die Apotheke, hält sie ohne gültigen arbeitenden Heiler unsichtbar und auf Animationsindex 0, sonst läuft die Heiler-Bildtabelle zyklisch; eine Änderung des sichtbaren Aktivzustands erneuert die Gebäudegrafik.
+Pseudocode-Beleg: buildingIsVisuallyActive/renderAnimation, nicht logicalState oder Sichtbarkeit
+Korrektur: Registriert die Apotheke; Arbeitsanimation ist nur bei workerID!=0 und Einheitenzustand2 aktiv. Keine UID-/Heilertyppruefung und keine allgemeine Unsichtbarkeit des Baus. Tabellenende erhoeht den internen Zykluszaehler, Aktivwechsel erneuert die Grafik; ausserhalb GM_SOLITARY wird die Besitzerflagge animiert.
+Export SHA256: 468cf3ebbc2975506beeec96e5f67a42904bb47a626d9a835dbaaf7f7e87ccd9
+
+25. ROT 0x00415BF0 / AU88
+Beanstandeter Wortlaut: 0x00415BF0 registriert die Tunnelbauergilde, schaltet deren Bauanimation aus, setzt die Animationsrichtung vorwärts und erneuert beim ersten Durchlauf die Gebäudegrafik.
+Pseudocode-Beleg: kein updateBuildingGraphicsLayer-Aufruf
+Korrektur: Registriert die Tunnelbauergilde, setzt renderAnimation0, animationIncrement1 und displayOwnerFlag0; ausserhalb GM_SOLITARY wird die Besitzerflagge eingeschaltet und animiert. Kein Aufruf zur Erstlauf-Erneuerung der Gebaeudegrafik in diesem Koerper.
+Export SHA256: 129cb8a70487f916b8d757ebd4bfde2ea4082ef675a68db1e77bf0584dfe205d
+
+26. GELB 0x00415E80 / AU88
+Beanstandeter Wortlaut: 0x00415E80 registriert die Oelschmelze, prüft ihre Arbeiterverweise und durchläuft die Zustände 2 bis 8 für Ankunft, Pechaufnahme, Füllen, Tragen und Ablage; bei den festgelegten Animationsenden werden Pechbestand und Arbeiterladung verändert, Arbeitsgeräusche ausgelöst und die sichtbare Aktivität neu gesetzt.
+Pseudocode-Beleg: Zustand4/Bild28 ist kein Animationsende; Zustand7-Ende zieht Pech ab
+Korrektur: Registriert die Oelschmelze und verarbeitet Arbeitszustaende0..8. In Zustand4 erhoeht Animationsindex28 bei animationActive!=0 resourcePitch; am Ende von Zustand7 wird resourcePitch vermindert. Last1 wird nur einem verlinkten Ingenieur in Zustand3 gegeben, ohne eigene UID-Pruefung; Arbeitsgeraeusche und Anzeige besitzen weitere Zustandsbedingungen.
+Export SHA256: 448146394a78484aca55fb873beb379eb87d42cc724267ca50e8ee88b0412b48
+
+27. ROT 0x00416720 / AU88
+Beanstandeter Wortlaut: 0x00416720 zählt Apfelfarmen und arbeiterlose Farmen, registriert sie, schaltet die Bauanimation aus und erneuert beim ersten Durchlauf die Gebäudegrafik; Baumwachstum läuft nicht in dieser Funktion.
+Pseudocode-Beleg: kein updateBuildingGraphicsLayer im vollstaendigen Koerper
+Korrektur: Zaehlt Apfelfarmen und solche mit workers[0]==0, registriert den Bau und setzt renderAnimation0; ausserhalb GM_SOLITARY wird die Besitzerflagge animiert. Weder Baumwachstum noch Erstlauf-Grafikerneuerung werden hier ausgefuehrt.
+Export SHA256: fc95aee580caa25fc70350418f11d61419508d7596f0e7bb24a658c7084e746f
+
+28. ROT 0x00416F80 / AU88
+Beanstandeter Wortlaut: 0x00416F80 registriert die Mühle und zeigt sie nur bei mindestens einem Arbeiter als aktiv; zwei Arbeiterplätze und mehrere Zustände steuern getrennte Flügel-/Mahlbilder, Geräusche, Produktionsfortschritt und die Erneuerung der Gebäudegrafik
+Pseudocode-Beleg: Drei Referenzen; field28==1 ->return; Validierung der unitID vor Aktiv1
+Korrektur: Registriert die Muehle und verarbeitet nach einem internen Zweierzaehler drei Arbeiterreferenzen (workers0/1 und Rohfeld+0x1BC). Aktivdarstellung haengt von der verlinkten unitID mit Normalzustand, TypMILLER und Zustand4 ab, nicht allein von irgendeinem Arbeiter. Fluegel-/Mahlbilder, Nachlauf und Grafikwechsel haben getrennte Bedingungen.
+Export SHA256: 219333c3061bc6eeac543806ff87556860489d3ea9e1bc1aad73f68ff4338497
+
+29. ROT 0x004177E0 / AU90
+Beanstandeter Wortlaut: 0x004177E0 behandelt die Kathedrale ebenso und wechselt bei hoechstens 30 Prozent Leben einmalig auf das Beschaedigtenbild 0x11F, oberhalb davon wird die Schadensmarke geloescht.
+Pseudocode-Beleg: Schadensbildzweig unter Kampagnenmission7
+Korrektur: Registriert die Kathedrale ohne Grundanimation und animiert ausserhalb GM_SOLITARY die Besitzerflagge. Nur in GM_CAMPAIGN_MISSION und missionNumber1to20==7 wird bei Leben<=maxHealth*3/10 das Sprite0x11F gesetzt; oberhalb wird lediglich die Schadensmarke geloescht, kein altes Sprite restauriert.
+Export SHA256: 7a2fc61240ac4d573b0cd279abdc9390aa284582c17ba0dd5ce767329f4ecf79
+
+30. GELB 0x00417FD0 / AU90
+Beanstandeter Wortlaut: 0x00417FD0 koppelt einen Tunnel an seinen Tunnelbauer: solange dieser gueltig arbeitet, laufen Grabebilder und -geraeusch; am Tabellenende wird der Tunnel verborgen, der Einheit Zustand 3 und `tunnelerFinishedDigging` auf 2 gesetzt.
+Pseudocode-Beleg: Keine Referenz-UID-Pruefung; am Ende nur Animationsfelder und Einheit setzen
+Korrektur: Verarbeitet die referenzierte Einheit nur anhand Zustand und dying, ohne eigenen UID-/Typabgleich. Zustand3, US_RELOAD_WEAPONUnk oder dying schalten die Bauanimation ab; der Arbeitszweig mit Enum-Ausdruck US_STAND_UPUnk|US_IDLEUnk verwendet die Grabebildtabelle. Bei Tabellenwert0xFF: renderAnimation0, Einheitenzustand3 und tunnelerFinishedDigging2; keine logische Entfernung des Tunnels.
+Export SHA256: 84c36ee82defc47e0c98554ea78914ec2d4c6d429b40c38bbe64cd6c58b82be7
+
+31. ROT 0x00418100 / AU90
+Beanstandeter Wortlaut: 0x00418100 fuehrt das Lagerfeuer mit geklemmtem Taktzaehler 0 bis 4.000, Feuergeraeusch, sichtbaren Ausbauphasen und zustandsabhaengigen Bildfolgen; die genaue Bedeutung seiner Bevoelkerungs- und Furchtuebergaenge bleibt offen.
+Pseudocode-Beleg: campgroundVclock=clamp(vclock,0,4000)/40-50
+Korrektur: Verarbeitet Lagerfeueranimation und -geraeusch sowie mehrere bisher nicht sicher gedeutete Bevoelkerungs-/Sitzuebergaenge. Player.vclock wird erst auf0..4000 begrenzt, dann als Ganzzahl /40-50 im Bau gespeichert (danach -50..50). Unklare Rohfelder bleiben offen; hier kein fortlaufender Bau-Taktzaehler0..4000.
+Export SHA256: 79653f501b960ae906b23899e3c66e29046e4678a7822ac3071a58a64bc4be6f
+
+32. GELB 0x00418740 / AU92
+Beanstandeter Wortlaut: 0x00418740 registriert den Maibaum, waehlt eine von neun Farbvarianten und animiert ihn nur bei positivem Furchtfaktor; der zufaellige Beliebtheitsvergleich waehlt den Bildzweig, alle acht Durchlaeufe erklingt das Maibaumgeraeusch.
+Pseudocode-Beleg: Achterzaehler nur im hohen Beliebtheitszweig
+Korrektur: Registriert den Maibaum, waehlt Farbvariante fireRelatedRNG1%9 und setzt Animation bei positivem Furchtfaktor. Der Vergleich popularity >= (fireRelatedRNG1&255)+5000 waehlt einen Bildzweig; nur dessen Animationsenden erhoehen den Achterzaehler fuer das Maibaumgeraeusch.
+Export SHA256: 826a938d18047d7898e58114a1aea0c411f37486f004d8f772f21f0fd8e3cf0d
+
+33. GELB 0x00418C80 / AU92
+Beanstandeter Wortlaut: 0x00418C80 registriert Turm 1, setzt seinen Eingang auf +1/+1 und berechnet aus neun Lebensstufen zufaellige Schaedenbilder; alle 100 Takte werden Einheiten auf seiner Grundflaeche erfasst und der Dachzustand daran angepasst.
+Pseudocode-Beleg: if counter>0 && --counter==0; dann Suche und100
+Korrektur: Registriert Turm1, setzt Eingang+1/+1 und lebensabhaengige Schadensbilder aus festem RNG. Ein positiver field288-Zaehler wird vermindert; nur bei1->0 wird die Grundflaeche auf Einheiten untersucht und der Zaehler100 gesetzt. Startwert0 prueft nichts, andere Funktionen koennen100 neu setzen; Dachbild folgt dem Belegungsfeld.
+Export SHA256: e4665b575fb3a060361fe232653f7c6e7881f3b698ebe2e4b7dec00d90dde507
+
+34. GELB 0x00418F90 / AU92
+Beanstandeter Wortlaut: 0x00418F90 registriert den Scheiterhaufen und animiert ihn bei Furchtfaktor unter -4; an den Bildern 47 und 49 erklingen Hexenverbrennung beziehungsweise Schrei.
+Pseudocode-Beleg: vier zusaetzliche Bedingungen um die beiden SFX-Aufrufe
+Korrektur: Registriert den Scheiterhaufen und animiert ihn bei Furchtfaktor<-4. Geraeusche an Index47/49 verlangen zusaetzlich animationActive!=0, Gebaeudestatusmenue, passenden BURNINGSTAKE-Tab und ausgewaehlte Bau-ID.
+Export SHA256: 5398dac7bf83b06cc147778fbdf881af2aed83d11a5a5d5eb96679568af03d4e
+
+35. GELB 0x00419800 / AU94
+Beanstandeter Wortlaut: 0x00419800 fuegt einer feindlichen, lebenden Einheit auf einer aktiven Moerdergrube einmalig 18.000 Schaden zu, ausgenommen Haendler und Haendlerpferd; bei Tod werden Todeszustand und Anzeige gesetzt, danach wird die Grube auf Zustand 1 geschaltet.
+Pseudocode-Beleg: Modus-/Besitzerbedingung und unknownTestAgainst0_1==0 vor Schaden
+Korrektur: Zieht auf aktiver Moerdergrube einmalig18000 Leben ab, falls gegnerisches Team, dying0, unknownTestAgainst0_1==0 und weder Haendler noch Haendlerpferd. Ausserhalb GM_SKIRMISH_AND_MULTIPLAYER muss die Grube oder Einheit dem aktuellen Spieler gehoeren. Tod setzt Stein-Todeszustand und Bewegungsmarke1; Lebensanzeige wird erneuert, Grubenzustand1.
+Export SHA256: dcb35cfb7869df947ac835e06373e646d832ad1f3c4695ffc3e4e528b96dcec6
+
+36. GELB 0x00419A30 / AU94
+Beanstandeter Wortlaut: 0x00419A30 initialisiert die Wegfindungsdaten vorhandener grosser und kleiner Tore eines Besitzers und erneuert deren Wegverknuepfung.
+Pseudocode-Beleg: pBVar1[0xFA]==0; buildingType-Offset210+500=710
+Korrektur: Initialisiert die Wegdaten belegter grosser/kleiner Tore eines Besitzers nur bei Rohfeld Building+0x2C6==0: erkennt den Klettereintrag an, setzt weitere Torfelder und erneuert die Wegverknuepfung. Bedeutung des Schutzfelds bleibt offen.
+Export SHA256: dbe78898b066a3a0943a4d985d4710d84e4effed03822dc78f1dae3c9fc26bb9
+
+37. GELB 0x00419EB0 / AU94
+Beanstandeter Wortlaut: 0x00419EB0 sucht in dieser Liste das naechste gueltige, nicht brennende Angriffsziel im Radius; Kennung und laufende Nummer muessen passen, ein Zielfaktor darf weder 0 noch 4 sein.
+Pseudocode-Beleg: local_c=1000000; iVar3<=param4*param4 && iVar3<local_c; hoher Rueckgabeteil als Zeiger
+Korrektur: Sucht in der zuvor erzeugten Feindbauliste bei passender UID und Brandfeld0 nach einem Ziel mit Brennbarkeitsfaktor weder0 noch4. Benutzt quadrierten euklidischen Abstand<=Radius*Radius, zusaetzlich strikt<1000000; Gleichstand behaelt den ersten Fund. Der undefined8-Rueckgabekanal der Brennbarkeitshilfe enthaelt einen unsicher rekonstruierten Koordinatenzeiger.
+Export SHA256: aeea4ae65c2ac4f215d613a69ff7c955c29237aefd0c0df72366b396268f0a43
+
+38. GELB 0x00419FA0 / AU94
+Beanstandeter Wortlaut: 0x00419FA0 liefert das naechste gueltige Feindgebaeude innerhalb des einschliesslich geprueften Quadratradius; bei Gleichstand bleibt der erste Fund.
+Pseudocode-Beleg: local_c=1000000; strikter Verbesserungsvergleich begrenzt selbst grosse Suchradien
+Korrektur: Liefert aus der Feindbauliste bei passender UID den ersten naechsten Bau nach dx*dx+dy*dy<=Radius*Radius und zusaetzlich strikt<1000000. Kein eigener Brand- oder Team-Neuabgleich; gleiche Entfernung behaelt den ersten Fund, kein Fund ergibt0.
+Export SHA256: a2583253a5f8da3f6bbebe79086ef1a4eb68e8fba6b5e76cd1cdde2179606e71
+
+39. GELB 0x0041B2B0 / AU96
+Beanstandeter Wortlaut: 0x0041B2B0 sucht umlaufend einen Gebaeudeeingang, verwirft blockierte und zu hoch oder tief liegende Kacheln und prueft Gebiet beziehungsweise Erreichbarkeit; regulärer Fund liefert 1, spaeter Ersatzfund 2, Fehlschlag 0, beim Steinbruch gilt zuerst Hoehentoleranz 32 statt 16.
+Pseudocode-Beleg: fromArea==0 OR Gebietgleich OR navigate; zweiter Durchgang zusaetzlich Typflag; letzter nur Gebiet!=0
+Korrektur: Leert zunaechst beide Eingangsfelder und sucht umlaufend einen Eingang in mehreren Durchgaengen. Toleranz zuerst bei Steinbruch32, sonst16, spaeter16; fromArea0 umgeht die Verbindungspruefung, ein Typflag kann sie im zweiten Durchgang ebenfalls umgehen. Regulärer Fund1, Ersatzfund mit nichtnull Gebiet aber ohne Verbindung2, Fehlschlag0; die uebergebene Kandidatenanzahl param_2 wird ueber Durchgaenge gezaehlt. Bebauter Kandidat nutzt einen unklaren undefined8-Rueckgabekanal als Index; Assemblerklaerung offen.
+Export SHA256: bb3263611fc64bf5e53b1a817b1ab72f2fad7fc73702b6111e3eba291e4a195d
+
+40. GELB 0x0041B890 / AU96
+Beanstandeter Wortlaut: 0x0041B890 prueft die zugaenglichen Randpositionen eines Baus ab etwa einem Viertel der Liste auf einen platzierbaren Steinbruchhaufen.
+Pseudocode-Beleg: commandBuildingType ist Parameter und wird unveraendert an Platzpruefung gegeben
+Korrektur: Prueft umlaufend Randpositionen ab ganzzahlig Count/4 fuer die uebergebene Bauart, Zielgroesse und Versatzparameter. Setzt DAT_TempBuildingRotation0 und ruft die Platzpruefung bis zum ersten Erfolg oder Listenende; void, Ergebnis in globalem buildingPlacementFail. Kein fest verdrahteter Steinbruchtyp.
+Export SHA256: 4f0acc05c6c658f5adbb32f0ced11054f7d2b3c02e15500b45a4319bb71ca815
+
+41. GELB 0x004178E0 / AU90
+Beanstandeter Wortlaut: die drei Funktionen initialisieren unter ihrer Startbedingung Gold- und Monatszaehler des Besitzers
+Pseudocode-Beleg: void UpdateKeepManorHouse(void)
+{
+int *piVar1;
+short sVar2;
+short sVar3;
+int iVar4;
+byte bVar5;
+int iVar6;
+int iVar7;
+iVar6 = DAT_CurrentBuildingID;
+sVar2 = B[DAT_CurrentBuildingID].owner;
+B[DAT_CurrentBuildingID].renderAnimation = 0;
+B[iVar6].currentHealth = B[iVar6].maxHealth;
+B[iVar6].someX = B[iVar6].x + 3;
+bVar5 = (byte)DAT_GameCore.mapTimeInTicks & 3;
+B[iVar6].someY = B[iVar6].y + 9;
+if (((bVar5 == 0) && (DAT_GameCore.gameMode_2 != GM_EDITOR)) &&
+(DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+iVar4 = G.playerDataArray[sVar2].startResources[0xf];
+if (0 < iVar4) {
+iVar7 = 1;
+if (iVar4 < 0x3e9) {
+if (100 < iVar4) {
+iVar7 = 10;
+}
+}
+else {
+iVar7 = 100;
+}
+piVar1 = G.playerDataArray[sVar2].currentResources + 0xf;
+*piVar1 = *piVar1 + iVar7;
+B[iVar6].resourceRelatedCountDown = 100;
+sVar3 = (short)G.playerDataArray[sVar2].currentResources[0xf];
+G.playerDataArray[sVar2].startResources[0xf] = iVar4 - iVar7;
+G.playerDataArray[sVar2].beforeLastMonthsGold = sVar3;
+G.playerDataArray[sVar2].lastMonthsGold = sVar3;
+DAT_GameCore.countdown = 1;
+}
+}
+return;
+}
+Korrektur: Periodischer Startgoldtransfer bei tick&3==0, ausser Editor/SIEGE_THAT, mit1/10/100 an Grenzen100/1000.
+Export SHA256: 97ead4baf8a8088ee6feca70bccef3308548a03cc171013fa4972b47ba110f52
+
+42. GELB 0x004179B0 / AU90
+Beanstandeter Wortlaut: die drei Funktionen initialisieren unter ihrer Startbedingung Gold- und Monatszaehler des Besitzers
+Pseudocode-Beleg: void UpdateKeepStoneKeep(void)
+{
+int *piVar1;
+short sVar2;
+short sVar3;
+int iVar4;
+byte bVar5;
+int iVar6;
+int iVar7;
+iVar6 = DAT_CurrentBuildingID;
+sVar2 = B[DAT_CurrentBuildingID].owner;
+B[DAT_CurrentBuildingID].renderAnimation = 0;
+B[iVar6].currentHealth = B[iVar6].maxHealth;
+B[iVar6].someX = B[iVar6].x + 3;
+bVar5 = (byte)DAT_GameCore.mapTimeInTicks & 3;
+B[iVar6].someY = B[iVar6].y + 2;
+B[iVar6].displayOwnerFlag = 1;
+B[iVar6].field20_0x38 = 0x18;
+if (((bVar5 == 0) && (DAT_GameCore.gameMode_2 != GM_EDITOR)) &&
+(DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+iVar4 = G.playerDataArray[sVar2].startResources[0xf];
+if (0 < iVar4) {
+iVar7 = 1;
+if (iVar4 < 0x3e9) {
+if (100 < iVar4) {
+iVar7 = 10;
+}
+}
+else {
+iVar7 = 100;
+}
+piVar1 = G.playerDataArray[sVar2].currentResources + 0xf;
+*piVar1 = *piVar1 + iVar7;
+B[iVar6].resourceRelatedCountDown = 100;
+sVar3 = (short)G.playerDataArray[sVar2].currentResources[0xf];
+G.playerDataArray[sVar2].startResources[0xf] = iVar4 - iVar7;
+G.playerDataArray[sVar2].beforeLastMonthsGold = sVar3;
+G.playerDataArray[sVar2].lastMonthsGold = sVar3;
+DAT_GameCore.countdown = 1;
+}
+}
+return;
+}
+Korrektur: Derselbe periodische Goldtransfer.
+Export SHA256: 72452d21a163548c8516a233ed6086510514c4b3379f2b70aafbe412d1ae6a20
+
+43. GELB 0x00417AA0 / AU90
+Beanstandeter Wortlaut: die drei Funktionen initialisieren unter ihrer Startbedingung Gold- und Monatszaehler des Besitzers
+Pseudocode-Beleg: void UpdateKeepStronghold(void)
+{
+int *piVar1;
+short sVar2;
+short sVar3;
+int iVar4;
+byte bVar5;
+int iVar6;
+int iVar7;
+iVar6 = DAT_CurrentBuildingID;
+sVar2 = B[DAT_CurrentBuildingID].owner;
+B[DAT_CurrentBuildingID].renderAnimation = 0;
+B[iVar6].currentHealth = B[iVar6].maxHealth;
+B[iVar6].displayOwnerFlag = 1;
+B[iVar6].field20_0x38 = 0x1b;
+B[iVar6].someX = B[iVar6].x + 5;
+bVar5 = (byte)DAT_GameCore.mapTimeInTicks & 3;
+B[iVar6].someY = B[iVar6].y + 4;
+if (((bVar5 == 0) && (DAT_GameCore.gameMode_2 != GM_EDITOR)) &&
+(DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+iVar4 = G.playerDataArray[sVar2].startResources[0xf];
+if (0 < iVar4) {
+iVar7 = 1;
+if (iVar4 < 0x3e9) {
+if (100 < iVar4) {
+iVar7 = 10;
+}
+}
+else {
+iVar7 = 100;
+}
+piVar1 = G.playerDataArray[sVar2].currentResources + 0xf;
+*piVar1 = *piVar1 + iVar7;
+B[iVar6].resourceRelatedCountDown = 100;
+sVar3 = (short)G.playerDataArray[sVar2].currentResources[0xf];
+G.playerDataArray[sVar2].startResources[0xf] = iVar4 - iVar7;
+G.playerDataArray[sVar2].beforeLastMonthsGold = sVar3;
+G.playerDataArray[sVar2].lastMonthsGold = sVar3;
+DAT_GameCore.countdown = 1;
+}
+}
+return;
+}
+Korrektur: Derselbe periodische Goldtransfer.
+Export SHA256: ddb37d7e1a8e32aca545bd9295f308c047d9e1f3324ff562281f44f118ca5b74
+
+44. ROT 0x0041A8D0 / AU96
+Beanstandeter Wortlaut: zehn besondere Bauverweise
+Pseudocode-Beleg: void __thiscall
+swapOwnersOfCastle
+(BuildingsState *this,int param_1,int param_2)
+{
+BuildingEntryInfo *pBVar1;
+BuildingEntryInfo *pBVar2;
+int *piVar3;
+int *piVar4;
+bool bVar5;
+short *psVar6;
+int iVar7;
+bVar5 = false;
+psVar6 = &B[1].owner;
+iVar7 = 1999;
+do {
+if (psVar6[-3] == BLS_NORMAL) {
+if (*psVar6 == param_1) {
+*psVar6 = (short)param_2;
+bVar5 = true;
+if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+*(int *)(psVar6 + -0x67) = param_2;
+}
+}
+else if (*psVar6 == param_2) {
+*psVar6 = (short)param_1;
+bVar5 = true;
+if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+*(int *)(psVar6 + -0x67) = param_1;
+}
+}
+}
+psVar6 = psVar6 + 0x196;
+iVar7 = iVar7 + -1;
+} while (iVar7 != 0);
+if (bVar5) {
+pBVar1 = &G.playerDataArray[param_1].keep;
+pBVar2 = &G.playerDataArray[param_2].keep;
+iVar7 = pBVar2->id;
+pBVar2->id = pBVar1->id;
+pBVar1->id = iVar7;
+piVar3 = &G.playerDataArray[param_1].keep.xEntry;
+piVar4 = &G.playerDataArray[param_2].keep.xEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].keep.yEntry;
+piVar4 = &G.playerDataArray[param_2].keep.yEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].keep.tileEntry;
+piVar4 = &G.playerDataArray[param_2].keep.tileEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].keep.areaEntry;
+piVar4 = &G.playerDataArray[param_2].keep.areaEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+pBVar1 = &G.playerDataArray[param_1].marketplace;
+pBVar2 = &G.playerDataArray[param_2].marketplace;
+iVar7 = pBVar2->id;
+pBVar2->id = pBVar1->id;
+pBVar1->id = iVar7;
+piVar3 = &G.playerDataArray[param_1].marketplace.xEntry;
+piVar4 = &G.playerDataArray[param_2].marketplace.xEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].marketplace.yEntry;
+piVar4 = &G.playerDataArray[param_2].marketplace.yEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].marketplace.tileEntry;
+piVar4 = &G.playerDataArray[param_2].marketplace.tileEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].marketplace.areaEntry;
+piVar4 = &G.playerDataArray[param_2].marketplace.areaEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+pBVar1 = &G.playerDataArray[param_1].engineersGuild;
+pBVar2 = &G.playerDataArray[param_2].engineersGuild;
+iVar7 = pBVar2->id;
+pBVar2->id = pBVar1->id;
+pBVar1->id = iVar7;
+piVar3 = &G.playerDataArray[param_1].engineersGuild.xEntry;
+piVar4 = &G.playerDataArray[param_2].engineersGuild.xEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].engineersGuild.yEntry;
+piVar4 = &G.playerDataArray[param_2].engineersGuild.yEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].engineersGuild.tileEntry;
+piVar4 = &G.playerDataArray[param_2].engineersGuild.tileEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].engineersGuild.areaEntry;
+piVar4 = &G.playerDataArray[param_2].engineersGuild.areaEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+pBVar1 = &G.playerDataArray[param_1].tunnelersGuild;
+pBVar2 = &G.playerDataArray[param_2].tunnelersGuild;
+iVar7 = pBVar2->id;
+pBVar2->id = pBVar1->id;
+pBVar1->id = iVar7;
+piVar3 = &G.playerDataArray[param_1].tunnelersGuild.xEntry;
+piVar4 = &G.playerDataArray[param_2].tunnelersGuild.xEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].tunnelersGuild.yEntry;
+piVar4 = &G.playerDataArray[param_2].tunnelersGuild.yEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].tunnelersGuild.tileEntry;
+piVar4 = &G.playerDataArray[param_2].tunnelersGuild.tileEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].tunnelersGuild.areaEntry;
+piVar4 = &G.playerDataArray[param_2].tunnelersGuild.areaEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+pBVar1 = &G.playerDataArray[param_1].stockpile;
+pBVar2 = &G.playerDataArray[param_2].stockpile;
+iVar7 = pBVar2->id;
+pBVar2->id = pBVar1->id;
+pBVar1->id = iVar7;
+piVar3 = &G.playerDataArray[param_1].stockpile.xEntry;
+piVar4 = &G.playerDataArray[param_2].stockpile.xEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].stockpile.yEntry;
+piVar4 = &G.playerDataArray[param_2].stockpile.yEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].stockpile.tileEntry;
+piVar4 = &G.playerDataArray[param_2].stockpile.tileEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].stockpile.areaEntry;
+piVar4 = &G.playerDataArray[param_2].stockpile.areaEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+pBVar1 = &G.playerDataArray[param_1].armory;
+pBVar2 = &G.playerDataArray[param_2].armory;
+iVar7 = pBVar2->id;
+pBVar2->id = pBVar1->id;
+pBVar1->id = iVar7;
+piVar3 = &G.playerDataArray[param_1].armory.xEntry;
+piVar4 = &G.playerDataArray[param_2].armory.xEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].armory.yEntry;
+piVar4 = &G.playerDataArray[param_2].armory.yEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].armory.tileEntry;
+piVar4 = &G.playerDataArray[param_2].armory.tileEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].armory.areaEntry;
+piVar4 = &G.playerDataArray[param_2].armory.areaEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+pBVar1 = &G.playerDataArray[param_1].granary;
+pBVar2 = &G.playerDataArray[param_2].granary;
+iVar7 = pBVar2->id;
+pBVar2->id = pBVar1->id;
+pBVar1->id = iVar7;
+piVar3 = &G.playerDataArray[param_1].granary.xEntry;
+piVar4 = &G.playerDataArray[param_2].granary.xEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].granary.yEntry;
+piVar4 = &G.playerDataArray[param_2].granary.yEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].granary.tileEntry;
+piVar4 = &G.playerDataArray[param_2].granary.tileEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].granary.areaEntry;
+piVar4 = &G.playerDataArray[param_2].granary.areaEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+pBVar1 = &G.playerDataArray[param_1].barracks;
+pBVar2 = &G.playerDataArray[param_2].barracks;
+iVar7 = pBVar2->id;
+pBVar2->id = pBVar1->id;
+pBVar1->id = iVar7;
+piVar3 = &G.playerDataArray[param_1].barracks.xEntry;
+piVar4 = &G.playerDataArray[param_2].barracks.xEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].barracks.yEntry;
+piVar4 = &G.playerDataArray[param_2].barracks.yEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].barracks.tileEntry;
+piVar4 = &G.playerDataArray[param_2].barracks.tileEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].barracks.areaEntry;
+piVar4 = &G.playerDataArray[param_2].barracks.areaEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+pBVar1 = &G.playerDataArray[param_1].mercenaryPost;
+pBVar2 = &G.playerDataArray[param_2].mercenaryPost;
+iVar7 = pBVar2->id;
+pBVar2->id = pBVar1->id;
+pBVar1->id = iVar7;
+piVar3 = &G.playerDataArray[param_1].mercenaryPost.xEntry;
+piVar4 = &G.playerDataArray[param_2].mercenaryPost.xEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].mercenaryPost.yEntry;
+piVar4 = &G.playerDataArray[param_2].mercenaryPost.yEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].mercenaryPost.tileEntry;
+piVar4 = &G.playerDataArray[param_2].mercenaryPost.tileEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].mercenaryPost.areaEntry;
+piVar4 = &G.playerDataArray[param_2].mercenaryPost.areaEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+pBVar1 = &G.playerDataArray[param_1].campground;
+pBVar2 = &G.playerDataArray[param_2].campground;
+iVar7 = pBVar2->id;
+pBVar2->id = pBVar1->id;
+pBVar1->id = iVar7;
+piVar3 = &G.playerDataArray[param_1].campground.xEntry;
+piVar4 = &G.playerDataArray[param_2].campground.xEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].campground.yEntry;
+piVar4 = &G.playerDataArray[param_2].campground.yEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].campground.tileEntry;
+piVar4 = &G.playerDataArray[param_2].campground.tileEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].campground.areaEntry;
+piVar4 = &G.playerDataArray[param_2].campground.areaEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+pBVar1 = &G.playerDataArray[param_1].unknown6;
+pBVar2 = &G.playerDataArray[param_2].unknown6;
+iVar7 = pBVar2->id;
+pBVar2->id = pBVar1->id;
+pBVar1->id = iVar7;
+piVar3 = &G.playerDataArray[param_1].unknown6.xEntry;
+piVar4 = &G.playerDataArray[param_2].unknown6.xEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].unknown6.yEntry;
+piVar4 = &G.playerDataArray[param_2].unknown6.yEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].unknown6.tileEntry;
+piVar4 = &G.playerDataArray[param_2].unknown6.tileEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].unknown6.areaEntry;
+piVar4 = &G.playerDataArray[param_2].unknown6.areaEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+pBVar1 = &G.playerDataArray[param_1].oilSmelter;
+pBVar2 = &G.playerDataArray[param_2].oilSmelter;
+iVar7 = pBVar2->id;
+pBVar2->id = pBVar1->id;
+pBVar1->id = iVar7;
+piVar3 = &G.playerDataArray[param_1].oilSmelter.xEntry;
+piVar4 = &G.playerDataArray[param_2].oilSmelter.xEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].oilSmelter.yEntry;
+piVar4 = &G.playerDataArray[param_2].oilSmelter.yEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].oilSmelter.tileEntry;
+piVar4 = &G.playerDataArray[param_2].oilSmelter.tileEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+piVar3 = &G.playerDataArray[param_1].oilSmelter.areaEntry;
+piVar4 = &G.playerDataArray[param_2].oilSmelter.areaEntry;
+iVar7 = *piVar4;
+*piVar4 = *piVar3;
+*piVar3 = iVar7;
+}
+return;
+}
+Korrektur: Zwölf einzeln ausgeschriebene BuildingEntryInfo-Gruppen werden vertauscht.
+Export SHA256: 5599fe81310b79abf8982232e6c94a8a85d5bdaeb6802ff6e80240ded1c32248
+
+45. GELB 0x00419D70 / AU94
+Beanstandeter Wortlaut: fuellt sie mit aktiven Bauten gegnerischer Teams
+Pseudocode-Beleg: void __thiscall
+updateEnemyBuildings(BuildingsState *this,int playerID)
+{
+int *piVar1;
+BuildingLogicalStateShort *pBVar2;
+int iVar3;
+bool bVar4;
+bVar4 = DAT_GameSynchronyState.currentGameMode == GM_SOLITARY;
+G.mapAndTime.playerBuildingInfoIndex[playerID] = 0;
+if ((((bVar4) || (DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] != -1)) ||
+(DAT_GameSynchronyState.currentAIArray[playerID] != 0)) &&
+(iVar3 = 1, 1 < DAT_BuildingsState.maxBuildingsCount)) {
+pBVar2 = &B[1].logicalState;
+do {
+if (((*pBVar2 != 0) &&
+(G.mapAndTime.playerTeams[(short)pBVar2[3]] !=
+G.mapAndTime.playerTeams[playerID])) && (*pBVar2 != BLS_REMOVE)) {
+switch(pBVar2[1]) {
+case 10:
+case 0x15:
+case 0x27:
+case 0x28:
+case 0x29:
+case 0x2a:
+case 0x2b:
+case 0x2c:
+case 0x31:
+case 0x32:
+case 0x33:
+case 0x34:
+case 0x35:
+case 0x36:
+case 0x37:
+case 0x38:
+case 0x39:
+case 0x3a:
+case 0x3b:
+case 0x43:
+case 0x47:
+case 0x48:
+case 0x49:
+case 0x50:
+case 0x51:
+case 0x52:
+case 0x53:
+case 0x54:
+case 0x55:
+case 0x68:
+break;
+default:
+G.mapAndTime.playerEnemyBuildingIDs[playerID]
+[G.mapAndTime.playerBuildingInfoIndex[playerID]] = iVar3;
+G.mapAndTime.playerEnemyBuildingUID[playerID]
+[G.mapAndTime.playerBuildingInfoIndex[playerID]] = *(int *)(pBVar2 + 4);
+piVar1 = G.mapAndTime.playerBuildingInfoIndex + playerID;
+*piVar1 = *piVar1 + 1;
+}
+}
+iVar3 = iVar3 + 1;
+pBVar2 = pBVar2 + 0x196;
+} while (iVar3 < DAT_BuildingsState.maxBuildingsCount);
+}
+return;
+}
+Korrektur: Befuellen nur bei GM_SOLITARY oder menschlichem/KI-Slot; Zaehler wird immer0.
+Export SHA256: c33f5233e1620c5abce3528cabbea735ee8c2269a60d307dd9482f2ba94ffa39
+
+46. GELB 0x00419AC0 / AU94
+Beanstandeter Wortlaut: alle loeschen 0x400
+Pseudocode-Beleg: void __thiscall
+rebuildTileLogicLayerForGatesAndWalls
+(BuildingsState *this)
+{
+byte bVar1;
+short sVar2;
+int iVar3;
+int iVar4;
+int iVar5;
+iVar4 = 0x32c;
+do {
+if ((*(short *)((int)B[0].resourceArray_resourceTypePlus1 +
+iVar4 + -0x50) != 0) &&
+(((sVar2 = *(short *)((int)B[0].resourceArray_resourceTypePlus1 +
+iVar4 + -0x4e), sVar2 == 0x2d || (sVar2 == 0x2e)) || (sVar2 == 0x2f))))
+{
+iVar5 = 0;
+do {
+getBuildingSizeIndexMappingData
+(iVar5,*(undefined4 *)
+((int)B[0].resourceArray_resourceTypePlus1 +
+iVar4 + -0x28));
+iVar3 = DAT_ViewportRenderState.translationMatrix
+[*(short *)((int)B[0].resourceArray_resourceTypePlus1 +
+iVar4 + -0x30) + DAT_TileMapState.buildingY].addXgetTile +
+(int)*(short *)((int)B[0].resourceArray_resourceTypePlus1
++ iVar4 + -0x32) + DAT_TileMapState.buildingX;
+if (*(short *)((int)B[0].resourceArray_resourceTypePlus1 +
+iVar4 + -0x4e) == 0x2f) {
+bVar1 = *(byte *)((int)B[0].resourceArray_resourceTypePlus1 +
+iVar4 + -0x34);
+DAT_TileMapState.LogicLayer[iVar3] =
+DAT_TileMapState.LogicLayer[iVar3] & 0xfffefeffU | 0x10000000;
+DAT_TileMapState.MiscDisplayLayer[iVar3] =
+DAT_TileMapState.MiscDisplayLayer[iVar3] & 0xffdf;
+DAT_TileMapState.HeightLayer[iVar3] = bVar1;
+}
+else {
+DAT_TileMapState.LogicLayer[iVar3] = DAT_TileMapState.LogicLayer[iVar3] | 0x100;
+DAT_TileMapState.WallOwnerLayer[iVar3] =
+*(char *)((int)B[0].resourceArray_resourceTypePlus1 +
+iVar4 + -0x4a) - 1U | DAT_TileMapState.WallOwnerLayer[iVar3] & 0xf8;
+}
+DAT_TileMapState.LogicLayer[iVar3] = DAT_TileMapState.LogicLayer[iVar3] & 0xfffffbff;
+iVar5 = iVar5 + 1;
+} while (iVar5 < DAT_TileMapState.constructionTileCount);
+}
+iVar4 = iVar4 + 0x32c;
+} while (iVar4 < 0x18c7c0);
+return;
+}
+Korrektur: Typ0x2F setzt auch Hoehe aus dem Bauwert und loescht MiscDisplay-Bit0x20.
+Export SHA256: 3f1ed3de33cbc7cb7ca303d956186da4443c3cbfaaea732dd73e33a6b3c95fff
+
+47. GELB 0x0041BAB0 / AU96
+Beanstandeter Wortlaut: liefert den ersten von 0 verschiedenen Wert der Wegverbindungsschicht an einem zugaenglichen Randfeld, sonst 0; seine genaue Bedeutung bleibt offen.
+Pseudocode-Beleg: setupBuildingEntrancesOffset(...); translationMatrix[*(int *)(extraout_ECX+0x18e02c)+y] ...; allein PathConnectionLayer[iVar2]!=0 wird getestet.
+Korrektur: Liefert den ersten von0 verschiedenen short-Wert der PathConnectionLayer an den aus der Randliste berechneten Feldern, sonst0. Keine eigene Pruefung von Sperrbits oder Hoehen; der Basiszeiger extraout_ECX nach setupBuildingEntrancesOffset ist im Pseudocode unaufgeloest. Ein tatsaechlich betretbarer Eingang ist damit nicht bewiesen.
+Export SHA256: 59fa0826b90075a2533420dce78a2dedd523f5a1ad6333a80df8ff91b8cf4ce5
+
+48. ROT 0x0041BB30 / AU96
+Beanstandeter Wortlaut: aendert bei passender laufender Nummer einen Bauvorrat nur innerhalb 0 bis Kapazitaet und aktualisiert bei eingeschalteter Neuberechnung Gesamtsummen, Zaehler, Grafik und einen Ablaufzaehler um 600.
+Pseudocode-Beleg: if(maxCapacity==0){*piVar1=0;} else if(-1<iVar3 && iVar3<=maxCapacity){if(recomputeResources!=0){*piVar1=iVar3;extendResourceCountdownForPlayerBuildingsOfType(...,600,DAT_GameSynchronyState.currentPlayerSlotID);...} return1;} return0;
+Korrektur: Bei UID-Gleichheit und maxCapacity0 wird der Slot ungeachtet amount geloescht und0 zurueckgegeben. Sonst prueft die Funktion Bestand+amount in0..maxCapacity: bei recomputeResources0 liefert sie1 ohne Aenderung; erst bei gesetztem Schalter schreibt sie und aktualisiert Summen/Grafik. Der600-Zaehler wird fuer den aktuellen Spielerslot und den Bautyp verlaengert, nicht zwingend fuer den Baubesitzer; ungueltige UID/Grenze liefert0.
+Export SHA256: 39d61d1d0bb991d023afd208f31b05b851da0c8bdf0f63f565cb8c816a000922
+
+49. GELB 0x0041BC10 / AU96
+Beanstandeter Wortlaut: verteilt eine Warenmenge einzeln auf passende Kornspeicher desselben Spielers bis je 250.
+Pseudocode-Beleg: while(iVar2!=0){ addResourceToStockpile(...,1,0xfa,1); amount=amount-1; if(amount==0)return; ...}; pBVar1=(BuildingsState*)((ulonglong)uVar4>>0x20);
+Korrektur: Verteilt bei erwarteter positiver amount jeweils1 auf Kornspeicher desselben Besitzers bis250 und endet, sobald amount nach Verringerung0 ist. Keine vorgelagerte Pruefung amount>0 und kein eigener Normalzustandsfilter; bei amount0 kann dennoch Ware hinzugefuegt werden. MaxBuildingsCount wird ueber einen unsicher rekonstruierten oberen undefined8-Rueckgabekanal gelesen; Zeigerherleitung offen.
+Export SHA256: dea490919e0897bfb66761d97c4cb715fd9617c5a98d22c861aae01289cfdb15
+
+50. GELB 0x0041BD70 / AU96
+Beanstandeter Wortlaut: verarbeitet Warenverlust: Typ 0 bleibt wirkungslos, sonst werden je Spielmodus Startbestand, Gesamtbestand oder passende Bauvorraete vermindert; ein gesetzter Schalter merkt die Menge nur in einem 16-Bit-Feld vor.
+Pseudocode-Beleg: if(param_4!=0)*psVar6=(short)amount; amount=0; updateBuildingGraphicsLayer(...); Schleife laeuft weiter; nach if(bVar3)return folgt currentResources[RVar5]=0.
+Korrektur: Typ0 kehrt wirkungslos zurueck; Belagerungs-/Direktbestandspfade ziehen nur bei param_4=0 ab. Lagerpfad nimmt aus normalen passenden Bauten oder merkt bei param_4!=0 Teilmengen im short-Feld vor und aktualisiert auch dann Grafik. Ohne positiven passenden Lagerbestand setzt er den Gesamtbestand auf0, auch bei gesetztem Schalter. Keine Pruefung auf positive amount, kein Abbruch beim Erreichen0; ECX und oberer undefined8-Kanal fuer Ressourcentyp bleiben offen.
+Export SHA256: 9ff86b8b86e779c31264b8e41bc9dea311738816c53d35fd8bbad18084caa178
+
+51. GELB 0x0041C190 / AU96
+Beanstandeter Wortlaut: berechnet ausser bei kostenlosen Bauten und im Editor die Steinkosten einer Mauer; im Belagerungsmodus zaehlt nur `highCount`, sonst `(lowCount + 2*highCount + Rest)/4`, der Rest modulo 4 bleibt gespeichert
+Pseudocode-Beleg: if(zero==0)*(uint*)pbVar1=uVar2&3; amount=(int)(uVar2+((int)uVar2>>0x1f&3U))>>2; ... WallAndPitchState.counter=amount;
+Korrektur: Berechnet ausser bei kostenlosen Bauten und Editor die Steinkosten; Belagerungsmodus nimmt highCount, sonst vorzeichenbehaftete Division (lowCount+2*highCount+alterRest)/4. Nur zero0 speichert den neuen Rest mittels &3. Schreibt wallPlacementCost und ruft processResourceLoss mit zero auf; fuer aktuellen Spielerslot, zero0 und Kosten!=0 setzt es zudem WallAndPitchState.flag0/counterKosten.
+Export SHA256: dbf35781b4613242d7c216f408364e2e257786ff035658ccee77a79b1a79920d
+
+52. GELB 0x0041C310 / AU104
+Beanstandeter Wortlaut: prueft zuerst Gesamtplatz und verteilt positive Mengen je Lagertyp direkt, ins Waffenlager, Kornspeicher oder zweiphasig in normale Lager; nichtpositive Mengen liefern wahr, Teilverteilung wird bei spaeterem Fehler nicht zurueckgenommen.
+Pseudocode-Beleg: iVar1=getResourceSpace(...); if(iVar1<amount)return FALSE; if(0<amount){...} return TRUE; piVar3=this_00->buildings[1]...;
+Korrektur: Prueft zuerst getResourceSpace<amount und liefert dann FALSE, unabhaengig vom Vorzeichen. Erst nach bestandener Platzpruefung liefern nichtpositive Mengen TRUE. Positive Mengen gehen je Lagertyp direkt, an Waffen-/Kornspeicher oder zweiphasig in normale Lager; Teilverteilung wird bei spaeterem Fehler nicht zurueckgenommen. Waffen-/Kornspeicherpfad prueft den Erfolg der void-Helfer nicht; ein this_00-Basiszeiger ist im Pseudocode nicht initialisiert.
+Export SHA256: 992d875cd79923d3fafb476209ddade7c8b8a1b67746fe5f3d45c1a73e47ab83
+
+53. GELB 0x0041CC70 / AU104
+Beanstandeter Wortlaut: registriert die Eisenmine, zaehlt sie, verarbeitet jeden zweiten Aufruf gekoppelte Arbeiter-/Produktionsanimationen und lagert am Zyklusende ein Eisen bis Kapazitaet 8 ein; viele Rohfelder bleiben unbenannt.
+Pseudocode-Beleg: if(workers[0]==0) state=0; ... getBuildingResourceAmountByUid(...RT_IRON); state=(iVar4<7)-1&6; ... addResourceToStockpile(...RT_IRON,1,8,1);
+Korrektur: Registriert und zaehlt die Eisenmine und verarbeitet nach field28_0x58>=2 die gekoppelte Animation. Arbeit haengt nur an workers[0]!=0; keine UID-/Einheitenartpruefung. Am Ende der letzten Teilanimation wird addResourceToStockpile fuer1Eisen mit Kapazitaet8 aufgerufen, sein Erfolg aber ignoriert. Hauptzustand5/6 geht bei gelesenen Eisenbestand<7 zu0, sonst6. Rohfelder sind keine gesicherten Arbeiter-/Produktionsbedeutungen.
+Export SHA256: 79a757209156dfeada1a6f2e9dab2fa7151b0466d8df83fa11d128e7f624a37b
+
+54. GELB 0x0041D510 / AU104
+Beanstandeter Wortlaut: tut dies fuer den Steinbruch mit drei Belegungen, Zustaenden 0-11, mehreren Arbeitsanimationen und einem Stein ins verknuepfte Lager bis Kapazitaet 48; negative Lager-ID wird nicht abgefangen.
+Pseudocode-Beleg: if(iVar10==1 && currentGameMode==GM_SOLITARY)return; ... workers[0],workers[1],field_0x1bc!=0; ... iVar7<0x2f; addResourceToStockpile(...RT_STONE,1,0x30,1);
+Korrektur: Registriert und zaehlt den Steinbruch; nur GM_SOLITARY ueberspringt jeden zweiten Aufruf, andere Modi verarbeiten jeden Aufruf. Drei nichtnull Belegungen erlauben die gekoppelten Animationen mit Teilzustaenden0-11; keine UID-/Artpruefung. Ein Teilzyklus ruft die Ablage von1Stein mit Kapazitaet48 auf und ignoriert deren Erfolg. Ruecksprung aus Zustand11 verlangt gelesenen Lagerbestand<47. Negative Lager-ID wird nicht abgefangen; Rohfeldbedeutungen bleiben offen.
+Export SHA256: e8bc25fd820270c9798e840e95606e902600db00434cb37c11b08afeda670303
+
+55. GELB 0x0041EDA0 / AU104
+Beanstandeter Wortlaut: prueft zusaetzlich periodisch Einheiten auf dem Dach und schaltet Dach/Overlay ueber ein unsicher rekonstruiertes Feld.
+Pseudocode-Beleg: if(0<sVar4 && (sVar4=sVar4-1,field288=sVar4,sVar4==0)){...hasUnitsOntop=sVar4;field288=100;}
+Korrektur: Prueft die UnitLayer der Baugrundflaeche nur beim Herunterzaehlen von field288_0x2fa von1auf0 und setzt den Zaehler danach100; ein anfangs0-Zaehler startet diese Pruefung nicht. Schreibt hasUnitsOntop und setzt bei nichtnull Rohfeld den Overlaywert0x7B/Dachwert0. Die genaue Rohfeldherleitung bleibt offen.
+Export SHA256: b4776274a15a1c359858ed0bebdb679e5cc6b71356bad9f78134ed557af8f5a3
+
+56. ROT 0x00421990 / AU104
+Beanstandeter Wortlaut: markiert und loescht den Zielbau samt allen aktiven Bauten mit gleichem gesicherten Verknuepfungswert; ID 0 greift vor die Tabelle, der Schuttschalter endet immer bei 0.
+Pseudocode-Beleg: types.json: Building.length812, incByFourUnk.offset792. Effektiver Offset -812+792+2*0x15E=680; Vergleich logicalState.offset208+2*0xEC=680. Bei BT_SIGNPOST: destroySignpostData(param_1); psVar2=extraout_EDX.
+Korrektur: Markiert/loescht den Zielbau und bei gesichertem Verknuepfungswert!=0 weitere aktive Bauten mit gleichem Wert. Der regulaere Ausdruck &buildings[param_1-1].incByFourUnk+0x15E shorts ergibt mit Strukturlaenge812 und Feldoffset792 effektiv buildings[param_1]+680; daraus folgt kein Zugriff vor die Tabelle bei ID0. ID0 ist dennoch nicht ausgeschlossen. Beim Wegweiserpfad stammt der Basiszeiger aus unaufgeloestem extraout_EDX; sichere Felddeutung offen. Schuttschalter endet0.
+Export SHA256: 4865f59d099475f01171922102732717b7e35598d14093530d215ca9edb442be
+
+57. GELB 0x00421D70 / AU107
+Beanstandeter Wortlaut: gibt bei positivem Anteil Baukosten zurueck, im Belagerungsmodus stets 100 Prozent; Sonder-IDs -1/-2 betreffen Stein/Holz mit Viertelrest, -3/-4 und Typen 0x56/0x57 sind nur mutmasslich Belagerungsgeraete.
+Pseudocode-Beleg: if(param_3!=0){... if(GM_SIEGE_THAT)iVar5=100;} regulaere Bau-ID in GM_SIEGE_THAT: resourceGainForKillingPitAndPitchDitch(...); startResources[4]+=param_3; startResources[0xf]+=...; return;
+Korrektur: Arbeitet bei param_3!=0, auch bei negativen Anteilen; im Belagerungsmodus wird der Berechnungsanteil auf100 gesetzt. Dort schreibt Sonderfall-1 direkt1Startstein, regulaere Bau-ID nur angepasste Startstein-/Startgoldwerte und kehrt zurueck. Sonderfall-2 sowie -3/-4 laufen ueber processResourceGain; ausserhalb des Sonderpfads werden die fuenf Kostenarten einzeln versucht, bei Platzfehler nur Ton und kein Ruecksetzen vorheriger Gutschriften. -1/-2 nutzen Stein-/Holz-Viertelrest, Bedeutung0x56/0x57 bleibt offen.
+Export SHA256: c27caaf6c91290c5b246cede176dc2f37f8bf7aa9384d3be4aa3caaf502536f6
+
+58. ROT 0x00422230 / AU107
+Beanstandeter Wortlaut: sucht fuer Rohstofftyp 10 erst ein eigenes normales Lager mit Bestand unter der Typgrenze, dann ein leeres; fuer 0x13 ein zugängliches Kornlager mit Summe hoechstens 249, der Mengenparameter bleibt unbenutzt.
+Pseudocode-Beleg: iVar1=getBuildingStorageTypeForResourceType(resourceType); if(iVar1==10)... else if(iVar1==0x13)...; amount wird nicht gelesen.
+Korrektur: Entscheidend ist der von getBuildingStorageTypeForResourceType gelieferte Lagertyp10 bzw0x13, nicht die uebergebene Rohstoffnummer. Lagertyp10 sucht eigene normale Vorratslager erst mit nichtnull Warenbestand unter der Artgrenze, danach mit currentNumberOfResource<1. Lagertyp0x13 sucht eigene normale Kornspeicher mit Gesamtsumme<=249 und nichtnull Zugaenglichkeit. amount wird ignoriert, Fehlschlag0.
+Export SHA256: a039173694c2c9ad1d50b6f5641f40c6a1bd339185e2e1befae94f3a417d12f9
+
+59. GELB 0x00422400 / AU107
+Beanstandeter Wortlaut: bewertet eigene zugaengliche Steinbruchhaufen mit Stein durch `400-Achsendistanz`; bei gesetztem Arbeiterfeld und mehr als 7 Stein kommt bis 40 die halbe, danach die volle Menge hinzu, Gleichstand gewinnt die spaetere ID.
+Pseudocode-Beleg: _maxValue=0; _highestValueBuilding=0; if(_maxValue<=iVar1){_maxValue=iVar1;_highestValueBuilding=buildingID;} Unit.field317_0x410!=0.
+Korrektur: Bewertet eigene normale zugaengliche Steinbruchhaufen mit positivem Steinbestand durch400-Achsendistanz. Bei nichtnull Unit-Rohfeld field317_0x410 und Bestand>7 kommt bis40 die halbe, danach die volle Menge hinzu. Nur Werte>=0 koennen die anfangs0-beste Wahl ersetzen; negative Bewertungen ergeben keinen Fund. Gleichstand gewinnt die spaetere ID. Die Bedeutung des Unit-Rohfelds als Arbeiterkennzeichen ist unbelegt.
+Export SHA256: 1510495f2756938b0f5c7358ebc2325f37c3fd78ccdf9b5296b63ff4998fc07a
+
+60. GELB 0x004224F0 / AU107
+Beanstandeter Wortlaut: wertet verteilt alle zehn Takte Einheiten auf Torfeldern aus, schliesst bei feindlicher Kontrolle und prueft sonst alle 50 Takte gueltige Feinde unter 200 Mikrokoordinaten; dann bleibt es 1200 Takte geschlossen, mehrere Zustandsfelder sind unbenannt.
+Pseudocode-Beleg: local_24[owner]+=getValueOfTroopType(...); spawnProjectileEntity(...ET_FLAG_1...); colorUnk=iVar10; field268=local_3c; gateState=0xb; ... gateCloseOpenTimer; if(maxDist<200){gateState2=0x4b0;...}
+Korrektur: Wertet versetzt alle10 gameTicksLoadBalancer-Schritte Einheiten-Truppenwerte auf Baugrundfeldern aus, waehlt bei rein fremder Belegung den Spieler mit hoechster Einzelspielersumme und erzeugt/faerbt Flaggenobjekte; bei Wechsel kann ein Warnton folgen. Schreibt Kontrollfeld und Torzustand0xB, ohne Besitzerwechsel. Bei Kontrollfeld0 folgen Zaehler-/Spielermoduspruefungen; nur bei nichtnegativem abgelaufenem gateCloseOpenTimer wird alle50Schritte die Feindliste geprueft: UID passend, nicht UT_LIONSHWOLF, selectable!=0, max(|dx|,|dy|)<200. Fund setzt gateState2=1200, erneute Funde erneuern ihn; keine pauschal exakt1200Takte feste Schliessdauer. Die Bedeutung aller Tor-/Brueckenrohwerte erfordert den Zustandsautomaten.
+Export SHA256: dc2d0058d5737c99a281fa8fc95bc5d81d135904f8c947db78f8c7e56c81142e
+
+61. GELB 0x00423370 / AU107
+Beanstandeter Wortlaut: registriert den Jaegerposten, verwaltet Jaeger/Hund, setzt nach brennendem Tier 400 Aufrufe Sperre, erzeugt danach am gueltigen Eingang einen Jagdhund und produziert zustandsabhaengig Fleisch; rohe Zustands- und Bildfelder bleiben offen.
+Pseudocode-Beleg: if(burningUIDmatches)field212=400; if(0<field212)field212--; spawn guard numberOfAnimals==0 && bVar8 && field212==0 && x!=0 && y!=0; addResourceToStockpile(...RT_MEAT,1,6,1);
+Korrektur: Registriert den Jaegerposten. Gilt workerID[1] mit passender UID als UT_BURNINGMAN/BURNING_ANIMAL_BIG/SMALL, wird die Sperre400 gesetzt und im selben Aufruf auf399 vermindert; solange der Zustand anhaelt, beginnt sie immer wieder neu. Hund wird nur bei numberOfAnimals0, gueltiger workerID[0]/UID, Sperre0 und beiden Eingangskoordinaten!=0 versucht; Spawn kann scheitern. Fleischproduktion am Tabellenende der Zustaende1-6 ruft Ablage1/max6 auf, ohne Erfolgskontrolle. Bedeutungen roher Bild-/Zustandsfelder bleiben offen.
+Export SHA256: a5524de58d38bb595f946d8bee441135422b90fab26d4009a2d2dfcc299e637f
+
+62. GELB 0x00428050 / AU108
+Beanstandeter Wortlaut: vergibt fuer Spieler-ID 1-8 die kleinste freie KI-Variante 0-8 unter Spielern mit derselben KI, sonst bleibt -1; gespeicherte Werte ausserhalb 0-8 waeren im Pseudocode nicht abgesichert.
+Pseudocode-Beleg: if(piVar1[-0x24]==-1 && piVar1[-9]==currentAIArray[playerID] && *piVar1!=-1)local_24[*piVar1]=1;
+Korrektur: Vergibt fuer Spieler-ID1-8 die kleinste freie KI-Variante0-8. Als belegt gelten nur Eintraege mit derselben currentAIArray-Kennung UND Rohstatusfeld -0x24 relativ zum jeweiligen SEC_AIVariationArray-Eintrag gleich-1; andere gleiche KI-Kennungen reservieren keine Variante. Setzt den Zielwert zuerst-1; gespeicherte Varianten ausserhalb0-8 sind nicht abgesichert. Bedeutung des Statusfelds nur aus dem Typ-/Aufruferabgleich ableiten.
+Export SHA256: 4e8b11b9a9553dda21d06d549687d76667d9c8aeaa70beb0daf4d6909cb788b8
+
+63. GELB 0x00429710 / AU108
+Beanstandeter Wortlaut: bildet Technikstufen 0-4 auf Profilpaare (1,0), (1,1), (2,1), (2,2), (3,3), kopiert 20 Intensitaets- und 10 Balancewerte, setzt Popularitaet 80 und drei Einstellungsfelder 1; ausserhalb 0-4 koennen alte Profilindizes fortwirken.
+Pseudocode-Beleg: default:goto switchD_00429720_caseD_5; // umgeht popularity/setting writes; ab Label folgen Tabellenkopien und queueCommand(...).
+Korrektur: Bildet Technikstufen0-4 auf Profilpaare(1,0),(1,1),(2,1),(2,2),(3,3) ab und setzt nur fuer diese Stufen Popularitaet80 sowie Einstellungsfelder[0],[1],[3] auf1. Danach werden je gueltigem Profil20Intensitaets-/10Balancewerte kopiert, Profil2=0 nullt die Balancewerte. Ausserhalb0-4 bleiben die alten Profilindizes erhalten und koennen mit dem ungeprueften Tech-Level Tabellenzugriffe ausloesen. Stellt abschliessend den Aenderungsbefehl ein und setzt zwei Begleitfelder-1.
+Export SHA256: 285e58022f0d1fbab5950553298476cb829820a59655c1d681d2156bfbacbe97
+
+64. GELB 0x0042C190 / AU108
+Beanstandeter Wortlaut: nullt vier globale Belagerungswerte und einen fest begrenzten zweiten Belagerungspuffer; Ghidras Dimension passt nicht zu elf sichtbaren Ganzzahl-Schreibungen je Block.
+Pseudocode-Beleg: int(*paaiVar1)[7][3]; Schreibungen[0][0]..[3][1] =11int; paaiVar1=paaiVar1+1; Schritt sizeof(int[7][3])=84Byte.
+Korrektur: Nullt vier globale Werte und pro Schleifendurchlauf nur elf int-Eintraege ab dem aktuellen Pufferzeiger. Der deklarierte Zeigerschritt ist21int/84Byte; zehn int/40Byte pro Schritt werden durch die sichtbaren Schreibungen nicht erfasst. Vollstaendiges Leeren des Puffers ist aus diesem Pseudocode nicht belegt; Arraytyp und Schleifengrenze muessen am Assembler geklaert werden.
+Export SHA256: 22d5a3ecf9da20b039593d2bd64d28dbb0de6b8dd3cc7f7a07ecf82a762f0a85
+
+65. ROT 0x004381D0 / AU110
+Beanstandeter Wortlaut: erzeugt Vorschau oder Einheit/Belagerungsgeraet nur bei Koordinaten unter 400, vorhandenem Kartenfeld, erlaubter Logikmaske und im Belagerungsmodus genug Gold; negative Koordinaten sind nicht sichtbar abgefangen, Grossgeraete nutzen Maske 0x50501581 statt 0x40501481, Topf-Ingenieure erhalten Ressource 1.
+Pseudocode-Beleg: if(draggingStopped==FALSE){if(maskfrei&&gold){createFloatingLayerElement(...);}else createFloatingLayerElement(...,0x18000d);return;} ... processResourceLoss(...); spawnUnit/spawnUnitsIntoNewTribe(...);
+Korrektur: Bei x,y<400 und gesetztem Kartenfeld erzeugt der Vorschaupfad draggingStoppedFALSE auch bei Sperrmaske/Goldmangel eine Vorschau, dann mit Fehlerflags0x18000D bzw0x18001D. Erst die Platzierung verlangt freie Maske und genug Belagerungsgold; dieses wird vor dem Spawn abgezogen, Erfolg/Rueckerstattung wird hier nicht geprueft. Maske0x50501581 gilt fuer Ritter und mehrere Grossgeraete, nicht pauschal fuer alle Berittenen; sonst0x40501481. Topf-Ingenieure erhalten resourceToDeposit1. Negative Koordinaten sowie ungueltige Mapper-/Spawnwerte sind nicht sichtbar abgesichert.
+Export SHA256: 2d49b7dcb666ce16731c33278fcbf96a5a98c1ecc8fffbd3cb89e9ad0302c34b
+
+66. GELB 0x0044B680 / AU110
+Beanstandeter Wortlaut: rangiert aktive Spieler 1-8: angefragter Toter Rang 0, Lebende nach Punkten absteigend, Gleichstand zugunsten der frueheren ID, regulaere Raenge ab 1.
+Pseudocode-Beleg: if(getAliveLordForPlayer==0){if(iVar3==playerID)return0; _playerPointsArray[iVar4][1]=0;} iVar4++; alleEintraege anschliessend in Rangschleife.
+Korrektur: Sammelt finalResults.active-Spieler1-8. Fuer den angefragten Spieler ohne lebenden Lord sofort0; andere Spieler ohne lebenden Lord bleiben mit0Punkten in der Rangliste und verbrauchen Rangplaetze. Lebende erhalten ComputePlayerPoints1. Sortiert absteigend, bei Gleichstand fruehere ID. Bei negativen lebenden Punktwerten koennen tote0-Punkte-Spieler davor liegen. Nicht gelisteter Spieler liefert0.
+Export SHA256: 92833e395c7f1843221d682ffc8bbebbea7c4235234ef994b83453f15676e9fa
+
+67. GELB 0x0044B7D0 / AU110
+Beanstandeter Wortlaut: liefert fuer Rang 1 nur bei KI einen enumverschobenen KI-Typ, sonst 0; die Kodierung mit `~AIT_NULL` bleibt offen.
+Pseudocode-Beleg: iVar1=GetPlayerAtRank(0); if(iVar1!=0 && currentAIArray[iVar1]!=0)return playerDataArray[iVar1].aiType+~AIT_NULL; GetPlayerAtRank initialisiert _ranking mit-1.
+Korrektur: Ruft GetPlayerAtRank(0) auf und liest bei Rueckgabe!=0 currentAIArray[index]. Nur bei dort nichtnull liefert es aiType+~AIT_NULL, sonst0. Rueckgabe-1 aus der Rangsuche wird nicht ausgeschlossen und fuehrt zu negativem Index; kein gesicherter gueltiger KI-Spieler in diesem Pfad. Enumkodierung bleibt offen.
+Export SHA256: 037bde6691724c80d077d70e14edb119cb980142494017b18d9bcc69364c97c2
+
+68. GELB 0x0044C410 / AU110
+Beanstandeter Wortlaut: spielt nur im Baumenue Sprachmeldungen zu eingeschlossener Burg, Rang und KI-Teamhilfe; Burgpruefung nach ueber 1000 ms, Rang fruehestens nach 300000 ms und nicht bei logischer Pause, Teamzustandsdeutung bleibt offen.
+Pseudocode-Beleg: if(playerDeathRelated!=0 || lordKilledByPlayerID!=0 || gameMode_2==GM_CAMPAIGN_MISSION)return; if(currentGameMode==GM_SOLITARY)return; shouldSoundXNotBePlaying(...); if(BVar3!=FALSE)return;
+Korrektur: Sprachpfade nur im Baumenue, ohne playerDeathRelated/lordKilledByPlayerID und ausserhalb GM_CAMPAIGN_MISSION sowie currentGameModeGM_SOLITARY. Die SoundSystem-Abfrage kann alle weiteren Pfade sperren. Burgpruefung nach>1000ms, Rangpruefung nach>=300000ms und ohne logische Pause; genieVoiceActive sperrt die jeweiligen Genie-Dateien, Team-BIK-Pfade haben eigene Bedingungen. Die Wrapper0044C400/0044B800 reichen laut Assembler EAX ohne Ueberschreiben weiter; Teamzustandsdeutung bleibt offen.
+Export SHA256: 86a0fe44125be5c4048ea73df2d8bbedd0b9780b7508fd1cc8b78d3a9ae1ebc3
+
+69. ROT 0x004560F0 / AU111
+Beanstandeter Wortlaut: setzt Karten- und Spielerstatistiken 1-8 nicht nur null, sondern kopiert Altwerte, vermindert positive Zaehler, erzwingt einen Mindestwert 30 und setzt grosse 100er/25er/10er Bloecke zurueck; Einzelbedeutungen fehlen.
+Pseudocode-Beleg: if(piVar2[-0x601]<1)piVar2[-0x601]=0x1e; if(*(short*)((int)piVar2-0x38e2)!=0)...--; if((short)piVar2[-0xe38]!=0)...--;
+Korrektur: Setzt Karten- und Spielerstatistiken1-8 zurueck und kopiert Altwerte. someCountdown01 wird nur bei>0 vermindert; zwei weitere short-Felder werden bei!=0 vermindert, also auch bei negativen Werten. Das Feld relativ piVar2[-0x601] wird nur bei<1 auf30 gesetzt: Werte1..29 bleiben erhalten, kein Mindestwert30. Leert weitere Bloecke; individuelle Feldbedeutungen bleiben offen.
+Export SHA256: 41bd57c7a47c1534457a233718a7c7841c08a915dba3f10b48ea9b2d081f0554
+
+70. GELB 0x004565A0 / AU111
+Beanstandeter Wortlaut: verbucht ausserhalb des Einzelspiels fuer Spieler 1-8 eine Begegnung, wenn das unbekannte Gegnerfeld der Einheit positiv ist; aktive gegnerische Nicht-Team-Einheiten liefern ID/UID, sonst ID 0, Einheitenindizes sind ungeprueft und der Rueckgabewert unzuverlaessig.
+Pseudocode-Beleg: if(enemy.isSelectable_OR_matchTime==0 || teamsGleich)lastEncounteredTroopUnitID=0; else {ID=iVar5;UID=...;} ... return uVar4;
+Korrektur: Ausserhalb GM_SOLITARY fuer Spieler1-8 und lastEncounteredEnemyUnitIDUnk>0: erhoeht Begegnungszaehler, kopiert x/y der uebergebenen Einheit und prueft beim vermerkten Gegner nur selectable!=0 sowie abweichendes Team. Bei Fehlschlag wird nur die gespeicherte ID0, die alte UID bleibt; sonst ID/UID kopiert. Weiterer Zaehler ueber lastEncounteredEnemyPlayerID ohne Bereichspruefung. Keine logische Aktivitaets-/UID-Pruefung des vermerkten Gegners. Rueckgabe ist vor dem Pfad playerID-1, danach eine berechnete Zaehleradresse, kein Erfolgsbool.
+Export SHA256: bcfe5b36583e27a0476b805876e2bb0df14b423ad3847c13cb1c176fe270c37b
+
+71. GELB 0x004ECE60 / AU101
+Beanstandeter Wortlaut: `getAIBuildInterval` liest es, `syncAIPlayerNamesAndBuildIntervals` und `setupAIVMetadata` kopieren es in `aivPoorLimit_OR_AIC_buildInterval`;
+Pseudocode-Beleg: if(currentPlayerFullIDArray[playerID]==-1 && currentAIArray[playerID]!=0){...if(aivID!=0)aivs[aivID].aivPoorLimit_OR_AIC_buildInterval=getAIBuildInterval(...);}
+Korrektur: getAIBuildInterval liefert bei AIT_NULL0, sonst das buildInterval des Persoenlichkeitssatzes; Assembler004CB137/004CB13D adressiert this+(aiType-1)*0x2A4+120. syncAIPlayerNamesAndBuildIntervals durchlaeuft Spieler1-8, kopiert nur fuer FullID-1 und currentAIArray!=0 den Namen und nur bei aivID!=0 das Intervall. setupAIVMetadata sucht den ersten freien AIV-Slot1-8 (playerID0), belegt ihn, setzt Schrittziel/Armutszaehler/Subtyp0, KI-Typ und Intervall, erhoeht aivCount und liefert die Slot-ID; wenn voll0. Keine Bereichspruefung fuer playerID/aivID;
+Export SHA256: c737eea7332435d6797e2c080b6b1bc4653e48ae6ece79b0a2010b5fdc28deaf
+
+72. GELB 0x004D39B0 / L33
+Beanstandeter Wortlaut: der direkte Aufrufer `buyRequiredGoods` 0x004D39B0 reicht `resourcesToAcquireArray[Ware]` durch.
+Pseudocode-Beleg: if(amount!=0 && ((param_1<4 && popularity<threshold)||aiNervousActionsTracker>0||canStartSpending!=0)){if(gold<getBuyPrice(...))requestGoods(...,amount*2);else if(buyGoods(...,amount)){resourcesToAcquireArray[resourceType]=0;return;}}
+Korrektur: der direkte Aufrufer buyRequiredGoods0x004D39B0 prueft aiType!=AIT_NULL und durchlaeuft25Prioritaeten. Bei Nervositaetszaehler>0 werden Prioritaeten0-11 uebersprungen; ein Zerstoerungswahlfeld und Holzbestand<20 koennen die Ware auf Holz umstellen. Nur Menge!=0 und (erste4Prioritaeten bei zu geringer Beliebtheit oder Nervositaet>0 oder canStartSpending!=0) fuehren zum Kaufversuch. Goldmangel fordert die doppelte Menge ueber requestGoods an; ein erfolgreicher Kauf setzt die Anforderung0 und beendet den Durchlauf, also hoechstens ein erfolgreicher Kauf je Aufruf. Die Menge wird unveraendert aus resourcesToAcquireArray durchgereicht.
+Export SHA256: 52a9d6404eb68f3c0a47ae818f8b5407b6c0f4a55ef0e9fa724c62f7b6abe210
+
+BELEGDATEIEN
+Adresslisten: historische_pruefadressen.csv, prueflos_003.csv, prueflos_004.csv, ergaenzung_005.csv.
+Befunde: befunde_prueflos_003.json, befunde_prueflos_004.json, befunde_ergaenzung_005.json.
+Gegenproben: gegenproben.json sowie die Messausgaben in negativ_AU*. register_nachkontrolle.json bindet korrigierte Aussagen an ihre Registerzeile.
+Aktuelle Messung: python -B werkzeug/engine_knowledge/auge_abdeckung.py.
+Die acht Tests pruefen das Messwerkzeug, keine Vollstaendigkeit der236 fachlichen Erklaerungen.

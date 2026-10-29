@@ -1,0 +1,24 @@
+[
+  {
+    "adresse": "0x004ECE60",
+    "registermarke": "AU101",
+    "staerke": "GELB",
+    "beanstandeter_wortlaut": "`getAIBuildInterval` liest es, `syncAIPlayerNamesAndBuildIntervals` und `setupAIVMetadata` kopieren es in `aivPoorLimit_OR_AIC_buildInterval`;",
+    "pseudocode_beleg": "if(currentPlayerFullIDArray[playerID]==-1 && currentAIArray[playerID]!=0){...if(aivID!=0)aivs[aivID].aivPoorLimit_OR_AIC_buildInterval=getAIBuildInterval(...);}",
+    "korrektur": "getAIBuildInterval liefert bei AIT_NULL0, sonst das buildInterval des Persoenlichkeitssatzes; Assembler004CB137/004CB13D adressiert this+(aiType-1)*0x2A4+120. syncAIPlayerNamesAndBuildIntervals durchlaeuft Spieler1-8, kopiert nur fuer FullID-1 und currentAIArray!=0 den Namen und nur bei aivID!=0 das Intervall. setupAIVMetadata sucht den ersten freien AIV-Slot1-8 (playerID0), belegt ihn, setzt Schrittziel/Armutszaehler/Subtyp0, KI-Typ und Intervall, erhoeht aivCount und liefert die Slot-ID; wenn voll0. Keine Bereichspruefung fuer playerID/aivID;",
+    "export_sha256": "c737eea7332435d6797e2c080b6b1bc4653e48ae6ece79b0a2010b5fdc28deaf",
+    "status": "eingearbeitet",
+    "pruefdatum": "2026-10-29"
+  },
+  {
+    "adresse": "0x004D39B0",
+    "registermarke": "L33",
+    "staerke": "GELB",
+    "beanstandeter_wortlaut": "der direkte Aufrufer `buyRequiredGoods` 0x004D39B0 reicht `resourcesToAcquireArray[Ware]` durch.",
+    "pseudocode_beleg": "if(amount!=0 && ((param_1<4 && popularity<threshold)||aiNervousActionsTracker>0||canStartSpending!=0)){if(gold<getBuyPrice(...))requestGoods(...,amount*2);else if(buyGoods(...,amount)){resourcesToAcquireArray[resourceType]=0;return;}}",
+    "korrektur": "der direkte Aufrufer buyRequiredGoods0x004D39B0 prueft aiType!=AIT_NULL und durchlaeuft25Prioritaeten. Bei Nervositaetszaehler>0 werden Prioritaeten0-11 uebersprungen; ein Zerstoerungswahlfeld und Holzbestand<20 koennen die Ware auf Holz umstellen. Nur Menge!=0 und (erste4Prioritaeten bei zu geringer Beliebtheit oder Nervositaet>0 oder canStartSpending!=0) fuehren zum Kaufversuch. Goldmangel fordert die doppelte Menge ueber requestGoods an; ein erfolgreicher Kauf setzt die Anforderung0 und beendet den Durchlauf, also hoechstens ein erfolgreicher Kauf je Aufruf. Die Menge wird unveraendert aus resourcesToAcquireArray durchgereicht.",
+    "export_sha256": "52a9d6404eb68f3c0a47ae818f8b5407b6c0f4a55ef0e9fa724c62f7b6abe210",
+    "status": "eingearbeitet",
+    "pruefdatum": "2026-10-29"
+  }
+]
