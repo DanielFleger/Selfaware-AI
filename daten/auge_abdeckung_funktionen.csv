@@ -2,15 +2,15 @@
 0x00401000;_HoldStrong::Rendering::ViewportRenderState::xyAreValid;nein;offen;nein;;;nein;nein
 0x00401040;_HoldStrong::Rendering::ViewportRenderState::translateXYToTile;nein;offen;nein;;;nein;nein
 0x00401060;_HoldStrong::Map::TileMapState::processEntityDamageToBuildingCollateralThunk;ja;teilbeschreibung;nein;AU103;abgelesen;ja;ja
-0x00401090;_HoldStrong::Game::GameStateStructures::isSameTeam;ja;teilbeschreibung;nein;AU57 AU99;abgelesen / gemessen;nein;ja
+0x00401090;_HoldStrong::Game::GameStateStructures::isSameTeam;ja;teilbeschreibung;ja;AU57 AU99;abgelesen / gemessen;nein;ja
 0x004010B0;_HoldStrong::Synchrony::GameSynchronyState::isAIPlayer;ja;teilbeschreibung;nein;AU57;abgelesen;nein;ja
 0x004010E0;_HoldStrong::Map::Entities::EntityState::clearEntityArrayAndSec1077;ja;teilbeschreibung;nein;AU57;abgelesen;nein;ja
-0x00401150;_HoldStrong::Map::Entities::EntityState::playerHasEntityOfType;ja;teilbeschreibung;nein;AU57;abgelesen;nein;ja
+0x00401150;_HoldStrong::Map::Entities::EntityState::playerHasEntityOfType;ja;teilbeschreibung;ja;AU57;abgelesen;nein;ja
 0x004011D0;_HoldStrong::Map::Entities::EntityState::setProjectileEntityValues2;ja;teilbeschreibung;nein;AU24 AU40;abgelesen / abgelesen + gemessen;nein;ja
 0x004012F0;_HoldStrong::Map::Entities::EntityState::setEntityParameters;ja;teilbeschreibung;nein;AU57;abgelesen;nein;ja
 0x00401380;_HoldStrong::Map::Entities::EntityState::drawEntityEffect;ja;teilbeschreibung;nein;AU57;abgelesen;nein;ja
-0x00401400;_HoldStrong::Map::Entities::EntityState::markEntityDestroyed;ja;teilbeschreibung;nein;AU57;abgelesen;nein;ja
-0x00401430;_HoldStrong::Map::Entities::EntityState::tickEntityDecayCounter;ja;teilbeschreibung;nein;AU57;abgelesen;nein;ja
+0x00401400;_HoldStrong::Map::Entities::EntityState::markEntityDestroyed;ja;teilbeschreibung;ja;AU57;abgelesen;nein;ja
+0x00401430;_HoldStrong::Map::Entities::EntityState::tickEntityDecayCounter;ja;teilbeschreibung;ja;AU57;abgelesen;nein;ja
 0x00401460;_HoldStrong::Map::Entities::EntityState::doSomethingWithOtherEntitiesOnTile;ja;teilbeschreibung;nein;AU57;abgelesen;nein;ja
 0x00401540;_HoldStrong::Map::Entities::EntityState::getFireEntityIDAtTile;ja;teilbeschreibung;nein;AU57;abgelesen;nein;ja
 0x00401570;_HoldStrong::Map::Entities::EntityState::updateAllFireEntitiesAtTile;ja;teilbeschreibung;nein;AU57 P29;abgelesen;nein;ja
@@ -1100,9 +1100,9 @@
 0x0046A4D0;_HoldStrong::Text::TextManager::calcRenderedNumberWidth;nein;offen;nein;;;nein;nein
 0x0046A720;_HoldStrong::Text::TextManager::getCharWidth;nein;offen;nein;;;nein;nein
 0x0046A740;_HoldStrong::Random::RNG::setTimeBasedSeed;ja;teilbeschreibung;nein;AU113;abgelesen;nein;ja
-0x0046A760;_HoldStrong::Random::RNG::populateRNG1040;nein;offen;nein;;;nein;ja
-0x0046A7D0;_HoldStrong::Random::RNG::nextRandomNumber2;nein;offen;nein;;;nein;ja
-0x0046A800;_HoldStrong::Random::RNG::nextRandomNumber1;nein;offen;nein;;;nein;ja
+0x0046A760;_HoldStrong::Random::RNG::populateRNG1040;ja;teilbeschreibung;nein;AU115;abgelesen;nein;ja
+0x0046A7D0;_HoldStrong::Random::RNG::nextRandomNumber2;ja;teilbeschreibung;nein;AU115;abgelesen;nein;ja
+0x0046A800;_HoldStrong::Random::RNG::nextRandomNumber1;ja;teilbeschreibung;nein;AU115;abgelesen;nein;ja
 0x0046A830;_HoldStrong::IO::LowLevelMemory::moveLowerThreeBytesIntoParam2;nein;offen;nein;;;nein;nein
 0x0046A850;_HoldStrong::IO::LowLevelMemory::fillMemory_setMemoryToValue_0x001;nein;offen;nein;;;nein;nein
 0x0046A890;_HoldStrong::IO::LowLevelMemory::fillMemory_setMemoryToValue_0x002;nein;offen;nein;;;nein;nein
@@ -1115,25 +1115,25 @@
 0x0046AE50;_HoldStrong::IO::LowLevelMemory::copyStringUntilFirstDot;nein;offen;nein;;;nein;nein
 0x0046AE80;_HoldStrong::IO::LowLevelMemory::putFileNameAndAppendFileExtension;nein;offen;nein;;;nein;nein
 0x0046AEC0;_HoldStrong::IO::LowLevelMemory::isLordNameCallable;nein;offen;nein;;;nein;nein
-0x0046B080;_HoldStrong::Util::WideCharMultiByteState::wideCharToMultiByteComplete;nein;offen;nein;;;nein;ja
-0x0046B0D0;_HoldStrong::Util::WideCharMultiByteState::multiByteToWideCharacter;nein;offen;nein;;;nein;ja
-0x0046B110;_HoldStrong::Util::WideCharMultiByteState::wideCharToMultiByteWithSize;nein;offen;nein;;;nein;ja
-0x0046B140;_HoldStrong::Util::WideCharMultiByteState::multiByteToWideCharThunk;nein;offen;nein;;;ja;ja
-0x0046B170;_HoldStrong::Util::WideCharMultiByteState::wideCharToByteUnk;nein;offen;nein;;;ja;ja
-0x0046B1B0;_HoldStrong::Util::WideCharMultiByteState::multiByteToWideCharThunk2;nein;offen;nein;;;ja;ja
-0x0046B1F0;_HoldStrong::Game::GameCore::Constructor_GameCore;nein;offen;nein;;;nein;ja
-0x0046B2F0;_HoldStrong::Game::GameCore::setViewOnExitUnk;nein;offen;nein;;;ja;ja
-0x0046B300;_HoldStrong::Game::GameCore::setTabToSwitchTo;nein;offen;nein;;;nein;ja
-0x0046B320;_HoldStrong::Game::GameCore::swapBuildMenuTab;nein;offen;nein;;;nein;ja
-0x0046B340;_HoldStrong::Game::GameCore::switchToMenuView;ja;offen;nein;PK306;offen;nein;ja
-0x0046B980;_HoldStrong::Game::GameCore::processMenuViewSwitch;nein;offen;nein;;;nein;ja
-0x0046BB20;_HoldStrong::Game::GameCore::viewportAndScrollingRelated;nein;offen;nein;;;nein;ja
-0x0046BB60;_HoldStrong::Game::GameCore::getAreWeInAInGameMenu;nein;offen;nein;;;nein;ja
-0x0046BB80;_HoldStrong::Game::GameCore::isInBuildingTab;nein;offen;nein;;;nein;ja
-0x0046BBD0;_HoldStrong::Game::GameCore::removeJesterAndLadyUnitsInCertainMissions;nein;offen;nein;;;nein;ja
-0x0046BC90;_HoldStrong::Game::GameCore::removeLadyAndJester;nein;offen;nein;;;nein;ja
-0x0046BD20;_HoldStrong::Game::GameCore::isGameHaltingMenuOpen;nein;offen;nein;;;nein;ja
-0x0046BD50;_HoldStrong::Game::GameCore::setStartDateUnk;nein;offen;nein;;;ja;ja
+0x0046B080;_HoldStrong::Util::WideCharMultiByteState::wideCharToMultiByteComplete;ja;teilbeschreibung;nein;AU115;abgelesen;nein;ja
+0x0046B0D0;_HoldStrong::Util::WideCharMultiByteState::multiByteToWideCharacter;ja;teilbeschreibung;nein;AU115;abgelesen;nein;ja
+0x0046B110;_HoldStrong::Util::WideCharMultiByteState::wideCharToMultiByteWithSize;ja;teilbeschreibung;nein;AU115;abgelesen;nein;ja
+0x0046B140;_HoldStrong::Util::WideCharMultiByteState::multiByteToWideCharThunk;ja;teilbeschreibung;nein;AU115;abgelesen;ja;ja
+0x0046B170;_HoldStrong::Util::WideCharMultiByteState::wideCharToByteUnk;ja;teilbeschreibung;nein;AU115;abgelesen;ja;ja
+0x0046B1B0;_HoldStrong::Util::WideCharMultiByteState::multiByteToWideCharThunk2;ja;teilbeschreibung;nein;AU115;abgelesen;ja;ja
+0x0046B1F0;_HoldStrong::Game::GameCore::Constructor_GameCore;ja;teilbeschreibung;nein;AU115;abgelesen;nein;ja
+0x0046B2F0;_HoldStrong::Game::GameCore::setViewOnExitUnk;ja;teilbeschreibung;nein;AU115;abgelesen;ja;ja
+0x0046B300;_HoldStrong::Game::GameCore::setTabToSwitchTo;ja;teilbeschreibung;nein;AU115;abgelesen;nein;ja
+0x0046B320;_HoldStrong::Game::GameCore::swapBuildMenuTab;ja;teilbeschreibung;nein;AU115;abgelesen;nein;ja
+0x0046B340;_HoldStrong::Game::GameCore::switchToMenuView;ja;teilbeschreibung;nein;AU115 PK306;abgelesen / offen;nein;ja
+0x0046B980;_HoldStrong::Game::GameCore::processMenuViewSwitch;ja;teilbeschreibung;nein;AU115;abgelesen;nein;ja
+0x0046BB20;_HoldStrong::Game::GameCore::viewportAndScrollingRelated;ja;teilbeschreibung;nein;AU115;abgelesen;nein;ja
+0x0046BB60;_HoldStrong::Game::GameCore::getAreWeInAInGameMenu;ja;teilbeschreibung;nein;AU116;abgelesen;nein;ja
+0x0046BB80;_HoldStrong::Game::GameCore::isInBuildingTab;ja;teilbeschreibung;nein;AU116;abgelesen;nein;ja
+0x0046BBD0;_HoldStrong::Game::GameCore::removeJesterAndLadyUnitsInCertainMissions;ja;teilbeschreibung;nein;AU116;abgelesen;nein;ja
+0x0046BC90;_HoldStrong::Game::GameCore::removeLadyAndJester;ja;teilbeschreibung;nein;AU116;abgelesen;nein;ja
+0x0046BD20;_HoldStrong::Game::GameCore::isGameHaltingMenuOpen;ja;teilbeschreibung;nein;AU116;abgelesen;nein;ja
+0x0046BD50;_HoldStrong::Game::GameCore::setStartDateUnk;ja;teilbeschreibung;nein;AU116;abgelesen;ja;ja
 0x0046C200;_HoldStrong::IO::ResourceManager::loadMapMetaByID;nein;offen;nein;;;nein;nein
 0x0046C280;_HoldStrong::IO::ResourceManager::getChecksumOfMapByName;nein;offen;nein;;;nein;nein
 0x0046C2E0;_HoldStrong::IO::ResourceManager::getLoadedMapNameForIndex;nein;offen;nein;;;nein;nein
@@ -1149,15 +1149,15 @@
 0x0046C680;_HoldStrong::IO::BitMapState::blitBitmap24BitToSurface565;nein;offen;nein;;;nein;nein
 0x0046C7A0;_HoldStrong::IO::BitMapState::blitPalettedBitmapToSurface565;nein;offen;nein;;;nein;nein
 0x0046C8D0;_HoldStrong::IO::BitMapState::copyBitmapToTextureBuffer;nein;offen;nein;;;nein;nein
-0x0046C920;_HoldStrong::Map::Navigation::DirectionAlgorithmState::calculateOrientation;nein;offen;nein;;;nein;ja
-0x0046C9A0;_HoldStrong::Map::Navigation::DirectionAlgorithmState::calculateOrientationFromTiles;nein;offen;nein;;;nein;ja
+0x0046C920;_HoldStrong::Map::Navigation::DirectionAlgorithmState::calculateOrientation;ja;teilbeschreibung;nein;AU116;abgelesen;nein;ja
+0x0046C9A0;_HoldStrong::Map::Navigation::DirectionAlgorithmState::calculateOrientationFromTiles;ja;teilbeschreibung;nein;AU116;abgelesen;nein;ja
 0x0046C9E0;_HoldStrong::Map::Navigation::DirectionAlgorithmState::calculatePreferredRelativeOrientation;ja;teilbeschreibung;nein;AU25;abgelesen + gemessen;nein;ja
-0x0046CAA0;_HoldStrong::Map::Navigation::DirectionAlgorithmState::somethingWithProjectileDistance;nein;offen;nein;;;nein;ja
-0x0046CC80;_HoldStrong::Map::Navigation::DirectionAlgorithmState::setAxisBasedDistanceResult;nein;offen;nein;;;nein;ja
-0x0046CCD0;_HoldStrong::Map::Navigation::DirectionAlgorithmState::getMouseVectorLengthBasedOnDirection;nein;offen;nein;;;nein;ja
-0x0046CD30;_HoldStrong::Map::Navigation::DirectionAlgorithmState::computeHash;nein;offen;nein;;;nein;ja
-0x0046CDF0;_HoldStrong::Map::Navigation::DirectionAlgorithmState::computeMaskedBitAccumulator;nein;offen;nein;;;nein;ja
-0x0046CE30;_HoldStrong::Global::RotateByteLeft;nein;offen;nein;;;nein;ja
+0x0046CAA0;_HoldStrong::Map::Navigation::DirectionAlgorithmState::somethingWithProjectileDistance;ja;teilbeschreibung;nein;AU116;abgelesen;nein;ja
+0x0046CC80;_HoldStrong::Map::Navigation::DirectionAlgorithmState::setAxisBasedDistanceResult;ja;teilbeschreibung;nein;AU116;abgelesen;nein;ja
+0x0046CCD0;_HoldStrong::Map::Navigation::DirectionAlgorithmState::getMouseVectorLengthBasedOnDirection;ja;teilbeschreibung;nein;AU116;abgelesen;nein;ja
+0x0046CD30;_HoldStrong::Map::Navigation::DirectionAlgorithmState::computeHash;ja;teilbeschreibung;nein;AU116;abgelesen;nein;ja
+0x0046CDF0;_HoldStrong::Map::Navigation::DirectionAlgorithmState::computeMaskedBitAccumulator;ja;teilbeschreibung;nein;AU116;abgelesen;nein;ja
+0x0046CE30;_HoldStrong::Global::RotateByteLeft;ja;teilbeschreibung;nein;AU116;abgelesen;nein;ja
 0x0046CEC0;_HoldStrong::Util::Timing::Stopwatch::Cosntructor_Stopwatch;nein;offen;nein;;;nein;ja
 0x0046CED0;_HoldStrong::Util::Timing::Stopwatch::start;nein;offen;nein;;;nein;ja
 0x0046CEF0;_HoldStrong::Util::Timing::Stopwatch::stop;nein;offen;nein;;;nein;ja
