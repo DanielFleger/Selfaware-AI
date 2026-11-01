@@ -1,0 +1,600 @@
+{
+ "0x00405130": {
+  "name": "SomeFireSpreadFunction",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p3 widerspricht dem Code beim Baum: Bei gesetztem Bit 0x1000 wird lightUpTree aufgerufen und danach trotzdem ein ET_FIRE-Objekt erzeugt (spawnProjectileEntity(..., ET_FIRE, 0) steht nach dem if-Block, nicht im else). Ein Baum fängt also zusätzlich zur Bodenflamme Feuer, nicht anstelle davon. Nur bei Gebäuden (außer Tunnel, Killing Pit, BT_UNKNOWN4) entsteht keine Flamme.",
+   "p3 'Nachbarfeld' ist nicht belegt: offen nennt den Wertebereich der 64 Versätze selbst als unbekannt; der Code zeigt nur Zielpunkt = (x, y) + Versatz.",
+   "'param_4 = Höhe' steht als Tatsache da, ist aber nur aus der Stellung hinter microX/microY im Aufruf von spawnProjectileEntity geschlossen und nicht als vermutlich gekennzeichnet.",
+   "'Bildzähler = 0' ist eine Deutung des Feldnamens unknownAnimationFrameRelated; im Code steht nur die Zuweisung 0.",
+   "Nicht gesagt: Steht auf dem Feld ein Tunnel, Killing Pit oder BT_UNKNOWN4, wird kein Gebäude angezündet, und die Funktion läuft normal in die Feuer-Logik weiter."
+  ],
+  "korrektur": "Feuer springt auf einen zufällig verschobenen Punkt: Ein Gebäude dort (außer Tunnel, Killing Pit, BT_UNKNOWN4) fängt Feuer, es entsteht keine Flamme. Sonst entsteht eine Flamme am Boden (steht dort ein Baum, wird er zusätzlich angezündet). Brennt das Feld schon, wird das Feuer nur aufgefrischt."
+ },
+ "0x0040f4f0": {
+  "name": "refreshAllBuildingTileDisplays",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "liest 'buildings[1..max]' ist nach der Schreibweise der anderen Einträge (z. B. [0..7] für acht Plätze) einschließlich Obergrenze gemeint; die Schleife läuft aber nur bis buildingID < maxBuildingsCount, also bis max-1.",
+   "schreibt ist leer, obwohl die beiden aufgerufenen Funktionen nach ihren Namen Anzeige-Merker und Anzeige-Objekte der Gebäude (clearBuildingDisplayFlagsAndEntities) und die Misc-Anzeigeebene (setMiscDisplayLayer) verändern. Wer nur 'schreibt: []' liest, hält die Funktion für wirkungslos, obwohl sie Anzeige-Objekte löscht; andere Einträge dieses Pakets nennen solche Wirkungen über Teilfunktionen unter schreibt.",
+   "Das Zweitargument 0 von clearBuildingDisplayFlagsAndEntities ist nirgends erwähnt."
+  ],
+  "korrektur": "Für jedes Gebäude 1 bis maxBuildingsCount-1 mit logicalState != 0: erst clearBuildingDisplayFlagsAndEntities(Nr, 0) (setzt Anzeige-Merker und Anzeige-Objekte des Gebäudes zurück), dann setMiscDisplayLayer(Nr) (baut die Misc-Anzeigeebene neu auf). Eigene Schreibzugriffe hat die Funktion nicht, die Wirkung liegt allein in diesen beiden Aufrufen."
+ },
+ "0x00401910": {
+  "name": "assignPoisonCloudTargetEntity",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p1.zweck sagt 'an einen Effekt'. Im Code ist param_1 ein Index in entityArray (entityArray[param_1].xPosition/yPosition/uid), die Wolke wird also an ein Ziel-Objekt gebunden; p2 und p3 sagen selbst 'Ziel'. 'Effekt' ist durch nichts belegt.",
+   "liest nennt die Position der Wolke nicht: setAxisBasedDistanceResult bekommt als erste zwei Argumente pEVar1[0xd] und pEVar1[0xe] der Wolke; auch DAT_DirectionAlgorithmState.distanceHigh wird gelesen, steht aber nur in regeln.",
+   "'Umkreis von 7' nennt keine Einheit. Der Code vergleicht nur distanceHigh < 7; ob Felder oder Mikrokoordinaten (8 je Feld, vgl. SomeFireSpreadFunction) gemeint sind und ob die Form ein Kreis ist, folgt daraus nicht."
+  ],
+  "korrektur": "Ordnet jede freie Giftwolke (ET_COW_POISON_CLOUD, Zeitfeld < 1001, beide Zuordnungsfelder 0), deren Abstand distanceHigh zum Objekt entityArray[param_1] unter 7 liegt (Einheit unklar), diesem Ziel zu: Nummer und uid des Ziels werden in der Wolke gespeichert. Alle passenden Wolken werden zugeordnet, nicht nur eine."
+ },
+ "0x00512100": {
+  "name": "setupAllMapSections",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "ruft ist unvollständig. Im Code werden zusätzlich aufgerufen: updateShowHiLayerOrResetChangedLayer, setChangedLayerZeroBasedOn40x40Layer, updateLogicalTileMapRelatedSections, updateGfxLayer, updateGFXLayers, toggleFlatView(0), resetWind, fillWith0xFF, clearAnimalSpawnLocationsUnk, clearEntityArrayAndSeagullArray, setChangedLayerToThreeAndMapping0x40x40, updatePathLinkageLayerForEachBuildingAtEachTile, ResetSomeValuesFunctionUnk (dazu fillMemory_ShortValue, fillMemory_ByteValue, DoNothing).",
+   "schreibt ist unvollständig: temporaryTerrainTypeIndex, SEC_Section1052 bis SEC_Section1054, DAT_WallAndPitchState.countdown, _5589200_4_, flatViewToggleValue2 und DAT_PathFindingState.searchGeneration werden direkt gesetzt (searchGeneration steht nur in regeln).",
+   "Schritt 5 nennt nicht alles, was mitgelöscht wird: clearRocksAndTrees betrifft Felsen und Bäume, dazu kommen Wind (resetWind), Tier-Spawnplätze (clearAnimalSpawnLocationsUnk) und das Objekt-Feld samt Möwen (clearEntityArrayAndSeagullArray).",
+   "'nichts bleibt aus dem vorherigen Spiel stehen' und 'Ebenen leeren (setupTileMapSections)' sind aus diesem Code nicht belegt: Die Funktion liest die LogicLayer nur (zum Füllen der GfxLayer) und leert sie nicht selbst; was setupTileMapSections tut, steht hier nicht."
+  ],
+  "korrektur": "Setzt Karte und Spielzustand auf einen frischen Anfangszustand zurück: Kartenebenen einrichten, GfxLayer aus der LogicLayer neu füllen, Säulen-, Höhen- und Laufebene auf Standardwerte setzen, Gräben und Pechgräben zurücksetzen, Gebäude, Felsen und Bäume, Einheiten, Gruppen, Tiere, Objekte und Möwen, Wind, Spielerdaten und Waren löschen, Wege- und Gebietskarten neu berechnen. Was die Teilfunktionen im Einzelnen leeren, steht nicht in diesem Code."
+ },
+ "0x004d12a0": {
+  "name": "getCurrentDesiredAttackRaidUnitCount",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "live prüft nur den Normalfall: Im Fall gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER, isSkirmishTrail == TRUE und currentTrailType == TT_EXTREME ist das Ergebnis (currentAttackRaidParameter + RaidUnitsBase) * 4 / 3 und nicht 'gleich' der Summe; ein Test in diesem Fall würde fälschlich als Widerlegung erscheinen.",
+   "Die Funktion liefert den Sollwert (desired). Dass die tatsächliche Gruppengröße 'gleich' diesem Wert ist, belegt der Code nicht.",
+   "'wachsender Parameter' (p3) und der Satz in offen setzen ein Wachstum voraus; die Funktion liest currentAttackRaidParameter nur, ein Wachstum ist hier nicht zu sehen."
+  ],
+  "korrektur": "live: KI-Raid beobachten → Soll-Zahl mit currentAttackRaidParameter + RaidUnitsBase vergleichen (im Skirmish-Trail auf Extrem: Summe * 4 / 3, abgerundet); Abweichung der tatsächlichen Gruppengröße vom Sollwert getrennt betrachten."
+ },
+ "0x004a67d0": {
+  "name": "spawnUnitAndAddToTribe",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "'Pixelposition x*8, y*8' ist falsch benannt: _x und _y sind Feldkoordinaten (_x = Feldindex minus addXgetTile der Zeile), die Multiplikation mit 8 ergibt Mikrokoordinaten (8 je Feld, wie in SomeFireSpreadFunction: Feld = Mikro >> 3), keine Pixel.",
+   "regeln lassen den zweiten Ausstieg der Schleife aus: Steigt der Schreibzeiger auf mapAndTime.somePairArray über 0x117cdef, bricht die Schleife ab und geht, falls count > 0 und ein Feld benutzt wurde, in die Schleife für die übrigen Einheiten. Die Warteschlange wird dann nicht bis zum Ende durchlaufen. Ebenfalls nicht erwähnt: readIndex läuft bei 0x13a0f auf 0 um (Ringpuffer).",
+   "schreibt nennt searchQueue.readIndex nicht: Die Funktion setzt readIndex auf 0 und zählt ihn hoch, verändert also die Warteschlange, die nur unter liest steht.",
+   "'Füllung mit Wert 10 und Budget 2' ordnet den Argumenten (10, 2) von budgetFloodFillOnCertainPathLayer Bedeutungen zu, die der Code nicht zeigt; ausgeschlossen werden Felder mit CertainPathLayer == 100, nicht 10.",
+   "offen 'letzten Arguments 8 von spawnUnit': Die 8 ist das fünfte von sechs Argumenten, danach folgt unitType.",
+   "spawnUnit wird vor der Prüfung 'count < 1' aufgerufen: Bei count <= 0 beim Aufruf entsteht trotzdem (mindestens) eine Einheit auf dem ersten Feld."
+  ],
+  "korrektur": "Regeln berichtigt: Je Feld eine Einheit bei Mikroposition (Feld-x * 8, Feld-y * 8); die Prüfung count < 1 folgt erst nach dem Erzeugen. Die Schleife endet außerdem, wenn der Schreibzeiger auf somePairArray 0x117cdef übersteigt; danach gilt dieselbe Regel für die übrigen Einheiten wie am Ende der Warteschlange. schreibt zusätzlich: searchQueue.readIndex. Die Bedeutung der Argumente (10, 2) der Füllung ist offen."
+ },
+ "0x004c94f0": {
+  "name": "setAICParameters_11",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "offen nennt die Zahl 190; im Code kommt 190 nirgends vor (vorhanden: 70, 71, 74, 75, 76, 77, 358; unknown072 = 200).",
+   "p3 stellt Vermutungen als Tatsache dar: 'höchste Abstimmung mit Verbündeten' (ein Vergleich mit anderen Sätzen steht nicht im Code, nur AttCoordinationPreference = 90), 'Geld liegt knapp' (recruitGoldThreshold = 100; Bedeutung der Schwelle nicht belegt), 'wirbt sehr oft an' (RecruitInterval = 1; Richtung der Skala nicht belegt).",
+   "'rund 130 Felder' sind genau 130 Zuweisungen; die regeln nennen davon nur 99. Es fehlen 31 gesetzte Werte, darunter CowThrowInterval 10000, AttForceSupportAllyThreshold 30, AttMovingTribesThreshold 100, defSiegeEngineGoldThreshold 100, defSiegeEngineBuildDelay 4, DefDiggingUnit 71 (Max 4), OuterPatrolGroupsCount 1 / GroupsMove 1 / RallyDelay 2, RaidRetargetDelay 4, AttUnitPatrolRecommandDelay 5, unknown001..005 / 011 / 072 (200) / 073 (20) sowie die Nullwerte AttMaxAssassins, AttUnit2/Max, AttMaxLaddermen, AttMaxTunnelers, AttUnitPatrol*, AttUnitSiegeDef*. Die Liste ist nicht als Auswahl gekennzeichnet."
+  ],
+  "korrektur": "regeln ergänzen um: CowThrowInterval 10000; AttForceSupportAllyThreshold 30; AttMovingTribesThreshold 100; defSiegeEngineGoldThreshold 100, defSiegeEngineBuildDelay 4; DefDiggingUnit 71 (Max 4); OuterPatrol Gruppen 1 / Bewegung 1 / Sammelverzögerung 2; RaidRetargetDelay 4; AttUnitPatrolRecommandDelay 5; unknown001..005 = 0/0/0/1/1, unknown011 = 10, unknown072 = 200, unknown073 = 20 (ungesichert); AttMaxAssassins, AttUnit2/Max, AttMaxLaddermen, AttMaxTunnelers, AttUnitPatrol/Max/Gruppen, AttUnitSiegeDef/Max/Gruppen = 0. offen: Zahl 190 streichen. p3: Satz mit festen Werten beschreiben (Anwerbe-Takt 1/1/1, AttForceBase 40 + Zufall 5, AttCoordinationPreference 90, recruitGoldThreshold 100, maxStone 40); 'höchste Abstimmung', 'Geld knapp' und 'sehr oft' als nicht belegt kennzeichnen."
+ },
+ "0x00401c30": {
+  "name": "UpdateCatapultProjectileEntity",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "Die Deutungen 'Geschoss fliegt noch' (Zähler == 0), 'Geschoss ist aufgeschlagen' (Zähler != 0) und 'Bildzähler' stützen sich nur auf die Feldnamen someCounter_OR_hitGround und unknownAnimationFrameRelated; der Code zeigt nur den Vergleich == 0 gegen != 0. Das steht in regeln und p3 als Tatsache und fehlt in offen.",
+   "p3 behauptet 'Bildablauf von 8 Bildern' und 'dann endet das Geschoss'. Belegt ist nur: Bildwert über 7 wird auf 0 gesetzt (zulässig 0..7); dass er 'anderswo' hochgezählt wird, ist nicht belegt; logicalState = 7 als Ende ist laut offen nur vermutet."
+  ],
+  "korrektur": "regeln: Zähler someCounter_OR_hitGround == 0 (vermutlich: Geschoss fliegt noch): unknownAnimationFrameRelated über 7 wird 0, graphicType2 = graphicType2RelatedOffset + unknownAnimationFrameRelated. Zähler != 0 (vermutlich: nach dem Aufschlag): sinkt um 1, bei Ergebnis kleiner 1 logicalState = 7 (vermutlich Ende); graphicType2 = graphicType2RelatedOffset. p3: Der Bildwert wird auf 0..7 begrenzt (vermutlich 8 Bilder; das Weiterzählen steht nicht in dieser Funktion). Nach dem Aufschlag zählt vermutlich ein Zähler herunter, dann wird logicalState = 7 gesetzt (vermutlich Ende des Geschosses)."
+ },
+ "0x004fbc30": {
+  "name": "getCastleBuildRangeForMapSize",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "Zahlen stimmen (0xa0 = 160 → 45, 200 → 50, 300 → 60, alles andere → 70).",
+   "p2.aus nennt 'Reichweite in Feldern' als Tatsache, offen sagt dagegen, Einheit und Bezugspunkt seien unbekannt (Widerspruch).",
+   "zweck, p3 und gehirn ('Bauplätze nur innerhalb dieser Reichweite planen') stellen die Bedeutung (erlaubter Höchstabstand vom eigenen Bergfried) als gesichert dar. Am Code belegt ist das nicht: der einzige sichtbare Verwender (validateWallBuildPath, nur außerhalb GM_SOLITARY) lehnt den Bau mit Fehlergrund 0x13 ab, wenn isTileInRangeOfKeepRange(playerID, x, y, Rückgabe dieser Funktion) ungleich 0 ist; ob 'ungleich 0' innerhalb oder außerhalb der Reichweite heißt und ob es um den eigenen oder fremde Bergfriede geht, ist offen."
+  ],
+  "korrektur": "zweck: Liefert je Kartengröße eine Reichweitenzahl für die Bauprüfung rund um Burgen (160 → 45, 200 → 50, 300 → 60, sonst 70). aus: Reichweite (Einheit nicht belegt). offen: Einheit, Bezugspunkt (eigene oder fremde Burg) und ob Mindest- oder Höchstabstand; validateWallBuildPath lehnt den Bau ab, wenn isTileInRangeOfKeepRange mit dieser Zahl ungleich 0 liefert. gehirn: Die Zahlen sind Grundwerte; Richtung der Regel vor Verwendung an isTileInRangeOfKeepRange prüfen."
+ },
+ "0x0041eb00": {
+  "name": "UpdateTower3",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "'Größe 3x3', 'mittlerer Turm' und 'wie UpdateTower2' stehen als Tatsache in p1, sind aber im Code nicht belegt; sichtbar sind nur someX/someY = x+2 / y+2 und Größenindex 5 (x+2 passt eher nicht zu einer 3x3-Mitte).",
+   "Feuer-Slots ungenau: '(fireRelatedRNG1 & 0xf)+1' gilt nicht für jeden Slot. uVar4 wird je Durchlauf um 1 erhöht; Slot k erhält ((RNG + k) & 0xf) + 1, der Slot-Index ist ((RNG >> 8) + k) & 7. 'Feuer' ist nur aus dem Namen fireRelatedRNG1 abgeleitet, field33..field40 sind unbenannt.",
+   "Baufeld-Markierung: die Schleife läuft nur, wenn field34_0x18e074 != 0 (steht nur in liest/offen, nicht in regeln). Sie löscht Bit 0x10 in MiscDisplayLayer und setzt es, wenn der Index in den 6 Tabelleneinträgen vorkommt; das Bit wird nicht genannt. Gelesen werden außerdem DAT_TileMapState.buildingX/buildingY und die translationMatrix (fehlen in liest).",
+   "schreibt 'field20..field40' ist zu weit gefasst: geschrieben werden field20_0x38, field21_0x3c, field22_0x40, field23_0x44, field29_0x5c, field33..field37, ownerFlagFrame, field39, field40 (nicht field24..28)."
+  ],
+  "korrektur": "p1: Taktfunktion eines Turms (UpdateTower3); Größe und Vergleich mit UpdateTower2 nicht belegt. regeln: Feuer-Slots: bei Schadensstufe n (höchstens 8) werden n aufeinanderfolgende Slots ab Index ((fireRelatedRNG1 >> 8) & 7) gesetzt, Slot k mit ((fireRelatedRNG1 + k) & 0xf) + 1; field33..40 übernehmen die 8 Slots (bei Stufe 0 bleiben sie 0). Baufeld-Markierung nur wenn field34_0x18e074 != 0: je Baukachel Bit 0x10 in MiscDisplayLayer löschen und setzen, wenn der Kachelindex in den 6 Tabelleneinträgen von field420_0xa77c (Zeile mapOrientation/2) steht."
+ },
+ "0x005029d0": {
+  "name": "validateWallBuildPath",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "Befehl 0x1a: Die Prüfung 'von Mauern umschlossen' (Fehlergrund 0x13) gilt nicht nur für das Startfeld. Sie steht zusätzlich in der Schleife (isTileEnclosedByWalls(iVar1, _y1) == 0 → Fehlergrund 0x13), also für jedes Feld der Strecke. In 'Pro Feld abgelehnt' fehlt das.",
+   "schreibt lässt DAT_SomeY (= y1) und DAT_SomeTile (= Kachel des Startfelds) aus, die vor der Befehlsprüfung gesetzt werden.",
+   "Vermutungen als Tatsache: 'Treppenbau' in zweck (0x1a/0x1b sind laut offen unbekannt) und 'Felsbit' (im Code nur (char)_logic < 0, also Bit 0x80 von LogicLayer, ohne Namen).",
+   "Baum-Regel unvollständig: nur wenn ein Baumbit gesetzt ist und der OrganismLayer-Wert zwischen 1 und 1999 liegt, wird der Typ geprüft; sonst keine Ablehnung.",
+   "findSomeSuitableLocationUnk(playerID, x, y, 2) != 0 → Fehlergrund 0x11 gilt in allen Spielarten; der Satzbau 'Im Editor: ...; findSomeSuitableLocationUnk...' legt eine Beschränkung auf den Editor nahe.",
+   "offen 'zwei Durchgänge' ist ungenau: die Strecke wird einmal abgegangen. local_10 (Start 2) wird erst im Zielfeld heruntergezählt und sorgt nur dafür, dass das Zielfeld noch geprüft wird (bei 0x1b höchstens zweimal). Schrittweise: außer bei 0x1b gleichzeitig in x und y (Diagonale), bei 0x1b nur eine Achse je Schritt (die mit der größeren Restentfernung)."
+  ],
+  "korrektur": "regeln ergänzen/ändern: 'Befehl 0x1a: jedes Feld der Strecke (auch das Startfeld) muss von Mauern umschlossen sein (isTileEnclosedByWalls), sonst Fehlergrund 0x13.' 'findSomeSuitableLocationUnk(playerID, x, y, 2) ungleich 0: Fehlergrund 0x11 (in jeder Spielart).' 'Baum: nur bei gesetztem Baumbit und OrganismLayer-Wert 1..1999 wird der Typ geprüft; erlaubt 5..14 und 16..19, sonst abgelehnt.' schreibt ergänzen: DAT_SomeY, DAT_SomeTile. zweck: Mauerbau (0x1a/0x1b: Bedeutung nicht belegt, 'Treppenbau' streichen). 'Felsbit' → 'Bit 0x80 von LogicLayer (Bedeutung nicht belegt)'."
+ },
+ "0x0053e820": {
+  "name": "commitUnitLocation",
+  "urteil": "falsch",
+  "befunde": [
+   "Widerspruch: p1 sagt 'meldet ihre Position neu an', p3 sagt 'Feldbelegung abgemeldet; die Anmeldung am neuen Feld folgt später', offen sagt 'vorgemerkt, noch nicht eingebucht'. Der Code enthält keine Abmeldung; der einzige Bezug zur Feldbelegung ist der Aufruf setupUnitSharingCurrentTilePosition(unitID) am Ende. 'abgemeldet' ist durch keine Zeile belegt und führt in die Irre.",
+   "'Einheit wird zum Stillstand gebracht' und 'movementRelated=8 ist der Ruhewert' sind nicht belegt; der Code zeigt nur die Zuweisungen currentIndexInPathPlan = 0, tunnelerFinishedDigging = 0, field105_0xe8 = FALSE, movementCooldown = 0, movementRelated = 8, unknownTestAgainst0_2 = 1.",
+   "Die Aussagen über resetUnitMovementState und clearHiddenFlagAndUpdatePosition ('setzen es zurück und buchen dann die Position ein') stehen nicht im gezeigten Code und sind hier nicht prüfbar."
+  ],
+  "korrektur": "p3: Setzt Wegindex, tunnelerFinishedDigging, field105_0xe8, Bewegungspause und movementRelated (8) zurück, setzt unknownTestAgainst0_2 = 1 und ruft setupUnitSharingCurrentTilePosition auf. Ob dabei eine Feldbelegung an- oder abgemeldet wird, zeigt dieser Code nicht (der Aufrufname spricht eher für Einrichten der geteilten Kachel). regeln: 'movementRelated = 8' ohne Deutung 'Ruhewert' (vermutlich); Verweise auf andere Funktionen als ungeprüft kennzeichnen."
+ },
+ "0x0043e5a0": {
+  "name": "SomeFearFactorComputation",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "Zahlen und Grenzen stimmen (nachgerechnet: unter -4 → 14, -4/-3 → 15, -2/-1 → 16 über die Prüfung > 0x7fffffff, 0..2 → 17, 3/4 → 18, über 4 → 19).",
+   "gehirn nennt die Stufen 'Anzeigegruppen' als Tatsache; p1 und offen sagen dagegen nur 'vermutlich Anzeige' und dass die Verwendung des Rückgabewerts unbekannt ist. Im Code ist keine Anzeige sichtbar."
+  ],
+  "korrektur": "gehirn: fearFactorLevel wird als Zahl mit Vorzeichen verglichen; Rückgabe 14 (bis -5), 15 (-4, -3), 16 (-2, -1), 17 (0 bis 2), 18 (3, 4), 19 (ab 5). Verwendung (vermutlich Anzeige) nicht belegt."
+ },
+ "0x004ecef0": {
+  "name": "setupAIVMetadata",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "gehirn: 'Zuordnung Spieler zu aivID steht in playerDataArray[spieler].aivID' ist im Code nicht belegt. Die Funktion schreibt nur die Gegenrichtung aivs[aivID].playerID und gibt aivID zurück; ein Feld playerDataArray[].aivID kommt hier nicht vor (nur .aiType wird gelesen). Wo der Aufrufer den Rückgabewert ablegt, zeigt dieser Code nicht.",
+   "Alles andere stimmt (Suche 1..8, frei = playerID == 0, Startwerte 0, aivCount + 1, Rückgabe 0 bei vollen Plätzen)."
+  ],
+  "korrektur": "gehirn: Die Zuordnung aivID → Spieler steht in aivs[aivID].playerID (hier gesetzt); der Rückgabewert aivID muss der Aufrufer ablegen (wo, zeigt dieser Code nicht)."
+ },
+ "0x004a58a0": {
+  "name": "findConnectingAreaBetweenTwoAreas",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p3 'beantwortet nur, ob ein Durchgang besteht' passt nicht zum Code: die Rückgabe ist eine Bereichsnummer, nämlich param_2 bei Gleichheit, param_3 wenn ein einzelner Kletterpunkt beide Bereiche verbindet, sonst der Zwischenbereich (dVar7), der an einen Kletterpunkt mit param_2 grenzt, und 0 ohne Verbindung. Der Fall 'param_3 bei direkter Verbindung' fehlt in p2.aus.",
+   "p3 'ohne Schreiben der Merker' widerspricht dem Code teilweise: DAT_Test_gatehouse wird um 1 erhöht und lokale Besucht-Merker (aiStack_640[..*2+1] = 1) werden gesetzt. 'Wie die vorige Suche' bezieht sich auf eine Funktion, die im Code nicht sichtbar ist.",
+   "'Typ ungleich 1 (keine Leitern)' und 'ohne Leiter' in p1/p3: im Code steht nur piVar5[-5] != 1 ohne Feldnamen; die Gleichsetzung Typ 1 = Leiter ist nicht belegt. Ebenso 'über Tore oder Mauerdurchgänge' in p1 (der Code spricht nur von Kletterpunkten/ClimbData).",
+   "'Höchstens 200 Bereiche und 200 Kletterpunkte' sind nur die Größen der Stapelpuffer (aiStack_640[400] = 200 Paare, adStack_960[200]); der Code prüft keine Grenze. Da jeder Kletterpunkt bis zu zwei Bereiche einreiht, können es mehr als 200 Bereiche werden (Pufferüberlauf), es ist also keine sichere Grenze."
+  ],
+  "korrektur": "aus: param_2, wenn beide Bereiche gleich sind; param_3, wenn ein Kletterpunkt beide Bereiche direkt verbindet; sonst der Zwischenbereich, der an einen Kletterpunkt mit param_2 grenzt; 0 ohne Verbindung. regeln: Puffer fassen 200 Kletterpunkte und 200 Bereiche, ohne Prüfung. p1: Sucht über Kletterpunkte (ClimbData) einen Zusammenhang zweier Bereiche; Typ 1 wird übergangen (vermutlich Leitern, nicht belegt). p3: Liefert eine verbindende Bereichsnummer bzw. 0; zählt nur DAT_Test_gatehouse hoch, schreibt sonst nichts außerhalb der Funktion."
+ },
+ "0x004fc0b0": {
+  "name": "computeTileCliffEdgeFlags",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "Nachbarregel unvollstaendig: Ein Nachbar zaehlt nur, wenn x und y im Bereich 0..399 liegen (uVar8 < 400 && uVar4 < 400), das Byte bei 0x21aec98 + y*400 + x ungleich 0 ist UND LogicLayer[Nachbar] & L_RIVER gesetzt ist. Die Erklaerung nennt nur das Fluss-Flag; Kartengrenze und das Byte-Feld fehlen auch unter 'liest' (ebenso translationMatrix[].addXgetTile fuer den Nachbarindex).",
+   "'Bei anderer mapOrientation: keine Aenderung' widerspricht dem Code: Logic2Layer[tile] wird schon vor allen Orientierungspruefungen neu zugewiesen (Logic2Layer[tile] = Logic2Layer[tile] & L2_BEACH | L2_OASIS_GRASS | L2_PLATEAU_HIGH); bei mapOrientation ausserhalb 0/2/4/6 folgt danach nur 'return'. Gleiches gilt fuer alle Faelle ohne Kantenbit (kein hoeherer Nachbar, oder die zwei ausgewaehlten Nachbarn nicht niedriger): der veraenderte Wert bleibt stehen.",
+   "Maskierung: Nach C-Rangfolge steht im Code (Logic2Layer & L2_BEACH) | L2_OASIS_GRASS | L2_PLATEAU_HIGH, also wuerden die letzten zwei Bits gesetzt, nicht erhalten. Die Maskenlesart ('nur diese drei Bits bleiben') ist plausibel (Ghidra schreibt Flag-Konstanten ohne Klammern), aber nicht belegt; die woertliche Lesart fehlt in der Erklaerung.",
+   "p3 'an denen die Hoehe abfaellt' deckt nur Felder mit niedrigerem Nachbarn (Bits 1/2/4). Die Bits 0x40/0x80 werden gesetzt, wenn ein Flussnachbar HOEHER ist und keiner niedriger (local_2c == Hoehe, local_28 > Hoehe). 'Kantengrafik' als Zweck ist Vermutung (Bitbedeutung steht selbst unter 'offen')."
+  ],
+  "korrektur": "Regel 2: 'Ein Nachbar zaehlt nur, wenn er innerhalb 0..399 liegt, ein Byte in einer 400x400-Tabelle (0x21aec98) ungleich 0 ist und LogicLayer das Fluss-Flag hat; seine Hoehe geht dann ein, alle anderen Nachbarn zaehlen mit der eigenen Hoehe.' Regel 3: beide Lesarten der Maskierung nennen (Maske der drei Bits ODER Bits OASIS_GRASS/PLATEAU_HIGH immer setzen). Regel 6: 'Bei anderer mapOrientation wird kein Kantenbit gesetzt (Logic2Layer wurde vorher schon neu belegt).' p3: 'Markiert Felder neben Flussfeldern anderer Hoehe: niedrigerer Nachbar -> Bit 1/2/4, nur hoeherer Nachbar -> Bit 0x80 (Unterschied <= 0x10) bzw. 0x40; Zweck vermutlich Kantengrafik.' Zusatz aus der Stapellage (nicht sicher): ausgewaehlte Nachbareintraege je Drehung 0: Eintrag 2 und 4; 2: Eintrag 4 und 6; 4: Eintrag 0 und 6; 6: Eintrag 0 und 2."
+ },
+ "0x004d3780": {
+  "name": "computeNervousness",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p1 ('Feinde in Burgnaehe') widerspricht p3 und live: Dort gilt der Wert nahe der Burg als Truppenwert der KI selbst ('ihr Truppenwert an der Burg'). Der Code liest attackInfo.playerTotalTroopValueOfTroopsNearKeep[playerID] und vergleicht ihn mit totalEnemyTroopValue + Spielraum; p1 und p3 muessen dasselbe meinen. Ob der Wert eigene oder feindliche Truppen nahe der Burg zaehlt, ist aus dem Code allein nicht belegt und steht nicht unter 'offen'.",
+   "liest: 'totalEnemyTroopValueByPlayerID[eigene Spielerkennung]' ist missverstaendlich: Der Index ist DAT_GameSynchronyState.currentPlayerSlotID (lokaler Spielplatz), nicht die playerID der KI; currentPlayerSlotID fehlt in 'liest'.",
+   "live: 'Umschlag bei Truppenwert Burg = 170' ist um eins daneben. Bedingung ist strikt troopValueNearKeep > enemyTroopValue + margin (150 + 20 = 170), das Flag wird also erst ab 171 FALSE; bei genau 170 bleibt es TRUE.",
+   "gehirn/p3: 'Verbuendete' und 'ihren Verbuendeten nicht mehr hilft' sind im Code nicht belegt: keine Buendnispruefung, determineAIPlayerHelp kommt im Code nicht vor. Unter 'offen' ist es mit 'wohl' abgeschwaecht, im gehirn als Tatsache formuliert."
+  ],
+  "korrektur": "p1: 'Vergleicht den Truppenwert nahe der Burg mit dem Gesamtwert der Feinde plus Spielraum und setzt daraus das Flag isNotNervousByEnemyTroopValue.' liest: 'totalEnemyTroopValueByPlayerID[currentPlayerSlotID] (lokaler Spielplatz)'. live: 'Feindwert 150 -> Schwelle 170: Truppenwert Burg 170 = Flag TRUE, ab 171 = FALSE.' gehirn: letzten Teil ('ihren Verbuendeten nicht mehr hilft') als Vermutung kennzeichnen."
+ },
+ "0x00401400": {
+  "name": "markEntityDestroyed",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "'logicalState 3 heisst hier: zu loeschen (Zustand 2 = aktiv)' ist im Code nicht belegt: Er setzt nur entityArray[id].logicalState = 3 und someCounter_OR_hitGround = 10; die Bedeutung von 3, von 2 und von 10 ist daraus nicht ableitbar. 'offen' ist leer, obwohl das Vermutung ist.",
+   "'Effekt-Eintrag' / 'Der Effekt wird zum Entfernen freigegeben' ist aus dem Code nicht ableitbar (nur EntityState::entityArray); bereich 'Einheiten' und Text 'Effekt' passen zudem nicht zusammen."
+  ],
+  "korrektur": "zweck: 'Setzt bei entityID > 0 den Eintrag entityArray[id] auf logicalState = 3 und someCounter_OR_hitGround = 10.' regeln: 'Wirkt nur bei entityID > 0 (0 und negative IDs bleiben unberuehrt); 3 bedeutet vermutlich zu loeschen.' offen: 'Bedeutung von logicalState 3 (und 2), von someCounter_OR_hitGround = 10 und ob die Eintraege Effekte sind.'"
+ },
+ "0x004cf2e0": {
+  "name": "aiCommandTribe12AggressiveApproach",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p1 ('in gestaffelter Entfernung') und p3 ('zuerst einen weit entfernten Punkt, dann immer naehere') stellen eine Vermutung als Tatsache dar. Unter 'offen' steht selbst, dass unklar ist, was findDestinationCostLowerThan6 misst und was 200/150/100/50 bedeuten. Der Code zeigt nur vier Aufrufe mit sinkendem zweiten Argument (200, 150, 100, 50), mit || verkettet; dass die groessere Zahl einen ferneren Punkt liefert, ist nicht belegt.",
+   "liest unvollstaendig: aiType, aiTribeUIDs[0xc] und tribes[].uid werden fuer die Gueltigkeitspruefung gelesen, fehlen aber unter 'liest'."
+  ],
+  "korrektur": "p1: 'Setzt Gruppe 12 in aggressive Haltung und schickt sie zum Punkt ALG_ResultX/ALG_ResultY des Wegfinders, wenn eine der Pruefungen findDestinationCostLowerThan6(angegriffener Spieler, 200/150/100/50) TRUE ergibt.' p3: 'Die Gruppe rueckt in aggressiver Haltung vor, sobald eine der vier Pruefungen (nacheinander 200, 150, 100, 50) greift; was die Zahlen genau bedeuten, ist offen.' liest ergaenzen: aiType, aiTribeUIDs[0xc], tribes[].uid."
+ },
+ "0x004a4b30": {
+  "name": "isUsableClimbWallWithinArea",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p3 'Kletterpunkt (Leiter, Mauer, Tor)': Die Aufzaehlung ist im Code nicht belegt; der Code kennt nur climbData[wallDataID] mit canBeUsed, isRecognizedByPathfinding, area und wallGroupAreaID. Besonders 'Tor' und 'Leiter' sind Vermutung, obwohl beleg='code' angegeben ist."
+  ],
+  "korrektur": "p3: 'Einfacher Test, ob ein Eintrag der Kletterdaten (climbData, Wanddaten) benutzbar ist (canBeUsed == 1 und isRecognizedByPathfinding != 0) und mit area oder wallGroupAreaID im gesuchten Bereich liegt. Der Name im Nachbau lautet isUsableClimbWithinArea.'"
+ },
+ "0x0040e040": {
+  "name": "setupEngineersGuildParagroundPositions",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p3 'Ingenieure und Leitertraeger ... in einem 25er-Raster' ist nicht belegt: Im Code kommen nur engineersParadegroundLocations und 25 Offsets vor; 'Leitertraeger' steht nirgends, und ob die Offsets ein Raster bilden, ist unbekannt (die Erklaerung sagt unter 'offen' selbst, die Offset-Tabelle sei nie ausgelesen worden)."
+  ],
+  "korrektur": "p3: 'Berechnet fuer die Ingenieure 25 Aufstellpunkte: Position des (hoechstnummerierten, aktiven) Exerzierplatzes des Spielers plus 25 feste Offsets; Form der Anordnung offen.'"
+ },
+ "0x004d3ae0": {
+  "name": "aiRecruitUnits",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "Bedingung 'im Gefecht mit TT_EXTREME' ist ungenau: Im Code gilt sie nur bei gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER UND isSkirmishTrail == TRUE UND currentTrailType == TT_EXTREME (Gefechtspfad), nicht in jedem Gefecht; die drei Felder fehlen auch unter 'liest'.",
+   "DefTotal-Anpassungen wirken hintereinander, nicht alternativ: erst _defTotal = (_defTotal*4)/3 (ganzzahlig, bei TT_EXTREME), danach bei nervous _defTotal*4 auf den schon angepassten Wert. Die Erklaerung liest sich wie entweder/oder.",
+   "Das Zufallsbit der Grabeneinheit entscheidet nicht unabhaengig 'je Durchgang': Bei (currentNumber2 & 1) != 0 wird _recruitDefDiggingUnit auf false gesetzt und im Rest des Aufrufs nie wieder true (nur noch normale Wahl). Zudem beendet 'weder Kaserne noch Soeldnerposten' den ganzen Aufruf.",
+   "Die Zahl 1 bis 4 ist eine Obergrenze der Versuche: Jedes return in der Schleife (Typ 0, Gebaeude fehlt, Anwerbung fehlgeschlagen) beendet die Funktion; p2/p3 nennen es wie eine feste Anzahl.",
+   "Rekrutierintervall (+0x164) ist kein fester Wert: gelesen wird *(this + (aiStrengthFeeling + aiTypIndex*0xa9)*4 + 0x164), also je Staerkegefuehl ein Eintrag. countUnfinishedMoatTilesForPlayer ist ein Funktionsaufruf, steht aber nur unter 'liest' statt unter 'ruft'; weitere gelesene Felder fehlen (aiTribeIDs[10], aiTribeUIDs[10], tribes[].uid/size, engineersGuild/tunnelersGuild/barracks/mercenaryPost .id, SEC_RNG currentNumber2).",
+   "gehirn: 'UCP/Karte kann sie aendern' ist im Code nicht belegt (nur Lesen der Einstellungen je aiType)."
+  ],
+  "korrektur": "Anzahl: 'hoechstens 1 (Intervall != 0) bzw. 2 (Intervall = 0) Versuche je Aufruf, im Gefechtspfad (isSkirmishTrail, TT_EXTREME) je +1, nervoes 4; jeder Fehlschlag, fehlender Typ oder fehlendes Gebaeude beendet den Aufruf.' DEFENSIVE: 'DefTotal; im Gefechtspfad TT_EXTREME (DefTotal*4)/3; nervoes zusaetzlich *4 auf diesen Wert.' Grabeneinheit: 'Zufallsbit 1 schaltet die Grabeneinheit fuer den Rest des Aufrufs ab; Bit 0 waehlt DefDiggingUnit; ohne Kaserne und Soeldnerposten Abbruch.' Intervall: 'Eintrag [aiStrengthFeeling] der KI-Einstellungen ab +0x164.' ruft: countUnfinishedMoatTilesForPlayer ergaenzen. gehirn: 'UCP/Karte kann sie aendern' als Vermutung kennzeichnen."
+ },
+ "0x004bc1c0": {
+  "name": "spawnAttackWaveForPlayer",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "gehirn: 'Die Zahl der Wellen steht in attackInfo.inv_count' ist nicht belegt. inv_count wird bei jeder Welle um 1 erhoeht und springt bei 0x31 < inv_count auf 1 (Ringzaehler 1..49). Er ist der Index des zuletzt belegten Wellenplatzes, keine Gesamtzahl; ab der 50. Welle werden alte Plaetze ueberschrieben. Das widerspricht auch der eigenen Regel in p2.",
+   "live: 'Editor-Menge' ist aus dieser Funktion nicht belegt, param_3/param_5 kommen vom Aufrufer (nicht im Code). Das Ergebnis (Prozent*Menge)/100 ist ganzzahlig abgerundet, und bei Belagerungsgeraeten ist es nur ein Zaehlerstand (Byte, (char)iVar4), keine erzeugte Einheitenzahl.",
+   "Kleinigkeit: Die Wegweiser-Zeile wird je Welle ueber unknownSignpostRelatedArray[inv_count] gewaehlt; der Wegweiser-Zaehler local_c startet nur einmal bei 0 und wird zwischen erstem und zweitem Durchlauf nicht zurueckgesetzt."
+  ],
+  "korrektur": "gehirn: 'Die Staerke von Wellen skaliert mit der Schwierigkeit (50/100/140/200 %). attackInfo.inv_count ist der Index des zuletzt angelegten Wellenplatzes (1 bis 49, danach wieder 1), keine Gesamtzahl der Wellen.' live: 'Eine Invasionswelle ausloesen bei Schwierigkeit 0 und 2 -> Einheitenzahl der Welle (ohne Belagerungsgeraete) -> 50 % bzw. 140 % der vom Aufrufer uebergebenen Menge, abgerundet.'"
+ },
+ "0x0048acb0": {
+  "name": "CommandSwitchTeams",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "Art 0 und Art 1 indizieren das Zaehlfeld mit der Spielernummer, nicht mit dem Team des Spielers: aiStack_24[protocolInvokerPlayerID] (Art 0) bzw. aiStack_24[DAT_GameCommandParam0] (Art 1), waehrend aiStack_24[t] die Spieler mit playerTeams == t zaehlt. Geprueft wird also die Besetzung des Teams mit der Nummer des Platzes, nicht 'sein Team'. Beides ist nur gleich, solange Teamnummer = Platznummer. 'Sender sein Team nicht allein' und 'Param0 nicht allein' sind daher zu glatt formuliert.",
+   "offen: Die Unsicherheit zu iVar6 ist unnoetig. In Art 1 ist iVar6 eindeutig Param0 (iVar6 = DAT_GameCommandParam0 steht vor der Verzweigung; der Gebrauch als Schleifenzaehler liegt nur im Art-2-Zweig, der mit return endet). Das Team von Param0 wird auf das des Senders gesetzt.",
+   "p3: 'nur zu zweit' ist als Tatsache formuliert, in p2 aber als 'vermutlich'. Belegt ist nur: Ein Zusammenschluss ueber Art 1 verlangt, dass beide vorher allein sind (countPlayersInSameTeam < 2), es entsteht also hoechstens ein Zweierteam. Zu Teams aus anderen Wegen (z. B. Lobby) sagt die Funktion nichts. Ausserdem fehlt in p3 die zweite Bedingung (mehr als 2 belegte Teams oder Zaehlfeld[Param0] ungleich 1).",
+   "Art 0: 'Param0 ist der eigene Platz' heisst currentPlayerSlotID, also der lokale Rechner; die Meldung (Text nennt den Sender protocolInvokerPlayerID) erscheint nur dort, wo Param0 der lokale Platz ist. Das steht in der Regel nicht klar."
+  ],
+  "korrektur": "regeln Art 0: 'Nur auf dem Rechner, auf dem Param0 der lokale Platz (currentPlayerSlotID) ist: Gibt es mehr als 2 belegte Teams oder ist die Zahl der Spieler mit playerTeams gleich Platznummer des Senders ungleich 1, wird die Zeit gemerkt und Text 0x25 angezeigt.' regeln Art 1: 'Zusammenschluss nur, wenn Param0 und Sender jeweils allein im Team sind (countPlayersInSameTeam kleiner 2) und (mehr als 2 belegte Teams oder die Zahl der Spieler mit playerTeams gleich Platznummer von Param0 ungleich 1); dann bekommt Param0 das Team des Senders.' offen: iVar6-Punkt streichen. p3: 'nur zu zweit' als 'durch diesen Befehl hoechstens zu zweit' fassen."
+ },
+ "0x0052b860": {
+  "name": "updateTribes",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "gehirn: 'Gruppen von Menschenplaetzen laufen nur ueber die Kampfhaltung' unterschlaegt die zweite Haelfte der Bedingung (currentPlayerFullIDArray[owner] != -1) || (currentGameMode != GM_SOLITARY). Ausserhalb von GM_SOLITARY laufen alle Gruppen, auch die von Plaetzen mit Kennung -1, nur ueber den Zweig 'Tiertypen 0xd-0x10 sonst updateTribeCombatStanceBehavior'. updateTribeBehaviorBasedOnBehaviorType und markTribeAsAnimalTribe werden dort nie aufgerufen. Die Regel in p2 ist richtig, das gehirn verkuerzt sie irrefuehrend.",
+   "p3: 'Jeden Spieltakt' ist aus dieser Funktion nicht belegt (Aufrufer nicht im Code); ebenso gilt 'etwa alle 32 Ticks je Gruppe' nur, wenn die Funktion bei jedem Tick laeuft.",
+   "regeln: Der Fall AITT_SWORDSMEN | AITT_LADDERMEN (geht ebenfalls an updateTribeBehaviorBasedOnBehaviorType) fehlt in der Aufzaehlung der Kampfarten."
+  ],
+  "korrektur": "gehirn: 'Zeigt, dass KI-Gruppen und Wildtiere ueber denselben Durchlauf laufen. Eigene Gruppen von Mitspielerplaetzen laufen nur ueber die Kampfhaltung; dasselbe gilt fuer alle Gruppen in jedem Spielmodus ausser GM_SOLITARY. Nur bei Plaetzen ohne Mitspieler (Kennung -1) im Modus GM_SOLITARY greift die KI-Verhaltensfunktion.' p3: 'Jeden Spieltakt' durch 'bei jedem Aufruf' ersetzen."
+ },
+ "0x00484850": {
+  "name": "ClickExtendRallyPoint",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p1: 'fuegt einer Gruppe einen weiteren Sammelpunkt hinzu' stellt die Deutung von Param0 als Gruppe als Tatsache hin. Im Code ist Param0 nur ein vorzeichenbehafteter 2-Byte-Wert (param-Name ohne Bedeutung), und p2 fuehrt die Bedeutung selbst als offen ('vermutlich Gruppe, X, Y und Kennzeichen'). Beleg fehlt."
+  ],
+  "korrektur": "p1 zweck: 'Netzwerkbefehl: fuegt einen weiteren Sammelpunkt hinzu (Param0 vermutlich die Gruppe).'"
+ },
+ "0x0047db10": {
+  "name": "initializeDirectPlayAndCreateOrJoinSession",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "regeln: 'Beim Beitritt wird ein Spieler angelegt (CreatePlayer)' ist unvollstaendig. Das Label LAB_close_and_release_if_err wird auch vom Host-Pfad (Open mit OFE_CREATE) angesprungen; danach laeuft derselbe CreatePlayer-Block. Spieler wird also bei Host UND bei join gleich TRUE angelegt, nur beim Nicht-Host mit join gleich FALSE nicht (dort endet der Ablauf vorher mit _status = 0).",
+   "schreibt: DPLAY_CurrentSessionGUID fehlt; der Nicht-Host-Zweig setzt Data1 bis Data4 auf 0 (die Regel 'Kennung nullen' nennt es, die Feldliste nicht).",
+   "regeln: 'Bei Fehler: Sitzung schliessen, Objekt freigeben' stimmt nur fuer das Open. Scheitert InitializeConnection (LAB_release), wird nur Release aufgerufen, kein Close. Scheitert CreatePlayer, kommt DPERR_ABORTED ohne Close/Release und ohne Setzen von DPLAYX_4A."
+  ],
+  "korrektur": "regeln ersetzen: 'Nach erfolgreichem Open (Host mit OFE_CREATE oder Beitritt mit OFE_JOIN) wird ein Spieler angelegt (CreatePlayer); misslingt das: DPERR_ABORTED, ohne Close/Release. Der Nicht-Host legt bei join gleich FALSE keinen Spieler an.' 'Bei Fehler im Open: Close, Release, DPLAYX_4A = 0, Fehlercode. Scheitert InitializeConnection: nur Release.' schreibt ergaenzen: DPLAY_CurrentSessionGUID."
+ },
+ "0x004f2070": {
+  "name": "removeTree",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "regeln: 'Loescht zuerst die Fussabdruck-Markierungen des Baums, dann die Wegverbindungen rund um das Feld' stimmt fuer den zweiten Schritt nicht. Aufgerufen wird updatePathLinkagesInAllEightDirections (aktualisiert die Verbindungen in allen acht Richtungen), nicht ein Loeschen; das widerspraeche auch p3 ('Feld wird wieder begehbar').",
+   "Der Aufruf applyTreeBrushToLogicalLayer(treeID, 1) fehlt in den regeln (nur in ruft/schreibt). Er steht vor dem Nullen des Baumplatzes. Die Bedeutung der 1 ist aus dem Code nicht belegt; 'Feld wird wieder begehbar' in p3 ist daraus gefolgert, nicht belegt."
+  ],
+  "korrektur": "regeln: 'Loescht zuerst die Fussabdruck-Markierungen des Baums, aktualisiert dann die Wegverbindungen rund um das Feld (updatePathLinkagesInAllEightDirections), meldet dem Wegfinder die Neuberechnung der getrennten Gebiete, wendet den Baumpinsel auf die Logikschicht an (applyTreeBrushToLogicalLayer mit 1) und ueberschreibt zuletzt den Baumplatz mit 0.'"
+ },
+ "0x004d3850": {
+  "name": "determineAIPlayerHelp",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p3: 'wenn sie selbst nicht bedroht ist' ist eine nicht belegte Deutung und steht im Widerspruch zum Flagnamen. Im Code gilt: isNotNervousByEnemyTroopValue gesetzt -> Absage 1. Nach dem Namen heisst das Flag 'ist NICHT nervoes'; die Zusage braeuchte dann ein NERVOESES (bedrohtes) Verhaeltnis, nicht ein unbedrohtes. Belegt ist nur die Bedingung 'Flag nicht gesetzt'.",
+   "p1: 'verteidigend hilft' ist nicht belegt. Die Funktion prueft nur totalAttackTroops gegen AttForceSupportAllyThreshold; welche Hilfe folgt, steht laut offen nicht in der Funktion.",
+   "p3: 'Sprachansagen': Die Funktionsnamen (playWill...Bik...) deuten auf Bik-Clips (Bink-Video), nicht auf reine Sprache."
+  ],
+  "korrektur": "p1 zweck: 'Entscheidet, ob eine KI auf die Bitte eines Verbuendeten um Hilfe zusagt.' p3: 'Die KI sagt zu, wenn das Flag isNotNervousByEnemyTroopValue nicht gesetzt ist und sie genug Angriffstruppen hat (totalAttackTroops mindestens AttForceSupportAllyThreshold). Eine Absage kommt mit einem von zwei Bik-Clips. Die Deutung des Flags als bedroht/nicht bedroht ist offen.'"
+ },
+ "0x004f15c0": {
+  "name": "aiDecideOnNewBuildings",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "regeln: 'Rueckkehr ohne Bau' beim Pausenstart ist irrefuehrend. Die Rohstoffgebaeude-Stufe (Holzfaeller, Farm, Steinbruch, Eisenmine, Pechquelle) ist in diesem Aufruf vorher schon gelaufen; uebersprungen werden nur der Bauplan-Schritt sowie aiPlaceFlag und aiPlaceBrazier.",
+   "regeln: '(dann duerfen nur Huetten gebaut werden)' zu isPausing = 1 ist aus dieser Funktion nicht belegt. isPausing wird nur an executeDefaultCastleAIV und aiPlaceAIVBuilding durchgereicht.",
+   "regeln: Die Bauplan-Schleife laeuft von Schritt 1 bis hoechstens min(currentStepGoal, totalSteps) und nur bei totalSteps > 0; totalSteps als Obergrenze fehlt. Farm: setNextFarmTypeToBuild nur, wenn aiPlaceFarm einen Wert ungleich 0 liefert (steht als unbedingt).",
+   "gehirn: 'baut doppelt so schnell' ueberzeichnet; belegt ist nur: currentStepGoal waechst um 2 statt 1 je Aufruf, Pausen werden bei reicher KI sofort beendet (aivCurrentPause = 0). 'Pausen im Bauplan sind Zeitfenster fuer Angriffe' ist reine Vermutung und steht nirgends im Code.",
+   "live: 'Gold ueber 16000' ist ungenau: reich ist Gold >= 16000 (Code: _currentGold < 16000 ist nicht reich). Und 'je Aufruf steigt um 2' stimmt nicht bei laufender Pause, beim Pausenstart oder bei den fruehen Rueckkehren (resourceRebuildDelay); dann bleibt currentStepGoal gleich. Ausserdem passt live_art 'ki-welle' nicht zu dieser Messung (Bauziel, keine Angriffswelle)."
+  ],
+  "korrektur": "regeln Pause: 'Startet eine Pause, kommt die Rueckkehr, bevor der Bauplan-Schritt und aiPlaceFlag/aiPlaceBrazier laufen (die Rohstoffgebaeude-Stufe dieses Aufrufs ist schon erledigt).' isPausing: 'wird an executeDefaultCastleAIV/aiPlaceAIVBuilding durchgereicht, Wirkung dort.' Bauplan: 'Schritt 1 bis min(currentStepGoal, totalSteps).' gehirn: 'Gegnerische KI mit Gold ab 16000 laesst ihr Bauziel (currentStepGoal) je Aufruf um 2 statt 1 wachsen und beendet Pausen sofort; Gold des Gegners (Slot 15) zeigt, wie schnell sein Bauplan voranschreitet.' live: 'KI-Spieler mit Gold ab 16000 beobachten -> currentStepGoal je Aufruf ohne laufende Pause -> steigt um 2 (bei 5000 bis 15999 um 1).'"
+ },
+ "0x0051a5b0": {
+  "name": "getClosestWideValueBasedOnPlayer",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "regeln: 'Nur Eintraege mit Wert unter 5999' benennt das Feld nicht. Im Code ist es _ptr->buildingID < 5999 (nicht der zurueckgegebene Kachelwert); neben 'aus: Kachelwert' kann 'Wert' so falsch gelesen werden.",
+   "p1/regeln: 'Burg-Eingang' bzw. 'Burg des Gegners' ist aus dem Code nicht belegt. Gelesen wird playerDataArray[Ziel].campground.xEntry/yEntry; dass campground die Burg ist, ist eine Annahme."
+  ],
+  "korrektur": "regeln: 'Nur Eintraege mit buildingID unter 5999 und unitID gleich 0.' 'Wertung = Entfernung Einheit bis Stelle (tile2) + Entfernung Stelle bis zum Eingangspunkt des Zielspielers (campground.xEntry/yEntry; vermutlich die Burg).'"
+ },
+ "0x00515da0": {
+  "name": "placeTree",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "Regel 'createTree(x, y, Art, Stufe, 0, 0, 3)': Der vierte Wert ist nicht die Baumstufe 3, sondern local_4, also das Ergebnis von getValueFrom0UpTo3ForTreeTypeAndTreeStage(Typ, 3) (0..3), dasselbe, das BrushSizeArray indiziert. Die konstante 3 steht erst an siebter Stelle. Die Regel davor ('Baumstufe immer 3') lässt 'Stufe' als 3 lesen."
+  ],
+  "korrektur": "Regel ersetzen: createTree(x, y, Baumart, Ergebnis von getValueFrom0UpTo3ForTreeTypeAndTreeStage(Art, 3), 0, 0, 3). Die Baumstufe 3 geht nur in getValueFrom0UpTo3ForTreeTypeAndTreeStage ein; an createTree gehen das Ergebnis (0..3) an vierter Stelle und die konstante 3 an siebter Stelle."
+ },
+ "0x004039f0": {
+  "name": "deleteEntity",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p1: bereich 'Einheiten' und zweck 'Effekt-Eintrag' widersprechen sich; im Code stehen nur EntityState und Entity, nichts zu Effekten oder Einheiten.",
+   "'Austragen aus der Kachelkette' und 'kann neu vergeben werden' sind aus dem Namen doSomethingWithOtherEntitiesOnTile abgeleitet; der Code zeigt nur den Aufruf mit entityID, nicht was er tut. offen ist trotzdem leer."
+  ],
+  "korrektur": "Zweck: Löscht einen Entity-Eintrag: ruft erst doSomethingWithOtherEntitiesOnTile(entityID) auf und füllt dann sizeof(Entity) Bytes von entityArray[entityID] mit 0. offen: Was doSomethingWithOtherEntitiesOnTile genau tut (vermutlich Kachelkette bereinigen) und ob Entity Effekte sind, ist nicht belegt."
+ },
+ "0x004238b0": {
+  "name": "UpdateGateHouseLarge",
+  "urteil": "falsch",
+  "befunde": [
+   "Regel 'höchstens 0x50 (80)' widerspricht dem Code: 'if (0x51 < local_14) local_14 = 0x50' kappt erst ab 0x52. 0x51 (81) bleibt unverändert und tritt auf (buildingVariation 0x50 plus 1 bei mapOrientation 2 oder 6).",
+   "Die zentrale Verzweigung local_14 == 0x50 gegen sonst fehlt ganz. Bei 0x50: field20_0x38 = 0x2c, field22_0x40 = 0xd, Schadenswerte in field33_0x6c..field36_0x78, Torbild in field29_0x5c (Zustand 2: 0xc, Zustand 1 und 3: Tabellenwert + 6). Sonst: field21_0x3c = 0x2d, field23_0x44 = 0xe, Schadenswerte in field37_0x7c, ownerFlagFrame, field39_0x84, field40_0x88, Torbild in shouldRenderRoof (Zustand 2: 6, Zustand 1 und 3: Tabellenwert). Keine dieser Zahlen steht in der Erklärung.",
+   "Die Töne FX_PC_DROP, FX_PC_SLAM und FX_PC_LIFT laufen nur, wenn animationActive != 0; die Regeln nennen die Bedingung nicht, obwohl animationActive unter liest steht.",
+   "schreibt unvollständig: renderAnimation (erst 0, dann 1), displayOwnerFlag = 1 und animationIncrement = 1 fehlen. ownerFlagFrame (0x80) bekommt im Zweig local_14 != 0x50 einen Schadenswert, der Feldname täuscht.",
+   "gehirn 'Wege durch das Tor sind nur im Zustand unten (pathLinkageRelated2 = 2) frei' ist im Code nicht belegt: Er ruft updatePathLinkageTileMapRelatedToGates nur bei den Übergängen 1->2 und 3->0 auf; ob Zustand 2 begehbar oder gesperrt ist, entscheidet jene Funktion. Das widerspricht dem eigenen offen-Eintrag (Bedeutung der Werte unbekannt). Gleiches gilt für Zugbrücke/oben/unten in p1 und p3 sowie die live-Erwartung 0,1,2 beim Öffnen. Auch p3 'sodass Einheiten durchlaufen können' gilt nicht für beide Neuberechnungen (auch 3->0 rechnet neu)."
+  ],
+  "korrektur": "Regeln: Bildvariante local_14 = buildingVariation, bei mapOrientation 2 oder 6 plus 1; ab 0x52 (82) wird auf 0x50 (80) gekappt, 0x51 (81) bleibt. Danach entscheidet local_14 == 0x50: dann field20_0x38 = 0x2c, field22_0x40 = 0xd, Schadenswerte in field33_0x6c..field36_0x78, Torbild in field29_0x5c (Zustand 2: 0xc, Zustand 1 und 3: Tabellenwert + 6); sonst field21_0x3c = 0x2d, field23_0x44 = 0xe, Schadenswerte in field37_0x7c, ownerFlagFrame, field39_0x84, field40_0x88, Torbild in shouldRenderRoof (Zustand 2: 6, Zustand 1 und 3: Tabellenwert). Immer: renderAnimation = 1, displayOwnerFlag = 1, animationIncrement = 1. Töne DROP, SLAM, LIFT nur bei animationActive != 0. Zustand 1 endet, wenn field142_0x6b44[animationIndex] (als Vorzeichen-Byte) nicht mehr positiv ist, Zustand 3 entsprechend mit field141_0x6b28. gehirn: Der Code berechnet die Wegverbindung nur bei den Übergängen 1->2 und 3->0 neu; ob Zustand 2 begehbar oder gesperrt ist, steht in updatePathLinkageTileMapRelatedToGates und ist nicht belegt (live prüfen). offen ergänzen: Bedeutung von pathLinkageRelated2 = 0..3 (oben/unten, offen/zu) ist ungesichert."
+ },
+ "0x00500bb0": {
+  "name": "setSignpostDistanceForCampaignMission",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p3 'Der Wert hängt nur von Spielart und Missionsnummer ab' ist unvollständig: Bei GM_BUILDERUnk entscheidet zusätzlich SEC_U3_MapType2_1 (größer 1 ergibt 7, sonst 30). In p2 steht das richtig, in p3 nicht."
+  ],
+  "korrektur": "Der Wert hängt von der Spielart (gameMode_2) ab, bei Kampagnenmissionen von der Missionsnummer und bei GM_BUILDERUnk von SEC_U3_MapType2_1. Der Name täuscht leicht: Die Funktion setzt auch die Werte aller anderen Spielarten."
+ },
+ "0x0046c450": {
+  "name": "setGfxFileFilter",
+  "urteil": "falsch",
+  "befunde": [
+   "p2 ist leer, obwohl die Funktion vier Felder von openFileNameA schreibt (lpstrFilter, nFilterIndex = 1, lpstrDefExt, lpstrInitialDir) und DAT_TextInputDefinedData.field19_0x710 sowie die Zeichenkette s_gfx__005a5a1c liest; 'schreibt': [] widerspricht dem Code.",
+   "bereich 'Wirtschaft' passt nicht: ResourceManager im Namensraum IO, Aufgabe ist nur der Dateiauswahldialog (p3 sagt selbst 'ohne Bezug zur Wirtschaft').",
+   "'auf Grafikdateien' ist nicht belegt: Der Filter ist der unbenannte Wert field19_0x710, derselbe Zeiger wird auch als lpstrDefExt gesetzt. Belegt ist nur der Startordner-Text s_gfx_."
+  ],
+  "korrektur": "bereich: Dateien/Oberfläche statt Wirtschaft. Zweck: Richtet den Dateiauswahldialog (openFileNameA des ResourceManager) ein: lpstrFilter = DAT_TextInputDefinedData.field19_0x710, nFilterIndex = 1, lpstrDefExt = ebenfalls field19_0x710, lpstrInitialDir = Zeichenkette s_gfx_ (vermutlich Ordner gfx). liest: field19_0x710 und die gfx-Zeichenkette. schreibt: openFileNameA.lpstrFilter, nFilterIndex, lpstrDefExt, lpstrInitialDir. offen: Inhalt von field19_0x710; ob damit wirklich Grafikdateien gefiltert werden, ist nicht belegt."
+ },
+ "0x004f8b50": {
+  "name": "getOrientationThatIsWallTowerOrGatehouse",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "liest nennt nur 'translationMatrix' (DAT_ViewportRenderState.translationMatrix); der eigentliche Richtungsversatz kommt aus this->directionTranslationMatrix[y][Richtung] (Code Zeile 13-14) und fehlt in der Liste.",
+   "'Kartengültigkeits-Tabelle' ist eine Namensvermutung: der Code zeigt nur, dass das Byte bei 0x21aec98 + y*400 + x ungleich 0 sein muss. Dieselbe Tabelle heißt in buildRallyPointPathForTribe 'Maske' und 'begehbare Feldmitte'; die Bedeutung ist nicht belegt und gehört in offen."
+  ],
+  "korrektur": "liest: LogicLayer, directionTranslationMatrix, translationMatrix[y].addXgetTile, SomeOrientationOrderArray, Byte-Tabelle bei 0x21aec98. Erste Regel: 'x und y müssen unter 400 liegen und das Byte der Tabelle bei 0x21aec98 muss ungleich 0 sein (Bedeutung der Tabelle ungeklärt, vermutlich Kartengültigkeit), sonst 0xf'. offen ergänzen: Bedeutung der Tabelle bei 0x21aec98."
+ },
+ "0x00500210": {
+  "name": "getUnownedMoatCount",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p3 '15999 Eintraege insgesamt': der Code belegt nur die Schleifenspanne 1..15999. Die Tabellengröße zeigt er nicht; die Erklärung sagt selbst, Eintrag 0 werde nicht gezählt, setzt also einen Eintrag 0 voraus.",
+   "p3 'freie Plaetze' und 'viele Grabenfelder frei' ist eine Deutung: der Code zählt nur moats[i].owner == 0. Dass owner 0 einen unbenutzten Platz bedeutet und ein Eintrag ein einzelnes Grabenfeld ist, ist nicht belegt."
+  ],
+  "korrektur": "Zählt die Graben-Einträge 1 bis 15999 (15999 Stück), deren owner 0 ist; Eintrag 0 wird übersprungen. Ob owner 0 einen freien Platz oder einen herrenlosen Graben meint und ob ein Eintrag ein einzelnes Feld ist, ist offen; die Gesamtgröße der Tabelle zeigt der Code nicht."
+ },
+ "0x0051af20": {
+  "name": "findOrReserveArcherPointSlot",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "'Sonst merkt sich archerPointsNext den ersten Eintrag mit Wert 0' ist falsch eingegrenzt: Die Vormerkung läuft in derselben Schleife und steht schon, bevor ein späterer Treffer gefunden wird. Liegt ein Eintrag mit Wert 0 vor dem Treffer, ist archerPointsNext auch bei Treffer gesetzt, obwohl der Treffer-Index zurückgegeben wird.",
+   "Sonderfall param_1 == 0 fehlt: der Treffertest (*p == param_1) kommt vor dem Vormerken, also trifft der erste Eintrag mit Wert 0 sofort, Rückgabe 1, archerPointsNext bleibt 0.",
+   "'etwa 256 Einträge' ist aus dem gezeigten Code nicht errechenbar: im Code stehen nur die Endadresse 0x17802ac und der Schritt (8 int = 32 Byte), nicht die Startadresse von field_0x1b678."
+  ],
+  "korrektur": "Durchläuft die Tabelle ab attackInfo.field_0x1b678 in 32-Byte-Schritten (Index ab 1) und setzt zuerst archerPointsNext = 0. Ist der erste Wert eines Eintrags gleich param_1, wird sofort dessen Index zurückgegeben. Beim ersten Eintrag mit Wert 0 wird sein Index in archerPointsNext gemerkt, auch wenn danach noch ein Treffer folgt (bei param_1 = 0 trifft dieser Eintrag selbst, nichts wird vorgemerkt). Kein Treffer: Rückgabe 0, ein freier Platz steht nur in archerPointsNext. Tabellengröße: aus dem Code nicht bestimmbar."
+ },
+ "0x00405b70": {
+  "name": "UpdateFirethrowEntity",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p3 'danach verschwindet das Geschoss' ist als Tatsache formuliert, offen sagt dagegen 'logicalState 7 vermutlich Ende'. Der Code setzt nur logicalState = 7.",
+   "p3 'Beim Aufschlag' macht die Namensdeutung von someCounter_OR_hitGround zur Tatsache; der Code prüft nur != 0.",
+   "'Endet es über die orientation 0x4C, entsteht kein Feuer' gilt nur für diesen Zweig: die beiden if sind unabhängig. Ist der Zähler != 0 und orientation == 0x4C, wird erst das Feuer erzeugt und danach orientation auf 0x3C gesetzt."
+  ],
+  "korrektur": "Setzt die Bildnummer aus graphicType2RelatedOffset. Ist der Zähler someCounter_OR_hitGround ungleich 0 (dem Namen nach Aufschlag), erzeugt AFireSpreadFunction(..., 2, 1) ein Feuer und logicalState wird 7 (vermutlich Ende des Objekts, nicht belegt). Unabhängig davon setzt orientation == 0x4C die orientation auf 0x3C und logicalState auf 7; dieser Zweig erzeugt selbst kein Feuer, kann aber im selben Aufruf nach dem Feuerzweig laufen."
+ },
+ "0x00414b60": {
+  "name": "UpdateBrewery",
+  "urteil": "falsch",
+  "befunde": [
+   "Regel zum Ton FX_STIR falsch: Zustand 4 spielt den Ton nur bei animationIndex == 5 (Code: if (sVar3 == 4) { if (animationActive != 0 && animationIndex == 5) playSFXAtLocation ... }). Die lange Liste 5, 0x34, 100, 0x96, 200, 0xfa, 300, 0x15e, 400 gilt nur für Zustand 0. Zustand 4 gehört also zu 2 und 7.",
+   "schreibt unvollständig: field138_0x1c2 = 1 wird am Anfang unbedingt gesetzt.",
+   "'Besitzerflagge nur außerhalb GM_SOLITARY' ist ungenau: displayOwnerFlag = 1 wird vorher unbedingt gesetzt; nur ownerFlagFrame und field39_0x84 hängen vom Modus ab (im Einzelspielermodus field39_0x84 = 0).",
+   "Die Kopie sVar5 von buildingIsVisuallyActive wird vor updateVisuallyActiveState(buildingID) gebildet und steuert renderAnimation und field20_0x38. Die Regel 'sichtbar aktiv, wenn Arbeiter FIRE/AIM_WEAPON' verschweigt, dass updateVisuallyActiveState das Feld danach noch ändern kann.",
+   "gehirn: 'someCount12 (voll besetzte)' und 'Bierkapazität des Gegners' ist Vermutung als Tatsache. Belegt ist nur: in dieser Funktion wird someCount12 erhöht, wenn currentlyNeededEmployeeCount == 0. Ob andere Gebäudearten denselben Zähler erhöhen, zeigt der Code nicht; eine Kapazität wird nirgends berechnet.",
+   "p3 'setzt zwei Merker': field13_0x28 wird um 1 erhöht (Zähler), nur field14_0x2c wird auf 1 gesetzt. 'Braustube' passt nicht zu Brauerei.",
+   "'Mehrspieler/Gefecht' für currentGameMode != GM_SOLITARY ist Deutung; der Code prüft nur != GM_SOLITARY (processUnitLossStatistic nennt GM_SOLITARY 'Einzelspieler-Modus')."
+  ],
+  "korrektur": "Regel Ton: 'FX_STIR nur bei animationActive != 0: Zustand 0 bei animationIndex 5, 0x34, 100, 0x96, 200, 0xfa, 300, 0x15e oder 400; die Zustände 2, 4 und 7 nur bei animationIndex 5.' Regel Flagge: 'displayOwnerFlag wird immer auf 1 gesetzt; ownerFlagFrame und field39_0x84 laufen nur außerhalb GM_SOLITARY (dort field39_0x84 = 0).' schreibt: zusätzlich field138_0x1c2 = 1. gehirn: 'countBrewers zählt je Spieler die Brauerei-Aufrufe; someCount12 wird hier erhöht, wenn currentlyNeededEmployeeCount == 0 (Gesamtbedeutung des Zählers offen, Bierkapazität nicht belegt).' p3: 'Am Ende erhöht sie field13_0x28 und setzt field14_0x2c = 1.'"
+ },
+ "0x0052cfe0": {
+  "name": "buildRallyPointPathForTribe",
+  "urteil": "falsch",
+  "befunde": [
+   "'ist field20_0x50 gleich 0, kommt FALSE und nichts wird geändert' widerspricht dem Code: this->casDisRelated = param_2, candidateIndex = 0 und candidateIndex2 = 1 werden vor der Prüfung geschrieben (Zeilen 401-403).",
+   "schreibt unvollständig: this->casDisRelated, candidateIndex, candidateIndex2 sowie die Warteschlangen DAT_X10_Array_Section1034 und DAT_Y10_Array_Section1034 fehlen.",
+   "regeln verschweigt das Löschen zu Beginn: für alle 40x40 Zellen werden das Wort vor field15_0x3c und field15_0x3c selbst auf 0 gesetzt.",
+   "'besuchte Felder werden auf 0 gesetzt' ungenau: jeder Nachbar, der die laufende Schwelle übertrifft, wird auf 0 gesetzt, auch wenn im selben Schritt danach ein größerer Nachbar gewählt wird. Gewählt wird der Nachbar mit dem größten Wert (bei Gleichstand der zuerst geprüfte); die Schwelle param_2 wird über alle Schritte nie zurückgesetzt.",
+   "'TRUE bei gebauter Kette' ungenau: TRUE kommt immer, wenn das Startfeld field20_0x50 != 0 hat, auch wenn kein Wegpunkt eingetragen wurde (rallyPointCount bleibt dann 0).",
+   "'begehbare Feldmitte' ist nicht belegt: geprüft wird nur x,y < 400 und das Byte bei 0x21aec98 + y*400 + x ungleich 0 (dieselbe Tabelle wie in getOrientationThatIsWallTowerOrGatehouse, dort als Kartengültigkeit gedeutet).",
+   "p3 'braucht keine Wegsuche' und der Vergleich mit findAndSetNewRallyPointForDeerAndLions sind am gezeigten Code nicht belegbar; die Funktion selbst führt eine Flächenfüllung (Breitensuche) durch."
+  ],
+  "korrektur": "aus: 'TRUE, wenn das Startfeld field20_0x50 != 0 hat (auch bei leerer Kette); FALSE sonst.' regeln: 'Vor der Prüfung werden this->casDisRelated = param_2, candidateIndex = 0, candidateIndex2 = 1 gesetzt; bei field20_0x50 == 0 folgt FALSE, sonst werden zuerst field15_0x3c und das Feld davor aller 40x40 Zellen gelöscht. Breitensuche (Warteschlange DAT_X10/Y10_Array_Section1034, 1600 Plätze, Umlauf) kopiert field20_0x50 nach casDisRelated2 für alle Nachbarzellen mit firstMember > 0, gleichem separateAreaID und field20_0x50 > 0. Danach wandert die Funktion ab einer Zufallsrichtung (SEC_RNG, 3 Bit) jeweils zum Nachbarn mit dem größten casDisRelated2 über der laufenden Schwelle (Start param_2); jeder dabei übertroffene Nachbar wird auf 0 gesetzt. Ist das Byte der Tabelle bei 0x21aec98 für (x*10+5, y*10+5) ungleich 0, wird dieser Punkt als Wegpunkt eingetragen.' schreibt: zusätzlich casDisRelated, candidateIndex, candidateIndex2, DAT_X10_Array_Section1034, DAT_Y10_Array_Section1034."
+ },
+ "0x00401e20": {
+  "name": "UpdateEntity_20_37",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p1/p3 'nach Blickrichtung' und '16 Blickrichtungen' stehen als Tatsache, offen sagt dagegen, field12_0x1c sei 'vermutlich eine Richtung' und beides ungesichert. Belegt ist nur: (field12_0x1c + 8) mit C-Rest 16 geht ins Bild ein.",
+   "p3 'Reine Darstellung' widerspricht den eigenen Regeln: die Funktion setzt auch logicalState = 7 und orientation = 0x3C. 'Lebenszähler' deutet someCounter_OR_hitGround; in UpdateFirethrowEntity gilt dasselbe Feld dem Namen nach als 'Aufschlag'."
+  ],
+  "korrektur": "p3: 'Setzt das Bild aus einem Wert mit 16 Stufen (vermutlich Blickrichtung, ungesichert) und einer Bildreihe. Ein Zähler (someCounter_OR_hitGround) wird je Aufruf um 1 gesenkt; bei 0 oder weniger wird logicalState 7 (vermutlich Ende). orientation 0x4C wird zu 0x3C mit logicalState 7.'"
+ },
+ "0x004563d0": {
+  "name": "processUnitLossStatistic",
+  "urteil": "falsch",
+  "befunde": [
+   "'ein Byte in barracksAssemblyPoints' ist falsch lokalisiert: die Adresse ist (int)barracksAssemblyPoints + Täter - 10 mit Täter 2 bis 5, also 5 bis 8 Byte VOR dem Anfang des Feldes. Das Byte gehört zu einem davor liegenden anderen (hier unbenannten) Feld, nicht zu barracksAssemblyPoints. Betrifft schreibt, regeln und offen.",
+   "Bedingung unklar: finalKillMatrix, der Teamvergleich mit finalTroopsKilledWeighted und der Zähler bei 0x115e9dc liegen alle im Zweig currentGameMode != GM_SOLITARY. regeln nennt das nur bei der Matrix; Teamvergleich und Zähler stehen ohne Bedingung. gehirn und live (finalKillMatrix +1) nennen die Bedingung gar nicht; im Einzelspielermodus bleibt die Matrix unverändert.",
+   "Täter 0 (kein Gegner gemerkt) wird nicht ausgenommen: finalKillMatrix[0][Opfer] und playerTeams[0] werden benutzt; die Erklärung nennt 'Täter ungleich 0' nur für lastlastEncounteredEnemyPlayerID."
+  ],
+  "korrektur": "regeln: 'Täter 2 bis 5: ein Byte 5 bis 8 Byte vor dem Feld barracksAssemblyPoints (anderes, unbenanntes Feld; Adresse barracksAssemblyPoints + Täter - 10) wird auf 1 gesetzt.' und 'Nur wenn currentGameMode != GM_SOLITARY (auch bei Täter 0): finalKillMatrix[Täter][Opfer] +1; bei verschiedenen Teams finalTroopsKilledWeighted[Täter] += Wert (bei field323_0x442 != 0 nur ein Viertel, zur Null hin gerundet); Zähler bei 0x115e9dc + Täter*0x20 + Opfer*0x39f4 +1.' gehirn/live ergänzen: 'nicht im Einzelspielermodus (GM_SOLITARY)'."
+ },
+ "0x0053c300": {
+  "name": "UpdateShield",
+  "urteil": "falsch",
+  "befunde": [
+   "Bit-Ausdruck falsch: ((fixedRng ^ totalGameTicksUnk ^ 0xfffffff8) & 0xf) == 0 gilt, wenn (fixedRng ^ totalGameTicksUnk) & 0xF gleich 8 ist (0xfffffff8 & 0xF = 8), nicht 7.",
+   "'Hat der Besitzer genau einen Ingenieur' ist falsch: local_48[owner] wird nur erhöht, solange er < 1 ist, und kann nie über 1 steigen. Gemeint ist 'mindestens einen passenden Ingenieur'; gemerkt wird der erste in Schleifenreihenfolge (kleinster Einheitenplatz). Dasselbe gilt für 'ersten Spieler 1 bis 8 mit genau einem Ingenieur'; offen 'genau 1 Ingenieur' beruht auf demselben Missverständnis.",
+   "Zweig 'Lokal gesteuertes Schild mit Bemannung': 'wird er freigegeben' widerspricht dem Code. Der Ingenieur bekommt dieselben Werte wie bei der Übernahme (state JESTER_ROAM_TO, disappearFadeAlphaCountdown 0, updateTickTracker 0, cachedState AIM_WEAPON), also Ausblenden. Außerdem fehlt die Bedingung, dass hasUnitReachedDestination(Ingenieur) TRUE sein muss (sonst break), und 'lokal gesteuert' ist nur Deutung von currentPlayerFullIDArray[owner] == -1.",
+   "gehirn: 'ein Ingenieur muss nah sein, damit es sich bewegt' ist nicht belegt: der Bewegungszweig prüft keinen Ingenieurabstand, die 30-Punkte-Prüfung gehört zur Bemannung. 'Gegnerische Ingenieure können es übernehmen': kein Feind- oder Teamtest im Code, jeder Spieler 1 bis 8 mit passendem Ingenieur kommt in Frage. 'belegen Heeresplatz': armySize wird nur hochgezählt, eine Grenze zeigt der Code nicht.",
+   "schreibt unvollständig oder ungenau: isSelectable_OR_matchTime = 1, calculatedOwnerPlayerIndex, displayColorPlayerID, facingDirection (nur am Ziel und bei currentPlayerFullIDArray[owner] == -1), animationCycleNumber und die Felder des Ingenieurs fehlen. 'Bemannung 0/1': der Zähler wird hier nie auf 0 geschrieben, nur auf 1.",
+   "Bewegung: am Ziel werden zusätzlich stateBasedSpeed = 0, animationCycleNumber = 0, field248_0x3bc = 0 gesetzt und bei currentPlayerFullIDArray[owner] == -1 facingDirection = tribes[tribeID].orientation (nicht erwähnt). Wegen 'sVar5 < 0x47' (vorzeichenbehaftet) gibt auch ein negativer moveInstructionSpeedDelayTracker stateBasedSpeed 0, nicht nur 1 bis 70."
+  ],
+  "korrektur": "Bemannung: 'Alle 16 Ticks, wenn (fixedRng XOR totalGameTicks) UND 0xF gleich 8 ist, und das Schild im Zustand FIRE_WEAPON ist, wird nach Ingenieuren gesucht...; Hat der Besitzer mindestens einen passenden Ingenieur, übernimmt der erste; sonst geht das Schild an den ersten Spieler 1 bis 8 mit mindestens einem passenden Ingenieur (Besitzerwechsel, neue Gruppe).' Zweig currentPlayerFullIDArray[owner] == -1 und Bemannung: 'Zählt den bemannenden Ingenieur nur, wenn UID unverändert, hasUnitReachedDestination TRUE, Höhenunterschied höchstens 16 und Abstand unter 30 Mikropunkten; genau dann wird er ausgeblendet (JESTER_ROAM_TO) und das Schild geht auf DETERMINE_NEXT_STATE.' gehirn: 'Schilde zählen in armySize mit. Ein Ingenieur muss unter 30 Mikropunkten nah sein und mit Ziel Schild unterwegs sein, damit er es bemannt; hat der Besitzer keinen solchen Ingenieur, kann ihn der erste andere Spieler 1 bis 8 mit passendem Ingenieur übernehmen (kein Feindtest im Code).'"
+ },
+ "0x00535fd0": {
+  "name": "makeSelectionBasedOnShortcut",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "schreibt unvollständig: Schleifenzähler beider Schleifen ist die globale Variable DAT_CurrentUnitSlotID (for (DAT_CurrentUnitSlotID = 1; ...)); sie bleibt nach dem Aufruf auf maxUnitCount stehen. Einheitenplatz 0 wird in der ersten Schleife nicht angefasst.",
+   "p3 'Tote ... fallen aus der Gruppe' ist aus dem Code nicht belegt: in der zweiten Schleife wird dying gar nicht geprüft. Ein Eintrag wird nur gestrichen, wenn die uid nicht passt oder unknownTestAgainst0_2 != 0 oder disappearFadeAlphaCountdown != 0."
+  ],
+  "korrektur": "p3: Beim Drücken einer Gruppentaste werden die gemerkten Einheiten wieder gewählt. Einträge, deren Einheitenplatz eine andere uid trägt oder bei denen unknownTestAgainst0_2 bzw. disappearFadeAlphaCountdown ungleich 0 ist, werden aus der Gruppe gestrichen (ersetzte oder verschwindende Einheiten). p2 schreibt zusätzlich: DAT_CurrentUnitSlotID (Schleifenzähler, endet bei maxUnitCount)."
+ },
+ "0x00524ca0": {
+  "name": "isTribePathToDestinationClear",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p1 'Zielfeld ... frei' ist zu eng: Geprüft wird nicht nur das Zielfeld, sondern je Einheit der Gruppe ein weiteres Feld nahe dem Ziel (findClosestTileToStartingTile); p3 beschreibt das besser als p1.",
+   "regeln 'Suche um das Ziel mit Radius 500': 500 ist nur das fünfte Argument von findLinkageBasedPathOrWalkRadius(param_4, param_5, -1, -1, 500, FALSE). Dass es ein Radius ist, steht nicht im Code; wegen der gleichen Grenze 500 bei ALG_ResultTileIndex ist eine Höchstzahl an Feldern mindestens ebenso wahrscheinlich.",
+   "regeln 'nicht tunnelnd' deutet tunnelerFinishedDigging != 2 als Zustand; die Bedeutung des Werts 2 ist nicht belegt (der Name spricht eher für 'fertig gegraben').",
+   "'lebender Einheit' ungenau: übersprungen wird jede Einheit mit logicalState != ULS_NORMAL oder dying != 0.",
+   "Grenze: ALG_ResultTileIndex wird vor der Prüfung erhöht und bei >= 500 abgebrochen (Ergebnis 0); das 500. Feld wird nicht mehr auf Fremdeinheiten geprüft, eine Gruppe mit 500 oder mehr Einheiten im Normalzustand ergibt immer 0."
+  ],
+  "korrektur": "p1: Prüft, ob die Felder um das Ziel einer Gruppe (eines je Einheit im Normalzustand, nicht sterbend) frei von Einheiten anderer Gruppen sind. regeln: das Argument 500 an findLinkageBasedPathOrWalkRadius ist in der Bedeutung ungeklärt (vermutlich Höchstzahl Felder); fremd = tribeID ungleich param_1, nicht die aktuelle Einheit selbst und tunnelerFinishedDigging ungleich 2 (Bedeutung von 2 offen); beim 500. geholten Feld Abbruch mit 0 ohne Prüfung."
+ },
+ "0x004ca0c0": {
+  "name": "setAICParameters_14",
+  "urteil": "falsch",
+  "befunde": [
+   "p3 'mit Maschinen, Assassinen und Tunnelgräbern' widerspricht dem Code: der Satz setzt AttMaxTunnelers = 0 (und AttMaxLaddermen = 0). Beide Felder fehlen in regeln. Dass AttDiggingUnit = 71 ein Tunnelgräber ist, ist nicht belegt (offen nennt die Typnummern selbst ungesichert).",
+   "'CowThrowInterval 6 (sonst 10000)' und p3 'statt 10000': die Zahl 10000 kommt in diesem Code nicht vor, der Vergleichswert ist unbelegt. Ebenso sind 'der gründlichste dieser Gruppe' und 'langsame Anforderungen' Vergleiche mit anderen Sätzen, die der Code nicht zeigt.",
+   "regeln unvollständig, es fehlen gesetzte Werte: defSiegeEngineGoldThreshold 200, defSiegeEngineBuildDelay 4, DefDiggingUnit 26 / DefDiggingUnitMax 4, OuterPatrolGroupsCount 1 / OuterPatrolGroupsMove 1 / OuterPatrolRallyDelay 5, RaidRetargetDelay 4, AttForceSupportAllyThreshold 50, AttMovingTribesThreshold 100, AttUnitPatrolRecommandDelay 8, AttUnitPatrolGroupsCount 0, AttUnitEngage 0 / AttUnitEngageMax 0, AttMaxLaddermen 0, AttMaxTunnelers 0 sowie unknown001..005 (0/0/0/1/1), unknown011 = 10, unknown072 = 200, unknown073 = 30.",
+   "'Digging Typ 71 bis 80' ist mehrdeutig: AttDiggingUnit = 71 (Typ), AttDiggingUnitMax = 80 (Höchstzahl). Alle übrigen genannten Zahlen und Zuordnungen stimmen mit dem Code überein (134 Zuweisungen, 'rund 135' ist vertretbar)."
+  ],
+  "korrektur": "p3: Dieser Gegnerbogen setzt auf viel Vorrat (maxFood 300), verzögerte Anforderungen (aiRequestDelay 40) und große Angriffswellen (AttForceBase 50 + Zufall 20) mit Belagerungsmaschinen (SiegeEngine1..5) und Assassinen (AttMaxAssassins 10). Tunnelgräber und Leiterträger sind ausgeschlossen (AttMaxTunnelers 0, AttMaxLaddermen 0). CowThrowInterval ist 6. regeln: ohne '(sonst 10000)'; ergänzen: AttMaxLaddermen 0, AttMaxTunnelers 0, DefDiggingUnit 26 (Max 4), defSiegeEngineGoldThreshold 200, defSiegeEngineBuildDelay 4, OuterPatrol 1/1/5, RaidRetargetDelay 4, AttForceSupportAllyThreshold 50, AttMovingTribesThreshold 100, AttUnitPatrolRecommandDelay 8. gehirn: 'Pionieren' bleibt (AttMaxEngineers 10), Tunnelgräber nicht erwähnen."
+ },
+ "0x004d0520": {
+  "name": "isResourceLargerOrEqualThanMinimumGoodsRequiredAfterTrade",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "liest/regeln unvollständig: Zuerst wird playerDataArray[playerID].aiType gelesen; der Parametersatz ist aics[aiType - 1] (aiType gleich AITA_NULL bedeutet keine KI). Das steht nicht in liest.",
+   "gehirn ist unvollständig: Die Schwelle ist minimumGoodsRequiredAfterTrade + puffer, nicht der Tabellenwert allein. Welchen puffer die Aufrufer übergeben, steht nicht im Code (offen ist leer).",
+   "p3 'Die KI verkauft nur ...' ist eine Deutung aus dem Namen ('Trade'); wer die Funktion aufruft und ob es um Verkauf oder eine andere Art Handel geht, ist aus dem Code nicht belegt. Die Rechenregeln selbst (Ohne KI TRUE, Gold FALSE, sonst Bestand >= Wert + puffer) stimmen."
+  ],
+  "korrektur": "liest: playerDataArray[spieler].aiType, currentResources[ware], aics[aiType-1].minimumGoodsRequiredAfterTrade. gehirn: Die KI gibt eine Ware im Handel nur ab, wenn der Bestand >= minimumGoodsRequiredAfterTrade (Satz aics[aiType-1]) + puffer des Aufrufers ist. offen: Wer ruft auf, welchen puffer übergibt er?"
+ },
+ "0x00423cd0": {
+  "name": "UpdateGateHouseSmall",
+  "urteil": "falsch",
+  "befunde": [
+   "regeln 'Je Stufe wird ein Schadensbild mit Wert (fireRelatedRNG1 & 0xf)+1 auf einen von 4 Plätzen gesetzt' stimmt nicht: In der do-Schleife werden uVar6 und uVar3 je Durchlauf um 1 erhöht. Das k-te Schadensbild (k = 0 bis Stufe-1) bekommt den Wert ((fireRelatedRNG1 + k) & 0xf) + 1 auf Platz ((fireRelatedRNG1 >> 8) + k) & 3. Stufe n belegt also n verschiedene der 4 Plätze mit unterschiedlichen Werten.",
+   "Zustandsnamen (0 zu, 1 öffnet, 2 offen, 3 schließt) sind vermutlich vertauscht: Zustand 1 spielt FX_PC_DROP und FX_PC_SLAM (Fallgatter fällt/schlägt zu), Zustand 3 spielt FX_PC_LIFT (Fallgatter hebt sich). Das passt zu 1 = schließt und 3 = öffnet. offen nennt die Namen zwar als abgeleitet, regeln führt sie aber als Tatsache. (Deutung der Tonnamen, nicht sicher.)",
+   "Töne in den Zuständen 1 und 3 werden nur gespielt, wenn animationActive != 0 ist; das fehlt in regeln.",
+   "Unvollständig: Bei Variante 0x50 gehen die Schadenswerte in field33..field36 und field22_0x40 = 0xb, sonst in field37, ownerFlagFrame, field39, field40 und field23_0x44 = 0xc. In den Zuständen 1 und 3 setzt der Tabellenwert (field142 bzw. field141) bei Variante != 0x50 shouldRenderRoof, bei Variante 0x50 field29_0x5c = Wert + 6; Zustand 2 setzt shouldRenderRoof = 6 bzw. field29_0x5c = 0xc. displayOwnerFlag = 1 und ownerFlagFrame werden ebenfalls geschrieben."
+  ],
+  "korrektur": "regeln: Je Schadensstufe n (1 bis 4) werden n Schadensbilder gesetzt; das k-te (k = 0 bis n-1) mit Wert ((fireRelatedRNG1 + k) & 0xf) + 1 auf Platz ((fireRelatedRNG1 >> 8) + k) & 3. Die Zustandsnamen von pathLinkageRelated2 sind unsicher; nach den Tönen (DROP/SLAM in Zustand 1, LIFT in Zustand 3) eher 1 = schließt, 3 = öffnet. Töne nur bei animationActive != 0."
+ },
+ "0x005076a0": {
+  "name": "placeBarracks",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "regeln zur Meldung 0x4d unvollständig: Sie wird nur ausgelöst, wenn playerID == DAT_GameSynchronyState.currentPlayerSlotID (eigener Spieler) und availablePeasantsAtFire < buildingTypeBasedEmployeeCount des zuletzt angelegten Teils und (populationCap <= currentPopulation oder popularity < 5000). Die Zahl 5000 und die Bedingung 'eigener Spieler' fehlen; ebenso die Aufrufwerte setBottomLeftTextDisplayText(1, 0x4d, 1, 0, 100, 6000).",
+   "schreibt unvollständig: this->placedBuildingID wird gesetzt (Zeile this->placedBuildingID = iVar2). liest fehlt currentPlayerSlotID, buildingTypeBasedEmployeeCount, widthOrHeight, buildingX/buildingY.",
+   "'Meldung 0x4d wie bei anderen Gebäuden' ist in diesem Code nicht belegt (Vergleich mit anderen Funktionen, die hier nicht vorliegen).",
+   "Dass der letzte Parameter 0xf von setupBuildingData eine 'Ausrichtung' ist, ist eine Annahme über die Signatur; belegt ist nur: das Hauptgebäude und alle drei Teile erhalten dort 0xf, und buildingOrientation wird nur für den Offset-Index verwendet. Auf allen Kacheln des Hauptgebäudes wird LogicLayer |= 0x400 gesetzt (nicht nur dort, wo buildingX und buildingY 2 sind; diese Einschränkung gilt nur für die Teile).",
+   "updateWalkAndPathLayer(8, x, y) wird nur für die drei Exerzierplatz-Teile aufgerufen, nicht für das Hauptgebäude; steht nicht in regeln."
+  ],
+  "korrektur": "regeln ergänzen: Meldung 0x4d (setBottomLeftTextDisplayText(1, 0x4d, 1, 0, 100, 6000)) nur beim eigenen Spieler (currentPlayerSlotID) und wenn availablePeasantsAtFire kleiner ist als buildingTypeBasedEmployeeCount des letzten Exerzierplatz-Teils und (populationCap <= currentPopulation oder popularity < 5000); Bit 0x400 auf allen Kacheln des Hauptgebäudes, bei den Teilen nur bei buildingX == 2 und buildingY == 2; updateWalkAndPathLayer(8, x, y) je Teil. schreibt ergänzen: placedBuildingID."
+ },
+ "0x004c62c0": {
+  "name": "loadMap",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "regeln 'Alle 8000 SEC_EventsExtra-Einträge: conditionOneIsTrue = 0' ist nicht belegt: Die Schleife zählt zwar 8000 Durchläufe, rückt aber mit pIVar9 = &pIVar9->conditionTwoIsTrue um den Versatz dieses Feldes (nicht um die Eintragsgröße) weiter. Gelöscht werden 8000 aufeinanderfolgende Felder ab Anfang von SEC_EventsExtra; ob das 8000 Einträge sind und ob conditionTwoIsTrue mit gelöscht wird, folgt nicht aus dem Code.",
+   "regeln (erste Zeile) unvollständig: Außer den genannten Werten werden auch unitJesterRelated, unitLadyRelated, field43_0xf0 und field44_0xf4 vor dem Einlesen gemerkt und danach zurückgeschrieben; sie fehlen in liest, schreibt und regeln.",
+   "'lebende Einheiten' (Missionsnummer 1) ist nicht belegt: Geprüft wird nur das Element vor unitType gegen ULS_INVISIBLE (ungleich), unitType == UT_E_ARCHER und Element +4 == 1. Der Zeiger ist UnitTypeShort* (2 Byte je Schritt): die Versätze +4 und -0x3f sind in Elementen, also +8 Byte bzw. -0x7e Byte; 'Einheiten' meint hier Elemente, nicht Spieleinheiten.",
+   "schreibt unvollständig: DAT_GameCore.section1127 = 1, section1095 = 0, SEC_Section1080/1081 = 0, DAT_UnitsState.lastSelectedUnitID = 0, mapAndTime.countUpTo201 = 0, cathedralRelated1 = 0, TIME_ReceivedMessage_2::instance = 0 und die Kopie des Kartennamens an den Anfang von MapPropertiesState (this).",
+   "gehirn: Startwaren, Belagerungszahlen und Beliebtheit kommen nur dann aus der Karte, wenn das Startdatum nach dem Anpassen unverändert ist (regeln nennt das, gehirn nicht)."
+  ],
+  "korrektur": "regeln: Schleife über SEC_EventsExtra mit 8000 Durchläufen, Schrittweite = Versatz von conditionTwoIsTrue (vermutlich Löschung von 8000 aufeinanderfolgenden Feldern, Eintragsgröße unbekannt). Mission-1-Bedingung: logicalState (Element vor unitType) ungleich ULS_INVISIBLE, nicht 'lebend'. Zusätzlich gemerkt und zurückgeschrieben: unitJesterRelated, unitLadyRelated, field43_0xf0, field44_0xf4. gehirn: Startwaren, Belagerungszahlen und Beliebtheit nur bei unverändertem Startdatum."
+ },
+ "0x004a5230": {
+  "name": "UpdateLadderManState07",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p3 'Er wird stets als nutzbar erkannt, solange das Gebäude noch dasselbe ist' vermischt die Felder: isRecognizedByPathfinding wird immer auf 1 gesetzt (unabhängig vom Gebäude); die uid-Prüfung setzt nur canBeUsed = 0 bei Abweichung. canBeUsed wird in dieser Funktion nie auf 1 gesetzt. Das widerspricht auch der eigenen Regel 'isRecognizedByPathfinding immer 1'.",
+   "Name im Eingang (UpdateLadderManState07) weicht vom Namen im Code ab (Navigation::UpdateClimbDataState07); die Funktion bearbeitet einen climbData-Eintrag, keinen Leiterträger. p2 und p1 beschreiben das richtig."
+  ],
+  "korrektur": "p3: Der Kletterweg führt hier immer zwei Felder nach oben und wird immer als vom Wegfinder erkannt markiert. Gehört er nicht mehr zum selben Gebäude (sourceUID ungleich uid), wird er zusätzlich gesperrt (canBeUsed = 0); freigeschaltet wird er hier nie."
+ },
+ "0x0046c280": {
+  "name": "getChecksumOfMapByName",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "Bereich 'Wirtschaft' passt nicht zum Code: Die Funktion liegt im Namensraum IO (ResourceManager), vergleicht nur Kartennamen mit __stricmp und liefert die Karten-Prüfsumme; nichts darin betrifft Wirtschaft oder Rohstoffe. p3 nennt selbst 'Kartenverwaltung', das widerspricht dem Bereich."
+  ],
+  "korrektur": "Bereich: Karten-/Dateiverwaltung (IO) statt Wirtschaft. Alles andere unverändert (Ablauf, Rückgabe 0 bei keinem Treffer und Vergleich ohne Groß-/Kleinschreibung stimmen mit dem Code)."
+ },
+ "0x004563b0": {
+  "name": "isFullIDEqualsToMinus1",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "p3 behauptet als Tatsache '-1 steht für Plätze, die nicht der menschliche Spieler sind', während p2.offen genau diese Bedeutung (nicht menschlich oder nicht belegt) als ungeklärt führt. Der vorliegende Code ist nur der Vergleich currentPlayerFullIDArray[playerID] == -1 und belegt keine Bedeutung von -1; die genannten Fundstellen (processMenuViewSwitch, resetVarious…) lassen sich am gezeigten Code nicht prüfen.",
+   "Nicht erwähnt: Vor dem Arrayzugriff gibt es keine Bereichsprüfung von playerID."
+  ],
+  "korrektur": "Der Name beschreibt nur die Prüfung: TRUE, wenn currentPlayerFullIDArray[playerID] gleich -1 ist (ohne Prüfung des Index). Was -1 bedeutet (Platz nicht belegt oder nicht menschlich), ist ungeklärt; vermutlich steht -1 für Plätze ohne menschlichen Spieler."
+ },
+ "0x0047e240": {
+  "name": "disconnectDPlay",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "schreibt: 'DPLAYX_*=0' ist falsch verallgemeinert. Nur DPLAYX_4A, DPLAYX_LOBBY und DPLAYX_Connection werden auf 0 gesetzt; DPLAYX_PlayerHandle wird nur an DestroyPlayer übergeben und nie zurückgesetzt.",
+   "liest unvollständig: DPLAYX_PlayerHandle, providerNames[], guids[] und stringPointerArray[] werden gelesen, stehen aber nicht in der Liste.",
+   "schreibt unvollständig: providerNames[i] und guids[i] werden auf 0 gesetzt (Schleife über scrollBarItemCount). stringPointerArray[i] wird dagegen nur freigegeben (_free_base), der Zeiger bleibt stehen.",
+   "ruft unvollständig: GlobalHandle, GlobalUnlock und IDirectPlayLobby3::Release (über DPLAYX_LOBBY) fehlen. IDirectPlay4A wird nur geschlossen (CancelMessage, DestroyPlayer, Close), im Code gibt es für DPLAYX_4A kein Release, der Zeiger wird nur auf 0 gesetzt.",
+   "regeln/erklaerung lassen eine Hauptwirkung aus: Die Listen der Verbindungsarten (providerNames, guids, je scrollBarItemCount Einträge) und der Modem-Einträge (stringPointerArray, modemScrollbarCount) werden freigegeben und die Zähler auf 0 gesetzt."
+  ],
+  "korrektur": "Trennt die DirectPlay-Verbindung und setzt den Mehrspielerzustand auf Einzelspiel zurück. Ablauf: Wartecursor an; clearSessionsList; Verbindungsarten-Liste (providerNames/guids, je scrollBarItemCount) freigeben und die Zeiger auf 0 setzen; Modem-Liste (stringPointerArray, modemScrollbarCount) freigeben, die Zeiger bleiben dabei stehen; IDirectPlay4A: CancelMessage, DestroyPlayer(DPLAYX_PlayerHandle), Close, Zeiger auf 0; DPLAYX_LOBBY: Release, Zeiger auf 0; DPLAYX_Connection freigeben, auf 0; danach scrollBarItemCount=0, modemScrollbarCount=0, currentGameMode=GM_SOLITARY, DAT_GameHalted=0, syncStatus=0, flag_0xbec=0, useTCPIP=FALSE, quitGameVoteRelated=0, saveRelated=0; Wartecursor aus. DPLAYX_PlayerHandle wird nicht zurückgesetzt."
+ },
+ "0x0051a550": {
+  "name": "setWide3",
+  "urteil": "kleiner_fehler",
+  "befunde": [
+   "'wideValuesArray[-8]' und 'wideValuesArray[-4]' sind im Code Byte-Offsets (Zugriff per (int)-Umwandlung auf wideValuesArray + param_2*0x177bc + -8 bzw. -4), keine Elementindizes. In Arrayschreibweise führt das in die Irre.",
+   "Zahlen fehlen: Abstand je param_2 ist 0x177bc (96188) Bytes; die Einträge liegen 16 Bytes auseinander (Zeiger wird je Durchlauf um 4 int erhöht); gelesen werden je Eintrag das Feld bei Byte +8 (Vergleich < 5999) und das Feld bei Byte +0xC (Vergleich == 0).",
+   "'unitID', 'playerID' und 'frei' sind Namensdeutungen. Der Code zeigt nur 'Feld bei +0xC gleich 0'. Dass param_2 eine Spieler-/Angreifernummer ist und das Feld eine unitID, ist nicht am Code belegt und steht trotzdem ohne Vorbehalt in p1/p2; in offen steht nur die Bedeutung von 'Wide'.",
+   "p3 'noch frei und erreichbar' stimmt nur bei param_1 == 0. Bei param_1 != 0 entfällt die Frei-Bedingung, dann zählt allein Wert < 5999. 'Erreichbar' als Deutung von Wert < 5999 ist nicht aus dem Code belegt."
+  ],
+  "korrektur": "Setzt für den Block param_2 (Abstand 0x177bc Bytes; vermutlich Spieler-/Angreifernummer) den Zähler (Byte-Offset -4 relativ zu wideValuesArray + param_2*0x177bc) zuerst auf 0 und zählt dann alle Einträge (Anzahl bei Byte-Offset -8, Einträge je 16 Bytes), bei denen das Feld bei +8 (vermutlich Punktwert) kleiner als 5999 ist und das Feld bei +0xC (vermutlich unitID, 0 = frei) gleich 0 ist; bei param_1 != 0 entfällt die zweite Bedingung. Was eine 'breite Stelle' ist und was 5999 bedeutet, ist ungeklärt."
+ },
+ "0x00519310": {
+  "name": "computeAttackWaveTroopComposition",
+  "urteil": "falsch",
+  "befunde": [
+   "p3 'Je höher die Stufe und je mehr Truppen vorhanden sind, desto größer werden die einzelnen Gruppen' widerspricht dem Code. Gegenbeispiele: Pike+ = 5 ergibt _134984 = 4 in Stufe 20-29, aber nur 2 ab Stufe 30 (PK<6). Pike+ = 2 bis 4 ergibt _134984 = 3 in Stufe 10-19, aber 2 in Stufe 20-29. Spieß+Keulen = 3 bis 5 ergibt _134988 = 3 in Stufe 10-19, aber 2 in Stufe 20-29. Spieß+Keulen = 11 ergibt _134988 = 6 in Stufe 20-29, aber 5 ab Stufe 30.",
+   "gehirn und live sind irreführend: 'Wellengrößen ... lassen sich aus der Stufe vorhersagen' und 'bei bekannter Stufe ... Werte passen zur Stufentabelle' lassen weg, dass die Werte bei gleicher Stufe von spearmenAndMacemen, pikemenSwordsmenAndMore und laddermen abhängen (z. B. Stufe 10-19: _134980 = 0 bis 3) und _134984 zusätzlich auf field86627_0x20e04 angehoben wird. Ein Live-Vergleich nur mit der Stufe schlägt deshalb fehl.",
+   "'Angriffsstufe/Stufe' für field86974_0x20f74 ist eine Vermutung (reiner Ghidra-Offsetname; p2.offen führt die Bedeutung selbst als ungeklärt), steht aber in p1, p2, p3, gehirn und live als Tatsache. Belegt sind nur die Schwellen: kleiner 6, 6-9, 10-19, 20-29, ab 30.",
+   "Hinweis zur Prüfung: Die Einzelregeln in p2.regeln (alle fünf Bereiche, Endschritt, Startwert 6 für _134988) wurden Zweig für Zweig gegen den Code nachgerechnet und stimmen."
+  ],
+  "korrektur": "erklaerung: Die KI legt die Größe der einzelnen Gruppen ihrer Angriffswelle fest. Ein Wert (field86974_0x20f74, vermutlich eine Angriffsstufe, Bedeutung ungesichert) bestimmt die Schwellen unter 6, 6-9, 10-19, 20-29 und ab 30. Innerhalb einer Schwelle hängen die Gruppengrößen von den Truppenzahlen ab (Spieß+Keulen, Pike+, Leiter). Tendenziell wachsen die Gruppen mit Stufe und Truppenzahl, aber nicht überall (z. B. Pike+ = 5: _134984 ist in Stufe 20-29 gleich 4, ab Stufe 30 nur 2). _135004 wird an laddermen gedeckelt: 0 (Stufe unter 6), 2, 4, 5, 6. _134984 ist mindestens field86627_0x20e04. | gehirn: Wellengrößen lassen sich nur aus dem Stufenwert zusammen mit den Truppenzahlen (Spieß+Keulen, Pike+, Leiter) und field86627_0x20e04 vorhersagen; die Feldbedeutung ist nicht gesichert. | live: field86974_0x20f74, spearmenAndMacemen, pikemenSwordsmenAndMore, laddermen, engineers und field86627_0x20e04 lesen und attackInfo ab Offset 134972 (Dezimal, 9 Werte zu je 4 Byte) mit der Tabelle in regeln vergleichen."
+ }
+}
